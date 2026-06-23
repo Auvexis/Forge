@@ -1,0 +1,5 @@
+- [x] Adicionar contratos de Undo/Redo
+- [x] Criar helper de alignment guides
+- [x] Integrar snap/guides no canvas e resize
+- [x] Verificar testes e type-check
+- [x] Commitar melhoria

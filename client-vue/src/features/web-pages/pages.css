@@ -594,6 +594,26 @@
   white-space: nowrap;
 }
 
+.web-page-block-alignment-guide {
+  position: absolute;
+  z-index: 0;
+  background: var(--web-page-selected-color);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.web-page-block-alignment-guide--x {
+  top: -12px;
+  bottom: -12px;
+  width: 1px;
+}
+
+.web-page-block-alignment-guide--y {
+  right: -12px;
+  left: -12px;
+  height: 1px;
+}
+
 .web-page-block--drop-inside {
   outline: 2px solid var(--web-page-drop-color);
   outline-offset: -4px;

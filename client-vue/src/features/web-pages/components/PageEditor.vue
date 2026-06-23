@@ -9,6 +9,8 @@
     <PageChromeToolbar
       :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
       :is-saving="pagesStore.isSaving || sitesStore.isSaving"
+      :can-undo="editorStore.canUndo"
+      :can-redo="editorStore.canRedo"
       :published-at="activePagePublishedAt"
       @command="handleChromeCommand"
     />
@@ -469,7 +471,7 @@ function closeRightPanel() {
 }
 
 onMounted(async () => {
-  window.addEventListener('keydown', handleKeyboardSave)
+  window.addEventListener('keydown', handleKeyboardShortcuts)
   window.addEventListener('keydown', handleSpacePanKeyDown)
   window.addEventListener('keyup', handleSpacePanKeyUp)
   await openInitialSite()
@@ -479,7 +481,7 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  window.removeEventListener('keydown', handleKeyboardSave)
+  window.removeEventListener('keydown', handleKeyboardShortcuts)
   window.removeEventListener('keydown', handleSpacePanKeyDown)
   window.removeEventListener('keyup', handleSpacePanKeyUp)
 })
@@ -697,13 +699,13 @@ function stopWorkspacePan(event?: PointerEvent) {
 
 function handlePageDropBlock(
   pageId: string,
-  payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; draggedId?: string },
+  payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string },
 ) {
   if (pageId !== pagesStore.activePage?.id) return
   handleDropBlock(payload)
 }
 
-function handlePageDropRoot(pageId: string, payload: { tag?: PageBlockTag; draggedId?: string }) {
+function handlePageDropRoot(pageId: string, payload: { tag?: PageBlockTag; preset?: string; draggedId?: string }) {
   if (pageId !== pagesStore.activePage?.id) return
   handleDropRoot(payload)
 }
@@ -865,6 +867,8 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.unpublish') void unpublishPage()
   if (command === 'file.openLive') openLivePage()
   if (command === 'file.exportProject') void exportActiveProject()
+  if (command === 'edit.undo') undoPageEdit()
+  if (command === 'edit.redo') redoPageEdit()
   if (command === 'edit.rename') editorStore.selectPage()
   if (command === 'edit.duplicate') {
     if (editorStore.selectedBlockId) editorStore.duplicateBlock(editorStore.selectedBlockId)
@@ -879,11 +883,32 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'view.right-panel') toggleRightPanel()
 }
 
-function handleKeyboardSave(event: KeyboardEvent) {
-  if (event.key.toLowerCase() !== 's') return
+function handleKeyboardShortcuts(event: KeyboardEvent) {
   if (!event.ctrlKey && !event.metaKey) return
+  if (isTypingInField(event.target) && event.key.toLowerCase() !== 's') return
+  if (event.key.toLowerCase() === 'z' && !event.shiftKey) {
+    event.preventDefault()
+    undoPageEdit()
+    return
+  }
+  if (event.key.toLowerCase() === 'y' || (event.key.toLowerCase() === 'z' && event.shiftKey)) {
+    event.preventDefault()
+    redoPageEdit()
+    return
+  }
+  if (event.key.toLowerCase() !== 's') return
   event.preventDefault()
   void saveActiveDocument()
+}
+
+function undoPageEdit() {
+  if (activeCodeFile.value || !editorStore.canUndo) return
+  editorStore.undo()
+}
+
+function redoPageEdit() {
+  if (activeCodeFile.value || !editorStore.canRedo) return
+  editorStore.redo()
 }
 
 function handleSpacePanKeyDown(event: KeyboardEvent) {

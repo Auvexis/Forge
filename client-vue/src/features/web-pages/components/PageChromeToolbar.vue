@@ -29,11 +29,30 @@
         :key="item.id"
         :label="item.label"
         :icon="item.icon"
+        :shortcut="item.shortcut"
+        :disabled="isCommandDisabled(item.id)"
         :danger="item.danger"
         @click="$emit('command', item.id)"
       />
     </AppDropdownMenu>
 
+    <div class="web-page-chrome__divider"></div>
+    <BaseButton
+      size="sm"
+      variant="ghost"
+      icon-left="undo-2"
+      :disabled="!canUndo"
+      title="Undo"
+      @click="$emit('command', 'edit.undo')"
+    />
+    <BaseButton
+      size="sm"
+      variant="ghost"
+      icon-left="redo-2"
+      :disabled="!canRedo"
+      title="Redo"
+      @click="$emit('command', 'edit.redo')"
+    />
     <div class="web-page-chrome__divider"></div>
     <span
       class="web-page-chrome__publish-status"
@@ -101,6 +120,8 @@ import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownIte
 const props = defineProps<{
   isDirty?: boolean
   isSaving?: boolean
+  canUndo?: boolean
+  canRedo?: boolean
   publishedAt?: string | null
 }>()
 
@@ -112,6 +133,8 @@ export type PageChromeCommand =
   | 'file.unpublish'
   | 'file.openLive'
   | 'file.exportProject'
+  | 'edit.undo'
+  | 'edit.redo'
   | 'edit.rename'
   | 'edit.duplicate'
   | 'edit.delete'
@@ -122,7 +145,7 @@ export type PageChromeCommand =
 const menus: Array<{
   id: string
   label: string
-  items: Array<{ id: PageChromeCommand; label: string; icon: string; danger?: boolean }>
+  items: Array<{ id: PageChromeCommand; label: string; icon: string; shortcut?: string; danger?: boolean }>
 }> = [
   {
     id: 'file',
@@ -140,6 +163,8 @@ const menus: Array<{
     id: 'edit',
     label: 'Edit',
     items: [
+      { id: 'edit.undo', label: 'Undo', icon: 'undo-2', shortcut: 'Ctrl Z' },
+      { id: 'edit.redo', label: 'Redo', icon: 'redo-2', shortcut: 'Ctrl Y' },
       { id: 'edit.rename', label: 'Rename page', icon: 'pencil' },
       { id: 'edit.duplicate', label: 'Duplicate page', icon: 'copy' },
       { id: 'edit.delete', label: 'Delete page', icon: 'trash-2', danger: true },
@@ -198,5 +223,11 @@ function openChromeMenu(menuId: string) {
 
 function handleMenuClose(menuId: string) {
   if (activeMenuId.value === menuId) activeMenuId.value = null
+}
+
+function isCommandDisabled(command: PageChromeCommand) {
+  if (command === 'edit.undo') return !props.canUndo
+  if (command === 'edit.redo') return !props.canRedo
+  return false
 }
 </script>

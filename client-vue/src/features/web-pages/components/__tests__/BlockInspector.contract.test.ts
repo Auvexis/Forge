@@ -150,6 +150,16 @@ describe('block inspector contract', () => {
     assert.doesNotMatch(renderer, /<style\s+v-if/)
   })
 
+  it('selection box resize exposes alignment guides and snap helpers', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const styles = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /activeResizeGuides/)
+    assert.match(renderer, /snapResizeToAlignment/)
+    assert.match(renderer, /resizeGuideStyle/)
+    assert.match(styles, /web-page-block-alignment-guide/)
+  })
+
   it('button content panel supports form submit, workflow trigger, open URL actions', () => {
     const source = read('src/features/web-pages/components/BlockContentPanel.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')

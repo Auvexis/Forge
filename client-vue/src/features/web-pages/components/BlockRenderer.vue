@@ -116,6 +116,13 @@
         :aria-label="`Resize from ${corner}`"
         @pointerdown.stop.prevent="startResize($event, corner)"
       />
+      <span
+        v-for="guide in activeResizeGuides"
+        :key="`${guide.axis}:${guide.position}`"
+        class="web-page-block-alignment-guide"
+        :class="`web-page-block-alignment-guide--${guide.axis}`"
+        :style="resizeGuideStyle(guide)"
+      />
       <span v-if="resizeLabel" class="web-page-block-resize__indicator">{{ resizeLabel }}</span>
     </div>
   </div>
@@ -188,6 +195,7 @@ const blockAttributes = computed(() => ({
 const frameElementRef = ref<HTMLElement | null>(null)
 const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
+const activeResizeGuides = ref<Array<{ axis: 'x' | 'y'; position: number }>>([])
 const resizeLabel = ref('')
 const selectionFrameStyle = ref<Record<string, string>>({})
 const editingBlockId = ref(false)
@@ -379,18 +387,83 @@ function resizeFromPointer(event: PointerEvent) {
     tag: props.block.tag,
     freeAspectRatio: event.shiftKey,
   })
-  previewStyles.value = result.styles
-  resizeLabel.value = result.label
+  const aligned = event.shiftKey ? { styles: result.styles, guides: [] } : snapResizeToAlignment(result.styles)
+  previewStyles.value = aligned.styles
+  activeResizeGuides.value = aligned.guides
+  resizeLabel.value = resizeLabelFor(aligned.styles, result.label)
   void nextTick(updateSelectionFrame)
 }
 
 function finishResize() {
   if (previewStyles.value) emit('resize-block', { blockId: props.block.id, styles: previewStyles.value })
   previewStyles.value = null
+  activeResizeGuides.value = []
   resizeLabel.value = ''
   resizeState = null
   stopResizeListeners()
   void nextTick(updateSelectionFrame)
+}
+
+function snapResizeToAlignment(styles: PageBlock['styles'] | undefined) {
+  const currentStyles = styles ?? {}
+  const width = sizeValue(currentStyles.width)
+  const height = sizeValue(currentStyles.height)
+  const targets = resizeTargets()
+  const guides: Array<{ axis: 'x' | 'y'; position: number }> = []
+  const nextStyles = { ...currentStyles }
+  const widthTarget = width == null ? null : closestSize(width, targets.widths)
+  const heightTarget = height == null ? null : closestSize(height, targets.heights)
+  if (widthTarget != null) {
+    nextStyles.width = `${widthTarget}px`
+    guides.push({ axis: 'x', position: widthTarget })
+  }
+  if (heightTarget != null) {
+    nextStyles.height = `${heightTarget}px`
+    guides.push({ axis: 'y', position: heightTarget })
+  }
+  return { styles: nextStyles, guides }
+}
+
+function resizeTargets() {
+  const parent = frameElementRef.value?.parentElement
+  const siblings = Array.from(parent?.children ?? [])
+    .map((child) => child instanceof HTMLElement ? child.querySelector<HTMLElement>('.web-page-block-frame__inner') : null)
+    .filter((element): element is HTMLElement => Boolean(element && element !== blockElementRef.value))
+  return {
+    widths: [
+      parent?.clientWidth ?? 0,
+      ...siblings.map((element) => element.offsetWidth),
+    ].filter((value) => value > 0),
+    heights: [
+      parent?.clientHeight ?? 0,
+      ...siblings.map((element) => element.offsetHeight),
+    ].filter((value) => value > 0),
+  }
+}
+
+function closestSize(value: number, targets: number[]) {
+  const match = targets
+    .map((target) => ({ target, distance: Math.abs(target - value) }))
+    .filter((item) => item.distance <= 6)
+    .sort((left, right) => left.distance - right.distance)[0]
+  return match?.target ?? null
+}
+
+function sizeValue(value: string | number | undefined) {
+  if (typeof value === 'number') return value
+  if (typeof value !== 'string') return null
+  const parsed = Number.parseFloat(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
+function resizeGuideStyle(guide: { axis: 'x' | 'y'; position: number }) {
+  if (guide.axis === 'x') return { left: `${guide.position}px` }
+  return { top: `${guide.position}px` }
+}
+
+function resizeLabelFor(styles: PageBlock['styles'] | undefined, fallback: string) {
+  if (!styles?.width || !styles.height) return fallback
+  return `${styles.width} x ${styles.height}`
 }
 
 function stopResizeListeners() {

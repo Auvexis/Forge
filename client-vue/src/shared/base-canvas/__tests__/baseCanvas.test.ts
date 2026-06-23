@@ -10,6 +10,7 @@ import {
   shouldBypassSnap,
   snapPointToGrid,
   getIncrementalDragDelta,
+  snapRectToAlignment,
   worldToScreen,
 } from '../index.ts'
 import { readFileSync } from 'node:fs'
@@ -37,6 +38,17 @@ describe('base canvas snap helpers', () => {
 
   it('bypasses snap when Shift is pressed', () => {
     assert.equal(shouldBypassSnap({ ctrlKey: false, shiftKey: true }), true)
+  })
+
+  it('snaps rectangle edges and centers to nearby alignment targets', () => {
+    const result = snapRectToAlignment({
+      rect: { x: 98, y: 10, width: 50, height: 40 },
+      targets: [{ x: 100, y: 80, width: 50, height: 40 }],
+      threshold: 6,
+    })
+
+    assert.deepEqual(result.delta, { x: 2, y: 0 })
+    assert.equal(result.guides.some((guide) => guide.axis === 'x' && guide.position === 100), true)
   })
 })
 
@@ -117,11 +129,21 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /if \(event\.button !== 0\) return/)
     assert.match(source, /emit\('update:viewport'/)
     assert.match(source, /shouldBypassSnap\(event\)/)
+    assert.match(source, /snapRectToAlignment/)
+    assert.match(source, /activeAlignmentGuides/)
     assert.match(source, /if \(item\.locked\) return/)
     assert.match(source, /rectsIntersect/)
     assert.match(source, /pointercancel/)
     assert.match(source, /stopActiveGestures/)
     assert.match(source, /window\.addEventListener\('blur', stopActiveGestures\)/)
+  })
+
+  it('renders alignment guide overlays during item movement', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /base-canvas__alignment-guide/)
+    assert.match(source, /guideStyle/)
+    assert.match(source, /activeAlignmentGuides/)
   })
 
   it('supports visual marquee, background pattern, and passive rulers', () => {

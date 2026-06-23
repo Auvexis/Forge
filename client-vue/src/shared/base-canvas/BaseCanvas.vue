@@ -38,6 +38,13 @@
       class="base-canvas__marquee"
       :style="marqueeStyle"
     />
+    <div
+      v-for="guide in activeAlignmentGuides"
+      :key="`${guide.axis}:${guide.position}:${guide.start}:${guide.end}`"
+      class="base-canvas__alignment-guide"
+      :class="`base-canvas__alignment-guide--${guide.axis}`"
+      :style="guideStyle(guide)"
+    />
   </div>
 </template>
 
@@ -58,6 +65,7 @@ import { getIncrementalDragDelta } from './drag.ts'
 import { itemToRect, rectFromPoints, rectsIntersect } from './geometry.ts'
 import { shouldBypassSnap } from './snap.ts'
 import { screenToWorld } from './coordinates.ts'
+import { snapRectToAlignment, type BaseCanvasAlignmentGuide } from './alignment.ts'
 
 const props = withDefaults(defineProps<{
   items: BaseCanvasItem[]
@@ -127,6 +135,7 @@ const activeMarquee = ref<{
   pointerId: number
 } | null>(null)
 const marqueeRect = ref<BaseCanvasRect | null>(null)
+const activeAlignmentGuides = ref<BaseCanvasAlignmentGuide[]>([])
 const isSpacePressed = ref(false)
 const canvasRef = ref<HTMLElement | null>(null)
 
@@ -145,6 +154,19 @@ const marqueeStyle = computed(() => {
     border: `1px ${marqueeBorderCss.value} ${props.marqueeBorderColor}`,
   }
 })
+
+function guideStyle(guide: BaseCanvasAlignmentGuide) {
+  if (guide.axis === 'x') {
+    return {
+      transform: `translate(${props.viewport.x + guide.position * props.viewport.zoom}px, ${props.viewport.y + guide.start * props.viewport.zoom}px)`,
+      height: `${Math.max(1, (guide.end - guide.start) * props.viewport.zoom)}px`,
+    }
+  }
+  return {
+    transform: `translate(${props.viewport.x + guide.start * props.viewport.zoom}px, ${props.viewport.y + guide.position * props.viewport.zoom}px)`,
+    width: `${Math.max(1, (guide.end - guide.start) * props.viewport.zoom)}px`,
+  }
+}
 
 const canvasStyle = computed(() => ({
   backgroundColor: props.backgroundColor,
@@ -309,12 +331,29 @@ function moveItem(event: PointerEvent) {
     snapToGrid: props.snapToGrid,
     bypassSnap: shouldBypassSnap(event),
   })
+  const item = props.items.find((candidate) => candidate.id === drag.itemId)
+  const alignment = item && !shouldBypassSnap(event)
+    ? snapRectToAlignment({
+      rect: {
+        x: item.x + delta.x,
+        y: item.y + delta.y,
+        width: item.width ?? 0,
+        height: item.height ?? 0,
+      },
+      targets: props.items.filter((candidate) => candidate.id !== item.id).map(itemToRect),
+    })
+    : { delta: { x: 0, y: 0 }, guides: [] }
   drag.previous = nextPrevious
-  emit('items-move', { itemIds: [drag.itemId], delta })
+  activeAlignmentGuides.value = alignment.guides
+  emit('items-move', {
+    itemIds: [drag.itemId],
+    delta: { x: delta.x + alignment.delta.x, y: delta.y + alignment.delta.y },
+  })
 }
 
 function stopItemDrag() {
   activeDrag.value = null
+  activeAlignmentGuides.value = []
   window.removeEventListener('pointermove', moveItem)
   window.removeEventListener('pointercancel', stopItemDrag)
 }
@@ -413,5 +452,21 @@ function handleKeyUp(event: KeyboardEvent) {
 .base-canvas__marquee {
   position: absolute;
   pointer-events: none;
+}
+
+.base-canvas__alignment-guide {
+  position: absolute;
+  z-index: 20;
+  pointer-events: none;
+  background: #3b82f6;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #3b82f6 20%, transparent);
+}
+
+.base-canvas__alignment-guide--x {
+  width: 1px;
+}
+
+.base-canvas__alignment-guide--y {
+  height: 1px;
 }
 </style>

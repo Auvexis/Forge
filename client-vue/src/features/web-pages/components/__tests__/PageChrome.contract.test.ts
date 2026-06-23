@@ -33,6 +33,37 @@ describe('page chrome contract', () => {
     assert.match(source, /Export project/)
   })
 
+  it('page chrome exposes undo and redo commands', () => {
+    const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(toolbar, /canUndo\?: boolean/)
+    assert.match(toolbar, /canRedo\?: boolean/)
+    assert.match(toolbar, /edit\.undo/)
+    assert.match(toolbar, /edit\.redo/)
+    assert.match(toolbar, /Undo/)
+    assert.match(toolbar, /Redo/)
+    assert.match(toolbar, /undo-2/)
+    assert.match(toolbar, /redo-2/)
+    assert.match(editor, /:can-undo="editorStore\.canUndo"/)
+    assert.match(editor, /:can-redo="editorStore\.canRedo"/)
+    assert.match(editor, /editorStore\.undo\(\)/)
+    assert.match(editor, /editorStore\.redo\(\)/)
+  })
+
+  it('page editor supports undo and redo keyboard shortcuts', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(editor, /handleKeyboardShortcuts/)
+    assert.match(editor, /event\.key\.toLowerCase\(\) === 'z'/)
+    assert.match(editor, /event\.key\.toLowerCase\(\) === 'y'/)
+    assert.match(editor, /event\.metaKey/)
+    assert.match(editor, /event\.ctrlKey/)
+    assert.match(editor, /event\.shiftKey/)
+    assert.match(editor, /undoPageEdit/)
+    assert.match(editor, /redoPageEdit/)
+  })
+
   it('page chrome switches File Edit View dropdowns on hover after a menu is open', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
 

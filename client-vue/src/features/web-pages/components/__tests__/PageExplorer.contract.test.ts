@@ -238,8 +238,8 @@ describe('page explorer contract', () => {
   it('Ctrl+S and Meta+S save the active page or active site file', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 
-    assert.match(editor, /addEventListener\('keydown', handleKeyboardSave\)/)
-    assert.match(editor, /removeEventListener\('keydown', handleKeyboardSave\)/)
+    assert.match(editor, /addEventListener\('keydown', handleKeyboardShortcuts\)/)
+    assert.match(editor, /removeEventListener\('keydown', handleKeyboardShortcuts\)/)
     assert.match(editor, /event\.preventDefault\(\)/)
     assert.match(editor, /event\.ctrlKey/)
     assert.match(editor, /event\.metaKey/)

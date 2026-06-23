@@ -1,3 +1,4 @@
+export * from './alignment.ts'
 export * from './coordinates.ts'
 export * from './drag.ts'
 export * from './geometry.ts'
