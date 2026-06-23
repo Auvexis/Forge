@@ -105,6 +105,22 @@ describe('block inspector contract', () => {
     assert.match(styles, /\.web-page-style-section h5 \{[\s\S]*color: var\(--sailor-text-primary\)/)
   })
 
+  it('style panel exposes Adobe-like unit controls and visual presets', () => {
+    const source = read('src/features/web-pages/components/BlockStylePanel.vue')
+    const styles = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /web-page-style-control/)
+    assert.match(source, /web-page-style-unit-strip/)
+    assert.match(source, /dimensionUnitOptions/)
+    assert.match(source, /setStyleUnit/)
+    assert.match(source, /radiusPresets/)
+    assert.match(source, /shadowPresets/)
+    assert.match(source, /applyStylePreset/)
+    assert.match(styles, /web-page-style-control/)
+    assert.match(styles, /web-page-style-unit-strip/)
+    assert.match(styles, /web-page-style-presets/)
+  })
+
   it('inspector exposes element identity, attributes, and free custom code editors', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const advanced = read('src/features/web-pages/components/BlockAdvancedPanel.vue')

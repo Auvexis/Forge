@@ -1669,6 +1669,43 @@
   font-size: var(--sailor-text-sm);
 }
 
+.web-page-style-control {
+  display: grid;
+  gap: var(--sailor-space-1);
+}
+
+.web-page-style-unit-strip,
+.web-page-style-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sailor-space-1);
+}
+
+.web-page-style-unit-strip button,
+.web-page-style-presets button {
+  min-height: 22px;
+  padding: 0 var(--sailor-space-2);
+  border: 1px solid var(--sailor-border-muted);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-base);
+  color: var(--sailor-text-secondary);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+
+.web-page-style-unit-strip button:hover,
+.web-page-style-presets button:hover {
+  border-color: var(--sailor-border);
+  background: var(--sailor-bg-elevated);
+  color: var(--sailor-text-primary);
+}
+
+.web-page-style-presets {
+  justify-content: end;
+  margin-top: calc(-1 * var(--sailor-space-1));
+}
+
 .web-page-switcher {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);

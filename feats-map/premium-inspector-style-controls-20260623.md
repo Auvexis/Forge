@@ -1,0 +1,5 @@
+- [x] Adicionar contratos do Inspector premium
+- [x] Adicionar controles de unidade
+- [x] Adicionar presets de radius e shadow
+- [x] Verificar testes e type-check
+- [x] Commitar melhoria

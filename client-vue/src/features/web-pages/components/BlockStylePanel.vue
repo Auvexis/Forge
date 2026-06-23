@@ -33,11 +33,35 @@
       <h5>Spacing</h5>
       <label class="web-page-style-row">
         <span>Width</span>
-        <BaseInput :model-value="String(block.styles?.width ?? '')" placeholder="auto, 100%, 320px" @update:model-value="setStyle('width', $event)" />
+        <span class="web-page-style-control">
+          <BaseInput :model-value="String(block.styles?.width ?? '')" placeholder="auto, 100%, 320px" @update:model-value="setStyle('width', $event)" />
+          <span class="web-page-style-unit-strip">
+            <button
+              v-for="unit in dimensionUnitOptions"
+              :key="`width-${unit}`"
+              type="button"
+              @click="setStyleUnit('width', unit)"
+            >
+              {{ unit }}
+            </button>
+          </span>
+        </span>
       </label>
       <label class="web-page-style-row">
         <span>Height</span>
-        <BaseInput :model-value="String(block.styles?.height ?? '')" placeholder="auto, 240px" @update:model-value="setStyle('height', $event)" />
+        <span class="web-page-style-control">
+          <BaseInput :model-value="String(block.styles?.height ?? '')" placeholder="auto, 240px" @update:model-value="setStyle('height', $event)" />
+          <span class="web-page-style-unit-strip">
+            <button
+              v-for="unit in dimensionUnitOptions"
+              :key="`height-${unit}`"
+              type="button"
+              @click="setStyleUnit('height', unit)"
+            >
+              {{ unit }}
+            </button>
+          </span>
+        </span>
       </label>
       <label class="web-page-style-row">
         <span>Min Width</span>
@@ -151,10 +175,30 @@
         <span>Radius</span>
         <BaseInput :model-value="String(block.styles?.borderRadius ?? '')" placeholder="8px" @update:model-value="setStyle('borderRadius', $event)" />
       </label>
+      <div class="web-page-style-presets" aria-label="Radius presets">
+        <button
+          v-for="preset in radiusPresets"
+          :key="preset.label"
+          type="button"
+          @click="applyStylePreset('borderRadius', preset.value)"
+        >
+          {{ preset.label }}
+        </button>
+      </div>
       <label class="web-page-style-row">
         <span>Shadow</span>
         <BaseInput :model-value="String(block.styles?.boxShadow ?? '')" placeholder="0 8px 24px rgba(0,0,0,.12)" @update:model-value="setStyle('boxShadow', $event)" />
       </label>
+      <div class="web-page-style-presets" aria-label="Shadow presets">
+        <button
+          v-for="preset in shadowPresets"
+          :key="preset.label"
+          type="button"
+          @click="applyStylePreset('boxShadow', preset.value)"
+        >
+          {{ preset.label }}
+        </button>
+      </div>
       <label class="web-page-style-row">
         <span>Opacity</span>
         <BaseInput :model-value="String(block.styles?.opacity ?? '')" placeholder="0.8" @update:model-value="setStyle('opacity', $event)" />
@@ -174,6 +218,18 @@ const props = withDefaults(defineProps<{ block: PageBlock; title?: string }>(), 
   title: 'Style',
 })
 const emit = defineEmits<{ patch: [patch: Partial<PageBlock>] }>()
+const dimensionUnitOptions = ['px', '%', 'rem', 'auto']
+const radiusPresets = [
+  { label: '0', value: '0' },
+  { label: '4', value: '4px' },
+  { label: '8', value: '8px' },
+  { label: 'Full', value: '999px' },
+]
+const shadowPresets = [
+  { label: 'None', value: 'none' },
+  { label: 'Soft', value: '0 8px 24px rgba(0,0,0,.12)' },
+  { label: 'Lift', value: '0 16px 42px rgba(0,0,0,.18)' },
+]
 const layoutOptions = [
   { label: '', title: 'Block', value: 'block', icon: 'square' },
   { label: '', title: 'Flex', value: 'flex', icon: 'rows-3' },
@@ -253,5 +309,19 @@ function setStyle(key: string, value: string | boolean) {
   emit('patch', {
     styles: sanitizeStyles({ ...(props.block.styles ?? {}), [key]: String(value) }),
   })
+}
+
+function setStyleUnit(key: string, unit: string) {
+  if (unit === 'auto') {
+    setStyle(key, 'auto')
+    return
+  }
+  const current = String(props.block.styles?.[key] ?? '')
+  const numeric = current.match(/-?\d+(\.\d+)?/)?.[0] ?? '0'
+  setStyle(key, `${numeric}${unit}`)
+}
+
+function applyStylePreset(key: string, value: string) {
+  setStyle(key, value)
 }
 </script>
