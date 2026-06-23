@@ -136,6 +136,9 @@
 
 .web-page-editor {
   --web-page-drop-color: var(--sailor-border-strong);
+  --web-page-ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --web-page-motion-fast: 120ms;
+  --web-page-motion-medium: 180ms;
   --web-page-selected-color: #3b82f6;
   --web-page-tree-indent: 12px;
   position: relative;
@@ -461,6 +464,10 @@
   overflow: visible;
 }
 
+.web-page-block-frame--selected .web-page-block-frame__inner {
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--web-page-selected-color) 10%, transparent));
+}
+
 .web-page-block__placeholder {
   display: inline-flex;
   min-height: 24px;
@@ -478,6 +485,7 @@
 .web-page-block-selection {
   position: absolute;
   z-index: 12;
+  animation: web-page-selection-pop var(--web-page-motion-medium) var(--web-page-ease-premium);
   pointer-events: none;
 }
 
@@ -561,10 +569,17 @@
   height: 24px;
   min-height: 24px;
   color: #ffffff;
+  transition:
+    background var(--web-page-motion-fast) var(--web-page-ease-premium),
+    transform var(--web-page-motion-fast) var(--web-page-ease-premium);
 }
 
 .web-page-block-selection__actions .base-button:hover {
   background: color-mix(in srgb, #ffffff 18%, transparent);
+}
+
+.web-page-block-selection__actions .base-button:active {
+  transform: scale(0.94);
 }
 
 .web-page-block-context-toolbar {
@@ -582,6 +597,7 @@
   background: color-mix(in srgb, #101828 94%, var(--web-page-selected-color));
   box-shadow: 0 8px 22px color-mix(in srgb, #000000 28%, transparent);
   color: #ffffff;
+  animation: web-page-toolbar-pop var(--web-page-motion-medium) var(--web-page-ease-premium);
   pointer-events: auto;
   transform: translateX(-50%);
 }
@@ -615,10 +631,17 @@
   font-weight: 800;
   line-height: 24px;
   pointer-events: auto;
+  transition:
+    background var(--web-page-motion-fast) var(--web-page-ease-premium),
+    transform var(--web-page-motion-fast) var(--web-page-ease-premium);
 }
 
 .web-page-block-context-toolbar__action:hover {
   background: color-mix(in srgb, #ffffff 16%, transparent);
+}
+
+.web-page-block-context-toolbar__action:active {
+  transform: translateY(1px) scale(0.94);
 }
 
 .web-page-block-context-toolbar .base-button {
@@ -626,10 +649,17 @@
   height: 24px;
   min-height: 24px;
   color: #ffffff;
+  transition:
+    background var(--web-page-motion-fast) var(--web-page-ease-premium),
+    transform var(--web-page-motion-fast) var(--web-page-ease-premium);
 }
 
 .web-page-block-context-toolbar .base-button:hover {
   background: color-mix(in srgb, #ffffff 14%, transparent);
+}
+
+.web-page-block-context-toolbar .base-button:active {
+  transform: scale(0.94);
 }
 
 .web-page-block-resize__handle--north-west {
@@ -687,6 +717,7 @@
   font-size: 11px;
   font-weight: 600;
   line-height: 20px;
+  animation: web-page-chip-pop var(--web-page-motion-medium) var(--web-page-ease-premium);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -749,6 +780,42 @@
   right: -12px;
   left: -12px;
   height: 1px;
+}
+
+@keyframes web-page-selection-pop {
+  from {
+    opacity: 0.36;
+    transform: scale(0.992);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes web-page-toolbar-pop {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes web-page-chip-pop {
+  from {
+    opacity: 0;
+    transform: translateY(3px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 .web-page-block--drop-inside {
@@ -1395,10 +1462,17 @@
   .web-page-canvas__body,
   .web-page-block,
   .web-page-block-frame,
+  .web-page-block-context-toolbar,
+  .web-page-block-context-toolbar .base-button,
+  .web-page-block-context-toolbar__action,
+  .web-page-block-selection,
+  .web-page-block-selection__actions .base-button,
+  .web-page-block-selection__metric,
+  .web-page-block-selection__ratio,
   .web-page-drop-indicator {
     transition: none !important;
+    animation: none !important;
   }
-
 }
 
 .web-page-library {

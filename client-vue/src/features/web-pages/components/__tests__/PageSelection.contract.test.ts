@@ -60,6 +60,21 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-selection__ratio/)
   })
 
+  it('selection chrome has premium motion polish with reduced motion fallback', () => {
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(css, /--web-page-motion-fast/)
+    assert.match(css, /--web-page-motion-medium/)
+    assert.match(css, /--web-page-ease-premium/)
+    assert.match(css, /@keyframes web-page-selection-pop/)
+    assert.match(css, /@keyframes web-page-toolbar-pop/)
+    assert.match(css, /@keyframes web-page-chip-pop/)
+    assert.match(css, /\.web-page-block-selection\s*\{[\s\S]*animation:\s*web-page-selection-pop/)
+    assert.match(css, /\.web-page-block-context-toolbar\s*\{[\s\S]*animation:\s*web-page-toolbar-pop/)
+    assert.match(css, /\.web-page-block-context-toolbar__action:active/)
+    assert.match(css, /prefers-reduced-motion:\s*reduce[\s\S]*animation:\s*none !important/)
+  })
+
   it('context toolbar exposes quick actions based on selected block type', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')

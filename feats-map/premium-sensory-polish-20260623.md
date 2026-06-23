@@ -1,0 +1,3 @@
+- [x] Add sensory polish contract
+- [x] Add selection and toolbar microinteractions
+- [x] Verify and commit
