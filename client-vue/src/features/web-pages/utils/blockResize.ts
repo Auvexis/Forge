@@ -8,6 +8,8 @@ export interface BlockResizeInput {
   deltaY: number
   width: number
   height: number
+  maxWidth?: number
+  maxHeight?: number
   fontSize: number
   tag: PageBlockTag
   freeAspectRatio: boolean
@@ -24,13 +26,18 @@ export function calculateBlockResize(input: BlockResizeInput): BlockResizeResult
   const north = input.corner.startsWith('north')
   const widthDelta = input.deltaX * (west ? -1 : 1)
   const heightDelta = input.deltaY * (north ? -1 : 1)
-  let width = clamp(Math.round(input.width + widthDelta), 40, 4000)
-  let height = clamp(Math.round(input.height + heightDelta), 24, 4000)
+  const maxWidth = Math.max(40, input.maxWidth ?? 4000)
+  const maxHeight = Math.max(24, input.maxHeight ?? 4000)
+  let width = clamp(Math.round(input.width + widthDelta), 40, maxWidth)
+  let height = clamp(Math.round(input.height + heightDelta), 24, maxHeight)
 
   if (input.tag !== 'text' && !input.freeAspectRatio) {
     const ratio = input.width / Math.max(input.height, 1)
     if (Math.abs(widthDelta) >= Math.abs(heightDelta)) height = Math.max(32, Math.round(width / ratio))
     else width = Math.max(32, Math.round(height * ratio))
+    const fitted = fitAspectRatioInside({ width, height, maxWidth, maxHeight, ratio })
+    width = fitted.width
+    height = fitted.height
   }
 
   if (input.tag === 'text') {
@@ -54,4 +61,21 @@ export function calculateBlockResize(input: BlockResizeInput): BlockResizeResult
 
 function clamp(value: number, min: number, max: number) {
   return Math.max(min, Math.min(max, value))
+}
+
+function fitAspectRatioInside(input: { width: number; height: number; maxWidth: number; maxHeight: number; ratio: number }) {
+  let width = input.width
+  let height = input.height
+  if (width > input.maxWidth) {
+    width = input.maxWidth
+    height = Math.round(width / input.ratio)
+  }
+  if (height > input.maxHeight) {
+    height = input.maxHeight
+    width = Math.round(height * input.ratio)
+  }
+  return {
+    width: clamp(width, 40, input.maxWidth),
+    height: clamp(height, 24, input.maxHeight),
+  }
 }

@@ -156,6 +156,9 @@ describe('block inspector contract', () => {
 
     assert.match(renderer, /activeResizeGuides/)
     assert.match(renderer, /snapResizeToAlignment/)
+    assert.match(renderer, /resizeBounds/)
+    assert.match(renderer, /maxWidth: resizeState\.maxWidth/)
+    assert.match(renderer, /bounds\?\.maxWidth/)
     assert.match(renderer, /resizeGuideStyle/)
     assert.match(styles, /web-page-block-alignment-guide/)
   })

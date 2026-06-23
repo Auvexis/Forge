@@ -57,4 +57,14 @@ describe('block resize', () => {
     assert.deepEqual(box.styles, { width: '40px', height: '32px' })
     assert.deepEqual(text.styles, { width: '40px', fontSize: '8px' })
   })
+
+  it('keeps locked aspect resize inside page boundaries', () => {
+    const result = calculateBlockResize({
+      corner: 'south-east', deltaX: 20, deltaY: 900, width: 260, height: 120,
+      fontSize: 16, tag: 'section', freeAspectRatio: false, maxWidth: 520, maxHeight: 360,
+    })
+
+    assert.deepEqual(result.styles, { width: '520px', height: '240px' })
+    assert.equal(result.label, '520 x 240px')
+  })
 })

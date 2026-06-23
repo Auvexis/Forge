@@ -213,6 +213,8 @@ let resizeState: {
   startY: number
   width: number
   height: number
+  maxWidth: number
+  maxHeight: number
   fontSize: number
   scale: number
 } | null = null
@@ -360,12 +362,15 @@ function startResize(event: PointerEvent, corner: ResizeCorner) {
   const element = blockElementRef.value
   if (!element) return
   const rect = element.getBoundingClientRect()
+  const bounds = resizeBounds(element)
   resizeState = {
     corner,
     startX: event.clientX,
     startY: event.clientY,
     width: element.offsetWidth,
     height: element.offsetHeight,
+    maxWidth: bounds.maxWidth,
+    maxHeight: bounds.maxHeight,
     fontSize: Number.parseFloat(getComputedStyle(element).fontSize) || 16,
     scale: rect.width / Math.max(element.offsetWidth, 1),
   }
@@ -383,6 +388,8 @@ function resizeFromPointer(event: PointerEvent) {
     deltaY: (event.clientY - resizeState.startY) / resizeState.scale,
     width: resizeState.width,
     height: resizeState.height,
+    maxWidth: resizeState.maxWidth,
+    maxHeight: resizeState.maxHeight,
     fontSize: resizeState.fontSize,
     tag: props.block.tag,
     freeAspectRatio: event.shiftKey,
@@ -426,18 +433,29 @@ function snapResizeToAlignment(styles: PageBlock['styles'] | undefined) {
 
 function resizeTargets() {
   const parent = frameElementRef.value?.parentElement
+  const element = blockElementRef.value
+  const bounds = element ? resizeBounds(element) : null
   const siblings = Array.from(parent?.children ?? [])
     .map((child) => child instanceof HTMLElement ? child.querySelector<HTMLElement>('.web-page-block-frame__inner') : null)
-    .filter((element): element is HTMLElement => Boolean(element && element !== blockElementRef.value))
+    .filter((sibling): sibling is HTMLElement => Boolean(sibling && sibling !== element))
   return {
     widths: [
-      parent?.clientWidth ?? 0,
+      bounds?.maxWidth ?? parent?.clientWidth ?? 0,
       ...siblings.map((element) => element.offsetWidth),
     ].filter((value) => value > 0),
     heights: [
-      parent?.clientHeight ?? 0,
+      bounds?.maxHeight ?? parent?.clientHeight ?? 0,
       ...siblings.map((element) => element.offsetHeight),
     ].filter((value) => value > 0),
+  }
+}
+
+function resizeBounds(element: HTMLElement) {
+  const parent = frameElementRef.value?.parentElement
+  if (!parent) return { maxWidth: 4000, maxHeight: 4000 }
+  return {
+    maxWidth: Math.max(40, parent.clientWidth - element.offsetLeft),
+    maxHeight: Math.max(24, parent.clientHeight - element.offsetTop),
   }
 }
 
