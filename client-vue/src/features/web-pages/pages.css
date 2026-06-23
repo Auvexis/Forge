@@ -598,6 +598,29 @@
   white-space: nowrap;
 }
 
+.web-page-block-context-toolbar__group {
+  display: inline-flex;
+  gap: 2px;
+  padding: 1px;
+  border-left: 1px solid color-mix(in srgb, #ffffff 18%, transparent);
+}
+
+.web-page-block-context-toolbar__action {
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 24px;
+  pointer-events: auto;
+}
+
+.web-page-block-context-toolbar__action:hover {
+  background: color-mix(in srgb, #ffffff 16%, transparent);
+}
+
 .web-page-block-context-toolbar .base-button {
   width: 24px;
   height: 24px;

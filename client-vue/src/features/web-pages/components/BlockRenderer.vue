@@ -109,6 +109,18 @@
       </div>
       <div class="web-page-block-context-toolbar" @pointerdown.stop @click.stop>
         <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
+        <span v-if="contextToolbarActions.length" class="web-page-block-context-toolbar__group">
+          <button
+            v-for="action in contextToolbarActions"
+            :key="action.id"
+            type="button"
+            class="web-page-block-context-toolbar__action"
+            :title="action.label"
+            @click="applyContextToolbarAction(action)"
+          >
+            {{ action.shortLabel }}
+          </button>
+        </span>
         <BaseButton
           variant="ghost"
           size="icon"
@@ -234,6 +246,31 @@ const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
 const contextToolbarLabel = computed(() => `${props.block.tag} layer`)
+type ContextToolbarAction = {
+  id: string
+  label: string
+  shortLabel: string
+  styles: PageBlock['styles']
+}
+const textToolbarActions: ContextToolbarAction[] = [
+  { id: 'bold', label: 'Bold text', shortLabel: 'B', styles: { fontWeight: '700' } },
+  { id: 'center', label: 'Center text', shortLabel: 'C', styles: { textAlign: 'center' } },
+  { id: 'left', label: 'Left text', shortLabel: 'L', styles: { textAlign: 'left' } },
+]
+const mediaToolbarActions: ContextToolbarAction[] = [
+  { id: 'cover', label: 'Cover media', shortLabel: 'Cov', styles: { objectFit: 'cover' } },
+  { id: 'contain', label: 'Contain media', shortLabel: 'Con', styles: { objectFit: 'contain' } },
+]
+const containerToolbarActions: ContextToolbarAction[] = [
+  { id: 'flex-row', label: 'Flex row', shortLabel: 'Row', styles: { display: 'flex', flexDirection: 'row' } },
+  { id: 'flex-column', label: 'Flex column', shortLabel: 'Col', styles: { display: 'flex', flexDirection: 'column' } },
+]
+const contextToolbarActions = computed(() => {
+  if (['text', 'button', 'link'].includes(props.block.tag)) return textToolbarActions
+  if (mediaOnlyTags.includes(props.block.tag)) return mediaToolbarActions
+  if (isContainer.value) return containerToolbarActions
+  return []
+})
 const selectionSizeLabel = computed(() => {
   const width = Number.parseFloat(selectionFrameStyle.value.width ?? '')
   const height = Number.parseFloat(selectionFrameStyle.value.height ?? '')
@@ -550,6 +587,13 @@ function distanceLabelStyle(distance: { side: string; value: number }) {
   if (distance.side === 'right') return { right: `${-Math.max(46, distance.value / 2)}px` }
   if (distance.side === 'bottom') return { bottom: `${-Math.max(28, distance.value / 2)}px` }
   return { left: `${-Math.max(46, distance.value / 2)}px` }
+}
+
+function applyContextToolbarAction(action: ContextToolbarAction) {
+  emit('patch-block', {
+    blockId: props.block.id,
+    patch: { styles: { ...(props.block.styles ?? {}), ...action.styles } },
+  })
 }
 
 function stopResizeListeners() {

@@ -60,6 +60,21 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-selection__ratio/)
   })
 
+  it('context toolbar exposes quick actions based on selected block type', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /contextToolbarActions/)
+    assert.match(renderer, /applyContextToolbarAction/)
+    assert.match(renderer, /web-page-block-context-toolbar__group/)
+    assert.match(renderer, /textToolbarActions/)
+    assert.match(renderer, /mediaToolbarActions/)
+    assert.match(renderer, /containerToolbarActions/)
+    assert.match(renderer, /patch-block/)
+    assert.match(css, /web-page-block-context-toolbar__group/)
+    assert.match(css, /web-page-block-context-toolbar__action/)
+  })
+
   it('selected blocks expose page-edge distance measurements and active resize handle state', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
