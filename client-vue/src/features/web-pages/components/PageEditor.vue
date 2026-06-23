@@ -200,16 +200,27 @@
           Editing {{ editorStore.selectedBlockIds.length }} {{ editorStore.selectedBlock.tag }} elements
         </p>
         <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
+        <div class="web-page-editor__inspector-tabs">
+          <BaseSegmentedSelect
+            v-model="blockInspectorTab"
+            :options="blockInspectorTabs"
+            aria-label="Inspector panel"
+            :icon-size="15"
+          />
+        </div>
         <BlockContentPanel
+          v-if="blockInspectorTab === 'content'"
           :block="editorStore.selectedBlock"
           @patch="patchSelectedOrSingleBlock"
           @upload-image="uploadImageForSelectedBlock"
         />
         <BlockAdvancedPanel
+          v-if="blockInspectorTab === 'advanced'"
           :block="editorStore.selectedBlock"
           @patch="patchSelectedOrSingleBlock"
         />
         <BlockStylePanel
+          v-if="blockInspectorTab === 'style'"
           :block="editorStore.selectedBlock"
           @patch="patchSelectedOrSingleBlock"
         />
@@ -232,6 +243,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type { BaseCanvasContextMenuEvent, BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import { API_BASE_URL } from '@/core/constants/app.ts'
@@ -265,6 +277,7 @@ const isPageSwitcherOpen = ref(false)
 const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
+const blockInspectorTab = ref<'content' | 'style' | 'advanced'>('content')
 const activeCodeFile = ref<SiteFile | null>(null)
 const deletingBlockIds = ref<string[]>([])
 const workspaceRef = ref<HTMLElement | null>(null)
@@ -279,6 +292,11 @@ const pageDropIndex = ref<number | null>(null)
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
+const blockInspectorTabs: BaseSegmentedSelectOption[] = [
+  { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
+  { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
+  { value: 'advanced', label: 'Advanced', title: 'Advanced', icon: 'code-2' },
+]
 const workspacePlaneStyle = computed(() => ({}))
 const pageCanvasItems = computed<BaseCanvasItem[]>(() => pagesStore.pages.map((page, index) => {
   const offset = pageCanvasOffsets.value[page.id] ?? { x: 0, y: 0 }

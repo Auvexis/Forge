@@ -107,6 +107,16 @@
           @click="$emit('delete-block', block.id)"
         />
       </div>
+      <div class="web-page-block-context-toolbar" @pointerdown.stop @click.stop>
+        <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
+        <BaseButton
+          variant="ghost"
+          size="icon"
+          icon-left="settings-2"
+          title="Inspect element"
+          @click="$emit('inspect-block', block.id)"
+        />
+      </div>
       <button
         v-for="corner in resizeCorners"
         :key="corner"
@@ -123,6 +133,8 @@
         :class="`web-page-block-alignment-guide--${guide.axis}`"
         :style="resizeGuideStyle(guide)"
       />
+      <span class="web-page-block-selection__metric">{{ selectionSizeLabel }}</span>
+      <span v-if="resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
       <span v-if="resizeLabel" class="web-page-block-resize__indicator">{{ resizeLabel }}</span>
     </div>
   </div>
@@ -197,6 +209,7 @@ const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
 const activeResizeGuides = ref<Array<{ axis: 'x' | 'y'; position: number }>>([])
 const resizeLabel = ref('')
+const isFreeResizeActive = ref(false)
 const selectionFrameStyle = ref<Record<string, string>>({})
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
@@ -207,6 +220,13 @@ const inlineEditableTags: PageBlockTag[] = ['text', 'button', 'link']
 const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
+const contextToolbarLabel = computed(() => `${props.block.tag} layer`)
+const selectionSizeLabel = computed(() => {
+  const width = Number.parseFloat(selectionFrameStyle.value.width ?? '')
+  const height = Number.parseFloat(selectionFrameStyle.value.height ?? '')
+  if (!Number.isFinite(width) || !Number.isFinite(height)) return '0 x 0'
+  return `${Math.round(width)} x ${Math.round(height)}`
+})
 let resizeState: {
   corner: ResizeCorner
   startX: number
@@ -382,6 +402,7 @@ function startResize(event: PointerEvent, corner: ResizeCorner) {
 
 function resizeFromPointer(event: PointerEvent) {
   if (!resizeState) return
+  isFreeResizeActive.value = event.shiftKey
   const result = calculateBlockResize({
     corner: resizeState.corner,
     deltaX: (event.clientX - resizeState.startX) / resizeState.scale,
@@ -406,6 +427,7 @@ function finishResize() {
   previewStyles.value = null
   activeResizeGuides.value = []
   resizeLabel.value = ''
+  isFreeResizeActive.value = false
   resizeState = null
   stopResizeListeners()
   void nextTick(updateSelectionFrame)

@@ -28,6 +28,13 @@
         @move-block="$emit('move-block', $event)"
       />
 
+      <SiteAssetsPanel
+        v-else-if="activeTab === 'assets'"
+        :site="site"
+        @upload-asset="$emit('upload-asset', $event)"
+        @delete-file="$emit('delete-file', $event)"
+      />
+
       <SiteFilesPanel
         v-else
         :site="site"
@@ -49,6 +56,7 @@ import type { InsertPosition } from '../utils/blockTree.ts'
 import type { PageBlock, SailorPageSummary, SailorSite, SiteFile } from '../types/page.types.ts'
 import BlockTreePanel from './BlockTreePanel.vue'
 import PageToolboxPanel from './PageToolboxPanel.vue'
+import SiteAssetsPanel from './SiteAssetsPanel.vue'
 import SiteFilesPanel from './SiteFilesPanel.vue'
 
 defineProps<{
@@ -76,12 +84,13 @@ defineEmits<{
   'delete-file': [path: string]
 }>()
 
-type PageExplorerTab = 'toolbox' | 'tree' | 'code'
+type PageExplorerTab = 'toolbox' | 'tree' | 'assets' | 'code'
 
 const activeTab = ref<PageExplorerTab>('toolbox')
 const explorerTabs: BaseSegmentedSelectOption[] = [
   { value: 'toolbox', label: 'ToolBox', icon: 'blocks' },
   { value: 'tree', label: 'Tree', icon: 'list-tree' },
+  { value: 'assets', label: 'Assets', icon: 'image' },
   { value: 'code', label: 'Code', icon: 'code-2' },
 ]
 </script>

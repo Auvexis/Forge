@@ -1,0 +1,7 @@
+- [x] Criar plano premium UX
+- [x] Adicionar contratos da primeira fatia
+- [x] Implementar Selection Box premium
+- [x] Implementar Inspector com abas
+- [x] Implementar aba Assets
+- [x] Verificar testes e type-check
+- [x] Commitar melhoria

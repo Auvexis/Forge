@@ -45,6 +45,21 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-selection__actions/)
   })
 
+  it('selected blocks expose a premium contextual toolbar and persistent metrics', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /web-page-block-context-toolbar/)
+    assert.match(renderer, /contextToolbarLabel/)
+    assert.match(renderer, /selectionSizeLabel/)
+    assert.match(renderer, /web-page-block-selection__metric/)
+    assert.match(renderer, /web-page-block-selection__ratio/)
+    assert.match(renderer, /icon-left="settings-2"/)
+    assert.match(css, /web-page-block-context-toolbar/)
+    assert.match(css, /web-page-block-selection__metric/)
+    assert.match(css, /web-page-block-selection__ratio/)
+  })
+
   it('double click edits text button and link content directly on canvas', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')

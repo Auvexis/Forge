@@ -142,6 +142,21 @@ describe('block inspector contract', () => {
     assert.doesNotMatch(editor, /deleteSelectedBlock|duplicateSelectedBlock/)
   })
 
+  it('block inspector uses premium tabs for content style and advanced panels', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const styles = read('src/features/web-pages/pages.css')
+
+    assert.match(editor, /blockInspectorTab/)
+    assert.match(editor, /blockInspectorTabs/)
+    assert.match(editor, /Content/)
+    assert.match(editor, /Style/)
+    assert.match(editor, /Advanced/)
+    assert.match(editor, /v-if="blockInspectorTab === 'content'"/)
+    assert.match(editor, /v-if="blockInspectorTab === 'style'"/)
+    assert.match(editor, /v-if="blockInspectorTab === 'advanced'"/)
+    assert.match(styles, /web-page-editor__inspector-tabs/)
+  })
+
   it('renderer injects custom css outside the vue template side-effect tags', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
 

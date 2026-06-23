@@ -8,7 +8,7 @@ function read(relativePath: string) {
 }
 
 describe('page explorer contract', () => {
-  it('left panel is renamed Explorer and renders ToolBox, Tree and Code tabs', () => {
+  it('left panel is renamed Explorer and renders ToolBox, Tree, Assets and Code tabs', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
 
@@ -16,9 +16,11 @@ describe('page explorer contract', () => {
     assert.match(editor, /<PageExplorerPanel/)
     assert.match(explorer, /ToolBox/)
     assert.match(explorer, /Tree/)
+    assert.match(explorer, /Assets/)
     assert.match(explorer, /Code/)
     assert.match(explorer, /PageToolboxPanel/)
     assert.match(explorer, /BlockTreePanel/)
+    assert.match(explorer, /SiteAssetsPanel/)
     assert.match(explorer, /SiteFilesPanel/)
   })
 
@@ -160,6 +162,22 @@ describe('page explorer contract', () => {
     assert.match(editor, /createCodeFolder/)
     assert.match(editor, /uploadSiteAsset/)
     assert.match(editor, /deleteCodeFile/)
+  })
+
+  it('assets explorer exposes upload, thumbnails, paths and delete actions', () => {
+    const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
+    const assets = read('src/features/web-pages/components/SiteAssetsPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(explorer, /activeTab === 'assets'/)
+    assert.match(assets, /web-page-assets-panel/)
+    assert.match(assets, /assetFiles/)
+    assert.match(assets, /thumbnailUrl/)
+    assert.match(assets, /formatAssetSize/)
+    assert.match(assets, /upload-asset/)
+    assert.match(assets, /delete-file/)
+    assert.match(css, /web-page-assets-panel/)
+    assert.match(css, /web-page-assets-panel__grid/)
   })
 
   it('code explorer exposes a delete button for deletable files', () => {
