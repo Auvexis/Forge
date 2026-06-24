@@ -78,56 +78,60 @@
       class="web-page-block-selection"
       :style="selectionFrameStyle"
     >
-      <div class="web-page-block-selection__id" @pointerdown.stop @click.stop @dblclick.stop="startBlockIdEdit">
-        <input
-          v-if="editingBlockId"
-          ref="blockIdInputRef"
-          v-model="draftBlockId"
-          class="web-page-block-selection__id-input"
-          aria-label="Element ID"
-          @keydown.enter.prevent="commitBlockIdEdit"
-          @keydown.esc.prevent="cancelBlockIdEdit"
-          @blur="commitBlockIdEdit"
-        />
-        <span v-else>{{ block.id }}</span>
-      </div>
-      <div class="web-page-block-selection__actions" :style="selectionActionsStyle" @pointerdown.stop @click.stop>
-        <BaseButton
-          variant="ghost"
-          size="icon"
-          icon-left="copy"
-          title="Duplicate element"
-          @click="$emit('duplicate-block', block.id)"
-        />
-        <BaseButton
-          variant="ghost"
-          size="icon"
-          icon-left="trash-2"
-          title="Delete element"
-          @click="$emit('delete-block', block.id)"
-        />
-      </div>
-      <div class="web-page-block-context-toolbar" :style="contextToolbarStyle" @pointerdown.stop @click.stop>
-        <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
-        <span v-if="contextToolbarActions.length" class="web-page-block-context-toolbar__group">
-          <button
-            v-for="action in contextToolbarActions"
-            :key="action.id"
-            type="button"
-            class="web-page-block-context-toolbar__action"
-            :title="action.label"
-            @click="applyContextToolbarAction(action)"
-          >
-            {{ action.shortLabel }}
-          </button>
-        </span>
-        <BaseButton
-          variant="ghost"
-          size="icon"
-          icon-left="settings-2"
-          title="Inspect element"
-          @click="$emit('inspect-block', block.id)"
-        />
+      <div class="web-page-block-selection__chrome" :style="selectionChromeStyle">
+        <div class="web-page-block-selection__id" @pointerdown.stop @click.stop @dblclick.stop="startBlockIdEdit">
+          <input
+            v-if="editingBlockId"
+            ref="blockIdInputRef"
+            v-model="draftBlockId"
+            class="web-page-block-selection__id-input"
+            aria-label="Element ID"
+            @keydown.enter.prevent="commitBlockIdEdit"
+            @keydown.esc.prevent="cancelBlockIdEdit"
+            @blur="commitBlockIdEdit"
+          />
+          <span v-else>{{ block.id }}</span>
+        </div>
+        <div class="web-page-block-context-toolbar" @pointerdown.stop @click.stop>
+          <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
+          <span v-if="contextToolbarActions.length" class="web-page-block-context-toolbar__group">
+            <button
+              v-for="action in contextToolbarActions"
+              :key="action.id"
+              type="button"
+              class="web-page-block-context-toolbar__action"
+              :class="{ 'web-page-block-context-toolbar__action--active': isContextToolbarActionActive(action) }"
+              :aria-pressed="isContextToolbarActionActive(action)"
+              :title="action.label"
+              @click="applyContextToolbarAction(action)"
+            >
+              {{ action.shortLabel }}
+            </button>
+          </span>
+          <BaseButton
+            variant="ghost"
+            size="icon"
+            icon-left="settings-2"
+            title="Inspect element"
+            @click="$emit('inspect-block', block.id)"
+          />
+        </div>
+        <div class="web-page-block-selection__actions" @pointerdown.stop @click.stop>
+          <BaseButton
+            variant="ghost"
+            size="icon"
+            icon-left="copy"
+            title="Duplicate element"
+            @click="$emit('duplicate-block', block.id)"
+          />
+          <BaseButton
+            variant="ghost"
+            size="icon"
+            icon-left="trash-2"
+            title="Delete element"
+            @click="$emit('delete-block', block.id)"
+          />
+        </div>
       </div>
       <button
         v-for="corner in resizeCorners"
@@ -241,7 +245,7 @@ type ContextToolbarAction = {
   id: string
   label: string
   shortLabel: string
-  styles: PageBlock['styles']
+  styles: NonNullable<PageBlock['styles']>
 }
 const textToolbarActions: ContextToolbarAction[] = [
   { id: 'bold', label: 'Bold text', shortLabel: 'B', styles: { fontWeight: '700' } },
@@ -272,10 +276,7 @@ const selectionChromeOffset = computed(() => {
   const height = Number.parseFloat(selectionFrameStyle.value.height ?? '')
   return Number.isFinite(height) && height < 44 ? 34 : 7
 })
-const contextToolbarStyle = computed(() => ({
-  bottom: `calc(100% + ${selectionChromeOffset.value + 32}px)`,
-}))
-const selectionActionsStyle = computed(() => ({
+const selectionChromeStyle = computed(() => ({
   bottom: `calc(100% + ${selectionChromeOffset.value}px)`,
 }))
 let resizeState: {
@@ -569,10 +570,25 @@ function selectionRect() {
 }
 
 function applyContextToolbarAction(action: ContextToolbarAction) {
+  const currentStyles: NonNullable<PageBlock['styles']> = props.block.styles ?? {}
+  const nextStyles = isContextToolbarActionActive(action)
+    ? withoutStyleKeys(currentStyles, Object.keys(action.styles))
+    : { ...currentStyles, ...action.styles }
   emit('patch-block', {
     blockId: props.block.id,
-    patch: { styles: { ...(props.block.styles ?? {}), ...action.styles } },
+    patch: { styles: nextStyles },
   })
+}
+
+function isContextToolbarActionActive(action: ContextToolbarAction) {
+  const styles: NonNullable<PageBlock['styles']> = props.block.styles ?? {}
+  return Object.entries(action.styles).every(([key, value]) => styles[key] === value)
+}
+
+function withoutStyleKeys(styles: NonNullable<PageBlock['styles']>, keys: string[]) {
+  return Object.fromEntries(
+    Object.entries(styles).filter(([key]) => !keys.includes(key)),
+  ) as PageBlock['styles']
 }
 
 function stopResizeListeners() {

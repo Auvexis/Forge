@@ -1,0 +1,4 @@
+- [x] Align selection chrome
+- [x] Add toolbar toggles
+- [x] Update contracts
+- [x] Verify and commit
