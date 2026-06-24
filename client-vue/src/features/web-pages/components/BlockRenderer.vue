@@ -142,15 +142,6 @@
         @pointerdown.stop.prevent="startResize($event, corner)"
       />
       <span
-        v-for="distance in selectionDistanceLabels"
-        :key="distance.side"
-        class="web-page-block-selection__distance"
-        :class="`web-page-block-selection__distance--${distance.side}`"
-        :style="distanceLabelStyle(distance)"
-      >
-        {{ distance.label }}
-      </span>
-      <span
         v-for="guide in activeResizeGuides"
         :key="`${guide.axis}:${guide.position}`"
         class="web-page-block-alignment-guide"
@@ -287,21 +278,6 @@ const contextToolbarStyle = computed(() => ({
 const selectionActionsStyle = computed(() => ({
   bottom: `calc(100% + ${selectionChromeOffset.value}px)`,
 }))
-const selectionDistanceLabels = computed(() => {
-  const frame = selectionRect()
-  const parent = frameElementRef.value?.parentElement
-  if (!frame || !parent) return []
-  return [
-    { side: 'top', value: frame.top },
-    { side: 'right', value: parent.clientWidth - frame.left - frame.width },
-    { side: 'bottom', value: parent.clientHeight - frame.top - frame.height },
-    { side: 'left', value: frame.left },
-  ].map((distance) => ({
-    ...distance,
-    value: Math.max(0, Math.round(distance.value)),
-    label: `${Math.max(0, Math.round(distance.value))}px`,
-  }))
-})
 let resizeState: {
   corner: ResizeCorner
   startX: number
@@ -590,13 +566,6 @@ function selectionRect() {
   const height = sizeValue(selectionFrameStyle.value.height)
   if (left == null || top == null || width == null || height == null) return null
   return { left, top, width, height }
-}
-
-function distanceLabelStyle(distance: { side: string; value: number }) {
-  if (distance.side === 'top') return { top: '-20px' }
-  if (distance.side === 'right') return { right: '-20px' }
-  if (distance.side === 'bottom') return { bottom: '-20px' }
-  return { left: '-20px' }
 }
 
 function applyContextToolbarAction(action: ContextToolbarAction) {

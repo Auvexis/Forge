@@ -67,9 +67,6 @@ describe('page selection contract', () => {
     assert.match(renderer, /const selectionChromeOffset/)
     assert.match(renderer, /:style="contextToolbarStyle"/)
     assert.match(renderer, /:style="selectionActionsStyle"/)
-    assert.match(renderer, /20px/)
-    assert.match(renderer, /distanceLabelStyle/)
-    assert.doesNotMatch(renderer, /distance\.value \/ 2/)
     assert.match(css, /\.web-page-block-context-toolbar\s*\{[\s\S]*background:\s*var\(--web-page-selected-color\)/)
     assert.match(css, /border:\s*1px solid color-mix\(in srgb, var\(--web-page-selected-color\) 78%, #ffffff\)/)
   })
@@ -104,17 +101,17 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-context-toolbar__action/)
   })
 
-  it('selected blocks expose page-edge distance measurements and active resize handle state', () => {
+  it('selected blocks keep resize handle state without page-edge distance indicators', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    assert.match(renderer, /selectionDistanceLabels/)
-    assert.match(renderer, /web-page-block-selection__distance/)
     assert.match(renderer, /activeResizeCorner/)
     assert.match(renderer, /web-page-block-resize__handle--active/)
-    assert.match(renderer, /distanceLabelStyle/)
-    assert.match(css, /web-page-block-selection__distance/)
     assert.match(css, /web-page-block-resize__handle--active/)
+    assert.doesNotMatch(renderer, /selectionDistanceLabels/)
+    assert.doesNotMatch(renderer, /distanceLabelStyle/)
+    assert.doesNotMatch(renderer, /web-page-block-selection__distance/)
+    assert.doesNotMatch(css, /web-page-block-selection__distance/)
   })
 
   it('double click edits text button and link content directly on canvas', () => {
