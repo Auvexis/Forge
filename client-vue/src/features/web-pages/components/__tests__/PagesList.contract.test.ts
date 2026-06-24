@@ -4,17 +4,19 @@ import path from 'node:path'
 import { describe, it } from 'node:test'
 
 describe('pages management UI contract', () => {
-  it('router exposes /pages and /pages/:pageId', () => {
+  it('router exposes /pages and /pages/:projectId', () => {
     const source = fs.readFileSync(path.resolve('src/app/router.ts'), 'utf8')
 
     assert.match(source, /path: '\/pages'/)
-    assert.match(source, /path: '\/pages\/:pageId'/)
+    assert.match(source, /path: '\/pages\/:projectId'/)
+    assert.doesNotMatch(source, /path: '\/pages\/:pageId'/)
   })
 
-  it('page shell mounts PagesList', () => {
+  it('page shell mounts the editor directly for an empty canvas entry', () => {
     const source = fs.readFileSync(path.resolve('src/app/pages/PagesEditorPage.vue'), 'utf8')
 
-    assert.match(source, /<PagesList/)
+    assert.match(source, /<PageEditor/)
+    assert.doesNotMatch(source, /<PagesList/)
     assert.match(source, /AppPage/)
   })
 
@@ -42,5 +44,30 @@ describe('pages management UI contract', () => {
     assert.match(modal, /BaseModal/)
     assert.match(modal, /BaseInput/)
     assert.match(modal, /create/)
+  })
+
+  it('page editor owns project create open and import modals', () => {
+    const editor = fs.readFileSync(path.resolve('src/features/web-pages/components/PageEditor.vue'), 'utf8')
+
+    assert.match(editor, /BaseModal/)
+    assert.match(editor, /BaseFileDropzone/)
+    assert.match(editor, /isNewProjectModalOpen/)
+    assert.match(editor, /isOpenProjectModalOpen/)
+    assert.match(editor, /isImportProjectModalOpen/)
+    assert.match(editor, /createProject/)
+    assert.match(editor, /openProject/)
+    assert.match(editor, /importProjectFile/)
+    assert.match(editor, /\/pages\/\$\{site\.id\}/)
+    assert.doesNotMatch(editor, /\/pages\/\$\{page\.id\}/)
+  })
+
+  it('external plugin installer reuses the shared file dropzone', () => {
+    const installer = fs.readFileSync(
+      path.resolve('src/features/plugins/components/ExternalPluginInstaller.vue'),
+      'utf8',
+    )
+
+    assert.match(installer, /BaseFileDropzone/)
+    assert.doesNotMatch(installer, /plugin-installer-modal__dropzone/)
   })
 })

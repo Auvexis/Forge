@@ -21,7 +21,7 @@ export interface SitesApiClient {
   deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) => Promise<SailorSite>
   uploadSiteAsset: (siteId: string, file: File) => Promise<SiteAssetUploadResponse>
   exportSiteProject: (siteId: string) => Promise<Blob>
-  importSiteProject: (archive: SiteProjectArchive) => Promise<SailorSite>
+  importSiteProject: (archive: SiteProjectArchive | File) => Promise<SailorSite>
 }
 
 const defaultApiClient: SitesApiClient = {
@@ -164,7 +164,7 @@ export const useSitesStore = defineStore('web-sites', () => {
     return apiClient.value.exportSiteProject(activeSite.value.id)
   }
 
-  async function importSiteProject(archive: SiteProjectArchive) {
+  async function importSiteProject(archive: SiteProjectArchive | File) {
     const site = await apiClient.value.importSiteProject(archive)
     setSavedSite(site)
     upsertSite(site)

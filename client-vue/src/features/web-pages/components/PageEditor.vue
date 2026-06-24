@@ -235,6 +235,90 @@
       @close="isPageSwitcherOpen = false"
       @select="switchPage"
     />
+
+    <BaseModal :is-open="isNewProjectModalOpen" max-width="480px" height="auto" @close="closeProjectModals">
+      <div class="web-page-project-modal">
+        <header class="web-page-project-modal__header">
+          <div>
+            <h2>New project</h2>
+            <p>Create a clean Sailor Pages project.</p>
+          </div>
+          <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
+        </header>
+        <div class="web-page-project-modal__body">
+          <BaseInput v-model="newProjectName" label="Project name" placeholder="Marketing site" required />
+          <BaseInput v-model="newProjectSlug" label="Slug" placeholder="marketing-site" hint="Optional. Sailor can generate it." />
+          <p v-if="projectModalError" class="web-page-project-modal__error">{{ projectModalError }}</p>
+        </div>
+        <footer class="web-page-project-modal__footer">
+          <BaseButton variant="ghost" @click="closeProjectModals">Cancel</BaseButton>
+          <BaseButton variant="primary" :loading="isProjectActionRunning" :disabled="!newProjectName.trim()" @click="createProject">
+            Create project
+          </BaseButton>
+        </footer>
+      </div>
+    </BaseModal>
+
+    <BaseModal :is-open="isOpenProjectModalOpen" max-width="720px" height="70vh" @close="closeProjectModals">
+      <div class="web-page-project-modal web-page-project-modal--list">
+        <header class="web-page-project-modal__header">
+          <div>
+            <h2>Open project</h2>
+            <p>Select a project from your workspace.</p>
+          </div>
+          <BaseInput v-model="projectSearch" icon-left="search" placeholder="Search projects" />
+          <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
+        </header>
+        <div class="web-page-project-modal__list">
+          <button
+            v-for="site in filteredProjects"
+            :key="site.id"
+            type="button"
+            class="web-page-project-modal__project"
+            :class="{ 'web-page-project-modal__project--active': site.id === sitesStore.activeSite?.id }"
+            @click="openProject(site.id)"
+          >
+            <span class="web-page-project-modal__project-icon">
+              <LucideIcon name="layout-template" :size="18" />
+            </span>
+            <span>
+              <strong>{{ site.name }}</strong>
+              <small>{{ site.slug }} - {{ site.files.length }} files</small>
+            </span>
+          </button>
+          <p v-if="filteredProjects.length === 0" class="web-page-project-modal__empty">No projects found.</p>
+        </div>
+      </div>
+    </BaseModal>
+
+    <BaseModal :is-open="isImportProjectModalOpen" max-width="520px" height="auto" @close="closeProjectModals">
+      <div class="web-page-project-modal">
+        <header class="web-page-project-modal__header">
+          <div>
+            <h2>Import project</h2>
+            <p>Drop a Sailor project zip to add it to your projects.</p>
+          </div>
+          <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
+        </header>
+        <div class="web-page-project-modal__body">
+          <BaseFileDropzone
+            v-model="importProjectFile"
+            accept=".zip,.json,application/zip,application/json"
+            icon="folder-up"
+            title="Drop project zip here"
+            description="Choose a .sailor-site.zip file"
+            :disabled="isProjectActionRunning"
+          />
+          <p v-if="projectModalError" class="web-page-project-modal__error">{{ projectModalError }}</p>
+        </div>
+        <footer class="web-page-project-modal__footer">
+          <BaseButton variant="ghost" @click="closeProjectModals">Cancel</BaseButton>
+          <BaseButton variant="primary" :loading="isProjectActionRunning" :disabled="!importProjectFile" @click="importProjectArchive">
+            Import project
+          </BaseButton>
+        </footer>
+      </div>
+    </BaseModal>
   </section>
 </template>
 
@@ -243,8 +327,12 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseFileDropzone from '@/shared/components/base/BaseFileDropzone.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { BaseCanvasContextMenuEvent, BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import { API_BASE_URL } from '@/core/constants/app.ts'
 import { ENDPOINTS } from '@/core/api/endpoints.ts'
@@ -274,6 +362,15 @@ const INITIAL_CANVAS_TOP_OFFSET = 120
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
+const isNewProjectModalOpen = ref(false)
+const isOpenProjectModalOpen = ref(false)
+const isImportProjectModalOpen = ref(false)
+const newProjectName = ref('')
+const newProjectSlug = ref('')
+const projectSearch = ref('')
+const projectModalError = ref('')
+const importProjectFile = ref<File | null>(null)
+const isProjectActionRunning = ref(false)
 const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
@@ -322,6 +419,13 @@ const isActiveCodeFileReadonly = computed(() => activeCodeFile.value?.path.endsW
 const selectedBlocksSameType = computed(() => {
   const selected = editorStore.selectedBlocks
   return selected.length > 1 && selected.every((block) => block.tag === selected[0]?.tag)
+})
+const filteredProjects = computed(() => {
+  const query = projectSearch.value.trim().toLowerCase()
+  if (!query) return sitesStore.sites
+  return sitesStore.sites.filter((site) =>
+    `${site.name} ${site.slug} ${site.id}`.toLowerCase().includes(query),
+  )
 })
 
 const bodyStyleBlock = computed<PageBlock>(() => ({
@@ -492,8 +596,7 @@ onMounted(async () => {
   window.addEventListener('keydown', handleKeyboardShortcuts)
   window.addEventListener('keydown', handleSpacePanKeyDown)
   window.addEventListener('keyup', handleSpacePanKeyUp)
-  await openInitialSite()
-  await openRoutePage(route.params.pageId)
+  await openRouteProject(route.params.projectId)
   await nextTick()
   positionInitialCanvas()
 })
@@ -504,28 +607,45 @@ onBeforeUnmount(() => {
   window.removeEventListener('keyup', handleSpacePanKeyUp)
 })
 
-async function openInitialSite() {
-  if (sitesStore.activeSite) return
-  const sites = await sitesStore.listSites()
-  if (sites[0]) {
-    sitesStore.setActiveSite(sites[0])
-    pagesStore.setActiveSiteId(sites[0].id)
-  }
-}
-
 watch(
-  () => route.params.pageId,
-  (pageId) => {
-    void openRoutePage(pageId)
+  () => route.params.projectId,
+  (projectId) => {
+    void openRouteProject(projectId)
   },
 )
 
-async function openRoutePage(pageId: unknown) {
-  if (typeof pageId === 'string') {
-    if (pagesStore.pages.length === 0) await pagesStore.listPages()
-    await pagesStore.loadPageDocuments()
-    if (pagesStore.activePage?.id !== pageId) await pagesStore.openPage(pageId)
+async function openRouteProject(projectId: unknown) {
+  if (typeof projectId !== 'string') {
+    clearActiveProject()
+    return
   }
+  await loadProject(projectId)
+}
+
+function clearActiveProject() {
+  sitesStore.setActiveSite(null)
+  pagesStore.setActiveSiteId(null)
+  pagesStore.setActivePage(null)
+  pagesStore.pages = []
+  pagesStore.pageDocuments = {}
+  editorStore.setBlocks([])
+  editorStore.clearSelection()
+  activeCodeFile.value = null
+}
+
+async function loadProject(projectId: string) {
+  const site = await sitesStore.openSite(projectId)
+  pagesStore.setActiveSiteId(site.id)
+  const pages = await pagesStore.listPages()
+  await pagesStore.loadPageDocuments()
+  const firstPageId = site.homePageId ?? pages[0]?.id ?? null
+  if (firstPageId) await pagesStore.openPage(firstPageId)
+  else {
+    pagesStore.setActivePage(null)
+    editorStore.setBlocks([])
+    editorStore.clearSelection()
+  }
+  return site
 }
 
 function positionInitialCanvas() {
@@ -759,7 +879,6 @@ async function openPageSwitcher() {
 async function switchPage(pageId: string) {
   if (pagesStore.isDirty) await savePage()
   await pagesStore.switchPage(pageId)
-  await router.replace(`/pages/${pageId}`)
   isPageSwitcherOpen.value = false
 }
 
@@ -772,17 +891,16 @@ async function selectTreePage(pageId: string) {
 
 async function duplicateActivePage() {
   const page = await pagesStore.duplicateActivePage()
-  if (page) await router.replace(`/pages/${page.id}`)
+  if (page) editorPageId.value = page.id
   editorStore.selectPage()
 }
 
 async function deleteActivePageAndChooseNext() {
   const page = await pagesStore.deleteActivePageAndChooseNext()
   if (page) {
-    await router.replace(`/pages/${page.id}`)
     editorStore.selectPage()
   } else {
-    await router.push('/pages')
+    editorStore.clearSelection()
   }
 }
 
@@ -869,7 +987,6 @@ async function addPageAtEnd() {
 }
 
 async function activateCreatedPage(page: SailorPage) {
-  await router.replace(`/pages/${page.id}`)
   editorPageId.value = page.id
   editorStore.setBlocks(page.blocks)
   editorStore.selectPage()
@@ -879,6 +996,9 @@ async function activateCreatedPage(page: SailorPage) {
 
 function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'go.pages') void router.push('/pages')
+  if (command === 'file.newProject') openNewProjectModal()
+  if (command === 'file.openProject') void openOpenProjectModal()
+  if (command === 'file.importProject') openImportProjectModal()
   if (command === 'file.save') void saveActiveDocument()
   if (command === 'file.preview') previewPage()
   if (command === 'file.togglePublish') void togglePagePublication()
@@ -898,6 +1018,80 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'view.switch') void openPageSwitcher()
   if (command === 'view.left-panel') toggleLeftPanel()
   if (command === 'view.right-panel') toggleRightPanel()
+}
+
+function openNewProjectModal() {
+  projectModalError.value = ''
+  newProjectName.value = ''
+  newProjectSlug.value = ''
+  isNewProjectModalOpen.value = true
+}
+
+async function openOpenProjectModal() {
+  projectModalError.value = ''
+  projectSearch.value = ''
+  isOpenProjectModalOpen.value = true
+  await sitesStore.listSites()
+}
+
+function openImportProjectModal() {
+  projectModalError.value = ''
+  importProjectFile.value = null
+  isImportProjectModalOpen.value = true
+}
+
+function closeProjectModals() {
+  if (isProjectActionRunning.value) return
+  isNewProjectModalOpen.value = false
+  isOpenProjectModalOpen.value = false
+  isImportProjectModalOpen.value = false
+  projectModalError.value = ''
+}
+
+async function runProjectAction(action: () => Promise<void>) {
+  isProjectActionRunning.value = true
+  projectModalError.value = ''
+  try {
+    await action()
+  } catch (error) {
+    projectModalError.value = error instanceof Error ? error.message : 'Unexpected project error'
+  } finally {
+    isProjectActionRunning.value = false
+  }
+}
+
+async function createProject() {
+  const name = newProjectName.value.trim()
+  if (!name) return
+  await runProjectAction(async () => {
+    const site = await sitesStore.createSite({
+      name,
+      slug: newProjectSlug.value.trim() || undefined,
+    })
+    await activateProject(site.id)
+  })
+}
+
+async function openProject(projectId: string) {
+  await runProjectAction(async () => {
+    await activateProject(projectId)
+  })
+}
+
+async function importProjectArchive() {
+  if (!importProjectFile.value) return
+  await runProjectAction(async () => {
+    const site = await sitesStore.importSiteProject(importProjectFile.value!)
+    await activateProject(site.id)
+  })
+}
+
+async function activateProject(projectId: string) {
+  const site = await loadProject(projectId)
+  await router.replace(`/pages/${site.id}`)
+  closeProjectModals()
+  await nextTick()
+  positionInitialCanvas()
 }
 
 function handleKeyboardShortcuts(event: KeyboardEvent) {

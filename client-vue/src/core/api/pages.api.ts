@@ -82,11 +82,20 @@ export const pagesApi = {
     return response.blob()
   },
 
-  importSiteProject: (archive: SiteProjectArchive) =>
-    apiRequest<SailorSite>(ENDPOINTS.SITE_IMPORT, {
+  importSiteProject: (archive: SiteProjectArchive | File) => {
+    if (typeof File !== 'undefined' && archive instanceof File) {
+      const body = new FormData()
+      body.append('file', archive)
+      return apiRequest<SailorSite>(ENDPOINTS.SITE_IMPORT, {
+        method: 'POST',
+        body,
+      })
+    }
+    return apiRequest<SailorSite>(ENDPOINTS.SITE_IMPORT, {
       method: 'POST',
       body: archive,
-    }),
+    })
+  },
 
   listPages: () => apiRequest<SailorPageSummary[]>(ENDPOINTS.PAGES),
 

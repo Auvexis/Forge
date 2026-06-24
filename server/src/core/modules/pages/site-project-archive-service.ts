@@ -85,6 +85,17 @@ export class SiteProjectArchiveService {
     return createZip(files);
   }
 
+  archiveFromUpload(filename: string, buffer: Buffer): SiteProjectArchive {
+    const normalizedName = filename.toLowerCase();
+    if (normalizedName.endsWith(".json")) {
+      return JSON.parse(buffer.toString("utf8")) as SiteProjectArchive;
+    }
+    if (!normalizedName.endsWith(".zip")) throw new Error("Site project import must be a .zip or .json file.");
+    const projectJson = readZipFile(buffer, "sailor-project.json");
+    if (!projectJson) throw new Error("Missing sailor-project.json in site project zip.");
+    return JSON.parse(projectJson.toString("utf8")) as SiteProjectArchive;
+  }
+
   importSite(profileId: string, archive: SiteProjectArchive): SailorSite {
     this.validateArchive(archive);
     const now = new Date().toISOString();
@@ -234,6 +245,40 @@ function createZip(files: Array<{ path: string; content: Buffer }>): Buffer {
   ]);
 
   return Buffer.concat([...localParts, central, end]);
+}
+
+function readZipFile(zip: Buffer, targetPath: string): Buffer | null {
+  let offset = 0;
+  const normalizedTarget = targetPath.replaceAll("\\", "/");
+
+  while (offset + 30 <= zip.length) {
+    const signature = zip.readUInt32LE(offset);
+    if (signature !== 0x04034b50) break;
+
+    const flags = zip.readUInt16LE(offset + 6);
+    const method = zip.readUInt16LE(offset + 8);
+    const compressedSize = zip.readUInt32LE(offset + 18);
+    const uncompressedSize = zip.readUInt32LE(offset + 22);
+    const nameLength = zip.readUInt16LE(offset + 26);
+    const extraLength = zip.readUInt16LE(offset + 28);
+    const nameStart = offset + 30;
+    const dataStart = nameStart + nameLength + extraLength;
+    const dataEnd = dataStart + compressedSize;
+    const name = zip.subarray(nameStart, nameStart + nameLength).toString("utf8").replaceAll("\\", "/");
+
+    if (dataEnd > zip.length) throw new Error("Invalid site project zip.");
+    if (flags & 0x08) throw new Error("Unsupported site project zip format.");
+    if (name === normalizedTarget) {
+      if (method !== 0) throw new Error("Compressed site project zips are not supported yet.");
+      const content = zip.subarray(dataStart, dataEnd);
+      if (content.length !== uncompressedSize) throw new Error("Invalid site project zip entry.");
+      return content;
+    }
+
+    offset = dataEnd;
+  }
+
+  return null;
 }
 
 function u16(value: number): Buffer {

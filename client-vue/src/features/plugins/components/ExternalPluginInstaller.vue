@@ -33,29 +33,14 @@
               <LucideIcon name="folder-open" :size="15" />
               <span>Extracted folder</span>
             </div>
-            <button
-              type="button"
-              class="plugin-installer-modal__dropzone"
-              :class="{ 'is-dragging': isDraggingFolder }"
+            <BaseFileDropzone
               :disabled="loading"
-              @click="openFolderPicker"
-              @dragenter.prevent="isDraggingFolder = true"
-              @dragover.prevent="isDraggingFolder = true"
-              @dragleave.prevent="isDraggingFolder = false"
-              @drop.prevent="handleFolderDrop"
-            >
-              <LucideIcon name="folder-up" :size="20" />
-              <span>{{ selectedUploadLabel || 'Drop plugin files here' }}</span>
-              <small>Select folder or files</small>
-            </button>
-            <input
-              ref="folderInputRef"
-              class="plugin-installer-modal__file-input"
-              type="file"
-              multiple
-              webkitdirectory
               directory
-              @change="handleFolderInputChange"
+              multiple
+              icon="folder-up"
+              :title="selectedUploadLabel || 'Drop plugin files here'"
+              description="Select folder or files"
+              @select="previewUpload"
             />
           </section>
 
@@ -211,6 +196,7 @@ import type {
   PluginManifest,
 } from '@/core/types/plugin.types'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseFileDropzone, { type BaseFileDropzoneEntry } from '@/shared/components/base/BaseFileDropzone.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
@@ -239,11 +225,6 @@ const emit = defineEmits<{
   installed: [result: ExternalPluginInstallResult]
 }>()
 
-interface UploadFileEntry {
-  file: File
-  relativePath: string
-}
-
 const repositoryUrl = ref('')
 const profileStore = useProfileStore()
 const startGuide = useStartGuide()
@@ -253,9 +234,7 @@ const result = ref<ExternalPluginInstallResult | null>(null)
 const loading = ref(false)
 const error = ref('')
 const activeAction = ref<'url' | 'upload' | 'install' | null>(null)
-const folderInputRef = ref<HTMLInputElement | null>(null)
 const selectedUploadLabel = ref('')
-const isDraggingFolder = ref(false)
 let repositoryPreviewTimer: number | undefined
 
 const emptyManifest: PluginManifest = {
@@ -353,7 +332,7 @@ function previewUrl() {
   })
 }
 
-function previewUpload(files: UploadFileEntry[]) {
+function previewUpload(files: BaseFileDropzoneEntry[]) {
   if (files.length === 0) return
 
   selectedUploadLabel.value =
@@ -385,81 +364,6 @@ function isIconUrl(icon?: string) {
   return Boolean(icon?.startsWith('http') || icon?.startsWith('/'))
 }
 
-function openFolderPicker() {
-  if (loading.value) return
-  folderInputRef.value?.click()
-}
-
-function filesFromFileList(fileList: FileList | null): UploadFileEntry[] {
-  if (!fileList) return []
-
-  return Array.from(fileList).map((file) => ({
-    file,
-    relativePath:
-      (file as File & { webkitRelativePath?: string }).webkitRelativePath || file.name,
-  }))
-}
-
-function handleFolderInputChange(event: Event) {
-  const input = event.target as HTMLInputElement
-  previewUpload(filesFromFileList(input.files))
-  input.value = ''
-}
-
-async function handleFolderDrop(event: DragEvent) {
-  isDraggingFolder.value = false
-  const files = await filesFromDataTransfer(event.dataTransfer)
-  previewUpload(files)
-}
-
-async function filesFromDataTransfer(dataTransfer: DataTransfer | null): Promise<UploadFileEntry[]> {
-  if (!dataTransfer) return []
-
-  const itemEntries = Array.from(dataTransfer.items ?? [])
-    .map((item) => {
-      const maybeItem = item as DataTransferItem & {
-        webkitGetAsEntry?: () => unknown
-      }
-      return maybeItem.webkitGetAsEntry?.()
-    })
-    .filter(Boolean)
-
-  if (itemEntries.length > 0) {
-    const nestedFiles = await Promise.all(
-      itemEntries.map((entry) => collectDroppedEntryFiles(entry, '')),
-    )
-    return nestedFiles.flat()
-  }
-
-  return filesFromFileList(dataTransfer.files)
-}
-
-async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Promise<UploadFileEntry[]> {
-  const item = entry as {
-    isFile?: boolean
-    isDirectory?: boolean
-    name: string
-    file?: (callback: (file: File) => void) => void
-    createReader?: () => {
-      readEntries: (callback: (entries: unknown[]) => void) => void
-    }
-  }
-  const relativePath = parentPath ? `${parentPath}/${item.name}` : item.name
-
-  if (item.isFile && item.file) {
-    const file = await new Promise<File>((resolve) => item.file?.(resolve))
-    return [{ file, relativePath }]
-  }
-
-  if (!item.isDirectory || !item.createReader) return []
-
-  const reader = item.createReader()
-  const entries = await new Promise<unknown[]>((resolve) => reader.readEntries(resolve))
-  const nestedFiles = await Promise.all(
-    entries.map((childEntry) => collectDroppedEntryFiles(childEntry, relativePath)),
-  )
-  return nestedFiles.flat()
-}
 </script>
 
 <style scoped>
@@ -537,54 +441,6 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-medium);
-}
-
-.plugin-installer-modal__dropzone {
-  display: grid;
-  place-items: center;
-  gap: var(--sailor-space-1);
-  min-height: 108px;
-  padding: var(--sailor-space-4);
-  border: 1px dashed var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-secondary);
-  font: inherit;
-  cursor: pointer;
-  transition:
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
-}
-
-.plugin-installer-modal__dropzone:hover,
-.plugin-installer-modal__dropzone.is-dragging {
-  border-color: var(--sailor-input-border-focus);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
-}
-
-.plugin-installer-modal__dropzone:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.plugin-installer-modal__dropzone span {
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
-}
-
-.plugin-installer-modal__dropzone small {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
-}
-
-.plugin-installer-modal__file-input {
-  display: none;
 }
 
 .plugin-installer-modal__hint {

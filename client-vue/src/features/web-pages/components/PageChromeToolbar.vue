@@ -118,6 +118,9 @@ const props = defineProps<{
 
 export type PageChromeCommand =
   | 'go.pages'
+  | 'file.newProject'
+  | 'file.openProject'
+  | 'file.importProject'
   | 'file.save'
   | 'file.preview'
   | 'file.togglePublish'
@@ -141,6 +144,9 @@ const menus: Array<{
     id: 'file',
     label: 'File',
     items: [
+      { id: 'file.newProject', label: 'New project', icon: 'file-plus-2' },
+      { id: 'file.openProject', label: 'Open project', icon: 'folder-open' },
+      { id: 'file.importProject', label: 'Import project', icon: 'folder-up' },
       { id: 'file.save', label: 'Save', icon: 'save' },
       { id: 'file.preview', label: 'Preview', icon: 'eye' },
       { id: 'file.togglePublish', label: 'Publish', icon: 'send' },

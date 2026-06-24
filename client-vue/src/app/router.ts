@@ -30,7 +30,7 @@ const router = createRouter({
       meta: { title: 'Pages' },
     },
     {
-      path: '/pages/:pageId',
+      path: '/pages/:projectId',
       name: 'pages-editor',
       component: () => import('@/app/pages/PagesEditorPage.vue'),
       meta: { title: 'Pages' },

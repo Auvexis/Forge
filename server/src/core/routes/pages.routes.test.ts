@@ -254,15 +254,7 @@ describe("pages routes", () => {
     const importResponse = await app.inject({
       method: "POST",
       url: "/sites/import",
-      payload: {
-        manifest: {
-          schemaVersion: 1,
-          site: { name: "Exportable", slug: "exportable", homePageId: null },
-        },
-        pages: [],
-        files: [],
-        assets: [],
-      },
+      ...multipartPayload("exportable.sailor-site.zip", exportResponse.rawPayload, "application/zip"),
     });
     assert.equal(importResponse.statusCode, 201);
     assert.equal(importResponse.json().data.profileId, "profile_a");
@@ -270,19 +262,29 @@ describe("pages routes", () => {
   });
 });
 
-function multipartPayload(filename: string, content: string) {
+function multipartPayload(filename: string, content: string | Buffer, contentType = "image/png") {
   const boundary = "----sailor-page-asset-test-boundary";
-  const body = Buffer.from(
+  const header = Buffer.from(
     [
       `--${boundary}`,
       `Content-Disposition: form-data; name="file"; filename="${filename}"`,
-      "Content-Type: image/png",
+      `Content-Type: ${contentType}`,
       "",
-      content,
+      "",
+    ].join("\r\n"),
+  );
+  const footer = Buffer.from(
+    [
+      "",
       `--${boundary}--`,
       "",
     ].join("\r\n"),
   );
+  const body = Buffer.concat([
+    header,
+    Buffer.isBuffer(content) ? content : Buffer.from(content),
+    footer,
+  ]);
 
   return {
     headers: {

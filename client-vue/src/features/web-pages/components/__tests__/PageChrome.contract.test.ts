@@ -8,13 +8,15 @@ function read(relativePath: string) {
 }
 
 describe('page chrome contract', () => {
-  it('pages editor enters immersive app chrome mode only while editing a page', () => {
+  it('pages editor enters immersive app chrome mode when opening Sailor Pages', () => {
     const source = read('src/app/pages/PagesEditorPage.vue')
 
     assert.match(source, /useAppUiStore/)
     assert.match(source, /enterUniverseMode/)
     assert.match(source, /quitUniverseMode/)
-    assert.match(source, /route\.params\.pageId/)
+    assert.match(source, /<PageEditor/)
+    assert.doesNotMatch(source, /<PagesList/)
+    assert.doesNotMatch(source, /route\.params\.pageId/)
   })
 
   it('page chrome exposes top File Edit View menus and exit command', () => {
@@ -24,6 +26,9 @@ describe('page chrome contract', () => {
     assert.match(source, /File/)
     assert.match(source, /Edit/)
     assert.match(source, /View/)
+    assert.match(source, /file\.newProject/)
+    assert.match(source, /file\.openProject/)
+    assert.match(source, /file\.importProject/)
     assert.match(source, /file\.save/)
     assert.match(source, /file\.preview/)
     assert.match(source, /file\.togglePublish/)

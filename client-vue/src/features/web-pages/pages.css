@@ -414,6 +414,127 @@
   padding: var(--sailor-space-4);
 }
 
+.web-page-project-modal {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  color: var(--sailor-text-primary);
+}
+
+.web-page-project-modal__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
+}
+
+.web-page-project-modal__header > div:first-child {
+  min-width: 0;
+  flex: 1;
+}
+
+.web-page-project-modal__header .base-input-wrapper {
+  max-width: 260px;
+}
+
+.web-page-project-modal__header h2,
+.web-page-project-modal__header p {
+  margin: 0;
+}
+
+.web-page-project-modal__header h2 {
+  font-size: var(--sailor-text-lg);
+  font-weight: var(--sailor-font-semibold);
+}
+
+.web-page-project-modal__header p {
+  margin-top: var(--sailor-space-1);
+  color: var(--sailor-text-secondary);
+  font-size: var(--sailor-text-sm);
+}
+
+.web-page-project-modal__body,
+.web-page-project-modal__list {
+  display: grid;
+  gap: var(--sailor-space-3);
+  padding: var(--sailor-space-4);
+  overflow-y: auto;
+}
+
+.web-page-project-modal__list {
+  min-height: 0;
+}
+
+.web-page-project-modal__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--sailor-space-2);
+  padding: var(--sailor-space-4);
+  border-top: 1px solid var(--sailor-border);
+}
+
+.web-page-project-modal__project {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--sailor-space-3);
+  width: 100%;
+  padding: var(--sailor-space-3);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  color: var(--sailor-text-primary);
+  text-align: left;
+  cursor: pointer;
+}
+
+.web-page-project-modal__project:hover,
+.web-page-project-modal__project--active {
+  border-color: var(--sailor-input-border-focus);
+  background: var(--sailor-bg-elevated);
+}
+
+.web-page-project-modal__project-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--sailor-radius-sm);
+  background: color-mix(in srgb, var(--web-page-selected-color) 12%, transparent);
+  color: var(--web-page-selected-color);
+}
+
+.web-page-project-modal__project span:last-child {
+  min-width: 0;
+}
+
+.web-page-project-modal__project strong,
+.web-page-project-modal__project small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-project-modal__project strong {
+  font-size: var(--sailor-text-sm);
+  font-weight: var(--sailor-font-semibold);
+}
+
+.web-page-project-modal__project small,
+.web-page-project-modal__empty {
+  color: var(--sailor-text-muted);
+  font-size: var(--sailor-text-xs);
+}
+
+.web-page-project-modal__error {
+  margin: 0;
+  color: var(--sailor-text-error);
+  font-size: var(--sailor-text-xs);
+}
+
 .web-page-block {
   position: relative;
   display: block;

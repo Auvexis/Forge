@@ -270,10 +270,24 @@ export default async function pagesRoutes(
 
   fastify.post("/sites/import", async (req, reply) => {
     try {
-      const site = new SiteProjectArchiveService({ assetStorageRoot }).importSite(
-        getProfileId(),
-        req.body as SiteProjectArchive,
-      );
+      const archiveService = new SiteProjectArchiveService({ assetStorageRoot });
+      const multipartReq = req as typeof req & {
+        isMultipart?: () => boolean;
+        file?: (options?: unknown) => Promise<{
+          filename: string;
+          mimetype?: string;
+          toBuffer: () => Promise<Buffer>;
+        } | undefined>;
+      };
+      let archive = req.body as SiteProjectArchive;
+
+      if (multipartReq.isMultipart?.()) {
+        const uploaded = await multipartReq.file?.({ limits: { fileSize: 50 * 1024 * 1024 } });
+        if (!uploaded) throw new Error("Missing site project upload file.");
+        archive = archiveService.archiveFromUpload(uploaded.filename, await uploaded.toBuffer());
+      }
+
+      const site = archiveService.importSite(getProfileId(), archive);
       return sendResponse(reply, {
         status_code: 201,
         message: "Site imported successfully",
