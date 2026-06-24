@@ -881,8 +881,7 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'go.pages') void router.push('/pages')
   if (command === 'file.save') void saveActiveDocument()
   if (command === 'file.preview') previewPage()
-  if (command === 'file.publish') void publishPage()
-  if (command === 'file.unpublish') void unpublishPage()
+  if (command === 'file.togglePublish') void togglePagePublication()
   if (command === 'file.openLive') openLivePage()
   if (command === 'file.exportProject') void exportActiveProject()
   if (command === 'edit.undo') undoPageEdit()
@@ -974,6 +973,11 @@ async function publishPage() {
 async function unpublishPage() {
   if (!pagesStore.activePage || !activePagePublishedAt.value) return
   await pagesStore.unpublishActivePage()
+}
+
+async function togglePagePublication() {
+  if (activePagePublishedAt.value) await unpublishPage()
+  else await publishPage()
 }
 
 function openLivePage() {

@@ -38,6 +38,8 @@
           @duplicate-block="$emit('duplicate-block', $event)"
           @delete-block="$emit('delete-block', $event)"
           @inspect-block="$emit('inspect-block', $event)"
+          @resize-start="suppressBodySelectionAfterResize"
+          @resize-end="suppressBodySelectionAfterResize"
           @resize-block="$emit('resize-block', $event)"
           @rename-block="$emit('rename-block', $event)"
           @patch-block="$emit('patch-block', $event)"
@@ -48,7 +50,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
@@ -78,6 +80,7 @@ const emit = defineEmits<{
   'rename-block': [payload: { blockId: string; nextId: string }]
   'patch-block': [payload: { blockId: string; patch: Partial<PageBlock> }]
 }>()
+const suppressBodySelectionUntil = ref(0)
 
 const resolvedBodyStyles = computed(() => ({
   ...normalizeEditorBodyStyles({
@@ -114,8 +117,13 @@ function handleBlockSelect(blockId: string) {
 }
 
 function handleBodyClick() {
+  if (Date.now() < suppressBodySelectionUntil.value) return
   if (props.activeTool === 'pan' || props.activeTool === 'delete') return
   emit('select-body')
+}
+
+function suppressBodySelectionAfterResize() {
+  suppressBodySelectionUntil.value = Date.now() + 240
 }
 
 function onRootDragOver(event: DragEvent) {

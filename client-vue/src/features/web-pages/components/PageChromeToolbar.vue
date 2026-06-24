@@ -6,7 +6,7 @@
     <div class="web-page-chrome__divider"></div>
 
     <AppDropdownMenu
-      v-for="menu in menus"
+      v-for="menu in resolvedMenus"
       :key="menu.id"
       :ref="(el) => registerMenuRef(menu.id, el)"
       position="bottom-start"
@@ -86,17 +86,8 @@
     <BaseButton size="sm" variant="ghost" icon-left="eye" @click="$emit('command', 'file.preview')">
       Preview
     </BaseButton>
-    <BaseButton size="sm" variant="ghost" icon-left="send" @click="$emit('command', 'file.publish')">
-      Publish
-    </BaseButton>
-    <BaseButton
-      v-if="publishedAt"
-      size="sm"
-      variant="ghost"
-      icon-left="radio"
-      @click="$emit('command', 'file.unpublish')"
-    >
-      Unpublish
+    <BaseButton size="sm" variant="ghost" :icon-left="publishCommandIcon" @click="$emit('command', 'file.togglePublish')">
+      {{ publishCommandLabel }}
     </BaseButton>
     <BaseButton
       size="sm"
@@ -129,8 +120,7 @@ export type PageChromeCommand =
   | 'go.pages'
   | 'file.save'
   | 'file.preview'
-  | 'file.publish'
-  | 'file.unpublish'
+  | 'file.togglePublish'
   | 'file.openLive'
   | 'file.exportProject'
   | 'edit.undo'
@@ -153,8 +143,7 @@ const menus: Array<{
     items: [
       { id: 'file.save', label: 'Save', icon: 'save' },
       { id: 'file.preview', label: 'Preview', icon: 'eye' },
-      { id: 'file.publish', label: 'Publish', icon: 'send' },
-      { id: 'file.unpublish', label: 'Unpublish', icon: 'radio', danger: true },
+      { id: 'file.togglePublish', label: 'Publish', icon: 'send' },
       { id: 'file.openLive', label: 'Open live', icon: 'external-link' },
       { id: 'file.exportProject', label: 'Export project', icon: 'download' },
     ],
@@ -204,6 +193,14 @@ const saveStatusIcon = computed(() => {
   if (saveState.value === 'dirty') return 'cloud-alert'
   return 'cloud-check'
 })
+const publishCommandLabel = computed(() => (props.publishedAt ? 'Unpublish' : 'Publish'))
+const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send'))
+const resolvedMenus = computed(() => menus.map((menu) => ({
+  ...menu,
+  items: menu.items.map((item) => item.id === 'file.togglePublish'
+    ? { ...item, label: publishCommandLabel.value, icon: publishCommandIcon.value, danger: Boolean(props.publishedAt) }
+    : item),
+})))
 
 function registerMenuRef(menuId: string, menu: unknown) {
   menuRefs.value[menuId] = menu as InstanceType<typeof AppDropdownMenu> | null

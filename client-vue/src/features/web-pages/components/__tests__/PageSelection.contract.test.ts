@@ -74,7 +74,9 @@ describe('page selection contract', () => {
     assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*display:\s*inline-flex/)
     assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*align-items:\s*center/)
     assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*width:\s*max-content/)
-    assert.match(css, /\.web-page-block-context-toolbar\s*\{[\s\S]*background:\s*var\(--web-page-selected-color\)/)
+    assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*background:\s*var\(--web-page-selected-color\)/)
+    const toolbarRule = css.match(/\.web-page-block-context-toolbar\s*\{[^}]*\}/)?.[0] ?? ''
+    assert.doesNotMatch(toolbarRule, /background:\s*var\(--web-page-selected-color\)/)
     assert.match(css, /border:\s*1px solid color-mix\(in srgb, var\(--web-page-selected-color\) 78%, #ffffff\)/)
   })
 
@@ -145,6 +147,9 @@ describe('page selection contract', () => {
 
     assert.match(source, /select-body/)
     assert.match(source, /@click\.self/)
+    assert.match(source, /suppressBodySelectionAfterResize/)
+    assert.match(source, /suppressBodySelectionUntil/)
+    assert.match(source, /Date\.now\(\) < suppressBodySelectionUntil\.value/)
     assert.doesNotMatch(source, /@pointerdown\.stop/)
   })
 

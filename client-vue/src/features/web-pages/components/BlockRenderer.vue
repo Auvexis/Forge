@@ -188,6 +188,8 @@ const emit = defineEmits<{
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
+  'resize-start': []
+  'resize-end': []
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
   'rename-block': [payload: { blockId: string; nextId: string }]
   'patch-block': [payload: { blockId: string; patch: Partial<PageBlock> }]
@@ -433,6 +435,7 @@ function cancelInlineEdit() {
 function startResize(event: PointerEvent, corner: ResizeCorner) {
   const element = blockElementRef.value
   if (!element) return
+  emit('resize-start')
   const rect = element.getBoundingClientRect()
   const bounds = resizeBounds(element)
   activeResizeCorner.value = corner
@@ -477,6 +480,7 @@ function resizeFromPointer(event: PointerEvent) {
 
 function finishResize() {
   if (previewStyles.value) emit('resize-block', { blockId: props.block.id, styles: previewStyles.value })
+  emit('resize-end')
   previewStyles.value = null
   activeResizeGuides.value = []
   resizeLabel.value = ''
