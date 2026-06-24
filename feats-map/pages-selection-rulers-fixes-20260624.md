@@ -1,0 +1,4 @@
+- [x] Add interaction and ruler contracts
+- [x] Fix Pages selection chrome
+- [x] Fix ruler theme redraw
+- [x] Verify and commit

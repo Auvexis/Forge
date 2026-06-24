@@ -584,7 +584,7 @@
 
 .web-page-block-context-toolbar {
   position: absolute;
-  top: -40px;
+  bottom: calc(100% + 39px);
   left: 50%;
   z-index: 3;
   display: inline-flex;
@@ -592,9 +592,9 @@
   gap: var(--sailor-space-1);
   min-width: 112px;
   padding: 3px;
-  border: 1px solid color-mix(in srgb, var(--web-page-selected-color) 64%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--web-page-selected-color) 78%, #ffffff);
   border-radius: 6px;
-  background: color-mix(in srgb, #101828 94%, var(--web-page-selected-color));
+  background: var(--web-page-selected-color);
   box-shadow: 0 8px 22px color-mix(in srgb, #000000 28%, transparent);
   color: #ffffff;
   animation: web-page-toolbar-pop var(--web-page-motion-medium) var(--web-page-ease-premium);

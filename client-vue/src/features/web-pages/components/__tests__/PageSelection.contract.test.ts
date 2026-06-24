@@ -60,6 +60,20 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-selection__ratio/)
   })
 
+  it('selection chrome stays compact and uses the selected blue surface', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /const selectionChromeOffset/)
+    assert.match(renderer, /:style="contextToolbarStyle"/)
+    assert.match(renderer, /:style="selectionActionsStyle"/)
+    assert.match(renderer, /20px/)
+    assert.match(renderer, /distanceLabelStyle/)
+    assert.doesNotMatch(renderer, /distance\.value \/ 2/)
+    assert.match(css, /\.web-page-block-context-toolbar\s*\{[\s\S]*background:\s*var\(--web-page-selected-color\)/)
+    assert.match(css, /border:\s*1px solid color-mix\(in srgb, var\(--web-page-selected-color\) 78%, #ffffff\)/)
+  })
+
   it('selection chrome has premium motion polish with reduced motion fallback', () => {
     const css = read('src/features/web-pages/pages.css')
 
@@ -122,7 +136,7 @@ describe('page selection contract', () => {
 
     assert.match(source, /select-body/)
     assert.match(source, /@click\.self/)
-    assert.match(source, /@pointerdown\.stop/)
+    assert.doesNotMatch(source, /@pointerdown\.stop/)
   })
 
   it('editor store tracks page, body, block and empty selection targets', () => {

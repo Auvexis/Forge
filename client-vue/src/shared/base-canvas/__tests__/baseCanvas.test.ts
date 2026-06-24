@@ -180,6 +180,16 @@ describe('BaseCanvas component contract', () => {
     assert.doesNotMatch(ruler, /items/)
   })
 
+  it('redraws rulers when theme attributes change without requiring reload', () => {
+    const ruler = readBaseCanvasRulers()
+
+    assert.match(ruler, /MutationObserver/)
+    assert.match(ruler, /themeObserver/)
+    assert.match(ruler, /document\.documentElement/)
+    assert.match(ruler, /attributeFilter: \['class', 'style', 'data-theme'\]/)
+    assert.match(ruler, /themeObserver\.value\?\.disconnect\(\)/)
+  })
+
   it('zooms with the mouse wheel around the cursor and keeps the pattern attached to the viewport', () => {
     const source = readBaseCanvas()
 

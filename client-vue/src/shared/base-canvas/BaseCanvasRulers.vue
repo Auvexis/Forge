@@ -35,6 +35,7 @@ const props = withDefaults(defineProps<{
 
 const topCanvasRef = ref<HTMLCanvasElement | null>(null)
 const leftCanvasRef = ref<HTMLCanvasElement | null>(null)
+const themeObserver = ref<MutationObserver | null>(null)
 const rulersStyle = computed(() => ({
   '--base-canvas-rulers-text': props.rulersText,
   '--base-canvas-rulers-lines': props.rulersLines,
@@ -42,11 +43,13 @@ const rulersStyle = computed(() => ({
 
 onMounted(() => {
   window.addEventListener('resize', drawRulers)
+  observeThemeChanges()
   void nextTick(drawRulers)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', drawRulers)
+  themeObserver.value?.disconnect()
 })
 
 watch(
@@ -66,6 +69,15 @@ watch(
 function drawRulers() {
   drawAxis(topCanvasRef.value, 'x')
   drawAxis(leftCanvasRef.value, 'y')
+}
+
+function observeThemeChanges() {
+  themeObserver.value?.disconnect()
+  themeObserver.value = new MutationObserver(() => drawRulers())
+  themeObserver.value.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class', 'style', 'data-theme'],
+  })
 }
 
 function drawAxis(canvas: HTMLCanvasElement | null, axis: 'x' | 'y') {

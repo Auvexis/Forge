@@ -91,7 +91,7 @@
         />
         <span v-else>{{ block.id }}</span>
       </div>
-      <div class="web-page-block-selection__actions" @pointerdown.stop @click.stop>
+      <div class="web-page-block-selection__actions" :style="selectionActionsStyle" @pointerdown.stop @click.stop>
         <BaseButton
           variant="ghost"
           size="icon"
@@ -107,7 +107,7 @@
           @click="$emit('delete-block', block.id)"
         />
       </div>
-      <div class="web-page-block-context-toolbar" @pointerdown.stop @click.stop>
+      <div class="web-page-block-context-toolbar" :style="contextToolbarStyle" @pointerdown.stop @click.stop>
         <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
         <span v-if="contextToolbarActions.length" class="web-page-block-context-toolbar__group">
           <button
@@ -277,6 +277,16 @@ const selectionSizeLabel = computed(() => {
   if (!Number.isFinite(width) || !Number.isFinite(height)) return '0 x 0'
   return `${Math.round(width)} x ${Math.round(height)}`
 })
+const selectionChromeOffset = computed(() => {
+  const height = Number.parseFloat(selectionFrameStyle.value.height ?? '')
+  return Number.isFinite(height) && height < 44 ? 34 : 7
+})
+const contextToolbarStyle = computed(() => ({
+  bottom: `calc(100% + ${selectionChromeOffset.value + 32}px)`,
+}))
+const selectionActionsStyle = computed(() => ({
+  bottom: `calc(100% + ${selectionChromeOffset.value}px)`,
+}))
 const selectionDistanceLabels = computed(() => {
   const frame = selectionRect()
   const parent = frameElementRef.value?.parentElement
@@ -583,10 +593,10 @@ function selectionRect() {
 }
 
 function distanceLabelStyle(distance: { side: string; value: number }) {
-  if (distance.side === 'top') return { top: `${-Math.max(28, distance.value / 2)}px` }
-  if (distance.side === 'right') return { right: `${-Math.max(46, distance.value / 2)}px` }
-  if (distance.side === 'bottom') return { bottom: `${-Math.max(28, distance.value / 2)}px` }
-  return { left: `${-Math.max(46, distance.value / 2)}px` }
+  if (distance.side === 'top') return { top: '-20px' }
+  if (distance.side === 'right') return { right: '-20px' }
+  if (distance.side === 'bottom') return { bottom: '-20px' }
+  return { left: '-20px' }
 }
 
 function applyContextToolbarAction(action: ContextToolbarAction) {
