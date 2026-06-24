@@ -479,7 +479,7 @@
 
 .web-page-block--selected {
   outline: 1px solid var(--web-page-selected-color);
-  outline-offset: 3px;
+  outline-offset: 0;
 }
 
 .web-page-block-selection {
@@ -492,7 +492,7 @@
 .web-page-block:focus,
 .web-page-block:focus-visible {
   outline: 1px solid var(--web-page-selected-color);
-  outline-offset: 3px;
+  outline-offset: 0;
 }
 
 .web-page-block[contenteditable="true"] {

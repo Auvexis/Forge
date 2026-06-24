@@ -26,6 +26,8 @@ describe('page selection contract', () => {
     assert.match(editor, /patchBlock/)
     assert.match(css, /web-page-block-resize__handle/)
     assert.match(css, /outline:\s*1px solid var\(--web-page-selected-color\)/)
+    assert.match(css, /outline-offset:\s*0/)
+    assert.doesNotMatch(css, /outline-offset:\s*3px/)
     assert.doesNotMatch(css, /@keyframes web-page-selected-dash/)
   })
 
