@@ -141,4 +141,28 @@ describe('page chrome contract', () => {
     assert.match(source, /Blob/)
     assert.doesNotMatch(source, /\.sailor\.json/)
   })
+
+  it('open project modal previews first project page and exposes project export and delete actions', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /projectPreviews/)
+    assert.match(source, /loadProjectPreviews/)
+    assert.match(source, /web-page-project-modal__preview/)
+    assert.match(source, /previewBlocks/)
+    assert.match(source, /BaseButton[\s\S]*icon-left="download"[\s\S]*exportProject\(site\.id\)/)
+    assert.match(source, /BaseButton[\s\S]*icon-left="trash-2"[\s\S]*deleteProject\(site\.id\)/)
+    assert.match(source, /useConfirm/)
+    assert.match(source, /confirm\(/)
+    assert.match(source, /sitesStore\.deleteSite\(projectId\)/)
+    assert.match(source, /sitesStore\.exportSiteProject\(projectId\)/)
+    assert.doesNotMatch(source, /web-page-project-modal__project-icon/)
+  })
+
+  it('open project modal closes automatically after a project is selected', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /async function openProject\(projectId: string\)/)
+    assert.match(source, /await activateProject\(projectId\)/)
+    assert.match(source, /closeProjectModals\(\)/)
+  })
 })

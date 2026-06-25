@@ -176,4 +176,23 @@ describe('sites store', () => {
     assert.equal(imported?.id, 'site_imported')
     assert.equal(store.activeSite?.id, 'site_imported')
   })
+
+  it('exports a site project by id without switching the active site', async () => {
+    const store = useSitesStore()
+    let exportedSiteId = ''
+    store.setApiClient({
+      ...api(),
+      exportSiteProject: async (siteId) => {
+        exportedSiteId = siteId
+        return new Blob(['ZIP'])
+      },
+    })
+    store.setActiveSite(site({ id: 'site_active' }))
+
+    const exported = await store.exportSiteProject('site_other')
+
+    assert.equal(exportedSiteId, 'site_other')
+    assert.equal(await exported?.text(), 'ZIP')
+    assert.equal(store.activeSite?.id, 'site_active')
+  })
 })

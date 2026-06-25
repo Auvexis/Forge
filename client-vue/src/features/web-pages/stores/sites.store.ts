@@ -164,6 +164,10 @@ export const useSitesStore = defineStore('web-sites', () => {
     return apiClient.value.exportSiteProject(activeSite.value.id)
   }
 
+  async function exportSiteProject(siteId: string) {
+    return apiClient.value.exportSiteProject(siteId)
+  }
+
   async function importSiteProject(archive: SiteProjectArchive | File) {
     const site = await apiClient.value.importSiteProject(archive)
     setSavedSite(site)
@@ -209,6 +213,7 @@ export const useSitesStore = defineStore('web-sites', () => {
     deleteFile,
     uploadAsset,
     exportActiveSiteProject,
+    exportSiteProject,
     importSiteProject,
   }
 })

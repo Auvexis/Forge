@@ -1,10 +1,10 @@
 - [x] Batch 1: Page canvas real size
 - [x] Batch 1: Percent sizes resolve from parent
 - [x] Batch 1: Selection chrome scales with zoom
-- [ ] Batch 2: Open Project closes after select
-- [ ] Batch 2: Project preview in Open Project
-- [ ] Batch 2: Project delete with global confirm
-- [ ] Batch 2: Project export action
+- [x] Batch 2: Open Project closes after select
+- [x] Batch 2: Project preview in Open Project
+- [x] Batch 2: Project delete with global confirm
+- [x] Batch 2: Project export action
 - [ ] Batch 3: Back to Home
 - [ ] Batch 3: Explorer and Inspector hotkeys
 - [ ] Batch 3: Unsaved changes leave guard

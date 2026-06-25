@@ -270,22 +270,47 @@
           <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
         </header>
         <div class="web-page-project-modal__list">
-          <button
+          <article
             v-for="site in filteredProjects"
             :key="site.id"
-            type="button"
             class="web-page-project-modal__project"
             :class="{ 'web-page-project-modal__project--active': site.id === sitesStore.activeSite?.id }"
-            @click="openProject(site.id)"
           >
-            <span class="web-page-project-modal__project-icon">
-              <LucideIcon name="layout-template" :size="18" />
+            <button
+              type="button"
+              class="web-page-project-modal__project-main"
+              @click="openProject(site.id)"
+            >
+              <span class="web-page-project-modal__preview">
+                <span
+                  v-for="(block, blockIndex) in previewBlocks(site.id)"
+                  :key="`${site.id}:${block.id}:${blockIndex}`"
+                  class="web-page-project-modal__preview-block"
+                  :style="previewBlockStyle(block, blockIndex)"
+                />
+              </span>
+              <span>
+                <strong>{{ site.name }}</strong>
+                <small>{{ site.slug }} - {{ site.files.length }} files</small>
+              </span>
+            </button>
+            <span class="web-page-project-modal__project-actions">
+              <BaseButton
+                variant="ghost"
+                size="icon"
+                icon-left="download"
+                title="Export project"
+                @click.stop="exportProject(site.id)"
+              />
+              <BaseButton
+                variant="ghost"
+                size="icon"
+                icon-left="trash-2"
+                title="Delete project"
+                @click.stop="deleteProject(site.id)"
+              />
             </span>
-            <span>
-              <strong>{{ site.name }}</strong>
-              <small>{{ site.slug }} - {{ site.files.length }} files</small>
-            </span>
-          </button>
+          </article>
           <p v-if="filteredProjects.length === 0" class="web-page-project-modal__empty">No projects found.</p>
         </div>
       </div>
@@ -334,8 +359,10 @@ import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/co
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { BaseCanvasContextMenuEvent, BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
+import { useConfirm } from '@/shared/composables/useConfirm.ts'
 import { API_BASE_URL } from '@/core/constants/app.ts'
 import { ENDPOINTS } from '@/core/api/endpoints.ts'
+import { pagesApi } from '@/core/api/pages.api.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
 import { useSitesStore } from '../stores/sites.store.ts'
@@ -358,6 +385,7 @@ const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
+const { confirm } = useConfirm()
 const INITIAL_CANVAS_TOP_OFFSET = 120
 const PAGE_CANVAS_WIDTH = typeof window === 'undefined' ? 1440 : window.innerWidth
 const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHeight
@@ -371,6 +399,7 @@ const isImportProjectModalOpen = ref(false)
 const newProjectName = ref('')
 const newProjectSlug = ref('')
 const projectSearch = ref('')
+const projectPreviews = ref<Record<string, SailorPage | null>>({})
 const projectModalError = ref('')
 const importProjectFile = ref<File | null>(null)
 const isProjectActionRunning = ref(false)
@@ -430,7 +459,6 @@ const filteredProjects = computed(() => {
     `${site.name} ${site.slug} ${site.id}`.toLowerCase().includes(query),
   )
 })
-
 const bodyStyleBlock = computed<PageBlock>(() => ({
   id: 'body',
   tag: 'div',
@@ -438,6 +466,20 @@ const bodyStyleBlock = computed<PageBlock>(() => ({
   styles: pagesStore.activePage?.bodyStyles ?? defaultBodyStyles(),
   children: [],
 }))
+
+function previewBlocks(siteId: string) {
+  return projectPreviews.value[siteId]?.blocks.slice(0, 5) ?? []
+}
+
+function previewBlockStyle(block: PageBlock, index: number) {
+  const width = typeof block.styles?.width === 'string' && block.styles.width.endsWith('%')
+    ? block.styles.width
+    : `${Math.max(28, 88 - index * 12)}%`
+  return {
+    width,
+    height: block.tag === 'image' || block.tag === 'video' ? '28px' : '8px',
+  }
+}
 
 function openCodeFile(file: SiteFile) {
   activeCodeFile.value = file
@@ -1035,6 +1077,25 @@ async function openOpenProjectModal() {
   projectSearch.value = ''
   isOpenProjectModalOpen.value = true
   await sitesStore.listSites()
+  await loadProjectPreviews()
+}
+
+async function loadProjectPreviews() {
+  await Promise.all(sitesStore.sites.map(async (site) => {
+    if (site.id in projectPreviews.value) return
+    try {
+      const pages = await pagesApi.listSitePages(site.id)
+      projectPreviews.value = {
+        ...projectPreviews.value,
+        [site.id]: pages[0] ?? null,
+      }
+    } catch {
+      projectPreviews.value = {
+        ...projectPreviews.value,
+        [site.id]: null,
+      }
+    }
+  }))
 }
 
 function openImportProjectModal() {
@@ -1078,6 +1139,32 @@ async function createProject() {
 async function openProject(projectId: string) {
   await runProjectAction(async () => {
     await activateProject(projectId)
+  })
+}
+
+async function exportProject(projectId: string) {
+  const site = sitesStore.sites.find((item) => item.id === projectId)
+  await runProjectAction(async () => {
+    const zip = await sitesStore.exportSiteProject(projectId)
+    downloadBlobFile(`${site?.slug ?? 'site'}.sailor-site.zip`, zip)
+  })
+}
+
+async function deleteProject(projectId: string) {
+  const site = sitesStore.sites.find((item) => item.id === projectId)
+  const ok = await confirm({
+    title: 'Delete project?',
+    message: `Delete "${site?.name ?? 'this project'}" permanently?`,
+    confirmText: 'Delete',
+    cancelText: 'Cancel',
+    variant: 'danger',
+  })
+  if (!ok) return
+  await runProjectAction(async () => {
+    const wasActiveProject = sitesStore.activeSite?.id === projectId
+    await sitesStore.deleteSite(projectId)
+    delete projectPreviews.value[projectId]
+    if (wasActiveProject) clearActiveProject()
   })
 }
 
