@@ -32,7 +32,7 @@
           @dragend="handleDragEnd"
         >
           <span class="web-page-toolbox__item-icon">
-            <LucideIcon :name="item.icon" :size="36" :stroke-width="1.6" />
+            <LucideIcon :name="item.icon" :size="18" :stroke-width="1.8" />
           </span>
           <span class="web-page-toolbox__item-label">{{ item.label }}</span>
         </button>

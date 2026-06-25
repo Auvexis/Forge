@@ -1095,9 +1095,9 @@
 
 .web-page-toolbox {
   display: grid;
-  gap: var(--sailor-space-2);
+  gap: var(--sailor-space-3);
   align-content: start;
-  padding: var(--sailor-space-2);
+  padding: var(--sailor-space-3);
   color: var(--sailor-text-primary);
 }
 
@@ -1129,8 +1129,8 @@
 
 .web-page-toolbox__section {
   display: grid;
-  gap: var(--sailor-space-2);
-  padding-bottom: var(--sailor-space-2);
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-2) 0;
   border-bottom: 1px solid var(--sailor-border-muted);
 }
 
@@ -1144,25 +1144,38 @@
   gap: var(--sailor-space-1);
   width: max-content;
   color: var(--sailor-text-primary);
-  font-size: 14px;
+  font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-semibold);
+  text-transform: uppercase;
   text-align: left;
+  letter-spacing: 0;
 }
 
 .web-page-toolbox__grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-1);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--sailor-space-1);
+  padding: var(--sailor-space-1) 0 0;
 }
 
 .web-page-toolbox__item {
-  display: grid;
+  display: flex;
+  align-items: center;
   gap: var(--sailor-space-2);
   min-width: 0;
+  min-height: 38px;
+  padding: var(--sailor-space-1) var(--sailor-space-2);
+  border: 1px solid transparent;
+  border-radius: var(--sailor-radius-sm);
   color: var(--sailor-text-secondary);
-  text-align: center;
+  text-align: left;
   cursor: grab;
+}
+
+.web-page-toolbox__item:hover,
+.web-page-toolbox__item:focus-visible {
+  border-color: var(--sailor-border-muted);
+  background: var(--sailor-bg-base);
 }
 
 .web-page-toolbox__item:active {
@@ -1172,8 +1185,9 @@
 .web-page-toolbox__item-icon {
   display: grid;
   place-items: center;
-  aspect-ratio: 1;
-  min-height: 48px;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
   border: 1px solid var(--sailor-border-muted);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-elevated);
@@ -1195,8 +1209,8 @@
 .web-page-toolbox__item-label {
   min-width: 0;
   overflow: hidden;
-  font-size: 10px;
-  line-height: 1.2;
+  font-size: var(--sailor-text-xs);
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

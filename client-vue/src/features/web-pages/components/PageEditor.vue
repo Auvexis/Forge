@@ -13,6 +13,8 @@
       :can-redo="editorStore.canRedo"
       :published-at="activePagePublishedAt"
       :is-autosave-enabled="isPagesAutosaveEnabled"
+      :can-save="canSaveActiveDocument"
+      :can-use-project-actions="hasCreatedProject"
       @command="handleChromeCommand"
       @toggle-autosave="setPagesAutosaveEnabled"
     />
@@ -61,7 +63,12 @@
       @pointerup="stopWorkspacePan"
       @pointerleave="stopWorkspacePan"
     >
-      <Transition name="web-page-code-editor">
+      <BaseModal
+        :is-open="Boolean(activeCodeFile)"
+        max-width="min(1180px, calc(100vw - 64px))"
+        height="min(760px, calc(100vh - 72px))"
+        @close="closeCodeCanvas"
+      >
         <SiteCodeCanvas
           v-if="activeCodeFile"
           :file="activeCodeFile"
@@ -70,9 +77,9 @@
           @update:model-value="updateActiveCodeContent"
           @close="closeCodeCanvas"
         />
-      </Transition>
+      </BaseModal>
 
-      <template v-if="!activeCodeFile">
+      <template>
         <BaseCanvas
           v-model:selection="pageCanvasSelection"
           v-model:viewport="pageCanvasViewport"
@@ -461,6 +468,8 @@ const activePagePublishedAt = computed(
 const hasUnsavedProjectChanges = computed(() =>
   editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty,
 )
+const hasCreatedProject = computed(() => Boolean(sitesStore.activeSite && pagesStore.activePage))
+const canSaveActiveDocument = computed(() => hasCreatedProject.value && hasUnsavedProjectChanges.value)
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
   { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
@@ -582,7 +591,7 @@ function updateActiveCodeContent(value: string) {
 }
 
 function renderGeneratedHtml(filePath: string) {
-  const slug = filePath.replace(/^pages\//, '').replace(/\.html$/, '')
+  const slug = filePath.replace(/^pages\//, '').replace(/\/index\.html$/, '').replace(/\.html$/, '')
   const page = pagesStore.activePage?.slug === slug
     ? pagesStore.activePage
     : pagesStore.pages.find((item) => item.slug === slug)
@@ -591,20 +600,38 @@ function renderGeneratedHtml(filePath: string) {
   const css = [
     renderGeneratedPageCss(blocks),
     ...(sitesStore.activeSite?.files ?? [])
-      .filter((file) => file.kind === 'file' && file.path.startsWith('css/') && file.path.endsWith('.css'))
+      .filter((file) => file.kind === 'file' && isAutoImportedPageFile(file.path, slug, 'css'))
       .map((file) => file.content ?? ''),
   ].filter(Boolean).join('\n')
   const js = [
     renderGeneratedPageJs(blocks),
     ...(sitesStore.activeSite?.files ?? [])
-      .filter((file) => file.kind === 'file' && file.path.startsWith('js/') && file.path.endsWith('.js'))
+      .filter((file) => file.kind === 'file' && isAutoImportedPageFile(file.path, slug, 'js'))
       .map((file) => file.content ?? ''),
   ].filter(Boolean).join('\n')
 
   const scriptOpen = '<script>'
   const scriptClose = '<' + '/script>'
   const safeJs = js.replace(new RegExp('<' + '/script', 'gi'), '<\\/script')
-  return `<!doctype html>\n<html>\n<head>\n  <title>${escapeHtml(page.title)}</title>\n  <style>${css}</style>\n</head>\n<body>\n${blocks.map(renderGeneratedBlockHtml).join('\n')}\n${js ? `${scriptOpen}${safeJs}${scriptClose}` : ''}\n</body>\n</html>`
+  const cssImports = autoImportedPagePaths(slug, 'css')
+    .map((path) => `  <link rel="stylesheet" href="./${escapeHtml(path.split('/').pop() ?? path)}">`)
+    .join('\n')
+  const jsImports = autoImportedPagePaths(slug, 'js')
+    .map((path) => `  <script src="./${escapeHtml(path.split('/').pop() ?? path)}"></${'script'}>`)
+    .join('\n')
+
+  return `<!doctype html>\n<html>\n<head>\n  <title>${escapeHtml(page.title)}</title>\n${cssImports ? `${cssImports}\n` : ''}  <style>${css}</style>\n</head>\n<body>\n${blocks.map(renderGeneratedBlockHtml).join('\n')}\n${js ? `${scriptOpen}${safeJs}${scriptClose}` : ''}\n${jsImports}\n</body>\n</html>`
+}
+
+function isAutoImportedPageFile(path: string, slug: string, extension: 'css' | 'js') {
+  return path.endsWith(`.${extension}`)
+    && (path.startsWith(`pages/${slug}/`) || path.startsWith(`${extension}/`))
+}
+
+function autoImportedPagePaths(slug: string, extension: 'css' | 'js') {
+  return (sitesStore.activeSite?.files ?? [])
+    .filter((file) => file.kind === 'file' && file.path.startsWith(`pages/${slug}/`) && file.path.endsWith(`.${extension}`))
+    .map((file) => file.path)
 }
 
 function escapeHtml(value: string) {
@@ -1357,7 +1384,7 @@ function handleKeyboardShortcuts(event: KeyboardEvent) {
   }
   if (event.key.toLowerCase() !== 's') return
   event.preventDefault()
-  void saveActiveDocument()
+  if (canSaveActiveDocument.value) void saveActiveDocument()
 }
 
 function undoPageEdit() {
@@ -1386,6 +1413,7 @@ function isTypingInField(target: EventTarget | null) {
 }
 
 async function saveActiveDocument() {
+  if (!activeCodeFile.value && !canSaveActiveDocument.value) return
   if (!sitesStore.activeSite) {
     openNewProjectModal({ saveAfterCreate: true })
     return

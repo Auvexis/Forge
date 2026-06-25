@@ -124,7 +124,7 @@ function openCreationDialog(kind: CreationKind, parentPath = kind === 'file' ? '
     isOpen: true,
     kind,
     parentPath,
-    path: kind === 'file' ? `${parentPath}/custom.css` : `${parentPath}/new-folder`,
+    path: kind === 'file' ? defaultFilePath(parentPath) : `${parentPath}/new-folder`,
   }
 }
 
@@ -172,13 +172,21 @@ function defaultFolders(): SiteFile[] {
 }
 
 function pageFiles(): SiteFile[] {
-  return props.pages.map((page) => ({
-    path: `pages/${page.slug}.html`,
-    kind: 'file',
-    content: '',
-    mimeType: 'text/html',
-    updatedAt: page.updatedAt,
-  }))
+  return props.pages.flatMap((page) => [
+    {
+      path: `pages/${page.slug}`,
+      kind: 'folder' as const,
+      content: '',
+      updatedAt: page.updatedAt,
+    },
+    {
+      path: `pages/${page.slug}/index.html`,
+      kind: 'file' as const,
+      content: '',
+      mimeType: 'text/html',
+      updatedAt: page.updatedAt,
+    },
+  ])
 }
 
 function defaultEditableFiles(siteFiles: SiteFile[]): SiteFile[] {
@@ -257,5 +265,10 @@ function fileIcon(file: SiteFile): string {
 
 function normalizeProjectPath(path: string): string {
   return path.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/+$/g, '')
+}
+
+function defaultFilePath(parentPath: string): string {
+  if (/^pages\/[^/]+$/.test(parentPath)) return `${parentPath}/style.css`
+  return `${parentPath}/custom.css`
 }
 </script>

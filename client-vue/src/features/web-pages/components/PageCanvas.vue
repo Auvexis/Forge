@@ -19,7 +19,7 @@
         v-if="dropIntent?.targetId === 'root'"
         class="web-page-drop-indicator web-page-drop-indicator--root"
       />
-      <div v-if="blocks.length === 0" class="web-page-canvas__empty">
+      <div v-if="blocks.length === 0" class="web-page-canvas__empty" @click.stop="handleBodyClick">
         Empty canvas
       </div>
       <TransitionGroup name="web-page-block">
@@ -114,7 +114,7 @@ function handleBlockSelect(blockId: string) {
   emit('select', blockId)
 }
 
-function handleBodyClick() {
+function handleBodyClick(event: MouseEvent) {
   if (Date.now() < suppressBodySelectionUntil.value) return
   if (props.activeTool === 'pan' || props.activeTool === 'delete') return
   emit('select-body')

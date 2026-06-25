@@ -29,9 +29,18 @@
         @update:model-value="patchAction({ formId: String($event) })"
       />
       <BaseInput
-        v-if="block.action?.type === 'triggerWorkflow'"
+        v-if="block.action?.type === 'triggerWorkflow' && publishedWorkflowOptions.length === 0"
         :model-value="block.action.workflowId"
         label="Workflow ID"
+        hint="No compatible published workflows found."
+        @update:model-value="patchAction({ workflowId: String($event) })"
+      />
+      <BaseSelect
+        v-if="block.action?.type === 'triggerWorkflow' && publishedWorkflowOptions.length > 0"
+        :model-value="block.action.workflowId"
+        :options="publishedWorkflowOptions"
+        label="Workflow"
+        placeholder="Select workflow"
         @update:model-value="patchAction({ workflowId: String($event) })"
       />
       <BaseInput
@@ -187,10 +196,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, ref } from 'vue'
+import { computed, defineComponent, h, onMounted, ref } from 'vue'
+import { workflowsApi } from '@/core/api/workflows.api'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSelect, { type SelectOption } from '@/shared/components/base/BaseSelect.vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
+import type { WorkflowItem } from '@/core/types/workflow.types'
 import type { PageBlock, PageBlockAction } from '../types/page.types.ts'
 
 const props = defineProps<{ block: PageBlock }>()
@@ -200,7 +212,16 @@ const emit = defineEmits<{
 }>()
 const urlError = ref('')
 const assetInput = ref<HTMLInputElement | null>(null)
+const publishedWorkflows = ref<WorkflowItem[]>([])
 const hasText = computed(() => props.block.tag === 'text' || props.block.tag === 'button' || props.block.tag === 'link')
+const publishedWorkflowOptions = computed<SelectOption[]>(() => publishedWorkflows.value
+  .filter((workflow) => workflow.metadata.isActive && !workflow.metadata.isDraft)
+  .filter((workflow) => ['manual', 'webhook', 'form'].includes(workflow.trigger?.type ?? 'manual'))
+  .map((workflow) => ({
+    value: workflow.metadata.id,
+    label: workflow.metadata.name,
+    icon: workflow.trigger?.type === 'form' ? 'clipboard-list' : 'workflow',
+  })))
 
 const buttonTypeOptions: BaseSegmentedSelectOption[] = [
   { value: 'button', label: '', title: 'Button', icon: 'square-mouse-pointer' },
@@ -253,6 +274,14 @@ const MediaToggles = defineComponent({
       }),
     ]))
   },
+})
+
+onMounted(async () => {
+  try {
+    publishedWorkflows.value = await workflowsApi.getAll()
+  } catch {
+    publishedWorkflows.value = []
+  }
 })
 
 function setProp(key: string, value: string | boolean) {

@@ -38,7 +38,7 @@
 
     <div class="web-page-chrome__divider"></div>
     <div class="web-page-chrome__actions">
-      <BaseButton size="sm" variant="ghost" @click="$emit('command', 'file.save')">
+      <BaseButton size="sm" variant="ghost" :disabled="!resolvedCanSave" @click="$emit('command', 'file.save')">
         <template #left>
           <span
             class="web-page-chrome__save-dot"
@@ -51,10 +51,10 @@
         </template>
         Save
       </BaseButton>
-      <BaseButton size="sm" variant="ghost" icon-left="eye" @click="$emit('command', 'file.preview')">
+      <BaseButton size="sm" variant="ghost" icon-left="eye" :disabled="!resolvedCanUseProjectActions" @click="$emit('command', 'file.preview')">
         Preview
       </BaseButton>
-      <BaseButton size="sm" variant="ghost" :icon-left="publishCommandIcon" @click="$emit('command', 'file.togglePublish')">
+      <BaseButton size="sm" variant="ghost" :icon-left="publishCommandIcon" :disabled="!resolvedCanUseProjectActions" @click="$emit('command', 'file.togglePublish')">
         {{ publishCommandLabel }}
       </BaseButton>
       <BaseButton
@@ -69,7 +69,7 @@
       <BaseSwitch
         class="web-page-chrome__autosave"
         :model-value="!!isAutosaveEnabled"
-        :disabled="isSaving"
+        :disabled="isSaving || !resolvedCanUseProjectActions"
         title="Toggle autosave for this project"
         @update:model-value="$emit('toggle-autosave', $event)"
       >
@@ -128,6 +128,8 @@ const props = defineProps<{
   canRedo?: boolean
   publishedAt?: string | null
   isAutosaveEnabled?: boolean
+  canSave?: boolean
+  canUseProjectActions?: boolean
 }>()
 
 export type PageChromeCommand =
@@ -223,6 +225,8 @@ const saveShortcutLabel = computed(() => (
 ))
 const publishCommandLabel = computed(() => (props.publishedAt ? 'Unpublish' : 'Publish'))
 const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send'))
+const resolvedCanSave = computed(() => props.canSave ?? Boolean(props.isDirty))
+const resolvedCanUseProjectActions = computed(() => props.canUseProjectActions ?? true)
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
   items: menu.items.map((item) => {
@@ -255,6 +259,8 @@ function handleMenuClose(menuId: string) {
 }
 
 function isCommandDisabled(command: PageChromeCommand) {
+  if (command === 'file.save') return !resolvedCanSave.value
+  if (command === 'file.preview' || command === 'file.togglePublish') return !resolvedCanUseProjectActions.value
   if (command === 'edit.undo') return !props.canUndo
   if (command === 'edit.redo') return !props.canRedo
   return false
