@@ -76,7 +76,7 @@
     <div
       v-if="!readonly && selectedBlockId === block.id"
       class="web-page-block-selection"
-      :style="selectionFrameStyle"
+      :style="selectionFrameCssVars"
     >
       <div class="web-page-block-selection__chrome" :style="selectionChromeStyle">
         <div class="web-page-block-selection__id" @pointerdown.stop @click.stop @dblclick.stop="startBlockIdEdit">
@@ -233,6 +233,7 @@ const activeResizeCorner = ref<ResizeCorner | null>(null)
 const resizeLabel = ref('')
 const isFreeResizeActive = ref(false)
 const selectionFrameStyle = ref<Record<string, string>>({})
+const selectionScale = ref(1)
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
 const blockIdInputRef = ref<HTMLInputElement | null>(null)
@@ -280,6 +281,10 @@ const selectionChromeOffset = computed(() => {
 })
 const selectionChromeStyle = computed(() => ({
   bottom: `calc(100% + ${selectionChromeOffset.value}px)`,
+}))
+const selectionFrameCssVars = computed(() => ({
+  ...selectionFrameStyle.value,
+  '--web-page-selection-scale': String(selectionScale.value),
 }))
 let resizeState: {
   corner: ResizeCorner
@@ -345,6 +350,13 @@ function updateSelectionFrame() {
     width: `${element.offsetWidth}px`,
     height: `${element.offsetHeight}px`,
   }
+  const rect = element.getBoundingClientRect()
+  selectionScale.value = clampSelectionScale(rect.width / Math.max(element.offsetWidth, 1))
+}
+
+function clampSelectionScale(scale: number) {
+  if (!Number.isFinite(scale) || scale <= 0) return 1
+  return Math.min(4, Math.max(0.25, scale))
 }
 
 function updateCustomCssStyle() {

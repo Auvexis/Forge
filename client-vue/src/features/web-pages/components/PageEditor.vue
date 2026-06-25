@@ -359,6 +359,9 @@ const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
 const INITIAL_CANVAS_TOP_OFFSET = 120
+const PAGE_CANVAS_WIDTH = typeof window === 'undefined' ? 1440 : window.innerWidth
+const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHeight
+const PAGE_CANVAS_GAP = 80
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isPageSwitcherOpen = ref(false)
@@ -400,9 +403,9 @@ const pageCanvasItems = computed<BaseCanvasItem[]>(() => pagesStore.pages.map((p
   return {
     id: page.id,
     x: 120 + offset.x,
-    y: index * 1160 + offset.y,
-    width: 960,
-    height: 1080,
+    y: index * (PAGE_CANVAS_HEIGHT + PAGE_CANVAS_GAP) + offset.y,
+    width: PAGE_CANVAS_WIDTH,
+    height: PAGE_CANVAS_HEIGHT,
     data: { kind: 'page' },
   }
 }))

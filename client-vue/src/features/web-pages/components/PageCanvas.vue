@@ -83,20 +83,16 @@ const emit = defineEmits<{
 const suppressBodySelectionUntil = ref(0)
 
 const resolvedBodyStyles = computed(() => ({
-  ...normalizeEditorBodyStyles({
-    width: '100vw',
-    minHeight: '100vh',
-    margin: '0',
-    padding: '0',
-    gap: '0',
-    ...props.bodyStyles,
-  }),
+  width: '100vw',
+  height: '100vh',
+  minHeight: '100vh',
+  margin: '0',
+  padding: '0',
+  gap: '0',
+  ...props.bodyStyles,
+  ...(props.bodyStyles?.height ? {} : { height: props.bodyStyles?.minHeight ?? '100vh' }),
+  ...(props.bodyStyles?.minHeight ? {} : { minHeight: props.bodyStyles?.height ?? '100vh' }),
 }))
-
-function normalizeEditorBodyStyles(styles: Record<string, string | number>) {
-  if (styles.width === '100vw') return { ...styles, width: '960px' }
-  return styles
-}
 
 function dropOnRoot(event: DragEvent) {
   if (props.readonly) return

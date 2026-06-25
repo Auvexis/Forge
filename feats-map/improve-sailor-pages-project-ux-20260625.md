@@ -1,0 +1,16 @@
+- [x] Batch 1: Page canvas real size
+- [x] Batch 1: Percent sizes resolve from parent
+- [x] Batch 1: Selection chrome scales with zoom
+- [ ] Batch 2: Open Project closes after select
+- [ ] Batch 2: Project preview in Open Project
+- [ ] Batch 2: Project delete with global confirm
+- [ ] Batch 2: Project export action
+- [ ] Batch 3: Back to Home
+- [ ] Batch 3: Explorer and Inspector hotkeys
+- [ ] Batch 3: Unsaved changes leave guard
+- [ ] Batch 4: New project modal closes after create
+- [ ] Batch 4: Save from /pages creates project then opens it
+- [ ] Batch 4: Topbar status moves right
+- [ ] Batch 5: Pages autosave switch
+- [ ] Batch 5: Project settings modal
+- [ ] Batch 5: Verification

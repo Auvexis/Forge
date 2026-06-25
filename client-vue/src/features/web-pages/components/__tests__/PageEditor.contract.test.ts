@@ -42,12 +42,31 @@ describe('page editor contract', () => {
     assert.doesNotMatch(bodyRule, /padding:\s*var\(--sailor-space-6\)/)
   })
 
-  it('normalizes viewport body width inside the editor canvas frame', () => {
+  it('keeps viewport page dimensions real inside the editor canvas frame', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+    const bodyRule = css.match(/\.web-page-canvas__body\s*{[\s\S]*?}/)?.[0] ?? ''
 
-    assert.match(source, /normalizeEditorBodyStyles/)
-    assert.match(source, /styles\.width === '100vw'/)
-    assert.match(source, /width: '960px'/)
+    assert.doesNotMatch(source, /normalizeEditorBodyStyles/)
+    assert.doesNotMatch(source, /width: '960px'/)
+    assert.doesNotMatch(editor, /width:\s*960/)
+    assert.doesNotMatch(editor, /height:\s*1080/)
+    assert.match(editor, /PAGE_CANVAS_WIDTH/)
+    assert.match(editor, /PAGE_CANVAS_HEIGHT/)
+    assert.match(bodyRule, /width:\s*100%/)
+    assert.match(bodyRule, /height:\s*100%/)
+    assert.doesNotMatch(bodyRule, /max-width:\s*960px/)
+  })
+
+  it('keeps selection chrome readable at low and high page zoom', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /selectionChromeStyle/)
+    assert.match(renderer, /--web-page-selection-scale/)
+    assert.match(css, /--web-page-selection-scale/)
+    assert.match(css, /scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
   })
 
   it('editor clears selection when clicking empty workspace and supports pan tool panning', () => {
