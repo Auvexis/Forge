@@ -76,7 +76,6 @@
           :model-value="activeCodeContent"
           :readonly="isActiveCodeFileReadonly"
           @update:model-value="updateActiveCodeContent"
-          @close="closeCodeCanvas"
         />
       </BaseModal>
 
@@ -1338,7 +1337,11 @@ async function deleteProject(projectId: string) {
     const wasActiveProject = sitesStore.activeSite?.id === projectId
     await sitesStore.deleteSite(projectId)
     delete projectPreviews.value[projectId]
-    if (wasActiveProject) clearActiveProject()
+    if (wasActiveProject) {
+      clearActiveProject()
+      closeProjectModals(true)
+      await router.replace('/pages')
+    }
   })
 }
 

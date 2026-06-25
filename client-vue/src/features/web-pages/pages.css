@@ -1563,9 +1563,7 @@
   height: 100%;
   min-width: 0;
   min-height: 0;
-  border: 1px solid var(--sailor-border);
   background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-lg);
 }
 
 .web-page-code-editor-enter-active,

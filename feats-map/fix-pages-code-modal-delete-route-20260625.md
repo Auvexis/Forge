@@ -1,0 +1,5 @@
+- [x] Remove Code modal close button
+- [x] Remove Code editor border
+- [x] Redirect deleted active project to pages
+- [x] Verify build
+- [x] Commit changes
