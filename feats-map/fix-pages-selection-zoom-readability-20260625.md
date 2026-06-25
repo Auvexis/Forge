@@ -1,0 +1,4 @@
+- [x] Add selection zoom readability contract
+- [x] Increase low zoom chrome compensation
+- [x] Keep selection box visible at low zoom
+- [x] Verify and commit

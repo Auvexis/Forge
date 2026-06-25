@@ -31,6 +31,7 @@
           :drop-intent="dropIntent"
           :deleting-block-ids="deletingBlockIds"
           :active-tool="activeTool"
+          :canvas-zoom="canvasZoom"
           :readonly="readonly"
           @select="handleBlockSelect"
           @drop-block="$emit('drop-block', $event)"
@@ -64,6 +65,7 @@ const props = defineProps<{
   bodyStyles?: Record<string, string | number>
   readonly?: boolean
   activeTool?: 'cursor' | 'pan' | 'delete'
+  canvasZoom?: number
 }>()
 
 const emit = defineEmits<{

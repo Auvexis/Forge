@@ -60,13 +60,24 @@ describe('page editor contract', () => {
   })
 
   it('keeps selection chrome readable at low and high page zoom', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
+    const selectionRule = css.match(/\.web-page-block-selection\s*{[\s\S]*?}/)?.[0] ?? ''
 
+    assert.match(editor, /:canvas-zoom="pageCanvasViewport\.zoom"/)
+    assert.match(canvas, /canvasZoom\?: number/)
+    assert.match(canvas, /:canvas-zoom="canvasZoom"/)
+    assert.match(renderer, /canvasZoom\?: number/)
+    assert.match(renderer, /props\.canvasZoom/)
     assert.match(renderer, /selectionChromeStyle/)
     assert.match(renderer, /--web-page-selection-scale/)
+    assert.match(renderer, /Math\.max\(0\.08,\s*scale\)/)
+    assert.match(renderer, /props\.canvasZoom/)
     assert.match(css, /--web-page-selection-scale/)
     assert.match(css, /scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
+    assert.match(selectionRule, /box-shadow:\s*0 0 0 calc\(1px \/ var\(--web-page-selection-scale\)\)/)
   })
 
   it('editor clears selection when clicking empty workspace and supports pan tool panning', () => {

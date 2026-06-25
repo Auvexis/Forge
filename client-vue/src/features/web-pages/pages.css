@@ -662,6 +662,7 @@
   position: absolute;
   z-index: 12;
   --web-page-selection-scale: 1;
+  box-shadow: 0 0 0 calc(1px / var(--web-page-selection-scale)) var(--web-page-selected-color);
   animation: web-page-selection-pop var(--web-page-motion-medium) var(--web-page-ease-premium);
   pointer-events: none;
 }

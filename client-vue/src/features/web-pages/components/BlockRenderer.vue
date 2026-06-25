@@ -60,6 +60,7 @@
           :drop-intent="dropIntent"
           :deleting-block-ids="deletingBlockIds"
           :active-tool="activeTool"
+          :canvas-zoom="canvasZoom"
           :readonly="readonly"
           @select="$emit('select', $event)"
           @drop-block="$emit('drop-block', $event)"
@@ -176,6 +177,7 @@ const props = withDefaults(defineProps<{
   deletingBlockIds?: string[]
   activeTool?: 'cursor' | 'pan' | 'delete'
   readonly?: boolean
+  canvasZoom?: number
 }>(), {
   activeTool: 'cursor',
   deletingBlockIds: () => [],
@@ -331,7 +333,7 @@ watch(
 )
 
 watch(
-  () => [props.selectedBlockId, props.block.styles, previewStyles.value],
+  () => [props.selectedBlockId, props.block.styles, previewStyles.value, props.canvasZoom],
   () => void nextTick(updateSelectionFrame),
   { deep: true },
 )
@@ -351,12 +353,12 @@ function updateSelectionFrame() {
     height: `${element.offsetHeight}px`,
   }
   const rect = element.getBoundingClientRect()
-  selectionScale.value = clampSelectionScale(rect.width / Math.max(element.offsetWidth, 1))
+  selectionScale.value = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
 }
 
 function clampSelectionScale(scale: number) {
   if (!Number.isFinite(scale) || scale <= 0) return 1
-  return Math.min(4, Math.max(0.25, scale))
+  return Math.min(4, Math.max(0.08, scale))
 }
 
 function updateCustomCssStyle() {
