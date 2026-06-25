@@ -149,6 +149,21 @@ describe('page chrome contract', () => {
     assert.match(css, /\.web-page-chrome__status\s*{[\s\S]*display:\s*inline-flex/)
   })
 
+  it('page chrome exposes a Pages autosave switch like Workflow Editor', () => {
+    const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /BaseSwitch/)
+    assert.match(source, /web-page-chrome__autosave/)
+    assert.match(source, /Autosave/)
+    assert.match(source, /isAutosaveEnabled/)
+    assert.match(source, /toggle-autosave/)
+    assert.match(editor, /schedulePagesAutosave/)
+    assert.match(editor, /setPagesAutosaveEnabled/)
+    assert.match(editor, /:is-autosave-enabled="isPagesAutosaveEnabled"/)
+    assert.match(editor, /@toggle-autosave="setPagesAutosaveEnabled"/)
+  })
+
   it('page badge exposes a direct delete button', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
@@ -213,5 +228,20 @@ describe('page chrome contract', () => {
     assert.match(source, /ensureProjectHasPage\(site\.id\)/)
     assert.match(source, /await activateProject\(site\.id\)/)
     assert.match(source, /closeProjectModals\(true\)/)
+  })
+
+  it('page editor exposes a project settings modal', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
+
+    assert.match(toolbar, /file\.projectSettings/)
+    assert.match(toolbar, /Project settings/)
+    assert.match(source, /isProjectSettingsModalOpen/)
+    assert.match(source, /openProjectSettingsModal/)
+    assert.match(source, /saveProjectSettings/)
+    assert.match(source, /BaseModal[\s\S]*Project settings/)
+    assert.match(source, /projectSettingsName/)
+    assert.match(source, /projectSettingsSlug/)
+    assert.match(source, /sitesStore\.saveActiveSite\(\)/)
   })
 })

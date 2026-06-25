@@ -12,7 +12,9 @@
       :can-undo="editorStore.canUndo"
       :can-redo="editorStore.canRedo"
       :published-at="activePagePublishedAt"
+      :is-autosave-enabled="isPagesAutosaveEnabled"
       @command="handleChromeCommand"
+      @toggle-autosave="setPagesAutosaveEnabled"
     />
     <AppPanel
       :is-open="isLeftPanelOpen"
@@ -344,6 +346,34 @@
         </footer>
       </div>
     </BaseModal>
+
+    <BaseModal :is-open="isProjectSettingsModalOpen" max-width="500px" height="auto" @close="isProjectSettingsModalOpen = false">
+      <div class="web-page-project-modal">
+        <header class="web-page-project-modal__header">
+          <div>
+            <h2>Project settings</h2>
+            <p>Configure the active Sailor Pages project.</p>
+          </div>
+          <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="isProjectSettingsModalOpen = false" />
+        </header>
+        <div class="web-page-project-modal__body">
+          <BaseInput v-model="projectSettingsName" label="Project name" placeholder="Marketing site" required />
+          <BaseInput v-model="projectSettingsSlug" label="Slug" placeholder="marketing-site" />
+          <p v-if="projectModalError" class="web-page-project-modal__error">{{ projectModalError }}</p>
+        </div>
+        <footer class="web-page-project-modal__footer">
+          <BaseButton variant="ghost" @click="isProjectSettingsModalOpen = false">Cancel</BaseButton>
+          <BaseButton
+            variant="primary"
+            :loading="isProjectActionRunning"
+            :disabled="!projectSettingsName.trim()"
+            @click="saveProjectSettings"
+          >
+            Save settings
+          </BaseButton>
+        </footer>
+      </div>
+    </BaseModal>
   </section>
 </template>
 
@@ -396,8 +426,11 @@ const isPageSwitcherOpen = ref(false)
 const isNewProjectModalOpen = ref(false)
 const isOpenProjectModalOpen = ref(false)
 const isImportProjectModalOpen = ref(false)
+const isProjectSettingsModalOpen = ref(false)
 const newProjectName = ref('')
 const newProjectSlug = ref('')
+const projectSettingsName = ref('')
+const projectSettingsSlug = ref('')
 const projectSearch = ref('')
 const projectPreviews = ref<Record<string, SailorPage | null>>({})
 const projectModalError = ref('')
@@ -407,6 +440,7 @@ const pendingCreateProjectSave = ref(false)
 const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
+const isPagesAutosaveEnabled = ref(false)
 const blockInspectorTab = ref<'content' | 'style' | 'advanced'>('content')
 const activeCodeFile = ref<SiteFile | null>(null)
 const deletingBlockIds = ref<string[]>([])
@@ -419,6 +453,7 @@ const pageCanvasSelection = ref<string[]>([])
 const pageCanvasOffsets = ref<Record<string, { x: number; y: number }>>({})
 const pageCanvasContextMenu = ref<BaseCanvasContextMenuEvent | null>(null)
 const pageDropIndex = ref<number | null>(null)
+let pagesAutosaveTimer: number | null = null
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
@@ -656,6 +691,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleSpacePanKeyDown)
   window.removeEventListener('keyup', handleSpacePanKeyUp)
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  if (pagesAutosaveTimer) window.clearTimeout(pagesAutosaveTimer)
 })
 
 watch(
@@ -663,6 +699,22 @@ watch(
   (projectId) => {
     void openRouteProject(projectId)
   },
+)
+
+watch(
+  () => sitesStore.activeSite?.id,
+  (siteId) => {
+    isPagesAutosaveEnabled.value = siteId
+      ? localStorage.getItem(pagesAutosaveStorageKey(siteId)) === 'true'
+      : false
+  },
+  { immediate: true },
+)
+
+watch(
+  () => [editorStore.blocks, pagesStore.activePage, sitesStore.activeSite],
+  () => schedulePagesAutosave(),
+  { deep: true },
 )
 
 onBeforeRouteLeave(async () => confirmUnsavedProjectLeave())
@@ -1052,6 +1104,7 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'file.newProject') openNewProjectModal()
   if (command === 'file.openProject') void openOpenProjectModal()
   if (command === 'file.importProject') openImportProjectModal()
+  if (command === 'file.projectSettings') openProjectSettingsModal()
   if (command === 'file.save') void saveActiveDocument()
   if (command === 'file.preview') previewPage()
   if (command === 'file.togglePublish') void togglePagePublication()
@@ -1071,6 +1124,49 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'view.switch') void openPageSwitcher()
   if (command === 'view.left-panel') toggleLeftPanel()
   if (command === 'view.right-panel') toggleRightPanel()
+}
+
+function setPagesAutosaveEnabled(enabled: boolean) {
+  isPagesAutosaveEnabled.value = enabled
+  const siteId = sitesStore.activeSite?.id
+  if (siteId) localStorage.setItem(pagesAutosaveStorageKey(siteId), String(enabled))
+  if (!enabled && pagesAutosaveTimer) {
+    window.clearTimeout(pagesAutosaveTimer)
+    pagesAutosaveTimer = null
+  }
+  if (enabled) schedulePagesAutosave()
+}
+
+function schedulePagesAutosave() {
+  if (!isPagesAutosaveEnabled.value || !sitesStore.activeSite || !hasUnsavedProjectChanges.value) return
+  if (pagesAutosaveTimer) window.clearTimeout(pagesAutosaveTimer)
+  pagesAutosaveTimer = window.setTimeout(() => {
+    void saveProjectBeforeExport()
+  }, 1500)
+}
+
+function pagesAutosaveStorageKey(siteId: string) {
+  return `sailor.pages.autosave.${siteId}`
+}
+
+function openProjectSettingsModal() {
+  if (!sitesStore.activeSite) return
+  projectModalError.value = ''
+  projectSettingsName.value = sitesStore.activeSite.name
+  projectSettingsSlug.value = sitesStore.activeSite.slug
+  isProjectSettingsModalOpen.value = true
+}
+
+async function saveProjectSettings() {
+  if (!sitesStore.activeSite) return
+  const name = projectSettingsName.value.trim()
+  if (!name) return
+  sitesStore.activeSite.name = name
+  sitesStore.activeSite.slug = projectSettingsSlug.value.trim() || sitesStore.activeSite.slug
+  await runProjectAction(async () => {
+    await sitesStore.saveActiveSite()
+    isProjectSettingsModalOpen.value = false
+  })
 }
 
 async function goHome() {

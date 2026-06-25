@@ -11,6 +11,6 @@
 - [x] Batch 4: New project modal closes after create
 - [x] Batch 4: Save from /pages creates project then opens it
 - [x] Batch 4: Topbar status moves right
-- [ ] Batch 5: Pages autosave switch
-- [ ] Batch 5: Project settings modal
-- [ ] Batch 5: Verification
+- [x] Batch 5: Pages autosave switch
+- [x] Batch 5: Project settings modal
+- [x] Batch 5: Verification

@@ -82,6 +82,15 @@
       >
         Open live
       </BaseButton>
+      <BaseSwitch
+        class="web-page-chrome__autosave"
+        :model-value="!!isAutosaveEnabled"
+        :disabled="isSaving"
+        title="Toggle autosave for this project"
+        @update:model-value="$emit('toggle-autosave', $event)"
+      >
+        Autosave
+      </BaseSwitch>
     </div>
     <div class="web-page-chrome__status">
       <span
@@ -108,6 +117,7 @@
 import { computed, nextTick, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 
@@ -117,6 +127,7 @@ const props = defineProps<{
   canUndo?: boolean
   canRedo?: boolean
   publishedAt?: string | null
+  isAutosaveEnabled?: boolean
 }>()
 
 export type PageChromeCommand =
@@ -124,6 +135,7 @@ export type PageChromeCommand =
   | 'file.newProject'
   | 'file.openProject'
   | 'file.importProject'
+  | 'file.projectSettings'
   | 'file.save'
   | 'file.preview'
   | 'file.togglePublish'
@@ -150,6 +162,7 @@ const menus: Array<{
       { id: 'file.newProject', label: 'New project', icon: 'file-plus-2' },
       { id: 'file.openProject', label: 'Open project', icon: 'folder-open' },
       { id: 'file.importProject', label: 'Import project', icon: 'folder-up' },
+      { id: 'file.projectSettings', label: 'Project settings', icon: 'settings-2' },
       { id: 'file.save', label: 'Save', icon: 'save' },
       { id: 'file.preview', label: 'Preview', icon: 'eye' },
       { id: 'file.togglePublish', label: 'Publish', icon: 'send' },
@@ -183,6 +196,7 @@ const menuRefs = ref<Record<string, InstanceType<typeof AppDropdownMenu> | null>
 
 defineEmits<{
   command: [command: PageChromeCommand]
+  'toggle-autosave': [enabled: boolean]
 }>()
 
 const saveState = computed<'saving' | 'dirty' | 'saved'>(() => {

@@ -210,6 +210,14 @@
   flex: 0 0 auto;
 }
 
+.web-page-chrome__autosave {
+  margin-left: var(--sailor-space-1);
+}
+
+.web-page-chrome__autosave .base-switch__label {
+  font-size: var(--sailor-text-xs);
+}
+
 .web-page-chrome__save-status {
   display: inline-flex;
   align-items: center;
