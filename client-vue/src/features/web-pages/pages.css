@@ -882,22 +882,6 @@
   cursor: nwse-resize;
 }
 
-.web-page-block-resize__indicator {
-  position: absolute;
-  right: 0;
-  bottom: -30px;
-  z-index: 2;
-  padding: 3px 6px;
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-text-primary);
-  color: var(--sailor-bg-surface);
-  pointer-events: none;
-  font-size: var(--sailor-text-xs);
-  line-height: 1.2;
-  pointer-events: none;
-  white-space: nowrap;
-}
-
 .web-page-block-selection__metric,
 .web-page-block-selection__ratio {
   position: absolute;
@@ -922,12 +906,12 @@
 
 .web-page-block-selection__metric {
   right: 0;
-  bottom: -28px;
+  bottom: -38px;
 }
 
 .web-page-block-selection__ratio {
   left: 0;
-  bottom: -28px;
+  bottom: -38px;
 }
 
 .web-page-block-alignment-guide {

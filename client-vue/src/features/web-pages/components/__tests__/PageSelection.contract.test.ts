@@ -16,7 +16,7 @@ describe('page selection contract', () => {
     for (const corner of ['north-west', 'north-east', 'south-west', 'south-east']) {
       assert.match(renderer, new RegExp(corner))
     }
-    assert.match(renderer, /web-page-block-resize__indicator/)
+    assert.doesNotMatch(renderer, /web-page-block-resize__indicator/)
     assert.match(renderer, /selectionFrameStyle/)
     assert.match(renderer, /offsetWidth/)
     assert.match(renderer, /offsetHeight/)
@@ -50,6 +50,8 @@ describe('page selection contract', () => {
   it('selected blocks expose a premium contextual toolbar and persistent metrics', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
+    const metricRule = css.match(/\.web-page-block-selection__metric\s*{\s*right:\s*0;[\s\S]*?}/)?.[0] ?? ''
+    const ratioRule = css.match(/\.web-page-block-selection__ratio\s*{\s*left:\s*0;[\s\S]*?}/)?.[0] ?? ''
 
     assert.match(renderer, /web-page-block-context-toolbar/)
     assert.match(renderer, /contextToolbarLabel/)
@@ -60,6 +62,9 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-context-toolbar/)
     assert.match(css, /web-page-block-selection__metric/)
     assert.match(css, /web-page-block-selection__ratio/)
+    assert.match(metricRule, /bottom:\s*-38px/)
+    assert.match(ratioRule, /bottom:\s*-38px/)
+    assert.doesNotMatch(css, /web-page-block-resize__indicator/)
   })
 
   it('selection chrome stays compact and uses the selected blue surface', () => {

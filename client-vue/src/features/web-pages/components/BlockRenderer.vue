@@ -155,7 +155,6 @@
       />
       <span class="web-page-block-selection__metric">{{ selectionSizeLabel }}</span>
       <span v-if="resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
-      <span v-if="resizeLabel" class="web-page-block-resize__indicator">{{ resizeLabel }}</span>
     </div>
   </div>
 </template>
@@ -232,7 +231,6 @@ const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
 const activeResizeGuides = ref<Array<{ axis: 'x' | 'y'; position: number }>>([])
 const activeResizeCorner = ref<ResizeCorner | null>(null)
-const resizeLabel = ref('')
 const isFreeResizeActive = ref(false)
 const selectionFrameStyle = ref<Record<string, string>>({})
 const selectionScale = ref(1)
@@ -488,7 +486,6 @@ function resizeFromPointer(event: PointerEvent) {
   const aligned = event.shiftKey ? { styles: result.styles, guides: [] } : snapResizeToAlignment(result.styles)
   previewStyles.value = aligned.styles
   activeResizeGuides.value = aligned.guides
-  resizeLabel.value = resizeLabelFor(aligned.styles, result.label)
   void nextTick(updateSelectionFrame)
 }
 
@@ -497,7 +494,6 @@ function finishResize() {
   emit('resize-end')
   previewStyles.value = null
   activeResizeGuides.value = []
-  resizeLabel.value = ''
   isFreeResizeActive.value = false
   activeResizeCorner.value = null
   resizeState = null
@@ -571,11 +567,6 @@ function sizeValue(value: string | number | undefined) {
 function resizeGuideStyle(guide: { axis: 'x' | 'y'; position: number }) {
   if (guide.axis === 'x') return { left: `${guide.position}px` }
   return { top: `${guide.position}px` }
-}
-
-function resizeLabelFor(styles: PageBlock['styles'] | undefined, fallback: string) {
-  if (!styles?.width || !styles.height) return fallback
-  return `${styles.width} x ${styles.height}`
 }
 
 function selectionRect() {
