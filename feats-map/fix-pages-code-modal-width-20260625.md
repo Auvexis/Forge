@@ -1,0 +1,3 @@
+- [x] Stretch code canvas in modal.
+- [x] Verify build.
+- [ ] Commit.
