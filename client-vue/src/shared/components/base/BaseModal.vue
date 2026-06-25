@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   isOpen: boolean
   maxWidth?: string
   height?: string
-}>()
+  dimBackdrop?: boolean
+}>(), {
+  dimBackdrop: true,
+})
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -35,6 +38,7 @@ onUnmounted(() => {
     <div
       v-if="isOpen"
       class="base-modal-backdrop"
+      :class="{ 'base-modal-backdrop--clear': !dimBackdrop }"
       @click.self="close"
     >
       <div 
@@ -59,6 +63,15 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   background: rgba(0, 0, 0, 0.55);
+}
+
+.base-modal-backdrop--clear {
+  background: transparent;
+  pointer-events: none;
+}
+
+.base-modal-backdrop--clear .base-modal-container {
+  pointer-events: auto;
 }
 
 .base-modal-container {

@@ -1,0 +1,4 @@
+- [x] Add optional modal backdrop dim.
+- [x] Use transparent Code modal backdrop.
+- [x] Verify build.
+- [ ] Commit.

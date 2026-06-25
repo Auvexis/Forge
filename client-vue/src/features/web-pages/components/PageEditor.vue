@@ -67,6 +67,7 @@
         :is-open="Boolean(activeCodeFile)"
         max-width="min(1180px, calc(100vw - 64px))"
         height="min(760px, calc(100vh - 72px))"
+        :dim-backdrop="false"
         @close="closeCodeCanvas"
       >
         <SiteCodeCanvas
