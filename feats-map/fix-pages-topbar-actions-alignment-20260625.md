@@ -1,0 +1,3 @@
+- [x] Add topbar alignment contract
+- [x] Keep action buttons on the left
+- [x] Verify and commit

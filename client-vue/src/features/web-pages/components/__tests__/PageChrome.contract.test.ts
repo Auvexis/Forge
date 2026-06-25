@@ -157,11 +157,14 @@ describe('page chrome contract', () => {
   it('page chrome keeps status indicators on the right side of the topbar', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const css = read('src/features/web-pages/pages.css')
+    const actionsRule = css.match(/\.web-page-chrome__actions\s*{[\s\S]*?}/)?.[0] ?? ''
+    const statusRule = css.match(/\.web-page-chrome__status\s*{[\s\S]*?}/)?.[0] ?? ''
 
     assert.match(source, /web-page-chrome__actions/)
     assert.match(source, /web-page-chrome__status/)
-    assert.match(css, /\.web-page-chrome__actions\s*{[\s\S]*margin-left:\s*auto/)
-    assert.match(css, /\.web-page-chrome__status\s*{[\s\S]*display:\s*inline-flex/)
+    assert.doesNotMatch(actionsRule, /margin-left:\s*auto/)
+    assert.match(statusRule, /display:\s*inline-flex/)
+    assert.match(statusRule, /margin-left:\s*auto/)
   })
 
   it('page chrome exposes a Pages autosave switch like Workflow Editor', () => {

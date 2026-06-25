@@ -200,7 +200,6 @@
   display: inline-flex;
   align-items: center;
   gap: var(--sailor-space-1);
-  margin-left: auto;
 }
 
 .web-page-chrome__status {
@@ -208,6 +207,7 @@
   align-items: center;
   gap: var(--sailor-space-1);
   flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .web-page-chrome__autosave {
