@@ -1,0 +1,3 @@
+- [x] Add save shortcut contract
+- [x] Show platform save shortcut in Pages menu
+- [x] Verify and commit

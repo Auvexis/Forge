@@ -85,6 +85,21 @@ describe('page chrome contract', () => {
     assert.match(editor, /event\.key\.toLowerCase\(\) === 'i'/)
   })
 
+  it('page chrome advertises cross-platform save shortcut', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
+
+    assert.match(toolbar, /saveShortcutLabel/)
+    assert.match(toolbar, /navigator\.platform/)
+    assert.match(toolbar, /Cmd S/)
+    assert.match(toolbar, /Ctrl S/)
+    assert.match(toolbar, /file\.save[\s\S]*shortcut: saveShortcutLabel\.value/)
+    assert.match(editor, /event\.ctrlKey/)
+    assert.match(editor, /event\.metaKey/)
+    assert.match(editor, /event\.key\.toLowerCase\(\) !== 's'/)
+    assert.match(editor, /saveActiveDocument\(\)/)
+  })
+
   it('page editor guards unsaved changes when leaving pages', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 

@@ -216,13 +216,22 @@ const saveStatusIcon = computed(() => {
   if (saveState.value === 'dirty') return 'cloud-alert'
   return 'cloud-check'
 })
+const saveShortcutLabel = computed(() => (
+  typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.platform)
+    ? 'Cmd S'
+    : 'Ctrl S'
+))
 const publishCommandLabel = computed(() => (props.publishedAt ? 'Unpublish' : 'Publish'))
 const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send'))
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
-  items: menu.items.map((item) => item.id === 'file.togglePublish'
-    ? { ...item, label: publishCommandLabel.value, icon: publishCommandIcon.value, danger: Boolean(props.publishedAt) }
-    : item),
+  items: menu.items.map((item) => {
+    if (item.id === 'file.save') return { ...item, shortcut: saveShortcutLabel.value }
+    if (item.id === 'file.togglePublish') {
+      return { ...item, label: publishCommandLabel.value, icon: publishCommandIcon.value, danger: Boolean(props.publishedAt) }
+    }
+    return item
+  }),
 })))
 
 function registerMenuRef(menuId: string, menu: unknown) {
