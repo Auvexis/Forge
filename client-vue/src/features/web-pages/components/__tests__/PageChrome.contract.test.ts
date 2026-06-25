@@ -19,10 +19,11 @@ describe('page chrome contract', () => {
     assert.doesNotMatch(source, /route\.params\.pageId/)
   })
 
-  it('page chrome exposes top File Edit View menus and exit command', () => {
+  it('page chrome exposes top File Edit View menus and home command', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
 
-    assert.match(source, /go\.pages/)
+    assert.match(source, /go\.home/)
+    assert.match(source, /Back to Home/)
     assert.match(source, /File/)
     assert.match(source, /Edit/)
     assert.match(source, /View/)
@@ -68,6 +69,34 @@ describe('page chrome contract', () => {
     assert.match(editor, /event\.shiftKey/)
     assert.match(editor, /undoPageEdit/)
     assert.match(editor, /redoPageEdit/)
+  })
+
+  it('page editor supports Explorer and Inspector hotkeys', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
+
+    assert.match(toolbar, /Toggle explorer/)
+    assert.match(toolbar, /Ctrl B/)
+    assert.match(toolbar, /Toggle inspector/)
+    assert.match(toolbar, /Ctrl I/)
+    assert.match(editor, /toggleLeftPanel/)
+    assert.match(editor, /toggleRightPanel/)
+    assert.match(editor, /event\.key\.toLowerCase\(\) === 'b'/)
+    assert.match(editor, /event\.key\.toLowerCase\(\) === 'i'/)
+  })
+
+  it('page editor guards unsaved changes when leaving pages', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /hasUnsavedProjectChanges/)
+    assert.match(source, /confirmUnsavedProjectLeave/)
+    assert.match(source, /Unsaved changes/)
+    assert.match(source, /This page project has unsaved changes/)
+    assert.match(source, /Save & Leave/)
+    assert.match(source, /Discard & Leave/)
+    assert.match(source, /beforeunload/)
+    assert.match(source, /event\.preventDefault\(\)/)
+    assert.match(source, /saveActiveDocument\(\)/)
   })
 
   it('page chrome switches File Edit View dropdowns on hover after a menu is open', () => {

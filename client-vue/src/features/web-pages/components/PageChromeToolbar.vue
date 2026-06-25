@@ -1,7 +1,7 @@
 <template>
   <div class="web-page-chrome">
-    <button type="button" class="web-page-chrome__exit" title="Back to pages" @click="$emit('command', 'go.pages')">
-      <LucideIcon name="arrow-right" :size="15" />
+    <button type="button" class="web-page-chrome__exit" title="Back to Home" @click="$emit('command', 'go.home')">
+      <LucideIcon name="arrow-left" :size="15" />
     </button>
     <div class="web-page-chrome__divider"></div>
 
@@ -117,7 +117,7 @@ const props = defineProps<{
 }>()
 
 export type PageChromeCommand =
-  | 'go.pages'
+  | 'go.home'
   | 'file.newProject'
   | 'file.openProject'
   | 'file.importProject'
@@ -170,8 +170,8 @@ const menus: Array<{
     label: 'View',
     items: [
       { id: 'view.switch', label: 'Switch page', icon: 'files' },
-      { id: 'view.left-panel', label: 'Toggle elements', icon: 'panel-left' },
-      { id: 'view.right-panel', label: 'Toggle inspector', icon: 'panel-right' },
+      { id: 'view.left-panel', label: 'Toggle explorer', icon: 'panel-left', shortcut: 'Ctrl B' },
+      { id: 'view.right-panel', label: 'Toggle inspector', icon: 'panel-right', shortcut: 'Ctrl I' },
     ],
   },
 ]

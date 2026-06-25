@@ -349,7 +349,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseFileDropzone from '@/shared/components/base/BaseFileDropzone.vue'
@@ -420,6 +420,9 @@ const pageCanvasContextMenu = ref<BaseCanvasContextMenuEvent | null>(null)
 const pageDropIndex = ref<number | null>(null)
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
+)
+const hasUnsavedProjectChanges = computed(() =>
+  editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty,
 )
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
@@ -641,6 +644,7 @@ onMounted(async () => {
   window.addEventListener('keydown', handleKeyboardShortcuts)
   window.addEventListener('keydown', handleSpacePanKeyDown)
   window.addEventListener('keyup', handleSpacePanKeyUp)
+  window.addEventListener('beforeunload', handleBeforeUnload)
   await openRouteProject(route.params.projectId)
   await nextTick()
   positionInitialCanvas()
@@ -650,6 +654,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyboardShortcuts)
   window.removeEventListener('keydown', handleSpacePanKeyDown)
   window.removeEventListener('keyup', handleSpacePanKeyUp)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
 watch(
@@ -658,6 +663,8 @@ watch(
     void openRouteProject(projectId)
   },
 )
+
+onBeforeRouteLeave(async () => confirmUnsavedProjectLeave())
 
 async function openRouteProject(projectId: unknown) {
   if (typeof projectId !== 'string') {
@@ -1040,7 +1047,7 @@ async function activateCreatedPage(page: SailorPage) {
 }
 
 function handleChromeCommand(command: PageChromeCommand) {
-  if (command === 'go.pages') void router.push('/pages')
+  if (command === 'go.home') void goHome()
   if (command === 'file.newProject') openNewProjectModal()
   if (command === 'file.openProject') void openOpenProjectModal()
   if (command === 'file.importProject') openImportProjectModal()
@@ -1063,6 +1070,33 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'view.switch') void openPageSwitcher()
   if (command === 'view.left-panel') toggleLeftPanel()
   if (command === 'view.right-panel') toggleRightPanel()
+}
+
+async function goHome() {
+  if (!(await confirmUnsavedProjectLeave())) return
+  await router.push('/')
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!hasUnsavedProjectChanges.value) return
+  event.preventDefault()
+  event.returnValue = ''
+}
+
+async function confirmUnsavedProjectLeave() {
+  if (!hasUnsavedProjectChanges.value) return true
+
+  const result = await confirm({
+    title: 'Unsaved changes',
+    message: 'This page project has unsaved changes. Do you want to save before leaving?',
+    confirmText: 'Save & Leave',
+    cancelText: 'Discard & Leave',
+    variant: 'warning',
+  })
+
+  if (result === null) return false
+  if (result) await saveActiveDocument()
+  return true
 }
 
 function openNewProjectModal() {
@@ -1195,6 +1229,16 @@ function handleKeyboardShortcuts(event: KeyboardEvent) {
   if (event.key.toLowerCase() === 'y' || (event.key.toLowerCase() === 'z' && event.shiftKey)) {
     event.preventDefault()
     redoPageEdit()
+    return
+  }
+  if (event.key.toLowerCase() === 'b') {
+    event.preventDefault()
+    toggleLeftPanel()
+    return
+  }
+  if (event.key.toLowerCase() === 'i') {
+    event.preventDefault()
+    toggleRightPanel()
     return
   }
   if (event.key.toLowerCase() !== 's') return

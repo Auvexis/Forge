@@ -5,9 +5,9 @@
 - [x] Batch 2: Project preview in Open Project
 - [x] Batch 2: Project delete with global confirm
 - [x] Batch 2: Project export action
-- [ ] Batch 3: Back to Home
-- [ ] Batch 3: Explorer and Inspector hotkeys
-- [ ] Batch 3: Unsaved changes leave guard
+- [x] Batch 3: Back to Home
+- [x] Batch 3: Explorer and Inspector hotkeys
+- [x] Batch 3: Unsaved changes leave guard
 - [ ] Batch 4: New project modal closes after create
 - [ ] Batch 4: Save from /pages creates project then opens it
 - [ ] Batch 4: Topbar status moves right
