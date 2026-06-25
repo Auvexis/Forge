@@ -135,15 +135,10 @@
 }
 
 .web-page-editor {
-  --web-page-canvas-bg: #181c24;
-  --web-page-canvas-pattern: rgba(226, 232, 240, 0.16);
   --web-page-drop-color: var(--sailor-border-strong);
   --web-page-ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
   --web-page-motion-fast: 120ms;
   --web-page-motion-medium: 180ms;
-  --web-page-ruler-bg: #111827;
-  --web-page-ruler-line: rgba(226, 232, 240, 0.24);
-  --web-page-ruler-text: rgba(226, 232, 240, 0.78);
   --web-page-selected-color: #3b82f6;
   --web-page-tree-indent: 12px;
   position: relative;
@@ -152,7 +147,7 @@
   height: 100vh;
   min-height: 100vh;
   overflow: hidden;
-  background: var(--web-page-canvas-bg);
+  background: var(--sailor-bg-canvas);
 }
 
 .web-page-chrome {
