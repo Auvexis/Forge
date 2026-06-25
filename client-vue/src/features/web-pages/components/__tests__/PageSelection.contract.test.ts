@@ -158,6 +158,17 @@ describe('page selection contract', () => {
     assert.doesNotMatch(source, /@pointerdown\.stop/)
   })
 
+  it('empty canvas click clears selected block before selecting the body', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+    const selectCanvasBody = source.match(/function selectCanvasBody\(pageId: string\) \{[\s\S]*?\n\}/)?.[0] ?? ''
+
+    assert.match(selectCanvasBody, /editorStore\.selectedTarget\.type === 'block'/)
+    assert.match(selectCanvasBody, /editorStore\.clearSelection\(\)/)
+    assert.match(selectCanvasBody, /pageCanvasSelection\.value = \[\]/)
+    assert.match(selectCanvasBody, /return/)
+    assert.match(selectCanvasBody, /editorStore\.selectBody\(\)/)
+  })
+
   it('editor store tracks page, body, block and empty selection targets', () => {
     const source = read('src/features/web-pages/stores/page-editor.store.ts')
 

@@ -811,7 +811,14 @@ function selectCanvasBlock(pageId: string, blockId: string) {
 }
 
 function selectCanvasBody(pageId: string) {
-  void ensurePageActive(pageId).then(() => editorStore.selectBody())
+  void ensurePageActive(pageId).then(() => {
+    if (editorStore.selectedTarget.type === 'block') {
+      editorStore.clearSelection()
+      pageCanvasSelection.value = []
+      return
+    }
+    editorStore.selectBody()
+  })
 }
 
 function clearEditorSelection() {

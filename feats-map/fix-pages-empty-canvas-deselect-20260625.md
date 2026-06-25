@@ -1,0 +1,4 @@
+- [x] Add empty canvas deselect contract
+- [x] Clear block selection on empty canvas click
+- [x] Keep body selection when no block is selected
+- [x] Verify and commit
