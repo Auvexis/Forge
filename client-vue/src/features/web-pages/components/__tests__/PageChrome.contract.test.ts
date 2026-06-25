@@ -139,6 +139,25 @@ describe('page chrome contract', () => {
     assert.match(source, /Open live/)
   })
 
+  it('page chrome keeps page actions with menus and places undo redo after autosave', () => {
+    const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
+    const actionsStart = source.indexOf('<div class="web-page-chrome__actions">')
+    const actionsEnd = source.indexOf('<div class="web-page-chrome__status">')
+    const actionsMarkup = source.slice(actionsStart, actionsEnd)
+
+    assert.ok(actionsStart > source.indexOf('v-for="menu in resolvedMenus"'))
+    assert.ok(actionsStart > source.indexOf('<div class="web-page-chrome__divider"></div>', source.indexOf('v-for="menu in resolvedMenus"')))
+    assert.match(actionsMarkup, /file\.save/)
+    assert.match(actionsMarkup, /file\.preview/)
+    assert.match(actionsMarkup, /file\.togglePublish/)
+    assert.match(actionsMarkup, /file\.openLive/)
+    assert.match(actionsMarkup, /toggle-autosave/)
+    assert.match(actionsMarkup, /edit\.undo/)
+    assert.match(actionsMarkup, /edit\.redo/)
+    assert.ok(actionsMarkup.indexOf('toggle-autosave') < actionsMarkup.indexOf('edit.undo'))
+    assert.ok(actionsMarkup.indexOf('edit.undo') < actionsMarkup.indexOf('edit.redo'))
+  })
+
   it('page chrome mirrors workflow save cloud status and save dot states', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const css = read('src/features/web-pages/pages.css')

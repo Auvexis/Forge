@@ -37,22 +37,6 @@
     </AppDropdownMenu>
 
     <div class="web-page-chrome__divider"></div>
-    <BaseButton
-      size="sm"
-      variant="ghost"
-      icon-left="undo-2"
-      :disabled="!canUndo"
-      title="Undo"
-      @click="$emit('command', 'edit.undo')"
-    />
-    <BaseButton
-      size="sm"
-      variant="ghost"
-      icon-left="redo-2"
-      :disabled="!canRedo"
-      title="Redo"
-      @click="$emit('command', 'edit.redo')"
-    />
     <div class="web-page-chrome__actions">
       <BaseButton size="sm" variant="ghost" @click="$emit('command', 'file.save')">
         <template #left>
@@ -91,6 +75,22 @@
       >
         Autosave
       </BaseSwitch>
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="undo-2"
+        :disabled="!canUndo"
+        title="Undo"
+        @click="$emit('command', 'edit.undo')"
+      />
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="redo-2"
+        :disabled="!canRedo"
+        title="Redo"
+        @click="$emit('command', 'edit.redo')"
+      />
     </div>
     <div class="web-page-chrome__status">
       <span
