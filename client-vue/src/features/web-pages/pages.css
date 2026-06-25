@@ -196,6 +196,20 @@
   background: var(--sailor-border);
 }
 
+.web-page-chrome__actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  margin-left: auto;
+}
+
+.web-page-chrome__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  flex: 0 0 auto;
+}
+
 .web-page-chrome__save-status {
   display: inline-flex;
   align-items: center;

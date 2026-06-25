@@ -8,9 +8,9 @@
 - [x] Batch 3: Back to Home
 - [x] Batch 3: Explorer and Inspector hotkeys
 - [x] Batch 3: Unsaved changes leave guard
-- [ ] Batch 4: New project modal closes after create
-- [ ] Batch 4: Save from /pages creates project then opens it
-- [ ] Batch 4: Topbar status moves right
+- [x] Batch 4: New project modal closes after create
+- [x] Batch 4: Save from /pages creates project then opens it
+- [x] Batch 4: Topbar status moves right
 - [ ] Batch 5: Pages autosave switch
 - [ ] Batch 5: Project settings modal
 - [ ] Batch 5: Verification

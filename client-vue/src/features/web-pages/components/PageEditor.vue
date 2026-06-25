@@ -403,6 +403,7 @@ const projectPreviews = ref<Record<string, SailorPage | null>>({})
 const projectModalError = ref('')
 const importProjectFile = ref<File | null>(null)
 const isProjectActionRunning = ref(false)
+const pendingCreateProjectSave = ref(false)
 const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
@@ -1099,10 +1100,11 @@ async function confirmUnsavedProjectLeave() {
   return true
 }
 
-function openNewProjectModal() {
+function openNewProjectModal(options: { saveAfterCreate?: boolean } = {}) {
   projectModalError.value = ''
   newProjectName.value = ''
   newProjectSlug.value = ''
+  pendingCreateProjectSave.value = options.saveAfterCreate === true
   isNewProjectModalOpen.value = true
 }
 
@@ -1138,11 +1140,12 @@ function openImportProjectModal() {
   isImportProjectModalOpen.value = true
 }
 
-function closeProjectModals() {
-  if (isProjectActionRunning.value) return
+function closeProjectModals(force = false) {
+  if (isProjectActionRunning.value && !force) return
   isNewProjectModalOpen.value = false
   isOpenProjectModalOpen.value = false
   isImportProjectModalOpen.value = false
+  pendingCreateProjectSave.value = false
   projectModalError.value = ''
 }
 
@@ -1166,8 +1169,15 @@ async function createProject() {
       name,
       slug: newProjectSlug.value.trim() || undefined,
     })
+    if (pendingCreateProjectSave.value) await ensureProjectHasPage(site.id)
     await activateProject(site.id)
   })
+}
+
+async function ensureProjectHasPage(siteId: string) {
+  const pages = await pagesApi.listSitePages(siteId)
+  if (pages.length > 0) return pages[0]
+  return pagesApi.createSitePage(siteId, { title: 'Home', blocks: editorStore.blocks })
 }
 
 async function openProject(projectId: string) {
@@ -1213,7 +1223,7 @@ async function importProjectArchive() {
 async function activateProject(projectId: string) {
   const site = await loadProject(projectId)
   await router.replace(`/pages/${site.id}`)
-  closeProjectModals()
+  closeProjectModals(true)
   await nextTick()
   positionInitialCanvas()
 }
@@ -1272,6 +1282,10 @@ function isTypingInField(target: EventTarget | null) {
 }
 
 async function saveActiveDocument() {
+  if (!sitesStore.activeSite) {
+    openNewProjectModal({ saveAfterCreate: true })
+    return
+  }
   if (activeCodeFile.value) {
     await sitesStore.saveActiveSite()
     return

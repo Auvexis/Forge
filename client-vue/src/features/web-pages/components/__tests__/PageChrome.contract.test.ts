@@ -139,6 +139,16 @@ describe('page chrome contract', () => {
     assert.match(css, /300ms/)
   })
 
+  it('page chrome keeps status indicators on the right side of the topbar', () => {
+    const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(source, /web-page-chrome__actions/)
+    assert.match(source, /web-page-chrome__status/)
+    assert.match(css, /\.web-page-chrome__actions\s*{[\s\S]*margin-left:\s*auto/)
+    assert.match(css, /\.web-page-chrome__status\s*{[\s\S]*display:\s*inline-flex/)
+  })
+
   it('page badge exposes a direct delete button', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
@@ -192,6 +202,16 @@ describe('page chrome contract', () => {
 
     assert.match(source, /async function openProject\(projectId: string\)/)
     assert.match(source, /await activateProject\(projectId\)/)
-    assert.match(source, /closeProjectModals\(\)/)
+    assert.match(source, /closeProjectModals\(true\)/)
+  })
+
+  it('save without an active project opens new project modal and continues into created project', () => {
+    const source = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(source, /pendingCreateProjectSave/)
+    assert.match(source, /openNewProjectModal\(\{ saveAfterCreate: true \}\)/)
+    assert.match(source, /ensureProjectHasPage\(site\.id\)/)
+    assert.match(source, /await activateProject\(site\.id\)/)
+    assert.match(source, /closeProjectModals\(true\)/)
   })
 })

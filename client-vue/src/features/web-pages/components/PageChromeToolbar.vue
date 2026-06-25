@@ -53,51 +53,54 @@
       title="Redo"
       @click="$emit('command', 'edit.redo')"
     />
-    <div class="web-page-chrome__divider"></div>
-    <span
-      class="web-page-chrome__publish-status"
-      :class="{ 'web-page-chrome__publish-status--published': publishedAt }"
-    >
-      <LucideIcon :name="publishedAt ? 'radio-tower' : 'radio'" :size="15" />
-      {{ publishedAt ? 'Published' : 'Draft' }}
-    </span>
-    <span class="web-page-chrome__save-status">
-      <LucideIcon
-        class="web-page-chrome__save-status-icon"
-        :class="{ 'web-page-chrome__save-status-icon--spin': saveState === 'saving' }"
-        :name="saveStatusIcon"
-        :size="17"
-      />
-      {{ saveStatusLabel }}
-    </span>
-    <BaseButton size="sm" variant="ghost" @click="$emit('command', 'file.save')">
-      <template #left>
-        <span
-          class="web-page-chrome__save-dot"
-          :class="{
-            'web-page-chrome__save-dot--dirty': isDirty,
-            'web-page-chrome__save-dot--saving': isSaving,
-          }"
-          aria-hidden="true"
+    <div class="web-page-chrome__actions">
+      <BaseButton size="sm" variant="ghost" @click="$emit('command', 'file.save')">
+        <template #left>
+          <span
+            class="web-page-chrome__save-dot"
+            :class="{
+              'web-page-chrome__save-dot--dirty': isDirty,
+              'web-page-chrome__save-dot--saving': isSaving,
+            }"
+            aria-hidden="true"
+          />
+        </template>
+        Save
+      </BaseButton>
+      <BaseButton size="sm" variant="ghost" icon-left="eye" @click="$emit('command', 'file.preview')">
+        Preview
+      </BaseButton>
+      <BaseButton size="sm" variant="ghost" :icon-left="publishCommandIcon" @click="$emit('command', 'file.togglePublish')">
+        {{ publishCommandLabel }}
+      </BaseButton>
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="external-link"
+        :disabled="!publishedAt"
+        @click="$emit('command', 'file.openLive')"
+      >
+        Open live
+      </BaseButton>
+    </div>
+    <div class="web-page-chrome__status">
+      <span
+        class="web-page-chrome__publish-status"
+        :class="{ 'web-page-chrome__publish-status--published': publishedAt }"
+      >
+        <LucideIcon :name="publishedAt ? 'radio-tower' : 'radio'" :size="15" />
+        {{ publishedAt ? 'Published' : 'Draft' }}
+      </span>
+      <span class="web-page-chrome__save-status">
+        <LucideIcon
+          class="web-page-chrome__save-status-icon"
+          :class="{ 'web-page-chrome__save-status-icon--spin': saveState === 'saving' }"
+          :name="saveStatusIcon"
+          :size="17"
         />
-      </template>
-      Save
-    </BaseButton>
-    <BaseButton size="sm" variant="ghost" icon-left="eye" @click="$emit('command', 'file.preview')">
-      Preview
-    </BaseButton>
-    <BaseButton size="sm" variant="ghost" :icon-left="publishCommandIcon" @click="$emit('command', 'file.togglePublish')">
-      {{ publishCommandLabel }}
-    </BaseButton>
-    <BaseButton
-      size="sm"
-      variant="ghost"
-      icon-left="external-link"
-      :disabled="!publishedAt"
-      @click="$emit('command', 'file.openLive')"
-    >
-      Open live
-    </BaseButton>
+        {{ saveStatusLabel }}
+      </span>
+    </div>
   </div>
 </template>
 
