@@ -80,8 +80,7 @@
         />
       </BaseModal>
 
-      <template>
-        <BaseCanvas
+      <BaseCanvas
           v-model:selection="pageCanvasSelection"
           v-model:viewport="pageCanvasViewport"
           class="web-page-editor__base-canvas"
@@ -183,7 +182,6 @@
             Delete page
           </BaseButton>
         </div>
-      </template>
     </div>
 
     <AppPanel
