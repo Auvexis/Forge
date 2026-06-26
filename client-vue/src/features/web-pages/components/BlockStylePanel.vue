@@ -101,7 +101,12 @@
       </label>
       <label class="web-page-style-row">
         <span>Font Family</span>
-        <BaseInput :model-value="String(block.styles?.fontFamily ?? '')" placeholder="Inter, Arial, sans-serif" @update:model-value="setStyle('fontFamily', $event)" />
+        <BaseInput
+          :model-value="String(block.styles?.fontFamily ?? '')"
+          placeholder="Inter, Arial, sans-serif"
+          @update:model-value="setStyle('fontFamily', $event)"
+          @drop.prevent="setDroppedFontFamily"
+        />
       </label>
       <label class="web-page-style-row">
         <span>Font Weight</span>
@@ -323,5 +328,12 @@ function setStyleUnit(key: string, unit: string) {
 
 function applyStylePreset(key: string, value: string) {
   setStyle(key, value)
+}
+
+function setDroppedFontFamily(event: DragEvent) {
+  const path = event.dataTransfer?.getData('application/x-sailor-page-asset')
+    || event.dataTransfer?.getData('text/plain')
+    || ''
+  if (path) setStyle('fontFamily', path)
 }
 </script>

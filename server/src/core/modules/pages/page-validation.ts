@@ -77,6 +77,7 @@ const ALLOWED_STYLES = new Set([
   "boxShadow",
   "opacity",
   "fontSize",
+  "fontFamily",
   "fontWeight",
   "lineHeight",
   "textAlign",

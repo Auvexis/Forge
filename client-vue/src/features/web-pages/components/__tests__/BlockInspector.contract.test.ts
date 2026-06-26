@@ -210,4 +210,19 @@ describe('block inspector contract', () => {
     const content = read('src/features/web-pages/components/BlockContentPanel.vue')
     assert.match(content, /isSafeUrl/)
   })
+
+  it('inspector inputs accept dropped assets and font family supports uploaded fonts', () => {
+    const content = read('src/features/web-pages/components/BlockContentPanel.vue')
+    const style = read('src/features/web-pages/components/BlockStylePanel.vue')
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const serverValidation = fs.readFileSync(path.resolve('../server/src/core/modules/pages/page-validation.ts'), 'utf8')
+
+    assert.match(content, /application\/x-sailor-page-asset/)
+    assert.match(content, /readDroppedAssetPath/)
+    assert.match(content, /setDroppedAssetProp/)
+    assert.match(style, /setDroppedFontFamily/)
+    assert.match(style, /Font Family/)
+    assert.match(renderer, /resolvedBlockStyles/)
+    assert.match(serverValidation, /"fontFamily"/)
+  })
 })

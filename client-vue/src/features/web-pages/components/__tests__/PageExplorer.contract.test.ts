@@ -180,6 +180,23 @@ describe('page explorer contract', () => {
     assert.match(css, /web-page-assets-panel__grid/)
   })
 
+  it('assets can be dragged, dropped for upload, and show upload progress previews', () => {
+    const assets = read('src/features/web-pages/components/SiteAssetsPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(assets, /draggable="true"/)
+    assert.match(assets, /application\/x-sailor-page-asset/)
+    assert.match(assets, /text\/plain/)
+    assert.match(assets, /setDragImage/)
+    assert.match(assets, /@dragover\.prevent/)
+    assert.match(assets, /@drop\.prevent="dropUploadAssets"/)
+    assert.match(assets, /uploadingAssets/)
+    assert.match(assets, /web-page-assets-panel__upload-preview/)
+    assert.match(assets, /accept="image\/\*,font\/\*,\.ttf,\.otf,\.woff,\.woff2"/)
+    assert.match(css, /web-page-assets-panel__upload-preview/)
+    assert.match(css, /web-page-assets-panel__loading-bar/)
+  })
+
   it('code explorer exposes a delete button for deletable files', () => {
     const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
     const css = read('src/features/web-pages/pages.css')

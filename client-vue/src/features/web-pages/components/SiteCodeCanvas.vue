@@ -2,6 +2,7 @@
   <section class="web-page-code-canvas" @pointerdown.stop>
     <header class="web-page-code-canvas__header">
       <strong>{{ file.path }}</strong>
+      <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @pointerdown.stop @click.stop="$emit('close')" />
     </header>
 
     <div v-if="isImage" class="web-page-code-canvas__preview">
@@ -24,6 +25,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { API_BASE_URL } from '@/core/constants/app.ts'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import type { SiteFile } from '../types/page.types.ts'
 
@@ -35,6 +37,7 @@ const props = defineProps<{
 
 defineEmits<{
   'update:modelValue': [value: string]
+  close: []
 }>()
 
 const isImage = computed(() => props.file.kind === 'asset' || /\.(png|jpe?g|webp|gif|svg)$/i.test(props.file.path))

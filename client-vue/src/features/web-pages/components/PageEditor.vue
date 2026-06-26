@@ -63,21 +63,24 @@
       @pointerup="stopWorkspacePan"
       @pointerleave="stopWorkspacePan"
     >
-      <BaseModal
-        :is-open="Boolean(activeCodeFile)"
-        max-width="min(1180px, calc(100vw - 64px))"
-        height="min(760px, calc(100vh - 72px))"
-        :dim-backdrop="false"
-        @close="closeCodeCanvas"
-      >
-        <SiteCodeCanvas
-          v-if="activeCodeFile"
-          :file="activeCodeFile"
-          :model-value="activeCodeContent"
-          :readonly="isActiveCodeFileReadonly"
-          @update:model-value="updateActiveCodeContent"
-        />
-      </BaseModal>
+      <Transition name="web-page-code-editor">
+        <BaseModal
+          :is-open="Boolean(activeCodeFile)"
+          max-width="min(1180px, calc(100vw - 64px))"
+          height="min(760px, calc(100vh - 72px))"
+          :dim-backdrop="false"
+          @close="closeCodeCanvas"
+        >
+          <SiteCodeCanvas
+            v-if="activeCodeFile"
+            :file="activeCodeFile"
+            :model-value="activeCodeContent"
+            :readonly="isActiveCodeFileReadonly"
+            @update:model-value="updateActiveCodeContent"
+            @close="closeCodeCanvas"
+          />
+        </BaseModal>
+      </Transition>
 
       <BaseCanvas
           v-model:selection="pageCanvasSelection"

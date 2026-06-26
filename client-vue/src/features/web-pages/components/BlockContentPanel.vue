@@ -35,12 +35,12 @@
         hint="No compatible published workflows found."
         @update:model-value="patchAction({ workflowId: String($event) })"
       />
-      <BaseSelect
+      <BaseSegmentedSelect
         v-if="block.action?.type === 'triggerWorkflow' && publishedWorkflowOptions.length > 0"
         :model-value="block.action.workflowId"
         :options="publishedWorkflowOptions"
-        label="Workflow"
-        placeholder="Select workflow"
+        aria-label="Workflow"
+        :icon-size="15"
         @update:model-value="patchAction({ workflowId: String($event) })"
       />
       <BaseInput
@@ -117,6 +117,7 @@
         label="Image URL"
         :error="urlError"
         @update:model-value="setUrlProp('src', String($event), 'media')"
+        @drop.prevent="setDroppedAssetProp($event, 'src', 'media')"
       />
       <div class="web-page-image-upload">
         <BaseButton variant="outline" size="sm" icon-left="image-plus" @click="assetInput?.click()">
@@ -135,6 +136,7 @@
         label="Audio URL"
         :error="urlError"
         @update:model-value="setUrlProp('src', String($event), 'media')"
+        @drop.prevent="setDroppedAssetProp($event, 'src', 'media')"
       />
       <MediaToggles :block="block" @set="setBooleanProp" />
     </section>
@@ -146,12 +148,14 @@
         label="Video URL"
         :error="urlError"
         @update:model-value="setUrlProp('src', String($event), 'media')"
+        @drop.prevent="setDroppedAssetProp($event, 'src', 'media')"
       />
       <BaseInput
         :model-value="String(block.props?.poster ?? '')"
         label="Poster URL"
         :error="urlError"
         @update:model-value="setUrlProp('poster', String($event), 'media')"
+        @drop.prevent="setDroppedAssetProp($event, 'poster', 'media')"
       />
       <MediaToggles :block="block" @set="setBooleanProp" />
     </section>
@@ -180,6 +184,7 @@
         label="Link URL"
         :error="urlError"
         @update:model-value="setUrlProp('href', String($event), 'link')"
+        @drop.prevent="setDroppedAssetProp($event, 'href', 'link')"
       />
       <label class="web-page-style-row">
         <span>Target</span>
@@ -200,7 +205,6 @@ import { computed, defineComponent, h, onMounted, ref } from 'vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseSelect, { type SelectOption } from '@/shared/components/base/BaseSelect.vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import type { PageBlock, PageBlockAction } from '../types/page.types.ts'
@@ -214,12 +218,13 @@ const urlError = ref('')
 const assetInput = ref<HTMLInputElement | null>(null)
 const publishedWorkflows = ref<WorkflowItem[]>([])
 const hasText = computed(() => props.block.tag === 'text' || props.block.tag === 'button' || props.block.tag === 'link')
-const publishedWorkflowOptions = computed<SelectOption[]>(() => publishedWorkflows.value
+const publishedWorkflowOptions = computed<BaseSegmentedSelectOption[]>(() => publishedWorkflows.value
   .filter((workflow) => workflow.metadata.isActive && !workflow.metadata.isDraft)
   .filter((workflow) => ['manual', 'webhook', 'form'].includes(workflow.trigger?.type ?? 'manual'))
   .map((workflow) => ({
     value: workflow.metadata.id,
     label: workflow.metadata.name,
+    title: workflow.metadata.name,
     icon: workflow.trigger?.type === 'form' ? 'clipboard-list' : 'workflow',
   })))
 
@@ -320,6 +325,18 @@ function setUrlProp(key: string, value: string, kind: 'link' | 'media') {
   }
   urlError.value = ''
   setProp(key, value)
+}
+
+function setDroppedAssetProp(event: DragEvent, key: string, kind: 'link' | 'media') {
+  const path = readDroppedAssetPath(event)
+  if (!path) return
+  setUrlProp(key, path, kind)
+}
+
+function readDroppedAssetPath(event: DragEvent): string {
+  return event.dataTransfer?.getData('application/x-sailor-page-asset')
+    || event.dataTransfer?.getData('text/plain')
+    || ''
 }
 
 function isSafeUrl(value: string, kind: 'link' | 'media'): boolean {

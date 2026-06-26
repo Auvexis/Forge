@@ -21,19 +21,19 @@
 - [x] Verify and commit.
 
 ## Batch 4 - Assets Drag Upload
-- [ ] Drag assets into Inspector inputs using real asset path.
-- [ ] Add asset drag preview matching Toolbox drag preview.
-- [ ] Upload assets by dropping files on Assets panel.
-- [ ] Show clean upload loading preview/progress.
-- [ ] Add/adjust asset tests.
-- [ ] Verify and commit.
+- [x] Drag assets into Inspector inputs using real asset path.
+- [x] Add asset drag preview matching Toolbox drag preview.
+- [x] Upload assets by dropping files on Assets panel.
+- [x] Show clean upload loading preview/progress.
+- [x] Add/adjust asset tests.
+- [x] Verify and commit.
 
 ## Batch 5 - Fonts
-- [ ] Support local font uploads in Assets.
-- [ ] Make Font Family accept uploaded asset font paths.
-- [ ] Apply Font Family to rendered text elements.
-- [ ] Add/adjust font tests.
-- [ ] Verify and commit.
+- [x] Support local font uploads in Assets.
+- [x] Make Font Family accept uploaded asset font paths.
+- [x] Apply Font Family to rendered text elements.
+- [x] Add/adjust font tests.
+- [x] Verify and commit.
 
 ## Batch 6 - Final
 - [ ] Run focused tests.

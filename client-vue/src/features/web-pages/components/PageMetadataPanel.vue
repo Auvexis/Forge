@@ -35,6 +35,7 @@
         :model-value="page.faviconUrl ?? ''"
         placeholder="/sites/site_id/assets/favicon.png"
         @update:model-value="patchField('faviconUrl', $event)"
+        @drop.prevent="patchDroppedAsset($event, 'faviconUrl')"
       />
     </label>
   </div>
@@ -54,5 +55,12 @@ const emit = defineEmits<{
 
 function patchField(key: 'title' | 'slug' | 'metaTitle' | 'metaDescription' | 'faviconUrl', value: string | boolean) {
   emit('patch', { [key]: String(value) })
+}
+
+function patchDroppedAsset(event: DragEvent, key: 'faviconUrl') {
+  const path = event.dataTransfer?.getData('application/x-sailor-page-asset')
+    || event.dataTransfer?.getData('text/plain')
+    || ''
+  if (path) patchField(key, path)
 }
 </script>
