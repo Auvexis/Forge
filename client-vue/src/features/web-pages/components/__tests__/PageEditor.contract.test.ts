@@ -189,13 +189,14 @@ describe('page editor contract', () => {
     assert.match(source, /positionInitialCanvas/)
   })
 
-  it('positions the initial canvas vertically without shifting x', () => {
+  it('centers the initial canvas in the workspace viewport', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
     assert.match(source, /positionInitialCanvas/)
     assert.doesNotMatch(source, /INITIAL_CANVAS_WIDTH/)
-    assert.match(source, /workspaceRef\.value\.scrollLeft = 0/)
-    assert.match(source, /workspaceRef\.value\.scrollTop/)
+    assert.match(source, /workspaceRef\.value\?\.clientWidth/)
+    assert.match(source, /pageCanvasViewport\.value = \{/)
+    assert.match(source, /\(workspaceWidth - PAGE_CANVAS_WIDTH\) \/ 2 - PAGE_CANVAS_X/)
     assert.match(source, /await nextTick\(\)[\s\S]*positionInitialCanvas\(\)/)
   })
 

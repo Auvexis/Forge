@@ -423,6 +423,7 @@ const editorStore = usePageEditorStore()
 const sitesStore = useSitesStore()
 const { confirm } = useConfirm()
 const INITIAL_CANVAS_TOP_OFFSET = 120
+const PAGE_CANVAS_X = 120
 const PAGE_CANVAS_WIDTH = typeof window === 'undefined' ? 1440 : window.innerWidth
 const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHeight
 const PAGE_CANVAS_GAP = 80
@@ -478,7 +479,7 @@ const pageCanvasItems = computed<BaseCanvasItem[]>(() => pagesStore.pages.map((p
   const offset = pageCanvasOffsets.value[page.id] ?? { x: 0, y: 0 }
   return {
     id: page.id,
-    x: 120 + offset.x,
+    x: PAGE_CANVAS_X + offset.x,
     y: index * (PAGE_CANVAS_HEIGHT + PAGE_CANVAS_GAP) + offset.y,
     width: PAGE_CANVAS_WIDTH,
     height: PAGE_CANVAS_HEIGHT,
@@ -780,9 +781,12 @@ async function loadProject(projectId: string) {
 }
 
 function positionInitialCanvas() {
-  if (!workspaceRef.value) return
-  workspaceRef.value.scrollLeft = 0
-  workspaceRef.value.scrollTop = INITIAL_CANVAS_TOP_OFFSET
+  const workspaceWidth = workspaceRef.value?.clientWidth ?? PAGE_CANVAS_WIDTH
+  pageCanvasViewport.value = {
+    ...pageCanvasViewport.value,
+    x: Math.round((workspaceWidth - PAGE_CANVAS_WIDTH) / 2 - PAGE_CANVAS_X),
+    y: INITIAL_CANVAS_TOP_OFFSET,
+  }
 }
 
 watch(
