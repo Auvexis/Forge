@@ -43,16 +43,16 @@
 - [x] Remover dependência de `updateNodeInternals` no caminho BaseCanvas.
 
 ## Batch 4 - Edges
-- [ ] Criar camada SVG própria para edges.
-- [ ] Calcular anchors por handle em world coordinates.
-- [ ] Migrar `BaseEdge` sem `@vue-flow/core`.
-- [ ] Preservar edge idle, running, success, failed e selected.
-- [ ] Preservar edge configuration dashed.
-- [ ] Preservar branch filtering por output.
-- [ ] Preservar labels e edição inline.
-- [ ] Preservar item count label.
-- [ ] Preservar toolbar de quick-add e delete.
-- [ ] Corrigir alinhamento edge/handle sem query no DOM.
+- [x] Criar camada SVG própria para edges.
+- [x] Calcular anchors por handle em world coordinates.
+- [x] Migrar `BaseEdge` sem `@vue-flow/core`.
+- [x] Preservar edge idle, running, success, failed e selected.
+- [x] Preservar edge configuration dashed.
+- [x] Preservar branch filtering por output.
+- [x] Preservar labels e edição inline.
+- [x] Preservar item count label.
+- [x] Preservar toolbar de quick-add e delete.
+- [x] Corrigir alinhamento edge/handle sem query no DOM.
 
 ## Batch 5 - Conexões
 - [ ] Recriar preview de conexão durante drag.

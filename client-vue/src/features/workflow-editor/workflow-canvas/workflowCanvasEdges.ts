@@ -1,0 +1,114 @@
+import type { BaseCanvasPoint } from '@/shared/base-canvas/index.ts'
+
+export type WorkflowEdgeStatus = 'idle' | 'success' | 'failed' | 'running' | 'waiting' | 'retrying'
+
+export interface WorkflowEdgeNodeState {
+  status?: WorkflowEdgeStatus | string
+  output?: unknown
+}
+
+export interface WorkflowEdgeStatusInput {
+  source: string
+  target: string
+  sourceHandle?: string | null
+  nodeStatuses: Record<string, WorkflowEdgeNodeState | undefined>
+  workflowStatus?: string | null
+}
+
+export interface WorkflowEdgePathData {
+  path: string
+  labelX: number
+  labelY: number
+}
+
+export function makeWorkflowEdgePath(source: BaseCanvasPoint, target: BaseCanvasPoint): WorkflowEdgePathData {
+  const horizontalPull = Math.max(40, Math.abs(target.x - source.x) * 0.45)
+  const sourcePull = source.x <= target.x ? horizontalPull : -horizontalPull
+  const targetPull = source.x <= target.x ? -horizontalPull : horizontalPull
+
+  return {
+    path: `M ${source.x} ${source.y} C ${source.x + sourcePull} ${source.y}, ${target.x + targetPull} ${target.y}, ${target.x} ${target.y}`,
+    labelX: (source.x + target.x) / 2,
+    labelY: (source.y + target.y) / 2,
+  }
+}
+
+export function makeConfigurationWorkflowEdgePath(source: BaseCanvasPoint, target: BaseCanvasPoint): WorkflowEdgePathData {
+  const verticalGap = Math.abs(source.y - target.y)
+  const pull = Math.min(180, Math.max(72, verticalGap * 0.55))
+  const sourcePull = source.y > target.y ? -pull : pull
+  const targetPull = target.y > source.y ? -pull : pull
+
+  return {
+    path: `M ${source.x} ${source.y} C ${source.x} ${source.y + sourcePull}, ${target.x} ${target.y + targetPull}, ${target.x} ${target.y}`,
+    labelX: (source.x + target.x) / 2,
+    labelY: (source.y + target.y) / 2,
+  }
+}
+
+export function getWorkflowEdgeStatus(input: WorkflowEdgeStatusInput): WorkflowEdgeStatus | string {
+  const sourceStatus = resolveSourceStatus(input)
+  const targetStatus = input.nodeStatuses[input.target]?.status ?? 'idle'
+
+  if (sourceStatus === 'idle') return 'idle'
+
+  if (sourceStatus === 'success' && !isSelectedSourceHandleActive(input)) {
+    return 'idle'
+  }
+
+  if (targetStatus !== 'idle') return targetStatus
+  if (sourceStatus === 'success') return 'success'
+  return 'idle'
+}
+
+export function countWorkflowEdgeItems(output: unknown): number | null {
+  if (Array.isArray(output)) return output.length
+
+  if (output && typeof output === 'object') {
+    const value = output as Record<string, unknown>
+    if (Array.isArray(value.items)) return value.items.length
+    if (Array.isArray(value.data)) return value.data.length
+  }
+
+  return null
+}
+
+export function workflowEdgeStrokeFor(status: WorkflowEdgeStatus | string, selected: boolean): string {
+  if (selected) return 'var(--sailor-rf-edge-stroke-selected)'
+
+  switch (status) {
+    case 'success':
+      return 'var(--sailor-green-500, #22c55e)'
+    case 'failed':
+      return 'var(--sailor-red-500, #ef4444)'
+    case 'running':
+      return 'var(--sailor-amber-500, #f59e0b)'
+    case 'waiting':
+      return 'var(--sailor-purple-500, #a855f7)'
+    case 'retrying':
+      return 'var(--sailor-amber-500, #f59e0b)'
+    default:
+      return 'var(--sailor-rf-edge-stroke)'
+  }
+}
+
+function resolveSourceStatus(input: WorkflowEdgeStatusInput): WorkflowEdgeStatus | string {
+  if (input.source === 'trigger' || input.source.startsWith('trigger_')) {
+    const triggerStatus = input.nodeStatuses[input.source]?.status
+    if (triggerStatus && triggerStatus !== 'idle') return triggerStatus
+    return input.workflowStatus === 'SUCCESS' ? 'success' : 'idle'
+  }
+
+  return input.nodeStatuses[input.source]?.status ?? 'idle'
+}
+
+function isSelectedSourceHandleActive(input: WorkflowEdgeStatusInput): boolean {
+  const output = input.nodeStatuses[input.source]?.output
+  if (!output || typeof output !== 'object') return true
+
+  const value = output as Record<string, unknown>
+  if ('branch' in value) return value.branch === (input.sourceHandle || 'then')
+  if ('activeHandle' in value) return value.activeHandle === input.sourceHandle
+
+  return true
+}

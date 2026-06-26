@@ -1,30 +1,39 @@
 <template>
-  <BaseCanvas
-    v-model:viewport="viewport"
-    v-model:selection="canvasSelection"
-    :items="workflowItems"
-    :snap-to-grid="true"
-    :grid-size="20"
-    :marquee-selection="true"
-    background-color="var(--sailor-canvas-bg)"
-    pattern-color="var(--sailor-canvas-grid)"
-    pattern-style="dot"
-    :pattern-size="20"
-    class="sailor-workflow-base-canvas"
-    :data-workflow-items-count="workflowItems.length"
-    @items-move="handleItemsMove"
-  >
-    <template #item="{ item }">
-      <WorkflowCanvasNodeHost
-        :item="item"
-        :component="nodeComponentByType[resolveNodeType(item)]"
-        :selected="canvasSelection.includes(item.id)"
-        :status="resolveNodeStatus(item.id)"
-        :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
-        @open-inspector="openNodeInspector"
-      />
-    </template>
-  </BaseCanvas>
+  <div class="sailor-workflow-base-canvas-shell">
+    <BaseCanvas
+      v-model:viewport="viewport"
+      v-model:selection="canvasSelection"
+      :items="workflowItems"
+      :snap-to-grid="true"
+      :grid-size="20"
+      :marquee-selection="true"
+      background-color="var(--sailor-canvas-bg)"
+      pattern-color="var(--sailor-canvas-grid)"
+      pattern-style="dot"
+      :pattern-size="20"
+      class="sailor-workflow-base-canvas"
+      :data-workflow-items-count="workflowItems.length"
+      @items-move="handleItemsMove"
+    >
+      <template #item="{ item }">
+        <WorkflowCanvasNodeHost
+          :item="item"
+          :component="nodeComponentByType[resolveNodeType(item)]"
+          :selected="canvasSelection.includes(item.id)"
+          :status="resolveNodeStatus(item.id)"
+          :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
+          @open-inspector="openNodeInspector"
+        />
+      </template>
+    </BaseCanvas>
+
+    <WorkflowEdgeLayer
+      :edges="workflowEdges"
+      :items="workflowItems"
+      :viewport="viewport"
+      :handle-registry="handleRegistry"
+    />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -41,6 +50,7 @@ import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 import { workflowToBaseCanvasItems } from '../workflow-canvas/workflowCanvasAdapter'
 import WorkflowCanvasNodeHost from './WorkflowCanvasNodeHost.vue'
+import WorkflowEdgeLayer from './WorkflowEdgeLayer.vue'
 import {
   createWorkflowHandleRegistry,
   isWorkflowBaseCanvasHandleModeKey,
@@ -128,6 +138,8 @@ const workflowItems = computed(() => {
   })
 })
 
+const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
+
 function resolveNodeType(item: BaseCanvasItem): string {
   if (item.id === 'trigger') return 'trigger'
   return String((item.data as { type?: string } | undefined)?.type ?? '')
@@ -168,6 +180,12 @@ function openNodeInspector(item: BaseCanvasItem) {
 </script>
 
 <style scoped>
+.sailor-workflow-base-canvas-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
 .sailor-workflow-base-canvas {
   width: 100%;
   height: 100%;
