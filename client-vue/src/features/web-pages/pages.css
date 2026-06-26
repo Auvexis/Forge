@@ -630,7 +630,13 @@
   position: fixed;
   z-index: 12;
   --web-page-selection-scale: 1;
-  box-shadow: 0 0 0 calc(1px / var(--web-page-selection-scale)) var(--web-page-selected-color);
+  --web-page-selected-color: #3b82f6;
+  --web-page-motion-fast: 120ms;
+  --web-page-motion-medium: 180ms;
+  --web-page-ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+  --sailor-bg-surface: #ffffff;
+  --sailor-ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  box-shadow: 0 0 0 1px var(--web-page-selected-color);
   animation: web-page-selection-pop var(--web-page-motion-medium) var(--web-page-ease-premium);
   pointer-events: none;
 }
@@ -661,7 +667,6 @@
   background: #ffffff;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--sailor-bg-surface) 72%, transparent);
   pointer-events: auto;
-  transform: scale(calc(1 / var(--web-page-selection-scale)));
   transform-origin: center;
   transition:
     background 120ms var(--sailor-ease-standard),
@@ -675,7 +680,7 @@
   box-shadow:
     0 0 0 2px #ffffff,
     0 0 0 5px color-mix(in srgb, var(--web-page-selected-color) 24%, transparent);
-  transform: scale(calc(1.25 / var(--web-page-selection-scale)));
+  transform: scale(1.15);
 }
 
 .web-page-block-selection__chrome {
@@ -696,7 +701,7 @@
   box-shadow: 0 8px 22px color-mix(in srgb, #000000 28%, transparent);
   color: #ffffff;
   pointer-events: none;
-  transform: translateX(-50%) scale(calc(1 / var(--web-page-selection-scale)));
+  transform: translateX(-50%);
   transform-origin: bottom center;
 }
 
@@ -871,7 +876,6 @@
   line-height: 20px;
   animation: web-page-chip-pop var(--web-page-motion-medium) var(--web-page-ease-premium);
   pointer-events: none;
-  transform: scale(calc(1 / var(--web-page-selection-scale)));
   transform-origin: center;
   white-space: nowrap;
 }

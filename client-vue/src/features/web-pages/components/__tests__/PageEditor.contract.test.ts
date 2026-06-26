@@ -59,7 +59,7 @@ describe('page editor contract', () => {
     assert.doesNotMatch(bodyRule, /max-width:\s*960px/)
   })
 
-  it('keeps selection chrome readable at low and high page zoom', () => {
+  it('keeps selection frame aligned while selection chrome stays compact at any zoom', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const canvas = read('src/features/web-pages/components/PageCanvas.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
@@ -76,8 +76,9 @@ describe('page editor contract', () => {
     assert.match(renderer, /Math\.max\(0\.08,\s*scale\)/)
     assert.match(renderer, /props\.canvasZoom/)
     assert.match(css, /--web-page-selection-scale/)
-    assert.match(css, /scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
-    assert.match(selectionRule, /box-shadow:\s*0 0 0 calc\(1px \/ var\(--web-page-selection-scale\)\)/)
+    assert.match(css, /transform:\s*translateX\(-50%\)/)
+    assert.doesNotMatch(css, /scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
+    assert.match(selectionRule, /box-shadow:\s*0 0 0 1px var\(--web-page-selected-color\)/)
   })
 
   it('editor clears selection when clicking empty workspace and supports pan tool panning', () => {

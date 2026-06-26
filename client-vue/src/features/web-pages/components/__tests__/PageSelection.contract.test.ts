@@ -70,6 +70,7 @@ describe('page selection contract', () => {
   it('selection chrome renders outside block overflow and owns pointer events', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
+    const selectionRule = css.match(/\.web-page-block-selection\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
     assert.match(renderer, /<Teleport to="body">/)
     assert.match(renderer, /selectionPortalStyle/)
@@ -78,6 +79,9 @@ describe('page selection contract', () => {
     assert.match(renderer, /@pointerdown\.stop\.prevent/)
     assert.match(renderer, /@mousedown\.stop\.prevent/)
     assert.match(css, /\.web-page-block-selection\s*\{[\s\S]*position:\s*fixed/)
+    assert.match(selectionRule, /--web-page-selected-color:\s*#3b82f6/)
+    assert.match(selectionRule, /--web-page-motion-medium:\s*180ms/)
+    assert.match(selectionRule, /--sailor-bg-surface:\s*#ffffff/)
     assert.match(css, /\.web-page-block-leave-active \.web-page-block-selection\s*\{[\s\S]*display:\s*none/)
   })
 
@@ -94,6 +98,10 @@ describe('page selection contract', () => {
     assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*align-items:\s*center/)
     assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*width:\s*max-content/)
     assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*background:\s*var\(--web-page-selected-color\)/)
+    assert.match(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*transform:\s*translateX\(-50%\)/)
+    assert.doesNotMatch(css, /\.web-page-block-selection__chrome\s*\{[\s\S]*scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
+    assert.doesNotMatch(css, /\.web-page-block-resize__handle\s*\{[\s\S]*scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
+    assert.doesNotMatch(css, /\.web-page-block-selection__metric,\n\.web-page-block-selection__ratio\s*\{[\s\S]*scale\(calc\(1 \/ var\(--web-page-selection-scale\)\)\)/)
     const toolbarRule = css.match(/\.web-page-block-context-toolbar\s*\{[^}]*\}/)?.[0] ?? ''
     assert.doesNotMatch(toolbarRule, /background:\s*var\(--web-page-selected-color\)/)
     assert.match(css, /border:\s*1px solid color-mix\(in srgb, var\(--web-page-selected-color\) 78%, #ffffff\)/)
