@@ -887,7 +887,7 @@ defineExpose({
   height: 100%;
 }
 
-.sailor-workflow-base-canvas :deep(.base-canvas__item) {
+.sailor-workflow-base-canvas :deep(.base-canvas__viewport) {
   z-index: 5;
 }
 </style>

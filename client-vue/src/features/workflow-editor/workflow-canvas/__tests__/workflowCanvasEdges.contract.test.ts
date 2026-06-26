@@ -54,7 +54,7 @@ describe('workflow canvas edges contract', () => {
     const canvas = readComponent('WorkflowBaseCanvas.vue')
     const layer = readComponent('WorkflowEdgeLayer.vue')
 
-    assert.match(canvas, /:deep\(\.base-canvas__item\)[\s\S]*z-index: 5/)
+    assert.match(canvas, /:deep\(\.base-canvas__viewport\)[\s\S]*z-index: 5/)
     assert.match(layer, /workflow-edge-layer[\s\S]*z-index: 4/)
   })
 

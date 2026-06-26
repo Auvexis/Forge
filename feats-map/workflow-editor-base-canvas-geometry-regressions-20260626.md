@@ -17,4 +17,4 @@ Corrigir desalinhamento, flick e sobreposicao de edges apos a migracao do Workfl
 - [x] Atualizar edges imediatamente quando handles mudarem.
 - [x] Preservar geometria valida durante paineis e menus.
 - [x] Colocar edges abaixo dos nodes.
-- [ ] Validar testes, tipos e fluxo renderizado.
+- [x] Validar testes e tipos; fluxo renderizado bloqueado sem backend.
