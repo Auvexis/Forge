@@ -60,6 +60,7 @@
           :drop-intent="dropIntent"
           :deleting-block-ids="deletingBlockIds"
           :active-tool="activeTool"
+          :canvas-viewport="canvasViewport"
           :canvas-zoom="canvasZoom"
           :readonly="readonly"
           @select="$emit('select', $event)"
@@ -165,6 +166,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { API_BASE_URL } from '@/core/constants/app.ts'
+import type { BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
@@ -178,6 +180,7 @@ const props = withDefaults(defineProps<{
   deletingBlockIds?: string[]
   activeTool?: 'cursor' | 'pan' | 'delete'
   readonly?: boolean
+  canvasViewport?: BaseCanvasViewport
   canvasZoom?: number
 }>(), {
   activeTool: 'cursor',
@@ -337,7 +340,7 @@ watch(
 )
 
 watch(
-  () => [props.selectedBlockId, props.block.styles, previewStyles.value, props.canvasZoom],
+  () => [props.selectedBlockId, props.block.styles, previewStyles.value, props.canvasZoom, props.canvasViewport?.x, props.canvasViewport?.y, props.canvasViewport?.zoom],
   () => void nextTick(updateSelectionFrame),
   { deep: true },
 )

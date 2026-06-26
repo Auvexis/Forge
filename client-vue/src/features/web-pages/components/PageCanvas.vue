@@ -31,6 +31,7 @@
           :drop-intent="dropIntent"
           :deleting-block-ids="deletingBlockIds"
           :active-tool="activeTool"
+          :canvas-viewport="canvasViewport"
           :canvas-zoom="canvasZoom"
           :readonly="readonly"
           @select="handleBlockSelect"
@@ -53,6 +54,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import type { PageBlock, PageBlockTag } from '../types/page.types.ts'
+import type { BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { DropEdge } from '../stores/page-editor.store.ts'
 import BlockRenderer from './BlockRenderer.vue'
@@ -65,6 +67,7 @@ const props = defineProps<{
   bodyStyles?: Record<string, string | number>
   readonly?: boolean
   activeTool?: 'cursor' | 'pan' | 'delete'
+  canvasViewport?: BaseCanvasViewport
   canvasZoom?: number
 }>()
 

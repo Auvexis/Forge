@@ -136,6 +136,7 @@
               <PageCanvas
                 :blocks="pageBlocks(item.id)"
                 :body-styles="pageBodyStyles(item.id)"
+                :canvas-viewport="pageCanvasViewport"
                 :canvas-zoom="pageCanvasViewport.zoom"
                 :selected-block-id="item.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
                 :drop-intent="item.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"

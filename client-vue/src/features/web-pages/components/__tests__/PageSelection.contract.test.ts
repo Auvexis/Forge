@@ -69,6 +69,8 @@ describe('page selection contract', () => {
 
   it('selection chrome renders outside block overflow and owns pointer events', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
     const selectionRule = css.match(/\.web-page-block-selection\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
@@ -76,6 +78,14 @@ describe('page selection contract', () => {
     assert.match(renderer, /selectionPortalStyle/)
     assert.match(renderer, /getBoundingClientRect\(\)/)
     assert.match(renderer, /position:\s*'fixed'/)
+    assert.match(editor, /:canvas-viewport="pageCanvasViewport"/)
+    assert.match(canvas, /canvasViewport\?: BaseCanvasViewport/)
+    assert.match(canvas, /:canvas-viewport="canvasViewport"/)
+    assert.match(renderer, /canvasViewport\?: BaseCanvasViewport/)
+    assert.match(renderer, /props\.canvasViewport\?\.x/)
+    assert.match(renderer, /props\.canvasViewport\?\.y/)
+    assert.match(renderer, /props\.canvasViewport\?\.zoom/)
+    assert.match(renderer, /nextTick\(updateSelectionFrame\)/)
     assert.match(renderer, /@pointerdown\.stop\.prevent/)
     assert.match(renderer, /@mousedown\.stop\.prevent/)
     assert.match(css, /\.web-page-block-selection\s*\{[\s\S]*position:\s*fixed/)
