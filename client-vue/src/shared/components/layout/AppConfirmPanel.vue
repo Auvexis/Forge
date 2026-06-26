@@ -70,7 +70,7 @@ const iconName = computed(() => {
 .acp-backdrop {
   position: fixed;
   inset: 0;
-  z-index: 10001;
+  z-index: 10020;
   display: flex;
   align-items: center;
   justify-content: center;
