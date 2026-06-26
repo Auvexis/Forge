@@ -113,6 +113,37 @@ describe('pages store', () => {
     assert.equal(store.isDirty, true)
   })
 
+  it('saves page metadata including public url and favicon', async () => {
+    const store = usePagesStore()
+    let savedPayload: unknown = null
+    store.setApiClient({
+      ...api(),
+      updatePage: async (_id, payload) => {
+        savedPayload = payload
+        return page({ ...payload, id: 'page_1' })
+      },
+    })
+    store.setActivePage(page({
+      metaTitle: 'Signup',
+      metaDescription: 'Create an account',
+      faviconUrl: '/sites/site_1/assets/favicon.png',
+      publicPath: '/meusite/signup',
+    }))
+
+    await store.saveActivePage()
+
+    assert.deepEqual(savedPayload, {
+      title: 'Landing Page',
+      slug: 'landing-page',
+      publicPath: '/meusite/signup',
+      metaTitle: 'Signup',
+      metaDescription: 'Create an account',
+      faviconUrl: '/sites/site_1/assets/favicon.png',
+      bodyStyles: undefined,
+      blocks: [],
+    })
+  })
+
   it('lists and creates pages inside the active site when selected', async () => {
     const store = usePagesStore()
     let listedSiteId = ''
@@ -155,5 +186,6 @@ describe('pages store', () => {
     assert.equal(created.id, 'page_new')
     assert.deepEqual(store.pages.map((item) => item.id), ['page_a', 'page_new', 'page_b'])
     assert.equal(store.activePage?.id, 'page_new')
+    assert.equal(store.isDirty, true)
   })
 })

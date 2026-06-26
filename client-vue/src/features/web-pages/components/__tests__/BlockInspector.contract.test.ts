@@ -236,4 +236,11 @@ describe('block inspector contract', () => {
     assert.match(renderer, /resolvedBlockStyles/)
     assert.match(serverValidation, /"fontFamily"/)
   })
+
+  it('body style patches merge with existing page body styles', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(editor, /function patchBodyStyles/)
+    assert.match(editor, /bodyStyles:\s*\{ \.\.\.\(pagesStore\.activePage\.bodyStyles \?\? \{\}\), \.\.\.\(patch\.styles \?\? \{\}\) \}/)
+  })
 })

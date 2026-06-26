@@ -12,7 +12,17 @@
       <span>Slug</span>
       <BaseInput
         :model-value="page.slug"
+        hint="File name for this page."
         @update:model-value="patchField('slug', $event)"
+      />
+    </label>
+    <label class="web-page-style-row">
+      <span>URL</span>
+      <BaseInput
+        :model-value="page.publicPath ?? ''"
+        placeholder="/meusite/signup"
+        hint="Public path. Use / for nested routes."
+        @update:model-value="patchField('publicPath', $event)"
       />
     </label>
     <label class="web-page-style-row">
@@ -53,7 +63,7 @@ const emit = defineEmits<{
   patch: [patch: Partial<SailorPage>]
 }>()
 
-function patchField(key: 'title' | 'slug' | 'metaTitle' | 'metaDescription' | 'faviconUrl', value: string | boolean) {
+function patchField(key: 'title' | 'slug' | 'publicPath' | 'metaTitle' | 'metaDescription' | 'faviconUrl', value: string | boolean) {
   emit('patch', { [key]: String(value) })
 }
 

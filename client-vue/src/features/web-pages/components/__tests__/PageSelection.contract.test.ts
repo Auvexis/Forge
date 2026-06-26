@@ -267,12 +267,15 @@ describe('page selection contract', () => {
     assert.match(metadata, /Meta title/)
     assert.match(metadata, /Meta description/)
     assert.match(metadata, /Favicon/)
+    assert.match(metadata, /URL/)
     assert.match(metadata, /patchField\('metaTitle'/)
     assert.match(metadata, /patchField\('metaDescription'/)
     assert.match(metadata, /patchField\('faviconUrl'/)
+    assert.match(metadata, /patchField\('publicPath'/)
     assert.match(types, /metaTitle\?: string/)
     assert.match(types, /metaDescription\?: string/)
     assert.match(types, /faviconUrl\?: string/)
+    assert.match(types, /publicPath\?: string/)
   })
 
   it('page metadata panel edits page-level fields without saving directly', () => {

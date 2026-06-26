@@ -16,16 +16,16 @@ Resumo curto: corrigir multiseleção, save/publicação, slugs/URLs, assets e c
 - [x] Commit.
 
 ## Batch 2 - Page Metadata And Save
-- [ ] Persistir favicon quando asset é arrastado para o input e salvo.
-- [ ] Separar slug do arquivo e URL pública da page.
-- [ ] Permitir URLs com barras, ex: `/meusite/signup`.
-- [ ] Marcar projeto como alterado ao criar nova Page.
-- [ ] Salvar nova Page sem precisar editar outros campos.
-- [ ] Manter posição da nova Page após F5.
-- [ ] Corrigir Inspector Style com múltiplas pages abertas.
-- [ ] Add/adjust tests.
-- [ ] Run focused tests and build.
-- [ ] Commit.
+- [x] Persistir favicon quando asset é arrastado para o input e salvo.
+- [x] Separar slug do arquivo e URL pública da page.
+- [x] Permitir URLs com barras, ex: `/meusite/signup`.
+- [x] Marcar projeto como alterado ao criar nova Page.
+- [x] Salvar nova Page sem precisar editar outros campos.
+- [x] Manter posição da nova Page após F5.
+- [x] Corrigir Inspector Style com múltiplas pages abertas.
+- [x] Add/adjust tests.
+- [x] Run focused tests and build.
+- [x] Commit.
 
 ## Batch 3 - Output Structure And Publish Runtime
 - [ ] Criar `.css` dentro da pasta da page.

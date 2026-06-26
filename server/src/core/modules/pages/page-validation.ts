@@ -11,6 +11,7 @@ import type {
 
 const PAGE_TITLE_MAX_LENGTH = 120;
 const PAGE_SLUG_REGEX = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const PAGE_PUBLIC_PATH_REGEX = /^\/?[a-z0-9]+(?:[/-][a-z0-9]+)*\/?$/;
 const MAX_BLOCKS = 300;
 const MAX_DEPTH = 8;
 const MAX_CUSTOM_CODE_LENGTH = 50000;
@@ -99,6 +100,10 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
   if (slug.length < 3 || slug.length > 80 || !PAGE_SLUG_REGEX.test(slug)) {
     return { success: false, error: "Page slug must be kebab-case and 3-80 chars." };
   }
+  const publicPath = normalizePublicPath(input.publicPath);
+  if (typeof input.publicPath === "string" && input.publicPath.trim() && !publicPath) {
+    return { success: false, error: "Page URL must be a safe path like /meusite/signup." };
+  }
   const metaTitle = normalizeOptionalText(input.metaTitle, 160);
   const metaDescription = normalizeOptionalText(input.metaDescription, 240);
   const faviconUrl = normalizeOptionalUrl(input.faviconUrl);
@@ -127,6 +132,7 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
       ...input,
       title,
       slug,
+      ...(publicPath ? { publicPath } : {}),
       ...(metaTitle ? { metaTitle } : {}),
       ...(metaDescription ? { metaDescription } : {}),
       ...(faviconUrl ? { faviconUrl } : {}),
@@ -134,6 +140,15 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
       blocks: normalizedBlocks,
     },
   };
+}
+
+function normalizePublicPath(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim().toLowerCase().replace(/\/+/g, "/").replace(/\/$/g, "");
+  if (!trimmed || containsDangerousText(trimmed)) return "";
+  const normalized = trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
+  if (normalized.length < 2 || normalized.length > 120 || !PAGE_PUBLIC_PATH_REGEX.test(normalized)) return "";
+  return normalized;
 }
 
 function normalizeOptionalText(value: unknown, maxLength: number): string {

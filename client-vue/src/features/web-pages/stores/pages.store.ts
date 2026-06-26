@@ -40,6 +40,7 @@ export const usePagesStore = defineStore('web-pages', () => {
   const activeSiteId = ref<string | null>(null)
   const activePage = ref<SailorPage | null>(null)
   const savedSnapshot = ref<string | null>(null)
+  const pageOrderDirty = ref(false)
   const lastPublished = ref<PublishedPageSummary | null>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
@@ -47,7 +48,7 @@ export const usePagesStore = defineStore('web-pages', () => {
   const apiClient = ref<PagesApiClient>(defaultApiClient)
 
   const isDirty = computed(
-    () => activePage.value !== null && savedSnapshot.value !== snapshot(activePage.value),
+    () => pageOrderDirty.value || (activePage.value !== null && savedSnapshot.value !== snapshot(activePage.value)),
   )
 
   function setApiClient(client: PagesApiClient) {
@@ -71,6 +72,7 @@ export const usePagesStore = defineStore('web-pages', () => {
         ? await apiClient.value.listSitePages(activeSiteId.value)
         : await apiClient.value.listPages()
       pages.value = listed.map((page) => pageSummary(page))
+      applySavedPageOrder()
       return pages.value
     } finally {
       isLoading.value = false
@@ -110,6 +112,7 @@ export const usePagesStore = defineStore('web-pages', () => {
         if (summary) {
           withoutNew.splice(activeIndex + 1, 0, summary)
           pages.value = withoutNew
+          pageOrderDirty.value = true
         }
       }
     }
@@ -124,6 +127,7 @@ export const usePagesStore = defineStore('web-pages', () => {
       const withoutNew = pages.value.filter((item) => item.id !== page.id)
       withoutNew.splice(Math.max(0, Math.min(index, withoutNew.length)), 0, summary)
       pages.value = withoutNew
+      pageOrderDirty.value = true
     }
     setSavedPage(page)
     return page
@@ -174,11 +178,16 @@ export const usePagesStore = defineStore('web-pages', () => {
       const saved = await apiClient.value.updatePage(activePage.value.id, {
         title: activePage.value.title,
         slug: activePage.value.slug,
+        publicPath: activePage.value.publicPath,
+        metaTitle: activePage.value.metaTitle,
+        metaDescription: activePage.value.metaDescription,
+        faviconUrl: activePage.value.faviconUrl,
         bodyStyles: activePage.value.bodyStyles,
         blocks: activePage.value.blocks,
       })
       setSavedPage(saved)
       upsertSummary(saved)
+      savePageOrder()
       return saved
     } finally {
       isSaving.value = false
@@ -247,6 +256,24 @@ export const usePagesStore = defineStore('web-pages', () => {
     return pageDocuments.value[pageId] ?? null
   }
 
+  function applySavedPageOrder() {
+    if (typeof localStorage === 'undefined') return
+    const rawOrder = localStorage.getItem(pageOrderStorageKey(activeSiteId.value))
+    if (!rawOrder) return
+    const order = JSON.parse(rawOrder) as string[]
+    const pageById = new Map(pages.value.map((page) => [page.id, page]))
+    const ordered = order.map((pageId) => pageById.get(pageId)).filter((page): page is SailorPageSummary => !!page)
+    const missing = pages.value.filter((page) => !order.includes(page.id))
+    pages.value = [...ordered, ...missing]
+  }
+
+  function savePageOrder() {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(pageOrderStorageKey(activeSiteId.value), JSON.stringify(pages.value.map((page) => page.id)))
+    }
+    pageOrderDirty.value = false
+  }
+
   return {
     pages,
     pageDocuments,
@@ -293,4 +320,8 @@ function pageSummary(page: SailorPage | SailorPageSummary, publishedAt?: string 
     updatedAt: page.updatedAt,
     publishedAt: publishedAt ?? ('publishedAt' in page ? page.publishedAt : null) ?? null,
   }
+}
+
+function pageOrderStorageKey(siteId: string | null) {
+  return `sailor.pages.order.${siteId ?? 'default'}`
 }

@@ -57,6 +57,7 @@ export interface SailorPage {
   siteId: string;
   title: string;
   slug: string;
+  publicPath?: string;
   metaTitle?: string;
   metaDescription?: string;
   faviconUrl?: string;
@@ -71,6 +72,7 @@ export interface CreatePageInput {
   siteId?: string;
   title: string;
   slug?: string;
+  publicPath?: string;
   metaTitle?: string;
   metaDescription?: string;
   faviconUrl?: string;
@@ -81,6 +83,7 @@ export interface CreatePageInput {
 export interface UpdatePageInput {
   title?: string;
   slug?: string;
+  publicPath?: string;
   metaTitle?: string;
   metaDescription?: string;
   faviconUrl?: string;
@@ -95,6 +98,7 @@ export interface PublishedPage {
   siteId: string;
   title: string;
   slug: string;
+  publicPath?: string;
   metaTitle?: string;
   metaDescription?: string;
   faviconUrl?: string;

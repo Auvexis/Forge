@@ -1048,7 +1048,7 @@ function patchBodyStyles(patch: Partial<PageBlock>) {
   if (!pagesStore.activePage) return
   pagesStore.setActivePage({
     ...pagesStore.activePage,
-    bodyStyles: patch.styles ?? pagesStore.activePage.bodyStyles,
+    bodyStyles: { ...(pagesStore.activePage.bodyStyles ?? {}), ...(patch.styles ?? {}) },
   })
 }
 

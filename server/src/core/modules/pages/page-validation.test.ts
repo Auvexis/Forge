@@ -42,6 +42,13 @@ describe("page validation", () => {
     assert.equal(result.page?.blocks[0]?.tag, "section");
   });
 
+  it("accepts a page public path with nested url segments", () => {
+    const result = validatePageInput(validPage({ publicPath: "/meusite/signup" }));
+
+    assert.equal(result.success, true);
+    assert.equal(result.page?.publicPath, "/meusite/signup");
+  });
+
   it("rejects unsupported tags", () => {
     const result = validatePageInput(
       validPage({
