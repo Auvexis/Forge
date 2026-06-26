@@ -96,29 +96,28 @@ describe('page drag prediction contract', () => {
     assert.doesNotMatch(css, /web-page-block--drop-after[\s\S]*outline:/)
   })
 
-  it('canvas elements use subtle motion and animated deletion with reduced motion support', () => {
+  it('canvas deletes blocks immediately without animated removal delay', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
-    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    assert.match(editor, /deletingBlockIds/)
-    assert.match(editor, /requestAnimatedBlockDelete/)
-    assert.match(editor, /setTimeout/)
-    assert.match(canvas, /deleting-block-ids/)
+    assert.match(editor, /function deleteBlock\(blockId: string\)/)
+    assert.doesNotMatch(editor, /requestAnimatedBlockDelete/)
+    assert.doesNotMatch(editor, /setTimeout\(\(\) => \{\s*editorStore\.deleteBlock/)
     assert.match(renderer, /web-page-block-frame--deleting/)
-    assert.match(css, /transition:[\s\S]*180ms/)
-    assert.match(css, /@media \(prefers-reduced-motion: reduce\)/)
+    assert.doesNotMatch(css, /web-page-block-frame--deleting[\s\S]*opacity:\s*0/)
+    assert.doesNotMatch(css, /web-page-block-leave-active/)
   })
 
-  it('block lists animate reordering with transition groups', () => {
+  it('block lists keep transition groups without box enter leave animations', () => {
     const canvas = read('src/features/web-pages/components/PageCanvas.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
 
     assert.match(canvas, /TransitionGroup/)
     assert.match(renderer, /TransitionGroup/)
-    assert.match(css, /web-page-block-move/)
-    assert.match(css, /web-page-block-enter-active/)
+    assert.doesNotMatch(css, /web-page-block-move/)
+    assert.doesNotMatch(css, /web-page-block-enter-active/)
+    assert.doesNotMatch(css, /web-page-block-enter-from/)
   })
 })

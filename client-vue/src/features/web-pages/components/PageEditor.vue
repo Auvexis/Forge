@@ -1060,7 +1060,7 @@ async function duplicatePageFromTree(pageId: string) {
 }
 
 function deleteBlockFromTree(blockId: string) {
-  requestAnimatedBlockDelete(blockId)
+  deleteBlock(blockId)
 }
 
 function duplicateBlockFromTree(blockId: string) {
@@ -1076,12 +1076,12 @@ function duplicateBlockFromCanvas(blockId: string) {
 }
 
 function deleteBlockFromCanvas(blockId: string) {
-  requestAnimatedBlockDelete(blockId)
+  deleteBlock(blockId)
 }
 
 function deleteSelectedTarget() {
   if (editorStore.selectedBlockId) {
-    requestAnimatedBlockDelete(editorStore.selectedBlockId)
+    deleteBlock(editorStore.selectedBlockId)
     return
   }
   if (editorStore.selectedTarget.type === 'page') void deleteActivePageAndChooseNext()
@@ -1096,13 +1096,8 @@ async function uploadImageForSelectedBlock(file: File) {
   })
 }
 
-function requestAnimatedBlockDelete(blockId: string) {
-  if (deletingBlockIds.value.includes(blockId)) return
-  deletingBlockIds.value = [...deletingBlockIds.value, blockId]
-  window.setTimeout(() => {
-    editorStore.deleteBlock(blockId)
-    deletingBlockIds.value = deletingBlockIds.value.filter((id) => id !== blockId)
-  }, 140)
+function deleteBlock(blockId: string) {
+  editorStore.deleteBlock(blockId)
 }
 
 function handleInspectBlock(pageId: string, blockId: string) {
@@ -1151,7 +1146,7 @@ function handleChromeCommand(command: PageChromeCommand) {
     else void duplicateActivePage()
   }
   if (command === 'edit.delete') {
-    if (editorStore.selectedBlockId) requestAnimatedBlockDelete(editorStore.selectedBlockId)
+    if (editorStore.selectedBlockId) deleteBlock(editorStore.selectedBlockId)
     else void deleteActivePageAndChooseNext()
   }
   if (command === 'view.switch') void openPageSwitcher()

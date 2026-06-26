@@ -595,45 +595,12 @@
   display: block;
   color: inherit;
   cursor: grab;
-  transition:
-    background-color 140ms var(--sailor-ease-standard),
-    box-shadow 140ms var(--sailor-ease-standard),
-    outline-color 140ms var(--sailor-ease-standard),
-    transform 140ms var(--sailor-ease-standard);
 }
 
 .web-page-block-frame {
   position: relative;
   display: contents;
   overflow: visible;
-  transition:
-    opacity 140ms var(--sailor-ease-standard),
-    transform 140ms var(--sailor-ease-standard),
-    box-shadow 160ms var(--sailor-ease-standard);
-}
-
-.web-page-block-frame--deleting .web-page-block-frame__inner {
-  opacity: 0;
-  transform: scale(0.985);
-  pointer-events: none;
-}
-
-.web-page-block-move,
-.web-page-block-enter-active,
-.web-page-block-leave-active {
-  transition:
-    opacity 160ms var(--sailor-ease-standard),
-    transform 160ms var(--sailor-ease-standard);
-}
-
-.web-page-block-enter-from,
-.web-page-block-leave-to {
-  opacity: 0;
-  transform: translateY(8px) scale(0.995);
-}
-
-.web-page-block-leave-active {
-  position: absolute;
 }
 
 .web-page-block-frame__inner {

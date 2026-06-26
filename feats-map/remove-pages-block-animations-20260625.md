@@ -1,0 +1,7 @@
+- [x] Remove block delete delay
+- [x] Remove block enter leave animation
+- [x] Remove block box transitions
+- [x] Update contract
+- [x] Verify build
+- [ ] Drag contract has unrelated drop-shadow failure
+- [x] Commit changes
