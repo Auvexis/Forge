@@ -55,13 +55,13 @@
 - [x] Corrigir alinhamento edge/handle sem query no DOM.
 
 ## Batch 5 - Conexões
-- [ ] Recriar preview de conexão durante drag.
-- [ ] Criar edge ao soltar source em target válido.
-- [ ] Preservar sourceHandle e targetHandle.
-- [ ] Preservar regras de handles avançados.
-- [ ] Preservar auto arrange de config nodes.
-- [ ] Bloquear conexões inválidas como hoje.
-- [ ] Cancelar conexão ao soltar no canvas.
+- [x] Recriar preview de conexão durante drag.
+- [x] Criar edge ao soltar source em target válido.
+- [x] Preservar sourceHandle e targetHandle.
+- [x] Preservar regras de handles avançados.
+- [x] Preservar auto arrange de config nodes.
+- [x] Bloquear conexões inválidas como hoje.
+- [x] Cancelar conexão ao soltar no canvas.
 
 ## Batch 6 - Seleção e comandos
 - [ ] Preservar seleção simples.

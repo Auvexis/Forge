@@ -33,23 +33,40 @@
       :viewport="viewport"
       :handle-registry="handleRegistry"
     />
+
+    <WorkflowConnectionLayer
+      :edges="workflowEdges"
+      :viewport="viewport"
+      :handle-registry="handleRegistry"
+      @connection-create="createWorkflowConnection"
+      @connection-cancel="cancelWorkflowConnection"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, provide, ref, type Component } from 'vue'
+import type { WorkflowEdge } from '@/core/types/workflow.types'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type {
   BaseCanvasItem,
   BaseCanvasItemsMoveEvent,
   BaseCanvasViewport,
 } from '@/shared/base-canvas/index.ts'
+import { getAdvancedChildPosition, getAdvancedParentBounds } from '../layout/advancedNodeLayout'
 import { useWorkflowStore } from '../stores/workflow.store'
 import { useExecutionStore } from '../stores/execution.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
+import {
+  createWorkflowConnectionEdge,
+  getAdvancedNodeHandlersForCanvas,
+  getWorkflowConnectionPolicyAction,
+  getWorkflowTargetHandlePolicy,
+} from '../workflow-canvas/workflowCanvasConnections'
 import { workflowToBaseCanvasItems } from '../workflow-canvas/workflowCanvasAdapter'
 import WorkflowCanvasNodeHost from './WorkflowCanvasNodeHost.vue'
+import WorkflowConnectionLayer from './WorkflowConnectionLayer.vue'
 import WorkflowEdgeLayer from './WorkflowEdgeLayer.vue'
 import {
   createWorkflowHandleRegistry,
@@ -167,6 +184,69 @@ function handleItemsMove(event: BaseCanvasItemsMoveEvent) {
       positionY: (node.ui?.positionY ?? 0) + event.delta.y,
     }
   }
+}
+
+function createWorkflowConnection(connection: Pick<WorkflowEdge, 'source' | 'target' | 'sourceHandle' | 'targetHandle'>) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+
+  const targetHandle = connection.targetHandle ?? 'target'
+  const policy = getWorkflowTargetHandlePolicy(workflow, connection.target, targetHandle)
+  const connectionCount = workflow.edges.filter((edge) =>
+    edge.target === connection.target &&
+    (edge.targetHandle ?? 'target') === policy.id,
+  ).length
+
+  if (getWorkflowConnectionPolicyAction(policy, connectionCount) === 'replace') {
+    workflow.edges = workflow.edges.filter((edge) =>
+      !(edge.target === connection.target && (edge.targetHandle ?? 'target') === policy.id),
+    )
+  }
+
+  workflow.edges.push(createWorkflowConnectionEdge(connection))
+  arrangeAdvancedConfigNodes(connection.target)
+}
+
+function cancelWorkflowConnection() {
+  // The BaseCanvas connection path owns no external draft state yet.
+}
+
+function arrangeAdvancedConfigNodes(targetId: string, visited = new Set<string>()) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow || visited.has(targetId)) return
+  visited.add(targetId)
+
+  const targetItem = workflowItems.value.find((item) => item.id === targetId)
+  if (!targetItem) return
+
+  const handlers = getAdvancedNodeHandlersForCanvas(workflow, targetId)
+  handlers.forEach((handler, handlerIndex) => {
+    const edges = workflow.edges.filter((edge) =>
+      edge.target === targetId && edge.targetHandle === handler.id,
+    )
+    edges.forEach((edge, siblingIndex) => {
+      const sourceNode = workflow.nodes[edge.source]
+      if (!sourceNode) return
+
+      const position = getAdvancedChildPosition({
+        parent: getAdvancedParentBounds({ x: targetItem.x, y: targetItem.y }, {
+          width: targetItem.width ?? 236,
+          height: targetItem.height ?? 100,
+        }),
+        side: handler.position,
+        handlerIndex,
+        handlerCount: handlers.length,
+        siblingIndex,
+      })
+
+      sourceNode.ui = {
+        ...sourceNode.ui,
+        positionX: position.x,
+        positionY: position.y,
+      }
+      arrangeAdvancedConfigNodes(edge.source, visited)
+    })
+  })
 }
 
 function openNodeInspector(item: BaseCanvasItem) {
