@@ -34,21 +34,23 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <Transition name="base-modal-slide-up">
-    <div
-      v-if="isOpen"
-      class="base-modal-backdrop"
-      :class="{ 'base-modal-backdrop--clear': !dimBackdrop }"
-      @click.self="close"
-    >
-      <div 
-        class="base-modal-container flex flex-col overflow-hidden"
-        :style="{ maxWidth: maxWidth || '1600px', height: height || '85vh', width: '95vw' }"
+  <Teleport to="body">
+    <Transition name="base-modal-slide-up">
+      <div
+        v-if="isOpen"
+        class="base-modal-backdrop"
+        :class="{ 'base-modal-backdrop--clear': !dimBackdrop }"
+        @click.self="close"
       >
-        <slot />
+        <div
+          class="base-modal-container flex flex-col overflow-hidden"
+          :style="{ maxWidth: maxWidth || '1600px', height: height || '85vh', width: '95vw' }"
+        >
+          <slot />
+        </div>
       </div>
-    </div>
-  </Transition>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -58,7 +60,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 9999;
+  z-index: 2147483647;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,11 +69,6 @@ onUnmounted(() => {
 
 .base-modal-backdrop--clear {
   background: transparent;
-  pointer-events: none;
-}
-
-.base-modal-backdrop--clear .base-modal-container {
-  pointer-events: auto;
 }
 
 .base-modal-container {

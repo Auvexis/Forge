@@ -1,0 +1,6 @@
+- [x] Mount global overlays in Universe
+- [x] Teleport BaseModal to body
+- [x] Make clear backdrop close on outside click
+- [x] Add modal layering contract
+- [x] Verify build
+- [x] Commit changes

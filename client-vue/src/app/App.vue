@@ -130,7 +130,7 @@
     </router-view>
 
     <!-- Global Overlays -->
-    <template v-if="!appUiStore.isUniverseMode" #overlay>
+    <template #overlay>
       <AppGlobalSettings />
       <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
       <AppGlobalAutomationMonitor />

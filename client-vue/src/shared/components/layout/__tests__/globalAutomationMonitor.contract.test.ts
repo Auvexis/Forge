@@ -11,6 +11,7 @@ const paletteSource = readFileSync(
   'utf8',
 )
 const apiSource = readFileSync(fileURLToPath(new URL('../../../../core/api/workflows.api.ts', import.meta.url)), 'utf8')
+const baseModalSource = readFileSync(fileURLToPath(new URL('../../base/BaseModal.vue', import.meta.url)), 'utf8')
 
 describe('global automation monitor shell', () => {
   it('replaces the old production monitor component with a BaseModal global monitor', () => {
@@ -75,6 +76,20 @@ describe('global automation monitor wiring', () => {
     assert.match(appSource, /isAutomationMonitorOpen/)
     assert.match(appSource, /toggleAutomationMonitor/)
     assert.doesNotMatch(appSource, /AppProductionMonitor/)
+  })
+
+  it('keeps global BaseModal overlays above immersive Pages and Universe layers', () => {
+    assert.match(appSource, /<template #overlay>/)
+    assert.doesNotMatch(appSource, /<template v-if="!appUiStore\.isUniverseMode" #overlay>/)
+    assert.match(baseModalSource, /<Teleport to="body">/)
+    assert.match(baseModalSource, /z-index:\s*2147483647/)
+  })
+
+  it('lets transparent BaseModal backdrops receive outside clicks', () => {
+    const clearBackdropRule = baseModalSource.match(/\.base-modal-backdrop--clear\s*{[\s\S]*?}/)?.[0] ?? ''
+
+    assert.match(clearBackdropRule, /background:\s*transparent/)
+    assert.doesNotMatch(clearBackdropRule, /pointer-events:\s*none/)
   })
 
   it('maps command palette production panel intents to the new monitor', () => {
