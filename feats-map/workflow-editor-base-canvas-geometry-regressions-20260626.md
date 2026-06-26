@@ -12,10 +12,9 @@ Corrigir desalinhamento, flick e sobreposicao de edges apos a migracao do Workfl
 
 ## Tasks
 
-- [ ] Reproduzir alinhamento e atualizacao dos edges em testes.
-- [ ] Posicionar Quick Add pelos handles com maior distancia horizontal.
-- [ ] Atualizar edges imediatamente quando handles mudarem.
-- [ ] Preservar geometria valida durante paineis e menus.
-- [ ] Colocar edges abaixo dos nodes.
+- [x] Reproduzir alinhamento e atualizacao dos edges em testes.
+- [x] Posicionar Quick Add pelos handles com maior distancia horizontal.
+- [x] Atualizar edges imediatamente quando handles mudarem.
+- [x] Preservar geometria valida durante paineis e menus.
+- [x] Colocar edges abaixo dos nodes.
 - [ ] Validar testes, tipos e fluxo renderizado.
-

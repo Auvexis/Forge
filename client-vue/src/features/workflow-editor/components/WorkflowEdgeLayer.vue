@@ -42,13 +42,21 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { WorkflowEdge as WorkflowEdgeType } from '@/core/types/workflow.types'
-import { screenToWorld, type BaseCanvasItem, type BaseCanvasPoint, type BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
+import type {
+  BaseCanvasItem,
+  BaseCanvasPoint,
+  BaseCanvasViewport,
+} from '@/shared/base-canvas/index.ts'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { getNodeDefinition } from '../catalog/nodeDefinitionRegistry'
 import { useExecutionStore } from '../stores/execution.store'
 import { useWorkflowStore } from '../stores/workflow.store'
 import WorkflowEdge from './WorkflowEdge.vue'
-import type { WorkflowHandleRegistry, WorkflowHandleType } from '../workflow-canvas/workflowCanvasHandles'
+import {
+  getWorkflowHandleOffset,
+  type WorkflowHandleRegistry,
+  type WorkflowHandleType,
+} from '../workflow-canvas/workflowCanvasHandles'
 import {
   countWorkflowEdgeItems,
   getWorkflowEdgeStatus,
@@ -63,6 +71,7 @@ const props = defineProps<{
   viewport: BaseCanvasViewport
   handleRegistry: WorkflowHandleRegistry
   selectedEdges?: string[]
+  pendingNodeId?: string | null
 }>()
 
 const executionStore = useExecutionStore()
@@ -71,9 +80,12 @@ const quickAddBetweenBus = useEventBus('edge:quick-add-between')
 const layerRef = ref<HTMLElement | null>(null)
 const layerSize = ref({ width: 1, height: 1 })
 let resizeObserver: ResizeObserver | null = null
+const edgeGeometryCache = new Map<string, { source: BaseCanvasPoint; target: BaseCanvasPoint }>()
 
 const selectedEdges = computed(() => props.selectedEdges ?? [])
-const canvasTransform = computed(() => `translate(${props.viewport.x} ${props.viewport.y}) scale(${props.viewport.zoom || 1})`)
+const canvasTransform = computed(
+  () => `translate(${props.viewport.x} ${props.viewport.y}) scale(${props.viewport.zoom || 1})`,
+)
 const svgViewBox = computed(() => `0 0 ${layerSize.value.width} ${layerSize.value.height}`)
 
 const edgeMarkers = computed(() => [
@@ -86,55 +98,60 @@ const edgeMarkers = computed(() => [
   { id: 'sailor-workflow-arrow-selected', color: workflowEdgeStrokeFor('idle', true) },
 ])
 
-const edgeViews = computed(() => props.edges.map((edge) => {
-  const isConfigurationEdge = resolveIsConfigurationEdge(edge)
-  const source = resolveHandlePoint(edge.source, edge.sourceHandle ?? 'source', 'source')
-  const target = resolveHandlePoint(edge.target, edge.targetHandle ?? 'target', 'target')
-  const path = isConfigurationEdge
-    ? makeConfigurationWorkflowEdgePath(source, target)
-    : makeWorkflowEdgePath(source, target)
-  const status = getWorkflowEdgeStatus({
-    source: edge.source,
-    target: edge.target,
-    sourceHandle: edge.sourceHandle,
-    nodeStatuses: executionStore.nodeStatuses,
-    workflowStatus: executionStore.workflowStatus,
-  })
-  const itemCount = countWorkflowEdgeItems(executionStore.nodeStatuses[edge.source]?.output)
-
-  return {
-    edge,
-    ...path,
-    status,
-    isConfigurationEdge,
-    itemCountLabel: itemCount === null ? '' : `${itemCount} ${itemCount === 1 ? 'item' : 'items'}`,
+const edgeViews = computed(() => {
+  void props.handleRegistry.geometryVersion.value
+  const activeEdgeIds = new Set(props.edges.map((edge) => edge.id))
+  for (const edgeId of edgeGeometryCache.keys()) {
+    if (!activeEdgeIds.has(edgeId)) edgeGeometryCache.delete(edgeId)
   }
-}))
 
-function resolveHandlePoint(nodeId: string, handleId: string, type: WorkflowHandleType): BaseCanvasPoint {
-  const fallback = fallbackHandlePoint(nodeId, type)
+  return props.edges.flatMap((edge) => {
+    if (edge.target === props.pendingNodeId) return []
+    const isConfigurationEdge = resolveIsConfigurationEdge(edge)
+    const source = resolveHandlePoint(edge.source, edge.sourceHandle ?? 'source', 'source')
+    const target = resolveHandlePoint(edge.target, edge.targetHandle ?? 'target', 'target')
+    if (source && target) edgeGeometryCache.set(edge.id, { source, target })
+    const geometry = source && target ? { source, target } : edgeGeometryCache.get(edge.id)
+    if (!geometry) return []
+    const path = isConfigurationEdge
+      ? makeConfigurationWorkflowEdgePath(geometry.source, geometry.target)
+      : makeWorkflowEdgePath(geometry.source, geometry.target)
+    const status = getWorkflowEdgeStatus({
+      source: edge.source,
+      target: edge.target,
+      sourceHandle: edge.sourceHandle,
+      nodeStatuses: executionStore.nodeStatuses,
+      workflowStatus: executionStore.workflowStatus,
+    })
+    const itemCount = countWorkflowEdgeItems(executionStore.nodeStatuses[edge.source]?.output)
+
+    return [
+      {
+        edge,
+        ...path,
+        status,
+        isConfigurationEdge,
+        itemCountLabel:
+          itemCount === null ? '' : `${itemCount} ${itemCount === 1 ? 'item' : 'items'}`,
+      },
+    ]
+  })
+})
+
+function resolveHandlePoint(
+  nodeId: string,
+  handleId: string,
+  type: WorkflowHandleType,
+): BaseCanvasPoint | null {
   const handle = props.handleRegistry.getHandle(nodeId, handleId, type)
-  const layerRect = layerRef.value?.getBoundingClientRect()
-  const handleRect = handle?.element.getBoundingClientRect()
-
-  if (!layerRect || !handleRect) return fallback
-
-  return screenToWorld({
-    x: handleRect.left + handleRect.width / 2 - layerRect.left,
-    y: handleRect.top + handleRect.height / 2 - layerRect.top,
-  }, props.viewport)
-}
-
-function fallbackHandlePoint(nodeId: string, type: WorkflowHandleType): BaseCanvasPoint {
+  if (!handle) return null
   const item = props.items.find((candidate) => candidate.id === nodeId)
-  if (!item) return { x: 0, y: 0 }
-
-  const width = item.width ?? 240
-  const height = item.height ?? 96
+  const offset = getWorkflowHandleOffset(handle)
+  if (!item || !offset) return null
 
   return {
-    x: item.x + (type === 'source' ? width : 0),
-    y: item.y + height / 2,
+    x: item.x + offset.x,
+    y: item.y + offset.y,
   }
 }
 
@@ -142,8 +159,8 @@ function resolveIsConfigurationEdge(edge: WorkflowEdgeType): boolean {
   const targetNode = workflowStore.activeWorkflow?.nodes[edge.target]
   const targetType = String(targetNode?.type ?? '')
   const targetHandle = edge.targetHandle ?? 'target'
-  const handle = getNodeDefinition(targetType)?.handles.find((candidate) =>
-    candidate.type === 'target' && candidate.id === targetHandle,
+  const handle = getNodeDefinition(targetType)?.handles.find(
+    (candidate) => candidate.type === 'target' && candidate.id === targetHandle,
   )
 
   return Boolean(handle?.accepts?.length)
@@ -151,7 +168,9 @@ function resolveIsConfigurationEdge(edge: WorkflowEdgeType): boolean {
 
 function deleteEdge(edgeId: string) {
   if (!workflowStore.activeWorkflow) return
-  workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter((edge) => edge.id !== edgeId)
+  workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter(
+    (edge) => edge.id !== edgeId,
+  )
 }
 
 function quickAddEdge(edgeId: string, event: MouseEvent) {

@@ -16,21 +16,60 @@ export interface WorkflowHandleRegistration {
 
 export interface WorkflowHandleRegistry {
   handles: Ref<WorkflowHandleRegistration[]>
+  geometryVersion: Ref<number>
   registerHandle: (registration: WorkflowHandleRegistration) => () => void
+  invalidateGeometry: () => void
   getNodeHandles: (nodeId: string) => WorkflowHandleRegistration[]
-  getHandle: (nodeId: string, handleId: string, type?: WorkflowHandleType) => WorkflowHandleRegistration | null
+  getHandle: (
+    nodeId: string,
+    handleId: string,
+    type?: WorkflowHandleType,
+  ) => WorkflowHandleRegistration | null
 }
 
-export const isWorkflowBaseCanvasHandleModeKey = Symbol('workflow-base-canvas-handle-mode') as InjectionKey<boolean>
-export const workflowCanvasHandleRegistryKey = Symbol('workflow-canvas-handle-registry') as InjectionKey<WorkflowHandleRegistry>
+export const isWorkflowBaseCanvasHandleModeKey = Symbol(
+  'workflow-base-canvas-handle-mode',
+) as InjectionKey<boolean>
+export const workflowCanvasHandleRegistryKey = Symbol(
+  'workflow-canvas-handle-registry',
+) as InjectionKey<WorkflowHandleRegistry>
 export const workflowCanvasNodeIdKey = Symbol('workflow-canvas-node-id') as InjectionKey<string>
 
 export function createWorkflowHandleRegistry(): WorkflowHandleRegistry {
   const registrations = new Map<string, WorkflowHandleRegistration>()
   const handles = shallowRef<WorkflowHandleRegistration[]>([])
+  const geometryVersion = shallowRef(0)
+  const observedNodes = new Map<HTMLElement, number>()
+  const resizeObserver =
+    typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(() => invalidateGeometry())
+
+  function invalidateGeometry() {
+    geometryVersion.value++
+  }
 
   function syncHandles() {
     handles.value = Array.from(registrations.values())
+    invalidateGeometry()
+  }
+
+  function observeNode(registration: WorkflowHandleRegistration) {
+    const node = getWorkflowHandleNodeElement(registration)
+    if (!node || !resizeObserver) return
+    const count = observedNodes.get(node) ?? 0
+    if (count === 0) resizeObserver.observe(node)
+    observedNodes.set(node, count + 1)
+  }
+
+  function unobserveNode(registration: WorkflowHandleRegistration) {
+    const node = getWorkflowHandleNodeElement(registration)
+    if (!node || !resizeObserver) return
+    const count = observedNodes.get(node) ?? 0
+    if (count <= 1) {
+      resizeObserver.unobserve(node)
+      observedNodes.delete(node)
+      return
+    }
+    observedNodes.set(node, count - 1)
   }
 
   function keyOf(registration: Pick<WorkflowHandleRegistration, 'nodeId' | 'handleId' | 'type'>) {
@@ -40,11 +79,13 @@ export function createWorkflowHandleRegistry(): WorkflowHandleRegistry {
   function registerHandle(registration: WorkflowHandleRegistration) {
     const key = keyOf(registration)
     registrations.set(key, registration)
+    observeNode(registration)
     syncHandles()
 
     return () => {
       if (registrations.get(key) !== registration) return
       registrations.delete(key)
+      unobserveNode(registration)
       syncHandles()
     }
   }
@@ -54,19 +95,48 @@ export function createWorkflowHandleRegistry(): WorkflowHandleRegistry {
   }
 
   function getHandle(nodeId: string, handleId: string, type?: WorkflowHandleType) {
-    return handles.value.find((handle) =>
-      handle.nodeId === nodeId &&
-      handle.handleId === handleId &&
-      (type ? handle.type === type : true),
-    ) ?? null
+    return (
+      handles.value.find(
+        (handle) =>
+          handle.nodeId === nodeId &&
+          handle.handleId === handleId &&
+          (type ? handle.type === type : true),
+      ) ?? null
+    )
   }
 
   return {
     handles,
+    geometryVersion,
     registerHandle,
+    invalidateGeometry,
     getNodeHandles,
     getHandle,
   }
+}
+
+export function getWorkflowHandleOffset(
+  registration: WorkflowHandleRegistration,
+): { x: number; y: number } | null {
+  const node = getWorkflowHandleNodeElement(registration)
+  if (!node) return null
+
+  let x = 0
+  let y = 0
+  let current: HTMLElement | null = registration.element
+  while (current && current !== node) {
+    x += current.offsetLeft
+    y += current.offsetTop
+    current = current.offsetParent as HTMLElement | null
+  }
+
+  return current === node ? { x, y } : null
+}
+
+function getWorkflowHandleNodeElement(
+  registration: WorkflowHandleRegistration,
+): HTMLElement | null {
+  return registration.element.closest('.sailor-workflow-base-canvas__node') as HTMLElement | null
 }
 
 export function normalizeWorkflowHandleSide(position: unknown): WorkflowHandleSide {

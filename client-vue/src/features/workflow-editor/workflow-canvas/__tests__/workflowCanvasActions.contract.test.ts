@@ -8,7 +8,10 @@ function read(relative: string) {
 }
 
 function readComponent(relative: string) {
-  return readFileSync(fileURLToPath(new URL(`../../components/${relative}`, import.meta.url)), 'utf8')
+  return readFileSync(
+    fileURLToPath(new URL(`../../components/${relative}`, import.meta.url)),
+    'utf8',
+  )
 }
 
 describe('workflow canvas editor actions contract', () => {
@@ -59,12 +62,17 @@ describe('workflow canvas editor actions contract', () => {
     assert.match(base, /pendingAddNodePoint/)
     assert.match(base, /pendingInsertEdgeId/)
     assert.match(base, /insertNodeBetween/)
+    assert.match(base, /pendingQuickAddAlignment/)
+    assert.match(base, /getQuickAddAlignedNodePosition/)
     assert.match(base, /executionStore\.execute/)
     assert.match(base, /executionStore\.cancel/)
   })
 
   it('keeps the shared BaseCanvas implementation untouched by workflow editor actions', () => {
-    const baseCanvas = readFileSync(fileURLToPath(new URL('../../../../shared/base-canvas/BaseCanvas.vue', import.meta.url)), 'utf8')
+    const baseCanvas = readFileSync(
+      fileURLToPath(new URL('../../../../shared/base-canvas/BaseCanvas.vue', import.meta.url)),
+      'utf8',
+    )
 
     assert.doesNotMatch(baseCanvas, /addLogicNodeAtViewportCenter/)
     assert.doesNotMatch(baseCanvas, /WorkflowBaseCanvas/)

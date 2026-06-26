@@ -33,6 +33,7 @@
       :items="workflowItems"
       :viewport="viewport"
       :handle-registry="handleRegistry"
+      :pending-node-id="pendingQuickAddAlignment?.nodeId ?? null"
     />
 
     <WorkflowConnectionLayer
@@ -54,7 +55,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, provide, ref, watch, type Component } from 'vue'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  provide,
+  ref,
+  watch,
+  type Component,
+} from 'vue'
 import type { WorkflowEdge, WorkflowNodeType } from '@/core/types/workflow.types'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type {
@@ -67,7 +77,10 @@ import { getAdvancedChildPosition, getAdvancedParentBounds } from '../layout/adv
 import { useWorkflowStore } from '../stores/workflow.store'
 import { useExecutionStore } from '../stores/execution.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
-import { deleteWorkflowSelection, duplicateWorkflowSelection } from '../utils/workflowSelectionActions'
+import {
+  deleteWorkflowSelection,
+  duplicateWorkflowSelection,
+} from '../utils/workflowSelectionActions'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 import {
   createWorkflowConnectionEdge,
@@ -76,6 +89,7 @@ import {
   getWorkflowTargetHandlePolicy,
 } from '../workflow-canvas/workflowCanvasConnections'
 import {
+  getQuickAddAlignedNodePosition,
   getWorkflowCanvasCenter,
   getWorkflowCanvasFitViewport,
   screenPointToWorkflowWorld,
@@ -92,6 +106,7 @@ import WorkflowEdgeLayer from './WorkflowEdgeLayer.vue'
 import WorkflowSelectionBox from './WorkflowSelectionBox.vue'
 import {
   createWorkflowHandleRegistry,
+  getWorkflowHandleOffset,
   isWorkflowBaseCanvasHandleModeKey,
   workflowCanvasHandleRegistryKey,
 } from '../workflow-canvas/workflowCanvasHandles'
@@ -209,6 +224,13 @@ let pendingInsertEdgeId: string | null = null
 let pendingInsertSourceId: string | null = null
 let pendingInsertTargetId: string | null = null
 let pendingInsertTargetHandle: string | null = null
+const pendingQuickAddAlignment = ref<{
+  sourceId: string
+  sourceHandle: string
+  nodeId: string
+  targetHandle: string
+} | null>(null)
+const QUICK_ADD_HORIZONTAL_GAP = 160
 
 nodeToolbarBus.on(handleNodeToolbarAction)
 quickAddBus.on((payload) => {
@@ -228,15 +250,21 @@ quickAddBetweenBus.on((payload) => {
   quickAddTargetHandle = null
 })
 
-watch([workflowItems, canvasSelection], () => {
-  const normalized = normalizeWorkflowSelection({
-    ...selectableNodeIds.value,
-    selection: canvasSelection.value,
-  })
-  if (normalized.join('|') !== canvasSelection.value.join('|')) {
-    canvasSelection.value = normalized
-  }
-}, { flush: 'post' })
+watch(
+  [workflowItems, canvasSelection],
+  () => {
+    const normalized = normalizeWorkflowSelection({
+      ...selectableNodeIds.value,
+      selection: canvasSelection.value,
+    })
+    if (normalized.join('|') !== canvasSelection.value.join('|')) {
+      canvasSelection.value = normalized
+    }
+  },
+  { flush: 'post' },
+)
+
+watch(() => handleRegistry.geometryVersion.value, alignPendingQuickAddNode, { flush: 'post' })
 
 onMounted(() => {
   window.addEventListener('keydown', handleWorkflowCanvasKeyDown)
@@ -284,18 +312,34 @@ async function handleStop() {
   await executionStore.cancel()
 }
 
-function openAddNodePanel(sourceId?: string | null, handlerId?: string | null, point?: { x: number; y: number } | null) {
+function openAddNodePanel(
+  sourceId?: string | null,
+  handlerId?: string | null,
+  point?: { x: number; y: number } | null,
+) {
   quickAddSourceId = sourceId || null
   if (handlerId) quickAddTargetHandle = handlerId
   pendingAddNodePoint = point ?? null
 }
 
-function addLogicNodeAtViewportCenter(type: WorkflowNodeType, providedDefaults: Record<string, unknown> = {}) {
-  return addLogicNode(type, providedDefaults, takePendingAddNodePosition() ?? getCanvasCenterPosition())
+function addLogicNodeAtViewportCenter(
+  type: WorkflowNodeType,
+  providedDefaults: Record<string, unknown> = {},
+) {
+  return addLogicNode(
+    type,
+    providedDefaults,
+    takePendingAddNodePosition() ?? getCanvasCenterPosition(),
+  )
 }
 
 function addPluginNodeAtViewportCenter(pluginId: string, action: string, actionName: string) {
-  return addPluginNode(pluginId, action, actionName, takePendingAddNodePosition() ?? getCanvasCenterPosition())
+  return addPluginNode(
+    pluginId,
+    action,
+    actionName,
+    takePendingAddNodePosition() ?? getCanvasCenterPosition(),
+  )
 }
 
 function addLogicNodeAtScreenPoint(
@@ -370,34 +414,79 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
   clearQuickAddState()
 
   if (pendingInsertEdgeId && pendingInsertSourceId && pendingInsertTargetId) {
-    insertNodeBetween(pendingInsertEdgeId, nodeId, pendingInsertSourceId, pendingInsertTargetId, pendingInsertTargetHandle)
+    insertNodeBetween(
+      pendingInsertEdgeId,
+      nodeId,
+      pendingInsertSourceId,
+      pendingInsertTargetId,
+      pendingInsertTargetHandle,
+    )
     return
   }
 
   if (targetId && targetHandle) {
-    workflow.edges.push(createWorkflowConnectionEdge({
-      source: nodeId,
-      target: targetId,
-      sourceHandle: 'source',
-      targetHandle,
-    }))
+    workflow.edges.push(
+      createWorkflowConnectionEdge({
+        source: nodeId,
+        target: targetId,
+        sourceHandle: 'source',
+        targetHandle,
+      }),
+    )
     arrangeAdvancedConfigNodes(targetId)
   } else if (targetId) {
-    workflow.edges.push(createWorkflowConnectionEdge({
-      source: nodeId,
-      target: targetId,
-      sourceHandle: 'source',
-      targetHandle: 'target',
-    }))
+    workflow.edges.push(
+      createWorkflowConnectionEdge({
+        source: nodeId,
+        target: targetId,
+        sourceHandle: 'source',
+        targetHandle: 'target',
+      }),
+    )
   } else if (sourceId && type !== 'trigger') {
-    workflow.edges.push(createWorkflowConnectionEdge({
-      source: sourceId,
-      target: nodeId,
+    pendingQuickAddAlignment.value = {
+      sourceId,
       sourceHandle: sourceHandle ?? 'source',
+      nodeId,
       targetHandle: 'target',
-    }))
+    }
+    workflow.edges.push(
+      createWorkflowConnectionEdge({
+        source: sourceId,
+        target: nodeId,
+        sourceHandle: sourceHandle ?? 'source',
+        targetHandle: 'target',
+      }),
+    )
   }
+}
 
+function alignPendingQuickAddNode() {
+  const pending = pendingQuickAddAlignment.value
+  const workflow = workflowStore.activeWorkflow
+  if (!pending || !workflow) return
+
+  const sourceItem = workflowItems.value.find((item) => item.id === pending.sourceId)
+  const targetItem = workflowItems.value.find((item) => item.id === pending.nodeId)
+  const sourceHandle = handleRegistry.getHandle(pending.sourceId, pending.sourceHandle, 'source')
+  const targetHandle = handleRegistry.getHandle(pending.nodeId, pending.targetHandle, 'target')
+  const sourceOffset = sourceHandle ? getWorkflowHandleOffset(sourceHandle) : null
+  const targetOffset = targetHandle ? getWorkflowHandleOffset(targetHandle) : null
+  const node = workflow.nodes[pending.nodeId]
+  if (!sourceItem || !targetItem || !sourceOffset || !targetOffset || !node) return
+
+  const position = getQuickAddAlignedNodePosition({
+    sourceHandle: { x: sourceItem.x + sourceOffset.x, y: sourceItem.y + sourceOffset.y },
+    targetHandle: { x: targetItem.x + targetOffset.x, y: targetItem.y + targetOffset.y },
+    nodePosition: { x: targetItem.x, y: targetItem.y },
+    horizontalGap: QUICK_ADD_HORIZONTAL_GAP,
+  })
+  node.ui = { ...node.ui, positionX: position.x, positionY: position.y }
+
+  nextTick(() => {
+    pendingQuickAddAlignment.value = null
+    handleRegistry.invalidateGeometry()
+  })
 }
 
 function insertNodeBetween(
@@ -554,55 +643,63 @@ function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
   if (type === 'if') return { condition: 'true' }
   if (type === 'loop') return { collection: '[]', maxIterations: 100 }
   if (type === 'set') return { assignments: [{ key: 'field', value: '' }] }
-  if (type === 'switch') return { inputExpression: 'steps.prev.output.status', cases: [], fallbackHandleId: 'fallback' }
+  if (type === 'switch')
+    return { inputExpression: 'steps.prev.output.status', cases: [], fallbackHandleId: 'fallback' }
   if (type === 'merge') return { mode: 'wait-any' }
-  if (type === 'ai-agent') return {
-    prompt: 'You are a helpful workflow agent. Use tools only when needed.',
-    executionMode: 'loop',
-    maxIterations: 8,
-    maxToolCalls: 12,
-    maxRetriesPerTool: 3,
-    timeoutMs: 180000,
-    requireApprovalForSideEffects: [
-      'write',
-      'delete',
-      'external-message',
-      'external-payment',
-      'filesystem',
-    ],
-    outputMode: 'text',
-  }
-  if (type === 'ai-tool') return {
-    requiresApproval: true,
-    sideEffect: 'write',
-  }
-  if (type === 'text-dataset') return {
-    format: 'plain-text',
-    chunkSize: 1000,
-    chunkOverlap: 120,
-  }
-  if (type === 'file-dataset') return {
-    filePath: '',
-    chunkSize: 1000,
-    chunkOverlap: 120,
-  }
-  if (type === 'database-dataset') return {
-    connectionId: '',
-    textColumns: ['body'],
-    chunkSize: 1000,
-    chunkOverlap: 120,
-  }
+  if (type === 'ai-agent')
+    return {
+      prompt: 'You are a helpful workflow agent. Use tools only when needed.',
+      executionMode: 'loop',
+      maxIterations: 8,
+      maxToolCalls: 12,
+      maxRetriesPerTool: 3,
+      timeoutMs: 180000,
+      requireApprovalForSideEffects: [
+        'write',
+        'delete',
+        'external-message',
+        'external-payment',
+        'filesystem',
+      ],
+      outputMode: 'text',
+    }
+  if (type === 'ai-tool')
+    return {
+      requiresApproval: true,
+      sideEffect: 'write',
+    }
+  if (type === 'text-dataset')
+    return {
+      format: 'plain-text',
+      chunkSize: 1000,
+      chunkOverlap: 120,
+    }
+  if (type === 'file-dataset')
+    return {
+      filePath: '',
+      chunkSize: 1000,
+      chunkOverlap: 120,
+    }
+  if (type === 'database-dataset')
+    return {
+      connectionId: '',
+      textColumns: ['body'],
+      chunkSize: 1000,
+      chunkOverlap: 120,
+    }
   if (type === 'embeddings') return {}
-  if (type === 'vector-store') return {
-    ensureCollectionMethodId: 'ensureCollection',
-    upsertMethodId: 'upsertDocuments',
-    queryMethodId: 'querySimilar',
-    metric: 'cosine',
-  }
-  if (type === 'retriever') return {
-    outputMode: 'context',
-    topK: 5,
-  }
+  if (type === 'vector-store')
+    return {
+      ensureCollectionMethodId: 'ensureCollection',
+      upsertMethodId: 'upsertDocuments',
+      queryMethodId: 'querySimilar',
+      metric: 'cosine',
+    }
+  if (type === 'retriever')
+    return {
+      outputMode: 'context',
+      topK: 5,
+    }
   return {}
 }
 
@@ -630,7 +727,9 @@ function duplicateSelection() {
   canvasSelection.value = result.nodeIds
 }
 
-function handleNodeToolbarAction(payload: { action: 'duplicate' | 'delete' | 'disable'; nodeId: string } | undefined) {
+function handleNodeToolbarAction(
+  payload: { action: 'duplicate' | 'delete' | 'disable'; nodeId: string } | undefined,
+) {
   if (!payload) return
   if (payload.action === 'duplicate') duplicateNodeFromToolbar(payload.nodeId)
   if (payload.action === 'delete') deleteNodeFromToolbar(payload.nodeId)
@@ -680,20 +779,22 @@ function isEditableKeyTarget(target: EventTarget | null): boolean {
   return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
 }
 
-function createWorkflowConnection(connection: Pick<WorkflowEdge, 'source' | 'target' | 'sourceHandle' | 'targetHandle'>) {
+function createWorkflowConnection(
+  connection: Pick<WorkflowEdge, 'source' | 'target' | 'sourceHandle' | 'targetHandle'>,
+) {
   const workflow = workflowStore.activeWorkflow
   if (!workflow) return
 
   const targetHandle = connection.targetHandle ?? 'target'
   const policy = getWorkflowTargetHandlePolicy(workflow, connection.target, targetHandle)
-  const connectionCount = workflow.edges.filter((edge) =>
-    edge.target === connection.target &&
-    (edge.targetHandle ?? 'target') === policy.id,
+  const connectionCount = workflow.edges.filter(
+    (edge) => edge.target === connection.target && (edge.targetHandle ?? 'target') === policy.id,
   ).length
 
   if (getWorkflowConnectionPolicyAction(policy, connectionCount) === 'replace') {
-    workflow.edges = workflow.edges.filter((edge) =>
-      !(edge.target === connection.target && (edge.targetHandle ?? 'target') === policy.id),
+    workflow.edges = workflow.edges.filter(
+      (edge) =>
+        !(edge.target === connection.target && (edge.targetHandle ?? 'target') === policy.id),
     )
   }
 
@@ -715,18 +816,21 @@ function arrangeAdvancedConfigNodes(targetId: string, visited = new Set<string>(
 
   const handlers = getAdvancedNodeHandlersForCanvas(workflow, targetId)
   handlers.forEach((handler, handlerIndex) => {
-    const edges = workflow.edges.filter((edge) =>
-      edge.target === targetId && edge.targetHandle === handler.id,
+    const edges = workflow.edges.filter(
+      (edge) => edge.target === targetId && edge.targetHandle === handler.id,
     )
     edges.forEach((edge, siblingIndex) => {
       const sourceNode = workflow.nodes[edge.source]
       if (!sourceNode) return
 
       const position = getAdvancedChildPosition({
-        parent: getAdvancedParentBounds({ x: targetItem.x, y: targetItem.y }, {
-          width: targetItem.width ?? 236,
-          height: targetItem.height ?? 100,
-        }),
+        parent: getAdvancedParentBounds(
+          { x: targetItem.x, y: targetItem.y },
+          {
+            width: targetItem.width ?? 236,
+            height: targetItem.height ?? 100,
+          },
+        ),
         side: handler.position,
         handlerIndex,
         handlerCount: handlers.length,
@@ -781,5 +885,9 @@ defineExpose({
 .sailor-workflow-base-canvas {
   width: 100%;
   height: 100%;
+}
+
+.sailor-workflow-base-canvas :deep(.base-canvas__item) {
+  z-index: 5;
 }
 </style>

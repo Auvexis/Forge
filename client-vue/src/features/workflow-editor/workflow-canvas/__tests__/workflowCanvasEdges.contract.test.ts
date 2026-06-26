@@ -8,7 +8,10 @@ function read(relative: string) {
 }
 
 function readComponent(relative: string) {
-  return readFileSync(fileURLToPath(new URL(`../../components/${relative}`, import.meta.url)), 'utf8')
+  return readFileSync(
+    fileURLToPath(new URL(`../../components/${relative}`, import.meta.url)),
+    'utf8',
+  )
 }
 
 describe('workflow canvas edges contract', () => {
@@ -30,10 +33,29 @@ describe('workflow canvas edges contract', () => {
     assert.match(source, /ResizeObserver/)
     assert.match(source, /handleRegistry\.getHandle/)
     assert.match(source, /getBoundingClientRect/)
-    assert.match(source, /screenToWorld/)
+    assert.match(source, /getWorkflowHandleOffset/)
     assert.doesNotMatch(source, /document\.querySelector/)
     assert.doesNotMatch(source, /useVueFlow/)
     assert.doesNotMatch(source, /@vue-flow\/core/)
+  })
+
+  it('keeps stable edge geometry while handles mount or temporarily change', () => {
+    const source = readComponent('WorkflowEdgeLayer.vue')
+    const handles = read('workflowCanvasHandles.ts')
+
+    assert.match(source, /edgeGeometryCache/)
+    assert.match(source, /handleRegistry\.geometryVersion/)
+    assert.match(handles, /geometryVersion/)
+    assert.match(handles, /invalidateGeometry/)
+    assert.match(handles, /getWorkflowHandleOffset/)
+  })
+
+  it('renders persistent edges below workflow nodes', () => {
+    const canvas = readComponent('WorkflowBaseCanvas.vue')
+    const layer = readComponent('WorkflowEdgeLayer.vue')
+
+    assert.match(canvas, /:deep\(\.base-canvas__item\)[\s\S]*z-index: 5/)
+    assert.match(layer, /workflow-edge-layer[\s\S]*z-index: 4/)
   })
 
   it('preserves edge visuals, labels, item count, toolbar, and delete action', () => {

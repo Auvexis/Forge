@@ -1,4 +1,8 @@
-import type { BaseCanvasItem, BaseCanvasPoint, BaseCanvasViewport } from '../../../shared/base-canvas/index.ts'
+import type {
+  BaseCanvasItem,
+  BaseCanvasPoint,
+  BaseCanvasViewport,
+} from '../../../shared/base-canvas/index.ts'
 import { screenToWorld } from '../../../shared/base-canvas/index.ts'
 
 export interface WorkflowCanvasRect {
@@ -8,25 +12,43 @@ export interface WorkflowCanvasRect {
   height: number
 }
 
+export function getQuickAddAlignedNodePosition(input: {
+  sourceHandle: BaseCanvasPoint
+  targetHandle: BaseCanvasPoint
+  nodePosition: BaseCanvasPoint
+  horizontalGap: number
+}): BaseCanvasPoint {
+  return {
+    x: input.nodePosition.x + input.sourceHandle.x + input.horizontalGap - input.targetHandle.x,
+    y: input.nodePosition.y + input.sourceHandle.y - input.targetHandle.y,
+  }
+}
+
 export function screenPointToWorkflowWorld(input: {
   point: BaseCanvasPoint
   canvasRect: WorkflowCanvasRect
   viewport: BaseCanvasViewport
 }): BaseCanvasPoint {
-  return screenToWorld({
-    x: input.point.x - input.canvasRect.left,
-    y: input.point.y - input.canvasRect.top,
-  }, input.viewport)
+  return screenToWorld(
+    {
+      x: input.point.x - input.canvasRect.left,
+      y: input.point.y - input.canvasRect.top,
+    },
+    input.viewport,
+  )
 }
 
 export function getWorkflowCanvasCenter(input: {
   canvasRect: WorkflowCanvasRect
   viewport: BaseCanvasViewport
 }): BaseCanvasPoint {
-  return screenToWorld({
-    x: input.canvasRect.width / 2,
-    y: input.canvasRect.height / 2,
-  }, input.viewport)
+  return screenToWorld(
+    {
+      x: input.canvasRect.width / 2,
+      y: input.canvasRect.height / 2,
+    },
+    input.viewport,
+  )
 }
 
 export function zoomWorkflowCanvasViewport(input: {
@@ -36,7 +58,10 @@ export function zoomWorkflowCanvasViewport(input: {
   minZoom: number
   maxZoom: number
 }): BaseCanvasViewport {
-  const nextZoom = Math.min(input.maxZoom, Math.max(input.minZoom, input.viewport.zoom * input.factor))
+  const nextZoom = Math.min(
+    input.maxZoom,
+    Math.max(input.minZoom, input.viewport.zoom * input.factor),
+  )
   const center = getWorkflowCanvasCenter({ canvasRect: input.canvasRect, viewport: input.viewport })
   return {
     x: input.canvasRect.width / 2 - center.x * nextZoom,
@@ -71,10 +96,13 @@ export function getWorkflowCanvasFitViewport(input: {
   const height = Math.max(1, maxY - minY)
   const zoom = Math.min(
     input.maxZoom,
-    Math.max(input.minZoom, Math.min(
-      (input.canvasRect.width - padding * 2) / width,
-      (input.canvasRect.height - padding * 2) / height,
-    )),
+    Math.max(
+      input.minZoom,
+      Math.min(
+        (input.canvasRect.width - padding * 2) / width,
+        (input.canvasRect.height - padding * 2) / height,
+      ),
+    ),
   )
 
   return {
