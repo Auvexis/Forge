@@ -275,6 +275,71 @@ describe("page renderer", () => {
       }),
     );
 
-    assert.match(html, /style="margin: 0; padding: 0; background-color: #fff;"/);
+    assert.match(html, /style="margin: 0; padding: 0; background-color: #fff; height: 100vh; min-height: 100vh;"/);
+  });
+
+  it("gives percentage-height children a definite body height in previews", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        bodyStyles: {
+          width: "100vw",
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "stretch",
+          overflow: "hidden",
+        },
+        blocks: [
+          {
+            id: "left_panel",
+            tag: "div",
+            styles: { width: "40%", height: "100%", backgroundColor: "#42d328" },
+            children: [],
+          },
+        ],
+      }),
+    );
+
+    assert.match(html, /style="margin: 0; width: 100vw; min-height: 100vh; display: flex; align-items: stretch; overflow: hidden; height: 100vh;"/);
+    assert.match(html, /\.sailor-block-left_panel \{\n  width: 40%;\n  height: 100%;\n  background-color: #42d328;\n}/);
+    assert.match(html, /html \{ width: 100%; height: 100%; }/);
+    assert.match(html, /\.sailor-page-block \{ box-sizing: border-box; }/);
+  });
+
+  it("normalizes common font family names and emits uploaded font faces", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        blocks: [
+          {
+            id: "label_1",
+            tag: "text",
+            props: { text: "Email" },
+            styles: { fontFamily: "inter" },
+            children: [],
+          },
+          {
+            id: "input_1",
+            tag: "input",
+            styles: { fontFamily: "/sites/site_default_profile_a/assets/Brand_Inter.woff2" },
+            children: [],
+          },
+        ],
+      }),
+      sailorSite({
+        files: [
+          {
+            path: "assets/Brand_Inter.woff2",
+            kind: "asset",
+            mimeType: "font/woff2",
+            url: "/sites/site_default_profile_a/assets/Brand_Inter.woff2",
+            updatedAt: "now",
+          },
+        ],
+      }),
+    );
+
+    assert.match(html, /@font-face \{ font-family: "Brand Inter"; src: url\("\/sites\/site_default_profile_a\/assets\/Brand_Inter\.woff2"\) format\("woff2"\); font-display: swap; }/);
+    assert.match(html, /font-family: "Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;/);
+    assert.match(html, /font-family: "Brand Inter";/);
+    assert.match(html, /input\.sailor-page-block, button\.sailor-page-block, textarea\.sailor-page-block, select\.sailor-page-block \{ font: inherit; }/);
   });
 });

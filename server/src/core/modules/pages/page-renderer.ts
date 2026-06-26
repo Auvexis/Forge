@@ -81,7 +81,7 @@ export function renderPublishedPage(page: PublishedPage, site?: SailorSite | nul
   const title = escapeHtml(page.metaTitle?.trim() || page.title);
   const pageJs = renderPageJs(page);
   const siteJs = renderSiteJs(site);
-  const css = [renderSiteCss(site), renderPageCss(page)].filter(Boolean).join("\n");
+  const css = [renderBaseCss(), renderSiteFontFaces(site), renderSiteCss(site), renderPageCss(page)].filter(Boolean).join("\n");
   const metaDescription = page.metaDescription?.trim()
     ? `<meta name="description" content="${escapeAttribute(page.metaDescription.trim())}">`
     : "";
@@ -109,11 +109,20 @@ export function renderPublishedPage(page: PublishedPage, site?: SailorSite | nul
 }
 
 function renderBodyStyle(page: PublishedPage): string {
-  const declarations = Object.entries({ margin: "0", ...(page.bodyStyles ?? {}) })
+  const declarations = Object.entries(normalizeBodyStyles(page.bodyStyles ?? {}))
     .filter(([key, value]) => STYLE_ALLOWLIST.has(key) && !containsDangerousCss(String(value)))
-    .map(([key, value]) => `${camelToKebab(key)}: ${escapeAttribute(String(value))};`)
+    .map(([key, value]) => `${camelToKebab(key)}: ${escapeAttribute(normalizeStyleValue(key, String(value)))};`)
     .join(" ");
   return declarations ? ` style="${declarations}"` : "";
+}
+
+function normalizeBodyStyles(styles: Record<string, unknown>): Record<string, unknown> {
+  return {
+    margin: "0",
+    ...styles,
+    ...(styles.height ? {} : { height: styles.minHeight ?? "100vh" }),
+    ...(styles.minHeight ? {} : { minHeight: styles.height ?? "100vh" }),
+  };
 }
 
 export function renderPageBody(blocks: PageBlock[], options: RenderOptions = {}): string {
@@ -216,7 +225,7 @@ function collectBlockCss(block: PageBlock): string[] {
   const declarations = [
     ...Object.entries(block.styles ?? {})
       .filter(([key, value]) => STYLE_ALLOWLIST.has(key) && !containsDangerousCss(String(value)))
-      .map(([key, value]) => `${camelToKebab(key)}: ${String(value)};`),
+      .map(([key, value]) => `${camelToKebab(key)}: ${normalizeStyleValue(key, String(value))};`),
   ];
 
   const ownCss = declarations.length
@@ -246,6 +255,54 @@ function renderSiteCss(site?: SailorSite | null): string {
     .map((file) => file.content?.trim() ?? "")
     .filter((content) => content && !containsDangerousCss(content))
     .join("\n");
+}
+
+function renderBaseCss(): string {
+  return [
+    "html { width: 100%; height: 100%; }",
+    "body { box-sizing: border-box; }",
+    ".sailor-page-block { box-sizing: border-box; }",
+    "input.sailor-page-block, button.sailor-page-block, textarea.sailor-page-block, select.sailor-page-block { font: inherit; }",
+  ].join("\n");
+}
+
+function renderSiteFontFaces(site?: SailorSite | null): string {
+  return (site?.files ?? [])
+    .filter((file) => file.kind === "asset" && isFontAsset(file.path, file.mimeType) && file.url && isSafeMediaUrl(file.url))
+    .map((file) => {
+      const family = fontFamilyFromAssetPath(file.path);
+      return `@font-face { font-family: "${escapeCssString(family)}"; src: url("${escapeCssString(file.url ?? "")}") format("${fontFormat(file.path)}"); font-display: swap; }`;
+    })
+    .join("\n");
+}
+
+function normalizeStyleValue(key: string, value: string): string {
+  if (key !== "fontFamily") return value;
+  const trimmed = value.trim();
+  if (!trimmed) return value;
+  if (isAssetFontReference(trimmed)) return `"${escapeCssString(fontFamilyFromAssetPath(trimmed))}"`;
+  if (/^inter$/i.test(trimmed)) return `"Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif`;
+  return value;
+}
+
+function isAssetFontReference(value: string): boolean {
+  return isFontAsset(value) && (value.startsWith("assets/") || value.startsWith("/sites/"));
+}
+
+function isFontAsset(path: string, mimeType = ""): boolean {
+  return /^font\//i.test(mimeType) || /\.(woff2?|ttf|otf)$/i.test(path);
+}
+
+function fontFamilyFromAssetPath(path: string): string {
+  const filename = path.split(/[\\/]/).pop() ?? path;
+  return filename.replace(/\.(woff2?|ttf|otf)$/i, "").replace(/[_-]+/g, " ").trim() || "Sailor Font";
+}
+
+function fontFormat(path: string): string {
+  if (/\.woff2$/i.test(path)) return "woff2";
+  if (/\.woff$/i.test(path)) return "woff";
+  if (/\.otf$/i.test(path)) return "opentype";
+  return "truetype";
 }
 
 function renderSiteJs(site?: SailorSite | null): string {
@@ -361,6 +418,10 @@ function escapeAttribute(value: string): string {
 
 function escapeScript(value: string): string {
   return value.replace(/<\/script/gi, "<\\/script");
+}
+
+function escapeCssString(value: string): string {
+  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
 function camelToKebab(value: string): string {
