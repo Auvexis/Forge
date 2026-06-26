@@ -213,10 +213,13 @@ describe('page chrome contract', () => {
     assert.match(editor, /@toggle-autosave="setPagesAutosaveEnabled"/)
   })
 
-  it('page badge exposes a direct delete button', () => {
+  it('page badge exposes direct preview and delete buttons', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
     assert.match(source, /web-page-editor__page-chip/)
+    assert.match(source, /previewCanvasPage/)
+    assert.match(source, /title="Preview page"/)
+    assert.match(source, /icon-left="eye"/)
     assert.match(source, /deletePageFromBadge/)
     assert.match(source, /icon-left="trash-2"/)
     assert.match(source, /variant="ghost"/)

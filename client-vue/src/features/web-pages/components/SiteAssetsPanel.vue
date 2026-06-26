@@ -28,6 +28,7 @@
         class="web-page-assets-panel__card"
         draggable="true"
         @dragstart="startAssetDrag($event, asset)"
+        @dragend="stopAssetDragPreview"
       >
         <div class="web-page-assets-panel__thumb">
           <img v-if="thumbnailUrl(asset)" :src="thumbnailUrl(asset)" :alt="asset.path" />
@@ -49,11 +50,29 @@
     </div>
 
     <input ref="assetInput" type="file" accept="image/*,font/*,.ttf,.otf,.woff,.woff2" multiple @change="uploadAsset" />
+    <Teleport to="body">
+      <div
+        v-if="dragPreview"
+        class="web-page-toolbox-drag-preview web-page-asset-drag-preview"
+        :style="dragPreviewStyle"
+      >
+        <div class="web-page-toolbox-drag-preview__body">
+          <div class="web-page-toolbox-drag-preview__node">
+            <span class="web-page-toolbox-drag-preview__icon">
+              <img v-if="dragPreview.thumbnail" :src="dragPreview.thumbnail" :alt="dragPreview.label" />
+              <LucideIcon v-else name="file-image" :size="28" />
+            </span>
+          </div>
+          <div class="web-page-toolbox-drag-preview__label">{{ dragPreview.label }}</div>
+          <div class="web-page-toolbox-drag-preview__subtitle">Asset</div>
+        </div>
+      </div>
+    </Teleport>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { API_BASE_URL } from '@/core/constants/app.ts'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -67,7 +86,22 @@ const emit = defineEmits<{
 }>()
 const assetInput = ref<HTMLInputElement | null>(null)
 const uploadingAssets = ref<Array<{ name: string }>>([])
+const dragPreview = ref<{ label: string; thumbnail: string } | null>(null)
+const dragPreviewPoint = ref({ x: 0, y: 0 })
 const assetFiles = computed(() => (props.site?.files ?? []).filter((file) => file.kind === 'asset' || file.path.startsWith('assets/')))
+const dragPreviewStyle = computed(() => ({
+  transform: `translate3d(${dragPreviewPoint.value.x - 72}px, ${dragPreviewPoint.value.y - 56}px, 0) scale(${dragPreview.value ? 1 : 0.72})`,
+}))
+
+onMounted(() => {
+  document.addEventListener('dragover', moveAssetDragPreview, true)
+  document.addEventListener('drop', stopAssetDragPreview, true)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('dragover', moveAssetDragPreview, true)
+  document.removeEventListener('drop', stopAssetDragPreview, true)
+})
 
 function thumbnailUrl(asset: SiteFile) {
   if (asset.url?.startsWith('/sites/')) return `${API_BASE_URL}${asset.url}`
@@ -109,17 +143,32 @@ function startAssetDrag(event: DragEvent, asset: SiteFile) {
   event.dataTransfer?.setData('text/plain', path)
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = 'copy'
-    setDragImage(event, assetName(asset.path))
+    setTransparentDragImage(event)
+    startAssetDragPreview(event, asset)
   }
 }
 
-function setDragImage(event: DragEvent, label: string) {
+function setTransparentDragImage(event: DragEvent) {
   if (!event.dataTransfer) return
   const preview = document.createElement('div')
-  preview.className = 'web-page-toolbox-drag-preview web-page-asset-drag-preview'
-  preview.textContent = label
+  preview.className = 'web-page-drag-preview'
+  preview.style.opacity = '0'
   document.body.appendChild(preview)
-  event.dataTransfer.setDragImage(preview, 16, 16)
+  event.dataTransfer.setDragImage(preview, 0, 0)
   window.setTimeout(() => preview.remove(), 0)
+}
+
+function startAssetDragPreview(event: DragEvent, asset: SiteFile) {
+  dragPreview.value = { label: assetName(asset.path), thumbnail: thumbnailUrl(asset) }
+  dragPreviewPoint.value = { x: event.clientX, y: event.clientY }
+}
+
+function moveAssetDragPreview(event: DragEvent) {
+  if (!dragPreview.value || event.clientX === 0 || event.clientY === 0) return
+  dragPreviewPoint.value = { x: event.clientX, y: event.clientY }
+}
+
+function stopAssetDragPreview() {
+  dragPreview.value = null
 }
 </script>

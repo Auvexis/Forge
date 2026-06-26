@@ -189,7 +189,10 @@ describe('page explorer contract', () => {
     assert.match(assets, /draggable="true"/)
     assert.match(assets, /application\/x-sailor-page-asset/)
     assert.match(assets, /text\/plain/)
-    assert.match(assets, /setDragImage/)
+    assert.match(assets, /dragPreview/)
+    assert.match(assets, /web-page-asset-drag-preview/)
+    assert.match(assets, /setTransparentDragImage/)
+    assert.match(assets, /moveAssetDragPreview/)
     assert.match(assets, /@dragover\.prevent/)
     assert.match(assets, /@drop\.prevent="dropUploadAssets"/)
     assert.match(assets, /uploadingAssets/)
@@ -197,6 +200,7 @@ describe('page explorer contract', () => {
     assert.match(assets, /accept="image\/\*,font\/\*,\.ttf,\.otf,\.woff,\.woff2"/)
     assert.match(css, /web-page-assets-panel__upload-preview/)
     assert.match(css, /web-page-assets-panel__loading-bar/)
+    assert.match(css, /web-page-asset-drag-preview/)
   })
 
   it('code explorer exposes a delete button for deletable files', () => {

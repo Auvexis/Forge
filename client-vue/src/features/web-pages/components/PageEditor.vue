@@ -129,6 +129,13 @@
                 <BaseButton
                   variant="ghost"
                   size="icon"
+                  icon-left="eye"
+                  title="Preview page"
+                  @click.stop="previewCanvasPage(item.id)"
+                />
+                <BaseButton
+                  variant="ghost"
+                  size="icon"
                   icon-left="trash-2"
                   title="Delete page"
                   @click.stop="deletePageFromBadge(item.id)"
@@ -1490,6 +1497,10 @@ async function savePage() {
 function previewPage() {
   if (!pagesStore.activePage) return
   window.open(`${API_BASE_URL}${ENDPOINTS.PAGE_PREVIEW(pagesStore.activePage.id)}`, '_blank', 'noopener')
+}
+
+function previewCanvasPage(pageId: string) {
+  window.open(`${API_BASE_URL}${ENDPOINTS.PAGE_PREVIEW(pageId)}`, '_blank', 'noopener')
 }
 
 async function publishPage() {

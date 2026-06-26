@@ -1247,6 +1247,13 @@
   color: var(--sailor-text-primary);
 }
 
+.web-page-asset-drag-preview .web-page-toolbox-drag-preview__icon img {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+}
+
 .web-page-toolbox-drag-preview__label {
   overflow: hidden;
   color: var(--sailor-text-primary);

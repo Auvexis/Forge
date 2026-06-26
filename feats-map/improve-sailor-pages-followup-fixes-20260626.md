@@ -39,13 +39,13 @@ Resumo curto: corrigir multiseleção, save/publicação, slugs/URLs, assets e c
 - [x] Commit.
 
 ## Batch 4 - Explorer Assets And Preview Actions
-- [ ] Adicionar drag preview animado nos Assets do Explorer.
-- [ ] Reutilizar padrão visual do drag preview do Toolbox.
-- [ ] Adicionar botão na toolbar da page no canvas para abrir preview em nova aba.
-- [ ] Garantir tooltip e ícone claro para o botão de preview.
-- [ ] Add/adjust tests.
-- [ ] Run focused tests and build.
-- [ ] Commit.
+- [x] Adicionar drag preview animado nos Assets do Explorer.
+- [x] Reutilizar padrão visual do drag preview do Toolbox.
+- [x] Adicionar botão na toolbar da page no canvas para abrir preview em nova aba.
+- [x] Garantir tooltip e ícone claro para o botão de preview.
+- [x] Add/adjust tests.
+- [x] Run focused tests and build.
+- [x] Commit.
 
 ## Batch 5 - Global Error Capture
 - [ ] Conectar erros do Sailor Pages ao toast global.
