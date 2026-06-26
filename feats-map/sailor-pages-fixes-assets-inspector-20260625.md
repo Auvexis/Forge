@@ -36,7 +36,7 @@
 - [x] Verify and commit.
 
 ## Batch 6 - Final
-- [ ] Run focused tests.
-- [ ] Run build/typecheck if available.
-- [ ] Review diff.
-- [ ] Final commit if needed.
+- [x] Run focused tests.
+- [x] Run build/typecheck if available.
+- [x] Review diff.
+- [x] Final commit if needed.
