@@ -7,6 +7,7 @@ export interface BlockDropIntentInput {
   width: number
   height: number
   isContainer: boolean
+  previous?: BlockDropIntent | null
 }
 
 export interface BlockDropIntent {
@@ -14,7 +15,8 @@ export interface BlockDropIntent {
   dropEdge: DropEdge
 }
 
-const VERTICAL_EDGE_RATIO = 0.25
+const VERTICAL_EDGE_RATIO = 0.30
+const VERTICAL_STICKY_RATIO = 0.08
 const HORIZONTAL_EDGE_RATIO = 0.18
 
 export function resolveBlockDropIntent(input: BlockDropIntentInput): BlockDropIntent {
@@ -23,14 +25,31 @@ export function resolveBlockDropIntent(input: BlockDropIntentInput): BlockDropIn
   const x = clamp(input.x / width, 0, 1)
   const y = clamp(input.y / height, 0, 1)
 
-  if (y <= VERTICAL_EDGE_RATIO) return { position: 'before', dropEdge: 'top' }
-  if (y >= 1 - VERTICAL_EDGE_RATIO) return { position: 'after', dropEdge: 'bottom' }
+  const previous = stablePreviousIntent(input.previous, input.isContainer)
+  if (previous?.position === 'before' && y <= VERTICAL_EDGE_RATIO + VERTICAL_STICKY_RATIO) {
+    return { position: 'before', dropEdge: 'top' }
+  }
+  if (previous?.position === 'after' && y >= 1 - VERTICAL_EDGE_RATIO - VERTICAL_STICKY_RATIO) {
+    return { position: 'after', dropEdge: 'bottom' }
+  }
+  if (previous?.position === 'inside' && y > VERTICAL_EDGE_RATIO - VERTICAL_STICKY_RATIO && y < 1 - VERTICAL_EDGE_RATIO + VERTICAL_STICKY_RATIO) {
+    return { position: 'inside', dropEdge: resolveHorizontalEdge(x) }
+  }
+
+  if (y <= VERTICAL_EDGE_RATIO - VERTICAL_STICKY_RATIO) return { position: 'before', dropEdge: 'top' }
+  if (y >= 1 - VERTICAL_EDGE_RATIO + VERTICAL_STICKY_RATIO) return { position: 'after', dropEdge: 'bottom' }
 
   const dropEdge = resolveHorizontalEdge(x)
   return {
     position: input.isContainer ? 'inside' : 'after',
     dropEdge,
   }
+}
+
+function stablePreviousIntent(previous: BlockDropIntent | null | undefined, isContainer: boolean) {
+  if (!previous) return null
+  if (previous.position === 'inside' && !isContainer) return null
+  return previous
 }
 
 function resolveHorizontalEdge(x: number): DropEdge {

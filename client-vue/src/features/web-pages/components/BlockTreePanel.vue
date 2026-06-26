@@ -57,14 +57,25 @@
     <div v-for="block in pages.length ? [] : blocks" :key="block.id" class="web-page-tree__node">
       <div
         class="web-page-tree__item"
-        :class="{ 'web-page-tree__item--selected': selectedBlockIds.includes(block.id) || block.id === selectedBlockId }"
+        :class="[
+          { 'web-page-tree__item--selected': selectedBlockIds.includes(block.id) || block.id === selectedBlockId },
+          treeDropIntent?.targetId === block.id ? `web-page-tree__item--drop-${treeDropIntent.position}` : '',
+        ]"
         draggable="true"
         role="treeitem"
         @dragstart="onDragStart($event, block.id)"
-        @dragover.prevent="onDragOver($event)"
+        @dragover.prevent="onDragOver($event, block)"
+        @dragleave="onDragLeave($event, block.id)"
         @drop.prevent="onDrop($event, block)"
+        @dragend="clearTreeDropIntent"
         @click="selectTreeBlock($event, block.id)"
       >
+        <span
+          v-if="treeDropIntent?.targetId === block.id"
+          class="web-page-tree__drop-indicator"
+          :class="`web-page-tree__drop-indicator--${treeDropIntent.position}`"
+          aria-hidden="true"
+        />
         <button
           type="button"
           class="web-page-tree__collapse"
@@ -161,6 +172,7 @@ const editorStore = usePageEditorStore()
 const collapsedPageIds = ref<Record<string, boolean>>({})
 const editingBlockId = ref<string | null>(null)
 const draftBlockId = ref('')
+const treeDropIntent = ref<{ targetId: string; position: InsertPosition } | null>(null)
 
 const emit = defineEmits<{
   'add-page': []
@@ -230,8 +242,10 @@ function onDragStart(event: DragEvent, blockId: string) {
   setDragPreview(event, blockId)
 }
 
-function onDragOver(event: DragEvent) {
+function onDragOver(event: DragEvent, block: PageBlock) {
   if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  const intent = resolveTreeDropIntent(event, block)
+  treeDropIntent.value = { targetId: block.id, position: intent.position }
 }
 
 function onDrop(event: DragEvent, block: PageBlock) {
@@ -241,18 +255,33 @@ function onDrop(event: DragEvent, block: PageBlock) {
   const parsed = JSON.parse(raw) as { blockId?: string }
   if (!parsed.blockId) return
 
-  emit('move-block', { targetId: block.id, position: dropPosition(event, block), draggedId: parsed.blockId })
+  const intent = resolveTreeDropIntent(event, block)
+  clearTreeDropIntent()
+  emit('move-block', { targetId: block.id, position: intent.position, draggedId: parsed.blockId })
 }
 
-function dropPosition(event: DragEvent, block: PageBlock): InsertPosition {
+function resolveTreeDropIntent(event: DragEvent, block: PageBlock): { position: InsertPosition } {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const previous = treeDropIntent.value?.targetId === block.id
+    ? { position: treeDropIntent.value.position, dropEdge: 'center' as const }
+    : null
   return resolveBlockDropIntent({
     x: event.clientX - rect.left,
     y: event.clientY - rect.top,
     width: rect.width,
     height: rect.height,
     isContainer: isContainer(block),
-  }).position
+    previous,
+  })
+}
+
+function onDragLeave(event: DragEvent, blockId: string) {
+  if ((event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) return
+  if (treeDropIntent.value?.targetId === blockId) clearTreeDropIntent()
+}
+
+function clearTreeDropIntent() {
+  treeDropIntent.value = null
 }
 
 function iconFor(block: PageBlock): string {

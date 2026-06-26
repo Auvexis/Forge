@@ -1683,6 +1683,7 @@
 }
 
 .web-page-tree__item {
+  position: relative;
   display: grid;
   grid-template-columns: 14px 16px minmax(0, 1fr) 4px 20px;
   align-items: center;
@@ -1693,6 +1694,42 @@
   color: var(--sailor-text-primary);
   text-align: left;
   cursor: grab;
+}
+
+.web-page-tree__item--drop-inside {
+  background: color-mix(in srgb, var(--web-page-selected-color, #3b82f6) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--web-page-selected-color, #3b82f6) 40%, transparent);
+}
+
+.web-page-tree__drop-indicator {
+  position: absolute;
+  right: var(--sailor-space-1);
+  left: var(--sailor-space-1);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.web-page-tree__drop-indicator--before,
+.web-page-tree__drop-indicator--after {
+  height: 2px;
+  border-radius: 999px;
+  background: var(--web-page-selected-color, #3b82f6);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--web-page-selected-color, #3b82f6) 14%, transparent);
+}
+
+.web-page-tree__drop-indicator--before {
+  top: -1px;
+}
+
+.web-page-tree__drop-indicator--after {
+  bottom: -1px;
+}
+
+.web-page-tree__drop-indicator--inside {
+  inset: 3px var(--sailor-space-1);
+  border: 1px solid color-mix(in srgb, var(--web-page-selected-color, #3b82f6) 58%, transparent);
+  border-radius: var(--sailor-radius-sm);
+  background: color-mix(in srgb, var(--web-page-selected-color, #3b82f6) 8%, transparent);
 }
 
 .web-page-tree__item:hover {

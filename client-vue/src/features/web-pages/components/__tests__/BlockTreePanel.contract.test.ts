@@ -100,12 +100,20 @@ describe('block tree panel contract', () => {
 
   it('tree rows support dropping blocks before, inside and after another block', () => {
     const source = read('src/features/web-pages/components/BlockTreePanel.vue')
+    const css = read('src/features/web-pages/pages.css')
 
     assert.match(source, /@dragover\.prevent/)
     assert.match(source, /@drop\.prevent/)
-    assert.match(source, /dropPosition/)
+    assert.match(source, /treeDropIntent/)
+    assert.match(source, /resolveTreeDropIntent/)
+    assert.match(source, /previous/)
     assert.match(source, /move-block/)
-    assert.match(source, /position: dropPosition\(event, block\)/)
+    assert.match(source, /position: intent\.position/)
+    assert.match(source, /web-page-tree__drop-indicator/)
+    assert.match(source, /web-page-tree__item--drop-/)
+    assert.match(css, /web-page-tree__drop-indicator--before/)
+    assert.match(css, /web-page-tree__drop-indicator--inside/)
+    assert.match(css, /web-page-tree__drop-indicator--after/)
   })
 
   it('tree supports editing a block id with double click', () => {

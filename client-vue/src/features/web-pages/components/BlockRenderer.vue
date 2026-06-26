@@ -40,6 +40,7 @@
       @blur="commitInlineEdit"
       @dragstart.stop="onDragStart"
       @dragover.prevent.stop="onDragOver"
+      @dragleave.stop="onDragLeave"
       @drop.prevent.stop="onDrop"
     >
       <template v-if="block.tag === 'text' || block.tag === 'button' || block.tag === 'link'">
@@ -637,12 +638,16 @@ function onDragOver(event: DragEvent) {
 
 function getDropIntent(event: DragEvent): { position: InsertPosition; dropEdge: DropEdge } {
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const previous = props.dropIntent?.targetId === props.block.id
+    ? { position: props.dropIntent.position, dropEdge: props.dropIntent.dropEdge ?? 'center' }
+    : null
   return resolveBlockDropIntent({
     x: event.clientX - rect.left,
     y: event.clientY - rect.top,
     width: rect.width,
     height: rect.height,
     isContainer: isContainer.value,
+    previous,
   })
 }
 
@@ -651,6 +656,12 @@ function emitDragIntent(intent: { position: InsertPosition; dropEdge?: DropEdge 
   if (key === lastDragIntentKey.value) return
   lastDragIntentKey.value = key
   emit('drag-intent', { targetId: props.block.id, ...intent })
+}
+
+function onDragLeave(event: DragEvent) {
+  if (!blockElementRef.value?.contains(event.relatedTarget as Node | null)) {
+    lastDragIntentKey.value = ''
+  }
 }
 
 function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: string; draggedId?: string } | null {

@@ -19,6 +19,42 @@ describe('drop intent', () => {
     )
   })
 
+  it('keeps the previous zone stable near transition edges', () => {
+    assert.deepEqual(
+      resolveBlockDropIntent({
+        x: 50,
+        y: 28,
+        width: 100,
+        height: 100,
+        isContainer: true,
+        previous: { position: 'before', dropEdge: 'top' },
+      }),
+      { position: 'before', dropEdge: 'top' },
+    )
+    assert.deepEqual(
+      resolveBlockDropIntent({
+        x: 50,
+        y: 72,
+        width: 100,
+        height: 100,
+        isContainer: true,
+        previous: { position: 'inside', dropEdge: 'center' },
+      }),
+      { position: 'inside', dropEdge: 'center' },
+    )
+    assert.deepEqual(
+      resolveBlockDropIntent({
+        x: 50,
+        y: 72,
+        width: 100,
+        height: 100,
+        isContainer: true,
+        previous: { position: 'after', dropEdge: 'bottom' },
+      }),
+      { position: 'after', dropEdge: 'bottom' },
+    )
+  })
+
   it('does not switch non-container blocks to inside in the middle zone', () => {
     assert.deepEqual(
       resolveBlockDropIntent({ x: 50, y: 50, width: 100, height: 100, isContainer: false }),

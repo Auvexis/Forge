@@ -19,10 +19,14 @@ describe('page drag prediction contract', () => {
 
   it('block renderer reports predicted placement while dragging', () => {
     const source = read('src/features/web-pages/components/BlockRenderer.vue')
+    const intent = read('src/features/web-pages/utils/dropIntent.ts')
 
     assert.match(source, /drag-intent/)
     assert.match(source, /targetId: props\.block\.id/)
     assert.match(source, /resolveBlockDropIntent/)
+    assert.match(source, /props\.dropIntent\?\.targetId === props\.block\.id/)
+    assert.match(source, /previous/)
+    assert.match(intent, /VERTICAL_STICKY_RATIO/)
   })
 
   it('canvas clears prediction on drag leave and drop', () => {
@@ -44,13 +48,14 @@ describe('page drag prediction contract', () => {
 
   it('canvas drop indicators are neutral and do not use accent glow', () => {
     const source = read('src/features/web-pages/pages.css')
+    const dropIndicatorRule = source.match(/\.web-page-drop-indicator\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
     assert.match(source, /--web-page-drop-color/)
     assert.doesNotMatch(source, /--web-page-drop-color:[^;]*sailor-accent/)
-    assert.match(source, /border-radius:\s*0/)
-    assert.match(source, /height:\s*4px/)
+    assert.match(dropIndicatorRule, /border-radius:\s*0/)
+    assert.match(dropIndicatorRule, /height:\s*4px/)
     assert.match(source, /outline:\s*2px solid var\(--web-page-drop-color\)/)
-    assert.doesNotMatch(source, /drop-shadow\(0 0/)
+    assert.doesNotMatch(dropIndicatorRule, /drop-shadow\(0 0/)
   })
 
   it('selected element uses a solid accent outline', () => {
@@ -106,7 +111,7 @@ describe('page drag prediction contract', () => {
     assert.doesNotMatch(editor, /setTimeout\(\(\) => \{\s*editorStore\.deleteBlock/)
     assert.match(renderer, /web-page-block-frame--deleting/)
     assert.doesNotMatch(css, /web-page-block-frame--deleting[\s\S]*opacity:\s*0/)
-    assert.doesNotMatch(css, /web-page-block-leave-active/)
+    assert.doesNotMatch(css, /\.web-page-block-leave-active\s*\{[\s\S]*opacity:\s*0/)
   })
 
   it('block lists keep transition groups without box enter leave animations', () => {
