@@ -272,6 +272,7 @@ describe('page explorer contract', () => {
 
   it('Ctrl+S and Meta+S save the active page or active site file', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const saveActiveDocument = editor.match(/async function saveActiveDocument\(\) \{[\s\S]*?\n\}/)?.[0] ?? ''
 
     assert.match(editor, /addEventListener\('keydown', handleKeyboardShortcuts\)/)
     assert.match(editor, /removeEventListener\('keydown', handleKeyboardShortcuts\)/)
@@ -281,5 +282,7 @@ describe('page explorer contract', () => {
     assert.match(editor, /activeCodeFile/)
     assert.match(editor, /sitesStore\.saveActiveSite\(\)/)
     assert.match(editor, /savePage\(\)/)
+    assert.match(saveActiveDocument, /pagesStore\.isDirty \|\| editorStore\.isDirty/)
+    assert.match(saveActiveDocument, /if \(sitesStore\.isDirty\) await sitesStore\.saveActiveSite\(\)/)
   })
 })

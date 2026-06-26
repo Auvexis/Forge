@@ -1459,7 +1459,8 @@ async function saveActiveDocument() {
     await sitesStore.saveActiveSite()
     return
   }
-  await savePage()
+  if (pagesStore.isDirty || editorStore.isDirty) await savePage()
+  if (sitesStore.isDirty) await sitesStore.saveActiveSite()
 }
 
 async function savePage() {

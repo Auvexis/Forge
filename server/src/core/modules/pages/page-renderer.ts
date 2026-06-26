@@ -262,7 +262,7 @@ function renderBaseCss(): string {
     "html { width: 100%; height: 100%; }",
     "body { box-sizing: border-box; }",
     ".sailor-page-block { box-sizing: border-box; }",
-    "input.sailor-page-block, button.sailor-page-block, textarea.sailor-page-block, select.sailor-page-block { font: inherit; }",
+    ":where(input.sailor-page-block, button.sailor-page-block, textarea.sailor-page-block, select.sailor-page-block) { font: inherit; }",
   ].join("\n");
 }
 

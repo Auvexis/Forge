@@ -340,6 +340,7 @@ describe("page renderer", () => {
     assert.match(html, /@font-face \{ font-family: "Brand Inter"; src: url\("\/sites\/site_default_profile_a\/assets\/Brand_Inter\.woff2"\) format\("woff2"\); font-display: swap; }/);
     assert.match(html, /font-family: "Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;/);
     assert.match(html, /font-family: "Brand Inter";/);
-    assert.match(html, /input\.sailor-page-block, button\.sailor-page-block, textarea\.sailor-page-block, select\.sailor-page-block \{ font: inherit; }/);
+    assert.match(html, /:where\(input\.sailor-page-block, button\.sailor-page-block, textarea\.sailor-page-block, select\.sailor-page-block\) \{ font: inherit; }/);
+    assert.doesNotMatch(html, /input\.sailor-page-block, button\.sailor-page-block, textarea\.sailor-page-block, select\.sailor-page-block \{ font: inherit; }/);
   });
 });
