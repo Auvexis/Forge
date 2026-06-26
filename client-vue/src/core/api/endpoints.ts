@@ -75,9 +75,9 @@ export const ENDPOINTS = {
   PAGE_PUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/publish`,
   PAGE_UNPUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/unpublish`,
   PAGE_PREVIEW: (id: string) => `/pages/${encodeURIComponent(id)}/preview`,
-  PUBLISHED_PAGE: (siteId: string, slug: string) => `/p/${encodeURIComponent(siteId)}/${encodePublishedPath(slug)}`,
-  PUBLISHED_PAGE_ACTION: (siteId: string, slug: string, actionId: string) =>
-    `/p/${encodeURIComponent(siteId)}/actions/${encodeURIComponent(actionId)}/${encodePublishedPath(slug)}`,
+  PUBLISHED_PAGE: (projectPublicId: string, slug: string) => `/p/${encodeURIComponent(projectPublicId)}/${encodePublishedPath(slug)}`,
+  PUBLISHED_PAGE_ACTION: (projectPublicId: string, slug: string, actionId: string) =>
+    `/p/${encodeURIComponent(projectPublicId)}/actions/${encodeURIComponent(actionId)}/${encodePublishedPath(slug)}`,
 
   // Plugins
   PLUGINS: '/plugins',

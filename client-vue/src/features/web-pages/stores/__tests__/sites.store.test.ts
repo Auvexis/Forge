@@ -8,6 +8,7 @@ import type { SailorSite } from '../../types/page.types.ts'
 function site(overrides: Partial<SailorSite> = {}): SailorSite {
   return {
     id: 'site_1',
+    publicId: 'public_1',
     profileId: 'profile_a',
     name: 'Marketing Site',
     slug: 'marketing-site',

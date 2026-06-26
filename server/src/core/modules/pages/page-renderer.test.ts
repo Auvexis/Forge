@@ -32,6 +32,7 @@ function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
 function sailorSite(overrides: Partial<SailorSite> = {}): SailorSite {
   return {
     id: "site_default_profile_a",
+    publicId: "public_contact",
     profileId: "profile_a",
     name: "Default Site",
     slug: "default-site",
@@ -177,7 +178,7 @@ describe("page renderer", () => {
 
     assert.match(html, /addEventListener\("submit"/);
     assert.match(html, /FormData/);
-    assert.match(html, /encodeURIComponent\(siteId\).*\/actions\/.*encodeURIComponent\(actionId\).*encodePublishedPath\(slug\)/s);
+    assert.match(html, /encodeURIComponent\(projectPublicId\).*\/actions\/.*encodeURIComponent\(actionId\).*encodePublishedPath\(slug\)/s);
     assert.match(html, /pendingActionId/);
     assert.match(html, /runtimeError/);
     assert.doesNotMatch(html, /eval\(/);

@@ -12,6 +12,7 @@ import type { SailorSite } from "./site-types.ts";
 function site(): SailorSite {
   return {
     id: "site_1",
+    publicId: "public_1",
     profileId: "profile_a",
     name: "Site",
     slug: "site",

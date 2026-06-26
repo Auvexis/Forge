@@ -12,6 +12,7 @@ export interface SiteFile {
 
 export interface SailorSite {
   id: string;
+  publicId: string;
   profileId: string;
   name: string;
   slug: string;

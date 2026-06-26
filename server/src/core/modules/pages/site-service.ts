@@ -1,3 +1,5 @@
+import { randomInt } from "node:crypto";
+
 import { PageRepository } from "./page-repository.ts";
 import { PageService } from "./page-service.ts";
 import { createSiteFile, deleteSiteFile, updateSiteFile } from "./site-file-service.ts";
@@ -36,6 +38,7 @@ export class SiteService {
     const now = new Date().toISOString();
     return SiteRepository.saveSite({
       id: createSiteId(),
+      publicId: createProjectPublicId(),
       profileId: this.profileId,
       name,
       slug: input.slug ?? this.createUniqueSlug(name),
@@ -127,6 +130,11 @@ export class SiteService {
 
 function createSiteId(): string {
   return `site_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createProjectPublicId(): string {
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-";
+  return Array.from({ length: 10 }, () => alphabet[randomInt(alphabet.length)]).join("");
 }
 
 function defaultProjectFolders(now: string) {

@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { randomInt } from "node:crypto";
 
 import { PageRepository } from "./page-repository.ts";
 import { validateSiteProjectPath } from "./site-file-service.ts";
@@ -102,6 +103,7 @@ export class SiteProjectArchiveService {
     const siteId = createSiteId();
     const site: SailorSite = {
       id: siteId,
+      publicId: createProjectPublicId(),
       profileId,
       name: archive.manifest.site.name,
       slug: this.uniqueSiteSlug(profileId, archive.manifest.site.slug),
@@ -306,6 +308,11 @@ function crc32(buffer: Buffer): number {
 
 function createSiteId(): string {
   return `site_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+}
+
+function createProjectPublicId(): string {
+  const alphabet = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_-";
+  return Array.from({ length: 10 }, () => alphabet[randomInt(alphabet.length)]).join("");
 }
 
 function createPageId(): string {

@@ -540,7 +540,7 @@ const selectionOverlayViewportKey = computed(() =>
 )
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
-  if (activeCodeFile.value.path.startsWith('pages/')) return renderGeneratedHtml(activeCodeFile.value.path)
+  if (isGeneratedPageHtmlFile(activeCodeFile.value.path)) return renderGeneratedHtml(activeCodeFile.value.path)
   return sitesStore.activeSite?.files.find((file) => file.path === activeCodeFile.value?.path)?.content ?? activeCodeFile.value.content ?? ''
 })
 const isActiveCodeFileReadonly = computed(() => activeCodeFile.value?.path.endsWith('.html') ?? false)
@@ -574,6 +574,7 @@ function previewBlockStyle(block: PageBlock, index: number) {
 }
 
 function openCodeFile(file: SiteFile) {
+  if (!isGeneratedPageHtmlFile(file.path)) ensureEditablePageAssetFile(file)
   activeCodeFile.value = file
   editorStore.clearSelection()
 }
@@ -635,6 +636,17 @@ function deleteCodeFile(path: string) {
 function updateActiveCodeContent(value: string) {
   if (!activeCodeFile.value || isActiveCodeFileReadonly.value) return
   sitesStore.updateFile(activeCodeFile.value.path, value)
+}
+
+function isGeneratedPageHtmlFile(path: string) {
+  return /^pages\/[^/]+\/index\.html$/.test(path)
+}
+
+function ensureEditablePageAssetFile(file: SiteFile) {
+  if (!sitesStore.activeSite || file.kind === 'folder' || file.kind === 'asset') return
+  if (!file.path.startsWith('pages/')) return
+  if (sitesStore.activeSite.files.some((item) => item.path === file.path && item.kind !== 'folder')) return
+  sitesStore.createFile(file.path, file.content ?? '')
 }
 
 function renderGeneratedHtml(filePath: string) {
@@ -1521,7 +1533,8 @@ async function togglePagePublication() {
 function openLivePage() {
   const page = pagesStore.activePage
   if (!page?.siteId || !activePagePublishedAt.value) return
-  window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(page.siteId, page.publicPath || page.slug)}`, '_blank', 'noopener')
+  const publicId = sitesStore.activeSite?.publicId ?? page.siteId
+  window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(publicId, page.publicPath || page.slug)}`, '_blank', 'noopener')
 }
 
 async function exportActiveProject() {

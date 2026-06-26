@@ -79,7 +79,7 @@ const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/st
 
 export function renderPublishedPage(page: PublishedPage, site?: SailorSite | null): string {
   const title = escapeHtml(page.metaTitle?.trim() || page.title);
-  const pageJs = renderPageJs(page);
+  const pageJs = renderPageJs(page, site);
   const siteJs = renderSiteJs(page, site);
   const css = [renderBaseCss(), renderSiteFontFaces(site), renderSiteCss(page, site), renderPageCss(page)].filter(Boolean).join("\n");
   const metaDescription = page.metaDescription?.trim()
@@ -243,9 +243,9 @@ function formatCustomCss(block: PageBlock): string[] {
   return [`.${blockClass(block.id)} {\n  ${css}\n}`];
 }
 
-function renderPageJs(page: PublishedPage): string {
+function renderPageJs(page: PublishedPage, site?: SailorSite | null): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
-  const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page) : "";
+  const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page, site) : "";
   return [actionRuntime, ...scripts].filter(Boolean).join("\n");
 }
 
@@ -323,11 +323,11 @@ function hasPageActions(blocks: PageBlock[]): boolean {
   return blocks.some((block) => block.action || hasPageActions(block.children ?? []));
 }
 
-function renderActionRuntime(page: PublishedPage): string {
+function renderActionRuntime(page: PublishedPage, site?: SailorSite | null): string {
   return [
     `;(() => {`,
     `  const slug = ${JSON.stringify(page.slug)};`,
-    `  const siteId = ${JSON.stringify(page.siteId)};`,
+    `  const projectPublicId = ${JSON.stringify(site?.publicId ?? page.siteId)};`,
     `  let pendingActionId = "";`,
     `  let executionId = "";`,
     `  let runtimeError = "";`,
@@ -346,7 +346,7 @@ function renderActionRuntime(page: PublishedPage): string {
     `    executionId = "";`,
     `    updateStatus();`,
     `    try {`,
-    `      const response = await fetch("/p/" + encodeURIComponent(siteId) + "/actions/" + encodeURIComponent(actionId) + "/" + encodePublishedPath(slug), {`,
+    `      const response = await fetch("/p/" + encodeURIComponent(projectPublicId) + "/actions/" + encodeURIComponent(actionId) + "/" + encodePublishedPath(slug), {`,
     `        method: "POST",`,
     `        headers: { "content-type": "application/json" },`,
     `        body: JSON.stringify(payload),`,

@@ -43,7 +43,7 @@ export const SiteRepository = {
       .prepare(`SELECT definition FROM sites WHERE profile_id = ? ORDER BY updated_at DESC`)
       .all(profileId) as Array<{ definition: string }>;
 
-    return rows.map((row) => JSON.parse(row.definition) as SailorSite);
+    return rows.map((row) => withPublicId(JSON.parse(row.definition) as Partial<SailorSite>));
   },
 
   getSite(profileId: string, id: string): SailorSite | null {
@@ -51,7 +51,7 @@ export const SiteRepository = {
       .prepare(`SELECT definition FROM sites WHERE profile_id = ? AND id = ?`)
       .get(profileId, id) as { definition: string } | undefined;
 
-    return row ? (JSON.parse(row.definition) as SailorSite) : null;
+    return row ? withPublicId(JSON.parse(row.definition) as Partial<SailorSite>) : null;
   },
 
   getSiteBySlug(profileId: string, slug: string): SailorSite | null {
@@ -59,7 +59,20 @@ export const SiteRepository = {
       .prepare(`SELECT definition FROM sites WHERE profile_id = ? AND slug = ?`)
       .get(profileId, slug) as { definition: string } | undefined;
 
-    return row ? (JSON.parse(row.definition) as SailorSite) : null;
+    return row ? withPublicId(JSON.parse(row.definition) as Partial<SailorSite>) : null;
+  },
+
+  getSiteByPublicId(profileId: string, publicId: string): SailorSite | null {
+    const rows = getSiteDatabase()
+      .prepare(`SELECT definition FROM sites WHERE profile_id = ?`)
+      .all(profileId) as Array<{ definition: string }>;
+
+    for (const row of rows) {
+      const site = withPublicId(JSON.parse(row.definition) as Partial<SailorSite>);
+      if (site.publicId === publicId) return site;
+    }
+
+    return null;
   },
 
   ensureDefaultSite(profileId: string): SailorSite {
@@ -70,6 +83,7 @@ export const SiteRepository = {
     const now = new Date().toISOString();
     return this.saveSite({
       id: defaultSiteId(profileId),
+      publicId: defaultSitePublicId(profileId),
       profileId,
       name: "Default Site",
       slug: "default-site",
@@ -82,15 +96,17 @@ export const SiteRepository = {
 
   saveSite(site: SailorSite): SailorSite {
     this.ensureSchema();
-    const existingBySlug = this.getSiteBySlug(site.profileId, site.slug);
-    if (existingBySlug && existingBySlug.id !== site.id) {
-      throw new Error(`Site slug already exists: ${site.slug}`);
+    const siteWithPublicId = withPublicId(site);
+    const existingBySlug = this.getSiteBySlug(siteWithPublicId.profileId, siteWithPublicId.slug);
+    if (existingBySlug && existingBySlug.id !== siteWithPublicId.id) {
+      throw new Error(`Site slug already exists: ${siteWithPublicId.slug}`);
     }
 
-    const existing = this.getSite(site.profileId, site.id);
+    const existing = this.getSite(siteWithPublicId.profileId, siteWithPublicId.id);
     const siteToSave: SailorSite = {
-      ...site,
-      createdAt: existing?.createdAt ?? site.createdAt,
+      ...siteWithPublicId,
+      publicId: existing?.publicId ?? siteWithPublicId.publicId,
+      createdAt: existing?.createdAt ?? siteWithPublicId.createdAt,
     };
 
     getSiteDatabase()
@@ -128,6 +144,17 @@ export const SiteRepository = {
 
 export function defaultSiteId(profileId: string): string {
   return `site_default_${profileId.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+}
+
+function defaultSitePublicId(profileId: string): string {
+  return defaultSiteId(profileId);
+}
+
+function withPublicId(site: Partial<SailorSite>): SailorSite {
+  return {
+    ...site,
+    publicId: site.publicId ?? site.id ?? "",
+  } as SailorSite;
 }
 
 function defaultSiteFiles(now: string) {

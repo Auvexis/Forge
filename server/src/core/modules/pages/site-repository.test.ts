@@ -10,6 +10,7 @@ import type { SailorSite } from "./site-types.ts";
 function createSite(overrides: Partial<SailorSite> = {}): SailorSite {
   return {
     id: "site_main",
+    publicId: "public_main",
     profileId: "profile_a",
     name: "Main Site",
     slug: "main-site",

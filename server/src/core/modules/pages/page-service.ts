@@ -155,9 +155,11 @@ export class PageService {
     }, SiteRepository.getSite(this.profileId, page.siteId));
   }
 
-  renderPublished(siteId: string, path: string): string | null {
+  renderPublished(projectPublicId: string, path: string): string | null {
     const slug = normalizePublishedPath(path);
-    const page = PageRepository.getPublishedPageBySlug(this.profileId, slug, siteId);
+    const site = SiteRepository.getSiteByPublicId(this.profileId, projectPublicId) ?? SiteRepository.getSite(this.profileId, projectPublicId);
+    if (!site) return null;
+    const page = PageRepository.getPublishedPageBySlug(this.profileId, slug, site.id);
     return page ? renderPublishedPage(page, SiteRepository.getSite(this.profileId, page.siteId)) : null;
   }
 

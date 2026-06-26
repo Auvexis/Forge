@@ -115,6 +115,7 @@ describe('page explorer contract', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
     const codeCanvas = read('src/features/web-pages/components/SiteCodeCanvas.vue')
+    const baseCodeEditor = read('src/shared/components/base/BaseCodeEditor.vue')
 
     assert.doesNotMatch(files, /css\/site\.css/)
     assert.doesNotMatch(files, /js\/site\.js/)
@@ -128,6 +129,17 @@ describe('page explorer contract', () => {
     assert.match(codeCanvas, /BaseCodeEditor/)
     assert.match(codeCanvas, /readonly/)
     assert.match(codeCanvas, /image preview/i)
+    assert.match(baseCodeEditor, /CssWorker/)
+    assert.match(baseCodeEditor, /HtmlWorker/)
+  })
+
+  it('page css and js files open editable page-local content instead of generated html', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+
+    assert.match(editor, /function isGeneratedPageHtmlFile/)
+    assert.match(editor, /function ensureEditablePageAssetFile/)
+    assert.match(editor, /isGeneratedPageHtmlFile\(activeCodeFile\.value\.path\)/)
+    assert.doesNotMatch(editor, /activeCodeFile\.value\.path\.startsWith\('pages\/'\)\) return renderGeneratedHtml/)
   })
 
   it('explorer content stays compact under tabs and code tree has hierarchy affordances', () => {

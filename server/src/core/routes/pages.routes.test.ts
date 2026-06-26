@@ -172,6 +172,7 @@ describe("pages routes", () => {
 
     assert.equal(createSiteResponse.statusCode, 201);
     assert.equal(site.profileId, "profile_a");
+    assert.match(site.publicId, /^[A-Za-z0-9_-]{10}$/);
     assert.deepEqual(site.files.map((file: { path: string }) => file.path), ["pages", "assets"]);
 
     const createPageResponse = await app.inject({
@@ -202,6 +203,23 @@ describe("pages routes", () => {
 
     const deleteSiteResponse = await app.inject({ method: "DELETE", url: `/sites/${site.id}` });
     assert.equal(deleteSiteResponse.statusCode, 200);
+  });
+
+  it("published page resolves by the stable project public id", async () => {
+    const app = await buildApp();
+    const site = (await app.inject({ method: "POST", url: "/sites", payload: { name: "Marketing Site" } })).json().data;
+    const createPageResponse = await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/pages`,
+      payload: { title: "Home" },
+    });
+    const page = (createPageResponse.json() as ApiResponse<SailorPage>).data!;
+    await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
+
+    const response = await app.inject({ method: "GET", url: `/p/${site.publicId}/home` });
+
+    assert.equal(response.statusCode, 200);
+    assert.match(response.body, /Home/);
   });
 
   it("site project file routes create, update, delete, upload and serve assets", async () => {
