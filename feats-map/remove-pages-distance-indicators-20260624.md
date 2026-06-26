@@ -1,3 +1,0 @@
-- [x] Remove distance indicators
-- [x] Update contracts
-- [x] Verify and commit

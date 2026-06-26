@@ -1,5 +1,0 @@
-- [x] Add regression test for loader chunking from Extract From File
-- [x] Make loader use extractor chunking when needed
-- [x] Expose chunking controls on Default Data Loader
-- [x] Run focused tests
-- [x] Commit changes

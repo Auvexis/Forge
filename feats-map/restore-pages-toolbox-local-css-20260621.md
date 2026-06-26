@@ -1,4 +1,0 @@
-- [x] Restaurar escala compacta do ToolBox
-- [x] Manter preview animado intacto
-- [x] Rodar type-check
-- [x] Commitar ajuste

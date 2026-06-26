@@ -47,16 +47,6 @@ export const sidebarSections: SidebarSection[] = [
         route: '/workflows',
       },
       {
-        id: 'pages',
-        label: 'Pages',
-        pageLabel: 'Pages',
-        description: 'Create and publish profile-scoped workflow-connected sites.',
-        icon: 'panel-top',
-        accent: '#60a5fa',
-        hintId: 'pages',
-        route: '/pages',
-      },
-      {
         id: 'agents',
         label: 'Agents',
         pageLabel: 'Agents',
@@ -76,6 +66,30 @@ export const sidebarSections: SidebarSection[] = [
         intent: { type: 'monitoring.open' },
       },
       {
+        id: 'plugin-external-installer',
+        label: 'Installer',
+        description: 'Install plugins from the external repository or local files.',
+        icon: 'package',
+        accent: '#8a52ff',
+        hintId: 'plugin-external-installer',
+        intent: { type: 'plugin-installer.open' },
+      },
+    ],
+  },
+  {
+    label: 'Labs',
+    items: [
+      {
+        id: 'pages',
+        label: 'Pages',
+        pageLabel: 'Pages',
+        description: 'Create and publish profile-scoped workflow-connected sites.',
+        icon: 'panel-top',
+        accent: '#60a5fa',
+        hintId: 'pages',
+        route: '/pages',
+      },
+      {
         id: 'universe',
         label: 'Universe',
         description:
@@ -84,20 +98,6 @@ export const sidebarSections: SidebarSection[] = [
         accent: '#8a52ff',
         hintId: 'universe',
         route: '/universe',
-      },
-    ],
-  },
-  {
-    label: 'Plugins',
-    items: [
-      {
-        id: 'plugin-external-installer',
-        label: 'Installer',
-        description: 'Install plugins from the external repository or local files.',
-        icon: 'package',
-        accent: '#8a52ff',
-        hintId: 'plugin-external-installer',
-        intent: { type: 'plugin-installer.open' },
       },
     ],
   },
@@ -110,13 +110,6 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
     description: 'Open the command palette to find workflows, commands, and actions.',
     icon: 'search',
     hintId: 'search',
-  },
-  {
-    id: 'monitor',
-    label: 'Run and Debug',
-    description: 'View workflow executions, active runs, and recent errors.',
-    icon: 'activity',
-    hintId: 'monitor',
   },
   {
     id: 'docs',

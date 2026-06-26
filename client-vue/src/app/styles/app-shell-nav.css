@@ -117,26 +117,13 @@ button.nav-link {
   color: var(--sailor-sidebar-link-text);
 }
 
-/* Active indicator bar on the left edge */
-.nav-link--active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 2px;
-  height: 16px;
-  background-color: var(--sailor-gray-200);
-  border-radius: 0 var(--sailor-radius-full) var(--sailor-radius-full) 0;
-}
-
 /* ── Sidebar footer links stack ──────────────────────────── */
 
 .sidebar-footer-links {
   display: flex;
   flex-direction: row;
   width: 100%;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: var(--sailor-space-1);
 }
 

@@ -1,5 +1,0 @@
-- [x] Criar BaseSegmentedSelect
-- [x] Trocar tabs do Explorer pelo componente base
-- [x] Ajustar escala visual da ToolBox
-- [x] Rodar type-check
-- [x] Commitar ajuste

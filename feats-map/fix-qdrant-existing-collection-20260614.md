@@ -1,5 +1,0 @@
-- [x] Trace existing collection failure
-- [x] Add existing collection regression
-- [x] Make ensure collection idempotent
-- [x] Verify server tests and build
-- [x] Commit fix

@@ -1,5 +1,0 @@
-- [x] Reproduzir resize escapando da page
-- [x] Limitar resize pelas bordas da page
-- [x] Adicionar snap visual nas extremidades
-- [x] Verificar testes e type-check
-- [x] Commitar correção

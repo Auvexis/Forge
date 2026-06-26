@@ -1,8 +1,0 @@
-- [x] Ajustar Pages para BaseCanvas ocupar o viewport sem scroll interno
-- [x] Bloquear comportamento nativo do middle click no BaseCanvas
-- [x] Corrigir coordenadas locais da marquee selection
-- [x] Fechar context menu de Pages ao clicar fora
-- [x] Rodar testes do BaseCanvas
-- [x] Rodar testes de Pages afetados
-- [x] Rodar type-check do frontend
-- [x] Commitar ajustes

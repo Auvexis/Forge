@@ -1,4 +1,0 @@
-- [x] Trace connection preview endpoint source
-- [x] Cover target handle snap contract
-- [x] Add custom connection preview line
-- [x] Verify workflow editor contracts

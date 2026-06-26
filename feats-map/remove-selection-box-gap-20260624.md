@@ -1,3 +1,0 @@
-- [x] Remove selection outline gap
-- [x] Update contract
-- [x] Verify and commit

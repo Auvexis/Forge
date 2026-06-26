@@ -1,3 +1,0 @@
-- [x] Reproduce plugin manifest color loss in both node pickers
-- [x] Sync plugin styles with manifest metadata
-- [x] Verify picker tests and types

@@ -1,5 +1,0 @@
-- [x] Adicionar contratos de medidas da Selection Box
-- [x] Mostrar distancias ate as bordas da page
-- [x] Melhorar estado ativo dos handles
-- [x] Verificar testes e type-check
-- [x] Commitar melhoria

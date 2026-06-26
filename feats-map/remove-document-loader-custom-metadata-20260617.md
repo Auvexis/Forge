@@ -1,6 +1,0 @@
-- [x] Add regression coverage for no custom metadata
-- [x] Remove backend custom metadata generation
-- [x] Remove frontend metadata template UI
-- [x] Remove stale types/defaults/tests
-- [x] Run focused verification
-- [x] Commit changes

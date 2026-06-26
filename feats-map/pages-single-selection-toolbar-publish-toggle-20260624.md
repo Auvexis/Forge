@@ -1,5 +1,0 @@
-- [x] Merge selection chrome into one toolbar
-- [x] Keep selection after resize
-- [x] Merge publish commands
-- [x] Update contracts
-- [x] Verify and commit

@@ -1,3 +1,0 @@
-- [x] Use local block geometry for selection handles
-- [x] Verify focused frontend tests
-- [x] Commit fix

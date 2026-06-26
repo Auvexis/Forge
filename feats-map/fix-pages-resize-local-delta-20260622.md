@@ -1,4 +1,0 @@
-- [x] Use local resize dimensions
-- [x] Convert pointer delta by canvas scale
-- [x] Verify focused frontend tests
-- [x] Commit fix

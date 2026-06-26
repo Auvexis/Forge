@@ -1,7 +1,0 @@
-- [x] Adicionar contratos da aba ToolBox
-- [x] Criar painel ToolBox com secoes
-- [x] Integrar ToolBox no Explorer
-- [x] Estilizar no padrao da referencia
-- [x] Rodar contratos de Pages
-- [x] Rodar type-check
-- [x] Commitar ajuste

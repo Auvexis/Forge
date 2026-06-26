@@ -1,6 +1,0 @@
-- [x] Trace vector store indexing flow
-- [x] Add regression coverage
-- [x] Fix embedding vector extraction
-- [x] Verify collection creation path
-- [x] Run focused verification
-- [x] Commit changes

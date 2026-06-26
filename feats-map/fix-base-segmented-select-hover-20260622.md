@@ -1,3 +1,0 @@
-﻿- [x] Ajustar estado visual do BaseSegmentedSelect
-- [x] Verificar tipo e testes focados
-- [x] Commitar correção

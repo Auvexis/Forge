@@ -1,5 +1,0 @@
-- [x] Trace input variable data flow
-- [x] Add regression coverage
-- [x] Fix subnode input context
-- [x] Run focused verification
-- [x] Commit changes

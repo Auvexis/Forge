@@ -1,4 +1,0 @@
-- [x] Align selection controls to rendered block
-- [x] Stop canvas drag on cancel or window blur
-- [x] Verify focused frontend tests
-- [x] Commit fix

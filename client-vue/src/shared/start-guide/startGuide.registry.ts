@@ -1,33 +1,6 @@
 import type { StartGuideDefinition } from './startGuide.types'
 
 export const startGuideRegistry = {
-  'plugin-creator': {
-    featureId: 'plugin-creator',
-    version: 1,
-    category: 'plugins',
-    categoryLabel: 'Plugins',
-    defaultLang: 'en',
-    autoOpen: true,
-    steps: [
-      {
-        id: 'intro',
-        lang: {
-          en: {
-            title: 'Create plugins visually',
-            description: 'Use the plugin creator to sketch methods, fields, and execution flow.',
-          },
-          pt: {
-            title: 'Crie plugins visualmente',
-            description: 'Use o criador de plugins para montar metodos, campos e fluxo de execucao.',
-          },
-          es: {
-            title: 'Crea plugins visualmente',
-            description: 'Usa el creador de plugins para armar metodos, campos y flujo de ejecucion.',
-          },
-        },
-      },
-    ],
-  },
   'plugin-external-installer': {
     featureId: 'plugin-external-installer',
     version: 1,
@@ -89,11 +62,38 @@ export const startGuideRegistry = {
       },
     ],
   },
+  'workflow-editor-starter': {
+    featureId: 'workflow-editor-starter',
+    version: 1,
+    category: 'workflow-editor',
+    categoryLabel: 'Workflow Editor',
+    defaultLang: 'en',
+    autoOpen: false,
+    steps: [
+      {
+        id: 'workflow-editor-starter',
+        lang: {
+          en: {
+            title: 'Welcome to the Workflow Editor',
+            description: 'Use the workflow editor to create and edit workflows.',
+          },
+          pt: {
+            title: 'Bem-vindo ao Editor de Workflows',
+            description: 'Use o editor de workflows para criar e editar workflows.',
+          },
+          es: {
+            title: 'Bienvenido al Editor de Workflows',
+            description: 'Usa el editor de workflows para crear y editar workflows.',
+          },
+        },
+      },
+    ],
+  },
   'workflow-utility-nodes': {
     featureId: 'workflow-utility-nodes',
     version: 1,
-    category: 'workflows',
-    categoryLabel: 'Workflows',
+    category: 'workflow-editor',
+    categoryLabel: 'Workflow Editor',
     defaultLang: 'en',
     autoOpen: false,
     steps: [

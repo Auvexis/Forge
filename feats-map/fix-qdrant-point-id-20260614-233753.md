@@ -1,5 +1,0 @@
-- [x] Trace Qdrant point ID flow
-- [x] Add Qdrant point ID regression
-- [x] Normalize Qdrant point IDs
-- [x] Verify server tests and build
-- [x] Commit fix

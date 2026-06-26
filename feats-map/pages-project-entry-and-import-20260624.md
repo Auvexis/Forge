@@ -1,5 +1,0 @@
-- [x] Add project-first Pages contracts
-- [x] Add shared file drop component
-- [x] Add Pages project modals and project URL flow
-- [x] Support zip project import
-- [x] Verify and commit

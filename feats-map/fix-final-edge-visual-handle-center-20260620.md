@@ -1,4 +1,0 @@
-- [x] Trace final edge endpoint source
-- [x] Cover visual handle center endpoint contract
-- [x] Route final edges through visual handle centers
-- [x] Verify workflow editor contracts

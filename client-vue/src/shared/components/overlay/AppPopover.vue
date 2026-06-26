@@ -168,11 +168,6 @@ defineExpose({ open, close, toggle, isOpen })
   height: 100%;
   width: 100%;
   padding: 5px;
-  border-radius: var(--sailor-radius-sm);
-}
-
-.app-popover-trigger:hover {
-  background-color: var(--sailor-button-ghost-hover);
 }
 
 .app-popover-content {

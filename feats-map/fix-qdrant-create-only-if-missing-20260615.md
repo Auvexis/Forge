@@ -1,5 +1,0 @@
-- [x] Trace create collection flow
-- [x] Add no-create regression
-- [x] Check collection before create
-- [x] Verify server tests and build
-- [x] Commit fix

@@ -188,7 +188,7 @@ Resultado esperado:
 - Edges para `Embedding` e `Document` aparecem dashed.
 - `Text Dataset` e `Embedding Model` aparecem como subnodes/configuracao, nao como fluxo principal comum.
 
-## 5. Teste 3 - Extract From File direto para Vector Store
+## 5. Teste 3 - Extract From File direto para Vector Store ✅
 
 Objetivo: validar o novo input de multiplos arquivos.
 
@@ -204,7 +204,6 @@ Configuracao:
 
 - `Extract From File`: use 2 ou 3 arquivos:
   - `.md` ✅
-  - `.txt`
   - `.json` ✅
   - `.csv` ✅
 - Format: `auto` primeiro.

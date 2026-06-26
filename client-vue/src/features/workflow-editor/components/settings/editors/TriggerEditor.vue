@@ -36,20 +36,20 @@
             />
             <div style="width: 130px; flex-shrink: 0;">
               <BaseSelect
-                :model-value="(field as any).type as string"
+              :model-value="(field as any).type as string"
                 :options="MANUAL_FIELD_TYPES"
                 @update:model-value="updateSchemaField(String(key), { type: $event as any })"
-              />
-            </div>
-            <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--sailor-text-secondary)] cursor-pointer whitespace-nowrap px-1">
+                />
+              </div>
+              <div style="width: auto; flex-shrink: 0; border: none;">
               <BaseInput
                 type="checkbox"
                 class="te-checkbox"
                 :model-value="Boolean((field as any).required)"
                 @update:model-value="updateSchemaField(String(key), { required: Boolean($event) })"
-              />
-              Req
-            </label>
+                />
+              </div>
+            <label>Req</label>
             <BaseButton
               variant="ghost"
               size="icon"

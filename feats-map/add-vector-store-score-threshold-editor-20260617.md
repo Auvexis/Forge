@@ -1,4 +1,0 @@
-- [x] Adicionar teste de contrato para `scoreThreshold` no Vector Store editor
-- [x] Expor campo Score Threshold no `VectorStoreEditor`
-- [x] Rodar testes/type-check do frontend
-- [x] Commitar

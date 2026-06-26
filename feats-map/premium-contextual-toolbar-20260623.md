@@ -1,5 +1,0 @@
-- [x] Adicionar contratos da toolbar contextual
-- [x] Criar acoes por tipo de elemento
-- [x] Estilizar grupos da toolbar
-- [x] Verificar testes e type-check
-- [x] Commitar melhoria

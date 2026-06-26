@@ -23,13 +23,6 @@
               @sign-out="hasEnteredProfile = false"
               @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
-              <template v-if="isSidebarCollapsed" #header-extra>
-                <AppHint :hint="hintFor(activityById.search.hintId ?? activityById.search.id)">
-                  <button class="nav-link sidebar-activity-link" @click="openGlobalCommandPalette">
-                    <LucideIcon :name="activityById.search.icon" :size="16" />
-                  </button>
-                </AppHint>
-              </template>
               <section
                 v-for="section in sidebarSections"
                 :key="section.label"
@@ -79,16 +72,6 @@
                     </button>
                   </AppHint>
 
-                  <AppHint :hint="hintFor(activityById.monitor.hintId ?? activityById.monitor.id)">
-                    <button
-                      class="nav-link sidebar-activity-link"
-                      :class="{ 'nav-link--active': isAutomationMonitorOpen }"
-                      @click="handleSidebarActivityClick(activityById.monitor)"
-                    >
-                      <LucideIcon :name="activityById.monitor.icon" :size="16" />
-                    </button>
-                  </AppHint>
-
                   <AppHint :hint="hintFor(activityById.docs.hintId ?? activityById.docs.id)">
                     <button
                       type="button"
@@ -100,7 +83,9 @@
                     </button>
                   </AppHint>
 
-                  <AppHint :hint="hintFor(activityById.settings.hintId ?? activityById.settings.id)">
+                  <AppHint
+                    :hint="hintFor(activityById.settings.hintId ?? activityById.settings.id)"
+                  >
                     <button
                       class="nav-link sidebar-activity-link"
                       :class="{ 'nav-link--active': settingsStore.isOpen }"

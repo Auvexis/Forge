@@ -1,5 +1,0 @@
-- [x] Reproduce edge endpoint and handle center mismatch
-- [x] Preserve Vue Flow handle measurement geometry
-- [x] Align configured handles on every node side
-- [x] Refresh measurements after canvas initialization
-- [x] Verify edge and handle contracts and types

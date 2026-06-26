@@ -1,7 +1,7 @@
 <template>
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
     <header class="app-sidebar__header">
-      <img v-if="collapsed && showLogo" :src="logoSrc" alt="Sailor" class="app-sidebar__logo" />
+      <!-- <img v-if="collapsed && showLogo" :src="logoSrc" alt="Sailor" class="app-sidebar__logo" /> -->
       <ProfileSwitcher
         class="app-sidebar__profile-switcher"
         collapsed
@@ -16,9 +16,6 @@
       >
         <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="21" stroke-width="2" />
       </button>
-      <div v-if="$slots['header-extra']" class="app-sidebar__header-extra">
-        <slot name="header-extra"></slot>
-      </div>
     </header>
 
     <nav class="app-sidebar__main">
@@ -135,12 +132,6 @@ const { logoSrc } = useTheme()
 .app-sidebar__collapse:hover {
   color: var(--sailor-sidebar-text);
   background: transparent;
-}
-
-.app-sidebar__header-extra {
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .app-sidebar__main {
