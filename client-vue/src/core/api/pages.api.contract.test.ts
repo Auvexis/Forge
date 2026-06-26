@@ -21,8 +21,8 @@ describe('pages api contract', () => {
     assert.equal(ENDPOINTS.PAGE_BY_ID('page 1'), '/pages/page%201')
     assert.equal(ENDPOINTS.PAGE_PUBLISH('page_1'), '/pages/page_1/publish')
     assert.equal(ENDPOINTS.PAGE_PREVIEW('page_1'), '/pages/page_1/preview')
-    assert.equal(ENDPOINTS.PUBLISHED_PAGE('home'), '/p/home')
-    assert.equal(ENDPOINTS.PUBLISHED_PAGE_ACTION('home', 'action_1'), '/p/home/actions/action_1')
+    assert.equal(ENDPOINTS.PUBLISHED_PAGE('site_1', '/meusite/signup'), '/p/site_1/meusite/signup')
+    assert.equal(ENDPOINTS.PUBLISHED_PAGE_ACTION('site_1', '/meusite/signup', 'action_1'), '/p/site_1/actions/action_1/meusite/signup')
   })
 
   it('pagesApi exports list/create/get/update/delete/publish/submitAction helpers', () => {

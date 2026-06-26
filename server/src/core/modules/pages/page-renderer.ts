@@ -80,8 +80,8 @@ const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/st
 export function renderPublishedPage(page: PublishedPage, site?: SailorSite | null): string {
   const title = escapeHtml(page.metaTitle?.trim() || page.title);
   const pageJs = renderPageJs(page);
-  const siteJs = renderSiteJs(site);
-  const css = [renderBaseCss(), renderSiteFontFaces(site), renderSiteCss(site), renderPageCss(page)].filter(Boolean).join("\n");
+  const siteJs = renderSiteJs(page, site);
+  const css = [renderBaseCss(), renderSiteFontFaces(site), renderSiteCss(page, site), renderPageCss(page)].filter(Boolean).join("\n");
   const metaDescription = page.metaDescription?.trim()
     ? `<meta name="description" content="${escapeAttribute(page.metaDescription.trim())}">`
     : "";
@@ -245,15 +245,21 @@ function formatCustomCss(block: PageBlock): string[] {
 
 function renderPageJs(page: PublishedPage): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
-  const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page.slug) : "";
+  const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page) : "";
   return [actionRuntime, ...scripts].filter(Boolean).join("\n");
 }
 
-function renderSiteCss(site?: SailorSite | null): string {
+function renderSiteCss(page: PublishedPage, site?: SailorSite | null): string {
+  return renderPageLocalFiles(site, "css", pageFileSlug(page));
+}
+
+function renderPageLocalFiles(site: SailorSite | null | undefined, extension: "css" | "js", slug?: string): string {
+  if (!site || !slug) return "";
   return (site?.files ?? [])
-    .filter((file) => file.kind === "file" && file.path.startsWith("css/") && file.path.endsWith(".css"))
+    .filter((file) => file.kind === "file" && file.path.startsWith(`pages/${slug}/`) && file.path.endsWith(`.${extension}`))
     .map((file) => file.content?.trim() ?? "")
-    .filter((content) => content && !containsDangerousCss(content))
+    .filter((content) => content && (extension === "js" || !containsDangerousCss(content)))
+    .map((content) => extension === "js" ? escapeScript(content) : content)
     .join("\n");
 }
 
@@ -305,23 +311,23 @@ function fontFormat(path: string): string {
   return "truetype";
 }
 
-function renderSiteJs(site?: SailorSite | null): string {
-  return (site?.files ?? [])
-    .filter((file) => file.kind === "file" && file.path.startsWith("js/") && file.path.endsWith(".js"))
-    .map((file) => file.content?.trim() ?? "")
-    .filter(Boolean)
-    .map((content) => escapeScript(content))
-    .join("\n");
+function renderSiteJs(page: PublishedPage, site?: SailorSite | null): string {
+  return renderPageLocalFiles(site, "js", pageFileSlug(page));
+}
+
+function pageFileSlug(page: PublishedPage): string {
+  return page.fileSlug ?? page.slug.replace(/^\/+/, "").split("/").filter(Boolean).at(-1) ?? page.slug;
 }
 
 function hasPageActions(blocks: PageBlock[]): boolean {
   return blocks.some((block) => block.action || hasPageActions(block.children ?? []));
 }
 
-function renderActionRuntime(slug: string): string {
+function renderActionRuntime(page: PublishedPage): string {
   return [
     `;(() => {`,
-    `  const slug = ${JSON.stringify(slug)};`,
+    `  const slug = ${JSON.stringify(page.slug)};`,
+    `  const siteId = ${JSON.stringify(page.siteId)};`,
     `  let pendingActionId = "";`,
     `  let executionId = "";`,
     `  let runtimeError = "";`,
@@ -331,13 +337,16 @@ function renderActionRuntime(slug: string): string {
     `  function updateStatus() {`,
     `    status.textContent = runtimeError || (executionId ? "Accepted: " + executionId : "");`,
     `  }`,
+    `  function encodePublishedPath(path) {`,
+    `    return String(path).replace(/^\\/+/, "").split("/").map(encodeURIComponent).join("/");`,
+    `  }`,
     `  async function submitAction(actionId, payload) {`,
     `    pendingActionId = actionId;`,
     `    runtimeError = "";`,
     `    executionId = "";`,
     `    updateStatus();`,
     `    try {`,
-    `      const response = await fetch("/p/" + encodeURIComponent(slug) + "/actions/" + encodeURIComponent(actionId), {`,
+    `      const response = await fetch("/p/" + encodeURIComponent(siteId) + "/actions/" + encodeURIComponent(actionId) + "/" + encodePublishedPath(slug), {`,
     `        method: "POST",`,
     `        headers: { "content-type": "application/json" },`,
     `        body: JSON.stringify(payload),`,

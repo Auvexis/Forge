@@ -98,6 +98,7 @@ export interface PublishedPage {
   siteId: string;
   title: string;
   slug: string;
+  fileSlug?: string;
   publicPath?: string;
   metaTitle?: string;
   metaDescription?: string;

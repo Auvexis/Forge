@@ -1508,9 +1508,9 @@ async function togglePagePublication() {
 }
 
 function openLivePage() {
-  const slug = pagesStore.activePage?.slug
-  if (!slug || !activePagePublishedAt.value) return
-  window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(slug)}`, '_blank', 'noopener')
+  const page = pagesStore.activePage
+  if (!page?.siteId || !activePagePublishedAt.value) return
+  window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(page.siteId, page.publicPath || page.slug)}`, '_blank', 'noopener')
 }
 
 async function exportActiveProject() {

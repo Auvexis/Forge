@@ -89,12 +89,24 @@ describe("pages routes", () => {
     const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
-    const response = await app.inject({ method: "GET", url: "/p/landing-page" });
+    const response = await app.inject({ method: "GET", url: `/p/${page.siteId}/landing-page` });
     const listResponse = await app.inject({ method: "GET", url: "/pages" });
 
     assert.equal(response.statusCode, 200);
     assert.match(response.headers["content-type"] ?? "", /text\/html/);
     assert.equal(typeof (listResponse.json() as ApiResponse<Array<{ publishedAt: string }>>).data?.[0]?.publishedAt, "string");
+  });
+
+  it("published page supports nested public paths scoped by site id", async () => {
+    const app = await buildApp();
+    const createResponse = await app.inject({ method: "POST", url: "/pages", payload: { title: "Signup", publicPath: "/meusite/signup" } });
+    const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
+    await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
+
+    const response = await app.inject({ method: "GET", url: `/p/${page.siteId}/meusite/signup` });
+
+    assert.equal(response.statusCode, 200);
+    assert.match(response.body, /Signup/);
   });
 
   it("unpublish removes live page and clears list status", async () => {
@@ -104,7 +116,7 @@ describe("pages routes", () => {
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const unpublishResponse = await app.inject({ method: "POST", url: `/pages/${page.id}/unpublish` });
-    const liveResponse = await app.inject({ method: "GET", url: "/p/landing-page" });
+    const liveResponse = await app.inject({ method: "GET", url: `/p/${page.siteId}/landing-page` });
     const listResponse = await app.inject({ method: "GET", url: "/pages" });
 
     assert.equal(unpublishResponse.statusCode, 200);
@@ -118,7 +130,7 @@ describe("pages routes", () => {
 
     const response = await app.inject({
       method: "POST",
-      url: "/p/landing-page/actions/action_submit",
+      url: "/p/site_default_profile_a/actions/action_submit/landing-page",
       payload: { email: "ada@example.com" },
     });
 
@@ -160,7 +172,7 @@ describe("pages routes", () => {
 
     assert.equal(createSiteResponse.statusCode, 201);
     assert.equal(site.profileId, "profile_a");
-    assert.deepEqual(site.files.map((file: { path: string }) => file.path), ["pages", "assets", "js", "css"]);
+    assert.deepEqual(site.files.map((file: { path: string }) => file.path), ["pages", "assets"]);
 
     const createPageResponse = await app.inject({
       method: "POST",

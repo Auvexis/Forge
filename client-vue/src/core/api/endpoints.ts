@@ -75,9 +75,9 @@ export const ENDPOINTS = {
   PAGE_PUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/publish`,
   PAGE_UNPUBLISH: (id: string) => `/pages/${encodeURIComponent(id)}/unpublish`,
   PAGE_PREVIEW: (id: string) => `/pages/${encodeURIComponent(id)}/preview`,
-  PUBLISHED_PAGE: (slug: string) => `/p/${encodeURIComponent(slug)}`,
-  PUBLISHED_PAGE_ACTION: (slug: string, actionId: string) =>
-    `/p/${encodeURIComponent(slug)}/actions/${encodeURIComponent(actionId)}`,
+  PUBLISHED_PAGE: (siteId: string, slug: string) => `/p/${encodeURIComponent(siteId)}/${encodePublishedPath(slug)}`,
+  PUBLISHED_PAGE_ACTION: (siteId: string, slug: string, actionId: string) =>
+    `/p/${encodeURIComponent(siteId)}/actions/${encodeURIComponent(actionId)}/${encodePublishedPath(slug)}`,
 
   // Plugins
   PLUGINS: '/plugins',
@@ -156,3 +156,7 @@ export const ENDPOINTS = {
   AGENT_APPROVAL_REJECT: (approvalId: string) =>
     `/agent-approvals/${encodeURIComponent(approvalId)}/reject`,
 } as const
+
+function encodePublishedPath(path: string) {
+  return path.replace(/^\/+/, '').split('/').map(encodeURIComponent).join('/')
+}

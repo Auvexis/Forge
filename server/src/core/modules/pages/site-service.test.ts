@@ -23,7 +23,7 @@ describe("SiteService", () => {
 
     assert.equal(site.name, "Marketing Site");
     assert.equal(site.slug, "marketing-site");
-    assert.deepEqual(site.files.map((file) => file.path), ["pages", "assets", "js", "css"]);
+    assert.deepEqual(site.files.map((file) => file.path), ["pages", "assets"]);
   });
 
   it("lists and updates sites inside the active profile", () => {
@@ -33,11 +33,11 @@ describe("SiteService", () => {
     const updated = service.updateSite(site.id, {
       name: "Docs Site",
       slug: "docs-site",
-      files: [...site.files, { path: "css/site.css", kind: "file", content: "", updatedAt: "2026-05-24T00:00:00.000Z" }],
+      files: [...site.files, { path: "pages/home/home.css", kind: "file", content: "", updatedAt: "2026-05-24T00:00:00.000Z" }],
     });
 
     assert.equal(updated.slug, "docs-site");
-    assert.equal(updated.files.some((file) => file.path === "css/site.css"), true);
+    assert.equal(updated.files.some((file) => file.path === "pages/home/home.css"), true);
     assert.deepEqual(service.listSites().map((item) => item.id), [site.id]);
   });
 

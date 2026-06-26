@@ -113,13 +113,13 @@ const creationDialog = ref({
 const files = computed(() => [
   ...defaultFolders(),
   ...pageFiles(),
-  ...defaultEditableFiles(props.site?.files ?? []),
+  ...defaultEditableFiles(),
   ...(props.site?.files ?? []),
 ])
 const tree = computed(() => buildTree(files.value))
 const visibleNodes = computed(() => flattenVisibleTree(tree.value))
 
-function openCreationDialog(kind: CreationKind, parentPath = kind === 'file' ? 'css' : 'assets') {
+function openCreationDialog(kind: CreationKind, parentPath = kind === 'file' ? 'pages' : 'assets') {
   creationDialog.value = {
     isOpen: true,
     kind,
@@ -168,7 +168,7 @@ function canDeleteFile(file: SiteFile) {
 }
 
 function defaultFolders(): SiteFile[] {
-  return ['pages', 'assets', 'css', 'js'].map((path) => ({ path, kind: 'folder', updatedAt: '' }))
+  return ['pages', 'assets'].map((path) => ({ path, kind: 'folder', updatedAt: '' }))
 }
 
 function pageFiles(): SiteFile[] {
@@ -186,13 +186,25 @@ function pageFiles(): SiteFile[] {
       mimeType: 'text/html',
       updatedAt: page.updatedAt,
     },
+    {
+      path: `pages/${page.slug}/${page.slug}.css`,
+      kind: 'file' as const,
+      content: '',
+      mimeType: 'text/css',
+      updatedAt: page.updatedAt,
+    },
+    {
+      path: `pages/${page.slug}/${page.slug}.js`,
+      kind: 'file' as const,
+      content: '',
+      mimeType: 'text/javascript',
+      updatedAt: page.updatedAt,
+    },
   ])
 }
 
-function defaultEditableFiles(siteFiles: SiteFile[]): SiteFile[] {
-  return ['css/site.css', 'js/site.js']
-    .filter((path) => !siteFiles.some((file) => file.path === path))
-    .map((path) => ({ path, kind: 'file', content: '', updatedAt: '' }))
+function defaultEditableFiles(): SiteFile[] {
+  return []
 }
 
 function buildTree(siteFiles: SiteFile[]): FileNodeModel[] {

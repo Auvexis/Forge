@@ -130,7 +130,7 @@ function createSiteId(): string {
 }
 
 function defaultProjectFolders(now: string) {
-  return ["pages", "assets", "js", "css"].map((path) => ({
+  return ["pages", "assets"].map((path) => ({
     path,
     kind: "folder" as const,
     updatedAt: now,

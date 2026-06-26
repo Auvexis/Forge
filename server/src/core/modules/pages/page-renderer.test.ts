@@ -177,7 +177,7 @@ describe("page renderer", () => {
 
     assert.match(html, /addEventListener\("submit"/);
     assert.match(html, /FormData/);
-    assert.match(html, /encodeURIComponent\(slug\).*\/actions\/.*encodeURIComponent\(actionId\)/s);
+    assert.match(html, /encodeURIComponent\(siteId\).*\/actions\/.*encodeURIComponent\(actionId\).*encodePublishedPath\(slug\)/s);
     assert.match(html, /pendingActionId/);
     assert.match(html, /runtimeError/);
     assert.doesNotMatch(html, /eval\(/);
@@ -217,22 +217,26 @@ describe("page renderer", () => {
     assert.match(html, /&lt;script&gt;alert/);
   });
 
-  it("renders safe site css and js files with published pages", () => {
+  it("renders safe page-local css and js files with published pages", () => {
     const html = renderPublishedPage(
-      publishedPage(),
+      publishedPage({ slug: "contact" }),
       sailorSite({
         files: [
-          { path: "css/site.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
-          { path: "css/bad.css", kind: "file", content: "body { background: url(javascript:alert(1)); }", updatedAt: "now" },
-          { path: "js/site.js", kind: "file", content: "document.body.dataset.ready = '1';", updatedAt: "now" },
-          { path: "js/bad.js", kind: "file", content: "</script><script>alert(1)</script>", updatedAt: "now" },
+          { path: "pages/contact/site.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
+          { path: "pages/contact/bad.css", kind: "file", content: "body { background: url(javascript:alert(1)); }", updatedAt: "now" },
+          { path: "pages/contact/site.js", kind: "file", content: "document.body.dataset.ready = '1';", updatedAt: "now" },
+          { path: "pages/contact/bad.js", kind: "file", content: "</script><script>alert(1)</script>", updatedAt: "now" },
+          { path: "css/root.css", kind: "file", content: "body { color: red; }", updatedAt: "now" },
+          { path: "js/root.js", kind: "file", content: "document.body.dataset.root = '1';", updatedAt: "now" },
         ],
       }),
     );
 
     assert.match(html, /body \{ margin: 0; \}/);
+    assert.doesNotMatch(html, /color: red/);
     assert.doesNotMatch(html, /javascript:alert/);
     assert.match(html, /document\.body\.dataset\.ready/);
+    assert.doesNotMatch(html, /dataset\.root/);
     assert.doesNotMatch(html, /<\/script><script>alert/);
     assert.match(html, /<\\\/script>/);
   });

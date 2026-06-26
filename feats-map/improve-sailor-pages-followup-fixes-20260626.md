@@ -28,15 +28,15 @@ Resumo curto: corrigir multiseleção, save/publicação, slugs/URLs, assets e c
 - [x] Commit.
 
 ## Batch 3 - Output Structure And Publish Runtime
-- [ ] Criar `.css` dentro da pasta da page.
-- [ ] Criar `.js` dentro da pasta da page.
-- [ ] Remover geração das pastas root `css/` e `js/`.
-- [ ] Manter somente `assets/` e `pages/` no root publicado.
-- [ ] Adicionar ID seguro na URL publicada para evitar conflito entre profiles/projetos.
-- [ ] Corrigir preview publicado que retorna "Page not found".
-- [ ] Add/adjust tests.
-- [ ] Run focused tests and build.
-- [ ] Commit.
+- [x] Criar `.css` dentro da pasta da page.
+- [x] Criar `.js` dentro da pasta da page.
+- [x] Remover geração das pastas root `css/` e `js/`.
+- [x] Manter somente `assets/` e `pages/` no root publicado.
+- [x] Adicionar ID seguro na URL publicada para evitar conflito entre profiles/projetos.
+- [x] Corrigir preview publicado que retorna "Page not found".
+- [x] Add/adjust tests.
+- [x] Run focused tests and build.
+- [x] Commit.
 
 ## Batch 4 - Explorer Assets And Preview Actions
 - [ ] Adicionar drag preview animado nos Assets do Explorer.

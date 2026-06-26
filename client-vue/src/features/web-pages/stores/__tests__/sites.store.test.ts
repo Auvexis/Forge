@@ -15,8 +15,6 @@ function site(overrides: Partial<SailorSite> = {}): SailorSite {
     files: [
       { path: 'pages', kind: 'folder', updatedAt: '2026-05-24T00:00:00.000Z' },
       { path: 'assets', kind: 'folder', updatedAt: '2026-05-24T00:00:00.000Z' },
-      { path: 'js', kind: 'folder', updatedAt: '2026-05-24T00:00:00.000Z' },
-      { path: 'css', kind: 'folder', updatedAt: '2026-05-24T00:00:00.000Z' },
     ],
     createdAt: '2026-05-24T00:00:00.000Z',
     updatedAt: '2026-05-24T00:00:00.000Z',
@@ -94,11 +92,11 @@ describe('sites store', () => {
     assert.equal(store.activeSite?.id, created.id)
 
     store.setActiveSite({ ...created, name: 'Changed' })
-    store.createFile('css/site.css', 'body { margin: 0; }')
+    store.createFile('pages/home/home.css', 'body { margin: 0; }')
     assert.equal(store.isDirty, true)
 
     await store.saveActiveSite()
-    assert.equal(savedFilesLength, 5)
+    assert.equal(savedFilesLength, 3)
     assert.equal(store.isDirty, false)
 
     await store.deleteSite(created.id)
@@ -110,11 +108,11 @@ describe('sites store', () => {
     store.setActiveSite(site())
 
     assert.equal(store.createFolder('assets/brand'), true)
-    assert.equal(store.createFile('css/custom.css', 'body { margin: 0; }'), true)
-    assert.equal(store.updateFile('css/custom.css', 'body { padding: 0; }'), true)
+    assert.equal(store.createFile('pages/home/custom.css', 'body { margin: 0; }'), true)
+    assert.equal(store.updateFile('pages/home/custom.css', 'body { padding: 0; }'), true)
 
     assert.equal(store.activeSite?.files.some((file) => file.path === 'assets/brand'), true)
-    assert.equal(store.activeSite?.files.find((file) => file.path === 'css/custom.css')?.content, 'body { padding: 0; }')
+    assert.equal(store.activeSite?.files.find((file) => file.path === 'pages/home/custom.css')?.content, 'body { padding: 0; }')
     assert.equal(store.isDirty, true)
   })
 
@@ -122,10 +120,10 @@ describe('sites store', () => {
     const store = useSitesStore()
     store.setActiveSite(site())
 
-    assert.equal(store.createFile('js/site.js', 'console.log("ok")'), true)
-    assert.equal(store.createFile('js/site.js', 'console.log("dupe")'), false)
-    assert.equal(store.deleteFile('js/site.js'), true)
-    assert.equal(store.activeSite?.files.some((file) => file.path === 'js/site.js'), false)
+    assert.equal(store.createFile('pages/home/home.js', 'console.log("ok")'), true)
+    assert.equal(store.createFile('pages/home/home.js', 'console.log("dupe")'), false)
+    assert.equal(store.deleteFile('pages/home/home.js'), true)
+    assert.equal(store.activeSite?.files.some((file) => file.path === 'pages/home/home.js'), false)
   })
 
   it('uploads an asset and updates the active site', async () => {

@@ -116,8 +116,10 @@ describe('page explorer contract', () => {
     const files = read('src/features/web-pages/components/SiteFilesPanel.vue')
     const codeCanvas = read('src/features/web-pages/components/SiteCodeCanvas.vue')
 
-    assert.match(files, /css\/site\.css/)
-    assert.match(files, /js\/site\.js/)
+    assert.doesNotMatch(files, /css\/site\.css/)
+    assert.doesNotMatch(files, /js\/site\.js/)
+    assert.match(files, /pages\/\$\{page\.slug\}\/\$\{page\.slug\}\.css/)
+    assert.match(files, /pages\/\$\{page\.slug\}\/\$\{page\.slug\}\.js/)
     assert.match(files, /pages\//)
     assert.match(files, /assets\//)
     assert.match(files, /open-file/)

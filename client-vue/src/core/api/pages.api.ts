@@ -128,8 +128,8 @@ export const pagesApi = {
       method: 'POST',
     }),
 
-  submitPageAction: (slug: string, actionId: string, payload: Record<string, unknown>) =>
-    apiRequest<PageActionResponse>(ENDPOINTS.PUBLISHED_PAGE_ACTION(slug, actionId), {
+  submitPageAction: (siteId: string, slug: string, actionId: string, payload: Record<string, unknown>) =>
+    apiRequest<PageActionResponse>(ENDPOINTS.PUBLISHED_PAGE_ACTION(siteId, slug, actionId), {
       method: 'POST',
       body: payload,
     }),

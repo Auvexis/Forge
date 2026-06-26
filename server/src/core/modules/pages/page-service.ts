@@ -105,6 +105,7 @@ export class PageService {
       siteId: page.siteId,
       title: validation.page.title,
       slug: validation.page.publicPath ?? validation.page.slug,
+      fileSlug: validation.page.slug,
       publicPath: validation.page.publicPath,
       metaTitle: validation.page.metaTitle,
       metaDescription: validation.page.metaDescription,
@@ -143,6 +144,7 @@ export class PageService {
       siteId: page.siteId,
       title: page.title,
       slug: page.slug,
+      fileSlug: page.slug,
       publicPath: page.publicPath,
       metaTitle: page.metaTitle,
       metaDescription: page.metaDescription,
@@ -153,8 +155,9 @@ export class PageService {
     }, SiteRepository.getSite(this.profileId, page.siteId));
   }
 
-  renderPublished(slug: string): string | null {
-    const page = PageRepository.getPublishedPageBySlug(this.profileId, slug);
+  renderPublished(siteId: string, path: string): string | null {
+    const slug = normalizePublishedPath(path);
+    const page = PageRepository.getPublishedPageBySlug(this.profileId, slug, siteId);
     return page ? renderPublishedPage(page, SiteRepository.getSite(this.profileId, page.siteId)) : null;
   }
 
@@ -204,4 +207,9 @@ function slugify(value: string): string {
     .replace(/^-+|-+$/g, "");
 
   return slug.length >= 3 ? slug.slice(0, 80).replace(/-+$/g, "") : "page";
+}
+
+function normalizePublishedPath(path: string): string {
+  const normalized = decodeURIComponent(path).replace(/^\/+/, "");
+  return normalized.includes("/") ? `/${normalized}` : normalized;
 }

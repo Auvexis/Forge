@@ -119,6 +119,10 @@ export default async function pagesRoutes(
       const page = getSiteService().createPage(siteId, {
         title: String(body.title ?? ""),
         slug: body.slug,
+        publicPath: body.publicPath,
+        metaTitle: body.metaTitle,
+        metaDescription: body.metaDescription,
+        faviconUrl: body.faviconUrl,
         bodyStyles: body.bodyStyles,
         blocks: body.blocks,
       });
@@ -316,6 +320,10 @@ export default async function pagesRoutes(
         profileId: getProfileId(),
         title: String(body.title ?? ""),
         slug: body.slug,
+        publicPath: body.publicPath,
+        metaTitle: body.metaTitle,
+        metaDescription: body.metaDescription,
+        faviconUrl: body.faviconUrl,
         bodyStyles: body.bodyStyles,
         blocks: body.blocks,
       });
@@ -406,15 +414,17 @@ export default async function pagesRoutes(
     return reply.code(200).type("text/html").send(html);
   });
 
-  fastify.get("/p/:slug", async (req, reply) => {
-    const { slug } = req.params as { slug: string };
-    const html = getService().renderPublished(slug);
+  fastify.get("/p/:siteId/*", async (req, reply) => {
+    const { siteId } = req.params as { siteId: string };
+    const slug = (req.params as { "*": string })["*"];
+    const html = getService().renderPublished(siteId, slug);
     if (!html) return reply.code(404).send("Page not found");
     return reply.code(200).type("text/html").send(html);
   });
 
-  fastify.post("/p/:slug/actions/:actionId", async (req, reply) => {
-    const { slug, actionId } = req.params as { slug: string; actionId: string };
+  fastify.post("/p/:siteId/actions/:actionId/*", async (req, reply) => {
+    const { siteId, actionId } = req.params as { siteId: string; actionId: string };
+    const slug = (req.params as { "*": string })["*"];
     const result = await actionService.submitAction(getProfileId(), slug, actionId, {
       body: req.body,
       headers: req.headers,

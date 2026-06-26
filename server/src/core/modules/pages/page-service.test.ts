@@ -111,7 +111,7 @@ describe("PageService", () => {
       blocks: [{ id: "text_1", tag: "text", props: { text: "Draft changed" }, children: [] }],
     });
 
-    const html = service.renderPublished("landing-page") ?? "";
+    const html = service.renderPublished(page.siteId, "landing-page") ?? "";
 
     assert.match(html, /Published text/);
     assert.doesNotMatch(html, /Draft changed/);
@@ -123,15 +123,15 @@ describe("PageService", () => {
       ...site,
       files: [
         ...site.files,
-        { path: "css/site.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
-        { path: "js/site.js", kind: "file", content: "document.body.dataset.site = 'ready';", updatedAt: "now" },
+        { path: "pages/landing-page/landing-page.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
+        { path: "pages/landing-page/landing-page.js", kind: "file", content: "document.body.dataset.site = 'ready';", updatedAt: "now" },
       ],
     });
     const page = service.createPage({ profileId: "profile_a", title: "Landing Page", siteId: site.id });
 
     assert.match(service.renderPreview(page.id) ?? "", /body \{ margin: 0; \}/);
     service.publishPage(page.id);
-    assert.match(service.renderPublished("landing-page") ?? "", /document\.body\.dataset\.site/);
+    assert.match(service.renderPublished(page.siteId, "landing-page") ?? "", /document\.body\.dataset\.site/);
   });
 
   it("unpublishes page and removes live render", () => {
@@ -142,6 +142,6 @@ describe("PageService", () => {
 
     assert.deepEqual(status, { pageId: page.id, publishedAt: null });
     assert.equal(service.listPages()[0]?.publishedAt, null);
-    assert.equal(service.renderPublished("landing-page"), null);
+    assert.equal(service.renderPublished(page.siteId, "landing-page"), null);
   });
 });
