@@ -1,0 +1,6 @@
+- [x] Make block frame layout-neutral
+- [x] Keep delete animation on real block
+- [x] Verify renderer/selection tests
+- [x] Verify build
+- [ ] Full Pages suite has unrelated failures
+- [x] Commit changes

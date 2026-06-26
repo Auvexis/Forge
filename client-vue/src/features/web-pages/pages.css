@@ -604,6 +604,7 @@
 
 .web-page-block-frame {
   position: relative;
+  display: contents;
   overflow: visible;
   transition:
     opacity 140ms var(--sailor-ease-standard),
@@ -611,7 +612,7 @@
     box-shadow 160ms var(--sailor-ease-standard);
 }
 
-.web-page-block-frame--deleting {
+.web-page-block-frame--deleting .web-page-block-frame__inner {
   opacity: 0;
   transform: scale(0.985);
   pointer-events: none;
