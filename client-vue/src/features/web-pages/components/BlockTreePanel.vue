@@ -207,7 +207,7 @@ function togglePage(pageId: string) {
 }
 
 function selectTreeBlock(event: MouseEvent, blockId: string) {
-  if (event.shiftKey) {
+  if (event.ctrlKey || event.metaKey || event.shiftKey) {
     editorStore.selectBlockRange(blockId)
     return
   }

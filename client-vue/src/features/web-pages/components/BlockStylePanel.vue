@@ -110,7 +110,7 @@
       </label>
       <label class="web-page-style-row">
         <span>Font Weight</span>
-        <BaseSegmentedSelect :model-value="String(block.styles?.fontWeight ?? '')" :options="fontWeightOptions" @update:model-value="setStyle('fontWeight', String($event))" />
+        <BaseInput :model-value="String(block.styles?.fontWeight ?? '')" placeholder="400, 600, 700" @update:model-value="setStyle('fontWeight', $event)" />
       </label>
       <label class="web-page-style-row">
         <span>Line Height</span>
@@ -160,10 +160,6 @@
 
     <section class="web-page-style-section">
       <h5>Border</h5>
-      <label class="web-page-style-row">
-        <span>Border</span>
-        <BaseInput :model-value="String(block.styles?.border ?? '')" placeholder="1px solid #ddd" @update:model-value="setStyle('border', $event)" />
-      </label>
       <label class="web-page-style-row">
         <span>Width</span>
         <BaseInput :model-value="String(block.styles?.borderWidth ?? '')" placeholder="1px" @update:model-value="setStyle('borderWidth', $event)" />
@@ -261,13 +257,6 @@ const justifyOptions = [
   { label: '', title: 'Between', value: 'space-between', icon: 'between-horizontal-start' },
   { label: '', title: 'Around', value: 'space-around', icon: 'between-horizontal-end' },
 ]
-const fontWeightOptions = [
-  { label: '', title: 'Default', value: '', icon: 'circle-slash' },
-  { label: '', title: 'Regular', value: '400', icon: 'type' },
-  { label: '', title: 'Medium', value: '500', icon: 'baseline' },
-  { label: '', title: 'Semi Bold', value: '600', icon: 'bold' },
-  { label: '', title: 'Bold', value: '700', icon: 'bold' },
-]
 const textAlignOptions = [
   { label: '', title: 'Default', value: '', icon: 'circle-slash' },
   { label: '', title: 'Left', value: 'left', icon: 'align-left' },
@@ -312,7 +301,7 @@ const borderStyleOptions = [
 
 function setStyle(key: string, value: string | boolean) {
   emit('patch', {
-    styles: sanitizeStyles({ ...(props.block.styles ?? {}), [key]: String(value) }),
+    styles: sanitizeStyles({ [key]: String(value) }),
   })
 }
 

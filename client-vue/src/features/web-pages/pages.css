@@ -608,10 +608,6 @@
   overflow: visible;
 }
 
-.web-page-block-frame--selected .web-page-block-frame__inner {
-  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--web-page-selected-color) 10%, transparent));
-}
-
 .web-page-block__placeholder {
   display: inline-flex;
   min-height: 24px;

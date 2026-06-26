@@ -74,6 +74,24 @@ describe('page editor store', () => {
     assert.equal(store.selectedBlock?.props?.label, 'Hero')
   })
 
+  it('toggles mixed block selection and patches selected styles together', () => {
+    const store = usePageEditorStore()
+    store.setBlocks([
+      { id: 'section_1', tag: 'section', styles: { color: '#111111' }, children: [] },
+      { id: 'input_1', tag: 'input', styles: { fontSize: '14px' }, children: [] },
+    ])
+
+    store.selectBlock('section_1')
+    store.toggleBlockSelection('input_1')
+    store.patchSelectedBlocks({ styles: { fontWeight: '700' } })
+
+    assert.deepEqual(store.selectedBlockIds, ['section_1', 'input_1'])
+    assert.equal(store.blocks[0]?.styles?.color, '#111111')
+    assert.equal(store.blocks[0]?.styles?.fontWeight, '700')
+    assert.equal(store.blocks[1]?.styles?.fontSize, '14px')
+    assert.equal(store.blocks[1]?.styles?.fontWeight, '700')
+  })
+
   it('clears block actions when patching action to undefined', () => {
     const store = usePageEditorStore()
     store.setBlocks([
@@ -103,6 +121,7 @@ describe('page editor store', () => {
 
     assert.equal(store.renameBlockId('text_1', 'hero_title'), true)
     assert.equal(store.selectedBlockId, 'hero_title')
+    assert.deepEqual(store.selectedBlockIds, ['hero_title'])
     assert.equal(store.blocks[0]?.children?.[0]?.id, 'hero_title')
 
     assert.equal(store.renameBlockId('hero_title', 'footer_1'), false)

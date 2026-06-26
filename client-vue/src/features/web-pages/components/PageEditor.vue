@@ -139,6 +139,7 @@
                 :canvas-viewport="pageCanvasViewport"
                 :canvas-zoom="pageCanvasViewport.zoom"
                 :selected-block-id="item.id === pagesStore.activePage?.id ? editorStore.selectedBlockId : null"
+                :selected-block-ids="item.id === pagesStore.activePage?.id ? editorStore.selectedBlockIds : []"
                 :drop-intent="item.id === pagesStore.activePage?.id ? editorStore.dragIntent : null"
                 :deleting-block-ids="deletingBlockIds"
                 :readonly="item.id !== pagesStore.activePage?.id"
@@ -225,10 +226,6 @@
         @patch="patchBodyStyles"
       />
       <template v-if="editorStore.selectedTarget.type === 'block' && editorStore.selectedBlock">
-        <p v-if="editorStore.selectedBlockIds.length > 1 && selectedBlocksSameType" class="web-page-editor__batch">
-          Editing {{ editorStore.selectedBlockIds.length }} {{ editorStore.selectedBlock.tag }} elements
-        </p>
-        <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
         <div class="web-page-editor__inspector-tabs">
           <BaseSegmentedSelect
             v-model="blockInspectorTab"
@@ -237,21 +234,26 @@
             :icon-size="15"
           />
         </div>
-        <BlockContentPanel
-          v-if="blockInspectorTab === 'content'"
-          :block="editorStore.selectedBlock"
-          @patch="patchSelectedOrSingleBlock"
-          @upload-image="uploadImageForSelectedBlock"
-        />
+        <p v-if="editorStore.selectedBlockIds.length > 1" class="web-page-editor__batch">
+          Editing {{ editorStore.selectedBlockIds.length }} selected elements
+        </p>
+        <template v-if="blockInspectorTab === 'content'">
+          <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
+          <BlockContentPanel
+            :block="editorStore.selectedBlock"
+            @patch="patchActiveBlock"
+            @upload-image="uploadImageForSelectedBlock"
+          />
+        </template>
         <BlockAdvancedPanel
           v-if="blockInspectorTab === 'advanced'"
           :block="editorStore.selectedBlock"
-          @patch="patchSelectedOrSingleBlock"
+          @patch="patchActiveBlock"
         />
         <BlockStylePanel
           v-if="blockInspectorTab === 'style'"
           :block="editorStore.selectedBlock"
-          @patch="patchSelectedOrSingleBlock"
+          @patch="patchSelectedStyle"
         />
       </template>
       <p v-if="editorStore.selectedTarget.type === 'none'" class="web-page-editor__empty">Select a page, body, or block.</p>
@@ -526,10 +528,6 @@ const activeCodeContent = computed(() => {
   return sitesStore.activeSite?.files.find((file) => file.path === activeCodeFile.value?.path)?.content ?? activeCodeFile.value.content ?? ''
 })
 const isActiveCodeFileReadonly = computed(() => activeCodeFile.value?.path.endsWith('.html') ?? false)
-const selectedBlocksSameType = computed(() => {
-  const selected = editorStore.selectedBlocks
-  return selected.length > 1 && selected.every((block) => block.tag === selected[0]?.tag)
-})
 const filteredProjects = computed(() => {
   const query = projectSearch.value.trim().toLowerCase()
   if (!query) return sitesStore.sites
@@ -586,12 +584,16 @@ function closeCodeCanvas() {
   activeCodeFile.value = null
 }
 
-function patchSelectedOrSingleBlock(patch: Partial<PageBlock>) {
-  if (selectedBlocksSameType.value) {
+function patchActiveBlock(patch: Partial<PageBlock>) {
+  if (editorStore.selectedBlock) editorStore.patchBlock(editorStore.selectedBlock.id, patch)
+}
+
+function patchSelectedStyle(patch: Partial<PageBlock>) {
+  if (editorStore.selectedBlockIds.length > 1) {
     editorStore.patchSelectedBlocks(patch)
     return
   }
-  if (editorStore.selectedBlock) editorStore.patchBlock(editorStore.selectedBlock.id, patch)
+  patchActiveBlock(patch)
 }
 
 function resizeBlockFromCanvas(pageId: string, payload: { blockId: string; styles: PageBlockStyles | undefined }) {
@@ -865,8 +867,11 @@ async function ensurePageActive(pageId: string) {
   await nextTick()
 }
 
-function selectCanvasBlock(pageId: string, blockId: string) {
-  void ensurePageActive(pageId).then(() => editorStore.selectBlock(blockId))
+function selectCanvasBlock(pageId: string, payload: { blockId: string; additive?: boolean }) {
+  void ensurePageActive(pageId).then(() => {
+    if (payload.additive) editorStore.toggleBlockSelection(payload.blockId)
+    else editorStore.selectBlock(payload.blockId)
+  })
 }
 
 function selectCanvasBody(pageId: string) {

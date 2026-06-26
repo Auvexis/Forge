@@ -76,7 +76,9 @@ describe('block inspector contract', () => {
     assert.match(source, /backgroundColor/)
     assert.match(source, /BaseColorPicker/)
     assert.match(source, /BaseSegmentedSelect/)
+    assert.match(source, /placeholder="400, 600, 700"/)
     assert.match(source, /sanitizeStyles/)
+    assert.doesNotMatch(source, /placeholder="1px solid #ddd"/)
     assert.match(renderer, /:style="resolvedBlockStyles"/)
     assert.match(renderer, /\.\.\.props\.block\.styles/)
     assert.match(allowlist, /minWidth/)
@@ -171,6 +173,15 @@ describe('block inspector contract', () => {
     assert.match(editor, /v-if="blockInspectorTab === 'style'"/)
     assert.match(editor, /v-if="blockInspectorTab === 'advanced'"/)
     assert.match(styles, /web-page-editor__inspector-tabs/)
+  })
+
+  it('form import tools render only inside the content tab', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const contentPanel = editor.match(/<template v-if="blockInspectorTab === 'content'">[\s\S]*?<\/template>/)?.[0] ?? ''
+
+    assert.match(contentPanel, /<FormImportPanel/)
+    assert.match(contentPanel, /<BlockContentPanel/)
+    assert.doesNotMatch(editor, /<FormImportPanel[\s\S]*<div class="web-page-editor__inspector-tabs"/)
   })
 
   it('renderer injects custom css outside the vue template side-effect tags', () => {

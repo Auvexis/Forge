@@ -17,24 +17,26 @@ describe('sailor pages fixes contracts', () => {
     assert.doesNotMatch(source, /Generated preview for/)
   })
 
-  it('block selection no longer renders a contextual toolbar', () => {
+  it('block selection renders portal chrome outside clipping containers', () => {
     const source = read('src/features/web-pages/components/BlockRenderer.vue')
 
-    assert.doesNotMatch(source, /<Teleport to="body">/)
+    assert.match(source, /<Teleport to="body">/)
+    assert.match(source, /web-page-block-context-toolbar/)
     assert.doesNotMatch(source, /toolbarPosition/)
-    assert.doesNotMatch(source, /web-page-block-toolbar/)
   })
 
-  it('tree supports same-type multi selection and inspector batch patching', () => {
+  it('tree supports ctrl command multi selection and style batch patching', () => {
     const tree = read('src/features/web-pages/components/BlockTreePanel.vue')
     const store = read('src/features/web-pages/stores/page-editor.store.ts')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 
     assert.match(tree, /selectedBlockIds/)
-    assert.match(tree, /event\.shiftKey/)
+    assert.match(tree, /event\.ctrlKey \|\| event\.metaKey \|\| event\.shiftKey/)
     assert.match(store, /selectBlockRange/)
+    assert.match(store, /toggleBlockSelection/)
     assert.match(store, /patchSelectedBlocks/)
-    assert.match(editor, /selectedBlocksSameType/)
+    assert.match(editor, /patchSelectedStyle/)
+    assert.doesNotMatch(editor, /selectedBlocksSameType/)
   })
 
   it('custom CSS editor registers CSS completions for pseudo classes', () => {

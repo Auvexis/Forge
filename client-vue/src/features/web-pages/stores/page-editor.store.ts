@@ -66,14 +66,12 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   }
 
   function selectBlockRange(blockId: string) {
+    toggleBlockSelection(blockId)
+  }
+
+  function toggleBlockSelection(blockId: string) {
     const block = findTreeBlock(blocks.value, blockId)?.block
     if (!block) return
-    const current = selectedBlocks.value
-    const sameType = current.length === 0 || current.every((item) => item.tag === block.tag)
-    if (!sameType) {
-      selectBlock(blockId)
-      return
-    }
     selectedBlockIds.value = selectedBlockIds.value.includes(blockId)
       ? selectedBlockIds.value.filter((id) => id !== blockId)
       : [...selectedBlockIds.value, blockId]
@@ -122,6 +120,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     mutate(() => {
       blocks.value = insertTreeBlock(blocks.value, targetId, position, block)
       selectedBlockId.value = block.id
+      selectedBlockIds.value = [block.id]
       selectedTarget.value = { type: 'block', blockId: block.id }
       clearDragIntent()
     })
@@ -131,6 +130,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     mutate(() => {
       blocks.value = [...blocks.value, block]
       selectedBlockId.value = block.id
+      selectedBlockIds.value = [block.id]
       selectedTarget.value = { type: 'block', blockId: block.id }
       clearDragIntent()
     })
@@ -140,6 +140,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     mutate(() => {
       blocks.value = moveTreeBlock(blocks.value, draggedId, targetId, position)
       selectedBlockId.value = draggedId
+      selectedBlockIds.value = [draggedId]
       selectedTarget.value = { type: 'block', blockId: draggedId }
       clearDragIntent()
     })
@@ -148,6 +149,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   function deleteBlock(blockId: string) {
     mutate(() => {
       blocks.value = deleteTreeBlock(blocks.value, blockId)
+      selectedBlockIds.value = selectedBlockIds.value.filter((id) => id !== blockId)
       if (selectedBlockId.value === blockId) clearSelection()
     })
   }
@@ -166,6 +168,9 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     mutate(() => {
       blocks.value = renameTreeBlockId(blocks.value, blockId, normalized)
       selectedBlockId.value = normalized
+      selectedBlockIds.value = selectedBlockIds.value.length
+        ? selectedBlockIds.value.map((id) => id === blockId ? normalized : id)
+        : [normalized]
       selectedTarget.value = { type: 'block', blockId: normalized }
     })
 
@@ -177,7 +182,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
       const match = findTreeBlock(blocks.value, blockId)?.block
       if (!match) return
       if (patch.props) match.props = patch.props
-      if (patch.styles) match.styles = patch.styles
+      if (patch.styles) match.styles = { ...(match.styles ?? {}), ...patch.styles }
       if (patch.elementId !== undefined) match.elementId = patch.elementId
       if (patch.attributes !== undefined) match.attributes = patch.attributes
       if (patch.className !== undefined) match.className = patch.className
@@ -189,7 +194,21 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   }
 
   function patchSelectedBlocks(patch: Partial<PageBlock>) {
-    for (const blockId of selectedBlockIds.value) patchBlock(blockId, patch)
+    mutate(() => {
+      for (const blockId of selectedBlockIds.value) {
+        const match = findTreeBlock(blocks.value, blockId)?.block
+        if (!match) continue
+        if (patch.props) match.props = patch.props
+        if (patch.styles) match.styles = { ...(match.styles ?? {}), ...patch.styles }
+        if (patch.elementId !== undefined) match.elementId = patch.elementId
+        if (patch.attributes !== undefined) match.attributes = patch.attributes
+        if (patch.className !== undefined) match.className = patch.className
+        if (patch.customCss !== undefined) match.customCss = patch.customCss
+        if (patch.customJs !== undefined) match.customJs = patch.customJs
+        if ('action' in patch) match.action = patch.action
+        if (patch.children) match.children = patch.children
+      }
+    })
   }
 
   function undo() {
@@ -231,6 +250,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     setBlocks,
     selectBlock,
     selectBlockRange,
+    toggleBlockSelection,
     selectPage,
     selectBody,
     clearSelection,

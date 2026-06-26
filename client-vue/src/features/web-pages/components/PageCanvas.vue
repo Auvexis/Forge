@@ -28,6 +28,7 @@
           :key="block.id"
           :block="block"
           :selected-block-id="selectedBlockId"
+          :selected-block-ids="selectedBlockIds"
           :drop-intent="dropIntent"
           :deleting-block-ids="deletingBlockIds"
           :active-tool="activeTool"
@@ -62,6 +63,7 @@ import BlockRenderer from './BlockRenderer.vue'
 const props = defineProps<{
   blocks: PageBlock[]
   selectedBlockId: string | null
+  selectedBlockIds?: string[]
   dropIntent?: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge } | null
   deletingBlockIds?: string[]
   bodyStyles?: Record<string, string | number>
@@ -72,7 +74,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  select: [blockId: string]
+  select: [payload: { blockId: string; additive?: boolean }]
   'select-body': []
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }]
   'drop-root': [payload: { tag?: PageBlockTag; preset?: string; draggedId?: string }]
@@ -108,13 +110,13 @@ function dropOnRoot(event: DragEvent) {
   emit('clear-drag-intent')
 }
 
-function handleBlockSelect(blockId: string) {
+function handleBlockSelect(payload: { blockId: string; additive?: boolean }) {
   if (props.activeTool === 'delete') {
-    emit('delete-block', blockId)
+    emit('delete-block', payload.blockId)
     return
   }
   if (props.activeTool === 'pan') return
-  emit('select', blockId)
+  emit('select', payload)
 }
 
 function handleBodyClick(event: MouseEvent) {

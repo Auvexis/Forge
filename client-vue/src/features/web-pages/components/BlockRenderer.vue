@@ -3,7 +3,7 @@
     ref="frameElementRef"
     class="web-page-block-frame"
     :class="{
-      'web-page-block-frame--selected': selectedBlockId === block.id,
+      'web-page-block-frame--selected': isSelectedBlock,
       'web-page-block-frame--deleting': deletingBlockIds?.includes(block.id),
     }"
   >
@@ -33,9 +33,9 @@
       :draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"
       :contenteditable="isInlineEditing ? 'true' : undefined"
       tabindex="0"
-      @click.stop="$emit('select', block.id)"
+      @click.stop="selectBlockFromPointer"
       @dblclick.stop="handleBlockDoubleClick"
-      @focus="$emit('select', block.id)"
+      @focus="emit('select', { blockId: block.id })"
       @keydown="handleInlineEditKeydown"
       @blur="commitInlineEdit"
       @dragstart.stop="onDragStart"
@@ -58,6 +58,7 @@
           :key="child.id"
           :block="child"
           :selected-block-id="selectedBlockId"
+          :selected-block-ids="selectedBlockIds"
           :drop-intent="dropIntent"
           :deleting-block-ids="deletingBlockIds"
           :active-tool="activeTool"
@@ -78,11 +79,11 @@
     </component>
     <Teleport to="body">
       <div
-        v-if="!readonly && selectedBlockId === block.id"
+        v-if="!readonly && isSelectedBlock"
         class="web-page-block-selection"
         :style="selectionPortalStyle"
       >
-        <div class="web-page-block-selection__chrome" :style="selectionChromeStyle">
+        <div v-if="isPrimarySelectedBlock" class="web-page-block-selection__chrome" :style="selectionChromeStyle">
           <div class="web-page-block-selection__id" @pointerdown.stop.prevent @mousedown.stop.prevent @click.stop @dblclick.stop="startBlockIdEdit">
             <input
               v-if="editingBlockId"
@@ -137,18 +138,20 @@
             />
           </div>
         </div>
-        <button
-          v-for="corner in resizeCorners"
-          :key="corner"
-          type="button"
-          class="web-page-block-resize__handle"
-          :class="[
-            `web-page-block-resize__handle--${corner}`,
-            { 'web-page-block-resize__handle--active': activeResizeCorner === corner },
-          ]"
-          :aria-label="`Resize from ${corner}`"
-          @pointerdown.stop.prevent="startResize($event, corner)"
-        />
+        <template v-if="isPrimarySelectedBlock">
+          <button
+            v-for="corner in resizeCorners"
+            :key="corner"
+            type="button"
+            class="web-page-block-resize__handle"
+            :class="[
+              `web-page-block-resize__handle--${corner}`,
+              { 'web-page-block-resize__handle--active': activeResizeCorner === corner },
+            ]"
+            :aria-label="`Resize from ${corner}`"
+            @pointerdown.stop.prevent="startResize($event, corner)"
+          />
+        </template>
         <span
           v-for="guide in activeResizeGuides"
           :key="`${guide.axis}:${guide.position}`"
@@ -156,8 +159,8 @@
           :class="`web-page-block-alignment-guide--${guide.axis}`"
           :style="resizeGuideStyle(guide)"
         />
-        <span class="web-page-block-selection__metric">{{ selectionSizeLabel }}</span>
-        <span v-if="resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
+        <span v-if="isPrimarySelectedBlock" class="web-page-block-selection__metric">{{ selectionSizeLabel }}</span>
+        <span v-if="isPrimarySelectedBlock && resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
       </div>
     </Teleport>
   </div>
@@ -177,6 +180,7 @@ import { calculateBlockResize, type ResizeCorner } from '../utils/blockResize.ts
 const props = withDefaults(defineProps<{
   block: PageBlock
   selectedBlockId: string | null
+  selectedBlockIds?: string[]
   dropIntent?: { targetId: string; position: InsertPosition; dropEdge?: DropEdge } | null
   deletingBlockIds?: string[]
   activeTool?: 'cursor' | 'pan' | 'delete'
@@ -186,10 +190,11 @@ const props = withDefaults(defineProps<{
 }>(), {
   activeTool: 'cursor',
   deletingBlockIds: () => [],
+  selectedBlockIds: () => [],
 })
 
 const emit = defineEmits<{
-  select: [blockId: string]
+  select: [payload: { blockId: string; additive?: boolean }]
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }]
   'drag-intent': [payload: { targetId: string; position: InsertPosition; dropEdge?: DropEdge }]
   'duplicate-block': [blockId: string]
@@ -222,7 +227,7 @@ const blockClasses = computed(() => ({
       classes[className] = true
       return classes
     }, {}),
-  'web-page-block--selected': props.selectedBlockId === props.block.id,
+  'web-page-block--selected': isSelectedBlock.value,
   'web-page-block--drop-before': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'before',
   'web-page-block--drop-after': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'after',
   'web-page-block--drop-inside': props.dropIntent?.targetId === props.block.id && props.dropIntent.position === 'inside',
@@ -249,6 +254,8 @@ const inlineEditableTags: PageBlockTag[] = ['text', 'button', 'link']
 const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
+const isSelectedBlock = computed(() => props.selectedBlockId === props.block.id || props.selectedBlockIds.includes(props.block.id))
+const isPrimarySelectedBlock = computed(() => props.selectedBlockId === props.block.id)
 const contextToolbarLabel = computed(() => `${props.block.tag} layer`)
 type ContextToolbarAction = {
   id: string
@@ -341,13 +348,13 @@ watch(
 )
 
 watch(
-  () => [props.selectedBlockId, props.block.styles, previewStyles.value, props.canvasZoom, props.canvasViewport?.x, props.canvasViewport?.y, props.canvasViewport?.zoom],
+  () => [props.selectedBlockId, props.selectedBlockIds, props.block.styles, previewStyles.value, props.canvasZoom, props.canvasViewport?.x, props.canvasViewport?.y, props.canvasViewport?.zoom],
   () => void nextTick(updateSelectionFrame),
   { deep: true },
 )
 
 function updateSelectionFrame() {
-  if (props.selectedBlockId !== props.block.id) {
+  if (!isSelectedBlock.value) {
     selectionFrameStyle.value = {}
     return
   }
@@ -362,6 +369,10 @@ function updateSelectionFrame() {
     height: `${rect.height}px`,
   }
   selectionScale.value = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
+}
+
+function selectBlockFromPointer(event: MouseEvent) {
+  emit('select', { blockId: props.block.id, additive: event.ctrlKey || event.metaKey })
 }
 
 function clampSelectionScale(scale: number) {
