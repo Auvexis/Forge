@@ -468,7 +468,10 @@ const hasUnsavedProjectChanges = computed(() =>
   editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty,
 )
 const hasCreatedProject = computed(() => Boolean(sitesStore.activeSite && pagesStore.activePage))
-const canSaveActiveDocument = computed(() => hasCreatedProject.value && hasUnsavedProjectChanges.value)
+const hasDraftPageWithoutProject = computed(() => Boolean(!sitesStore.activeSite && pagesStore.activePage))
+const canSaveActiveDocument = computed(() =>
+  hasCreatedProject.value ? hasUnsavedProjectChanges.value : hasDraftPageWithoutProject.value,
+)
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
   { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
@@ -1305,7 +1308,13 @@ async function createProject() {
 async function ensureProjectHasPage(siteId: string) {
   const pages = await pagesApi.listSitePages(siteId)
   if (pages.length > 0) return pages[0]
-  return pagesApi.createSitePage(siteId, { title: 'Home', blocks: editorStore.blocks })
+  const draftPage = pagesStore.activePage
+  return pagesApi.createSitePage(siteId, {
+    title: draftPage?.title ?? 'Home',
+    slug: draftPage?.slug,
+    bodyStyles: draftPage?.bodyStyles,
+    blocks: editorStore.blocks,
+  })
 }
 
 async function openProject(projectId: string) {

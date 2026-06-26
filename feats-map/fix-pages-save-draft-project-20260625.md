@@ -1,0 +1,5 @@
+- [x] Enable Save for draft page
+- [x] Save draft page into new project
+- [x] Update contract
+- [x] Verify build
+- [x] Commit changes

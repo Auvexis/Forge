@@ -44,7 +44,7 @@ export class PageService {
       siteId,
       title: input.title,
       slug: input.slug ?? this.createUniqueSlug(input.title, siteId),
-      bodyStyles: defaultBodyStyles(),
+      bodyStyles: input.bodyStyles ?? defaultBodyStyles(),
       blocks: input.blocks ?? [],
       createdAt: now,
       updatedAt: now,

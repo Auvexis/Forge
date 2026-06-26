@@ -119,6 +119,7 @@ export default async function pagesRoutes(
       const page = getSiteService().createPage(siteId, {
         title: String(body.title ?? ""),
         slug: body.slug,
+        bodyStyles: body.bodyStyles,
         blocks: body.blocks,
       });
       return sendResponse<SailorPage>(reply, {
@@ -315,6 +316,7 @@ export default async function pagesRoutes(
         profileId: getProfileId(),
         title: String(body.title ?? ""),
         slug: body.slug,
+        bodyStyles: body.bodyStyles,
         blocks: body.blocks,
       });
       return sendResponse<SailorPage>(reply, {

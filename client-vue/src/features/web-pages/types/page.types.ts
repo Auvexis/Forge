@@ -74,6 +74,7 @@ export interface SailorPageSummary {
 export interface CreatePagePayload {
   title: string
   slug?: string
+  bodyStyles?: PageBlockStyles
   blocks?: PageBlock[]
 }
 

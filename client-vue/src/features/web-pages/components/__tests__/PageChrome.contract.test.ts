@@ -260,9 +260,13 @@ describe('page chrome contract', () => {
   it('save without an active project opens new project modal and continues into created project', () => {
     const source = read('src/features/web-pages/components/PageEditor.vue')
 
+    assert.match(source, /hasDraftPageWithoutProject/)
+    assert.match(source, /hasCreatedProject\.value \? hasUnsavedProjectChanges\.value : hasDraftPageWithoutProject\.value/)
     assert.match(source, /pendingCreateProjectSave/)
     assert.match(source, /openNewProjectModal\(\{ saveAfterCreate: true \}\)/)
     assert.match(source, /ensureProjectHasPage\(site\.id\)/)
+    assert.match(source, /title: draftPage\?\.title \?\? 'Home'/)
+    assert.match(source, /bodyStyles: draftPage\?\.bodyStyles/)
     assert.match(source, /await activateProject\(site\.id\)/)
     assert.match(source, /closeProjectModals\(true\)/)
   })

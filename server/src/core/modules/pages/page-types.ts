@@ -68,6 +68,7 @@ export interface CreatePageInput {
   siteId?: string;
   title: string;
   slug?: string;
+  bodyStyles?: PageBlockStyles;
   blocks?: PageBlock[];
 }
 
