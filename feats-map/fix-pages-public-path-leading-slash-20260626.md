@@ -1,0 +1,3 @@
+- [x] Reproduce publicPath route miss
+- [x] Fix published path normalization
+- [x] Verify and commit

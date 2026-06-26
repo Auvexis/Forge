@@ -156,10 +156,12 @@ export class PageService {
   }
 
   renderPublished(projectPublicId: string, path: string): string | null {
-    const slug = normalizePublishedPath(path);
+    const slugs = normalizePublishedPathCandidates(path);
     const site = SiteRepository.getSiteByPublicId(this.profileId, projectPublicId) ?? SiteRepository.getSite(this.profileId, projectPublicId);
     if (!site) return null;
-    const page = PageRepository.getPublishedPageBySlug(this.profileId, slug, site.id);
+    const page = slugs
+      .map((slug) => PageRepository.getPublishedPageBySlug(this.profileId, slug, site.id))
+      .find((publishedPage) => publishedPage !== null);
     return page ? renderPublishedPage(page, SiteRepository.getSite(this.profileId, page.siteId)) : null;
   }
 
@@ -211,7 +213,8 @@ function slugify(value: string): string {
   return slug.length >= 3 ? slug.slice(0, 80).replace(/-+$/g, "") : "page";
 }
 
-function normalizePublishedPath(path: string): string {
+function normalizePublishedPathCandidates(path: string): string[] {
   const normalized = decodeURIComponent(path).replace(/^\/+/, "");
-  return normalized.includes("/") ? `/${normalized}` : normalized;
+  if (!normalized) return [normalized];
+  return [`/${normalized}`, normalized];
 }

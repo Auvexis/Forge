@@ -222,6 +222,33 @@ describe("pages routes", () => {
     assert.match(response.body, /Home/);
   });
 
+  it("published pages with slash-prefixed urls resolve by project public id", async () => {
+    const app = await buildApp();
+    const site = (await app.inject({ method: "POST", url: "/sites", payload: { name: "Auth Site" } })).json().data;
+    const login = (await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/pages`,
+      payload: { title: "Login" },
+    })).json().data as SailorPage;
+    const register = (await app.inject({
+      method: "POST",
+      url: `/sites/${site.id}/pages`,
+      payload: { title: "Register" },
+    })).json().data as SailorPage;
+    await app.inject({ method: "PUT", url: `/pages/${login.id}`, payload: { publicPath: "/login" } });
+    await app.inject({ method: "PUT", url: `/pages/${register.id}`, payload: { publicPath: "/register" } });
+    await app.inject({ method: "POST", url: `/pages/${login.id}/publish` });
+    await app.inject({ method: "POST", url: `/pages/${register.id}/publish` });
+
+    const loginResponse = await app.inject({ method: "GET", url: `/p/${site.publicId}/login` });
+    const registerResponse = await app.inject({ method: "GET", url: `/p/${site.publicId}/register` });
+
+    assert.equal(loginResponse.statusCode, 200);
+    assert.match(loginResponse.body, /Login/);
+    assert.equal(registerResponse.statusCode, 200);
+    assert.match(registerResponse.body, /Register/);
+  });
+
   it("site project file routes create, update, delete, upload and serve assets", async () => {
     const app = await buildApp();
     const site = (await app.inject({ method: "POST", url: "/sites", payload: { name: "Assets" } })).json().data;
