@@ -74,15 +74,15 @@
 - [x] Preservar node toolbar.
 
 ## Batch 7 - Ações do editor
-- [ ] Migrar add logic node at viewport center.
-- [ ] Migrar add plugin node at viewport center.
-- [ ] Migrar add node at screen point.
-- [ ] Migrar global drag/drop de nodes.
-- [ ] Migrar quick-add de node.
-- [ ] Migrar quick-add entre edges.
-- [ ] Migrar zoom in, zoom out e reset.
-- [ ] Migrar fit workflow view.
-- [ ] Preservar run, stop e logs.
+- [x] Migrar add logic node at viewport center.
+- [x] Migrar add plugin node at viewport center.
+- [x] Migrar add node at screen point.
+- [x] Migrar global drag/drop de nodes.
+- [x] Migrar quick-add de node.
+- [x] Migrar quick-add entre edges.
+- [x] Migrar zoom in, zoom out e reset.
+- [x] Migrar fit workflow view.
+- [x] Preservar run, stop e logs.
 
 ## Batch 8 - Testes e validação
 - [ ] Adicionar testes de adapter workflow/canvas.

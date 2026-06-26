@@ -1,5 +1,5 @@
 <template>
-  <div class="sailor-workflow-base-canvas-shell">
+  <div ref="shellRef" class="sailor-workflow-base-canvas-shell">
     <BaseCanvas
       v-model:viewport="viewport"
       v-model:selection="canvasSelection"
@@ -54,7 +54,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch, type Component } from 'vue'
-import type { WorkflowEdge } from '@/core/types/workflow.types'
+import type { WorkflowEdge, WorkflowNodeType } from '@/core/types/workflow.types'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type {
   BaseCanvasItem,
@@ -74,6 +74,12 @@ import {
   getWorkflowConnectionPolicyAction,
   getWorkflowTargetHandlePolicy,
 } from '../workflow-canvas/workflowCanvasConnections'
+import {
+  getWorkflowCanvasCenter,
+  getWorkflowCanvasFitViewport,
+  screenPointToWorkflowWorld,
+  zoomWorkflowCanvasViewport,
+} from '../workflow-canvas/workflowCanvasActions'
 import {
   normalizeWorkflowSelection,
   selectAllWorkflowNodeIds,
@@ -125,9 +131,24 @@ const inspectorStore = useNodeInspectorStore()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const canvasSelection = ref<string[]>([])
 const handleRegistry = createWorkflowHandleRegistry()
+const shellRef = ref<HTMLElement | null>(null)
 const nodeToolbarBus = useEventBus<{ action: 'duplicate' | 'delete' | 'disable'; nodeId: string }>(
   'node:toolbar-action',
 )
+const quickAddBus = useEventBus<{
+  sourceId?: string
+  sourceHandle?: string
+  targetId?: string
+  targetHandle?: string
+  handlerId?: string
+}>('node:quick-add')
+const quickAddBetweenBus = useEventBus<{
+  edgeId: string
+  sourceId: string
+  targetId: string
+  sourceHandle?: string
+  targetHandle?: string
+}>('edge:quick-add-between')
 
 provide(isWorkflowBaseCanvasHandleModeKey, true)
 provide(workflowCanvasHandleRegistryKey, handleRegistry)
@@ -178,8 +199,32 @@ const selectableNodeIds = computed(() => ({
   includeTrigger: workflowItems.value.some((item) => item.id === 'trigger'),
   nodeIds: Object.keys(workflowStore.activeWorkflow?.nodes ?? {}),
 }))
+let quickAddSourceId: string | null = null
+let quickAddSourceHandle: string | null = null
+let quickAddTargetId: string | null = null
+let quickAddTargetHandle: string | null = null
+let pendingInsertEdgeId: string | null = null
+let pendingInsertSourceId: string | null = null
+let pendingInsertTargetId: string | null = null
+let pendingInsertTargetHandle: string | null = null
 
 nodeToolbarBus.on(handleNodeToolbarAction)
+quickAddBus.on((payload) => {
+  quickAddSourceId = payload?.sourceId ?? null
+  quickAddSourceHandle = payload?.sourceHandle ?? null
+  quickAddTargetId = payload?.targetId ?? null
+  quickAddTargetHandle = payload?.targetHandle ?? null
+})
+quickAddBetweenBus.on((payload) => {
+  pendingInsertEdgeId = payload?.edgeId ?? null
+  pendingInsertSourceId = payload?.sourceId ?? null
+  pendingInsertTargetId = payload?.targetId ?? null
+  pendingInsertTargetHandle = payload?.targetHandle ?? null
+  quickAddSourceId = payload?.sourceId ?? null
+  quickAddSourceHandle = payload?.sourceHandle ?? null
+  quickAddTargetId = null
+  quickAddTargetHandle = null
+})
 
 watch([workflowItems, canvasSelection], () => {
   const normalized = normalizeWorkflowSelection({
@@ -226,6 +271,291 @@ function handleItemsMove(event: BaseCanvasItemsMoveEvent) {
       positionY: (node.ui?.positionY ?? 0) + event.delta.y,
     }
   }
+}
+
+async function handleRun() {
+  if (!workflowStore.activeWorkflow) return
+  await executionStore.execute(workflowStore.activeWorkflow.metadata.id, {})
+}
+
+async function handleStop() {
+  await executionStore.cancel()
+}
+
+function openAddNodePanel(sourceId?: string | null, handlerId?: string | null) {
+  quickAddSourceId = sourceId || null
+  if (handlerId) quickAddTargetHandle = handlerId
+}
+
+function addLogicNodeAtViewportCenter(type: WorkflowNodeType, providedDefaults: Record<string, unknown> = {}) {
+  return addLogicNode(type, providedDefaults, getCanvasCenterPosition())
+}
+
+function addPluginNodeAtViewportCenter(pluginId: string, action: string, actionName: string) {
+  return addPluginNode(pluginId, action, actionName, getCanvasCenterPosition())
+}
+
+function addLogicNodeAtScreenPoint(
+  type: WorkflowNodeType,
+  point: { x: number; y: number },
+  providedDefaults: Record<string, unknown> = {},
+) {
+  return addLogicNode(type, providedDefaults, screenToCanvasWorld(point))
+}
+
+function addPluginNodeAtScreenPoint(
+  pluginId: string,
+  action: string,
+  actionName: string,
+  point: { x: number; y: number },
+) {
+  return addPluginNode(pluginId, action, actionName, screenToCanvasWorld(point))
+}
+
+function addLogicNode(
+  type: WorkflowNodeType,
+  providedDefaults: Record<string, unknown> = {},
+  position = getCanvasCenterPosition(),
+) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return undefined
+
+  const id = generateNodeId(type)
+  workflow.nodes[id] = {
+    type,
+    name: String(providedDefaults.name ?? defaultNodeName(type, id)),
+    ui: { positionX: position.x, positionY: position.y },
+    ...getLogicNodeDefaults(type),
+    ...providedDefaults,
+  } as any
+
+  connectNewNode(id, type)
+  return id
+}
+
+function addPluginNode(
+  pluginId: string,
+  action: string,
+  actionName: string,
+  position = getCanvasCenterPosition(),
+) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return undefined
+
+  const id = generateNodeId(action)
+  workflow.nodes[id] = {
+    type: 'plugin',
+    name: actionName,
+    pluginId,
+    action,
+    params: {},
+    ui: { positionX: position.x, positionY: position.y },
+  } as any
+
+  connectNewNode(id, 'plugin')
+  return id
+}
+
+function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+
+  const sourceId = quickAddSourceId
+  const sourceHandle = quickAddSourceHandle
+  const targetId = quickAddTargetId
+  const targetHandle = quickAddTargetHandle
+  clearQuickAddState()
+
+  if (pendingInsertEdgeId && pendingInsertSourceId && pendingInsertTargetId) {
+    insertNodeBetween(pendingInsertEdgeId, nodeId, pendingInsertSourceId, pendingInsertTargetId, pendingInsertTargetHandle)
+    return
+  }
+
+  if (targetId && targetHandle) {
+    workflow.edges.push(createWorkflowConnectionEdge({
+      source: nodeId,
+      target: targetId,
+      sourceHandle: 'source',
+      targetHandle,
+    }))
+    arrangeAdvancedConfigNodes(targetId)
+  } else if (targetId) {
+    workflow.edges.push(createWorkflowConnectionEdge({
+      source: nodeId,
+      target: targetId,
+      sourceHandle: 'source',
+      targetHandle: 'target',
+    }))
+  } else if (sourceId && type !== 'trigger') {
+    workflow.edges.push(createWorkflowConnectionEdge({
+      source: sourceId,
+      target: nodeId,
+      sourceHandle: sourceHandle ?? 'source',
+      targetHandle: 'target',
+    }))
+  }
+
+}
+
+function insertNodeBetween(
+  edgeId: string,
+  newNodeId: string,
+  oldSourceId: string,
+  oldTargetId: string,
+  oldTargetHandle: string | null,
+) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+  const oldEdge = workflow.edges.find((edge) => edge.id === edgeId)
+  workflow.edges = workflow.edges.filter((edge) => edge.id !== edgeId)
+  workflow.edges.push({
+    id: `e-${oldSourceId}-${newNodeId}-${Date.now()}`,
+    source: oldSourceId,
+    target: newNodeId,
+    sourceHandle: oldEdge?.sourceHandle ?? 'source',
+    targetHandle: 'target',
+  })
+  workflow.edges.push({
+    id: `e-${newNodeId}-${oldTargetId}-${Date.now()}`,
+    source: newNodeId,
+    target: oldTargetId,
+    sourceHandle: 'source',
+    targetHandle: oldTargetHandle ?? oldEdge?.targetHandle ?? 'target',
+  })
+  pendingInsertEdgeId = null
+  pendingInsertSourceId = null
+  pendingInsertTargetId = null
+  pendingInsertTargetHandle = null
+}
+
+function clearQuickAddState() {
+  quickAddSourceId = null
+  quickAddSourceHandle = null
+  quickAddTargetId = null
+  quickAddTargetHandle = null
+}
+
+function zoomIn() {
+  zoomBy(1.2)
+}
+
+function zoomOut() {
+  zoomBy(1 / 1.2)
+}
+
+function zoomReset() {
+  viewport.value = { ...viewport.value, zoom: 1 }
+}
+
+function fitWorkflowView() {
+  const rect = getCanvasRect()
+  if (!rect) return
+  const next = getWorkflowCanvasFitViewport({
+    items: workflowItems.value,
+    canvasRect: rect,
+    padding: 80,
+    minZoom: 0.5,
+    maxZoom: 1.5,
+  })
+  if (next) viewport.value = next
+}
+
+function zoomBy(factor: number) {
+  const rect = getCanvasRect()
+  if (!rect) return
+  viewport.value = zoomWorkflowCanvasViewport({
+    viewport: viewport.value,
+    canvasRect: rect,
+    factor,
+    minZoom: 0.5,
+    maxZoom: 1.5,
+  })
+}
+
+function getCanvasCenterPosition() {
+  const rect = getCanvasRect()
+  if (!rect) return { x: 0, y: 0 }
+  return getWorkflowCanvasCenter({ canvasRect: rect, viewport: viewport.value })
+}
+
+function screenToCanvasWorld(point: { x: number; y: number }) {
+  const rect = getCanvasRect()
+  if (!rect) return point
+  return screenPointToWorkflowWorld({ point, canvasRect: rect, viewport: viewport.value })
+}
+
+function getCanvasRect() {
+  const rect = shellRef.value?.getBoundingClientRect()
+  if (!rect) return null
+  return { left: rect.left, top: rect.top, width: rect.width, height: rect.height }
+}
+
+function generateNodeId(prefix: string) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return `${prefix}_1`
+  let counter = prefix === 'trigger' ? 0 : 1
+  let id = `${prefix}_${counter}`
+  while (workflow.nodes[id]) {
+    counter++
+    id = `${prefix}_${counter}`
+  }
+  return id
+}
+
+function defaultNodeName(type: WorkflowNodeType, id: string) {
+  const names: Partial<Record<WorkflowNodeType, string>> = {
+    trigger: 'Trigger',
+    code: 'Code Block',
+    if: 'Conditional',
+    loop: 'Loop / ForEach',
+    subworkflow: 'Sub-Workflow',
+    http: 'HTTP Request',
+    event: 'Emit Event',
+    'event-listener': 'Wait for Event',
+    plugin: 'Plugin Action',
+    set: 'Set Fields',
+    switch: 'Switch',
+    merge: 'Merge',
+    'split-in-batches': 'Split In Batches',
+    'respond-webhook': 'Respond to Webhook',
+    'wait-form': 'Wait for Form',
+    'ai-agent': 'AI Agent',
+    'ai-model': 'AI Model',
+    'ai-memory': 'AI Memory',
+    'ai-tool': 'AI Tool',
+    'text-dataset': 'Text Dataset',
+    'file-dataset': 'Extract From File',
+    'database-dataset': 'Database Dataset',
+    embeddings: 'Embeddings',
+    'vector-store': 'Vector Store',
+    retriever: 'Retriever',
+    'basic-llm-chain': 'Basic LLM Chain',
+    'structured-json-parser': 'Structured JSON Parser',
+    'vector-store-retriever': 'Vector Store Retriever',
+    'question-answer-chain': 'Question and Answer Chain',
+    'vector-store-tool': 'Vector Store Tool',
+  }
+  return names[type] ?? id
+}
+
+function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
+  if (type === 'http') return { url: 'https://api.example.com', method: 'GET' }
+  if (type === 'code') return { language: 'javascript', script: 'return { status: "ok" };' }
+  if (type === 'if') return { condition: 'true' }
+  if (type === 'loop') return { collection: '[]', maxIterations: 100 }
+  if (type === 'set') return { assignments: [{ key: 'field', value: '' }] }
+  if (type === 'switch') return { inputExpression: 'steps.prev.output.status', cases: [], fallbackHandleId: 'fallback' }
+  if (type === 'merge') return { mode: 'wait-any' }
+  if (type === 'ai-agent') return {
+    prompt: 'You are a helpful workflow agent. Use tools only when needed.',
+    executionMode: 'loop',
+    maxIterations: 8,
+    maxToolCalls: 12,
+    timeoutMs: 180000,
+    requireApprovalForSideEffects: [],
+    outputMode: 'text',
+  }
+  return {}
 }
 
 function selectAllNodes() {
@@ -375,10 +705,21 @@ function openNodeInspector(item: BaseCanvasItem) {
 }
 
 defineExpose({
+  handleRun,
+  handleStop,
+  openAddNodePanel,
+  addLogicNodeAtViewportCenter,
+  addPluginNodeAtViewportCenter,
+  addLogicNodeAtScreenPoint,
+  addPluginNodeAtScreenPoint,
   selectAllNodes,
   clearSelection,
   duplicateSelection,
   deleteSelection,
+  zoomIn,
+  zoomOut,
+  zoomReset,
+  fitWorkflowView,
 })
 </script>
 

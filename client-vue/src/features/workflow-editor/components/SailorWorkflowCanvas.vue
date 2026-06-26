@@ -66,6 +66,7 @@ const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
 const useWorkflowBaseCanvas = shouldUseWorkflowBaseCanvas()
+const workflowBaseCanvasRef = ref<InstanceType<typeof WorkflowBaseCanvas> | null>(null)
 const { data: workflowNodeCatalog, execute: loadWorkflowNodeCatalog } = useApi(workflowNodesApi.getCatalog)
 
 watch(workflowNodeCatalog, (catalog) => replaceNodeDefinitions(catalog?.nodes ?? []), {
@@ -485,31 +486,38 @@ const openAddNodePanelFromEvent = (
 // ── Run / Stop ────────────────────────────────────────────────────────────
 
 async function handleRun() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.handleRun()
   if (!workflowStore.activeWorkflow) return
   await executionStore.execute(workflowStore.activeWorkflow.metadata.id, {})
 }
 
 async function handleStop() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.handleStop()
   await executionStore.cancel()
 }
 
 function zoomCanvasIn() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.zoomIn()
   return vueFlowStore.value?.zoomIn({ duration: 300 })
 }
 
 function zoomCanvasOut() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.zoomOut()
   return vueFlowStore.value?.zoomOut({ duration: 300 })
 }
 
 function resetCanvasZoom() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.zoomReset()
   return vueFlowStore.value?.zoomTo(1, { duration: 300 })
 }
 
 function fitWorkflowView() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.fitWorkflowView()
   return vueFlowStore.value?.fitView({ duration: 300, padding: 0.2 })
 }
 
 async function selectAllNodes() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.selectAllNodes()
   const instance = vueFlowStore.value
   if (!instance) return
   instance.removeSelectedElements()
@@ -517,6 +525,7 @@ async function selectAllNodes() {
 }
 
 function clearSelection() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.clearSelection()
   vueFlowStore.value?.removeSelectedElements()
 }
 
@@ -525,6 +534,7 @@ function getSelectedNodeIds() {
 }
 
 async function deleteSelection() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.deleteSelection()
   if (!workflowStore.activeWorkflow) return
   const result = deleteWorkflowSelection(workflowStore.activeWorkflow, getSelectedNodeIds())
   if (result.nodeIds.length === 0) return
@@ -534,6 +544,7 @@ async function deleteSelection() {
 }
 
 async function duplicateSelection() {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.duplicateSelection()
   if (!workflowStore.activeWorkflow) return
   const instance = vueFlowStore.value
   const result = duplicateWorkflowSelection(workflowStore.activeWorkflow, getSelectedNodeIds())
@@ -895,6 +906,11 @@ const addLogicNode = (
   providedDefaults: Record<string, unknown> = {},
   explicitPosition?: { x: number; y: number },
 ) => {
+  if (useWorkflowBaseCanvas) {
+    return explicitPosition
+      ? workflowBaseCanvasRef.value?.addLogicNodeAtScreenPoint(type, explicitPosition, providedDefaults)
+      : workflowBaseCanvasRef.value?.addLogicNodeAtViewportCenter(type, providedDefaults)
+  }
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
@@ -1147,6 +1163,11 @@ const addPluginNode = (
   actionName: string,
   explicitPosition?: { x: number; y: number },
 ) => {
+  if (useWorkflowBaseCanvas) {
+    return explicitPosition
+      ? workflowBaseCanvasRef.value?.addPluginNodeAtScreenPoint(pluginId, action, actionName, explicitPosition)
+      : workflowBaseCanvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName)
+  }
   if (!workflowStore.activeWorkflow) return
 
   const backupSourceId = quickAddSourceId
@@ -1217,10 +1238,12 @@ const addLogicNodeAtViewportCenter = (
   type: WorkflowNodeType,
   providedDefaults: Record<string, unknown> = {},
 ) => {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.addLogicNodeAtViewportCenter(type, providedDefaults)
   addLogicNode(type, providedDefaults, getCenterPosition())
 }
 
 const addPluginNodeAtViewportCenter = (pluginId: string, action: string, actionName: string) => {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName)
   addPluginNode(pluginId, action, actionName, getCenterPosition())
 }
 
@@ -1229,6 +1252,7 @@ const addLogicNodeAtScreenPoint = (
   point: { x: number; y: number },
   providedDefaults: Record<string, unknown> = {},
 ) => {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.addLogicNodeAtScreenPoint(type, point, providedDefaults)
   const id = addLogicNode(type, providedDefaults, screenToFlowCoordinate(point))
   animateDroppedNode(id)
   return id
@@ -1240,6 +1264,7 @@ const addPluginNodeAtScreenPoint = (
   actionName: string,
   point: { x: number; y: number },
 ) => {
+  if (useWorkflowBaseCanvas) return workflowBaseCanvasRef.value?.addPluginNodeAtScreenPoint(pluginId, action, actionName, point)
   const id = addPluginNode(pluginId, action, actionName, screenToFlowCoordinate(point))
   animateDroppedNode(id)
   return id
@@ -1563,6 +1588,7 @@ defineExpose({
   >
     <WorkflowBaseCanvas
       v-if="useWorkflowBaseCanvas"
+      ref="workflowBaseCanvasRef"
     />
 
     <VueFlow
