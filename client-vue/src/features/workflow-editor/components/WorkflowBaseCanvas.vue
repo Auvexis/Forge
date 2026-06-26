@@ -15,27 +15,20 @@
     @items-move="handleItemsMove"
   >
     <template #item="{ item }">
-      <div
-        class="sailor-workflow-base-canvas__node"
-        @dblclick.stop="openNodeInspector(item)"
-      >
-        <component
-          :is="nodeComponentByType[resolveNodeType(item)]"
-          v-if="nodeComponentByType[resolveNodeType(item)]"
-          :id="item.id"
-          :type="resolveNodeType(item)"
-          :data="item.data"
-          :selected="canvasSelection.includes(item.id)"
-          :status="resolveNodeStatus(item.id)"
-          :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
-        />
-      </div>
+      <WorkflowCanvasNodeHost
+        :item="item"
+        :component="nodeComponentByType[resolveNodeType(item)]"
+        :selected="canvasSelection.includes(item.id)"
+        :status="resolveNodeStatus(item.id)"
+        :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
+        @open-inspector="openNodeInspector"
+      />
     </template>
   </BaseCanvas>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, type Component } from 'vue'
+import { computed, provide, ref, type Component } from 'vue'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type {
   BaseCanvasItem,
@@ -47,6 +40,12 @@ import { useExecutionStore } from '../stores/execution.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 import { workflowToBaseCanvasItems } from '../workflow-canvas/workflowCanvasAdapter'
+import WorkflowCanvasNodeHost from './WorkflowCanvasNodeHost.vue'
+import {
+  createWorkflowHandleRegistry,
+  isWorkflowBaseCanvasHandleModeKey,
+  workflowCanvasHandleRegistryKey,
+} from '../workflow-canvas/workflowCanvasHandles'
 import TriggerNode from './nodes/TriggerNode.vue'
 import HttpNode from './nodes/HttpNode.vue'
 import CodeNode from './nodes/CodeNode.vue'
@@ -83,6 +82,10 @@ const executionStore = useExecutionStore()
 const inspectorStore = useNodeInspectorStore()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const canvasSelection = ref<string[]>([])
+const handleRegistry = createWorkflowHandleRegistry()
+
+provide(isWorkflowBaseCanvasHandleModeKey, true)
+provide(workflowCanvasHandleRegistryKey, handleRegistry)
 
 const nodeComponentByType: Record<string, Component> = {
   trigger: TriggerNode,
@@ -168,9 +171,5 @@ function openNodeInspector(item: BaseCanvasItem) {
 .sailor-workflow-base-canvas {
   width: 100%;
   height: 100%;
-}
-
-.sailor-workflow-base-canvas__node {
-  position: relative;
 }
 </style>

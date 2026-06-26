@@ -34,13 +34,13 @@
 - [x] Preservar double click para abrir inspector.
 
 ## Batch 3 - Handles
-- [ ] Criar `WorkflowHandle` sem `@vue-flow/core`.
-- [ ] Criar tipos próprios para `Position` e handle side.
-- [ ] Migrar `BaseHandle` para usar `WorkflowHandle`.
-- [ ] Registrar geometria de handle por node.
-- [ ] Suportar source, target, circle, bar e diamond.
-- [ ] Suportar handles customizados de `If`, `Loop`, `Switch` e batches.
-- [ ] Remover dependência de `updateNodeInternals`.
+- [x] Criar `WorkflowHandle` sem `@vue-flow/core`.
+- [x] Criar tipos próprios para `Position` e handle side.
+- [x] Migrar `BaseHandle` para usar `WorkflowHandle`.
+- [x] Registrar geometria de handle por node.
+- [x] Suportar source, target, circle, bar e diamond.
+- [x] Suportar handles customizados de `If`, `Loop`, `Switch` e batches.
+- [x] Remover dependência de `updateNodeInternals` no caminho BaseCanvas.
 
 ## Batch 4 - Edges
 - [ ] Criar camada SVG própria para edges.

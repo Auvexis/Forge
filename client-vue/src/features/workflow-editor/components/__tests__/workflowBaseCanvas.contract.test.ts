@@ -32,6 +32,7 @@ describe('workflow BaseCanvas shell contract', () => {
 
   it('renders current workflow node components with Vue Flow compatible props', () => {
     const source = read('WorkflowBaseCanvas.vue')
+    const host = read('WorkflowCanvasNodeHost.vue')
 
     assert.match(source, /nodeComponentByType/)
     assert.match(source, /TriggerNode/)
@@ -39,9 +40,10 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(source, /CodeNode/)
     assert.match(source, /AiAgentNode/)
     assert.match(source, /VectorStoreToolNode/)
-    assert.match(source, /:id="item\.id"/)
-    assert.match(source, /:type="resolveNodeType\(item\)"/)
-    assert.match(source, /:data="item\.data"/)
+    assert.match(source, /WorkflowCanvasNodeHost/)
+    assert.match(host, /:id="item\.id"/)
+    assert.match(host, /:type="nodeType"/)
+    assert.match(host, /:data="item\.data"/)
     assert.match(source, /:selected="canvasSelection\.includes\(item\.id\)"/)
     assert.match(source, /:status="resolveNodeStatus\(item\.id\)"/)
     assert.match(source, /:has-outgoing-connection="hasNodeOutgoingConnection\(item\.id\)"/)
@@ -53,7 +55,7 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(source, /function handleItemsMove/)
     assert.match(source, /positionX/)
     assert.match(source, /positionY/)
-    assert.match(source, /@dblclick\.stop="openNodeInspector\(item\)"/)
+    assert.match(read('WorkflowCanvasNodeHost.vue'), /@dblclick\.stop="\$emit\('open-inspector', item\)"/)
     assert.match(source, /inspectorStore\.openInspector/)
   })
 })
