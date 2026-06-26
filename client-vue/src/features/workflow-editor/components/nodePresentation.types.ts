@@ -1,6 +1,11 @@
-import type { Position } from '@vue-flow/core'
-
 export type NodeSide = 'top' | 'left' | 'bottom' | 'right'
+export const Position = {
+  Top: 'top',
+  Right: 'right',
+  Bottom: 'bottom',
+  Left: 'left',
+} as const
+export type Position = typeof Position[keyof typeof Position]
 export type NodeRounding = 'sm' | 'md' | 'lg' | 'full'
 export type NodeBorderStyle = 'default' | 'dashed'
 export type NodeQuickAddMode = 'agent-config' | 'vector-config' | 'capability'

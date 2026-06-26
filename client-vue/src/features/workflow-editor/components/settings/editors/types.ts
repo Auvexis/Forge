@@ -1,4 +1,4 @@
-import type { GraphNode, Edge } from '@vue-flow/core'
+import type { WorkflowGraphNode as GraphNode, WorkflowGraphEdge as Edge } from '../../../workflow-canvas/workflowGraphTypes'
 
 /**
  * The data shape stored in every workflow graph node.
@@ -14,7 +14,7 @@ export type NodeData = Record<string, unknown>
  * Each editor receives everything it needs to read and write node state.
  */
 export interface NodeEditorProps {
-  /** The VueFlow node currently being edited */
+  /** The workflow graph node currently being edited */
   node: GraphNode<NodeData>
   /** All nodes in the workflow (used for upstream traversal) */
   nodes: GraphNode<NodeData>[]

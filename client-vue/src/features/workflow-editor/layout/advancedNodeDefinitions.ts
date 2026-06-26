@@ -1,4 +1,4 @@
-import { Position } from '@vue-flow/core'
+import { Position } from '../components/nodePresentation.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import type { AllowedNodes, BaseNodeHandlerDefinition, NodeSide } from '../components/nodePresentation.types'
 import { getNodeDefinition } from '../catalog/nodeDefinitionRegistry'

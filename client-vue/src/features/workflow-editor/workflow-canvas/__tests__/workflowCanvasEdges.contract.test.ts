@@ -48,12 +48,11 @@ describe('workflow canvas edges contract', () => {
     assert.match(edge, /strokeDasharray/)
   })
 
-  it('keeps Vue Flow BaseEdge untouched for the default editor path', () => {
-    const vueFlowEdge = readComponent('BaseEdge.vue')
+  it('removes the legacy Vue Flow BaseEdge wrapper from the editor path', () => {
     const workflowEdge = readComponent('WorkflowEdge.vue')
 
-    assert.match(vueFlowEdge, /useVueFlow/)
     assert.doesNotMatch(workflowEdge, /useVueFlow/)
     assert.doesNotMatch(workflowEdge, /EdgeLabelRenderer/)
+    assert.doesNotMatch(workflowEdge, /@vue-flow\/core/)
   })
 })

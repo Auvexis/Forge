@@ -35,16 +35,16 @@ describe('workflow canvas editor actions contract', () => {
     assert.doesNotMatch(helpers, /@vue-flow\/core/)
   })
 
-  it('delegates public SailorWorkflowCanvas actions to WorkflowBaseCanvas when the flag is active', () => {
+  it('delegates public SailorWorkflowCanvas actions directly to WorkflowBaseCanvas', () => {
     const canvas = readComponent('SailorWorkflowCanvas.vue')
 
     assert.match(canvas, /workflowBaseCanvasRef/)
-    assert.match(canvas, /if \(useWorkflowBaseCanvas\)/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.addLogicNodeAtViewportCenter/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.addPluginNodeAtScreenPoint/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.zoomIn/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.fitWorkflowView/)
     assert.match(canvas, /@drop="handleGlobalAddNodeDrop"/)
+    assert.doesNotMatch(canvas, /useWorkflowBaseCanvas/)
   })
 
   it('keeps run, stop, quick-add, and edge quick-add buses available in the BaseCanvas path', () => {

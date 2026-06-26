@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Position, type NodeProps } from '@vue-flow/core'
+import { Position } from '../nodePresentation.types'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { RetrieverNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'

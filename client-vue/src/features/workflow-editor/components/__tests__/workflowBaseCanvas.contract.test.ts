@@ -8,14 +8,13 @@ function read(relative: string) {
 }
 
 describe('workflow BaseCanvas shell contract', () => {
-  it('keeps Vue Flow as the default and gates the parallel BaseCanvas shell behind a flag', () => {
+  it('uses BaseCanvas as the workflow editor canvas without a migration flag', () => {
     const source = read('SailorWorkflowCanvas.vue')
 
-    assert.match(source, /shouldUseWorkflowBaseCanvas/)
     assert.match(source, /WorkflowBaseCanvas/)
-    assert.match(source, /v-if="useWorkflowBaseCanvas"/)
-    assert.match(source, /v-else/)
-    assert.match(source, /<VueFlow/)
+    assert.doesNotMatch(source, /shouldUseWorkflowBaseCanvas/)
+    assert.doesNotMatch(source, /v-else/)
+    assert.doesNotMatch(source, /<VueFlow/)
   })
 
   it('renders the shared BaseCanvas without changing the shared implementation', () => {
@@ -30,7 +29,7 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(source, /#item="\{ item \}"/)
   })
 
-  it('renders current workflow node components with Vue Flow compatible props', () => {
+  it('renders current workflow node components with workflow graph props', () => {
     const source = read('WorkflowBaseCanvas.vue')
     const host = read('WorkflowCanvasNodeHost.vue')
 

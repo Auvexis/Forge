@@ -53,15 +53,17 @@ describe('workflow canvas selection contract', () => {
     assert.doesNotMatch(selectionBox, /@vue-flow\/core/)
   })
 
-  it('handles node toolbar actions through the BaseCanvas path without touching the Vue Flow toolbar', () => {
+  it('handles node toolbar actions through the BaseCanvas path without Vue Flow runtime APIs', () => {
     const canvas = readComponent('WorkflowBaseCanvas.vue')
-    const vueFlowToolbar = readComponent('nodes/NodeToolbar.vue')
+    const toolbar = readComponent('nodes/NodeToolbar.vue')
 
     assert.match(canvas, /node:toolbar-action/)
     assert.match(canvas, /handleNodeToolbarAction/)
     assert.match(canvas, /duplicateNodeFromToolbar/)
     assert.match(canvas, /deleteNodeFromToolbar/)
     assert.match(canvas, /toggleNodeDisabled/)
-    assert.match(vueFlowToolbar, /useVueFlow/)
+    assert.match(toolbar, /node:toolbar-action/)
+    assert.doesNotMatch(toolbar, /useVueFlow/)
+    assert.doesNotMatch(toolbar, /@vue-flow\/core/)
   })
 })

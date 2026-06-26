@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { NodeProps } from '@vue-flow/core'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { StructuredJsonParserNode } from '@/core/types/workflow.types'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseAdvancedNode from '../BaseAdvancedNode.vue'

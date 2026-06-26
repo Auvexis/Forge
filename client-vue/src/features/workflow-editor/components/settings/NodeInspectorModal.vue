@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
-import { type GraphNode } from '@vue-flow/core'
+import type { WorkflowGraphNode as GraphNode, WorkflowGraphEdge as Edge } from '../../workflow-canvas/workflowGraphTypes'
 import { useNodeInspectorStore } from '../../stores/node-inspector.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import type { NodeData } from './editors/types'
 import type { RetryPolicy, WorkflowNodeType } from '@/core/types/workflow.types'
-import type { Edge } from '@vue-flow/core'
 
 import { NODE_EDITOR_REGISTRY } from './editors'
 import JsonTreeView from './shared/JsonTreeView.vue'

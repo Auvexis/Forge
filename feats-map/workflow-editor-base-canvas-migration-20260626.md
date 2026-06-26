@@ -95,10 +95,11 @@
 - [x] Validar workflow salvo/reaberto.
 
 ## Batch 9 - Remoção Vue Flow
-- [ ] Comparar paridade com feature flag.
-- [ ] Ativar BaseCanvas como padrão.
-- [ ] Remover slots e wrappers de Vue Flow.
-- [ ] Remover imports `@vue-flow/core` do Workflow Editor.
-- [ ] Remover imports `@vue-flow/background` do Workflow Editor.
-- [ ] Atualizar testes antigos que assumem Vue Flow.
-- [ ] Remover feature flag quando estável.
+- [x] Comparar paridade com feature flag.
+- [x] Ativar BaseCanvas como padrão.
+- [x] Remover slots e wrappers de Vue Flow.
+- [x] Remover imports `@vue-flow/core` do Workflow Editor.
+- [x] Remover imports `@vue-flow/background` do Workflow Editor.
+- [x] Remover pacotes npm `@vue-flow/core` e `@vue-flow/background`.
+- [x] Atualizar testes antigos que assumem Vue Flow.
+- [x] Remover feature flag quando estável.

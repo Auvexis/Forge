@@ -20,11 +20,11 @@ describe('workflow editor polish contracts', () => {
   })
 
   it('edge labels are edited by double click inline and the toolbar has no label button', () => {
-    const source = read('BaseEdge.vue')
+    const source = read('WorkflowEdge.vue')
 
     assert.match(source, /@dblclick\.stop="startEditLabel"/)
     assert.match(source, /sailor-edge-label-shell/)
-    assert.match(source, /edgeItemCountLabel/)
+    assert.match(source, /itemCountLabel/)
     assert.doesNotMatch(source, /title="Edit label"/)
     assert.doesNotMatch(source, /name="tag"/)
   })

@@ -81,23 +81,21 @@ test('capability quick-add preserves target handle context', () => {
 })
 
 test('canvas connects contextual quick-add nodes into advanced config handles', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   assert.match(canvas, /quickAddTargetId/)
   assert.match(canvas, /quickAddTargetHandle/)
-  assert.match(canvas, /quickAddHandlerId/)
-  assert.match(canvas, /quickAddAllowedNodes/)
-  assert.match(canvas, /connectAdvancedConfigNode/)
-  assert.match(canvas, /targetHandle: targetHandle/)
+  assert.match(canvas, /quickAddSourceHandle/)
+  assert.match(canvas, /createWorkflowConnectionEdge/)
+  assert.match(canvas, /targetHandle,/)
   assert.match(canvas, /sourceHandle: 'source'/)
-  assert.match(canvas, /on-add-agent-tool-node/)
 })
 
 test('canvas recognizes vector store handles as configuration edges', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowEdgeLayer.vue')
 
-  assert.match(canvas, /getAdvancedHandlerContext/)
-  assert.match(canvas, /getAdvancedNodeHandlers/)
+  assert.match(canvas, /getNodeDefinition/)
+  assert.match(canvas, /handle\?\.accepts\?\.length/)
 })
 
 test('vector store picker creates a provider-configured utility node instead of a plugin action', () => {
@@ -113,7 +111,8 @@ test('vector store picker creates a provider-configured utility node instead of 
 
 test('embedding quick-add uses a vector config context separate from agent config', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
+  const host = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
   const definitions = read('src/features/workflow-editor/layout/advancedNodeDefinitions.ts')
   const selectors = read('src/features/workflow-editor/components/settings/allowedNodeSelectors.ts')
 
@@ -125,12 +124,12 @@ test('embedding quick-add uses a vector config context separate from agent confi
   assert.match(panel, /Embedding Model/)
   assert.match(panel, /allowedNodeSelectorsPermitPlugin/)
   assert.match(panel, /onAddLogicNode\?\.\('embeddings'/)
-  assert.match(canvas, /handlerId: string \| null/)
-  assert.match(canvas, /:allowed-nodes="addNodePickerOverlay\.allowedNodes"/)
+  assert.match(host, /handlerId: string \| null/)
+  assert.match(host, /:allowed-nodes="addNodePickerOverlay\.allowedNodes"/)
   assert.match(definitions, /id: 'embedding'[\s\S]*capability:embedding-model/)
   assert.doesNotMatch(definitions, /id: 'embedding'[\s\S]*node:embeddings/)
-  assert.match(canvas, /embedding: \['capability:embedding-model'\]/)
-  assert.doesNotMatch(canvas, /embedding: \[[^\]]*node:embeddings/)
+  assert.match(host, /embedding: \['capability:embedding-model'\]/)
+  assert.doesNotMatch(host, /embedding: \[[^\]]*node:embeddings/)
   assert.match(selectors, /capabilities\.push\('embedding-model'\)/)
   assert.doesNotMatch(selectors, /capabilities\.push\('embedding-provider'\)/)
 })
@@ -149,38 +148,38 @@ test('document quick-add exposes only dataset utility nodes', () => {
 })
 
 test('canvas auto-arranges advanced node children through the shared presentation registry', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   assert.match(canvas, /getAdvancedChildPosition/)
-  assert.match(canvas, /getAdvancedNodeHandlers/)
-  assert.match(canvas, /getAdvancedConfigNodePosition/)
+  assert.match(canvas, /getAdvancedNodeHandlersForCanvas/)
+  assert.match(canvas, /getAdvancedParentBounds/)
   assert.match(canvas, /arrangeAdvancedConfigNodes/)
-  assert.match(canvas, /countHandlerChildren/)
+  assert.match(canvas, /siblingIndex/)
   assert.doesNotMatch(canvas, /AGENT_CONFIG_LAYOUT/)
   assert.doesNotMatch(canvas, /getAgentConfigLayoutPosition/)
   assert.doesNotMatch(canvas, /arrangeAgentConfigNodes/)
 })
 
 test('ai node defaults are safe and backend-compatible', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   assert.match(canvas, /type === 'ai-agent'/)
-  assert.match(canvas, /defaultData\.prompt = 'You are a helpful workflow agent\. Use tools only when needed\.'/)
-  assert.match(canvas, /defaultData\.maxIterations = 8/)
-  assert.match(canvas, /defaultData\.maxToolCalls = 12/)
-  assert.match(canvas, /defaultData\.maxRetriesPerTool = 3/)
-  assert.match(canvas, /defaultData\.timeoutMs = 180000/)
-  assert.match(canvas, /defaultData\.requireApprovalForSideEffects = \[/)
+  assert.match(canvas, /prompt: 'You are a helpful workflow agent\. Use tools only when needed\.'/)
+  assert.match(canvas, /maxIterations: 8/)
+  assert.match(canvas, /maxToolCalls: 12/)
+  assert.match(canvas, /maxRetriesPerTool: 3/)
+  assert.match(canvas, /timeoutMs: 180000/)
+  assert.match(canvas, /requireApprovalForSideEffects: \[/)
   assert.match(canvas, /'write'/)
   assert.match(canvas, /'delete'/)
   assert.match(canvas, /'external-message'/)
   assert.match(canvas, /'external-payment'/)
   assert.match(canvas, /'filesystem'/)
-  assert.match(canvas, /defaultData\.outputMode = 'text'/)
+  assert.match(canvas, /outputMode: 'text'/)
 
   assert.match(canvas, /type === 'ai-tool'/)
-  assert.match(canvas, /defaultData\.requiresApproval = true/)
-  assert.match(canvas, /defaultData\.sideEffect = 'write'/)
+  assert.match(canvas, /requiresApproval: true/)
+  assert.match(canvas, /sideEffect: 'write'/)
 })
 
 test('chat trigger is configured through the normal trigger node, not an AI palette item', () => {
@@ -232,7 +231,7 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
   const baseNode = read('src/features/workflow-editor/components/BaseNode.vue')
   const quickAddButton = read('src/features/workflow-editor/components/QuickAddButton.vue')
-  const baseEdge = read('src/features/workflow-editor/components/BaseEdge.vue')
+  const edgeLayer = read('src/features/workflow-editor/components/WorkflowEdgeLayer.vue')
   const triggerNode = read('src/features/workflow-editor/components/nodes/TriggerNode.vue')
 
   assert.match(canvas, /addNodePickerOverlay/)
@@ -249,7 +248,7 @@ test('workflow canvas opens add node picker as cursor anchored canvas overlay', 
 
   assert.match(baseNode, /clientX: event\.clientX/)
   assert.match(quickAddButton, /clientX: event\.clientX/)
-  assert.match(baseEdge, /clientX: event\.clientX/)
+  assert.match(edgeLayer, /clientX: event\.clientX/)
   assert.match(triggerNode, /clientX: event\.clientX/)
   assert.match(triggerNode, /anchorRect/)
 })
@@ -276,8 +275,7 @@ test('global add node panel exposes only Utilities and Integrations sections', (
   assert.match(panel, /name="puzzle"/)
   assert.doesNotMatch(panel, />Actions</)
   assert.doesNotMatch(panel, />Storage</)
-  assert.match(panel, /draggable="true"/)
-  assert.match(panel, /@dragstart="handleDragStart/)
+  assert.match(panel, /@pointerdown="handlePointerDragStart/)
   assert.match(panel, /onAddLogicNodeAtCenter/)
   assert.match(panel, /onAddPluginNodeAtCenter/)
 })
@@ -312,12 +310,13 @@ test('global add node panel animates section expand and collapse', () => {
 
 test('workflow canvas exposes center and drop coordinate add node actions', () => {
   const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const baseCanvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
-  assert.match(canvas, /addLogicNodeAtViewportCenter/)
-  assert.match(canvas, /addPluginNodeAtViewportCenter/)
-  assert.match(canvas, /addLogicNodeAtScreenPoint/)
-  assert.match(canvas, /addPluginNodeAtScreenPoint/)
-  assert.match(canvas, /screenToFlowCoordinate/)
+  assert.match(baseCanvas, /addLogicNodeAtViewportCenter/)
+  assert.match(baseCanvas, /addPluginNodeAtViewportCenter/)
+  assert.match(baseCanvas, /addLogicNodeAtScreenPoint/)
+  assert.match(baseCanvas, /addPluginNodeAtScreenPoint/)
+  assert.match(baseCanvas, /screenToCanvasWorld/)
   assert.match(canvas, /handleGlobalAddNodeDrop/)
 })
 

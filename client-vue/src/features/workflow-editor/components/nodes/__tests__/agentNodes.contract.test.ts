@@ -10,14 +10,14 @@ function read(relativePath: string): string {
 }
 
 test('workflow canvas registers agent node renderers', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   for (const componentName of ['AiAgentNode', 'AiModelNode', 'AiMemoryNode', 'AiToolNode']) {
     assert.match(canvas, new RegExp(`import ${componentName} from './nodes/${componentName}\\.vue'`))
   }
 
   for (const slotName of ['ai-agent', 'ai-model', 'ai-memory', 'ai-tool']) {
-    assert.match(canvas, new RegExp(`#node-${slotName}="nodeProps"`))
+    assert.match(canvas, new RegExp(`'${slotName}': ${slotName.split('-').map((part) => part[0].toUpperCase() + part.slice(1)).join('')}Node`))
   }
 })
 
@@ -132,11 +132,12 @@ test('ai tool node shows plugin and method as a circular top-output child', () =
 })
 
 test('declared configuration edges use dashed presentation for Agent and Vector Store', () => {
-  const source = read('src/features/workflow-editor/components/BaseEdge.vue')
+  const source = read('src/features/workflow-editor/components/WorkflowEdge.vue')
+  const edgeLayer = read('src/features/workflow-editor/components/WorkflowEdgeLayer.vue')
 
-  assert.match(source, /getNodeDefinition/)
-  assert.match(source, /targetHandle/)
-  assert.match(source, /handle\?\.accepts\?\.length/)
+  assert.match(edgeLayer, /getNodeDefinition/)
+  assert.match(edgeLayer, /targetHandle/)
+  assert.match(edgeLayer, /handle\?\.accepts\?\.length/)
   assert.match(source, /strokeDasharray/)
   assert.match(source, /strokeLinecap/)
   assert.doesNotMatch(source, /CONFIGURATION_TARGET_HANDLES/)

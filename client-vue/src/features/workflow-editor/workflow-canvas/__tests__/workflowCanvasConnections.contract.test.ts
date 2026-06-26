@@ -54,15 +54,16 @@ describe('workflow canvas connections contract', () => {
     assert.match(helpers, /cardinality/)
   })
 
-  it('keeps the shared BaseCanvas implementation and Vue Flow connection path untouched', () => {
+  it('keeps the shared BaseCanvas implementation clean and removes the legacy connection path', () => {
     const baseCanvas = readFileSync(fileURLToPath(new URL('../../../../shared/base-canvas/BaseCanvas.vue', import.meta.url)), 'utf8')
-    const vueFlowCanvas = readComponent('SailorWorkflowCanvas.vue')
+    const workflowCanvas = readComponent('SailorWorkflowCanvas.vue')
     const layer = readComponent('WorkflowConnectionLayer.vue')
 
     assert.doesNotMatch(baseCanvas, /WorkflowConnectionLayer/)
-    assert.match(vueFlowCanvas, /@connect-start="onConnectStart"/)
-    assert.match(vueFlowCanvas, /@connect="onConnect"/)
-    assert.match(vueFlowCanvas, /@connect-end="onConnectEnd"/)
+    assert.doesNotMatch(workflowCanvas, /@connect-start/)
+    assert.doesNotMatch(workflowCanvas, /@connect=/)
+    assert.doesNotMatch(workflowCanvas, /@connect-end/)
+    assert.match(workflowCanvas, /WorkflowBaseCanvas/)
     assert.doesNotMatch(layer, /@vue-flow\/core/)
   })
 })

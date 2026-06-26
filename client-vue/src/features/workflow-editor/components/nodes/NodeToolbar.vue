@@ -28,33 +28,25 @@
 </template>
 
 <script setup lang="ts">
-import { computed, markRaw } from 'vue'
-import { useVueFlow } from '@vue-flow/core'
+import { computed } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
-import { useAppPanelStore } from '@/shared/stores/app-panel.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
-import type { WorkflowNode } from '@/core/types/workflow.types'
 
 const props = defineProps<{
   nodeId: string
   visible: boolean
 }>()
 
-const { removeNodes, getNodes, addNodes, getSelectedNodes, viewport } = useVueFlow()
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
-const panelStore = useAppPanelStore()
 const toolbarBus = useEventBus<{ action: 'duplicate' | 'delete' | 'disable'; nodeId: string }>(
   'node:toolbar-action',
 )
 
-const isMultiSelection = computed(() => getSelectedNodes.value.length >= 2)
-const toolbarScale = computed(() => {
-  const zoom = viewport.value.zoom || 1
-  return Math.min(2, Math.max(1, 1 / zoom))
-})
+const isMultiSelection = computed(() => false)
+const toolbarScale = computed(() => 1)
 
 // nodeStatuses is Record<string, NodeExecutionState>; with noUncheckedIndexedAccess the
 // lookup can return undefined — the computed value reflects that correctly.
@@ -65,46 +57,10 @@ const isNodeDisabled = computed(() => workflowStore.activeWorkflow?.nodes[props.
 
 function cloneNode() {
   toolbarBus.emit({ action: 'duplicate', nodeId: props.nodeId })
-  const original = getNodes.value.find((n) => n.id === props.nodeId)
-  if (!original || !workflowStore.activeWorkflow) return
-
-  const newId = `${props.nodeId}_${Date.now().toString(36)}`
-  const newPosition = { x: original.position.x + 30, y: original.position.y + 30 }
-
-  // Cast the VueFlow generic data bag to our domain type, then build the clone.
-  const clonedData = { ...(original.data as WorkflowNode) }
-  const clonedNode: WorkflowNode = {
-    ...clonedData,
-    ui: { positionX: newPosition.x, positionY: newPosition.y },
-  } as WorkflowNode
-
-  // Persist to workflow store first using a local reference so we never
-  // re-index the record (noUncheckedIndexedAccess would widen to T | undefined).
-  workflowStore.activeWorkflow.nodes[newId] = clonedNode
-
-  addNodes([
-    {
-      id: newId,
-      type: original.type ?? 'plugin',
-      position: newPosition,
-      data: clonedNode as unknown as Record<string, unknown>,
-    },
-  ])
 }
 
 function deleteNode() {
   toolbarBus.emit({ action: 'delete', nodeId: props.nodeId })
-  if (!workflowStore.activeWorkflow) return
-
-  removeNodes([props.nodeId])
-
-  delete workflowStore.activeWorkflow.nodes[props.nodeId]
-
-  workflowStore.activeWorkflow.edges = workflowStore.activeWorkflow.edges.filter(
-    (e) => e.source !== props.nodeId && e.target !== props.nodeId,
-  )
-
-  panelStore.closePanel()
 }
 
 function toggleDisabled() {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { NodeProps } from '@vue-flow/core'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { AiToolNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { apiRequest } from '@/core/api/client'

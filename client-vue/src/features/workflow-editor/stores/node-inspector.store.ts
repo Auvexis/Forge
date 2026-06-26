@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { Node } from '@vue-flow/core'
+import type { WorkflowGraphNode as Node } from '../workflow-canvas/workflowGraphTypes'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 

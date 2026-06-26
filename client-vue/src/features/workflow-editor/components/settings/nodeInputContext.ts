@@ -1,4 +1,4 @@
-import type { Edge, GraphNode } from '@vue-flow/core'
+import type { WorkflowGraphEdge as Edge, WorkflowGraphNode as GraphNode } from '../../workflow-canvas/workflowGraphTypes'
 import type { NodeData } from './editors/types.ts'
 
 interface InputContextOptions {

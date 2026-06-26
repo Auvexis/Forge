@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { NodeProps } from '@vue-flow/core'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { PluginNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { computed, ref, watch } from 'vue'

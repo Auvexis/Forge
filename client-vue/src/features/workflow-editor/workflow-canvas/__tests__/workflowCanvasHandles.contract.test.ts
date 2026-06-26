@@ -45,13 +45,13 @@ describe('workflow canvas handles contract', () => {
     assert.doesNotMatch(source, /@vue-flow\/core/)
   })
 
-  it('keeps BaseHandle Vue Flow compatible while switching to WorkflowHandle inside WorkflowBaseCanvas', () => {
+  it('keeps BaseHandle delegated to WorkflowHandle without Vue Flow runtime handles', () => {
     const source = readComponent('BaseHandle.vue')
 
     assert.match(source, /WorkflowHandle/)
-    assert.match(source, /isWorkflowBaseCanvasHandleMode/)
-    assert.match(source, /<Handle/)
     assert.match(source, /<WorkflowHandle/)
+    assert.doesNotMatch(source, /<Handle/)
+    assert.doesNotMatch(source, /@vue-flow\/core/)
   })
 
   it('provides handle mode and node id from the workflow BaseCanvas shell', () => {
@@ -66,11 +66,12 @@ describe('workflow canvas handles contract', () => {
     assert.match(host, /:has-outgoing-connection="hasOutgoingConnection"/)
   })
 
-  it('skips Vue Flow handle measurement refreshes in WorkflowBaseCanvas mode', () => {
+  it('keeps BaseNode handle geometry reactive without Vue Flow internals', () => {
     const source = readComponent('BaseNode.vue')
 
-    assert.match(source, /isWorkflowBaseCanvasHandleModeKey/)
-    assert.match(source, /if \(isWorkflowBaseCanvasHandleMode\) return/)
-    assert.match(source, /updateNodeInternals\(\[props\.id\]\)/)
+    assert.match(source, /handleGeometrySignature/)
+    assert.match(source, /watch\(handleGeometrySignature, refreshHandleGeometry/)
+    assert.doesNotMatch(source, /updateNodeInternals/)
+    assert.doesNotMatch(source, /useVueFlow/)
   })
 })

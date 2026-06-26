@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { computed, inject, useAttrs } from 'vue'
-import { Handle, Position } from '@vue-flow/core'
+import { useAttrs } from 'vue'
+import type { Position } from './nodePresentation.types'
 import WorkflowHandle from './WorkflowHandle.vue'
-import { isWorkflowBaseCanvasHandleModeKey } from '../workflow-canvas/workflowCanvasHandles'
 
 const props = defineProps<{
   id?: string
@@ -12,30 +11,16 @@ const props = defineProps<{
 }>()
 
 const attrs = useAttrs()
-const isWorkflowBaseCanvasHandleMode = inject(isWorkflowBaseCanvasHandleModeKey, false)
-const handleClasses = computed(() => [`is-position-${props.position}`, `is-variant-${props.variant ?? 'circle'}`])
 </script>
 
 <template>
   <WorkflowHandle
-    v-if="isWorkflowBaseCanvasHandleMode"
     v-bind="attrs"
     :id="props.id"
     :type="props.type"
     :position="props.position"
     :variant="props.variant ?? 'circle'"
   />
-  <Handle
-    v-else
-    v-bind="attrs"
-    :id="props.id"
-    :type="props.type"
-    :position="props.position"
-    class="sailor-base-handle"
-    :class="handleClasses"
-  >
-    <span class="sailor-base-handle__visual" />
-  </Handle>
 </template>
 
 <style scoped>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Position } from '@vue-flow/core'
-import type { NodeProps } from '@vue-flow/core'
+import { Position } from '../nodePresentation.types'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { SwitchNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
@@ -58,7 +58,7 @@ const handlePositions = computed(() => {
   >
     <!--
       Key includes outputs.length so that when a case is added/removed, Vue
-      unmounts and remounts every handle — Vue Flow re-registers them at their
+      unmounts and remounts every handle, so the canvas re-registers them at their
       new positions, which re-anchors all connected edges.
     -->
     <template v-for="(output, i) in outputs" :key="`${output.id}@${outputs.length}`">

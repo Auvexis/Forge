@@ -30,19 +30,22 @@ test('workflow types expose retrieval utility nodes', () => {
 })
 
 test('workflow canvas registers retrieval node renderers', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   for (const componentName of ['TextDatasetNode', 'FileDatasetNode', 'DatabaseDatasetNode', 'EmbeddingsNode', 'VectorStoreNode', 'RetrieverNode']) {
     assert.match(canvas, new RegExp(`import ${componentName} from './nodes/${componentName}\\.vue'`))
   }
 
-  for (const slotName of ['text-dataset', 'file-dataset', 'database-dataset', 'embeddings', 'vector-store', 'retriever']) {
-    assert.match(canvas, new RegExp(`#node-${slotName}="nodeProps"`))
-  }
+  assert.match(canvas, /'text-dataset': TextDatasetNode/)
+  assert.match(canvas, /'file-dataset': FileDatasetNode/)
+  assert.match(canvas, /'database-dataset': DatabaseDatasetNode/)
+  assert.match(canvas, /embeddings: EmbeddingsNode/)
+  assert.match(canvas, /'vector-store': VectorStoreNode/)
+  assert.match(canvas, /retriever: RetrieverNode/)
 })
 
 test('workflow canvas defines backend-valid defaults for retrieval nodes added from picker', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   for (const [nodeType, defaultName] of [
     ['text-dataset', 'Text Dataset'],
@@ -52,19 +55,20 @@ test('workflow canvas defines backend-valid defaults for retrieval nodes added f
     ['vector-store', 'Vector Store'],
     ['retriever', 'Retriever'],
   ]) {
-    assert.match(canvas, new RegExp(`'${nodeType}': '${defaultName}'`))
+    const keyPattern = nodeType.includes('-') ? `'${nodeType}'` : nodeType
+    assert.match(canvas, new RegExp(`${keyPattern}: '${defaultName}'`))
     assert.match(canvas, new RegExp(`type === '${nodeType}'`))
   }
 
   for (const field of [
-    "defaultData.format = 'plain-text'",
-    "defaultData.filePath = '",
-    "defaultData.textColumns = ['body']",
-    "defaultData.ensureCollectionMethodId = 'ensureCollection'",
-    "defaultData.upsertMethodId = 'upsertDocuments'",
-    "defaultData.queryMethodId = 'querySimilar'",
-    "defaultData.metric = 'cosine'",
-    "defaultData.outputMode = 'context'",
+    "format: 'plain-text'",
+    "filePath: ''",
+    "textColumns: ['body']",
+    "ensureCollectionMethodId: 'ensureCollection'",
+    "upsertMethodId: 'upsertDocuments'",
+    "queryMethodId: 'querySimilar'",
+    "metric: 'cosine'",
+    "outputMode: 'context'",
   ]) {
     assert.match(canvas, new RegExp(field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
   }
@@ -170,12 +174,13 @@ test('advanced handler definitions declare shape and connection-aware quick add 
 })
 
 test('vector configuration edges use the shared dashed routing and hide ordinary tools', () => {
-  const source = read('src/features/workflow-editor/components/BaseEdge.vue')
+  const source = read('src/features/workflow-editor/components/WorkflowEdge.vue')
+  const edgeLayer = read('src/features/workflow-editor/components/WorkflowEdgeLayer.vue')
 
-  assert.match(source, /getNodeDefinition/)
-  assert.match(source, /handle\?\.accepts\?\.length/)
+  assert.match(edgeLayer, /getNodeDefinition/)
+  assert.match(edgeLayer, /handle\?\.accepts\?\.length/)
   assert.doesNotMatch(source, /CONFIGURATION_TARGET_HANDLES/)
   assert.match(source, /isConfigurationEdge/)
-  assert.match(source, /configurationBezierPath/)
+  assert.match(edgeLayer, /makeConfigurationWorkflowEdgePath/)
   assert.match(source, /v-if="!isConfigurationEdge"/)
 })

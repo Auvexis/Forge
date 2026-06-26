@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useVueFlow } from '@vue-flow/core'
 import { useEventBus } from '@/shared/composables/useEventBus'
 import { useWorkflowStore } from '../stores/workflow.store'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -16,13 +15,11 @@ const props = defineProps<{
   direction?: 'right' | 'down'
 }>()
 
-const { edges } = useVueFlow()
 const workflowStore = useWorkflowStore()
 const quickAddBus = useEventBus('node:quick-add')
 const isConfigurationQuickAdd = computed(() => props.mode !== undefined && props.mode !== 'source')
 
 const allEdges = computed(() => [
-  ...edges.value,
   ...(workflowStore.activeWorkflow?.edges ?? []),
 ])
 

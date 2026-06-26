@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, markRaw, onMounted, ref, watch } from 'vue'
-import { useVueFlow, type NodeProps } from '@vue-flow/core'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { TriggerNode, WorkflowTrigger } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import BaseHandle from '../BaseHandle.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { Position } from '@vue-flow/core'
+import { Position } from '../nodePresentation.types'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useEventBus } from '@/shared/composables/useEventBus'
@@ -32,7 +32,6 @@ const store = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
 const toast = useToast()
-const { edges } = useVueFlow()
 const { isDark } = useTheme()
 const selectedPlugin = ref<PluginSummary | null>(null)
 const pluginIcon = ref('plug')
@@ -212,10 +211,7 @@ const onExecuteWorkflow = async () => {
 
 const hasOutgoingConnection = computed(() => {
   if (!props.id) return false
-  return (
-    edges.value.some((e) => e.source === props.id) ||
-    (store.activeWorkflow?.edges.some((e) => e.source === props.id) ?? false)
-  )
+  return store.activeWorkflow?.edges.some((e) => e.source === props.id) ?? false
 })
 
 const onQuickAdd = (event: MouseEvent) => {

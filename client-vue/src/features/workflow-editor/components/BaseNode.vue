@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref, nextTick, watch } from 'vue'
-import { Position, useVueFlow } from '@vue-flow/core'
+import { Position } from './nodePresentation.types'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseHandle from './BaseHandle.vue'
 import QuickAddButton from './QuickAddButton.vue'
@@ -56,11 +56,9 @@ const workflowStore = useWorkflowStore()
 const panelStore = useAppPanelStore()
 const quickAddBus = useEventBus('node:quick-add')
 const toast = useToast()
-const { edges, updateNodeInternals } = useVueFlow()
 const isWorkflowBaseCanvasHandleMode = inject(isWorkflowBaseCanvasHandleModeKey, false)
 
 const allEdges = computed(() => [
-  ...edges.value,
   ...(workflowStore.activeWorkflow?.edges ?? []),
 ])
 
@@ -98,7 +96,6 @@ const refreshHandleGeometry = async () => {
   if (!props.id) return
   if (isWorkflowBaseCanvasHandleMode) return
   await nextTick()
-  updateNodeInternals([props.id])
 }
 
 watch(handleGeometrySignature, refreshHandleGeometry, { flush: 'post' })

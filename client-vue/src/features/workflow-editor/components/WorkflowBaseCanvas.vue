@@ -552,9 +552,47 @@ function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
     executionMode: 'loop',
     maxIterations: 8,
     maxToolCalls: 12,
+    maxRetriesPerTool: 3,
     timeoutMs: 180000,
-    requireApprovalForSideEffects: [],
+    requireApprovalForSideEffects: [
+      'write',
+      'delete',
+      'external-message',
+      'external-payment',
+      'filesystem',
+    ],
     outputMode: 'text',
+  }
+  if (type === 'ai-tool') return {
+    requiresApproval: true,
+    sideEffect: 'write',
+  }
+  if (type === 'text-dataset') return {
+    format: 'plain-text',
+    chunkSize: 1000,
+    chunkOverlap: 120,
+  }
+  if (type === 'file-dataset') return {
+    filePath: '',
+    chunkSize: 1000,
+    chunkOverlap: 120,
+  }
+  if (type === 'database-dataset') return {
+    connectionId: '',
+    textColumns: ['body'],
+    chunkSize: 1000,
+    chunkOverlap: 120,
+  }
+  if (type === 'embeddings') return {}
+  if (type === 'vector-store') return {
+    ensureCollectionMethodId: 'ensureCollection',
+    upsertMethodId: 'upsertDocuments',
+    queryMethodId: 'querySimilar',
+    metric: 'cosine',
+  }
+  if (type === 'retriever') return {
+    outputMode: 'context',
+    topK: 5,
   }
   return {}
 }

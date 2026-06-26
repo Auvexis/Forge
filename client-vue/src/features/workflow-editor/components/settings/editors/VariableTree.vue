@@ -20,7 +20,7 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { GraphNode } from '@vue-flow/core'
+import type { WorkflowGraphNode as GraphNode } from '../../../workflow-canvas/workflowGraphTypes'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import JsonTreeView from '../shared/JsonTreeView.vue'

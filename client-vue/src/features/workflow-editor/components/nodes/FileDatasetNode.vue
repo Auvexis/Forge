@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { NodeProps } from '@vue-flow/core'
+import type { WorkflowNodeProps as NodeProps } from '../../workflow-canvas/workflowGraphTypes'
 import type { FileDatasetNode } from '@/core/types/workflow.types'
 import BaseNode from '../BaseNode.vue'
 import { CONFIGURATION_SOURCE_HANDLER } from '../../layout/advancedNodeDefinitions'
