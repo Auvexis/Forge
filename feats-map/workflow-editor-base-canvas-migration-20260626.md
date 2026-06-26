@@ -64,14 +64,14 @@
 - [x] Cancelar conexão ao soltar no canvas.
 
 ## Batch 6 - Seleção e comandos
-- [ ] Preservar seleção simples.
-- [ ] Preservar marquee selection.
-- [ ] Preservar seleção múltipla.
-- [ ] Migrar selection box e group actions.
-- [ ] Preservar delete selection.
-- [ ] Preservar duplicate selection.
-- [ ] Preservar select all e clear selection.
-- [ ] Preservar node toolbar.
+- [x] Preservar seleção simples.
+- [x] Preservar marquee selection.
+- [x] Preservar seleção múltipla.
+- [x] Migrar selection box e group actions.
+- [x] Preservar delete selection.
+- [x] Preservar duplicate selection.
+- [x] Preservar select all e clear selection.
+- [x] Preservar node toolbar.
 
 ## Batch 7 - Ações do editor
 - [ ] Migrar add logic node at viewport center.

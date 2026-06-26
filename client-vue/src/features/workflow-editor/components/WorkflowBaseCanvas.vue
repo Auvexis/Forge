@@ -41,11 +41,19 @@
       @connection-create="createWorkflowConnection"
       @connection-cancel="cancelWorkflowConnection"
     />
+
+    <WorkflowSelectionBox
+      :items="workflowItems"
+      :selection="canvasSelection"
+      :viewport="viewport"
+      @duplicate-selection="duplicateSelection"
+      @delete-selection="deleteSelection"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref, type Component } from 'vue'
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch, type Component } from 'vue'
 import type { WorkflowEdge } from '@/core/types/workflow.types'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type {
@@ -53,10 +61,12 @@ import type {
   BaseCanvasItemsMoveEvent,
   BaseCanvasViewport,
 } from '@/shared/base-canvas/index.ts'
+import { useEventBus } from '@/shared/composables/useEventBus'
 import { getAdvancedChildPosition, getAdvancedParentBounds } from '../layout/advancedNodeLayout'
 import { useWorkflowStore } from '../stores/workflow.store'
 import { useExecutionStore } from '../stores/execution.store'
 import { useNodeInspectorStore } from '../stores/node-inspector.store'
+import { deleteWorkflowSelection, duplicateWorkflowSelection } from '../utils/workflowSelectionActions'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 import {
   createWorkflowConnectionEdge,
@@ -64,10 +74,15 @@ import {
   getWorkflowConnectionPolicyAction,
   getWorkflowTargetHandlePolicy,
 } from '../workflow-canvas/workflowCanvasConnections'
+import {
+  normalizeWorkflowSelection,
+  selectAllWorkflowNodeIds,
+} from '../workflow-canvas/workflowCanvasSelection'
 import { workflowToBaseCanvasItems } from '../workflow-canvas/workflowCanvasAdapter'
 import WorkflowCanvasNodeHost from './WorkflowCanvasNodeHost.vue'
 import WorkflowConnectionLayer from './WorkflowConnectionLayer.vue'
 import WorkflowEdgeLayer from './WorkflowEdgeLayer.vue'
+import WorkflowSelectionBox from './WorkflowSelectionBox.vue'
 import {
   createWorkflowHandleRegistry,
   isWorkflowBaseCanvasHandleModeKey,
@@ -110,6 +125,9 @@ const inspectorStore = useNodeInspectorStore()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const canvasSelection = ref<string[]>([])
 const handleRegistry = createWorkflowHandleRegistry()
+const nodeToolbarBus = useEventBus<{ action: 'duplicate' | 'delete' | 'disable'; nodeId: string }>(
+  'node:toolbar-action',
+)
 
 provide(isWorkflowBaseCanvasHandleModeKey, true)
 provide(workflowCanvasHandleRegistryKey, handleRegistry)
@@ -156,6 +174,30 @@ const workflowItems = computed(() => {
 })
 
 const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
+const selectableNodeIds = computed(() => ({
+  includeTrigger: workflowItems.value.some((item) => item.id === 'trigger'),
+  nodeIds: Object.keys(workflowStore.activeWorkflow?.nodes ?? {}),
+}))
+
+nodeToolbarBus.on(handleNodeToolbarAction)
+
+watch([workflowItems, canvasSelection], () => {
+  const normalized = normalizeWorkflowSelection({
+    ...selectableNodeIds.value,
+    selection: canvasSelection.value,
+  })
+  if (normalized.join('|') !== canvasSelection.value.join('|')) {
+    canvasSelection.value = normalized
+  }
+}, { flush: 'post' })
+
+onMounted(() => {
+  window.addEventListener('keydown', handleWorkflowCanvasKeyDown)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('keydown', handleWorkflowCanvasKeyDown)
+})
 
 function resolveNodeType(item: BaseCanvasItem): string {
   if (item.id === 'trigger') return 'trigger'
@@ -184,6 +226,80 @@ function handleItemsMove(event: BaseCanvasItemsMoveEvent) {
       positionY: (node.ui?.positionY ?? 0) + event.delta.y,
     }
   }
+}
+
+function selectAllNodes() {
+  canvasSelection.value = selectAllWorkflowNodeIds(selectableNodeIds.value)
+}
+
+function clearSelection() {
+  canvasSelection.value = []
+}
+
+function deleteSelection() {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+  const result = deleteWorkflowSelection(workflow, canvasSelection.value)
+  if (result.nodeIds.length === 0) return
+  canvasSelection.value = []
+}
+
+function duplicateSelection() {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+  const result = duplicateWorkflowSelection(workflow, canvasSelection.value)
+  if (result.nodeIds.length === 0) return
+  canvasSelection.value = result.nodeIds
+}
+
+function handleNodeToolbarAction(payload: { action: 'duplicate' | 'delete' | 'disable'; nodeId: string } | undefined) {
+  if (!payload) return
+  if (payload.action === 'duplicate') duplicateNodeFromToolbar(payload.nodeId)
+  if (payload.action === 'delete') deleteNodeFromToolbar(payload.nodeId)
+  if (payload.action === 'disable') toggleNodeDisabled(payload.nodeId)
+}
+
+function duplicateNodeFromToolbar(nodeId: string) {
+  canvasSelection.value = [nodeId]
+  duplicateSelection()
+}
+
+function deleteNodeFromToolbar(nodeId: string) {
+  canvasSelection.value = [nodeId]
+  deleteSelection()
+}
+
+function toggleNodeDisabled(nodeId: string) {
+  const node = workflowStore.activeWorkflow?.nodes[nodeId]
+  if (!node) return
+  node.disabled = !node.disabled
+}
+
+function handleWorkflowCanvasKeyDown(event: KeyboardEvent) {
+  if (isEditableKeyTarget(event.target)) return
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'a') {
+    event.preventDefault()
+    selectAllNodes()
+    return
+  }
+  if (event.key === 'Escape') {
+    clearSelection()
+    return
+  }
+  if (event.key === 'Delete' || event.key === 'Backspace') {
+    event.preventDefault()
+    deleteSelection()
+    return
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'd') {
+    event.preventDefault()
+    duplicateSelection()
+  }
+}
+
+function isEditableKeyTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
 }
 
 function createWorkflowConnection(connection: Pick<WorkflowEdge, 'source' | 'target' | 'sourceHandle' | 'targetHandle'>) {
@@ -257,6 +373,13 @@ function openNodeInspector(item: BaseCanvasItem) {
     data: item.data,
   } as any)
 }
+
+defineExpose({
+  selectAllNodes,
+  clearSelection,
+  duplicateSelection,
+  deleteSelection,
+})
 </script>
 
 <style scoped>
