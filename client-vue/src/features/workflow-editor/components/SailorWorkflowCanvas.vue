@@ -34,6 +34,7 @@ import StructuredJsonParserNode from './nodes/StructuredJsonParserNode.vue'
 import VectorStoreRetrieverNode from './nodes/VectorStoreRetrieverNode.vue'
 import QuestionAnswerChainNode from './nodes/QuestionAnswerChainNode.vue'
 import VectorStoreToolNode from './nodes/VectorStoreToolNode.vue'
+import WorkflowBaseCanvas from './WorkflowBaseCanvas.vue'
 import BaseEdge from './BaseEdge.vue'
 import ConnectionPreviewLine from './ConnectionPreviewLine.vue'
 import NodeGroupSelectionBox from './NodeGroupSelectionBox.vue'
@@ -57,12 +58,14 @@ import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 import { useApi } from '@/shared/composables/useApi'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import { replaceNodeDefinitions } from '../catalog/nodeDefinitionRegistry'
+import { shouldUseWorkflowBaseCanvas } from '../workflow-canvas/workflowCanvasFeatureFlag'
 
 // Stores
 const workflowStore = useWorkflowStore()
 const inspectorStore = useNodeInspectorStore()
 const executionStore = useExecutionStore()
 const vueFlowStore = ref<VueFlowStore | null>(null)
+const useWorkflowBaseCanvas = shouldUseWorkflowBaseCanvas()
 const { data: workflowNodeCatalog, execute: loadWorkflowNodeCatalog } = useApi(workflowNodesApi.getCatalog)
 
 watch(workflowNodeCatalog, (catalog) => replaceNodeDefinitions(catalog?.nodes ?? []), {
@@ -1558,7 +1561,12 @@ defineExpose({
     @dragover.prevent
     @drop="handleGlobalAddNodeDrop"
   >
+    <WorkflowBaseCanvas
+      v-if="useWorkflowBaseCanvas"
+    />
+
     <VueFlow
+      v-else
       :id="workflowStore.activeWorkflow?.metadata.id ?? 'default'"
       v-model:nodes="vueFlowNodes"
       v-model:edges="vueFlowEdges"

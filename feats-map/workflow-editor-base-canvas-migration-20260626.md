@@ -16,12 +16,12 @@
 - Preferir adapters/wrappers no Workflow Editor para proteger Sailor Pages.
 
 ## Batch 1 - Base paralela
-- [ ] Criar feature flag para Vue Flow vs BaseCanvas.
-- [ ] Criar `WorkflowBaseCanvas` sem remover `SailorWorkflowCanvas`.
-- [ ] Criar adapter de workflow para `BaseCanvasItem`.
-- [ ] Renderizar canvas vazio, grid, pan e zoom.
-- [ ] Manter add node panel e inspector fora da troca.
-- [ ] Confirmar que Sailor Pages não mudou após qualquer ajuste opcional no `BaseCanvas`.
+- [x] Criar feature flag para Vue Flow vs BaseCanvas.
+- [x] Criar `WorkflowBaseCanvas` sem remover `SailorWorkflowCanvas`.
+- [x] Criar adapter de workflow para `BaseCanvasItem`.
+- [x] Renderizar canvas vazio, grid, pan e zoom.
+- [x] Manter add node panel e inspector fora da troca.
+- [x] Confirmar que Sailor Pages não mudou após qualquer ajuste opcional no `BaseCanvas`.
 
 ## Batch 2 - Nodes
 - [ ] Renderizar trigger node legado quando necessário.
