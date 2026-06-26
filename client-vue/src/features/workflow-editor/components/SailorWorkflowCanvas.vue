@@ -15,6 +15,7 @@ import WorkflowBaseCanvas from './WorkflowBaseCanvas.vue'
 type WorkflowBaseCanvasPublicApi = InstanceType<typeof WorkflowBaseCanvas>
 type AddNodePickerAnchorRect = Pick<DOMRect, 'left' | 'right' | 'top' | 'bottom' | 'width' | 'height'>
 type AddNodePickerAnchor = { clientX?: number; clientY?: number; anchorRect?: AddNodePickerAnchorRect }
+type AddNodePickerAnchorPoint = { x: number; y: number }
 type AddNodePickerSecondarySide = 'right' | 'left'
 type GlobalAddNodeDragPayload =
   | { kind: 'logic'; nodeType: WorkflowNodeType; defaults?: Record<string, unknown> }
@@ -45,6 +46,7 @@ const ADD_NODE_PICKER_GAP = 8
 const ADD_NODE_PICKER_CASCADE_WIDTH = ADD_NODE_PICKER_COLUMN_WIDTH * 2 + ADD_NODE_PICKER_GAP
 const ADD_NODE_PICKER_HEIGHT = 458
 const ADD_NODE_PICKER_MARGIN = 12
+const QUICK_ADD_NODE_VERTICAL_OFFSET = 50
 
 const addNodePickerOverlay = ref<{
   left: number
@@ -52,6 +54,7 @@ const addNodePickerOverlay = ref<{
   secondarySide: AddNodePickerSecondarySide
   handlerId: string | null
   allowedNodes: AllowedNodes
+  quickAddAnchorPoint: AddNodePickerAnchorPoint | null
 } | null>(null)
 
 const isWorkflowEmpty = computed(() => {
@@ -134,18 +137,33 @@ function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: 
   }
 }
 
+function getQuickAddAnchorPoint(anchor?: AddNodePickerAnchor | null): AddNodePickerAnchorPoint | null {
+  if (typeof anchor?.clientX === 'number' && typeof anchor.clientY === 'number') {
+    return { x: anchor.clientX, y: anchor.clientY - QUICK_ADD_NODE_VERTICAL_OFFSET }
+  }
+  if (anchor?.anchorRect) {
+    return {
+      x: anchor.anchorRect.right,
+      y: anchor.anchorRect.top + anchor.anchorRect.height / 2 - QUICK_ADD_NODE_VERTICAL_OFFSET,
+    }
+  }
+  return null
+}
+
 function openAddNodePanel(
   sourceId?: string | null,
   handlerId?: string | null,
   anchor?: AddNodePickerAnchor | null,
   allowedNodes: AllowedNodes = '*',
 ) {
-  workflowBaseCanvasRef.value?.openAddNodePanel(sourceId, handlerId)
+  const quickAddAnchorPoint = getQuickAddAnchorPoint(anchor)
+  workflowBaseCanvasRef.value?.openAddNodePanel(sourceId, handlerId, quickAddAnchorPoint)
   const position = getAddNodePickerPosition(anchor)
   addNodePickerOverlay.value = {
     ...position,
     handlerId: handlerId ?? null,
     allowedNodes,
+    quickAddAnchorPoint,
   }
 }
 
@@ -162,13 +180,19 @@ function closeAddNodePicker() {
 }
 
 function addLogicNode(type: WorkflowNodeType, defaults: Record<string, unknown> = {}) {
-  const id = workflowBaseCanvasRef.value?.addLogicNodeAtViewportCenter(type, defaults)
+  const point = addNodePickerOverlay.value?.quickAddAnchorPoint
+  const id = point
+    ? workflowBaseCanvasRef.value?.addLogicNodeAtScreenPoint(type, point, defaults)
+    : workflowBaseCanvasRef.value?.addLogicNodeAtViewportCenter(type, defaults)
   closeAddNodePicker()
   return id
 }
 
 function addPluginNode(pluginId: string, action: string, actionName: string) {
-  const id = workflowBaseCanvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName)
+  const point = addNodePickerOverlay.value?.quickAddAnchorPoint
+  const id = point
+    ? workflowBaseCanvasRef.value?.addPluginNodeAtScreenPoint(pluginId, action, actionName, point)
+    : workflowBaseCanvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName)
   closeAddNodePicker()
   return id
 }

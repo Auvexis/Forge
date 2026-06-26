@@ -319,6 +319,13 @@ const onQuickAdd = (event: MouseEvent) => {
   overflow: visible;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.sailor-base-node :deep(img),
+.sailor-base-node :deep(svg) {
+  -webkit-user-drag: none;
 }
 
 .sailor-base-node.is-rounded-sm {
@@ -513,6 +520,7 @@ const onQuickAdd = (event: MouseEvent) => {
   text-align: center;
   cursor: text;
   pointer-events: all;
+  user-select: none;
 }
 
 .sailor-base-node__label {

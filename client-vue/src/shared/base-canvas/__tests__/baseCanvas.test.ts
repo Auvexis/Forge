@@ -78,6 +78,33 @@ describe('base canvas drag helpers', () => {
     assert.deepEqual(second.delta, { x: 8, y: 8 })
     assert.deepEqual(second.nextPrevious, { x: 58, y: 42 })
   })
+
+  it('accumulates snapped drag distance so small pointer moves do not strand the node', () => {
+    const first = getIncrementalDragDelta({
+      start: { x: 0, y: 0 },
+      previous: { x: 0, y: 0 },
+      current: { x: 7, y: 0 },
+      emitted: { x: 0, y: 0 },
+      zoom: 1,
+      gridSize: 20,
+      snapToGrid: true,
+      bypassSnap: false,
+    })
+    const second = getIncrementalDragDelta({
+      start: { x: 0, y: 0 },
+      previous: { x: 7, y: 0 },
+      current: { x: 13, y: 0 },
+      emitted: first.nextEmitted,
+      zoom: 1,
+      gridSize: 20,
+      snapToGrid: true,
+      bypassSnap: false,
+    })
+
+    assert.deepEqual(first.delta, { x: 0, y: 0 })
+    assert.deepEqual(second.delta, { x: 20, y: 0 })
+    assert.deepEqual(second.nextEmitted, { x: 20, y: 0 })
+  })
 })
 
 describe('base canvas marquee helpers', () => {
@@ -136,6 +163,14 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /pointercancel/)
     assert.match(source, /stopActiveGestures/)
     assert.match(source, /window\.addEventListener\('blur', stopActiveGestures\)/)
+  })
+
+  it('prevents native content selection while dragging canvas items', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /event\.preventDefault\(\)/)
+    assert.match(source, /user-select: none/)
+    assert.match(source, /-webkit-user-drag: none/)
   })
 
   it('renders alignment guide overlays during item movement', () => {

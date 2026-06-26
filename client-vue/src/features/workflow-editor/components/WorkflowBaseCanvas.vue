@@ -204,6 +204,7 @@ let quickAddSourceId: string | null = null
 let quickAddSourceHandle: string | null = null
 let quickAddTargetId: string | null = null
 let quickAddTargetHandle: string | null = null
+let pendingAddNodePoint: { x: number; y: number } | null = null
 let pendingInsertEdgeId: string | null = null
 let pendingInsertSourceId: string | null = null
 let pendingInsertTargetId: string | null = null
@@ -283,17 +284,18 @@ async function handleStop() {
   await executionStore.cancel()
 }
 
-function openAddNodePanel(sourceId?: string | null, handlerId?: string | null) {
+function openAddNodePanel(sourceId?: string | null, handlerId?: string | null, point?: { x: number; y: number } | null) {
   quickAddSourceId = sourceId || null
   if (handlerId) quickAddTargetHandle = handlerId
+  pendingAddNodePoint = point ?? null
 }
 
 function addLogicNodeAtViewportCenter(type: WorkflowNodeType, providedDefaults: Record<string, unknown> = {}) {
-  return addLogicNode(type, providedDefaults, getCanvasCenterPosition())
+  return addLogicNode(type, providedDefaults, takePendingAddNodePosition() ?? getCanvasCenterPosition())
 }
 
 function addPluginNodeAtViewportCenter(pluginId: string, action: string, actionName: string) {
-  return addPluginNode(pluginId, action, actionName, getCanvasCenterPosition())
+  return addPluginNode(pluginId, action, actionName, takePendingAddNodePosition() ?? getCanvasCenterPosition())
 }
 
 function addLogicNodeAtScreenPoint(
@@ -434,6 +436,13 @@ function clearQuickAddState() {
   quickAddSourceHandle = null
   quickAddTargetId = null
   quickAddTargetHandle = null
+  pendingAddNodePoint = null
+}
+
+function takePendingAddNodePosition() {
+  const point = pendingAddNodePoint
+  pendingAddNodePoint = null
+  return point
 }
 
 function zoomIn() {

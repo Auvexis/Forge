@@ -37,6 +37,7 @@ describe('workflow canvas handles contract', () => {
     const source = readComponent('WorkflowHandle.vue')
 
     assert.match(source, /registerHandle/)
+    assert.match(source, /@pointerdown\.stop\.prevent/)
     assert.match(source, /data-workflow-handle-id/)
     assert.match(source, /data-workflow-node-id/)
     assert.match(source, /sailor-base-handle__visual/)
@@ -73,5 +74,14 @@ describe('workflow canvas handles contract', () => {
     assert.match(source, /watch\(handleGeometrySignature, refreshHandleGeometry/)
     assert.doesNotMatch(source, /updateNodeInternals/)
     assert.doesNotMatch(source, /useVueFlow/)
+  })
+
+  it('prevents native selection inside workflow node chrome while dragging nodes', () => {
+    const baseNode = readComponent('BaseNode.vue')
+    const advancedNode = readComponent('BaseAdvancedNode.vue')
+
+    assert.match(baseNode, /user-select: none/)
+    assert.match(baseNode, /-webkit-user-drag: none/)
+    assert.match(advancedNode, /user-select: none/)
   })
 })

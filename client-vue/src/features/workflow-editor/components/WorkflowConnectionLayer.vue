@@ -44,6 +44,7 @@ const layerSize = ref({ width: 1, height: 1 })
 const dragStart = ref<WorkflowConnectionHandle | null>(null)
 const pointerWorld = ref<BaseCanvasPoint | null>(null)
 const hoveredHandle = ref<WorkflowConnectionHandle | null>(null)
+let resizeObserver: ResizeObserver | null = null
 
 const svgViewBox = computed(() => `0 0 ${layerSize.value.width} ${layerSize.value.height}`)
 const canvasTransform = computed(() => `translate(${props.viewport.x} ${props.viewport.y}) scale(${props.viewport.zoom || 1})`)
@@ -161,11 +162,15 @@ function updateLayerSize() {
 
 onMounted(() => {
   updateLayerSize()
+  resizeObserver = new ResizeObserver(updateLayerSize)
+  if (layerRef.value) resizeObserver.observe(layerRef.value)
   layerRef.value?.parentElement?.addEventListener('pointerdown', onPointerDown, true)
   window.addEventListener('resize', updateLayerSize)
 })
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
   layerRef.value?.parentElement?.removeEventListener('pointerdown', onPointerDown, true)
   window.removeEventListener('resize', updateLayerSize)
   clearDrag()

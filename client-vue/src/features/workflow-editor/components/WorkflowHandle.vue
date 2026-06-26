@@ -6,6 +6,7 @@
     :data-workflow-node-id="nodeId"
     :data-workflow-handle-id="handleId"
     :data-workflow-handle-type="props.type"
+    @pointerdown.stop.prevent
   >
     <span class="sailor-base-handle__visual" />
   </span>

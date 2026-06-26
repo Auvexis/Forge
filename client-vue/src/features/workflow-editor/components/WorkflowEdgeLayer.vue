@@ -70,6 +70,7 @@ const workflowStore = useWorkflowStore()
 const quickAddBetweenBus = useEventBus('edge:quick-add-between')
 const layerRef = ref<HTMLElement | null>(null)
 const layerSize = ref({ width: 1, height: 1 })
+let resizeObserver: ResizeObserver | null = null
 
 const selectedEdges = computed(() => props.selectedEdges ?? [])
 const canvasTransform = computed(() => `translate(${props.viewport.x} ${props.viewport.y}) scale(${props.viewport.zoom || 1})`)
@@ -186,10 +187,14 @@ function updateLayerSize() {
 
 onMounted(() => {
   updateLayerSize()
+  resizeObserver = new ResizeObserver(updateLayerSize)
+  if (layerRef.value) resizeObserver.observe(layerRef.value)
   window.addEventListener('resize', updateLayerSize)
 })
 
 onBeforeUnmount(() => {
+  resizeObserver?.disconnect()
+  resizeObserver = null
   window.removeEventListener('resize', updateLayerSize)
 })
 </script>

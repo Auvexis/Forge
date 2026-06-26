@@ -27,6 +27,7 @@ describe('workflow canvas edges contract', () => {
   it('calculates anchors from the local handle registry without Vue Flow or global DOM queries', () => {
     const source = readComponent('WorkflowEdgeLayer.vue')
 
+    assert.match(source, /ResizeObserver/)
     assert.match(source, /handleRegistry\.getHandle/)
     assert.match(source, /getBoundingClientRect/)
     assert.match(source, /screenToWorld/)

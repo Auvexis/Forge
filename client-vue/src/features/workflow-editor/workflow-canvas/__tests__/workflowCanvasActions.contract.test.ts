@@ -48,10 +48,15 @@ describe('workflow canvas editor actions contract', () => {
   })
 
   it('keeps run, stop, quick-add, and edge quick-add buses available in the BaseCanvas path', () => {
+    const canvas = readComponent('SailorWorkflowCanvas.vue')
     const base = readComponent('WorkflowBaseCanvas.vue')
 
+    assert.match(canvas, /quickAddAnchorPoint/)
+    assert.match(canvas, /QUICK_ADD_NODE_VERTICAL_OFFSET/)
+    assert.match(canvas, /addLogicNodeAtScreenPoint/)
     assert.match(base, /useEventBus[\s\S]*\('node:quick-add'\)/)
     assert.match(base, /useEventBus[\s\S]*\('edge:quick-add-between'\)/)
+    assert.match(base, /pendingAddNodePoint/)
     assert.match(base, /pendingInsertEdgeId/)
     assert.match(base, /insertNodeBetween/)
     assert.match(base, /executionStore\.execute/)

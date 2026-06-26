@@ -78,6 +78,7 @@ const props = withDefaults(defineProps<{
 <style scoped>
 .sailor-base-advanced-node {
   position: relative;
+  user-select: none;
 }
 
 .sailor-base-advanced-node :deep(.sailor-base-node.sailor-node-pop-in) {

@@ -123,6 +123,7 @@ const activeDrag = ref<{
   itemId: string
   start: BaseCanvasPoint
   previous: BaseCanvasPoint
+  emitted: BaseCanvasPoint
   pointerId: number
 } | null>(null)
 const activePan = ref<{
@@ -308,10 +309,12 @@ function handleWheelZoom(event: WheelEvent) {
 function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
   if (event.button !== 0) return
   if (item.locked) return
+  event.preventDefault()
   activeDrag.value = {
     itemId: item.id,
     start: { x: event.clientX, y: event.clientY },
     previous: { x: event.clientX, y: event.clientY },
+    emitted: { x: 0, y: 0 },
     pointerId: event.pointerId,
   }
   window.addEventListener('pointermove', moveItem)
@@ -322,10 +325,11 @@ function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
 function moveItem(event: PointerEvent) {
   const drag = activeDrag.value
   if (!drag || event.pointerId !== drag.pointerId) return
-  const { delta, nextPrevious } = getIncrementalDragDelta({
+  const { delta, nextPrevious, nextEmitted } = getIncrementalDragDelta({
     start: drag.start,
     previous: drag.previous,
     current: { x: event.clientX, y: event.clientY },
+    emitted: drag.emitted,
     zoom: props.viewport.zoom,
     gridSize: props.gridSize,
     snapToGrid: props.snapToGrid,
@@ -344,6 +348,7 @@ function moveItem(event: PointerEvent) {
     })
     : { delta: { x: 0, y: 0 }, guides: [] }
   drag.previous = nextPrevious
+  drag.emitted = nextEmitted
   activeAlignmentGuides.value = alignment.guides
   emit('items-move', {
     itemIds: [drag.itemId],
@@ -434,6 +439,7 @@ function handleKeyUp(event: KeyboardEvent) {
   height: 100%;
   overflow: hidden;
   touch-action: none;
+  user-select: none;
 }
 
 .base-canvas__viewport {
@@ -447,6 +453,13 @@ function handleKeyUp(event: KeyboardEvent) {
   top: 0;
   left: 0;
   box-sizing: border-box;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.base-canvas__item :deep(img),
+.base-canvas__item :deep(svg) {
+  -webkit-user-drag: none;
 }
 
 .base-canvas__marquee {
