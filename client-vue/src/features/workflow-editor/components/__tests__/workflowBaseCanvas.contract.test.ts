@@ -24,8 +24,36 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(source, /import \{ BaseCanvas \} from '@\/shared\/base-canvas\/components\.ts'/)
     assert.match(source, /workflowToBaseCanvasItems/)
     assert.match(source, /v-model:viewport="viewport"/)
-    assert.match(source, /:items="\[\]"/)
+    assert.match(source, /:items="workflowItems"/)
     assert.match(source, /pattern-color="var\(--sailor-canvas-grid\)"/)
-    assert.doesNotMatch(source, /@items-move/)
+    assert.match(source, /@items-move="handleItemsMove"/)
+    assert.match(source, /#item="\{ item \}"/)
+  })
+
+  it('renders current workflow node components with Vue Flow compatible props', () => {
+    const source = read('WorkflowBaseCanvas.vue')
+
+    assert.match(source, /nodeComponentByType/)
+    assert.match(source, /TriggerNode/)
+    assert.match(source, /HttpNode/)
+    assert.match(source, /CodeNode/)
+    assert.match(source, /AiAgentNode/)
+    assert.match(source, /VectorStoreToolNode/)
+    assert.match(source, /:id="item\.id"/)
+    assert.match(source, /:type="resolveNodeType\(item\)"/)
+    assert.match(source, /:data="item\.data"/)
+    assert.match(source, /:selected="canvasSelection\.includes\(item\.id\)"/)
+    assert.match(source, /:status="resolveNodeStatus\(item\.id\)"/)
+    assert.match(source, /:has-outgoing-connection="hasNodeOutgoingConnection\(item\.id\)"/)
+  })
+
+  it('persists BaseCanvas movement and opens the existing inspector on double click', () => {
+    const source = read('WorkflowBaseCanvas.vue')
+
+    assert.match(source, /function handleItemsMove/)
+    assert.match(source, /positionX/)
+    assert.match(source, /positionY/)
+    assert.match(source, /@dblclick\.stop="openNodeInspector\(item\)"/)
+    assert.match(source, /inspectorStore\.openInspector/)
   })
 })

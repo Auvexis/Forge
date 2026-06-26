@@ -1,43 +1,176 @@
 <template>
   <BaseCanvas
     v-model:viewport="viewport"
-    :items="[]"
-    :selection="[]"
+    v-model:selection="canvasSelection"
+    :items="workflowItems"
     :snap-to-grid="true"
     :grid-size="20"
-    :marquee-selection="false"
+    :marquee-selection="true"
     background-color="var(--sailor-canvas-bg)"
     pattern-color="var(--sailor-canvas-grid)"
     pattern-style="dot"
     :pattern-size="20"
     class="sailor-workflow-base-canvas"
-    :data-workflow-items-count="workflowItemsPreview.length"
-  />
+    :data-workflow-items-count="workflowItems.length"
+    @items-move="handleItemsMove"
+  >
+    <template #item="{ item }">
+      <div
+        class="sailor-workflow-base-canvas__node"
+        @dblclick.stop="openNodeInspector(item)"
+      >
+        <component
+          :is="nodeComponentByType[resolveNodeType(item)]"
+          v-if="nodeComponentByType[resolveNodeType(item)]"
+          :id="item.id"
+          :type="resolveNodeType(item)"
+          :data="item.data"
+          :selected="canvasSelection.includes(item.id)"
+          :status="resolveNodeStatus(item.id)"
+          :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
+        />
+      </div>
+    </template>
+  </BaseCanvas>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, type Component } from 'vue'
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
-import type { BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
+import type {
+  BaseCanvasItem,
+  BaseCanvasItemsMoveEvent,
+  BaseCanvasViewport,
+} from '@/shared/base-canvas/index.ts'
 import { useWorkflowStore } from '../stores/workflow.store'
+import { useExecutionStore } from '../stores/execution.store'
+import { useNodeInspectorStore } from '../stores/node-inspector.store'
 import { shouldRenderLegacyTriggerNode } from '../utils/workflowRunTrigger'
 import { workflowToBaseCanvasItems } from '../workflow-canvas/workflowCanvasAdapter'
+import TriggerNode from './nodes/TriggerNode.vue'
+import HttpNode from './nodes/HttpNode.vue'
+import CodeNode from './nodes/CodeNode.vue'
+import LoopNode from './nodes/LoopNode.vue'
+import EventNode from './nodes/EventNode.vue'
+import EventListenerNode from './nodes/EventListenerNode.vue'
+import PluginNode from './nodes/PluginNode.vue'
+import IfNode from './nodes/IfNode.vue'
+import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
+import SetNode from './nodes/SetNode.vue'
+import SwitchNode from './nodes/SwitchNode.vue'
+import MergeNode from './nodes/MergeNode.vue'
+import SplitInBatchesNode from './nodes/SplitInBatchesNode.vue'
+import RespondToWebhookNode from './nodes/RespondToWebhookNode.vue'
+import WaitFormNode from './nodes/WaitFormNode.vue'
+import AiAgentNode from './nodes/AiAgentNode.vue'
+import AiModelNode from './nodes/AiModelNode.vue'
+import AiMemoryNode from './nodes/AiMemoryNode.vue'
+import AiToolNode from './nodes/AiToolNode.vue'
+import TextDatasetNode from './nodes/TextDatasetNode.vue'
+import FileDatasetNode from './nodes/FileDatasetNode.vue'
+import DatabaseDatasetNode from './nodes/DatabaseDatasetNode.vue'
+import EmbeddingsNode from './nodes/EmbeddingsNode.vue'
+import VectorStoreNode from './nodes/VectorStoreNode.vue'
+import RetrieverNode from './nodes/RetrieverNode.vue'
+import BasicLlmChainNode from './nodes/BasicLlmChainNode.vue'
+import StructuredJsonParserNode from './nodes/StructuredJsonParserNode.vue'
+import VectorStoreRetrieverNode from './nodes/VectorStoreRetrieverNode.vue'
+import QuestionAnswerChainNode from './nodes/QuestionAnswerChainNode.vue'
+import VectorStoreToolNode from './nodes/VectorStoreToolNode.vue'
 
 const workflowStore = useWorkflowStore()
+const executionStore = useExecutionStore()
+const inspectorStore = useNodeInspectorStore()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
+const canvasSelection = ref<string[]>([])
 
-const workflowItemsPreview = computed(() => {
+const nodeComponentByType: Record<string, Component> = {
+  trigger: TriggerNode,
+  http: HttpNode,
+  code: CodeNode,
+  loop: LoopNode,
+  event: EventNode,
+  'event-listener': EventListenerNode,
+  plugin: PluginNode,
+  if: IfNode,
+  subworkflow: SubWorkflowNode,
+  set: SetNode,
+  switch: SwitchNode,
+  merge: MergeNode,
+  'split-in-batches': SplitInBatchesNode,
+  'respond-webhook': RespondToWebhookNode,
+  'wait-form': WaitFormNode,
+  'ai-agent': AiAgentNode,
+  'ai-model': AiModelNode,
+  'ai-memory': AiMemoryNode,
+  'ai-tool': AiToolNode,
+  'text-dataset': TextDatasetNode,
+  'file-dataset': FileDatasetNode,
+  'database-dataset': DatabaseDatasetNode,
+  embeddings: EmbeddingsNode,
+  'vector-store': VectorStoreNode,
+  retriever: RetrieverNode,
+  'basic-llm-chain': BasicLlmChainNode,
+  'structured-json-parser': StructuredJsonParserNode,
+  'vector-store-retriever': VectorStoreRetrieverNode,
+  'question-answer-chain': QuestionAnswerChainNode,
+  'vector-store-tool': VectorStoreToolNode,
+}
+
+const workflowItems = computed(() => {
   const workflow = workflowStore.activeWorkflow
   if (!workflow) return []
   return workflowToBaseCanvasItems(workflow, {
     includeLegacyTrigger: shouldRenderLegacyTriggerNode(workflow),
   })
 })
+
+function resolveNodeType(item: BaseCanvasItem): string {
+  if (item.id === 'trigger') return 'trigger'
+  return String((item.data as { type?: string } | undefined)?.type ?? '')
+}
+
+function resolveNodeStatus(nodeId: string) {
+  return executionStore.nodeStatuses[nodeId]?.status ?? 'idle'
+}
+
+function hasNodeOutgoingConnection(nodeId: string): boolean {
+  return workflowStore.activeWorkflow?.edges.some((edge) => edge.source === nodeId) ?? false
+}
+
+function handleItemsMove(event: BaseCanvasItemsMoveEvent) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+
+  for (const itemId of event.itemIds) {
+    const node = itemId === 'trigger' ? workflow.trigger : workflow.nodes[itemId]
+    if (!node) continue
+
+    node.ui = {
+      ...node.ui,
+      positionX: (node.ui?.positionX ?? 0) + event.delta.x,
+      positionY: (node.ui?.positionY ?? 0) + event.delta.y,
+    }
+  }
+}
+
+function openNodeInspector(item: BaseCanvasItem) {
+  inspectorStore.openInspector({
+    id: item.id,
+    type: resolveNodeType(item),
+    position: { x: item.x, y: item.y },
+    data: item.data,
+  } as any)
+}
 </script>
 
 <style scoped>
 .sailor-workflow-base-canvas {
   width: 100%;
   height: 100%;
+}
+
+.sailor-workflow-base-canvas__node {
+  position: relative;
 }
 </style>

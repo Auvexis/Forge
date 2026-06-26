@@ -24,14 +24,14 @@
 - [x] Confirmar que Sailor Pages não mudou após qualquer ajuste opcional no `BaseCanvas`.
 
 ## Batch 2 - Nodes
-- [ ] Renderizar trigger node legado quando necessário.
-- [ ] Renderizar todos os node types atuais.
-- [ ] Passar props equivalentes aos nodes existentes.
-- [ ] Preservar `BaseNode` e `BaseAdvancedNode` visualmente.
-- [ ] Persistir drag em `node.ui.positionX/Y`.
-- [ ] Preservar snap/grid no drag.
-- [ ] Preservar disabled, selected e execution status.
-- [ ] Preservar double click para abrir inspector.
+- [x] Renderizar trigger node legado quando necessário.
+- [x] Renderizar todos os node types atuais.
+- [x] Passar props equivalentes aos nodes existentes.
+- [x] Preservar `BaseNode` e `BaseAdvancedNode` visualmente.
+- [x] Persistir drag em `node.ui.positionX/Y`.
+- [x] Preservar snap/grid no drag.
+- [x] Preservar disabled, selected e execution status.
+- [x] Preservar double click para abrir inspector.
 
 ## Batch 3 - Handles
 - [ ] Criar `WorkflowHandle` sem `@vue-flow/core`.
