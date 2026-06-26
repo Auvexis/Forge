@@ -15,6 +15,28 @@
         @update:model-value="patchField('slug', $event)"
       />
     </label>
+    <label class="web-page-style-row">
+      <span>Meta title</span>
+      <BaseInput
+        :model-value="page.metaTitle ?? ''"
+        @update:model-value="patchField('metaTitle', $event)"
+      />
+    </label>
+    <label class="web-page-style-row">
+      <span>Meta description</span>
+      <BaseInput
+        :model-value="page.metaDescription ?? ''"
+        @update:model-value="patchField('metaDescription', $event)"
+      />
+    </label>
+    <label class="web-page-style-row">
+      <span>Favicon</span>
+      <BaseInput
+        :model-value="page.faviconUrl ?? ''"
+        placeholder="/sites/site_id/assets/favicon.png"
+        @update:model-value="patchField('faviconUrl', $event)"
+      />
+    </label>
   </div>
 </template>
 
@@ -30,7 +52,7 @@ const emit = defineEmits<{
   patch: [patch: Partial<SailorPage>]
 }>()
 
-function patchField(key: 'title' | 'slug', value: string | boolean) {
+function patchField(key: 'title' | 'slug' | 'metaTitle' | 'metaDescription' | 'faviconUrl', value: string | boolean) {
   emit('patch', { [key]: String(value) })
 }
 </script>

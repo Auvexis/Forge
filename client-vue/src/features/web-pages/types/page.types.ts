@@ -57,6 +57,9 @@ export interface SailorPage {
   siteId: string
   title: string
   slug: string
+  metaTitle?: string
+  metaDescription?: string
+  faviconUrl?: string
   bodyStyles?: PageBlockStyles
   blocks: PageBlock[]
   createdAt: string
@@ -74,6 +77,9 @@ export interface SailorPageSummary {
 export interface CreatePagePayload {
   title: string
   slug?: string
+  metaTitle?: string
+  metaDescription?: string
+  faviconUrl?: string
   bodyStyles?: PageBlockStyles
   blocks?: PageBlock[]
 }
@@ -81,6 +87,9 @@ export interface CreatePagePayload {
 export interface UpdatePagePayload {
   title?: string
   slug?: string
+  metaTitle?: string
+  metaDescription?: string
+  faviconUrl?: string
   bodyStyles?: PageBlockStyles
   blocks?: PageBlock[]
 }

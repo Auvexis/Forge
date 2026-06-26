@@ -205,6 +205,27 @@ describe('page selection contract', () => {
     assert.match(source, /@select-body/)
   })
 
+  it('page selection uses inspector tabs with page metadata in Content', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const metadata = read('src/features/web-pages/components/PageMetadataPanel.vue')
+    const types = read('src/features/web-pages/types/page.types.ts')
+
+    assert.match(editor, /pageInspectorTab/)
+    assert.match(editor, /pageInspectorTabs/)
+    assert.match(editor, /v-if="pageInspectorTab === 'content'"/)
+    assert.match(editor, /v-if="pageInspectorTab === 'style'"/)
+    assert.match(editor, /v-if="pageInspectorTab === 'advanced'"/)
+    assert.match(metadata, /Meta title/)
+    assert.match(metadata, /Meta description/)
+    assert.match(metadata, /Favicon/)
+    assert.match(metadata, /patchField\('metaTitle'/)
+    assert.match(metadata, /patchField\('metaDescription'/)
+    assert.match(metadata, /patchField\('faviconUrl'/)
+    assert.match(types, /metaTitle\?: string/)
+    assert.match(types, /metaDescription\?: string/)
+    assert.match(types, /faviconUrl\?: string/)
+  })
+
   it('page metadata panel edits page-level fields without saving directly', () => {
     const source = read('src/features/web-pages/components/PageMetadataPanel.vue')
 

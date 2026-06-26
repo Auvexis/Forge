@@ -57,6 +57,9 @@ export interface SailorPage {
   siteId: string;
   title: string;
   slug: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  faviconUrl?: string;
   bodyStyles?: PageBlockStyles;
   blocks: PageBlock[];
   createdAt: string;
@@ -68,6 +71,9 @@ export interface CreatePageInput {
   siteId?: string;
   title: string;
   slug?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  faviconUrl?: string;
   bodyStyles?: PageBlockStyles;
   blocks?: PageBlock[];
 }
@@ -75,6 +81,9 @@ export interface CreatePageInput {
 export interface UpdatePageInput {
   title?: string;
   slug?: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  faviconUrl?: string;
   bodyStyles?: PageBlockStyles;
   blocks?: PageBlock[];
 }
@@ -86,6 +95,9 @@ export interface PublishedPage {
   siteId: string;
   title: string;
   slug: string;
+  metaTitle?: string;
+  metaDescription?: string;
+  faviconUrl?: string;
   bodyStyles?: PageBlockStyles;
   blocks: PageBlock[];
   publishedAt: string;

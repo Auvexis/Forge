@@ -13,12 +13,12 @@
 - [x] Verify and commit.
 
 ## Batch 3 - Inspector Page
-- [ ] Open full Inspector tabs from Explorer Tree page click.
-- [ ] Move Page title/slug into Content tab.
-- [ ] Add page metadata fields in Content tab.
-- [ ] Add favicon field that accepts asset paths.
-- [ ] Add/adjust Inspector page tests.
-- [ ] Verify and commit.
+- [x] Open full Inspector tabs from Explorer Tree page click.
+- [x] Move Page title/slug into Content tab.
+- [x] Add page metadata fields in Content tab.
+- [x] Add favicon field that accepts asset paths.
+- [x] Add/adjust Inspector page tests.
+- [x] Verify and commit.
 
 ## Batch 4 - Assets Drag Upload
 - [ ] Drag assets into Inspector inputs using real asset path.

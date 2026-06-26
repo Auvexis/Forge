@@ -98,6 +98,9 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
   if (slug.length < 3 || slug.length > 80 || !PAGE_SLUG_REGEX.test(slug)) {
     return { success: false, error: "Page slug must be kebab-case and 3-80 chars." };
   }
+  const metaTitle = normalizeOptionalText(input.metaTitle, 160);
+  const metaDescription = normalizeOptionalText(input.metaDescription, 240);
+  const faviconUrl = normalizeOptionalUrl(input.faviconUrl);
 
   if (!Array.isArray(input.blocks)) {
     return { success: false, error: "Page blocks must be an array." };
@@ -123,10 +126,26 @@ export function validatePageInput(input: SailorPage): PageValidationResult {
       ...input,
       title,
       slug,
+      ...(metaTitle ? { metaTitle } : {}),
+      ...(metaDescription ? { metaDescription } : {}),
+      ...(faviconUrl ? { faviconUrl } : {}),
       bodyStyles: bodyStylesResult.styles,
       blocks: normalizedBlocks,
     },
   };
+}
+
+function normalizeOptionalText(value: unknown, maxLength: number): string {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim().slice(0, maxLength);
+  return containsDangerousText(normalized) ? "" : normalized;
+}
+
+function normalizeOptionalUrl(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const normalized = value.trim();
+  if (!normalized || containsDangerousText(normalized)) return "";
+  return isSafeMediaUrl(normalized) ? normalized : "";
 }
 
 function normalizeBlock(

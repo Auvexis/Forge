@@ -78,10 +78,16 @@ const STYLE_ALLOWLIST = new Set([
 const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/style|<\s*script/i;
 
 export function renderPublishedPage(page: PublishedPage, site?: SailorSite | null): string {
-  const title = escapeHtml(page.title);
+  const title = escapeHtml(page.metaTitle?.trim() || page.title);
   const pageJs = renderPageJs(page);
   const siteJs = renderSiteJs(site);
   const css = [renderSiteCss(site), renderPageCss(page)].filter(Boolean).join("\n");
+  const metaDescription = page.metaDescription?.trim()
+    ? `<meta name="description" content="${escapeAttribute(page.metaDescription.trim())}">`
+    : "";
+  const favicon = page.faviconUrl?.trim() && isSafeMediaUrl(page.faviconUrl.trim())
+    ? `<link rel="icon" href="${escapeAttribute(page.faviconUrl.trim())}">`
+    : "";
   return [
     "<!doctype html>",
     '<html lang="en">',
@@ -89,6 +95,8 @@ export function renderPublishedPage(page: PublishedPage, site?: SailorSite | nul
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     `<title>${title}</title>`,
+    metaDescription,
+    favicon,
     `<style>${css}</style>`,
     "</head>",
     `<body${renderBodyStyle(page)}>`,

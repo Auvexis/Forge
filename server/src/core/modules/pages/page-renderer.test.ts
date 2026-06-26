@@ -44,6 +44,19 @@ function sailorSite(overrides: Partial<SailorSite> = {}): SailorSite {
 }
 
 describe("page renderer", () => {
+  it("renders page metadata and favicon tags", () => {
+    const html = renderPublishedPage({
+      ...publishedPage(),
+      metaTitle: "Share title",
+      metaDescription: "Clean page summary",
+      faviconUrl: "/sites/site_1/assets/favicon.png",
+    });
+
+    assert.match(html, /<title>Share title<\/title>/);
+    assert.match(html, /<meta name="description" content="Clean page summary">/);
+    assert.match(html, /<link rel="icon" href="\/sites\/site_1\/assets\/favicon\.png">/);
+  });
+
   it("renders semantic block tree as HTML", () => {
     const html = renderPageBody(publishedPage().blocks);
 

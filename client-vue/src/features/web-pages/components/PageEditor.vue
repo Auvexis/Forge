@@ -192,11 +192,28 @@
       resize-side="left"
       @close="closeRightPanel"
     >
-      <PageMetadataPanel
-        v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'"
-        :page="pagesStore.activePage"
-        @patch="patchPageMetadata"
-      />
+      <template v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'">
+        <div class="web-page-editor__inspector-tabs">
+          <BaseSegmentedSelect
+            v-model="pageInspectorTab"
+            :options="pageInspectorTabs"
+            aria-label="Page inspector panel"
+            :icon-size="15"
+          />
+        </div>
+        <PageMetadataPanel
+          v-if="pageInspectorTab === 'content'"
+          :page="pagesStore.activePage"
+          @patch="patchPageMetadata"
+        />
+        <BlockStylePanel
+          v-if="pageInspectorTab === 'style'"
+          :block="bodyStyleBlock"
+          title="Body"
+          @patch="patchBodyStyles"
+        />
+        <p v-if="pageInspectorTab === 'advanced'" class="web-page-editor__empty">No advanced page settings.</p>
+      </template>
       <BlockStylePanel
         v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'body'"
         :block="bodyStyleBlock"
@@ -448,6 +465,7 @@ const editorPageId = ref<string | null>(null)
 type PageCanvasTool = 'cursor' | 'pan' | 'delete'
 const activeTool = ref<PageCanvasTool>('cursor')
 const isPagesAutosaveEnabled = ref(false)
+const pageInspectorTab = ref<'content' | 'style' | 'advanced'>('content')
 const blockInspectorTab = ref<'content' | 'style' | 'advanced'>('content')
 const activeCodeFile = ref<SiteFile | null>(null)
 const deletingBlockIds = ref<string[]>([])
@@ -473,6 +491,11 @@ const canSaveActiveDocument = computed(() =>
   hasCreatedProject.value ? hasUnsavedProjectChanges.value : hasDraftPageWithoutProject.value,
 )
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
+  { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
+  { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
+  { value: 'advanced', label: 'Advanced', title: 'Advanced', icon: 'code-2' },
+]
+const pageInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
   { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
   { value: 'advanced', label: 'Advanced', title: 'Advanced', icon: 'code-2' },
