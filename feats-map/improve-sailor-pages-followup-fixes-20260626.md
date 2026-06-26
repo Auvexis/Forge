@@ -48,11 +48,11 @@ Resumo curto: corrigir multiseleção, save/publicação, slugs/URLs, assets e c
 - [x] Commit.
 
 ## Batch 5 - Global Error Capture
-- [ ] Conectar erros do Sailor Pages ao toast global.
-- [ ] Capturar `console.error` disparado no navegador.
-- [ ] Capturar erros não tratados de promise.
-- [ ] Capturar erros globais de runtime.
-- [ ] Evitar silenciar erros internos de Pages.
-- [ ] Add/adjust tests.
-- [ ] Run focused tests and build.
-- [ ] Commit.
+- [x] Conectar erros do Sailor Pages ao toast global.
+- [x] Capturar `console.error` disparado no navegador.
+- [x] Capturar erros não tratados de promise.
+- [x] Capturar erros globais de runtime.
+- [x] Evitar silenciar erros internos de Pages.
+- [x] Add/adjust tests.
+- [x] Run focused tests and build.
+- [x] Commit.
