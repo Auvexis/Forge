@@ -67,6 +67,20 @@ describe('page selection contract', () => {
     assert.doesNotMatch(css, /web-page-block-resize__indicator/)
   })
 
+  it('selection chrome renders outside block overflow and owns pointer events', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /<Teleport to="body">/)
+    assert.match(renderer, /selectionPortalStyle/)
+    assert.match(renderer, /getBoundingClientRect\(\)/)
+    assert.match(renderer, /position:\s*'fixed'/)
+    assert.match(renderer, /@pointerdown\.stop\.prevent/)
+    assert.match(renderer, /@mousedown\.stop\.prevent/)
+    assert.match(css, /\.web-page-block-selection\s*\{[\s\S]*position:\s*fixed/)
+    assert.match(css, /\.web-page-block-leave-active \.web-page-block-selection\s*\{[\s\S]*display:\s*none/)
+  })
+
   it('selection chrome stays compact and uses the selected blue surface', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')

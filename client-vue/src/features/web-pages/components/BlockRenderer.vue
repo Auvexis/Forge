@@ -74,88 +74,90 @@
         />
       </TransitionGroup>
     </component>
-    <div
-      v-if="!readonly && selectedBlockId === block.id"
-      class="web-page-block-selection"
-      :style="selectionFrameCssVars"
-    >
-      <div class="web-page-block-selection__chrome" :style="selectionChromeStyle">
-        <div class="web-page-block-selection__id" @pointerdown.stop @click.stop @dblclick.stop="startBlockIdEdit">
-          <input
-            v-if="editingBlockId"
-            ref="blockIdInputRef"
-            v-model="draftBlockId"
-            class="web-page-block-selection__id-input"
-            aria-label="Element ID"
-            @keydown.enter.prevent="commitBlockIdEdit"
-            @keydown.esc.prevent="cancelBlockIdEdit"
-            @blur="commitBlockIdEdit"
-          />
-          <span v-else>{{ block.id }}</span>
+    <Teleport to="body">
+      <div
+        v-if="!readonly && selectedBlockId === block.id"
+        class="web-page-block-selection"
+        :style="selectionPortalStyle"
+      >
+        <div class="web-page-block-selection__chrome" :style="selectionChromeStyle">
+          <div class="web-page-block-selection__id" @pointerdown.stop.prevent @mousedown.stop.prevent @click.stop @dblclick.stop="startBlockIdEdit">
+            <input
+              v-if="editingBlockId"
+              ref="blockIdInputRef"
+              v-model="draftBlockId"
+              class="web-page-block-selection__id-input"
+              aria-label="Element ID"
+              @keydown.enter.prevent="commitBlockIdEdit"
+              @keydown.esc.prevent="cancelBlockIdEdit"
+              @blur="commitBlockIdEdit"
+            />
+            <span v-else>{{ block.id }}</span>
+          </div>
+          <div class="web-page-block-context-toolbar" @pointerdown.stop.prevent @mousedown.stop.prevent @click.stop>
+            <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
+            <span v-if="contextToolbarActions.length" class="web-page-block-context-toolbar__group">
+              <button
+                v-for="action in contextToolbarActions"
+                :key="action.id"
+                type="button"
+                class="web-page-block-context-toolbar__action"
+                :class="{ 'web-page-block-context-toolbar__action--active': isContextToolbarActionActive(action) }"
+                :aria-pressed="isContextToolbarActionActive(action)"
+                :title="action.label"
+                @click="applyContextToolbarAction(action)"
+              >
+                {{ action.shortLabel }}
+              </button>
+            </span>
+            <BaseButton
+              variant="ghost"
+              size="icon"
+              icon-left="settings-2"
+              title="Inspect element"
+              @click="$emit('inspect-block', block.id)"
+            />
+          </div>
+          <div class="web-page-block-selection__actions" @pointerdown.stop.prevent @mousedown.stop.prevent @click.stop>
+            <BaseButton
+              variant="ghost"
+              size="icon"
+              icon-left="copy"
+              title="Duplicate element"
+              @click="$emit('duplicate-block', block.id)"
+            />
+            <BaseButton
+              variant="ghost"
+              size="icon"
+              icon-left="trash-2"
+              title="Delete element"
+              @click="$emit('delete-block', block.id)"
+            />
+          </div>
         </div>
-        <div class="web-page-block-context-toolbar" @pointerdown.stop @click.stop>
-          <span class="web-page-block-context-toolbar__label">{{ contextToolbarLabel }}</span>
-          <span v-if="contextToolbarActions.length" class="web-page-block-context-toolbar__group">
-            <button
-              v-for="action in contextToolbarActions"
-              :key="action.id"
-              type="button"
-              class="web-page-block-context-toolbar__action"
-              :class="{ 'web-page-block-context-toolbar__action--active': isContextToolbarActionActive(action) }"
-              :aria-pressed="isContextToolbarActionActive(action)"
-              :title="action.label"
-              @click="applyContextToolbarAction(action)"
-            >
-              {{ action.shortLabel }}
-            </button>
-          </span>
-          <BaseButton
-            variant="ghost"
-            size="icon"
-            icon-left="settings-2"
-            title="Inspect element"
-            @click="$emit('inspect-block', block.id)"
-          />
-        </div>
-        <div class="web-page-block-selection__actions" @pointerdown.stop @click.stop>
-          <BaseButton
-            variant="ghost"
-            size="icon"
-            icon-left="copy"
-            title="Duplicate element"
-            @click="$emit('duplicate-block', block.id)"
-          />
-          <BaseButton
-            variant="ghost"
-            size="icon"
-            icon-left="trash-2"
-            title="Delete element"
-            @click="$emit('delete-block', block.id)"
-          />
-        </div>
+        <button
+          v-for="corner in resizeCorners"
+          :key="corner"
+          type="button"
+          class="web-page-block-resize__handle"
+          :class="[
+            `web-page-block-resize__handle--${corner}`,
+            { 'web-page-block-resize__handle--active': activeResizeCorner === corner },
+          ]"
+          :aria-label="`Resize from ${corner}`"
+          @pointerdown.stop.prevent="startResize($event, corner)"
+        />
+        <span
+          v-for="guide in activeResizeGuides"
+          :key="`${guide.axis}:${guide.position}`"
+          class="web-page-block-alignment-guide"
+          :class="`web-page-block-alignment-guide--${guide.axis}`"
+          :style="resizeGuideStyle(guide)"
+        />
+        <span class="web-page-block-selection__metric">{{ selectionSizeLabel }}</span>
+        <span v-if="resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
       </div>
-      <button
-        v-for="corner in resizeCorners"
-        :key="corner"
-        type="button"
-        class="web-page-block-resize__handle"
-        :class="[
-          `web-page-block-resize__handle--${corner}`,
-          { 'web-page-block-resize__handle--active': activeResizeCorner === corner },
-        ]"
-        :aria-label="`Resize from ${corner}`"
-        @pointerdown.stop.prevent="startResize($event, corner)"
-      />
-      <span
-        v-for="guide in activeResizeGuides"
-        :key="`${guide.axis}:${guide.position}`"
-        class="web-page-block-alignment-guide"
-        :class="`web-page-block-alignment-guide--${guide.axis}`"
-        :style="resizeGuideStyle(guide)"
-      />
-      <span class="web-page-block-selection__metric">{{ selectionSizeLabel }}</span>
-      <span v-if="resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -286,6 +288,10 @@ const selectionFrameCssVars = computed(() => ({
   ...selectionFrameStyle.value,
   '--web-page-selection-scale': String(selectionScale.value),
 }))
+const selectionPortalStyle = computed(() => ({
+  ...selectionFrameCssVars.value,
+  position: 'fixed' as const,
+}))
 let resizeState: {
   corner: ResizeCorner
   startX: number
@@ -344,13 +350,13 @@ function updateSelectionFrame() {
   const frame = frameElementRef.value
   const element = blockElementRef.value
   if (!frame || !element) return
-  selectionFrameStyle.value = {
-    left: `${element.offsetLeft}px`,
-    top: `${element.offsetTop}px`,
-    width: `${element.offsetWidth}px`,
-    height: `${element.offsetHeight}px`,
-  }
   const rect = element.getBoundingClientRect()
+  selectionFrameStyle.value = {
+    left: `${rect.left}px`,
+    top: `${rect.top}px`,
+    width: `${rect.width}px`,
+    height: `${rect.height}px`,
+  }
   selectionScale.value = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
 }
 

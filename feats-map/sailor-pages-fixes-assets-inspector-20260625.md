@@ -6,11 +6,11 @@
 - [x] Verify and commit.
 
 ## Batch 2 - Selection And Toolbar
-- [ ] Prevent selection box clipping inside overflow hidden parents.
-- [ ] Prevent toolbar clicks from selecting elements behind it.
-- [ ] Clear duplicated selection box after element ID changes.
-- [ ] Add/adjust selection and toolbar tests.
-- [ ] Verify and commit.
+- [x] Prevent selection box clipping inside overflow hidden parents.
+- [x] Prevent toolbar clicks from selecting elements behind it.
+- [x] Clear duplicated selection box after element ID changes.
+- [x] Add/adjust selection and toolbar tests.
+- [x] Verify and commit.
 
 ## Batch 3 - Inspector Page
 - [ ] Open full Inspector tabs from Explorer Tree page click.
