@@ -65,6 +65,13 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     selectedTarget.value = blockId ? { type: 'block', blockId } : { type: 'none' }
   }
 
+  function selectBlocks(blockIds: string[]) {
+    const validBlockIds = blockIds.filter((blockId) => findTreeBlock(blocks.value, blockId))
+    selectedBlockIds.value = validBlockIds
+    selectedBlockId.value = validBlockIds.at(-1) ?? null
+    selectedTarget.value = selectedBlockId.value ? { type: 'block', blockId: selectedBlockId.value } : { type: 'none' }
+  }
+
   function selectBlockRange(blockId: string) {
     toggleBlockSelection(blockId)
   }
@@ -249,6 +256,7 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     canRedo,
     setBlocks,
     selectBlock,
+    selectBlocks,
     selectBlockRange,
     toggleBlockSelection,
     selectPage,

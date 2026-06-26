@@ -58,6 +58,18 @@ describe('page chrome contract', () => {
     assert.match(editor, /editorStore\.redo\(\)/)
   })
 
+  it('page chrome shows clean multiselect status in the status area', () => {
+    const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(toolbar, /selectedCount\?: number/)
+    assert.match(toolbar, /web-page-chrome__selection-status/)
+    assert.match(toolbar, /mouse-pointer-2/)
+    assert.match(editor, /:selected-count="editorStore\.selectedBlockIds\.length"/)
+    assert.match(css, /\.web-page-chrome__selection-status/)
+  })
+
   it('page editor supports undo and redo keyboard shortcuts', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 

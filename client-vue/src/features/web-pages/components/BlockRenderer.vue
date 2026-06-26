@@ -2,6 +2,7 @@
   <div
     ref="frameElementRef"
     class="web-page-block-frame"
+    :data-block-id="block.id"
     :class="{
       'web-page-block-frame--selected': isSelectedBlock,
       'web-page-block-frame--deleting': deletingBlockIds?.includes(block.id),
@@ -79,7 +80,7 @@
     </component>
     <Teleport to="body">
       <div
-        v-if="!readonly && isSelectedBlock"
+        v-if="!readonly && isSelectedBlock && !isGroupSelectedBlock"
         class="web-page-block-selection"
         :style="selectionPortalStyle"
       >
@@ -256,6 +257,7 @@ const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west',
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
 const isSelectedBlock = computed(() => props.selectedBlockId === props.block.id || props.selectedBlockIds.includes(props.block.id))
 const isPrimarySelectedBlock = computed(() => props.selectedBlockId === props.block.id)
+const isGroupSelectedBlock = computed(() => props.selectedBlockIds.length > 1)
 const contextToolbarLabel = computed(() => `${props.block.tag} layer`)
 type ContextToolbarAction = {
   id: string

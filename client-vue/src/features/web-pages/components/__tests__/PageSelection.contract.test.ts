@@ -47,20 +47,25 @@ describe('page selection contract', () => {
     assert.match(css, /web-page-block-selection__actions/)
   })
 
-  it('canvas supports ctrl and command multi selection with selection boxes for every selected block', () => {
+  it('canvas supports ctrl and command multi selection with one group selection box', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const canvas = read('src/features/web-pages/components/PageCanvas.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const groupOverlay = read('src/features/web-pages/components/PageSelectionGroupOverlay.vue')
 
     assert.match(renderer, /selectedBlockIds\?: string\[\]/)
     assert.match(renderer, /isSelectedBlock/)
     assert.match(renderer, /isPrimarySelectedBlock/)
+    assert.match(renderer, /isGroupSelectedBlock/)
     assert.match(renderer, /event\.ctrlKey \|\| event\.metaKey/)
     assert.match(canvas, /selectedBlockIds\?: string\[\]/)
     assert.match(canvas, /select: \[payload: \{ blockId: string; additive\?: boolean \}\]/)
     assert.match(editor, /:selected-block-ids="item\.id === pagesStore\.activePage\?\.id \? editorStore\.selectedBlockIds : \[\]"/)
     assert.match(editor, /payload\.additive/)
     assert.match(editor, /editorStore\.toggleBlockSelection/)
+    assert.match(editor, /PageSelectionGroupOverlay/)
+    assert.match(groupOverlay, /selectedBlockIds\.length > 1/)
+    assert.match(groupOverlay, /getBoundingClientRect/)
   })
 
   it('inspector applies batch changes only from the Style tab', () => {
@@ -70,7 +75,7 @@ describe('page selection contract', () => {
     assert.match(editor, /function patchSelectedStyle/)
     assert.match(editor, /@patch="patchActiveBlock"/)
     assert.match(editor, /@patch="patchSelectedStyle"/)
-    assert.match(editor, /Editing \{\{ editorStore\.selectedBlockIds\.length \}\} selected elements/)
+    assert.doesNotMatch(editor, /Editing \{\{ editorStore\.selectedBlockIds\.length \}\} selected elements/)
   })
 
   it('selected blocks expose a premium contextual toolbar and persistent metrics', () => {

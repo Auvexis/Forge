@@ -92,6 +92,21 @@ describe('page editor store', () => {
     assert.equal(store.blocks[1]?.styles?.fontWeight, '700')
   })
 
+  it('restores multi selection without collapsing to one block', () => {
+    const store = usePageEditorStore()
+
+    store.setBlocks([
+      { id: 'section_1', tag: 'section', styles: {}, children: [] },
+      { id: 'input_1', tag: 'input', styles: {}, children: [] },
+    ])
+
+    store.selectBlocks(['section_1', 'input_1'])
+
+    assert.equal(store.selectedBlockId, 'input_1')
+    assert.deepEqual(store.selectedBlockIds, ['section_1', 'input_1'])
+    assert.equal(store.selectedTarget.type, 'block')
+  })
+
   it('clears block actions when patching action to undefined', () => {
     const store = usePageEditorStore()
     store.setBlocks([

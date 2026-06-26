@@ -93,6 +93,10 @@
       />
     </div>
     <div class="web-page-chrome__status">
+      <span v-if="resolvedSelectedCount > 1" class="web-page-chrome__selection-status">
+        <LucideIcon name="mouse-pointer-2" :size="15" />
+        Editing {{ resolvedSelectedCount }} selected elements
+      </span>
       <span
         class="web-page-chrome__publish-status"
         :class="{ 'web-page-chrome__publish-status--published': publishedAt }"
@@ -126,6 +130,7 @@ const props = defineProps<{
   isSaving?: boolean
   canUndo?: boolean
   canRedo?: boolean
+  selectedCount?: number
   publishedAt?: string | null
   isAutosaveEnabled?: boolean
   canSave?: boolean
@@ -227,6 +232,7 @@ const publishCommandLabel = computed(() => (props.publishedAt ? 'Unpublish' : 'P
 const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send'))
 const resolvedCanSave = computed(() => props.canSave ?? Boolean(props.isDirty))
 const resolvedCanUseProjectActions = computed(() => props.canUseProjectActions ?? true)
+const resolvedSelectedCount = computed(() => props.selectedCount ?? 0)
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
   items: menu.items.map((item) => {

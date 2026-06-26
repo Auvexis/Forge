@@ -11,6 +11,7 @@
       :is-saving="pagesStore.isSaving || sitesStore.isSaving"
       :can-undo="editorStore.canUndo"
       :can-redo="editorStore.canRedo"
+      :selected-count="editorStore.selectedBlockIds.length"
       :published-at="activePagePublishedAt"
       :is-autosave-enabled="isPagesAutosaveEnabled"
       :can-save="canSaveActiveDocument"
@@ -160,6 +161,13 @@
             </div>
           </template>
         </BaseCanvas>
+        <PageSelectionGroupOverlay
+          :selected-block-ids="editorStore.selectedBlockIds"
+          :viewport-key="selectionOverlayViewportKey"
+          @inspect="inspectGroupSelection"
+          @duplicate="duplicateGroupSelection"
+          @delete="deleteGroupSelection"
+        />
         <div
           v-if="pageCanvasContextMenu"
           class="web-page-canvas-context-menu"
@@ -234,9 +242,6 @@
             :icon-size="15"
           />
         </div>
-        <p v-if="editorStore.selectedBlockIds.length > 1" class="web-page-editor__batch">
-          Editing {{ editorStore.selectedBlockIds.length }} selected elements
-        </p>
         <template v-if="blockInspectorTab === 'content'">
           <FormImportPanel v-if="editorStore.selectedBlock.tag === 'form'" @insert="insertImportedForm" />
           <BlockContentPanel
@@ -438,6 +443,7 @@ import FormImportPanel from './FormImportPanel.vue'
 import PageMetadataPanel from './PageMetadataPanel.vue'
 import PageSwitcherModal from './PageSwitcherModal.vue'
 import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.vue'
+import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -522,6 +528,9 @@ const pageCanvasContextMenuPageId = computed(() => {
   const target = pageCanvasContextMenu.value?.target
   return target?.type === 'item' ? target.itemId : null
 })
+const selectionOverlayViewportKey = computed(() =>
+  `${pageCanvasViewport.value.x}:${pageCanvasViewport.value.y}:${pageCanvasViewport.value.zoom}:${editorStore.selectedBlockIds.join(',')}`,
+)
 const activeCodeContent = computed(() => {
   if (!activeCodeFile.value) return ''
   if (activeCodeFile.value.path.startsWith('pages/')) return renderGeneratedHtml(activeCodeFile.value.path)
@@ -1471,10 +1480,11 @@ async function saveActiveDocument() {
 async function savePage() {
   if (!pagesStore.activePage) return
   const selection = editorStore.selectedTarget
+  const selectedBlockIds = [...editorStore.selectedBlockIds]
   pagesStore.setActivePage({ ...pagesStore.activePage, blocks: editorStore.blocks })
   await pagesStore.saveActivePage()
   editorStore.markSaved()
-  restoreSelection(selection)
+  restoreSelection(selection, selectedBlockIds)
 }
 
 function previewPage() {
@@ -1524,10 +1534,25 @@ function downloadBlobFile(fileName: string, blob: Blob) {
   URL.revokeObjectURL(url)
 }
 
-function restoreSelection(selection: typeof editorStore.selectedTarget) {
+function restoreSelection(selection: typeof editorStore.selectedTarget, selectedBlockIds: string[] = []) {
   if (selection.type === 'page') editorStore.selectPage()
   if (selection.type === 'body') editorStore.selectBody()
-  if (selection.type === 'block') editorStore.selectBlock(selection.blockId)
+  if (selection.type === 'block') {
+    if (selectedBlockIds.length > 1) editorStore.selectBlocks(selectedBlockIds)
+    else editorStore.selectBlock(selection.blockId)
+  }
+}
+
+function inspectGroupSelection() {
+  if (editorStore.selectedBlockId) handleInspectBlock(pagesStore.activePage?.id ?? '', editorStore.selectedBlockId)
+}
+
+function duplicateGroupSelection() {
+  for (const blockId of editorStore.selectedBlockIds) editorStore.duplicateBlock(blockId)
+}
+
+function deleteGroupSelection() {
+  for (const blockId of [...editorStore.selectedBlockIds]) deleteBlock(blockId)
 }
 
 function toggleLeftPanel() {
