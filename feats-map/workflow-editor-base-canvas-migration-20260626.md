@@ -12,22 +12,89 @@
 - Recriar handles e edges usando coordenadas do próprio canvas.
 - Remover Vue Flow só depois da paridade visual e funcional.
 
-## Tarefas
+## Batch 1 - Base paralela
+- [ ] Criar feature flag para Vue Flow vs BaseCanvas.
+- [ ] Criar `WorkflowBaseCanvas` sem remover `SailorWorkflowCanvas`.
 - [ ] Criar adapter de workflow para `BaseCanvasItem`.
-- [ ] Criar `WorkflowBaseCanvas` paralelo ao `SailorWorkflowCanvas`.
-- [ ] Renderizar nodes atuais dentro do `BaseCanvas`.
-- [ ] Persistir drag de nodes em `node.ui.positionX/Y`.
-- [ ] Criar registry próprio de handles por node.
-- [ ] Recriar `BaseHandle` sem `@vue-flow/core`.
+- [ ] Renderizar canvas vazio, grid, pan e zoom.
+- [ ] Manter add node panel e inspector fora da troca.
+
+## Batch 2 - Nodes
+- [ ] Renderizar trigger node legado quando necessário.
+- [ ] Renderizar todos os node types atuais.
+- [ ] Passar props equivalentes aos nodes existentes.
+- [ ] Preservar `BaseNode` e `BaseAdvancedNode` visualmente.
+- [ ] Persistir drag em `node.ui.positionX/Y`.
+- [ ] Preservar snap/grid no drag.
+- [ ] Preservar disabled, selected e execution status.
+- [ ] Preservar double click para abrir inspector.
+
+## Batch 3 - Handles
+- [ ] Criar `WorkflowHandle` sem `@vue-flow/core`.
+- [ ] Criar tipos próprios para `Position` e handle side.
+- [ ] Migrar `BaseHandle` para usar `WorkflowHandle`.
+- [ ] Registrar geometria de handle por node.
+- [ ] Suportar source, target, circle, bar e diamond.
+- [ ] Suportar handles customizados de `If`, `Loop`, `Switch` e batches.
+- [ ] Remover dependência de `updateNodeInternals`.
+
+## Batch 4 - Edges
 - [ ] Criar camada SVG própria para edges.
-- [ ] Calcular edges por source/target handle em world coordinates.
-- [ ] Migrar labels, toolbar e delete de edge.
-- [ ] Recriar preview de conexão entre handles.
-- [ ] Migrar criação de edge por drag.
-- [ ] Migrar quick-add de node e edge.
-- [ ] Migrar seleção múltipla, delete e duplicate.
-- [ ] Migrar zoom in, zoom out, reset e fit view.
-- [ ] Adicionar testes de contrato para coordenadas de handle/edge.
-- [ ] Validar visualmente nodes simples, advanced nodes e branches.
-- [ ] Ativar feature flag para comparação Vue Flow vs BaseCanvas.
-- [ ] Remover dependências Vue Flow do Workflow Editor após paridade.
+- [ ] Calcular anchors por handle em world coordinates.
+- [ ] Migrar `BaseEdge` sem `@vue-flow/core`.
+- [ ] Preservar edge idle, running, success, failed e selected.
+- [ ] Preservar edge configuration dashed.
+- [ ] Preservar branch filtering por output.
+- [ ] Preservar labels e edição inline.
+- [ ] Preservar item count label.
+- [ ] Preservar toolbar de quick-add e delete.
+- [ ] Corrigir alinhamento edge/handle sem query no DOM.
+
+## Batch 5 - Conexões
+- [ ] Recriar preview de conexão durante drag.
+- [ ] Criar edge ao soltar source em target válido.
+- [ ] Preservar sourceHandle e targetHandle.
+- [ ] Preservar regras de handles avançados.
+- [ ] Preservar auto arrange de config nodes.
+- [ ] Bloquear conexões inválidas como hoje.
+- [ ] Cancelar conexão ao soltar no canvas.
+
+## Batch 6 - Seleção e comandos
+- [ ] Preservar seleção simples.
+- [ ] Preservar marquee selection.
+- [ ] Preservar seleção múltipla.
+- [ ] Migrar selection box e group actions.
+- [ ] Preservar delete selection.
+- [ ] Preservar duplicate selection.
+- [ ] Preservar select all e clear selection.
+- [ ] Preservar node toolbar.
+
+## Batch 7 - Ações do editor
+- [ ] Migrar add logic node at viewport center.
+- [ ] Migrar add plugin node at viewport center.
+- [ ] Migrar add node at screen point.
+- [ ] Migrar global drag/drop de nodes.
+- [ ] Migrar quick-add de node.
+- [ ] Migrar quick-add entre edges.
+- [ ] Migrar zoom in, zoom out e reset.
+- [ ] Migrar fit workflow view.
+- [ ] Preservar run, stop e logs.
+
+## Batch 8 - Testes e validação
+- [ ] Adicionar testes de adapter workflow/canvas.
+- [ ] Adicionar testes de coordenadas handle/edge.
+- [ ] Adicionar testes de criação e remoção de edge.
+- [ ] Validar visualmente nodes simples.
+- [ ] Validar visualmente advanced nodes.
+- [ ] Validar visualmente branches `if`, `switch`, `loop`.
+- [ ] Validar zoom, pan, drag e seleção.
+- [ ] Validar workflow salvo/reaberto.
+
+## Batch 9 - Remoção Vue Flow
+- [ ] Comparar paridade com feature flag.
+- [ ] Ativar BaseCanvas como padrão.
+- [ ] Remover slots e wrappers de Vue Flow.
+- [ ] Remover imports `@vue-flow/core` do Workflow Editor.
+- [ ] Remover imports `@vue-flow/background` do Workflow Editor.
+- [ ] Atualizar testes antigos que assumem Vue Flow.
+- [ ] Remover feature flag quando estável.
