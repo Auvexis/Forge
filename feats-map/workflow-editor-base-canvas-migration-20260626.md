@@ -11,6 +11,9 @@
 - Manter Vue Flow funcionando até o `BaseCanvas` cobrir o fluxo principal.
 - Recriar handles e edges usando coordenadas do próprio canvas.
 - Remover Vue Flow só depois da paridade visual e funcional.
+- Não modificar comportamento existente do `BaseCanvas`.
+- No máximo adicionar props opcionais ou métodos novos ao `BaseCanvas`.
+- Preferir adapters/wrappers no Workflow Editor para proteger Sailor Pages.
 
 ## Batch 1 - Base paralela
 - [ ] Criar feature flag para Vue Flow vs BaseCanvas.
@@ -18,6 +21,7 @@
 - [ ] Criar adapter de workflow para `BaseCanvasItem`.
 - [ ] Renderizar canvas vazio, grid, pan e zoom.
 - [ ] Manter add node panel e inspector fora da troca.
+- [ ] Confirmar que Sailor Pages não mudou após qualquer ajuste opcional no `BaseCanvas`.
 
 ## Batch 2 - Nodes
 - [ ] Renderizar trigger node legado quando necessário.
