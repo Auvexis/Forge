@@ -85,14 +85,14 @@
 - [x] Preservar run, stop e logs.
 
 ## Batch 8 - Testes e validação
-- [ ] Adicionar testes de adapter workflow/canvas.
-- [ ] Adicionar testes de coordenadas handle/edge.
-- [ ] Adicionar testes de criação e remoção de edge.
-- [ ] Validar visualmente nodes simples.
-- [ ] Validar visualmente advanced nodes.
-- [ ] Validar visualmente branches `if`, `switch`, `loop`.
-- [ ] Validar zoom, pan, drag e seleção.
-- [ ] Validar workflow salvo/reaberto.
+- [x] Adicionar testes de adapter workflow/canvas.
+- [x] Adicionar testes de coordenadas handle/edge.
+- [x] Adicionar testes de criação e remoção de edge.
+- [x] Validar visualmente nodes simples.
+- [x] Validar visualmente advanced nodes.
+- [x] Validar visualmente branches `if`, `switch`, `loop`.
+- [x] Validar zoom, pan, drag e seleção.
+- [x] Validar workflow salvo/reaberto.
 
 ## Batch 9 - Remoção Vue Flow
 - [ ] Comparar paridade com feature flag.

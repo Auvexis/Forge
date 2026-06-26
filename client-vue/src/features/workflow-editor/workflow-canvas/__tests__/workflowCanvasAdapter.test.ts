@@ -45,4 +45,19 @@ describe('workflow canvas adapter', () => {
       { id: 'set_1', x: 0, y: 0, data: workflow.nodes.set_1 },
     ])
   })
+
+  it('preserves saved node dimensions for reopened workflows and fit view', () => {
+    const workflow = {
+      nodes: {
+        agent_1: { type: 'ai-agent', ui: { positionX: 80, positionY: 120, width: 320, height: 180 } },
+      },
+      trigger: { type: 'manual', ui: { positionX: 0, positionY: 0, width: 180, height: 80 } },
+      edges: [],
+    }
+
+    assert.deepEqual(workflowToBaseCanvasItems(workflow, { includeLegacyTrigger: true }), [
+      { id: 'trigger', x: 0, y: 0, width: 180, height: 80, data: workflow.trigger },
+      { id: 'agent_1', x: 80, y: 120, width: 320, height: 180, data: workflow.nodes.agent_1 },
+    ])
+  })
 })

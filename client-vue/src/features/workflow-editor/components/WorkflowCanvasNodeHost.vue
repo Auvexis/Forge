@@ -1,6 +1,8 @@
 <template>
   <div
     class="sailor-workflow-base-canvas__node"
+    :data-workflow-node-id="item.id"
+    :data-workflow-node-type="nodeType"
     @dblclick.stop="$emit('open-inspector', item)"
   >
     <component

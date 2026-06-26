@@ -1,5 +1,5 @@
 <template>
-  <div ref="layerRef" class="workflow-connection-layer">
+  <div ref="layerRef" class="workflow-connection-layer" data-workflow-connection-layer>
     <svg class="workflow-connection-layer__svg" :viewBox="svgViewBox">
       <g :transform="canvasTransform">
         <WorkflowConnectionPreviewLine

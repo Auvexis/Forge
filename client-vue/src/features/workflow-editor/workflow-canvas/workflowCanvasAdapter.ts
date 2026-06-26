@@ -4,6 +4,8 @@ interface WorkflowCanvasNodeLike {
   ui?: {
     positionX?: number
     positionY?: number
+    width?: number
+    height?: number
   }
 }
 
@@ -33,10 +35,13 @@ export function workflowToBaseCanvasItems(
 }
 
 function workflowNodeToBaseCanvasItem(id: string, node: WorkflowCanvasNodeLike): BaseCanvasItem {
-  return {
+  const item: BaseCanvasItem = {
     id,
     x: node.ui?.positionX ?? 0,
     y: node.ui?.positionY ?? 0,
     data: node,
   }
+  if (typeof node.ui?.width === 'number') item.width = node.ui.width
+  if (typeof node.ui?.height === 'number') item.height = node.ui.height
+  return item
 }

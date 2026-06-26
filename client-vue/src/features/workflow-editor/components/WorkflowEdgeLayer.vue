@@ -1,5 +1,5 @@
 <template>
-  <div ref="layerRef" class="workflow-edge-layer" aria-hidden="true">
+  <div ref="layerRef" class="workflow-edge-layer" data-workflow-edge-layer aria-hidden="true">
     <svg class="workflow-edge-layer__svg" :viewBox="svgViewBox">
       <defs>
         <marker

@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showBox" class="workflow-selection-box" :style="viewportTransform">
+  <div v-if="showBox" class="workflow-selection-box" data-workflow-selection-box :style="viewportTransform">
     <div class="sailor-group-box-outer" :style="outerBoxStyle">
       <div class="sailor-group-box-inner" />
     </div>

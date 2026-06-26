@@ -1,5 +1,5 @@
 <template>
-  <div ref="shellRef" class="sailor-workflow-base-canvas-shell">
+  <div ref="shellRef" class="sailor-workflow-base-canvas-shell" data-workflow-base-canvas-shell>
     <BaseCanvas
       v-model:viewport="viewport"
       v-model:selection="canvasSelection"
@@ -12,6 +12,7 @@
       pattern-style="dot"
       :pattern-size="20"
       class="sailor-workflow-base-canvas"
+      data-workflow-base-canvas
       :data-workflow-items-count="workflowItems.length"
       @items-move="handleItemsMove"
     >
