@@ -40,7 +40,7 @@ describe('global automation monitor shell', () => {
     assert.match(source, /gam-main-meta/)
     assert.match(source, /gam-main/)
     assert.match(source, /triggerTabs/)
-    assert.match(source, /activeTriggerEvents/)
+    assert.match(source, /activeTriggerRuns/)
   })
 
   it('polls live production status and selected workflow execution data', () => {
@@ -51,22 +51,13 @@ describe('global automation monitor shell', () => {
     assert.match(source, /setInterval\(refreshLiveData,\s*3_000\)/)
   })
 
-  it('lets users expand a realtime step to inspect body or error details', () => {
+  it('opens filtered runs in the shared tree detail explorer', () => {
     const source = readFileSync(monitorPath, 'utf8')
 
-    assert.match(source, /expandedEventIds/)
-    assert.match(source, /toggleEventDetails/)
-    assert.match(source, /event\.body/)
-    assert.match(source, /event\.error/)
-    assert.match(source, /gam-event-detail/)
-  })
-
-  it('animates realtime step rows as they enter and leave the list', () => {
-    const source = readFileSync(monitorPath, 'utf8')
-
-    assert.match(source, /<TransitionGroup[^>]+name="gam-event-list"/)
-    assert.match(source, /\.gam-event-list-enter-active/)
-    assert.match(source, /\.gam-event-list-leave-active/)
+    assert.match(source, /ExecutionRunExplorer/)
+    assert.match(source, /:runs="activeTriggerRuns"/)
+    assert.match(source, /:workflow="selectedWorkflow\.workflow"/)
+    assert.match(source, /executionTriggerId/)
   })
 })
 

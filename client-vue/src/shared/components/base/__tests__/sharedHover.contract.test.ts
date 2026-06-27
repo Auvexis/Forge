@@ -28,11 +28,13 @@ test('shared dropdown and select items keep native hover and active backgrounds'
 test('shared layout menus keep hover and active feedback after animated menu removal', () => {
   const settings = read('src/shared/components/layout/AppGlobalSettings.vue')
   const monitor = read('src/shared/components/layout/AppGlobalAutomationMonitor.vue')
+  const runs = read('src/shared/components/execution/ExecutionRunsView.vue')
 
   assert.doesNotMatch(settings, /background:\s*transparent;\s*justify-content: flex-start;\s*width: 100%;/)
   assert.match(monitor, /\.gam-workflow:hover[\s\S]*background:\s*var\(--sailor-button-ghost-hover\)/)
   assert.match(monitor, /\.gam-workflow--active[\s\S]*background:\s*var\(--sailor-button-ghost-active\)/)
   assert.match(monitor, /\.gam-tab:hover[\s\S]*background:\s*var\(--sailor-button-ghost-hover\)/)
   assert.match(monitor, /\.gam-tab--active[\s\S]*background:\s*var\(--sailor-button-ghost-active\)/)
-  assert.match(monitor, /\.gam-event-row:hover[\s\S]*background:\s*var\(--sailor-button-ghost-hover\)/)
+  assert.match(runs, /execution-runs-view__run/)
+  assert.match(runs, /variant="ghost"/)
 })

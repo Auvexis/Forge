@@ -88,10 +88,10 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 
 ### Batch 5: Global Monitor
 
-- [ ] Test monitor run-tree integration.
-- [ ] Replace flat monitor timeline.
-- [ ] Preserve workflow, profile, and trigger filters.
-- [ ] Validate global run navigation.
+- [x] Test monitor run-tree integration.
+- [x] Replace flat monitor timeline.
+- [x] Preserve workflow, profile, and trigger filters.
+- [x] Validate global run navigation.
 
 ### Batch 6: Final Validation
 

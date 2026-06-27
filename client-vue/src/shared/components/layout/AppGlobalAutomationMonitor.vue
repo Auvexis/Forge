@@ -116,58 +116,16 @@
             >
               <LucideIcon :name="tab.id === 'all' ? 'list-tree' : 'radio'" :size="13" />
               <span>{{ tab.label }}</span>
-              <small>{{ tab.events.length }}</small>
+              <small>{{ tab.runs.length }}</small>
             </BaseButton>
           </div>
 
           <div class="gam-execution-body">
-            <div v-if="activeTriggerEvents.length === 0" class="gam-empty">
-              <LucideIcon name="clock" :size="20" />
-              <span>No execution events yet.</span>
-            </div>
-
-            <div
-              v-else
-              class="gam-timeline"
-            >
-              <article
-                v-for="event in activeTriggerEvents"
-                :key="event.id"
-                class="gam-event"
-                :class="[
-                  `gam-event--${event.status}`,
-                  { 'gam-event--expanded': expandedEventIds.has(event.id) },
-                ]"
-              >
-                <BaseButton
-                  class="gam-event-row"
-                  type="button"
-                  variant="ghost"
-                  @click="toggleEventDetails(event.id)"
-                >
-                  <LucideIcon
-                    name="chevron-right"
-                    :size="13"
-                    class="gam-event__chevron"
-                    :class="{ 'gam-event__chevron--open': expandedEventIds.has(event.id) }"
-                  />
-                  <span class="gam-event__dot" />
-                  <div class="gam-event__copy">
-                    <strong>{{ event.label }}</strong>
-                    <small>{{ formatTime(event.timestamp) }}</small>
-                  </div>
-                  <code v-if="event.nodeId">{{ event.nodeId }}</code>
-                  <span v-if="event.error" class="gam-event__error">{{ event.error }}</span>
-                </BaseButton>
-                <Transition name="gam-event-detail">
-                  <div v-if="expandedEventIds.has(event.id)" class="gam-event-detail">
-                    <pre v-if="event.error">{{ event.error }}</pre>
-                    <pre v-else-if="event.body">{{ formatJson(event.body) }}</pre>
-                    <span v-else>No body data for this step.</span>
-                  </div>
-                </Transition>
-              </article>
-            </div>
+            <ExecutionRunExplorer
+              :runs="activeTriggerRuns"
+              :workflow="selectedWorkflow.workflow"
+              :loading="loading"
+            />
           </div>
         </template>
       </main>
@@ -191,22 +149,12 @@ import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
+import ExecutionRunExplorer from '@/shared/components/execution/ExecutionRunExplorer.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
 import type { ExecutionLog } from '@/core/types/execution.types'
 import { useToast } from '@/shared/composables/useToast'
 import { useProfileStore } from '@/shared/stores/profile.store'
-
-interface RuntimeEvent {
-  id: string
-  triggerId: string
-  label: string
-  nodeId?: string
-  status: 'running' | 'success' | 'failed'
-  timestamp: number
-  body?: unknown
-  error?: string
-}
 
 const toast = useToast()
 const profileStore = useProfileStore()
@@ -217,7 +165,6 @@ const selectedProfileId = ref<string | null>(null)
 const selectedWorkflowKey = ref<string | null>(null)
 const selectedExecutions = ref<ExecutionLog[]>([])
 const activeTriggerTabId = ref('all')
-const expandedEventIds = ref(new Set<string>())
 
 const profileNameById = computed(() =>
   Object.fromEntries(profileStore.profiles.map((profile) => [profile.id, profile.name])),
@@ -287,28 +234,25 @@ const failedCount = computed(
     ).length,
 )
 
-const timelineEvents = computed<RuntimeEvent[]>(() =>
-  selectedExecutions.value.flatMap((execution) => executionToEvents(execution)),
-)
-
 const triggerTabs = computed(() => {
-  const grouped = new Map<string, RuntimeEvent[]>()
-  grouped.set('all', timelineEvents.value)
-  for (const event of timelineEvents.value) {
-    const events = grouped.get(event.triggerId) ?? []
-    events.push(event)
-    grouped.set(event.triggerId, events)
+  const grouped = new Map<string, ExecutionLog[]>()
+  grouped.set('all', selectedExecutions.value)
+  for (const run of selectedExecutions.value) {
+    const triggerId = executionTriggerId(run)
+    const runs = grouped.get(triggerId) ?? []
+    runs.push(run)
+    grouped.set(triggerId, runs)
   }
 
-  return Array.from(grouped.entries()).map(([id, events]) => ({
+  return Array.from(grouped.entries()).map(([id, runs]) => ({
     id,
     label: id === 'all' ? 'All' : id,
-    events,
+    runs,
   }))
 })
 
-const activeTriggerEvents = computed(
-  () => triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)?.events ?? [],
+const activeTriggerRuns = computed(
+  () => triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)?.runs ?? [],
 )
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
@@ -325,7 +269,6 @@ function selectProfile(profileId: string | null) {
 function selectWorkflow(workflow: ProductionWorkflowStatus) {
   selectedWorkflowKey.value = workflowKey(workflow)
   activeTriggerTabId.value = 'all'
-  expandedEventIds.value = new Set()
   void loadSelectedWorkflowExecutions()
 }
 
@@ -362,44 +305,9 @@ async function loadSelectedWorkflowExecutions() {
   )
 }
 
-function executionToEvents(execution: ExecutionLog): RuntimeEvent[] {
-  const context = execution.context as {
-    trigger?: { triggerNodeId?: string; source?: string }
-    steps?: Record<string, { status?: string; output?: unknown; error?: unknown }>
-  }
-  const triggerId = context.trigger?.triggerNodeId ?? context.trigger?.source ?? 'workflow'
-  const events: RuntimeEvent[] = [
-    {
-      id: `${execution.id}:workflow`,
-      triggerId,
-      label: `Execution ${execLabel(execution.status)}`,
-      status: statusToEvent(execution.status),
-      timestamp: execution.startedAt,
-      body: context.trigger,
-      error: execution.status === 'FAILED' ? 'Workflow failed' : undefined,
-    },
-  ]
-
-  for (const [nodeId, step] of Object.entries(context.steps ?? {})) {
-    events.push({
-      id: `${execution.id}:${nodeId}`,
-      triggerId,
-      nodeId,
-      label: step.status ?? 'Step',
-      status: statusToEvent(step.status ?? execution.status),
-      timestamp: execution.endedAt ?? execution.startedAt,
-      body: step.output,
-      error: step.error ? formatError(step.error) : undefined,
-    })
-  }
-
-  return events
-}
-
-function statusToEvent(status: string): RuntimeEvent['status'] {
-  if (status === 'RUNNING') return 'running'
-  if (status === 'SUCCESS') return 'success'
-  return 'failed'
+function executionTriggerId(execution: ExecutionLog): string {
+  const trigger = execution.context.trigger as { triggerNodeId?: string; source?: string } | undefined
+  return trigger?.triggerNodeId ?? trigger?.source ?? 'workflow'
 }
 
 function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
@@ -419,16 +327,6 @@ function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
   return labels[type] ?? type
 }
 
-function execLabel(status: string): string {
-  const labels: Record<string, string> = {
-    SUCCESS: 'Success',
-    ERROR: 'Error',
-    FAILED: 'Failed',
-    RUNNING: 'Running',
-  }
-  return labels[status] ?? status
-}
-
 function workflowRunLabel(workflow: ProductionWorkflowStatus): string {
   if (!workflow.lastExecution) {
     return `${workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : 'Published'} / No runs`
@@ -444,32 +342,12 @@ function formatDate(value: string): string {
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-function toggleEventDetails(eventId: string) {
-  const next = new Set(expandedEventIds.value)
-  if (next.has(eventId)) next.delete(eventId)
-  else next.add(eventId)
-  expandedEventIds.value = next
-}
-
-function formatJson(data: unknown): string {
-  try {
-    return JSON.stringify(data, null, 2)
-  } catch {
-    return String(data)
-  }
-}
-
-function formatError(error: unknown): string {
-  return typeof error === 'string' ? error : JSON.stringify(error)
-}
-
 watch(isAutomationMonitorOpen, (open) => {
   if (open) {
     void profileStore.loadProfiles()
     void refreshLiveData()
   } else {
     selectedExecutions.value = []
-    expandedEventIds.value = new Set()
   }
 })
 
@@ -560,8 +438,7 @@ onUnmounted(() => {
 
 .gam-header strong,
 .gam-main-header h2,
-.gam-workflow__copy strong,
-.gam-event__copy strong {
+.gam-workflow__copy strong {
   overflow: hidden;
   margin: 0;
   text-overflow: ellipsis;
@@ -605,8 +482,7 @@ onUnmounted(() => {
 }
 
 .gam-main-meta,
-.gam-workflow small,
-.gam-event small {
+.gam-workflow small {
   color: var(--sailor-text-muted);
   font-size: var(--sailor-text-xs);
 }
@@ -656,25 +532,6 @@ onUnmounted(() => {
   text-align: left;
 }
 
-.gam-event__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-text-muted);
-}
-
-.gam-event--running .gam-event__dot {
-  background: var(--sailor-amber-400);
-}
-
-.gam-event--success .gam-event__dot {
-  background: var(--sailor-green-400);
-}
-
-.gam-event--failed .gam-event__dot {
-  background: var(--sailor-red-400);
-}
-
 .gam-workflow__copy {
   display: grid;
   min-width: 0;
@@ -717,12 +574,6 @@ onUnmounted(() => {
   content: "/";
   margin-right: var(--sailor-space-2);
   color: var(--sailor-border-strong);
-}
-
-.gam-event code {
-  color: var(--sailor-text-muted);
-  font-family: var(--sailor-font-mono);
-  font-size: 10px;
 }
 
 .gam-main {
@@ -838,123 +689,11 @@ onUnmounted(() => {
 .gam-execution-body {
   flex: 1;
   min-height: 0;
-  overflow: auto;
-  padding: var(--sailor-space-2);
-}
-
-.gam-timeline {
-  display: flex;
-  flex-direction: column;
-}
-
-.gam-event {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
   overflow: hidden;
-}
-
-.gam-event-row {
-  width: 100%;
-  height: auto;
-  min-height: 36px;
-  justify-content: stretch;
-  border-radius: var(--sailor-radius-sm);
-  background: transparent;
-  padding: 0;
-}
-
-.gam-event-row:hover,
-.gam-event-row:active {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-button-ghost-hover-text);
-}
-
-.gam-event-row :deep(.base-button__label) {
-  display: grid;
-  width: 100%;
-  min-width: 0;
-  grid-template-columns: 14px 12px minmax(0, 1fr) minmax(96px, auto) minmax(0, 240px);
-  align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  text-align: left;
-}
-
-.gam-event__chevron {
-  color: var(--sailor-text-muted);
-  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.gam-event__chevron--open {
-  transform: rotate(90deg);
-}
-
-.gam-event__copy {
-  min-width: 0;
-}
-
-.gam-event__copy strong {
-  display: block;
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-semibold);
-}
-
-.gam-event__error {
-  overflow: hidden;
-  color: var(--sailor-red-400);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.gam-event-detail {
-  padding: var(--sailor-space-3) var(--sailor-space-4) var(--sailor-space-4) 48px;
-  border-top: 1px solid var(--sailor-border-muted);
-  background: var(--sailor-bg-surface);
-}
-
-.gam-event-detail pre {
-  max-height: 240px;
-  margin: 0;
-  overflow: auto;
-  color: var(--sailor-text-secondary);
-  font-family: var(--sailor-font-mono);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.gam-event-detail span {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
 }
 
 .gam-spin {
   animation: gam-spin 800ms linear infinite;
-}
-
-.gam-event-list-enter-active,
-.gam-event-list-leave-active,
-.gam-event-detail-enter-active,
-.gam-event-detail-leave-active {
-  transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.gam-event-list-enter-from,
-.gam-event-list-leave-to,
-.gam-event-detail-enter-from,
-.gam-event-detail-leave-to {
-  opacity: 0;
-  transform: translateY(var(--sailor-space-2));
-}
-
-.gam-event-list-move {
-  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
 }
 
 @keyframes gam-spin {
@@ -1013,13 +752,5 @@ onUnmounted(() => {
     width: 136px;
   }
 
-  .gam-event-row :deep(.base-button__label) {
-    grid-template-columns: 14px 12px minmax(0, 1fr);
-  }
-
-  .gam-event-row code,
-  .gam-event__error {
-    display: none;
-  }
 }
 </style>
