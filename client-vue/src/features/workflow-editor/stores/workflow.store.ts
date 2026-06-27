@@ -189,9 +189,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   const saveApi = useApi(workflowsApi.update)
-  async function saveActiveWorkflow(options: { silent?: boolean; autosave?: boolean } = {}) {
-    if (!activeWorkflow.value) return
-    if (options.autosave && !isPersistedWorkflow.value) return
+  async function saveActiveWorkflow(
+    options: { silent?: boolean; autosave?: boolean } = {},
+  ): Promise<boolean> {
+    if (!activeWorkflow.value) return false
+    if (options.autosave && !isPersistedWorkflow.value) return false
 
     try {
       autosaveStatus.value = options.autosave ? 'saving' : autosaveStatus.value
@@ -205,7 +207,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
           autosaveStatus.value = 'conflict'
           conflictMessage.value = 'Server version changed. Review before saving.'
           if (!options.silent) toast.error(conflictMessage.value, 'Save conflict')
-          return
+          return false
         }
       }
       const updatedVersion = bumpVersion(workflow.metadata.version)
@@ -233,9 +235,11 @@ export const useWorkflowStore = defineStore('workflow', () => {
       if (options.autosave) lastAutosavedAt.value = Date.now()
       clearDraft()
       if (!options.silent) toast.success('Workflow saved')
+      return true
     } catch (error) {
       autosaveStatus.value = options.autosave ? 'error' : autosaveStatus.value
       toast.error(error instanceof Error ? error.message : 'Failed to save workflow')
+      return false
     }
   }
 

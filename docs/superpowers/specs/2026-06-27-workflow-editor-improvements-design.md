@@ -102,3 +102,10 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 - [x] Test zoom-only reset coordinates.
 - [x] Preserve viewport x and y on Reset Zoom.
 - [x] Validate node and canvas contracts; browser QA unavailable.
+
+### New Workflow Save Failure
+
+- [x] Test failed-save route preservation.
+- [x] Return save success from the workflow store.
+- [x] Skip Git refresh and navigation after save failure.
+- [x] Validate draft and persisted save flows.

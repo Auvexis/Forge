@@ -19,4 +19,12 @@ describe('workflow autosave contracts', () => {
     assert.match(pageSource, /autosaveEnabled: false/)
     assert.match(pageSource, /handleSaveWorkflow/)
   })
+
+  it('keeps an invalid new workflow open when save fails', () => {
+    assert.match(storeSource, /async function saveActiveWorkflow[\s\S]*Promise<boolean>/)
+    assert.match(storeSource, /const savedWorkflow = await saveApi\.execute[\s\S]*return true/)
+    assert.match(storeSource, /catch \(error\)[\s\S]*return false/)
+    assert.match(pageSource, /const saved = await workflowStore\.saveActiveWorkflow\(\)[\s\S]*if \(!saved\) return/)
+    assert.match(pageSource, /if \(!saved\) return[\s\S]*await loadWorkflowGitStatus\(\)[\s\S]*router\.replace/)
+  })
 })

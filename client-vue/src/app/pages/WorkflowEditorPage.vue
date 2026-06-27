@@ -415,7 +415,8 @@ watch(
 )
 
 async function handleSaveWorkflow() {
-  await workflowStore.saveActiveWorkflow()
+  const saved = await workflowStore.saveActiveWorkflow()
+  if (!saved) return
   await loadWorkflowGitStatus()
   // If we are on the root /workflows path (in-memory draft), update the URL to the new ID
   if (route.path === '/workflows' && workflowStore.activeWorkflow) {
