@@ -33,7 +33,7 @@ describe("workflow node catalog routes", () => {
     assert.equal(typeof code.description, "string");
     assert.equal(typeof code.category, "string");
     assert.equal(code.style.icon, "code-2");
-    assert.equal(code.style.iconColor, "#60a5fa");
+    assert.equal(code.style.iconColor, "var(--sailor-node-codeblock-icon)");
     assert.equal(typeof code.style.bgColor, "string");
     assert.equal(typeof code.style.borderColor, "string");
     assert.equal("execute" in code, false);

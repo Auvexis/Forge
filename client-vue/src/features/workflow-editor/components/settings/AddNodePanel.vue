@@ -38,17 +38,6 @@
               </div>
             </template>
             <template v-else>
-              <div v-if="showQuickTrigger" class="add-node-cascade__quick-section">
-                <div class="add-node-cascade__section-label">Trigger</div>
-                <AddNodePickerItem
-                  :label="TRIGGER_PRESET.label"
-                  :description="TRIGGER_PRESET.description"
-                  :icon="TRIGGER_PRESET.icon"
-                  :style-meta="TRIGGER_PRESET.style"
-                  @click="addQuickTrigger"
-                />
-              </div>
-
               <div class="add-node-cascade__quick-section">
                 <div class="add-node-cascade__section-label">Apps</div>
                 <AddNodePickerItem
@@ -161,7 +150,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useApi } from '@/shared/composables/useApi'
 import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
-import type { PluginCategory, PluginSummary } from '@/core/types/plugin.types'
+import type { PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import type { AllowedNodes } from '../nodePresentation.types'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -180,6 +169,7 @@ import {
   filterDefaultPickerPresets,
   isVectorStoreProvider,
   type AddNodePickerPreset,
+  type AddNodePickerCategory,
   type AddNodePickerSecondColumnItem,
 } from './addNodePickerModel'
 import {
@@ -201,7 +191,7 @@ const props = defineProps<{
 
 const search = ref('')
 const searchInput = ref<InstanceType<typeof BaseInput>>()
-const hoveredCategory = ref<PluginCategory | null>(null)
+const hoveredCategory = ref<AddNodePickerCategory | null>(null)
 const methodSubmenuPlugin = ref<PluginSummary | null>(null)
 const vectorStoreProviderPickerOpen = ref(false)
 const { isDark } = useTheme()
@@ -230,7 +220,6 @@ const isAgentModelContext = computed(() => props.handlerId === 'chatModel')
 const isAgentMemoryContext = computed(() => props.handlerId === 'memory')
 const isAgentToolContext = computed(() => props.handlerId === 'tool')
 const isEmbeddingContext = computed(() => props.handlerId === 'embedding')
-const showQuickTrigger = computed(() => !isContextualPicker.value)
 const effectiveAllowedNodes = computed<AllowedNodes>(() => props.allowedNodes ?? '*')
 const preferredNodeTypes = computed(() =>
   effectiveAllowedNodes.value === '*'
@@ -240,26 +229,6 @@ const preferredNodeTypes = computed(() =>
         .map((selector) => selector.replace('node:', '') as WorkflowNodeType),
 )
 
-const AI_NODES: AddNodePickerPreset[] = [
-  {
-    id: 'ai-agent',
-    nodeType: 'ai-agent' as WorkflowNodeType,
-    label: 'AI Agent',
-    description: 'Run a governed agent with tools and memory',
-    icon: 'bot',
-    categories: ['AI'],
-  },
-]
-
-const TRIGGER_PRESET: AddNodePickerPreset = {
-  id: 'trigger',
-  nodeType: 'trigger' as WorkflowNodeType,
-  label: 'Trigger',
-  description: 'Add another workflow entry point',
-  icon: 'zap',
-  categories: ['Core'],
-}
-
 const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
   {
     id: 'sqlite-memory',
@@ -267,7 +236,7 @@ const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
     label: 'SQLite Memory',
     description: 'Store short-term agent memory in SQLite',
     icon: 'database',
-    categories: ['AI', 'Core'],
+    categories: ['Utilities'],
     defaults: { name: 'SQLite Memory', adapter: 'sailor-internal', scope: 'session' },
   },
 ]
@@ -285,12 +254,15 @@ const pickerPlugins = computed(() =>
     .filter((plugin) => isContextualPicker.value || !isVectorStoreProvider(plugin)),
 )
 
+const catalogPresets = computed(() =>
+  catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? []),
+)
+
 const pickerPresets = computed(() => {
-  const catalogPresets = catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? [])
-  const allPresets = [...catalogPresets, ...AI_NODES, ...AGENT_MEMORY_PRESETS]
+  const allPresets = [...catalogPresets.value, ...AGENT_MEMORY_PRESETS]
 
   if (!isContextualPicker.value) {
-    return [...filterDefaultPickerPresets(catalogPresets), ...AI_NODES]
+    return filterDefaultPickerPresets(catalogPresets.value)
   }
 
   const allowedPresets = allPresets.filter((preset) =>
@@ -308,10 +280,7 @@ const pickerPresets = computed(() => {
   return allowedPresets
 })
 
-const searchablePresets = computed(() => {
-  if (!showQuickTrigger.value) return pickerPresets.value
-  return [TRIGGER_PRESET, ...pickerPresets.value.filter((preset) => preset.nodeType !== 'trigger')]
-})
+const searchablePresets = computed(() => pickerPresets.value)
 
 const normalizedSearch = computed(() => search.value.trim().toLowerCase())
 const isSearching = computed(() => normalizedSearch.value.length > 0)
@@ -437,7 +406,7 @@ const globalSearchItems = computed(() => {
 const pluginIcon = (plugin: PluginSummary) =>
   resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
 
-const hoverCategory = (category: PluginCategory) => {
+const hoverCategory = (category: AddNodePickerCategory) => {
   if (hoveredCategory.value !== category) {
     methodSubmenuPlugin.value = null
     vectorStoreProviderPickerOpen.value = false
@@ -469,10 +438,6 @@ const openMethodSubmenu = (plugin: PluginSummary) => {
 const closeMethodSubmenu = () => {
   methodSubmenuPlugin.value = null
   vectorStoreProviderPickerOpen.value = false
-}
-
-const addQuickTrigger = () => {
-  props.onAddLogicNode?.('trigger' as WorkflowNodeType, TRIGGER_PRESET.defaults)
 }
 
 const addSinglePluginMethod = (plugin: PluginSummary) => {
@@ -556,7 +521,9 @@ const addVectorStoreNode = (plugin: PluginSummary) => {
 
 const selectGlobalSearchItem = (item: AddNodePickerSecondColumnItem) => {
   if (item.kind === 'plugin') {
-    const category = item.plugin.manifest.metadata.categories[0] as PluginCategory | undefined
+    const category = item.plugin.manifest.metadata.utility === true
+      ? 'Utilities'
+      : item.plugin.manifest.metadata.categories[0] as AddNodePickerCategory | undefined
     if (category) hoverCategory(category)
   } else {
     const category = item.preset.categories[0]

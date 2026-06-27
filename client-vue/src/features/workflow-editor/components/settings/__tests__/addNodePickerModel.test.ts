@@ -11,8 +11,46 @@ import {
   buildVectorStoreProviderItems,
   catalogItemsToPickerPresets,
   filterDefaultPickerPresets,
+  pluginCategories,
   type AddNodePickerPreset,
 } from '../addNodePickerModel.ts'
+
+test('utility catalog nodes belong only to Utilities with Trigger first', () => {
+  const presets = catalogItemsToPickerPresets([
+    {
+      type: 'code', label: 'Code', description: '', category: 'Developer', packId: 'sailor-core',
+      packName: 'Sailor Core', style: { icon: 'code', iconColor: '#fff', bgColor: 'transparent', borderColor: '#333' },
+      role: 'flow', capabilities: [], handles: [], presentation: { base: 'standard' },
+    },
+    {
+      type: 'trigger', label: 'Trigger', description: '', category: 'Core', packId: 'sailor-core',
+      packName: 'Sailor Core', style: { icon: 'zap', iconColor: '#fff', bgColor: 'transparent', borderColor: '#333' },
+      role: 'flow', capabilities: [], handles: [], presentation: { base: 'standard' },
+    },
+  ])
+
+  assert.deepEqual(presets.map((preset) => [preset.nodeType, preset.categories]), [
+    ['trigger', ['Utilities']],
+    ['code', ['Utilities']],
+  ])
+})
+
+test('utility plugins appear only in Utilities while real plugins keep manifest categories', () => {
+  const utility = plugin({
+    id: 'utility',
+    manifest: {
+      metadata: {
+        id: 'utility', name: 'Utility', description: '', icon: 'wrench', categories: ['Core', 'Developer'],
+        author: 'Test', version: '1.0.0', repository: '', utility: true,
+      },
+      methods: {},
+    },
+  })
+  const integration = plugin({ id: 'integration' })
+
+  assert.deepEqual(pluginCategories(utility), ['Utilities'])
+  assert.deepEqual(pluginCategories(integration), ['Apps'])
+})
 
 function plugin(overrides: Partial<PluginSummary> & { id: string }): PluginSummary {
   return {
@@ -279,7 +317,7 @@ test('catalog items map to utility picker presets with style metadata', () => {
       label: 'Code Block',
       description: 'Run code',
       icon: 'code-2',
-      categories: ['Developer'],
+      categories: ['Utilities'],
       style: {
         icon: 'code-2',
         iconColor: '#60a5fa',
@@ -292,7 +330,7 @@ test('catalog items map to utility picker presets with style metadata', () => {
   ])
 })
 
-test('catalog retrieval nodes appear as picker presets in their catalog categories', () => {
+test('catalog retrieval nodes appear together in Utilities', () => {
   const presets = catalogItemsToPickerPresets([
     {
       type: 'text-dataset',
@@ -339,11 +377,10 @@ test('catalog retrieval nodes appear as picker presets in their catalog categori
   ])
 
   assert.deepEqual(presets.map((preset) => preset.nodeType), ['text-dataset', 'vector-store', 'retriever'])
-  assert.equal(buildPickerCategoryItems({ plugins: [], presets }).find((item) => item.category === 'AI')?.count, 2)
-  assert.equal(buildPickerCategoryItems({ plugins: [], presets }).find((item) => item.category === 'Data transformation')?.count, 1)
+  assert.equal(buildPickerCategoryItems({ plugins: [], presets }).find((item) => item.category === 'Utilities')?.count, 3)
   assert.deepEqual(
-    buildPickerSecondColumnItems({ category: 'AI', plugins: [], presets }).map((item) => item.id),
-    ['preset:vector-store', 'preset:retriever'],
+    buildPickerSecondColumnItems({ category: 'Utilities', plugins: [], presets }).map((item) => item.id),
+    ['preset:text-dataset', 'preset:vector-store', 'preset:retriever'],
   )
 })
 

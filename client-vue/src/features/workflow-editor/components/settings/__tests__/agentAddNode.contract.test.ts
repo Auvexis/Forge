@@ -9,20 +9,11 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('add node panel exposes only the root AI Agent outside contextual agent quick-add', () => {
+test('add node panel gets the root AI Agent from the styled utility catalog', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
-  assert.match(source, /const AI_NODES(?:: AddNodePickerPreset\[\])? = \[/)
-  assert.match(source, /AI/)
-
-  assert.match(source, /label: 'AI Agent'/)
-  const aiNodesDefinition = source.slice(
-    source.indexOf('const AI_NODES'),
-    source.indexOf('const AGENT_MEMORY_PRESETS'),
-  )
-  assert.doesNotMatch(aiNodesDefinition, /label: 'AI Model'/)
-  assert.doesNotMatch(aiNodesDefinition, /label: 'AI Memory'/)
-  assert.doesNotMatch(aiNodesDefinition, /label: 'AI Tool'/)
+  assert.doesNotMatch(source, /const AI_NODES/)
+  assert.match(source, /filterDefaultPickerPresets\(catalogPresets\.value\)/)
 
   assert.doesNotMatch(source, /label: 'Chat Trigger'/)
   assert.match(source, /props\.onAddLogicNode\?\.\(item\.preset\.nodeType, item\.preset\.defaults\)/)
@@ -41,18 +32,13 @@ test('add node panel gets utility presets from the backend workflow node catalog
   assert.match(model, /style: item\.style/)
 })
 
-test('add node panel keeps trigger as a fixed top-level action and searchable preset', () => {
+test('add node panel keeps Trigger only inside the Utilities category', () => {
   const source = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
 
-  assert.match(source, /const TRIGGER_PRESET(?:: AddNodePickerPreset)? = \{/)
-  assert.match(source, /nodeType: 'trigger'/)
-  assert.match(source, /showQuickTrigger/)
-  assert.match(source, /class="add-node-cascade__quick-section"/)
-  assert.match(source, /class="add-node-cascade__section-label">Trigger/)
-  assert.match(source, /@click="addQuickTrigger"/)
-  assert.match(source, /props\.onAddLogicNode\?\.\('trigger' as WorkflowNodeType/)
-  assert.match(source, /const searchablePresets/)
-  assert.match(source, /TRIGGER_PRESET,[\s\S]*pickerPresets\.value\.filter\(\(preset\) => preset\.nodeType !== 'trigger'\)/)
+  assert.doesNotMatch(source, /TRIGGER_PRESET/)
+  assert.doesNotMatch(source, /showQuickTrigger/)
+  assert.doesNotMatch(source, />Trigger<\/div>/)
+  assert.match(source, /catalogItemsToPickerPresets/)
 })
 
 test('add node panel filters contextual quick-add through allowed node selectors', () => {

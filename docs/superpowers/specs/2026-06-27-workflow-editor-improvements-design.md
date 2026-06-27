@@ -46,11 +46,11 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 
 ### Batch 1
 
-- [ ] Test catalog ordering, categories, and color parity.
-- [ ] Put Trigger first in Utilities and remove it from Core.
-- [ ] Restrict utility items to Utilities.
-- [ ] Share canvas node colors with both pickers.
-- [ ] Run catalog and picker regression tests.
+- [x] Test catalog ordering, categories, and color parity.
+- [x] Put Trigger first in Utilities and remove it from Core.
+- [x] Restrict utility items to Utilities.
+- [x] Share canvas node colors with both pickers.
+- [x] Run catalog and picker regression tests.
 
 ### Batch 2
 

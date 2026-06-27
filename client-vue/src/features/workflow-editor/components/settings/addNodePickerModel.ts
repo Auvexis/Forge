@@ -3,8 +3,10 @@ import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import type { WorkflowNodeCatalogItem, WorkflowNodeStyle } from '@/core/types/workflow-node-catalog.types'
 
 export type AddNodePickerContext = 'chatModel' | 'memory' | 'tool'
+export type AddNodePickerCategory = PluginCategory | 'Utilities'
 
 export const ADD_NODE_PICKER_CATEGORIES = [
+  'Utilities',
   'AI',
   'Core',
   'Flow',
@@ -12,14 +14,14 @@ export const ADD_NODE_PICKER_CATEGORIES = [
   'Apps',
   'Files',
   'Developer',
-] as const satisfies readonly PluginCategory[]
+] as const satisfies readonly AddNodePickerCategory[]
 
 export interface AddNodePickerPreset {
   id: string
   label: string
   description: string
   icon: string
-  categories: readonly PluginCategory[]
+  categories: readonly AddNodePickerCategory[]
   nodeType: WorkflowNodeType
   defaults?: Record<string, unknown>
   style?: WorkflowNodeStyle
@@ -28,7 +30,7 @@ export interface AddNodePickerPreset {
 }
 
 export interface AddNodePickerCategoryItem {
-  category: PluginCategory
+  category: AddNodePickerCategory
   label: string
   description: string
   icon: string
@@ -148,13 +150,13 @@ export function buildEmbeddingModelItems(options: {
 }
 
 export function catalogItemsToPickerPresets(items: readonly WorkflowNodeCatalogItem[]): AddNodePickerPreset[] {
-  return items.map((item) => ({
+  return [...items].sort((a, b) => Number(b.type === 'trigger') - Number(a.type === 'trigger')).map((item) => ({
     id: item.type,
     nodeType: item.type,
     label: item.label,
     description: item.description,
     icon: item.style.icon,
-    categories: [item.category as PluginCategory],
+    categories: ['Utilities'],
     style: item.style,
     role: item.role,
     capabilities: item.capabilities,
@@ -165,7 +167,11 @@ export function filterDefaultPickerPresets(presets: readonly AddNodePickerPreset
   return presets.filter((preset) => preset.role !== 'configuration' && !CONTEXTUAL_ONLY_NODE_TYPES.has(preset.nodeType))
 }
 
-const CATEGORY_META: Record<PluginCategory, { description: string; icon: string }> = {
+const CATEGORY_META: Record<AddNodePickerCategory, { description: string; icon: string }> = {
+  Utilities: {
+    icon: 'wrench',
+    description: 'Use built-in workflow nodes and utility plugins.',
+  },
   AI: {
     icon: 'bot',
     description: 'Build agents, models, memory, and AI tools.',
@@ -204,7 +210,8 @@ const matchesSearch = (search: string | undefined, ...values: Array<string | und
   return values.some((value) => normalized(value ?? '').includes(query))
 }
 
-export function pluginCategories(plugin: PluginSummary): PluginCategory[] {
+export function pluginCategories(plugin: PluginSummary): AddNodePickerCategory[] {
+  if (plugin.manifest.metadata.utility === true) return ['Utilities']
   return plugin.manifest.metadata.categories.filter((category): category is PluginCategory =>
     ADD_NODE_PICKER_CATEGORIES.includes(category as PluginCategory),
   )
@@ -243,7 +250,7 @@ export function buildPickerCategoryItems(options: {
 }
 
 export function buildPickerSecondColumnItems(options: {
-  category: PluginCategory | null
+  category: AddNodePickerCategory | null
   plugins: readonly PluginSummary[]
   presets: readonly AddNodePickerPreset[]
   search?: string

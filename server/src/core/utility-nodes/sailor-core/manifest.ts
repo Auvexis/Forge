@@ -13,9 +13,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       category: "Core",
       style: {
         icon: "zap",
-        iconColor: "#facc15",
-        bgColor: "#fef9c3",
-        borderColor: "#fde047",
+        iconColor: "var(--sailor-text-primary)",
+        bgColor: "var(--sailor-node-body)",
+        borderColor: "var(--sailor-node-border)",
       },
     },
     code: {
@@ -170,8 +170,8 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       style: {
         icon: "clipboard-list",
         iconColor: "#22c55e",
-        bgColor: "#f0fdf4",
-        borderColor: "#86efac",
+        bgColor: "rgba(34, 197, 94, 0.12)",
+        borderColor: "rgba(34, 197, 94, 0.35)",
       },
     },
     "ai-agent": {
@@ -187,9 +187,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       ],
       style: {
         icon: "bot",
-        iconColor: "#f97316",
-        bgColor: "#fff7ed",
-        borderColor: "#fdba74",
+        iconColor: "var(--sailor-text-muted)",
+        bgColor: "transparent",
+        borderColor: "var(--sailor-node-border)",
       },
     },
     "ai-model": {
@@ -317,9 +317,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       ],
       style: {
         icon: "database-zap",
-        iconColor: "#0891b2",
-        bgColor: "#ecfeff",
-        borderColor: "#67e8f9",
+        iconColor: "var(--sailor-node-plugin-icon)",
+        bgColor: "transparent",
+        borderColor: "var(--sailor-node-border)",
       },
     },
     retriever: {
@@ -348,7 +348,7 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
         { id: "model", label: "Model", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "chat-model" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability" },
         { id: "outputParser", label: "Output Parser", type: "target", position: "bottom", style: "diamond", accepts: [{ capability: "output-parser" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability", quickAddAfterConnected: true },
       ],
-      style: { icon: "message-square-text", iconColor: "#2563eb", bgColor: "#eff6ff", borderColor: "#93c5fd" },
+      style: { icon: "message-square-text", iconColor: "#2563eb", bgColor: "transparent", borderColor: "var(--sailor-node-border)" },
     },
     "structured-json-parser": {
       type: "structured-json-parser",
@@ -385,7 +385,7 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
         { id: "model", label: "Model", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "chat-model" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability" },
         { id: "retriever", label: "Retriever", type: "target", position: "bottom", style: "diamond", required: true, accepts: [{ capability: "retriever" }], cardinality: "one", connectionPolicy: "replace", quickAdd: "capability" },
       ],
-      style: { icon: "messages-square", iconColor: "#0891b2", bgColor: "#ecfeff", borderColor: "#67e8f9" },
+      style: { icon: "messages-square", iconColor: "#0891b2", bgColor: "transparent", borderColor: "var(--sailor-node-border)" },
     },
     "vector-store-tool": {
       type: "vector-store-tool",

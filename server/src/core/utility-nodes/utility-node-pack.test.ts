@@ -108,6 +108,48 @@ describe("Utility node pack contract", () => {
     }
   });
 
+  it("publishes canvas-matched styles for advanced, trigger, and wait form nodes", () => {
+    const expected = {
+      trigger: {
+        iconColor: "var(--sailor-text-primary)",
+        bgColor: "var(--sailor-node-body)",
+        borderColor: "var(--sailor-node-border)",
+      },
+      "wait-form": {
+        iconColor: "#22c55e",
+        bgColor: "rgba(34, 197, 94, 0.12)",
+        borderColor: "rgba(34, 197, 94, 0.35)",
+      },
+      "ai-agent": {
+        iconColor: "var(--sailor-text-muted)",
+        bgColor: "transparent",
+        borderColor: "var(--sailor-node-border)",
+      },
+      "basic-llm-chain": {
+        iconColor: "#2563eb",
+        bgColor: "transparent",
+        borderColor: "var(--sailor-node-border)",
+      },
+      "question-answer-chain": {
+        iconColor: "#0891b2",
+        bgColor: "transparent",
+        borderColor: "var(--sailor-node-border)",
+      },
+      "vector-store": {
+        iconColor: "var(--sailor-node-plugin-icon)",
+        bgColor: "transparent",
+        borderColor: "var(--sailor-node-border)",
+      },
+    } as const;
+
+    for (const [type, style] of Object.entries(expected)) {
+      const actual = sailorCoreUtilityNodePack.nodes[type as keyof typeof sailorCoreUtilityNodePack.nodes]?.style;
+      assert.equal(actual?.iconColor, style.iconColor, `${type} icon`);
+      assert.equal(actual?.bgColor, style.bgColor, `${type} background`);
+      assert.equal(actual?.borderColor, style.borderColor, `${type} border`);
+    }
+  });
+
   it("declares reusable capability handles for AI Agent and Vector Store", () => {
     assert.deepEqual(sailorCoreUtilityNodePack.nodes["ai-agent"]?.handles, [
       {
