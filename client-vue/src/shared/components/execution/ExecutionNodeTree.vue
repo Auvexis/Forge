@@ -80,7 +80,7 @@ function activate(node: ExecutionRunTreeNode) {
 
 .execution-node-tree--nested {
   position: relative;
-  margin-left: calc(var(--sailor-space-4) + 7px);
+  margin-left: var(--sailor-space-2);
   padding-left: var(--sailor-space-3);
 }
 

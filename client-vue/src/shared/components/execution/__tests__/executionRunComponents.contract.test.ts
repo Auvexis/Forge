@@ -39,6 +39,8 @@ describe('shared execution run components', () => {
     assert.match(source, /border-left: 1px solid var\(--sailor-border-strong\)/)
     assert.match(source, /border-top: 1px solid var\(--sailor-border-strong\)/)
     assert.match(source, /\.execution-node-tree \{[^}]*gap: var\(--sailor-space-2\)/)
+    assert.match(source, /\.execution-node-tree--nested \{[^}]*margin-left: var\(--sailor-space-2\)/)
+    assert.doesNotMatch(source, /margin-left: calc\(var\(--sailor-space-4\) \+ 7px\)/)
     assert.match(source, /\.execution-node-tree__branch::after \{[^}]*top: -18px;[^}]*height: 36px/)
     assert.match(source, /\.execution-node-tree__branch--has-next::after \{[^}]*bottom: calc\(-1 \* var\(--sailor-space-2\)\)/)
     assert.match(source, /\.execution-node-tree__row \{[^}]*padding: var\(--sailor-space-2\)/)

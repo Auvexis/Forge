@@ -53,3 +53,10 @@ Commit the test, CSS correction, and completed checklist together.
 - [x] Keep only `--sailor-space-2` between the horizontal connector and first visible icon.
 - [x] Run focused tests and type-check.
 - [x] Commit the leaf alignment correction.
+
+### Task 4: Align vertical connectors to item borders
+
+- [x] Move nested vertical connectors from the chevron axis to the parent item border.
+- [x] Preserve horizontal connectors and leaf spacing.
+- [x] Run focused tests and type-check.
+- [x] Commit the border alignment correction.
