@@ -42,3 +42,41 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 - Make programmatic viewport animation opt-in for Workflow Editor.
 - Use focused TDD and rendered validation for canvas and geometry changes.
 
+## Tasks
+
+### Batch 1
+
+- [ ] Test catalog ordering, categories, and color parity.
+- [ ] Put Trigger first in Utilities and remove it from Core.
+- [ ] Restrict utility items to Utilities.
+- [ ] Share canvas node colors with both pickers.
+- [ ] Run catalog and picker regression tests.
+
+### Batch 2
+
+- [ ] Test smooth and pipe routing thresholds.
+- [ ] Restore automatic pipe routing.
+- [ ] Validate edge geometry and rendering.
+
+### Batch 3
+
+- [ ] Test marquee release and empty-canvas deselection.
+- [ ] Fix canvas focus and selection gestures.
+- [ ] Add pan cursor states.
+- [ ] Add opt-in programmatic viewport transitions.
+- [ ] Validate Workflow Editor and Sailor Pages.
+
+### Batch 4
+
+- [ ] Test selected outlines and Quick Add geometry.
+- [ ] Increase node selected outlines.
+- [ ] Align and lengthen bottom Quick Add.
+- [ ] Add opaque handle label backdrops.
+- [ ] Validate simple and advanced nodes.
+
+### Batch 5
+
+- [ ] Test removal scope for Changes.
+- [ ] Remove Changes window, action, and state.
+- [ ] Remove obsolete tests and exports.
+- [ ] Validate remaining Git workflows.
