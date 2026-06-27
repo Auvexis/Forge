@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict'
-import { readFileSync } from 'node:fs'
+import { existsSync, readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import test from 'node:test'
 
@@ -75,16 +75,14 @@ test('workflow editor status bar shows workflow git snapshot state', () => {
   assert.match(source, /<WorkflowGitModal/)
 })
 
-test('workflow editor status bar opens the workflow git changes viewer', () => {
+test('workflow editor removes the standalone changes viewer', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
-  assert.match(source, /WorkflowGitChangesWindow/)
-  assert.match(source, /isGitChangesWindowOpen = ref\(false\)/)
-  assert.match(source, /toggleGitChangesWindow/)
-  assert.match(source, /workflow-status-bar__button--changes/)
-  assert.match(source, />\s*Changes\s*</)
-  assert.match(source, /<LucideIcon name="git-compare-arrows"/)
-  assert.match(source, /v-if="isGitChangesWindowOpen && workflowStore\.activeWorkflow"/)
+  assert.doesNotMatch(source, /WorkflowGitChangesWindow/)
+  assert.doesNotMatch(source, /isGitChangesWindowOpen/)
+  assert.doesNotMatch(source, /toggleGitChangesWindow/)
+  assert.doesNotMatch(source, /workflow-status-bar__button--changes/)
+  assert.equal(existsSync(resolve(root, 'src/features/workflow-editor/components/ui/WorkflowGitChangesWindow.vue')), false)
 })
 
 test('workflow editor commits workflow git snapshots manually from the git modal', () => {

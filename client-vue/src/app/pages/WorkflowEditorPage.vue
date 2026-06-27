@@ -8,7 +8,6 @@ import {
 } from '@/features/workflow-editor'
 import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
 import GlobalAddNodePanel from '@/features/workflow-editor/components/settings/GlobalAddNodePanel.vue'
-import WorkflowGitChangesWindow from '@/features/workflow-editor/components/ui/WorkflowGitChangesWindow.vue'
 import WorkflowGitModal from '@/features/workflow-editor/components/ui/WorkflowGitModal.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
@@ -79,7 +78,6 @@ const showVariables = ref(false)
 const selectedChatTriggerNodeId = ref('')
 const gitStatus = ref<WorkflowGitSnapshotStatus | null>(null)
 const isGitStatusLoading = ref(false)
-const isGitChangesWindowOpen = ref(false)
 const isGitModalOpen = ref(false)
 const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
@@ -365,10 +363,6 @@ function toggleExecutionPanel() {
   openExecutionPanel()
 }
 
-function toggleGitChangesWindow() {
-  isGitChangesWindowOpen.value = !isGitChangesWindowOpen.value
-}
-
 function openCommandPalette() {
   void commandPaletteStore.open({
     routePath: route.path,
@@ -608,22 +602,7 @@ watch(
         <code>{{ gitStatusLabel }}</code>
       </button>
 
-      <button
-        class="workflow-status-bar__button workflow-status-bar__button--changes"
-        :class="{ 'workflow-status-bar__button--active': isGitChangesWindowOpen }"
-        type="button"
-        @click="toggleGitChangesWindow"
-      >
-        <LucideIcon name="git-compare-arrows" :size="13" />
-        <span>Changes</span>
-        <code>workflow.json</code>
-      </button>
     </div>
-
-    <WorkflowGitChangesWindow
-      v-if="isGitChangesWindowOpen && workflowStore.activeWorkflow"
-      :workflow="workflowStore.activeWorkflow"
-    />
 
     <WorkflowGitModal
       v-if="workflowStore.activeWorkflow"

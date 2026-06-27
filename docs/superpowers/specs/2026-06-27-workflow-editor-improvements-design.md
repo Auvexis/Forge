@@ -76,7 +76,7 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 
 ### Batch 5
 
-- [ ] Test removal scope for Changes.
-- [ ] Remove Changes window, action, and state.
-- [ ] Remove obsolete tests and exports.
-- [ ] Validate remaining Git workflows.
+- [x] Test removal scope for Changes.
+- [x] Remove Changes window, action, and state.
+- [x] Remove obsolete tests and exports.
+- [x] Validate remaining Git workflows.
