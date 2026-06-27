@@ -95,7 +95,9 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 
 ### Batch 6: Final Validation
 
-- [ ] Run focused frontend and backend tests.
-- [ ] Run frontend type-check.
-- [ ] Verify dark/light token usage and responsive layout.
-- [ ] Record browser QA availability.
+- [x] Run focused frontend and backend tests.
+- [x] Run frontend type-check.
+- [x] Verify dark/light token usage and responsive layout.
+- [x] Record browser QA availability.
+
+Browser QA was unavailable in this session because the workspace has no Playwright dependency or browser tool. Static token and responsive-layout checks passed.
