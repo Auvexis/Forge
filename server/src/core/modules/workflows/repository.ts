@@ -286,6 +286,7 @@ export const WorkflowRepository = {
       return {
         id: row.id as string,
         name: row.name as string,
+        workflow: def,
         triggerType: primaryTrigger?.trigger.type ?? def.trigger.type,
         publishedAt: row.published_at as string | null,
         lastExecution: row.exec_id

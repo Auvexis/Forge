@@ -13,6 +13,7 @@ import type { DevWorkflowSessionStatus, ExecutionLog, WorkflowExecutionStatus } 
 export interface ProductionWorkflowStatus {
   id: string
   name: string
+  workflow: WorkflowItem
   profileId?: string
   profileName?: string
   triggerType:

@@ -74,10 +74,10 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 
 ### Batch 3: Monitor Contract
 
-- [ ] Test published workflow definition exposure.
-- [ ] Include definition in production status.
-- [ ] Update frontend API types.
-- [ ] Validate profile isolation.
+- [x] Test published workflow definition exposure.
+- [x] Include definition in production status.
+- [x] Update frontend API types.
+- [x] Validate profile isolation.
 
 ### Batch 4: Workflow Editor
 

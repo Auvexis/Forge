@@ -14,6 +14,7 @@ describe("global automation monitor workflow routes", () => {
     assert.match(routesSource, /profileScopeRunner\.listProfileIds\(\)/);
     assert.match(routesSource, /runWithProfile\(profileId/);
     assert.match(routesSource, /profileId/);
+    assert.match(routesSource, /\.\.\.item/);
   });
 
   it("exposes profile-scoped workflow execution reads for the monitor detail view", () => {

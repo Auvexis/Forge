@@ -71,6 +71,23 @@ describe("WorkflowRepository", () => {
     profileB.close();
   });
 
+  it("includes the published workflow definition in production status", async () => {
+    const db = await createWorkflowDb();
+    setWorkflowDatabaseProvider(() => db);
+    const published = workflow("wf-monitor-tree", "Monitor Tree");
+    published.nodes = {
+      step: { type: "code", name: "Code Step", language: "javascript", script: "return input" },
+    };
+    WorkflowRepository.saveWorkflow(published);
+
+    const status = WorkflowRepository.getProductionStatus();
+
+    assert.equal(status[0]?.id, "wf-monitor-tree");
+    assert.equal(status[0]?.workflow.metadata.name, "Monitor Tree");
+    assert.equal(status[0]?.workflow.nodes.step?.type, "code");
+    db.close();
+  });
+
   it("does not record workflow git snapshots during regular save, publish, or unpublish", async () => {
     const db = await createWorkflowDb();
     const snapshots: WorkflowItem[] = [];
