@@ -149,6 +149,8 @@ describe('BaseCanvas component contract', () => {
     const source = readBaseCanvas()
 
     assert.match(source, /function startCanvasPointer/)
+    assert.match(source, /function handleItemPointerDown/)
+    assert.match(source, /@pointerdown\.stop="handleItemPointerDown\(\$event, item\)"/)
     assert.match(source, /event\.button === 1/)
     assert.match(source, /isSpacePressed\.value/)
     assert.match(source, /startViewportPan/)
@@ -163,6 +165,41 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /pointercancel/)
     assert.match(source, /stopActiveGestures/)
     assert.match(source, /window\.addEventListener\('blur', stopActiveGestures\)/)
+  })
+
+  it('preserves marquee selection through the synthetic canvas click', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /suppressNextCanvasClick/)
+    assert.match(source, /moved: false/)
+    assert.match(source, /marquee\.moved = true/)
+    assert.match(source, /if \(suppressNextCanvasClick\.value\)/)
+  })
+
+  it('clears selection from any empty viewport area', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /@click="handleCanvasClick"/)
+    assert.doesNotMatch(source, /@click\.self="handleCanvasClick"/)
+  })
+
+  it('exposes grab and grabbing cursor states for keyboard and pointer pan', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /'is-space-ready': isSpacePressed/)
+    assert.match(source, /'is-panning': activePan/)
+    assert.match(source, /\.base-canvas\.is-space-ready :deep\(\*\)[\s\S]*cursor: grab/)
+    assert.match(source, /\.base-canvas\.is-panning :deep\(\*\)[\s\S]*cursor: grabbing/)
+  })
+
+  it('exposes cancellable animated viewport updates for programmatic controls', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /viewportAnimationDuration\?: number/)
+    assert.match(source, /function animateViewportTo/)
+    assert.match(source, /requestAnimationFrame/)
+    assert.match(source, /cancelViewportAnimation/)
+    assert.match(source, /defineExpose\(\{[\s\S]*animateViewportTo/)
   })
 
   it('prevents native content selection while dragging canvas items', () => {

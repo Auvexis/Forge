@@ -2,11 +2,14 @@
   <div
     ref="canvasRef"
     class="base-canvas"
-    :class="`is-pattern-${patternStyle}`"
+    :class="[
+      `is-pattern-${patternStyle}`,
+      { 'is-space-ready': isSpacePressed, 'is-panning': activePan },
+    ]"
     :style="canvasStyle"
     @pointerdown="startCanvasPointer"
     @wheel.prevent="handleWheelZoom"
-    @click.self="handleCanvasClick"
+    @click="handleCanvasClick"
     @auxclick.prevent
     @contextmenu="handleCanvasContextMenu"
   >
@@ -27,7 +30,7 @@
         :data-base-canvas-item-id="item.id"
         :style="itemStyle(item)"
         @click.stop="handleItemClick(item.id)"
-        @pointerdown.stop="startItemDrag($event, item)"
+        @pointerdown.stop="handleItemPointerDown($event, item)"
         @contextmenu.stop="handleItemContextMenu($event, item.id)"
       >
         <slot name="item" :item="item" :selected="selection.includes(item.id)" />
@@ -89,6 +92,7 @@ const props = withDefaults(defineProps<{
   minZoom?: number
   maxZoom?: number
   zoomSensitivity?: number
+  viewportAnimationDuration?: number
 }>(), {
   snapToGrid: true,
   gridSize: 16,
@@ -108,6 +112,7 @@ const props = withDefaults(defineProps<{
   minZoom: 0.2,
   maxZoom: 3,
   zoomSensitivity: 0.0015,
+  viewportAnimationDuration: 180,
 })
 
 const emit = defineEmits<{
@@ -130,15 +135,19 @@ const activePan = ref<{
   start: BaseCanvasPoint
   viewport: BaseCanvasViewport
   pointerId: number
+  moved: boolean
 } | null>(null)
 const activeMarquee = ref<{
   start: BaseCanvasPoint
   pointerId: number
+  moved: boolean
 } | null>(null)
 const marqueeRect = ref<BaseCanvasRect | null>(null)
 const activeAlignmentGuides = ref<BaseCanvasAlignmentGuide[]>([])
 const isSpacePressed = ref(false)
 const canvasRef = ref<HTMLElement | null>(null)
+const suppressNextCanvasClick = ref(false)
+let viewportAnimationFrame: number | null = null
 
 const viewportStyle = computed(() => ({
   transform: `translate(${props.viewport.x}px, ${props.viewport.y}px) scale(${props.viewport.zoom})`,
@@ -213,6 +222,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('keyup', handleKeyUp)
   window.removeEventListener('blur', stopActiveGestures)
+  cancelViewportAnimation()
   stopActiveGestures()
 })
 
@@ -225,6 +235,10 @@ function itemStyle(item: BaseCanvasItem) {
 }
 
 function handleCanvasClick(event: MouseEvent) {
+  if (suppressNextCanvasClick.value) {
+    suppressNextCanvasClick.value = false
+    return
+  }
   emit('update:selection', [])
   emit('canvas-click', event)
 }
@@ -265,12 +279,22 @@ function startCanvasPointer(event: PointerEvent) {
   startMarqueeSelection(event)
 }
 
+function handleItemPointerDown(event: PointerEvent, item: BaseCanvasItem) {
+  if (event.button === 1 || (event.button === 0 && isSpacePressed.value)) {
+    startViewportPan(event)
+    return
+  }
+  startItemDrag(event, item)
+}
+
 function startViewportPan(event: PointerEvent) {
   event.preventDefault()
+  cancelViewportAnimation()
   activePan.value = {
     start: { x: event.clientX, y: event.clientY },
     viewport: { ...props.viewport },
     pointerId: event.pointerId,
+    moved: false,
   }
   window.addEventListener('pointermove', moveViewport)
   window.addEventListener('pointerup', stopViewportPan, { once: true })
@@ -280,6 +304,7 @@ function startViewportPan(event: PointerEvent) {
 function moveViewport(event: PointerEvent) {
   const pan = activePan.value
   if (!pan || event.pointerId !== pan.pointerId) return
+  pan.moved = pan.moved || Math.hypot(event.clientX - pan.start.x, event.clientY - pan.start.y) >= 3
   emit('update:viewport', {
     ...pan.viewport,
     x: pan.viewport.x + event.clientX - pan.start.x,
@@ -287,13 +312,15 @@ function moveViewport(event: PointerEvent) {
   })
 }
 
-function stopViewportPan() {
+function stopViewportPan(event?: PointerEvent) {
+  if (event?.type === 'pointerup' && activePan.value?.moved) suppressNextCanvasClick.value = true
   activePan.value = null
   window.removeEventListener('pointermove', moveViewport)
   window.removeEventListener('pointercancel', stopViewportPan)
 }
 
 function handleWheelZoom(event: WheelEvent) {
+  cancelViewportAnimation()
   const canvasPoint = clientPointToCanvasPoint({ x: event.clientX, y: event.clientY })
   const worldBeforeZoom = screenToWorld(canvasPoint, props.viewport)
   const zoomFactor = Math.exp(-event.deltaY * props.zoomSensitivity)
@@ -369,6 +396,7 @@ function startMarqueeSelection(event: PointerEvent) {
   activeMarquee.value = {
     start,
     pointerId: event.pointerId,
+    moved: false,
   }
   marqueeRect.value = rectFromPoints(activeMarquee.value.start, activeMarquee.value.start)
   window.addEventListener('pointermove', moveMarqueeSelection)
@@ -380,6 +408,9 @@ function moveMarqueeSelection(event: PointerEvent) {
   const marquee = activeMarquee.value
   if (!marquee || event.pointerId !== marquee.pointerId) return
   const current = clientPointToCanvasPoint({ x: event.clientX, y: event.clientY })
+  if (Math.hypot(current.x - marquee.start.x, current.y - marquee.start.y) >= 3) {
+    marquee.moved = true
+  }
   const rect = rectFromPoints(marquee.start, current)
   marqueeRect.value = rect
   const selected = props.items
@@ -388,7 +419,8 @@ function moveMarqueeSelection(event: PointerEvent) {
   emit('update:selection', selected)
 }
 
-function stopMarqueeSelection() {
+function stopMarqueeSelection(event?: PointerEvent) {
+  if (event?.type === 'pointerup' && activeMarquee.value?.moved) suppressNextCanvasClick.value = true
   activeMarquee.value = null
   marqueeRect.value = null
   window.removeEventListener('pointermove', moveMarqueeSelection)
@@ -399,6 +431,36 @@ function stopActiveGestures() {
   stopItemDrag()
   stopViewportPan()
   stopMarqueeSelection()
+  isSpacePressed.value = false
+}
+
+function animateViewportTo(target: BaseCanvasViewport, duration = props.viewportAnimationDuration) {
+  cancelViewportAnimation()
+  if (duration <= 0) {
+    emit('update:viewport', target)
+    return
+  }
+
+  const start = { ...props.viewport }
+  let startedAt: number | null = null
+  const animate = (timestamp: number) => {
+    startedAt ??= timestamp
+    const progress = Math.min(1, (timestamp - startedAt) / duration)
+    const eased = 1 - Math.pow(1 - progress, 3)
+    emit('update:viewport', {
+      x: start.x + (target.x - start.x) * eased,
+      y: start.y + (target.y - start.y) * eased,
+      zoom: start.zoom + (target.zoom - start.zoom) * eased,
+    })
+    viewportAnimationFrame = progress < 1 ? requestAnimationFrame(animate) : null
+  }
+  viewportAnimationFrame = requestAnimationFrame(animate)
+}
+
+function cancelViewportAnimation() {
+  if (viewportAnimationFrame === null) return
+  cancelAnimationFrame(viewportAnimationFrame)
+  viewportAnimationFrame = null
 }
 
 function screenRectToWorld(rect: BaseCanvasRect): BaseCanvasRect {
@@ -424,8 +486,13 @@ function clampZoom(zoom: number) {
 }
 
 function handleKeyDown(event: KeyboardEvent) {
-  if (event.code === 'Space') isSpacePressed.value = true
+  if (event.code !== 'Space') return
+  if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable="true"]')) return
+  event.preventDefault()
+  isSpacePressed.value = true
 }
+
+defineExpose({ animateViewportTo })
 
 function handleKeyUp(event: KeyboardEvent) {
   if (event.code === 'Space') isSpacePressed.value = false
@@ -440,6 +507,16 @@ function handleKeyUp(event: KeyboardEvent) {
   overflow: hidden;
   touch-action: none;
   user-select: none;
+}
+
+.base-canvas.is-space-ready,
+.base-canvas.is-space-ready :deep(*) {
+  cursor: grab !important;
+}
+
+.base-canvas.is-panning,
+.base-canvas.is-panning :deep(*) {
+  cursor: grabbing !important;
 }
 
 .base-canvas__viewport {

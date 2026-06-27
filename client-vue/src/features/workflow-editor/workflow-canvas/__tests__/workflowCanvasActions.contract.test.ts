@@ -78,4 +78,15 @@ describe('workflow canvas editor actions contract', () => {
     assert.doesNotMatch(baseCanvas, /WorkflowBaseCanvas/)
     assert.doesNotMatch(baseCanvas, /workflowStore/)
   })
+
+  it('uses BaseCanvas animation only for programmatic viewport controls', () => {
+    const base = readComponent('WorkflowBaseCanvas.vue')
+
+    assert.match(base, /ref="baseCanvasRef"/)
+    assert.match(base, /animateViewportTo/)
+    assert.match(base, /zoomIn\(\)[\s\S]*animateWorkflowViewport/)
+    assert.match(base, /zoomOut\(\)[\s\S]*animateWorkflowViewport/)
+    assert.match(base, /zoomReset\(\)[\s\S]*animateWorkflowViewport/)
+    assert.match(base, /fitWorkflowView\(\)[\s\S]*animateWorkflowViewport/)
+  })
 })

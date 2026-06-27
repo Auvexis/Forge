@@ -60,11 +60,11 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 
 ### Batch 3
 
-- [ ] Test marquee release and empty-canvas deselection.
-- [ ] Fix canvas focus and selection gestures.
-- [ ] Add pan cursor states.
-- [ ] Add opt-in programmatic viewport transitions.
-- [ ] Validate Workflow Editor and Sailor Pages.
+- [x] Test marquee release and empty-canvas deselection.
+- [x] Fix canvas focus and selection gestures.
+- [x] Add pan cursor states.
+- [x] Add opt-in programmatic viewport transitions.
+- [x] Validate Workflow Editor and Sailor Pages.
 
 ### Batch 4
 

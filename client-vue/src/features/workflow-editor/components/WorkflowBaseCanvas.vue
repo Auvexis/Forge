@@ -1,6 +1,7 @@
 <template>
   <div ref="shellRef" class="sailor-workflow-base-canvas-shell" data-workflow-base-canvas-shell>
     <BaseCanvas
+      ref="baseCanvasRef"
       v-model:viewport="viewport"
       v-model:selection="canvasSelection"
       :items="workflowItems"
@@ -146,6 +147,7 @@ const executionStore = useExecutionStore()
 const inspectorStore = useNodeInspectorStore()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const canvasSelection = ref<string[]>([])
+const baseCanvasRef = ref<InstanceType<typeof BaseCanvas> | null>(null)
 const handleRegistry = createWorkflowHandleRegistry()
 const shellRef = ref<HTMLElement | null>(null)
 const nodeToolbarBus = useEventBus<{ action: 'duplicate' | 'delete' | 'disable'; nodeId: string }>(
@@ -535,15 +537,15 @@ function takePendingAddNodePosition() {
 }
 
 function zoomIn() {
-  zoomBy(1.2)
+  animateWorkflowViewport(zoomBy(1.2))
 }
 
 function zoomOut() {
-  zoomBy(1 / 1.2)
+  animateWorkflowViewport(zoomBy(1 / 1.2))
 }
 
 function zoomReset() {
-  viewport.value = { ...viewport.value, zoom: 1 }
+  animateWorkflowViewport({ ...viewport.value, zoom: 1 })
 }
 
 function fitWorkflowView() {
@@ -556,19 +558,27 @@ function fitWorkflowView() {
     minZoom: 0.5,
     maxZoom: 1.5,
   })
-  if (next) viewport.value = next
+  if (next) animateWorkflowViewport(next)
 }
 
 function zoomBy(factor: number) {
   const rect = getCanvasRect()
-  if (!rect) return
-  viewport.value = zoomWorkflowCanvasViewport({
+  if (!rect) return viewport.value
+  return zoomWorkflowCanvasViewport({
     viewport: viewport.value,
     canvasRect: rect,
     factor,
     minZoom: 0.5,
     maxZoom: 1.5,
   })
+}
+
+function animateWorkflowViewport(next: BaseCanvasViewport) {
+  if (baseCanvasRef.value) {
+    baseCanvasRef.value.animateViewportTo(next)
+    return
+  }
+  viewport.value = next
 }
 
 function getCanvasCenterPosition() {
