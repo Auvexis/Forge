@@ -12,6 +12,7 @@ import type {
 } from './nodePresentation.types'
 import NodeShimmer from './nodes/NodeShimmer.vue'
 import NodeToolbar from './nodes/NodeToolbar.vue'
+import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
 import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
@@ -229,9 +230,14 @@ const onQuickAdd = (event: MouseEvent) => {
           :position="handler.position"
           :variant="handler.style ?? 'circle'"
         />
-        <span v-if="handler.label">
+        <BaseBadge
+          v-if="handler.label"
+          class="sailor-base-node__handler-label"
+          variant="default"
+          size="sm"
+        >
           {{ handler.label }}<template v-if="handler.required">*</template>
-        </span>
+        </BaseBadge>
         <QuickAddButton
           v-if="props.id && handlerAllowsQuickAdd(handler)"
           :node-id="props.id"
@@ -473,16 +479,17 @@ const onQuickAdd = (event: MouseEvent) => {
   text-align: center;
 }
 
-.sailor-base-node__handler > span {
+.sailor-base-node__handler-label {
   position: absolute;
   top: 18px;
-  width: 76px;
-  padding: 2px 4px;
-  border-radius: 3px;
-  background-color: var(--sailor-node-body);
+  left: 50%;
+  max-width: 100px;
   box-sizing: border-box;
+  overflow: hidden;
   pointer-events: none;
-  z-index: 5001;
+  text-overflow: ellipsis;
+  transform: translateX(-50%);
+  z-index: 6000;
 }
 
 .sailor-base-node__handler :deep(.sailor-base-handle) {
@@ -510,6 +517,8 @@ const onQuickAdd = (event: MouseEvent) => {
 .sailor-base-node__handler :deep(.qab-wrap--down) {
   position: absolute;
   top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 /* ─── Label (below card, outside the node box) ──────────────── */

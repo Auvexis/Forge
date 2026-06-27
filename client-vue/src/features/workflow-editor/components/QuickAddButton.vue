@@ -114,6 +114,10 @@ const onQuickAdd = (event: MouseEvent) => {
   height: var(--qab-cable-length, 30px);
 }
 
+.qab-wrap--down .qab-btn {
+  --qab-size: 24px;
+}
+
 .qab-btn {
   border-radius: var(--sailor-radius-sm);
   background-color: var(--sailor-node-border);

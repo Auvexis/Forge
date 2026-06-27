@@ -80,3 +80,10 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 - [x] Remove Changes window, action, and state.
 - [x] Remove obsolete tests and exports.
 - [x] Validate remaining Git workflows.
+
+### Batch 4 Follow-up
+
+- [x] Test vertical Quick Add center alignment.
+- [x] Center and enlarge vertical Quick Add.
+- [x] Render handler labels with BaseBadge.
+- [x] Validate advanced node handle geometry; browser QA unavailable.
