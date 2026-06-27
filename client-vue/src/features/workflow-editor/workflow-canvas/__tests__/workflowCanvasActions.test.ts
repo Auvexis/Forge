@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 
 import {
   getQuickAddAlignedNodePosition,
+  getWorkflowCanvasResetZoomViewport,
   getWorkflowCanvasCenter,
   getWorkflowCanvasFitViewport,
   screenPointToWorkflowWorld,
@@ -53,6 +54,13 @@ describe('workflow canvas editor actions', () => {
         maxZoom: 1.5,
       }),
       { x: 40, y: 0, zoom: 1.2 },
+    )
+  })
+
+  it('resets only zoom while preserving viewport translation', () => {
+    assert.deepEqual(
+      getWorkflowCanvasResetZoomViewport({ x: -184, y: 96, zoom: 1.45 }),
+      { x: -184, y: 96, zoom: 1 },
     )
   })
 

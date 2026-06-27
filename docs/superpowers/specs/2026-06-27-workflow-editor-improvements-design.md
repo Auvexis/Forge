@@ -94,3 +94,11 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 - [x] Remove the vertical cable margin gap.
 - [x] Lengthen only the cable and restore button size.
 - [x] Validate advanced node Quick Add geometry; browser QA unavailable.
+
+### Canvas Polish Follow-up
+
+- [x] Test required marker color.
+- [x] Render required marker in red.
+- [x] Test zoom-only reset coordinates.
+- [x] Preserve viewport x and y on Reset Zoom.
+- [x] Validate node and canvas contracts; browser QA unavailable.

@@ -236,7 +236,7 @@ const onQuickAdd = (event: MouseEvent) => {
           variant="default"
           size="sm"
         >
-          {{ handler.label }}<template v-if="handler.required">*</template>
+          {{ handler.label }}<span v-if="handler.required" class="sailor-base-node__handler-required">*</span>
         </BaseBadge>
         <QuickAddButton
           v-if="props.id && handlerAllowsQuickAdd(handler)"
@@ -490,6 +490,10 @@ const onQuickAdd = (event: MouseEvent) => {
   text-overflow: ellipsis;
   transform: translateX(-50%);
   z-index: 6000;
+}
+
+.sailor-base-node__handler-required {
+  color: var(--sailor-red-400);
 }
 
 .sailor-base-node__handler :deep(.sailor-base-handle) {

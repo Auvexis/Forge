@@ -93,6 +93,7 @@ import {
   getQuickAddAlignedNodePosition,
   getWorkflowCanvasCenter,
   getWorkflowCanvasFitViewport,
+  getWorkflowCanvasResetZoomViewport,
   screenPointToWorkflowWorld,
   zoomWorkflowCanvasViewport,
 } from '../workflow-canvas/workflowCanvasActions'
@@ -545,7 +546,7 @@ function zoomOut() {
 }
 
 function zoomReset() {
-  animateWorkflowViewport({ ...viewport.value, zoom: 1 })
+  animateWorkflowViewport(getWorkflowCanvasResetZoomViewport(viewport.value))
 }
 
 function fitWorkflowView() {

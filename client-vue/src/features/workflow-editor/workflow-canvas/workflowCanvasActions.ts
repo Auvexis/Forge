@@ -70,6 +70,16 @@ export function zoomWorkflowCanvasViewport(input: {
   }
 }
 
+export function getWorkflowCanvasResetZoomViewport(
+  viewport: BaseCanvasViewport,
+): BaseCanvasViewport {
+  return {
+    x: viewport.x,
+    y: viewport.y,
+    zoom: 1,
+  }
+}
+
 export function getWorkflowCanvasFitViewport(input: {
   items: BaseCanvasItem[]
   canvasRect: WorkflowCanvasRect
