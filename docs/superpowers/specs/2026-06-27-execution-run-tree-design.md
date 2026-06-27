@@ -54,3 +54,48 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 - Preserve live execution updates and existing history loading.
 - Keep payload rendering text-only; do not use `v-html`.
 - Cover hierarchy, fallback roots, adapters, transitions, icons, navigation, and both consumers with focused tests.
+
+## Tasks
+
+### Batch 1: Shared Model
+
+- [ ] Test executed graph hierarchy and fallback roots.
+- [ ] Add shared run, tree, and presentation types.
+- [ ] Build tree and run-detail adapters.
+- [ ] Validate model helpers.
+
+### Batch 2: Shared UI
+
+- [ ] Test Runs and Run Detail component contracts.
+- [ ] Build runs list and right-slide navigation.
+- [ ] Build collapsible connector tree.
+- [ ] Build node payload inspector.
+- [ ] Validate tokens, icons, and base controls.
+
+### Batch 3: Monitor Contract
+
+- [ ] Test published workflow definition exposure.
+- [ ] Include definition in production status.
+- [ ] Update frontend API types.
+- [ ] Validate profile isolation.
+
+### Batch 4: Workflow Editor
+
+- [ ] Test live and historical run adapters.
+- [ ] Replace flat Execution panel timeline.
+- [ ] Preserve large-output guards and live updates.
+- [ ] Validate editor run navigation.
+
+### Batch 5: Global Monitor
+
+- [ ] Test monitor run-tree integration.
+- [ ] Replace flat monitor timeline.
+- [ ] Preserve workflow, profile, and trigger filters.
+- [ ] Validate global run navigation.
+
+### Batch 6: Final Validation
+
+- [ ] Run focused frontend and backend tests.
+- [ ] Run frontend type-check.
+- [ ] Verify dark/light token usage and responsive layout.
+- [ ] Record browser QA availability.
