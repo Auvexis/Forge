@@ -68,12 +68,54 @@ function activate(node: ExecutionRunTreeNode) {
 </template>
 
 <style scoped>
-.execution-node-tree { min-width: 0; }
-.execution-node-tree--nested { position: relative; margin-left: var(--sailor-space-6); padding-left: var(--sailor-space-3); border-left: 1px solid var(--sailor-border-strong); }
-.execution-node-tree__branch { position: relative; }
-.execution-node-tree--nested > .execution-node-tree__branch::before { content: ''; position: absolute; top: 17px; left: calc(-1 * var(--sailor-space-3)); width: var(--sailor-space-3); border-top: 1px solid var(--sailor-border-strong); }
-.execution-node-tree__branch--has-next::after { content: ''; position: absolute; top: 17px; bottom: -17px; left: calc(-1 * var(--sailor-space-3)); border-left: 1px solid var(--sailor-border-strong); }
-.execution-node-tree__row { width: 100%; min-height: 34px; border-radius: var(--sailor-radius-sm); }
+.execution-node-tree {
+  display: grid;
+  min-width: 0;
+  gap: var(--sailor-space-2);
+}
+
+.execution-node-tree--nested {
+  position: relative;
+  margin-left: calc(var(--sailor-space-4) + 7px);
+  padding-left: var(--sailor-space-3);
+}
+
+.execution-node-tree__branch {
+  position: relative;
+  display: grid;
+  gap: var(--sailor-space-2);
+}
+
+.execution-node-tree--nested > .execution-node-tree__branch::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  left: calc(-1 * var(--sailor-space-3));
+  width: var(--sailor-space-3);
+  border-top: 1px solid var(--sailor-border-strong);
+}
+
+.execution-node-tree--nested > .execution-node-tree__branch::after {
+  content: '';
+  position: absolute;
+  top: calc(-18px - var(--sailor-space-2));
+  left: calc(-1 * var(--sailor-space-3));
+  height: calc(36px + var(--sailor-space-2));
+  border-left: 1px solid var(--sailor-border-strong);
+}
+
+.execution-node-tree--nested > .execution-node-tree__branch--has-next::after {
+  bottom: calc(-1 * var(--sailor-space-2));
+  height: auto;
+}
+
+.execution-node-tree__row {
+  width: calc(100% - var(--sailor-space-2));
+  min-height: 36px;
+  margin-left: var(--sailor-space-2);
+  padding: var(--sailor-space-2);
+  border-radius: var(--sailor-radius-sm);
+}
 .execution-node-tree__row :deep(.base-button__label) { width: 100%; display: grid; grid-template-columns: 14px 24px minmax(0,1fr) auto; align-items: center; gap: var(--sailor-space-2); text-align: left; }
 .execution-node-tree__row--active { background-color: var(--sailor-button-ghost-active); }
 .execution-node-tree__chevron { color: var(--sailor-text-muted); transition: transform var(--sailor-duration-base) var(--sailor-ease-standard); }

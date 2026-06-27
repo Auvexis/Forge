@@ -16,26 +16,26 @@
 - Modify: `client-vue/src/shared/components/execution/ExecutionNodeTree.vue`
 - Test: `client-vue/src/shared/components/execution/__tests__/executionRunComponents.contract.test.ts`
 
-- [ ] **Step 1: Write the failing contract**
+- [x] **Step 1: Write the failing contract**
 
 Assert that branches use `--sailor-space-2` spacing, rows use tokenized padding and margin, and the last branch suppresses connector overflow.
 
-- [ ] **Step 2: Verify the contract fails**
+- [x] **Step 2: Verify the contract fails**
 
 Run: `node --test src/shared/components/execution/__tests__/executionRunComponents.contract.test.ts`
 
 Expected: FAIL because the current tree lacks the new spacing and last-branch geometry.
 
-- [ ] **Step 3: Implement the minimal CSS correction**
+- [x] **Step 3: Implement the minimal CSS correction**
 
 Move connector ownership to each nested branch, align its axis with the 14px chevron column, stop it at the final branch, and apply `var(--sailor-space-2)` for row padding, connector clearance, and inter-item gap.
 
-- [ ] **Step 4: Verify tests and types**
+- [x] **Step 4: Verify tests and types**
 
 Run the focused component test and `npm run type-check` from `client-vue`.
 
 Expected: both commands exit successfully.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit the test, CSS correction, and completed checklist together.
