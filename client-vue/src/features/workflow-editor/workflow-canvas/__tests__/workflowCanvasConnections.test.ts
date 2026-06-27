@@ -93,6 +93,7 @@ describe('workflow canvas connection helpers', () => {
       path: 'M 10 20 C 55 20, 65 80, 110 80',
       labelX: 60,
       labelY: 50,
+      routing: 'smooth',
     })
   })
 })

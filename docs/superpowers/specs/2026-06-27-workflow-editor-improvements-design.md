@@ -54,9 +54,9 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 
 ### Batch 2
 
-- [ ] Test smooth and pipe routing thresholds.
-- [ ] Restore automatic pipe routing.
-- [ ] Validate edge geometry and rendering.
+- [x] Test smooth and pipe routing thresholds.
+- [x] Restore automatic pipe routing.
+- [x] Validate edge geometry and SVG contracts; browser QA unavailable.
 
 ### Batch 3
 

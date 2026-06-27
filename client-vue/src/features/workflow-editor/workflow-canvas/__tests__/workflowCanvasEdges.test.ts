@@ -55,6 +55,25 @@ describe('workflow canvas edge helpers', () => {
       path: 'M 0 50 C 90 50, 110 100, 200 100',
       labelX: 100,
       labelY: 75,
+      routing: 'smooth',
     })
+  })
+
+  it('uses a rounded pipe when forward handles have too little horizontal space', () => {
+    const edge = makeWorkflowEdgePath({ x: 100, y: 80 }, { x: 160, y: 180 })
+
+    assert.equal(edge.routing, 'pipe')
+    assert.match(edge.path, /^M 100 80 L 122 80 Q /)
+    assert.deepEqual({ x: edge.labelX, y: edge.labelY }, { x: 130, y: 130 })
+  })
+
+  it('routes backward edges outside both nodes with an orthogonal detour', () => {
+    const edge = makeWorkflowEdgePath({ x: 300, y: 100 }, { x: 100, y: 120 })
+
+    assert.equal(edge.routing, 'pipe')
+    assert.match(edge.path, /340 100/)
+    assert.match(edge.path, /60 120/)
+    assert.equal(edge.labelX, 200)
+    assert.equal(edge.labelY, 180)
   })
 })
