@@ -46,3 +46,10 @@ Commit the test, CSS correction, and completed checklist together.
 - [x] Preserve the connector endpoint at the center of the final item.
 - [x] Run focused tests and type-check.
 - [x] Commit the follow-up correction.
+
+### Task 3: Remove empty leaf chevrons
+
+- [x] Do not render or reserve the chevron column for nodes without children.
+- [x] Keep only `--sailor-space-2` between the horizontal connector and first visible icon.
+- [x] Run focused tests and type-check.
+- [x] Commit the leaf alignment correction.

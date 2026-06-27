@@ -33,16 +33,20 @@ function activate(node: ExecutionRunTreeNode) {
     >
       <BaseButton
         class="execution-node-tree__row"
-        :class="{ 'execution-node-tree__row--active': node.nodeId === props.selectedNodeId }"
+        :class="{
+          'execution-node-tree__row--active': node.nodeId === props.selectedNodeId,
+          'execution-node-tree__row--leaf': !node.children.length,
+        }"
         variant="ghost"
         type="button"
         @click="activate(node)"
       >
         <LucideIcon
+          v-if="node.children.length"
           name="chevron-right"
           :size="14"
           class="execution-node-tree__chevron"
-          :class="{ 'is-open': node.children.length && !collapsedIds.has(node.nodeId), 'is-hidden': !node.children.length }"
+          :class="{ 'is-open': !collapsedIds.has(node.nodeId) }"
         />
         <LucideIcon
           :name="node.icon"
@@ -91,7 +95,7 @@ function activate(node: ExecutionRunTreeNode) {
   position: absolute;
   top: 18px;
   left: calc(-1 * var(--sailor-space-3));
-  width: var(--sailor-space-3);
+  width: calc(var(--sailor-space-3) + var(--sailor-space-2));
   border-top: 1px solid var(--sailor-border-strong);
 }
 
@@ -117,10 +121,10 @@ function activate(node: ExecutionRunTreeNode) {
   border-radius: var(--sailor-radius-sm);
 }
 .execution-node-tree__row :deep(.base-button__label) { width: 100%; display: grid; grid-template-columns: 14px 24px minmax(0,1fr) auto; align-items: center; gap: var(--sailor-space-2); text-align: left; }
+.execution-node-tree__row--leaf :deep(.base-button__label) { grid-template-columns: 24px minmax(0,1fr) auto; }
 .execution-node-tree__row--active { background-color: var(--sailor-button-ghost-active); }
 .execution-node-tree__chevron { color: var(--sailor-text-muted); transition: transform var(--sailor-duration-base) var(--sailor-ease-standard); }
 .execution-node-tree__chevron.is-open { transform: rotate(90deg); }
-.execution-node-tree__chevron.is-hidden { visibility: hidden; }
 .execution-node-tree__icon { flex: 0 0 auto; }
 .execution-node-tree__name { min-width: 0; overflow: hidden; color: var(--sailor-text-primary); font-size: var(--sailor-text-xs); text-overflow: ellipsis; white-space: nowrap; }
 .execution-node-tree__row code { color: var(--sailor-text-muted); font-family: var(--sailor-font-mono); font-size: 9px; }
