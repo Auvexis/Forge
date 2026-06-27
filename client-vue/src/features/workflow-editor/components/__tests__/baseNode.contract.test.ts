@@ -45,9 +45,10 @@ test('selected nodes and vertical handler quick add use polished geometry', () =
   assert.match(source, /import BaseBadge from '@\/shared\/components\/base\/BaseBadge\.vue'/)
   assert.match(source, /<BaseBadge[\s\S]*class="sailor-base-node__handler-label"[\s\S]*variant="default"[\s\S]*size="sm"/)
   assert.match(source, /\.sailor-base-node__handler-label\s*\{[\s\S]*z-index: 6000;/)
-  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*top: 8px;[\s\S]*left: 50%;[\s\S]*transform: translateX\(-50%\);/)
-  assert.match(quickAdd, /\.qab-wrap--down \.qab-cable\s*\{[\s\S]*height: var\(--qab-cable-length, 30px\);/)
-  assert.match(quickAdd, /\.qab-wrap--down \.qab-btn\s*\{[\s\S]*--qab-size: 24px;/)
+  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*top: 8px;[\s\S]*left: 50%;[\s\S]*margin-top: 0;[\s\S]*transform: translateX\(-50%\);/)
+  assert.match(quickAdd, /\.qab-wrap--down \.qab-cable\s*\{[\s\S]*height: var\(--qab-cable-length, 40px\);/)
+  assert.doesNotMatch(quickAdd, /\.qab-wrap--down \.qab-btn/)
+  assert.match(quickAdd, /width: var\(--qab-size, 19px\);[\s\S]*height: var\(--qab-size, 19px\);/)
 })
 
 test('BaseNode maps all four sides to workflow handle positions', () => {

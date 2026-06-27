@@ -111,11 +111,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 .qab-wrap--down .qab-cable {
   width: 2px;
-  height: var(--qab-cable-length, 30px);
-}
-
-.qab-wrap--down .qab-btn {
-  --qab-size: 24px;
+  height: var(--qab-cable-length, 40px);
 }
 
 .qab-btn {

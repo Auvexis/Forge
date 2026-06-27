@@ -87,3 +87,10 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 - [x] Center and enlarge vertical Quick Add.
 - [x] Render handler labels with BaseBadge.
 - [x] Validate advanced node handle geometry; browser QA unavailable.
+
+### Batch 4 Cable Correction
+
+- [x] Test diamond-to-cable continuity.
+- [x] Remove the vertical cable margin gap.
+- [x] Lengthen only the cable and restore button size.
+- [x] Validate advanced node Quick Add geometry; browser QA unavailable.

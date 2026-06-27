@@ -518,6 +518,7 @@ const onQuickAdd = (event: MouseEvent) => {
   position: absolute;
   top: 8px;
   left: 50%;
+  margin-top: 0;
   transform: translateX(-50%);
 }
 
