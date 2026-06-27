@@ -60,3 +60,10 @@ Commit the test, CSS correction, and completed checklist together.
 - [x] Preserve horizontal connectors and leaf spacing.
 - [x] Run focused tests and type-check.
 - [x] Commit the border alignment correction.
+
+### Task 5: Start connectors below parent items
+
+- [x] Restore horizontal alignment with the expand icon axis.
+- [x] Start the vertical connector at the parent item's bottom border.
+- [x] Preserve the final-child endpoint and horizontal spacing.
+- [x] Run focused tests and type-check.

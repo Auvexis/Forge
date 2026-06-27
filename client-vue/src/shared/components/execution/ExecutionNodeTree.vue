@@ -80,7 +80,7 @@ function activate(node: ExecutionRunTreeNode) {
 
 .execution-node-tree--nested {
   position: relative;
-  margin-left: var(--sailor-space-2);
+  margin-left: calc(var(--sailor-space-4) + 7px);
   padding-left: var(--sailor-space-3);
 }
 
@@ -102,9 +102,9 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree--nested > .execution-node-tree__branch::after {
   content: '';
   position: absolute;
-  top: -18px;
+  top: calc(-1 * var(--sailor-space-2));
   left: calc(-1 * var(--sailor-space-3));
-  height: 36px;
+  height: calc(18px + var(--sailor-space-2));
   border-left: 1px solid var(--sailor-border-strong);
 }
 
