@@ -34,7 +34,17 @@ test('BaseNode exposes configurable positions, rounding, border, and handlers', 
 test('vertical handler quick add does not change the handle edge alignment', () => {
   const source = read('BaseNode.vue')
 
-  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*position: absolute;[\s\S]*top: 12px;/)
+  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*position: absolute;[\s\S]*top: 8px;/)
+})
+
+test('selected nodes and vertical handler quick add use polished geometry', () => {
+  const source = read('BaseNode.vue')
+  const quickAdd = read('QuickAddButton.vue')
+
+  assert.match(source, /\.sailor-base-node\.is-selected\s*\{[\s\S]*0 0 0 4px/)
+  assert.match(source, /\.sailor-base-node__handler > span\s*\{[\s\S]*background-color: var\(--sailor-node-body\);[\s\S]*z-index: 5001;/)
+  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*top: 8px;/)
+  assert.match(quickAdd, /\.qab-wrap--down \.qab-cable\s*\{[\s\S]*height: var\(--qab-cable-length, 30px\);/)
 })
 
 test('BaseNode maps all four sides to workflow handle positions', () => {

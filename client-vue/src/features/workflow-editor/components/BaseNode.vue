@@ -356,7 +356,7 @@ const onQuickAdd = (event: MouseEvent) => {
 /* ─── Selection & execution status borders ──────────────────── */
 .sailor-base-node.is-selected {
   border-color: color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 80%, var(--sailor-text-primary) 20%);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 50%, transparent);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 4px color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 50%, transparent);
 }
 
 .sailor-base-node.is-running {
@@ -477,7 +477,12 @@ const onQuickAdd = (event: MouseEvent) => {
   position: absolute;
   top: 18px;
   width: 76px;
+  padding: 2px 4px;
+  border-radius: 3px;
+  background-color: var(--sailor-node-body);
+  box-sizing: border-box;
   pointer-events: none;
+  z-index: 5001;
 }
 
 .sailor-base-node__handler :deep(.sailor-base-handle) {
@@ -504,7 +509,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 .sailor-base-node__handler :deep(.qab-wrap--down) {
   position: absolute;
-  top: 12px;
+  top: 8px;
 }
 
 /* ─── Label (below card, outside the node box) ──────────────── */

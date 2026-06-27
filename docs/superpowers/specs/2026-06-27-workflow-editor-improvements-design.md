@@ -68,11 +68,11 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 
 ### Batch 4
 
-- [ ] Test selected outlines and Quick Add geometry.
-- [ ] Increase node selected outlines.
-- [ ] Align and lengthen bottom Quick Add.
-- [ ] Add opaque handle label backdrops.
-- [ ] Validate simple and advanced nodes.
+- [x] Test selected outlines and Quick Add geometry.
+- [x] Increase node selected outlines.
+- [x] Align and lengthen bottom Quick Add.
+- [x] Add opaque handle label backdrops.
+- [x] Validate simple and advanced nodes; browser QA unavailable.
 
 ### Batch 5
 
