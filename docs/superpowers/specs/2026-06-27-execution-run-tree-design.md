@@ -66,11 +66,11 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 
 ### Batch 2: Shared UI
 
-- [ ] Test Runs and Run Detail component contracts.
-- [ ] Build runs list and right-slide navigation.
-- [ ] Build collapsible connector tree.
-- [ ] Build node payload inspector.
-- [ ] Validate tokens, icons, and base controls.
+- [x] Test Runs and Run Detail component contracts.
+- [x] Build runs list and right-slide navigation.
+- [x] Build collapsible connector tree.
+- [x] Build node payload inspector.
+- [x] Validate tokens, icons, and base controls.
 
 ### Batch 3: Monitor Contract
 

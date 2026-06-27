@@ -1,0 +1,87 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+import type { ExecutionRunTreeNode } from './executionRunTree.types.ts'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
+
+defineOptions({ name: 'ExecutionNodeTree' })
+const props = withDefaults(defineProps<{
+  nodes: ExecutionRunTreeNode[]
+  selectedNodeId?: string | null
+  depth?: number
+}>(), { selectedNodeId: null, depth: 0 })
+const emit = defineEmits<{ (event: 'select', nodeId: string): void }>()
+const collapsedIds = ref(new Set<string>())
+
+function activate(node: ExecutionRunTreeNode) {
+  emit('select', node.nodeId)
+  if (!node.children.length) return
+  const next = new Set(collapsedIds.value)
+  if (next.has(node.nodeId)) next.delete(node.nodeId)
+  else next.add(node.nodeId)
+  collapsedIds.value = next
+}
+</script>
+
+<template>
+  <div class="execution-node-tree" :class="{ 'execution-node-tree--nested': props.depth > 0 }">
+    <div
+      v-for="(node, index) in props.nodes"
+      :key="node.id"
+      class="execution-node-tree__branch"
+      :class="{ 'execution-node-tree__branch--has-next': index < props.nodes.length - 1 }"
+    >
+      <BaseButton
+        class="execution-node-tree__row"
+        :class="{ 'execution-node-tree__row--active': node.nodeId === props.selectedNodeId }"
+        variant="ghost"
+        type="button"
+        @click="activate(node)"
+      >
+        <LucideIcon
+          name="chevron-right"
+          :size="14"
+          class="execution-node-tree__chevron"
+          :class="{ 'is-open': node.children.length && !collapsedIds.has(node.nodeId), 'is-hidden': !node.children.length }"
+        />
+        <LucideIcon
+          :name="node.icon"
+          :size="20"
+          class="execution-node-tree__icon"
+          :style="{ color: node.iconColor }"
+        />
+        <span class="execution-node-tree__name">{{ node.name }}</span>
+        <code v-if="node.durationMs !== null">{{ node.durationMs }}ms</code>
+      </BaseButton>
+
+      <Transition name="execution-node-tree-children">
+        <ExecutionNodeTree
+          v-if="node.children.length && !collapsedIds.has(node.nodeId)"
+          :nodes="node.children"
+          :selected-node-id="props.selectedNodeId"
+          :depth="props.depth + 1"
+          @select="emit('select', $event)"
+        />
+      </Transition>
+    </div>
+  </div>
+</template>
+
+<style scoped>
+.execution-node-tree { min-width: 0; }
+.execution-node-tree--nested { position: relative; margin-left: var(--sailor-space-6); padding-left: var(--sailor-space-3); border-left: 1px solid var(--sailor-border-strong); }
+.execution-node-tree__branch { position: relative; }
+.execution-node-tree--nested > .execution-node-tree__branch::before { content: ''; position: absolute; top: 17px; left: calc(-1 * var(--sailor-space-3)); width: var(--sailor-space-3); border-top: 1px solid var(--sailor-border-strong); }
+.execution-node-tree__branch--has-next::after { content: ''; position: absolute; top: 17px; bottom: -17px; left: calc(-1 * var(--sailor-space-3)); border-left: 1px solid var(--sailor-border-strong); }
+.execution-node-tree__row { width: 100%; min-height: 34px; border-radius: var(--sailor-radius-sm); }
+.execution-node-tree__row :deep(.base-button__label) { width: 100%; display: grid; grid-template-columns: 14px 24px minmax(0,1fr) auto; align-items: center; gap: var(--sailor-space-2); text-align: left; }
+.execution-node-tree__row--active { background-color: var(--sailor-button-ghost-active); }
+.execution-node-tree__chevron { color: var(--sailor-text-muted); transition: transform var(--sailor-duration-base) var(--sailor-ease-standard); }
+.execution-node-tree__chevron.is-open { transform: rotate(90deg); }
+.execution-node-tree__chevron.is-hidden { visibility: hidden; }
+.execution-node-tree__icon { flex: 0 0 auto; }
+.execution-node-tree__name { min-width: 0; overflow: hidden; color: var(--sailor-text-primary); font-size: var(--sailor-text-xs); text-overflow: ellipsis; white-space: nowrap; }
+.execution-node-tree__row code { color: var(--sailor-text-muted); font-family: var(--sailor-font-mono); font-size: 9px; }
+.execution-node-tree-children-enter-active, .execution-node-tree-children-leave-active { overflow: hidden; transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard), transform var(--sailor-duration-base) var(--sailor-ease-standard); }
+.execution-node-tree-children-enter-from, .execution-node-tree-children-leave-to { opacity: 0; transform: translateY(calc(-1 * var(--sailor-space-2))); }
+</style>
