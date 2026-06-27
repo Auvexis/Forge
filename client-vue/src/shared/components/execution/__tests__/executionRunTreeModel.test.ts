@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import { describe, it } from 'node:test'
 import type { ExecutionLog } from '@/core/types/execution.types'
 import type { WorkflowItem } from '@/core/types/workflow.types'
-import { buildExecutionRunDetail } from '../executionRunTreeModel.ts'
+import { buildExecutionRunDetail, buildLiveExecutionLog } from '../executionRunTreeModel.ts'
 
 const workflow = {
   metadata: { id: 'wf-1', name: 'Agent Flow', version: '1', isActive: true, isDraft: false, public: false },
@@ -62,5 +62,22 @@ describe('execution run tree model', () => {
 
     assert.deepEqual(detail.roots.map((node) => node.nodeId), ['agent', 'model', 'tool', 'output', 'detached'])
     assert.equal(detail.roots[0]?.icon, 'box')
+  })
+
+  it('normalizes live execution state into the persisted run shape', () => {
+    const live = buildLiveExecutionLog({
+      executionId: 'live-1',
+      workflowId: 'wf-1',
+      workflowStatus: 'RUNNING',
+      timeline: [
+        { id: 'start', type: 'workflow:start', executionId: 'live-1', timestamp: 100, status: 'running', label: 'started' },
+        { id: 'agent', type: 'node:start', nodeId: 'agent', executionId: 'live-1', timestamp: 120, status: 'running', label: 'agent' },
+      ],
+      nodeStatuses: { agent: { status: 'running', input: { prompt: 'hi' }, startedAt: 120 } },
+    })
+
+    assert.equal(live?.id, 'live-1')
+    assert.equal(live?.status, 'RUNNING')
+    assert.deepEqual(live?.context.steps?.agent?.input, { prompt: 'hi' })
   })
 })

@@ -1,4 +1,10 @@
-import type { ExecutionLog, NodeExecutionStatus } from '@/core/types/execution.types'
+import type {
+  ExecutionLog,
+  ExecutionTimelineEvent,
+  NodeExecutionState,
+  NodeExecutionStatus,
+  WorkflowExecutionStatus,
+} from '@/core/types/execution.types'
 import type { WorkflowItem, WorkflowNode } from '@/core/types/workflow.types'
 import type { ExecutionRunDetailModel, ExecutionRunTreeNode } from './executionRunTree.types.ts'
 
@@ -48,6 +54,43 @@ const NODE_ICON_COLOR: Record<string, string> = {
 }
 
 type ExecutionStep = NonNullable<ExecutionLog['context']['steps']>[string] & { input?: unknown }
+
+export function buildLiveExecutionLog(input: {
+  executionId: string | null
+  workflowId: string | null
+  workflowStatus: WorkflowExecutionStatus | null
+  timeline: ExecutionTimelineEvent[]
+  nodeStatuses: Record<string, NodeExecutionState | undefined>
+}): ExecutionLog | null {
+  if (!input.executionId || !input.workflowId) return null
+  const events = input.timeline.filter((event) => !event.executionId || event.executionId === input.executionId)
+  const timestamps = events.map((event) => event.timestamp)
+  const startedAt = timestamps.length ? Math.min(...timestamps) : Date.now()
+  const status = input.workflowStatus ?? 'RUNNING'
+  const endedAt = status === 'RUNNING' ? null : (timestamps.length ? Math.max(...timestamps) : startedAt)
+  const steps = Object.fromEntries(
+    Object.entries(input.nodeStatuses)
+      .filter((entry): entry is [string, NodeExecutionState] => entry[1] !== undefined && entry[1].status !== 'idle')
+      .map(([nodeId, state]) => [nodeId, {
+        status: state.status.toUpperCase(),
+        input: state.input,
+        output: state.output,
+        error: state.error,
+        startedAt: state.startedAt,
+        endedAt: state.endedAt,
+        attempts: state.attempts,
+        retries: state.retries,
+      }]),
+  )
+  return {
+    id: input.executionId,
+    workflowId: input.workflowId,
+    status,
+    startedAt,
+    endedAt,
+    context: { steps },
+  }
+}
 
 export function buildExecutionRunDetail(input: {
   workflow: WorkflowItem | null

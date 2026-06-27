@@ -91,6 +91,7 @@ export interface ExecutionLog {
       string,
       {
         status: string
+        input?: unknown
         output?: unknown
         error?: string
         startedAt?: number

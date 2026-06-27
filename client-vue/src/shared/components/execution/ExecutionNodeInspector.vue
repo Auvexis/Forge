@@ -1,12 +1,37 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import type { ExecutionRunTreeNode } from './executionRunTree.types.ts'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 defineProps<{ node: ExecutionRunTreeNode | null }>()
+const forcedPreviews = ref(new Set<string>())
+const MAX_EAGER_OUTPUT_PREVIEW_BYTES = 80_000
+const MAX_EAGER_OUTPUT_ITEMS = 100
 
 function formatJson(value: unknown) {
   if (value === undefined) return 'No data.'
   try { return JSON.stringify(value, null, 2) } catch { return String(value) }
+}
+
+function previewState(key: string, value: unknown) {
+  if (forcedPreviews.value.has(key)) return { skipped: false, summary: '' }
+  const count = Array.isArray(value)
+    ? value.length
+    : value && typeof value === 'object'
+      ? ['items', 'documents', 'rows'].map((field) => (value as Record<string, unknown>)[field]).find(Array.isArray)?.length
+      : undefined
+  if (count !== undefined && count > MAX_EAGER_OUTPUT_ITEMS) {
+    return { skipped: true, summary: `Preview skipped for large output (${count} items).` }
+  }
+  const length = formatJson(value).length
+  return length > MAX_EAGER_OUTPUT_PREVIEW_BYTES
+    ? { skipped: true, summary: `Preview skipped for large output (${length.toLocaleString()} characters).` }
+    : { skipped: false, summary: '' }
+}
+
+function showPreview(key: string) {
+  forcedPreviews.value = new Set(forcedPreviews.value).add(key)
 }
 </script>
 
@@ -23,11 +48,19 @@ function formatJson(value: unknown) {
       </header>
       <details class="execution-node-inspector__section" open>
         <summary>Input</summary>
-        <pre>{{ formatJson(node.input) }}</pre>
+        <div v-if="previewState(`${node.nodeId}:input`, node.input).skipped" class="execution-node-inspector__guard">
+          <span>{{ previewState(`${node.nodeId}:input`, node.input).summary }}</span>
+          <BaseButton size="sm" variant="outline" @click="showPreview(`${node.nodeId}:input`)">Show preview</BaseButton>
+        </div>
+        <pre v-else>{{ formatJson(node.input) }}</pre>
       </details>
       <details class="execution-node-inspector__section" open>
         <summary>{{ node.error ? 'Error' : 'Output' }}</summary>
-        <pre>{{ node.error || formatJson(node.output) }}</pre>
+        <div v-if="!node.error && previewState(`${node.nodeId}:output`, node.output).skipped" class="execution-node-inspector__guard">
+          <span>{{ previewState(`${node.nodeId}:output`, node.output).summary }}</span>
+          <BaseButton size="sm" variant="outline" @click="showPreview(`${node.nodeId}:output`)">Show preview</BaseButton>
+        </div>
+        <pre v-else>{{ node.error || formatJson(node.output) }}</pre>
       </details>
       <details v-if="node.retries?.length" class="execution-node-inspector__section">
         <summary>Retries · {{ node.retries.length }}</summary>
@@ -46,4 +79,5 @@ function formatJson(value: unknown) {
 .execution-node-inspector__section { margin-top: var(--sailor-space-3); border: 1px solid var(--sailor-border); border-radius: var(--sailor-radius-sm); background-color: var(--sailor-bg-base); }
 .execution-node-inspector__section summary { padding: var(--sailor-space-3); color: var(--sailor-text-secondary); font-size: var(--sailor-text-xs); font-weight: var(--sailor-font-semibold); cursor: pointer; }
 .execution-node-inspector__section pre { max-height: 240px; margin: 0; overflow: auto; padding: var(--sailor-space-3); border-top: 1px solid var(--sailor-border-muted); color: var(--sailor-text-secondary); font-family: var(--sailor-font-mono); font-size: var(--sailor-text-xs); line-height: 1.5; white-space: pre-wrap; }
+.execution-node-inspector__guard { display: flex; align-items: center; justify-content: space-between; gap: var(--sailor-space-3); padding: var(--sailor-space-3); border-top: 1px solid var(--sailor-border-muted); color: var(--sailor-text-muted); font-size: var(--sailor-text-xs); }
 </style>

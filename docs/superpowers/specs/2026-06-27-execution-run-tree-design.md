@@ -81,10 +81,10 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 
 ### Batch 4: Workflow Editor
 
-- [ ] Test live and historical run adapters.
-- [ ] Replace flat Execution panel timeline.
-- [ ] Preserve large-output guards and live updates.
-- [ ] Validate editor run navigation.
+- [x] Test live and historical run adapters.
+- [x] Replace flat Execution panel timeline.
+- [x] Preserve large-output guards and live updates.
+- [x] Validate editor run navigation.
 
 ### Batch 5: Global Monitor
 
