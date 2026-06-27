@@ -1,0 +1,66 @@
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import type { ExecutionLog } from '@/core/types/execution.types'
+import type { WorkflowItem } from '@/core/types/workflow.types'
+import { buildExecutionRunDetail } from '../executionRunTreeModel.ts'
+
+const workflow = {
+  metadata: { id: 'wf-1', name: 'Agent Flow', version: '1', isActive: true, isDraft: false, public: false },
+  trigger: { type: 'manual' },
+  nodes: {
+    agent: { type: 'ai-agent', name: 'AI Agent' },
+    model: { type: 'ai-model', name: 'OpenAI Chat Model', ui: { positionX: 0, positionY: 0, icon: 'brain' } },
+    tool: { type: 'vector-store-tool', name: 'Vector Tool' },
+    output: { type: 'set', name: 'Final Output' },
+    detached: { type: 'code', name: 'Detached Step' },
+  },
+  edges: [
+    { id: 'model-agent', source: 'model', target: 'agent', targetHandle: 'model' },
+    { id: 'tool-agent', source: 'tool', target: 'agent', targetHandle: 'tool' },
+    { id: 'agent-output', source: 'agent', target: 'output', targetHandle: 'target' },
+  ],
+} as unknown as WorkflowItem
+
+const run = {
+  id: 'run-1',
+  workflowId: 'wf-1',
+  status: 'SUCCESS',
+  startedAt: 100,
+  endedAt: 900,
+  context: {
+    steps: {
+      agent: { status: 'SUCCESS', input: { prompt: 'hello' }, output: { answer: 'hi' }, startedAt: 100, endedAt: 800 },
+      model: { status: 'SUCCESS', output: { tokens: 8 }, startedAt: 150, endedAt: 400 },
+      tool: { status: 'SUCCESS', output: { matches: [] }, startedAt: 410, endedAt: 700 },
+      output: { status: 'SUCCESS', output: { answer: 'hi' }, startedAt: 800, endedAt: 850 },
+      detached: { status: 'FAILED', error: 'boom', startedAt: 860, endedAt: 900 },
+    },
+  },
+} as unknown as ExecutionLog
+
+describe('execution run tree model', () => {
+  it('builds executed hierarchy and reverses advanced configuration edges', () => {
+    const detail = buildExecutionRunDetail({ workflow, run })
+
+    assert.deepEqual(detail.roots.map((node) => node.nodeId), ['agent', 'detached'])
+    assert.deepEqual(detail.roots[0]?.children.map((node) => node.nodeId), ['model', 'tool', 'output'])
+  })
+
+  it('uses real node presentation and execution details', () => {
+    const detail = buildExecutionRunDetail({ workflow, run })
+    const model = detail.nodesById.model
+
+    assert.equal(model?.name, 'OpenAI Chat Model')
+    assert.equal(model?.icon, 'brain')
+    assert.equal(model?.durationMs, 250)
+    assert.deepEqual(model?.output, { tokens: 8 })
+    assert.equal(detail.nodesById.detached?.error, 'boom')
+  })
+
+  it('degrades missing graph metadata to ordered flat roots', () => {
+    const detail = buildExecutionRunDetail({ workflow: null, run })
+
+    assert.deepEqual(detail.roots.map((node) => node.nodeId), ['agent', 'model', 'tool', 'output', 'detached'])
+    assert.equal(detail.roots[0]?.icon, 'box')
+  })
+})

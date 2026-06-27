@@ -59,10 +59,10 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 
 ### Batch 1: Shared Model
 
-- [ ] Test executed graph hierarchy and fallback roots.
-- [ ] Add shared run, tree, and presentation types.
-- [ ] Build tree and run-detail adapters.
-- [ ] Validate model helpers.
+- [x] Test executed graph hierarchy and fallback roots.
+- [x] Add shared run, tree, and presentation types.
+- [x] Build tree and run-detail adapters.
+- [x] Validate model helpers.
 
 ### Batch 2: Shared UI
 
