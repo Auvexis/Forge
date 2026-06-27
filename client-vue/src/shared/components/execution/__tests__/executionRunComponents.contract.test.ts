@@ -39,7 +39,7 @@ describe('shared execution run components', () => {
     assert.match(source, /border-left: 1px solid var\(--sailor-border-strong\)/)
     assert.match(source, /border-top: 1px solid var\(--sailor-border-strong\)/)
     assert.match(source, /\.execution-node-tree \{[^}]*gap: var\(--sailor-space-2\)/)
-    assert.match(source, /\.execution-node-tree__branch::after \{[^}]*height: calc\(36px \+ var\(--sailor-space-2\)\)/)
+    assert.match(source, /\.execution-node-tree__branch::after \{[^}]*top: -18px;[^}]*height: 36px/)
     assert.match(source, /\.execution-node-tree__branch--has-next::after \{[^}]*bottom: calc\(-1 \* var\(--sailor-space-2\)\)/)
     assert.match(source, /\.execution-node-tree__row \{[^}]*padding: var\(--sailor-space-2\)/)
     assert.match(source, /\.execution-node-tree__row \{[^}]*margin-left: var\(--sailor-space-2\)/)

@@ -98,9 +98,9 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree--nested > .execution-node-tree__branch::after {
   content: '';
   position: absolute;
-  top: calc(-18px - var(--sailor-space-2));
+  top: -18px;
   left: calc(-1 * var(--sailor-space-3));
-  height: calc(36px + var(--sailor-space-2));
+  height: 36px;
   border-left: 1px solid var(--sailor-border-strong);
 }
 

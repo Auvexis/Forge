@@ -39,3 +39,10 @@ Expected: both commands exit successfully.
 - [x] **Step 5: Commit**
 
 Commit the test, CSS correction, and completed checklist together.
+
+### Task 2: Add clearance below expand icons
+
+- [x] Require `--sailor-space-2` between the expand icon axis and the vertical connector.
+- [x] Preserve the connector endpoint at the center of the final item.
+- [x] Run focused tests and type-check.
+- [x] Commit the follow-up correction.
