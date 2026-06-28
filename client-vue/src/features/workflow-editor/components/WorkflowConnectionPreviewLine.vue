@@ -27,6 +27,6 @@ defineProps<{
 }
 
 .sailor-connection-preview-line.invalid {
-  stroke: var(--sailor-red-500, #ef4444);
+  stroke: var(--sailor-rf-edge-stroke-selected);
 }
 </style>

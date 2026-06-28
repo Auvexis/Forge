@@ -194,6 +194,11 @@ function openAddNodePanelFromEvent(event: MouseEvent, sourceId?: string | null, 
 
 function closeAddNodePicker() {
   addNodePickerOverlay.value = null
+  workflowBaseCanvasRef.value?.cancelPendingAddNode()
+}
+
+function finishAddNodePicker() {
+  addNodePickerOverlay.value = null
 }
 
 function addLogicNode(type: WorkflowNodeType, defaults: Record<string, unknown> = {}) {
@@ -201,7 +206,7 @@ function addLogicNode(type: WorkflowNodeType, defaults: Record<string, unknown> 
   const id = point
     ? workflowBaseCanvasRef.value?.addLogicNodeAtScreenPoint(type, point, defaults)
     : workflowBaseCanvasRef.value?.addLogicNodeAtViewportCenter(type, defaults)
-  closeAddNodePicker()
+  finishAddNodePicker()
   return id
 }
 
@@ -210,7 +215,7 @@ function addPluginNode(pluginId: string, action: string, actionName: string) {
   const id = point
     ? workflowBaseCanvasRef.value?.addPluginNodeAtScreenPoint(pluginId, action, actionName, point)
     : workflowBaseCanvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName)
-  closeAddNodePicker()
+  finishAddNodePicker()
   return id
 }
 

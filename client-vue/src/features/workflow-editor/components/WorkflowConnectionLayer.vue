@@ -36,6 +36,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   connectionCreate: [connection: Required<Omit<WorkflowConnectionAction, 'status'>>]
   connectionCancel: []
+  connectionDrop: [payload: {
+    start: WorkflowConnectionHandle
+    clientPoint: BaseCanvasPoint
+    worldPoint: BaseCanvasPoint
+  }]
 }>()
 
 const workflowStore = useWorkflowStore()
@@ -48,7 +53,9 @@ let resizeObserver: ResizeObserver | null = null
 
 const svgViewBox = computed(() => `0 0 ${layerSize.value.width} ${layerSize.value.height}`)
 const canvasTransform = computed(() => `translate(${props.viewport.x} ${props.viewport.y}) scale(${props.viewport.zoom || 1})`)
-const previewStatus = computed(() => currentAction.value.status)
+const previewStatus = computed(() =>
+  dragStart.value && !hoveredHandle.value ? 'valid' : currentAction.value.status,
+)
 const previewPath = computed(() => {
   const start = dragStart.value
   const pointer = pointerWorld.value
@@ -92,6 +99,7 @@ function onPointerMove(event: PointerEvent) {
 
 function onPointerUp(event: PointerEvent) {
   if (!dragStart.value) return
+  const start = dragStart.value
   pointerWorld.value = eventToWorld(event)
   hoveredHandle.value = readHandleFromEvent(event)
 
@@ -102,6 +110,12 @@ function onPointerUp(event: PointerEvent) {
       target: action.target,
       sourceHandle: action.sourceHandle,
       targetHandle: action.targetHandle,
+    })
+  } else if (!hoveredHandle.value && pointerWorld.value) {
+    emit('connectionDrop', {
+      start,
+      clientPoint: { x: event.clientX, y: event.clientY },
+      worldPoint: pointerWorld.value,
     })
   } else {
     emit('connectionCancel')

@@ -43,6 +43,7 @@
       :handle-registry="handleRegistry"
       @connection-create="createWorkflowConnection"
       @connection-cancel="cancelWorkflowConnection"
+      @connection-drop="handleConnectionDrop"
     />
 
     <WorkflowSelectionBox
@@ -160,6 +161,8 @@ const quickAddBus = useEventBus<{
   targetId?: string
   targetHandle?: string
   handlerId?: string
+  clientX?: number
+  clientY?: number
 }>('node:quick-add')
 const quickAddBetweenBus = useEventBus<{
   edgeId: string
@@ -228,10 +231,13 @@ let pendingInsertSourceId: string | null = null
 let pendingInsertTargetId: string | null = null
 let pendingInsertTargetHandle: string | null = null
 const pendingQuickAddAlignment = ref<{
-  sourceId: string
-  sourceHandle: string
+  anchorNodeId: string
+  anchorHandle: string
+  anchorType: 'source' | 'target'
   nodeId: string
-  targetHandle: string
+  nodeHandle: string
+  nodeHandleType: 'source' | 'target'
+  horizontalGap: number
 } | null>(null)
 const QUICK_ADD_HORIZONTAL_GAP = 160
 
@@ -428,6 +434,17 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
   }
 
   if (targetId && targetHandle) {
+    if (targetHandle === 'target') {
+      pendingQuickAddAlignment.value = {
+        anchorNodeId: targetId,
+        anchorHandle: targetHandle,
+        anchorType: 'target',
+        nodeId,
+        nodeHandle: 'source',
+        nodeHandleType: 'source',
+        horizontalGap: -QUICK_ADD_HORIZONTAL_GAP,
+      }
+    }
     workflow.edges.push(
       createWorkflowConnectionEdge({
         source: nodeId,
@@ -438,6 +455,15 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
     )
     arrangeAdvancedConfigNodes(targetId)
   } else if (targetId) {
+    pendingQuickAddAlignment.value = {
+      anchorNodeId: targetId,
+      anchorHandle: 'target',
+      anchorType: 'target',
+      nodeId,
+      nodeHandle: 'source',
+      nodeHandleType: 'source',
+      horizontalGap: -QUICK_ADD_HORIZONTAL_GAP,
+    }
     workflow.edges.push(
       createWorkflowConnectionEdge({
         source: nodeId,
@@ -448,10 +474,13 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
     )
   } else if (sourceId && type !== 'trigger') {
     pendingQuickAddAlignment.value = {
-      sourceId,
-      sourceHandle: sourceHandle ?? 'source',
+      anchorNodeId: sourceId,
+      anchorHandle: sourceHandle ?? 'source',
+      anchorType: 'source',
       nodeId,
-      targetHandle: 'target',
+      nodeHandle: 'target',
+      nodeHandleType: 'target',
+      horizontalGap: QUICK_ADD_HORIZONTAL_GAP,
     }
     workflow.edges.push(
       createWorkflowConnectionEdge({
@@ -469,20 +498,28 @@ function alignPendingQuickAddNode() {
   const workflow = workflowStore.activeWorkflow
   if (!pending || !workflow) return
 
-  const sourceItem = workflowItems.value.find((item) => item.id === pending.sourceId)
-  const targetItem = workflowItems.value.find((item) => item.id === pending.nodeId)
-  const sourceHandle = handleRegistry.getHandle(pending.sourceId, pending.sourceHandle, 'source')
-  const targetHandle = handleRegistry.getHandle(pending.nodeId, pending.targetHandle, 'target')
-  const sourceOffset = sourceHandle ? getWorkflowHandleOffset(sourceHandle) : null
-  const targetOffset = targetHandle ? getWorkflowHandleOffset(targetHandle) : null
+  const anchorItem = workflowItems.value.find((item) => item.id === pending.anchorNodeId)
+  const nodeItem = workflowItems.value.find((item) => item.id === pending.nodeId)
+  const anchorHandle = handleRegistry.getHandle(
+    pending.anchorNodeId,
+    pending.anchorHandle,
+    pending.anchorType,
+  )
+  const nodeHandle = handleRegistry.getHandle(
+    pending.nodeId,
+    pending.nodeHandle,
+    pending.nodeHandleType,
+  )
+  const anchorOffset = anchorHandle ? getWorkflowHandleOffset(anchorHandle) : null
+  const nodeOffset = nodeHandle ? getWorkflowHandleOffset(nodeHandle) : null
   const node = workflow.nodes[pending.nodeId]
-  if (!sourceItem || !targetItem || !sourceOffset || !targetOffset || !node) return
+  if (!anchorItem || !nodeItem || !anchorOffset || !nodeOffset || !node) return
 
   const position = getQuickAddAlignedNodePosition({
-    sourceHandle: { x: sourceItem.x + sourceOffset.x, y: sourceItem.y + sourceOffset.y },
-    targetHandle: { x: targetItem.x + targetOffset.x, y: targetItem.y + targetOffset.y },
-    nodePosition: { x: targetItem.x, y: targetItem.y },
-    horizontalGap: QUICK_ADD_HORIZONTAL_GAP,
+    sourceHandle: { x: anchorItem.x + anchorOffset.x, y: anchorItem.y + anchorOffset.y },
+    targetHandle: { x: nodeItem.x + nodeOffset.x, y: nodeItem.y + nodeOffset.y },
+    nodePosition: { x: nodeItem.x, y: nodeItem.y },
+    horizontalGap: pending.horizontalGap,
   })
   node.ui = { ...node.ui, positionX: position.x, positionY: position.y }
 
@@ -817,6 +854,38 @@ function cancelWorkflowConnection() {
   // The BaseCanvas connection path owns no external draft state yet.
 }
 
+function handleConnectionDrop(payload: {
+  start: { nodeId: string; handleId: string; type: 'source' | 'target' }
+  clientPoint: { x: number; y: number }
+}) {
+  if (payload.start.type === 'source') {
+    quickAddBus.emit({
+      sourceId: payload.start.nodeId,
+      sourceHandle: payload.start.handleId,
+      clientX: payload.clientPoint.x,
+      clientY: payload.clientPoint.y,
+    })
+    return
+  }
+
+  quickAddBus.emit({
+    targetId: payload.start.nodeId,
+    targetHandle: payload.start.handleId,
+    handlerId: payload.start.handleId,
+    clientX: payload.clientPoint.x,
+    clientY: payload.clientPoint.y,
+  })
+}
+
+function cancelPendingAddNode() {
+  clearQuickAddState()
+  pendingQuickAddAlignment.value = null
+  pendingInsertEdgeId = null
+  pendingInsertSourceId = null
+  pendingInsertTargetId = null
+  pendingInsertTargetHandle = null
+}
+
 function arrangeAdvancedConfigNodes(targetId: string, visited = new Set<string>()) {
   const workflow = workflowStore.activeWorkflow
   if (!workflow || visited.has(targetId)) return
@@ -871,6 +940,7 @@ defineExpose({
   handleRun,
   handleStop,
   openAddNodePanel,
+  cancelPendingAddNode,
   addLogicNodeAtViewportCenter,
   addPluginNodeAtViewportCenter,
   addLogicNodeAtScreenPoint,

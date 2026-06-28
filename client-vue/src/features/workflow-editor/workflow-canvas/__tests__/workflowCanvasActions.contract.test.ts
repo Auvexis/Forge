@@ -80,6 +80,26 @@ describe('workflow canvas editor actions contract', () => {
     assert.match(base, /executionStore\.cancel/)
   })
 
+  it('opens quick-add when a handle connection is dropped on empty canvas', () => {
+    const base = readComponent('WorkflowBaseCanvas.vue')
+    const connectionLayer = readComponent('WorkflowConnectionLayer.vue')
+    const preview = readComponent('WorkflowConnectionPreviewLine.vue')
+    const shell = readComponent('SailorWorkflowCanvas.vue')
+
+    assert.match(connectionLayer, /connectionDrop/)
+    assert.match(connectionLayer, /!hoveredHandle\.value/)
+    assert.match(connectionLayer, /clientPoint/)
+    assert.match(base, /@connection-drop="handleConnectionDrop"/)
+    assert.match(base, /function handleConnectionDrop/)
+    assert.match(base, /sourceId: payload\.start\.nodeId/)
+    assert.match(base, /targetId: payload\.start\.nodeId/)
+    assert.match(base, /horizontalGap: -QUICK_ADD_HORIZONTAL_GAP/)
+    assert.match(base, /cancelPendingAddNode/)
+    assert.match(shell, /cancelPendingAddNode/)
+    assert.match(preview, /stroke: var\(--sailor-rf-edge-stroke-selected\)/)
+    assert.doesNotMatch(preview, /sailor-red/)
+  })
+
   it('keeps the shared BaseCanvas implementation untouched by workflow editor actions', () => {
     const baseCanvas = readFileSync(
       fileURLToPath(new URL('../../../../shared/base-canvas/BaseCanvas.vue', import.meta.url)),

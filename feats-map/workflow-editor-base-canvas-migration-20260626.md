@@ -122,10 +122,10 @@
 - [x] Adicionar testes e executar type-check.
 
 ## Batch 12 - Drop de conexão no Node Picker
-- [ ] Trocar a preview edge vermelha pelo token selecionado do canvas.
-- [ ] Emitir o handle e a posição ao soltar uma conexão no vazio.
-- [ ] Abrir o mesmo Node Picker para source e target handles.
-- [ ] Conectar automaticamente o node escolhido na direção correta.
-- [ ] Alinhar os handles e preservar source/target handle IDs.
-- [ ] Limpar drafts ao cancelar e impedir edges parciais.
-- [ ] Adicionar testes focados e executar type-check.
+- [x] Trocar a preview edge vermelha pelo token selecionado do canvas.
+- [x] Emitir o handle e a posição ao soltar uma conexão no vazio.
+- [x] Abrir o mesmo Node Picker para source e target handles.
+- [x] Conectar automaticamente o node escolhido na direção correta.
+- [x] Alinhar os handles e preservar source/target handle IDs.
+- [x] Limpar drafts ao cancelar e impedir edges parciais.
+- [x] Adicionar testes focados e executar type-check.
