@@ -155,8 +155,9 @@ function openAddNodePanel(
   handlerId?: string | null,
   anchor?: AddNodePickerAnchor | null,
   allowedNodes: AllowedNodes = '*',
+  options?: { nodePoint?: AddNodePickerAnchorPoint | null },
 ) {
-  const quickAddAnchorPoint = getQuickAddAnchorPoint(anchor)
+  const quickAddAnchorPoint = options?.nodePoint ?? getQuickAddAnchorPoint(anchor)
   workflowBaseCanvasRef.value?.openAddNodePanel(sourceId, handlerId, quickAddAnchorPoint)
   const position = getAddNodePickerPosition(anchor)
   addNodePickerOverlay.value = {
@@ -165,6 +166,22 @@ function openAddNodePanel(
     allowedNodes,
     quickAddAnchorPoint,
   }
+}
+
+function handleCanvasContextMenu(event: MouseEvent) {
+  const target = event.target instanceof Element ? event.target : null
+  if (target?.closest(
+    '[data-base-canvas-item-id], [data-workflow-handle-id], .sailor-workflow-edge, .sailor-edge-toolbar, .add-node-picker-overlay__window, button, input, textarea, select',
+  )) return
+
+  event.preventDefault()
+  openAddNodePanel(
+    null,
+    null,
+    { clientX: event.clientX, clientY: event.clientY },
+    '*',
+    { nodePoint: { x: event.clientX, y: event.clientY } },
+  )
 }
 
 function openAddNodePanelFromEvent(event: MouseEvent, sourceId?: string | null, handlerId?: string | null) {
@@ -269,6 +286,7 @@ defineExpose({
     class="sailor-workflow-canvas sailor-fill"
     @dragover.prevent
     @drop="handleGlobalAddNodeDrop"
+    @contextmenu="handleCanvasContextMenu"
   >
     <WorkflowBaseCanvas ref="workflowBaseCanvasRef" />
 

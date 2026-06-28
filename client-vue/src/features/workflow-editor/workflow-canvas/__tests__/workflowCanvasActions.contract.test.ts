@@ -51,6 +51,17 @@ describe('workflow canvas editor actions contract', () => {
     assert.doesNotMatch(canvas, /useWorkflowBaseCanvas/)
   })
 
+  it('opens the floating node picker at an empty canvas context-menu point', () => {
+    const canvas = readComponent('SailorWorkflowCanvas.vue')
+
+    assert.match(canvas, /@contextmenu="handleCanvasContextMenu"/)
+    assert.match(canvas, /function handleCanvasContextMenu\(event: MouseEvent\)/)
+    assert.match(canvas, /data-base-canvas-item-id/)
+    assert.match(canvas, /event\.preventDefault\(\)/)
+    assert.match(canvas, /nodePoint: \{ x: event\.clientX, y: event\.clientY \}/)
+    assert.match(canvas, /openAddNodePanel/)
+  })
+
   it('keeps run, stop, quick-add, and edge quick-add buses available in the BaseCanvas path', () => {
     const canvas = readComponent('SailorWorkflowCanvas.vue')
     const base = readComponent('WorkflowBaseCanvas.vue')

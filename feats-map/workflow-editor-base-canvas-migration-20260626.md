@@ -114,12 +114,12 @@
 - [x] Adicionar testes e executar type-check.
 
 ## Batch 11 - Node Picker no canvas vazio
-- [ ] Reintroduzir o Node Picker flutuante no `WorkflowBaseCanvas`.
-- [ ] Abrir o picker com botão direito apenas no canvas vazio.
-- [ ] Posicionar o picker no cursor e o novo node no world point correspondente.
-- [ ] Fechar e limpar o contexto ao cancelar ou selecionar.
-- [ ] Preservar pan, marquee, seleção e menu de nodes.
-- [ ] Adicionar testes e executar type-check.
+- [x] Reutilizar o Node Picker flutuante do `SailorWorkflowCanvas`.
+- [x] Abrir o picker com botão direito apenas no canvas vazio.
+- [x] Posicionar o picker no cursor e o novo node no world point correspondente.
+- [x] Fechar e limpar o contexto ao cancelar ou selecionar.
+- [x] Preservar pan, marquee, seleção e menu de nodes.
+- [x] Adicionar testes e executar type-check.
 
 ## Batch 12 - Drop de conexão no Node Picker
 - [ ] Trocar a preview edge vermelha pelo token selecionado do canvas.
