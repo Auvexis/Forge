@@ -5,4 +5,4 @@
 - [x] Add shared password confirmation dialog
 - [x] Integrate Monitoring Panel
 - [x] Integrate Agents Panel
-- [ ] Run focused and full validation
+- [x] Run focused and full validation
