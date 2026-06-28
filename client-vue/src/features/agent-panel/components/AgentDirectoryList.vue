@@ -1,38 +1,21 @@
 <template>
   <aside class="agent-directory-list" aria-label="Published agents">
     <div class="agent-directory-list__profile-wrap">
-      <BaseButton
-        type="button"
-        size="icon"
+      <BaseDropdownSelect
+        v-model="selectedProfileValue"
+        :options="profileSelectOptions"
+        direction="down"
         variant="ghost"
-        class="agent-directory-list__profile"
+        open-icon=""
+        close-icon=""
+        trigger-class="agent-directory-list__profile"
+        menu-class="agent-directory-list__profile-menu"
         title="Switch profile"
-        @click="profileMenuOpen = !profileMenuOpen"
       >
-        <span>{{ currentProfileAvatar }}</span>
-      </BaseButton>
-
-      <Transition name="agent-profile-menu">
-        <div
-          v-if="profileMenuOpen"
-          class="agent-directory-list__profile-menu"
-          role="menu"
-        >
-          <BaseButton
-            v-for="profile in profileStore.sortedProfiles"
-            :key="profile.id"
-            type="button"
-            class="agent-directory-list__profile-option"
-            :class="{ 'agent-directory-list__profile-option--active': profile.id === profileStore.currentProfile?.id }"
-            variant="ghost"
-            full-width
-            @click="switchProfile(profile)"
-          >
-            <span>{{ profile.avatarEmoji }}</span>
-            <strong>{{ profile.name }}</strong>
-          </BaseButton>
-        </div>
-      </Transition>
+        <template #trigger="{ option }">
+          <span>{{ option?.meta ?? currentProfileAvatar }}</span>
+        </template>
+      </BaseDropdownSelect>
     </div>
 
     <div
@@ -109,14 +92,26 @@ import { computed, onMounted, ref } from 'vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import ProfilePasswordConfirmationDialog from '@/shared/components/overlay/ProfilePasswordConfirmationDialog.vue'
 import type { ProfileSummary } from '@/core/api/profiles.api'
 
 const store = useAgentPanelStore()
 const profileStore = useProfileStore()
-const profileMenuOpen = ref(false)
 const pendingProfile = ref<ProfileSummary | null>(null)
 const currentProfileAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? '⛵')
+const selectedProfileValue = computed({
+  get: () => profileStore.currentProfile?.id ?? '',
+  set: (profileId: string) => selectProfile(profileId),
+})
+const profileSelectOptions = computed<BaseDropdownSelectOption[]>(() =>
+  profileStore.sortedProfiles.map((profile) => ({
+    value: profile.id,
+    label: profile.name,
+    shortLabel: profile.name,
+    meta: profile.avatarEmoji,
+  })),
+)
 const activeHintAgentKey = ref('')
 const hintAnchorRect = ref<DOMRect | null>(null)
 const activeHintAgent = computed(() =>
@@ -136,20 +131,20 @@ onMounted(() => {
   if (!profileStore.profiles.length && !profileStore.isLoading) void profileStore.loadProfiles()
 })
 
+function selectProfile(profileId: string) {
+  const profile = profileStore.profiles.find((item) => item.id === profileId)
+  if (profile) void switchProfile(profile)
+}
+
 async function switchProfile(profile: ProfileSummary) {
-  if (profile.id === profileStore.currentProfile?.id) {
-    profileMenuOpen.value = false
-    return
-  }
+  if (profile.id === profileStore.currentProfile?.id) return
 
   if (profile.passwordProtected) {
     pendingProfile.value = profile
-    profileMenuOpen.value = false
     return
   }
 
   await profileStore.switchProfile(profile.id)
-  profileMenuOpen.value = false
 }
 
 async function confirmProtectedProfile(password: string) {
@@ -161,7 +156,6 @@ async function confirmProtectedProfile(password: string) {
 
 function cancelProtectedProfile() {
   pendingProfile.value = null
-  profileMenuOpen.value = false
 }
 
 function showAgentHint(agentKey: string, event: MouseEvent | FocusEvent) {
@@ -191,63 +185,21 @@ function hideAgentHint() {
 }
 
 .agent-directory-list__profile-wrap {
-  position: relative;
   display: grid;
   place-items: center;
 }
 
-.agent-directory-list__profile {
+:deep(.agent-directory-list__profile) {
   width: 30px;
   height: 30px;
+  padding: 0;
   border-radius: var(--sailor-radius-full);
 }
 
-.agent-directory-list__profile-menu {
-  position: absolute;
-  top: calc(100% + var(--sailor-space-2));
+:deep(.agent-directory-list__profile-menu) {
+  right: auto;
   left: 0;
-  z-index: var(--sailor-z-overlay);
-  display: grid;
   width: 220px;
-  gap: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-lg);
-  background: var(--sailor-bg-surface);
-  padding: var(--sailor-space-2);
-  box-shadow: var(--sailor-shadow-lg);
-}
-
-.agent-directory-list__profile-option {
-  position: relative;
-  z-index: 1;
-  justify-content: flex-start;
-  background: transparent;
-}
-
-.agent-directory-list__profile-option:hover,
-.agent-directory-list__profile-option:active {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-button-ghost-hover-text);
-}
-
-.agent-directory-list__profile-option--active {
-  background: var(--sailor-button-ghost-active);
-  color: var(--sailor-button-ghost-active-text);
-}
-
-.agent-directory-list__profile-option :deep(.base-button__label) {
-  display: inline-flex;
-  min-width: 0;
-  align-items: center;
-  gap: var(--sailor-space-2);
-}
-
-.agent-directory-list__profile-option strong {
-  overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .agent-directory-list__agents {
@@ -385,16 +337,4 @@ function hideAgentHint() {
   padding-top: var(--sailor-space-2);
 }
 
-.agent-profile-menu-enter-active,
-.agent-profile-menu-leave-active {
-  transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
-}
-
-.agent-profile-menu-enter-from,
-.agent-profile-menu-leave-to {
-  opacity: 0;
-  transform: translateY(-6px);
-}
 </style>

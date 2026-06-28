@@ -58,11 +58,16 @@ describe('agent panel modal contract', () => {
     )
 
     assert.match(directory, /ProfilePasswordConfirmationDialog/)
+    assert.match(directory, /BaseDropdownSelect/)
+    assert.match(directory, /profileSelectOptions/)
+    assert.match(directory, /selectedProfileValue/)
     assert.match(directory, /pendingProfile/)
     assert.match(directory, /profile\.passwordProtected/)
+    assert.match(directory, /profile\.id === profileStore\.currentProfile\?\.id/)
     assert.match(directory, /confirmProtectedProfile\(password: string\)/)
     assert.match(directory, /profileStore\.switchProfile\(profile\.id, password\)/)
     assert.match(directory, /cancelProtectedProfile/)
+    assert.doesNotMatch(directory, /profileMenuOpen/)
   })
 
   it('chat view renders messages and sends through the agent panel api', () => {
