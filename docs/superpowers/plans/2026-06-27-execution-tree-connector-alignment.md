@@ -75,3 +75,11 @@ Commit the test, CSS correction, and completed checklist together.
 - [x] Enable real horizontal and vertical scrolling for large trees.
 - [x] Run focused tests and type-check.
 - [x] Commit the Tree presentation correction.
+
+### Task 7: Bound rows and identify AI Agents
+
+- [x] Give Tree rows a stable width so descendants cannot stretch their ancestors.
+- [x] Use the AI Agent emoji as its Tree and inspector avatar.
+- [x] Format AI Agent names as `{agentDisplayName} - AI Agent`.
+- [x] Run focused tests and type-check.
+- [x] Commit the row and agent presentation correction.

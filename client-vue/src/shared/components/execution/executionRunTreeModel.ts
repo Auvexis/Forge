@@ -167,14 +167,18 @@ function createTreeNode(
   const node = workflow?.nodes[nodeId] as WorkflowNode | undefined
   const type = node?.type ?? 'unknown'
   const presentation = nodePresentations?.[nodeId] ?? nodePresentations?.[type]
+  const agentName = node?.type === 'ai-agent'
+    ? node.agentDisplayName?.trim() || node.name?.trim() || 'AI Agent'
+    : null
   return {
     id: nodeId,
     nodeId,
     parentId,
-    name: node?.name || nodeId,
+    name: agentName ? `${agentName} - AI Agent` : node?.name || nodeId,
     type,
     icon: presentation?.icon || node?.ui?.icon || NODE_ICON[type] || 'box',
     iconColor: presentation?.iconColor || NODE_ICON_COLOR[type] || 'var(--sailor-text-secondary)',
+    avatar: node?.type === 'ai-agent' ? node.agentEmoji?.trim() || '🤖' : undefined,
     status: normalizeNodeStatus(step.status),
     startedAt: step.startedAt,
     endedAt: step.endedAt,

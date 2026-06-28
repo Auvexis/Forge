@@ -8,7 +8,7 @@ const workflow = {
   metadata: { id: 'wf-1', name: 'Agent Flow', version: '1', isActive: true, isDraft: false, public: false },
   trigger: { type: 'manual' },
   nodes: {
-    agent: { type: 'ai-agent', name: 'AI Agent' },
+    agent: { type: 'ai-agent', name: 'AI Agent', agentDisplayName: 'Sailor', agentEmoji: '⚓' },
     model: { type: 'ai-model', name: 'OpenAI Chat Model', ui: { positionX: 0, positionY: 0, icon: 'brain' } },
     tool: { type: 'vector-store-tool', name: 'Vector Tool' },
     output: { type: 'set', name: 'Final Output' },
@@ -44,6 +44,8 @@ describe('execution run tree model', () => {
 
     assert.deepEqual(detail.roots.map((node) => node.nodeId), ['agent', 'detached'])
     assert.deepEqual(detail.roots[0]?.children.map((node) => node.nodeId), ['model', 'tool', 'output'])
+    assert.equal(detail.roots[0]?.name, 'Sailor - AI Agent')
+    assert.equal(detail.roots[0]?.avatar, '⚓')
   })
 
   it('uses real node presentation and execution details', () => {

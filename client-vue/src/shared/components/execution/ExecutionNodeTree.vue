@@ -51,7 +51,11 @@ function activate(node: ExecutionRunTreeNode) {
           class="execution-node-tree__chevron"
           :class="{ 'is-open': !collapsedIds.has(node.nodeId) }"
         />
+        <span v-if="node.avatar" class="execution-node-tree__avatar" aria-hidden="true">
+          {{ node.avatar }}
+        </span>
         <LucideIcon
+          v-else
           :name="node.icon"
           :size="20"
           class="execution-node-tree__icon"
@@ -123,7 +127,7 @@ function activate(node: ExecutionRunTreeNode) {
 }
 
 .execution-node-tree__row {
-  width: calc(100% - var(--sailor-space-2));
+  width: 280px;
   min-height: 36px;
   margin-left: var(--sailor-space-2);
   padding: var(--sailor-space-2);
@@ -135,6 +139,7 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree__chevron { color: var(--sailor-text-muted); transition: transform var(--sailor-duration-base) var(--sailor-ease-standard); }
 .execution-node-tree__chevron.is-open { transform: rotate(90deg); }
 .execution-node-tree__icon { flex: 0 0 auto; }
+.execution-node-tree__avatar { display: grid; width: 20px; height: 20px; place-items: center; font-size: 18px; line-height: 1; }
 .execution-node-tree__name { min-width: 0; overflow: hidden; color: var(--sailor-text-primary); font-size: var(--sailor-text-xs); text-overflow: ellipsis; white-space: nowrap; }
 .execution-node-tree__row code { color: var(--sailor-text-muted); font-family: var(--sailor-font-mono); font-size: 9px; }
 .execution-node-tree-children-enter-active, .execution-node-tree-children-leave-active { overflow: hidden; transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard), transform var(--sailor-duration-base) var(--sailor-ease-standard); }

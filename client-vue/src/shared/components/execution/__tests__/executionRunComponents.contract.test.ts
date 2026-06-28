@@ -53,6 +53,9 @@ describe('shared execution run components', () => {
     assert.doesNotMatch(source, /visibility: hidden/)
     assert.match(source, /width: max-content/)
     assert.match(source, /min-width: 100%/)
+    assert.match(source, /width: 280px/)
+    assert.match(source, /v-if="node\.avatar"/)
+    assert.match(source, /execution-node-tree__avatar/)
     assert.match(source, /var\(--sailor-duration-base\)/)
     assert.doesNotMatch(source, /execution-node-tree__icon[\s\S]*background:/)
     assert.doesNotMatch(source, /execution-node-tree__icon[\s\S]*border:/)
@@ -75,6 +78,7 @@ describe('shared execution run components', () => {
 
     assert.match(source, /LucideIcon/)
     assert.match(source, /node\.icon/)
+    assert.match(source, /node\.avatar/)
     assert.match(source, /Input/)
     assert.match(source, /Output/)
     assert.match(source, /Retries/)

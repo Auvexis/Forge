@@ -40,7 +40,8 @@ function showPreview(key: string) {
     <div v-if="!node" class="execution-node-inspector__empty">Select a step.</div>
     <template v-else>
       <header class="execution-node-inspector__header">
-        <LucideIcon :name="node.icon" :size="26" :style="{ color: node.iconColor }" />
+        <span v-if="node.avatar" class="execution-node-inspector__avatar" aria-hidden="true">{{ node.avatar }}</span>
+        <LucideIcon v-else :name="node.icon" :size="26" :style="{ color: node.iconColor }" />
         <div>
           <h3>{{ node.name }}</h3>
           <p>{{ node.status }}<template v-if="node.durationMs !== null"> · {{ node.durationMs }}ms</template> · {{ node.nodeId }}</p>
@@ -74,6 +75,7 @@ function showPreview(key: string) {
 .execution-node-inspector { height: 100%; min-height: 0; overflow: auto; padding: var(--sailor-space-4); background-color: var(--sailor-bg-surface); }
 .execution-node-inspector__empty { height: 100%; display: grid; place-items: center; color: var(--sailor-text-muted); font-size: var(--sailor-text-sm); }
 .execution-node-inspector__header { display: flex; align-items: center; gap: var(--sailor-space-3); margin-bottom: var(--sailor-space-4); }
+.execution-node-inspector__avatar { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; font-size: 24px; line-height: 1; }
 .execution-node-inspector__header h3 { margin: 0; color: var(--sailor-text-primary); font-size: var(--sailor-text-base); font-weight: var(--sailor-font-semibold); }
 .execution-node-inspector__header p { margin: 3px 0 0; color: var(--sailor-text-muted); font-size: var(--sailor-text-xs); }
 .execution-node-inspector__section { margin-top: var(--sailor-space-3); border: 1px solid var(--sailor-border); border-radius: var(--sailor-radius-sm); background-color: var(--sailor-bg-base); }

@@ -8,6 +8,7 @@ export interface ExecutionRunTreeNode {
   type: string
   icon: string
   iconColor: string
+  avatar?: string
   status: NodeExecutionStatus
   startedAt?: number
   endedAt?: number
