@@ -152,7 +152,7 @@ export function toggleAutomationMonitor() {
 </script>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, watch } from 'vue'
+import { computed, watch } from 'vue'
 import BaseBadge from '@/shared/components/base/BaseBadge.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
@@ -171,7 +171,7 @@ const profileStore = useProfileStore()
 const loading = ref(false)
 const sidebarCollapsed = ref(false)
 const workflows = ref<ProductionWorkflowStatus[]>([])
-const selectedProfileId = ref<string | null>(null)
+const selectedProfileId = ref('')
 const pendingProfile = ref<ProfileSummary | null>(null)
 const selectedWorkflowKey = ref<string | null>(null)
 const selectedExecutions = ref<ExecutionLog[]>([])
@@ -193,7 +193,7 @@ const enrichedWorkflows = computed(() =>
 )
 
 const filteredWorkflows = computed(() => {
-  if (!selectedProfileId.value) return enrichedWorkflows.value
+  if (!selectedProfileId.value) return []
   return enrichedWorkflows.value.filter((workflow) => workflow.profileId === selectedProfileId.value)
 })
 
@@ -202,35 +202,32 @@ const selectedWorkflow = computed(() =>
 )
 
 const selectedProfileValue = computed({
-  get: () => selectedProfileId.value ?? 'global',
-  set: (value: string) => selectProfile(value === 'global' ? null : value),
+  get: () => selectedProfileId.value,
+  set: (value: string) => selectProfile(value),
 })
 
 const profileOptions = computed(() => {
-  const counts = new Map<string | null, number>()
-  counts.set(null, workflows.value.length)
+  const counts = new Map<string, number>()
   for (const workflow of workflows.value) {
-    const key = workflow.profileId ?? null
-    counts.set(key, (counts.get(key) ?? 0) + 1)
+    if (workflow.profileId) {
+      counts.set(workflow.profileId, (counts.get(workflow.profileId) ?? 0) + 1)
+    }
   }
 
-  return [
-    { id: null, label: 'Global', count: counts.get(null) ?? 0 },
-    ...profileStore.sortedProfiles.map((profile) => ({
-      id: profile.id,
-      label: profile.name,
-      count: counts.get(profile.id) ?? 0,
-    })),
-  ]
+  return profileStore.sortedProfiles.map((profile) => ({
+    id: profile.id,
+    label: profile.name,
+    count: counts.get(profile.id) ?? 0,
+  }))
 })
 
 const profileSelectOptions = computed<BaseDropdownSelectOption[]>(() =>
   profileOptions.value.map((profile) => ({
-    value: profile.id ?? 'global',
+    value: profile.id,
     label: profile.label,
     shortLabel: profile.label,
     description: `${profile.count} published`,
-    meta: profile.id ? profileAvatarById.value[profile.id] ?? 'P' : 'G',
+    meta: profileAvatarById.value[profile.id] ?? 'P',
   })),
 )
 
@@ -266,17 +263,12 @@ const activeTriggerRuns = computed(
   () => triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)?.runs ?? [],
 )
 
-let pollInterval: ReturnType<typeof setInterval> | null = null
-
 function workflowKey(workflow: ProductionWorkflowStatus): string {
   return `${workflow.profileId ?? 'global'}:${workflow.id}`
 }
 
-function selectProfile(profileId: string | null) {
-  if (!profileId) {
-    applyProfileSelection(null)
-    return
-  }
+function selectProfile(profileId: string) {
+  if (profileId === selectedProfileId.value) return
 
   const profile = profileStore.profiles.find((item) => item.id === profileId)
   if (profile?.passwordProtected) {
@@ -287,9 +279,10 @@ function selectProfile(profileId: string | null) {
   applyProfileSelection(profileId)
 }
 
-function applyProfileSelection(profileId: string | null) {
+function applyProfileSelection(profileId: string) {
   selectedProfileId.value = profileId
   ensureSelectedWorkflow()
+  void loadSelectedWorkflowExecutions()
 }
 
 function confirmProtectedProfile() {
@@ -312,7 +305,6 @@ function ensureSelectedWorkflow() {
   if (filteredWorkflows.value.some((workflow) => workflowKey(workflow) === selectedWorkflowKey.value)) return
   selectedWorkflowKey.value = filteredWorkflows.value[0] ? workflowKey(filteredWorkflows.value[0]) : null
   activeTriggerTabId.value = 'all'
-  void loadSelectedWorkflowExecutions()
 }
 
 async function refreshLiveData() {
@@ -378,10 +370,11 @@ function formatDate(value: string): string {
   return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-watch(isAutomationMonitorOpen, (open) => {
+watch(isAutomationMonitorOpen, async (open) => {
   if (open) {
-    void profileStore.loadProfiles()
-    void refreshLiveData()
+    await profileStore.loadProfiles()
+    selectedProfileId.value = profileStore.currentProfile?.id ?? ''
+    await refreshLiveData()
   } else {
     selectedExecutions.value = []
   }
@@ -391,13 +384,6 @@ watch(triggerTabs, (next) => {
   if (!next.some((tab) => tab.id === activeTriggerTabId.value)) activeTriggerTabId.value = 'all'
 })
 
-onMounted(() => {
-  pollInterval = setInterval(refreshLiveData, 3_000)
-})
-
-onUnmounted(() => {
-  if (pollInterval) clearInterval(pollInterval)
-})
 </script>
 
 <style scoped>

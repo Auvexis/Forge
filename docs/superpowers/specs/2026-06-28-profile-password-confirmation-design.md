@@ -74,8 +74,8 @@ Add a reusable modal backdrop variant to `AppDialog`. The profile password dialo
 
 ### Follow-up tasks
 
-- [ ] Add failing Monitoring selector and refresh tests.
-- [ ] Remove Global, default to active profile, and remove polling.
+- [x] Add failing Monitoring selector and refresh tests.
+- [x] Remove Global, default to active profile, and remove polling.
 - [ ] Add failing Agents selector and empty-state tests.
 - [ ] Migrate Agents to `BaseDropdownSelect` and remove the zero placeholder.
 - [ ] Add failing backdrop contract test.

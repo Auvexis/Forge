@@ -24,13 +24,19 @@ describe('global automation monitor shell', () => {
     assert.match(source, /toggleAutomationMonitor/)
   })
 
-  it('offers a profile dropdown with a Global default filter', () => {
+  it('offers only real profiles and defaults to the active profile', () => {
     const source = readFileSync(monitorPath, 'utf8')
+    const optionsBlock = source.slice(
+      source.indexOf('const profileOptions'),
+      source.indexOf('const profileSelectOptions'),
+    )
 
-    assert.match(source, /Global/)
     assert.match(source, /useProfileStore/)
     assert.match(source, /selectedProfileId/)
     assert.match(source, /profileOptions/)
+    assert.match(source, /profileStore\.currentProfile\?\.id/)
+    assert.doesNotMatch(optionsBlock, /label: 'Global'/)
+    assert.doesNotMatch(optionsBlock, /id: null/)
   })
 
   it('confirms protected profile filters without switching the active profile', () => {
@@ -42,6 +48,7 @@ describe('global automation monitor shell', () => {
     assert.match(source, /confirmProtectedProfile/)
     assert.match(source, /cancelProtectedProfile/)
     assert.match(source, /applyProfileSelection/)
+    assert.match(source, /profileId === selectedProfileId\.value/)
     assert.doesNotMatch(source, /profileStore\.switchProfile/)
   })
 
@@ -55,12 +62,14 @@ describe('global automation monitor shell', () => {
     assert.match(source, /activeTriggerRuns/)
   })
 
-  it('polls live production status and selected workflow execution data', () => {
+  it('refreshes production status and executions only on open or explicit refresh', () => {
     const source = readFileSync(monitorPath, 'utf8')
 
     assert.match(source, /getGlobalProductionStatus/)
     assert.match(source, /getExecutions\([^)]*profileId/)
-    assert.match(source, /setInterval\(refreshLiveData,\s*3_000\)/)
+    assert.match(source, /@click="refreshLiveData"/)
+    assert.match(source, /watch\(isAutomationMonitorOpen/)
+    assert.doesNotMatch(source, /setInterval\(/)
   })
 
   it('opens filtered runs in the shared tree detail explorer', () => {
