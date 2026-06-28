@@ -49,6 +49,13 @@ test('workflow editor exposes undo redo and add-node keyboard shortcuts outside 
   assert.match(source, /window\.removeEventListener\('keydown', handleWorkflowEditorShortcut\)/)
 })
 
+test('workflow editor saves with Ctrl+S or Cmd+S even inside editable fields', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /if \(key === 's'\)[\s\S]*event\.preventDefault\(\)[\s\S]*if \(!event\.repeat\) void handleSaveWorkflow\(\)/)
+  assert.match(source, /if \(key === 's'\)[\s\S]*isEditableShortcutTarget/)
+})
+
 test('workflow editor opens dev session chat through global agent modal', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 

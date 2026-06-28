@@ -336,8 +336,14 @@ function openGlobalAddNodePanel(toggle = false) {
 }
 
 function handleWorkflowEditorShortcut(event: KeyboardEvent) {
-  if (!(event.ctrlKey || event.metaKey) || isEditableShortcutTarget(event.target)) return
+  if (!(event.ctrlKey || event.metaKey)) return
   const key = event.key.toLowerCase()
+  if (key === 's') {
+    event.preventDefault()
+    if (!event.repeat) void handleSaveWorkflow()
+    return
+  }
+  if (isEditableShortcutTarget(event.target)) return
   if (key === 'z' && !event.shiftKey) {
     event.preventDefault()
     workflowStore.undo()

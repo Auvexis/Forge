@@ -13,7 +13,7 @@ O Workflow Editor precisa oferecer o atalho convencional de salvamento sem abrir
 
 ## Tasks
 
-- [ ] Adicionar um teste de contrato para o atalho.
-- [ ] Integrar o atalho ao handler existente.
-- [ ] Executar testes e type-check.
-- [ ] Commitar na branch dev.
+- [x] Adicionar um teste de contrato para o atalho.
+- [x] Integrar o atalho ao handler existente.
+- [x] Executar testes e type-check.
+- [x] Commitar na branch dev.
