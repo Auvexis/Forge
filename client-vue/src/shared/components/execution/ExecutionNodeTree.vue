@@ -5,11 +5,14 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 defineOptions({ name: 'ExecutionNodeTree' })
-const props = withDefaults(defineProps<{
-  nodes: ExecutionRunTreeNode[]
-  selectedNodeId?: string | null
-  depth?: number
-}>(), { selectedNodeId: null, depth: 0 })
+const props = withDefaults(
+  defineProps<{
+    nodes: ExecutionRunTreeNode[]
+    selectedNodeId?: string | null
+    depth?: number
+  }>(),
+  { selectedNodeId: null, depth: 0 },
+)
 const emit = defineEmits<{ (event: 'select', nodeId: string): void }>()
 const collapsedIds = ref(new Set<string>())
 
@@ -133,15 +136,61 @@ function activate(node: ExecutionRunTreeNode) {
   padding: var(--sailor-space-2);
   border-radius: var(--sailor-radius-sm);
 }
-.execution-node-tree__row :deep(.base-button__label) { width: 100%; display: grid; grid-template-columns: 14px 24px minmax(0,1fr) auto; align-items: center; gap: var(--sailor-space-2); text-align: left; }
-.execution-node-tree__row--leaf :deep(.base-button__label) { grid-template-columns: 24px minmax(0,1fr) auto; }
-.execution-node-tree__row--active { background-color: var(--sailor-button-ghost-active); }
-.execution-node-tree__chevron { color: var(--sailor-text-muted); transition: transform var(--sailor-duration-base) var(--sailor-ease-standard); }
-.execution-node-tree__chevron.is-open { transform: rotate(90deg); }
-.execution-node-tree__icon { flex: 0 0 auto; }
-.execution-node-tree__avatar { display: grid; width: 20px; height: 20px; place-items: center; font-size: 18px; line-height: 1; }
-.execution-node-tree__name { min-width: 0; overflow: hidden; color: var(--sailor-text-primary); font-size: var(--sailor-text-xs); text-overflow: ellipsis; white-space: nowrap; }
-.execution-node-tree__row code { color: var(--sailor-text-muted); font-family: var(--sailor-font-mono); font-size: 9px; }
-.execution-node-tree-children-enter-active, .execution-node-tree-children-leave-active { overflow: hidden; transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard), transform var(--sailor-duration-base) var(--sailor-ease-standard); }
-.execution-node-tree-children-enter-from, .execution-node-tree-children-leave-to { opacity: 0; transform: translateY(calc(-1 * var(--sailor-space-2))); }
+.execution-node-tree__row :deep(.base-button__label) {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 14px 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sailor-space-2);
+  text-align: left;
+}
+.execution-node-tree__row--leaf :deep(.base-button__label) {
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+}
+.execution-node-tree__row--active {
+  background-color: var(--sailor-button-ghost-active);
+}
+.execution-node-tree__chevron {
+  color: var(--sailor-text-muted);
+  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+.execution-node-tree__chevron.is-open {
+  transform: rotate(90deg);
+}
+.execution-node-tree__icon {
+  flex: 0 0 auto;
+}
+.execution-node-tree__avatar {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  font-size: 18px;
+  line-height: 1;
+}
+.execution-node-tree__name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.execution-node-tree__row code {
+  color: var(--sailor-text-muted);
+  font-family: var(--sailor-font-mono);
+  font-size: 9px;
+}
+.execution-node-tree-children-enter-active,
+.execution-node-tree-children-leave-active {
+  overflow: hidden;
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+.execution-node-tree-children-enter-from,
+.execution-node-tree-children-leave-to {
+  opacity: 0;
+  transform: translateY(calc(-1 * var(--sailor-space-2)));
+}
 </style>

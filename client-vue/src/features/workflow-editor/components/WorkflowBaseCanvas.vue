@@ -11,7 +11,7 @@
       background-color="var(--sailor-canvas-bg)"
       pattern-color="var(--sailor-canvas-grid)"
       pattern-style="dot"
-      :pattern-size="20"
+      :pattern-size="30"
       class="sailor-workflow-base-canvas"
       data-workflow-base-canvas
       :data-workflow-items-count="workflowItems.length"

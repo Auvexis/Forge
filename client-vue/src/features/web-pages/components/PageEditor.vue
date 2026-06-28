@@ -93,7 +93,7 @@
           background-color="var(--sailor-bg-canvas)"
           pattern-color="var(--sailor-border)"
           pattern-style="dot"
-          :pattern-size="18"
+          :pattern-size="30"
           rulers-bg="var(--sailor-bg-canvas)"
           rulers-text="var(--sailor-text-muted)"
           rulers-lines="var(--sailor-border)"

@@ -278,7 +278,7 @@
 
   /* ── Canvas ─────────────────────────────────────────── */
   --sailor-canvas-bg: #0f0f0f;
-  --sailor-canvas-grid: rgb(87, 87, 87);
+  --sailor-canvas-grid: rgba(255, 255, 255, 0.104);
 
   /* ── Node Colors ─────────────────────────────────────────── */
   --sailor-node-header: #161617;
@@ -527,7 +527,7 @@
 
   /* Canvas */
   --sailor-canvas-bg: #f1f1f1;
-  --sailor-canvas-grid: rgb(0, 0, 0);
+  --sailor-canvas-grid: rgba(0, 0, 0, 0.143);
 
   /* Node Colors (light) */
   --sailor-node-header: #f8f8f8;
