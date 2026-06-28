@@ -51,6 +51,20 @@ describe('agent panel modal contract', () => {
     assert.match(store, /loadSessions/)
   })
 
+  it('confirms protected profile switches and preserves the current profile on cancel', () => {
+    const directory = readFileSync(
+      'src/features/agent-panel/components/AgentDirectoryList.vue',
+      'utf8',
+    )
+
+    assert.match(directory, /ProfilePasswordConfirmationDialog/)
+    assert.match(directory, /pendingProfile/)
+    assert.match(directory, /profile\.passwordProtected/)
+    assert.match(directory, /confirmProtectedProfile\(password: string\)/)
+    assert.match(directory, /profileStore\.switchProfile\(profile\.id, password\)/)
+    assert.match(directory, /cancelProtectedProfile/)
+  })
+
   it('chat view renders messages and sends through the agent panel api', () => {
     const view = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const composer = readFileSync(

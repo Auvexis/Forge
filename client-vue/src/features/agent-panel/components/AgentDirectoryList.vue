@@ -26,7 +26,7 @@
             :class="{ 'agent-directory-list__profile-option--active': profile.id === profileStore.currentProfile?.id }"
             variant="ghost"
             full-width
-            @click="switchProfile(profile.id)"
+            @click="switchProfile(profile)"
           >
             <span>{{ profile.avatarEmoji }}</span>
             <strong>{{ profile.name }}</strong>
@@ -93,6 +93,14 @@
         </div>
       </Transition>
     </Teleport>
+
+    <ProfilePasswordConfirmationDialog
+      v-if="pendingProfile"
+      :model-value="Boolean(pendingProfile)"
+      :profile="pendingProfile"
+      @confirmed="confirmProtectedProfile"
+      @cancel="cancelProtectedProfile"
+    />
   </aside>
 </template>
 
@@ -101,10 +109,13 @@ import { computed, onMounted, ref } from 'vue'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import ProfilePasswordConfirmationDialog from '@/shared/components/overlay/ProfilePasswordConfirmationDialog.vue'
+import type { ProfileSummary } from '@/core/api/profiles.api'
 
 const store = useAgentPanelStore()
 const profileStore = useProfileStore()
 const profileMenuOpen = ref(false)
+const pendingProfile = ref<ProfileSummary | null>(null)
 const currentProfileAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? '⛵')
 const activeHintAgentKey = ref('')
 const hintAnchorRect = ref<DOMRect | null>(null)
@@ -125,12 +136,31 @@ onMounted(() => {
   if (!profileStore.profiles.length && !profileStore.isLoading) void profileStore.loadProfiles()
 })
 
-async function switchProfile(profileId: string) {
-  if (profileId === profileStore.currentProfile?.id) {
+async function switchProfile(profile: ProfileSummary) {
+  if (profile.id === profileStore.currentProfile?.id) {
     profileMenuOpen.value = false
     return
   }
-  await profileStore.switchProfile(profileId)
+
+  if (profile.passwordProtected) {
+    pendingProfile.value = profile
+    profileMenuOpen.value = false
+    return
+  }
+
+  await profileStore.switchProfile(profile.id)
+  profileMenuOpen.value = false
+}
+
+async function confirmProtectedProfile(password: string) {
+  const profile = pendingProfile.value
+  pendingProfile.value = null
+  if (!profile) return
+  await profileStore.switchProfile(profile.id, password)
+}
+
+function cancelProtectedProfile() {
+  pendingProfile.value = null
   profileMenuOpen.value = false
 }
 

@@ -4,5 +4,5 @@
 - [x] Define protected profile selection flows
 - [x] Add shared password confirmation dialog
 - [x] Integrate Monitoring Panel
-- [ ] Integrate Agents Panel
+- [x] Integrate Agents Panel
 - [ ] Run focused and full validation

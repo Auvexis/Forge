@@ -47,7 +47,7 @@ Add contract tests for the shared dialog and both integrations. Cover protected 
 - [x] Implement the shared confirmation dialog.
 - [x] Add failing Monitoring Panel integration tests.
 - [x] Gate protected Monitoring profile filters.
-- [ ] Add failing Agents Panel integration tests.
-- [ ] Gate protected Agents profile switches.
+- [x] Add failing Agents Panel integration tests.
+- [x] Gate protected Agents profile switches.
 - [ ] Run focused tests, type-check, and build.
 - [ ] Update `feats-map/` and commit each completed task.
