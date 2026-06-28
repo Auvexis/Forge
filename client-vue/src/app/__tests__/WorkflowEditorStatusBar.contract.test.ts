@@ -81,7 +81,7 @@ test('workflow editor discards the local draft after a confirmed browser reload'
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /markWorkflowReloadDiscard\(sessionStorage, activeWorkflowId\)/)
-  assert.match(source, /window\.setTimeout\(\(\) => clearWorkflowReloadDiscard\(sessionStorage\), 0\)/)
+  assert.doesNotMatch(source, /setTimeout\(\(\) => clearWorkflowReloadDiscard/)
   assert.match(source, /consumeWorkflowReloadDiscard\(localStorage, sessionStorage\)/)
 })
 

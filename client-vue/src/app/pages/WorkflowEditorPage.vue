@@ -26,7 +26,6 @@ import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem, WorkflowNodeType } from '@/core/types/workflow.types'
 import { listWorkflowChatTriggers } from '@/features/workflow-editor/utils/workflowRunTrigger'
 import {
-  clearWorkflowReloadDiscard,
   consumeWorkflowReloadDiscard,
   discardWorkflowDraft,
   markWorkflowReloadDiscard,
@@ -72,7 +71,6 @@ function handleBeforeUnload(event: BeforeUnloadEvent) {
   const activeWorkflowId = workflowStore.activeWorkflow?.metadata.id
   if (activeWorkflowId) {
     markWorkflowReloadDiscard(sessionStorage, activeWorkflowId)
-    window.setTimeout(() => clearWorkflowReloadDiscard(sessionStorage), 0)
   }
   event.preventDefault()
   event.returnValue = ''
