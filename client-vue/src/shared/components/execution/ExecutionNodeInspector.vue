@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { ExecutionRunTreeNode } from './executionRunTree.types.ts'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 defineProps<{ node: ExecutionRunTreeNode | null }>()
@@ -53,15 +54,28 @@ function showPreview(key: string) {
           <span>{{ previewState(`${node.nodeId}:input`, node.input).summary }}</span>
           <BaseButton size="sm" variant="outline" @click="showPreview(`${node.nodeId}:input`)">Show preview</BaseButton>
         </div>
-        <pre v-else>{{ formatJson(node.input) }}</pre>
+        <BaseCodeEditor
+          v-else
+          :model-value="formatJson(node.input)"
+          language="json"
+          height="240px"
+          readonly
+        />
       </details>
       <details class="execution-node-inspector__section" open>
         <summary>{{ node.error ? 'Error' : 'Output' }}</summary>
-        <div v-if="!node.error && previewState(`${node.nodeId}:output`, node.output).skipped" class="execution-node-inspector__guard">
+        <pre v-if="node.error">{{ node.error }}</pre>
+        <div v-else-if="previewState(`${node.nodeId}:output`, node.output).skipped" class="execution-node-inspector__guard">
           <span>{{ previewState(`${node.nodeId}:output`, node.output).summary }}</span>
           <BaseButton size="sm" variant="outline" @click="showPreview(`${node.nodeId}:output`)">Show preview</BaseButton>
         </div>
-        <pre v-else>{{ node.error || formatJson(node.output) }}</pre>
+        <BaseCodeEditor
+          v-else
+          :model-value="formatJson(node.output)"
+          language="json"
+          height="240px"
+          readonly
+        />
       </details>
       <details v-if="node.retries?.length" class="execution-node-inspector__section">
         <summary>Retries · {{ node.retries.length }}</summary>

@@ -83,3 +83,11 @@ Commit the test, CSS correction, and completed checklist together.
 - [x] Format AI Agent names as `{agentDisplayName} - AI Agent`.
 - [x] Run focused tests and type-check.
 - [x] Commit the row and agent presentation correction.
+
+### Task 8: Theme execution JSON previews
+
+- [x] Render Input JSON with `BaseCodeEditor` in readonly JSON mode.
+- [x] Render Output JSON with the same Sailor-themed editor.
+- [x] Preserve large-payload guards and plain error display.
+- [x] Run focused tests and type-check.
+- [x] Commit only the execution inspector changes.
