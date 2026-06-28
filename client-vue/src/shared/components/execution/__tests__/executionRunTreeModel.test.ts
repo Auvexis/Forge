@@ -47,11 +47,18 @@ describe('execution run tree model', () => {
   })
 
   it('uses real node presentation and execution details', () => {
-    const detail = buildExecutionRunDetail({ workflow, run })
+    const detail = buildExecutionRunDetail({
+      workflow,
+      run,
+      nodePresentations: {
+        'ai-model': { icon: 'sparkles', iconColor: 'rgb(16, 185, 129)' },
+      },
+    })
     const model = detail.nodesById.model
 
     assert.equal(model?.name, 'OpenAI Chat Model')
-    assert.equal(model?.icon, 'brain')
+    assert.equal(model?.icon, 'sparkles')
+    assert.equal(model?.iconColor, 'rgb(16, 185, 129)')
     assert.equal(model?.durationMs, 250)
     assert.deepEqual(model?.output, { tokens: 8 })
     assert.equal(detail.nodesById.detached?.error, 'boom')

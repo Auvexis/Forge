@@ -67,3 +67,11 @@ Commit the test, CSS correction, and completed checklist together.
 - [x] Start the vertical connector at the parent item's bottom border.
 - [x] Preserve the final-child endpoint and horizontal spacing.
 - [x] Run focused tests and type-check.
+
+### Task 6: Stabilize connectors and node presentation
+
+- [x] Prevent adjacent branches from drawing overlapping vertical segments.
+- [x] Resolve Tree icons and colors from the node catalog and plugin manifests.
+- [x] Enable real horizontal and vertical scrolling for large trees.
+- [x] Run focused tests and type-check.
+- [x] Commit the Tree presentation correction.

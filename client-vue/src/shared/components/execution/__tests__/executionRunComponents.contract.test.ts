@@ -36,11 +36,13 @@ describe('shared execution run components', () => {
     assert.match(source, /LucideIcon/)
     assert.match(source, /BaseButton/)
     assert.match(source, /execution-node-tree__branch--has-next/)
+    assert.match(source, /execution-node-tree__branch--first/)
     assert.match(source, /border-left: 1px solid var\(--sailor-border-strong\)/)
     assert.match(source, /border-top: 1px solid var\(--sailor-border-strong\)/)
     assert.match(source, /\.execution-node-tree \{[^}]*gap: var\(--sailor-space-2\)/)
     assert.match(source, /\.execution-node-tree--nested \{[^}]*margin-left: calc\(var\(--sailor-space-4\) \+ 7px\)/)
-    assert.match(source, /\.execution-node-tree__branch::after \{[^}]*top: calc\(-1 \* var\(--sailor-space-2\)\);[^}]*height: calc\(18px \+ var\(--sailor-space-2\)\)/)
+    assert.match(source, /\.execution-node-tree__branch::after \{[^}]*top: 0;[^}]*height: 18px/)
+    assert.match(source, /\.execution-node-tree__branch--first::after \{[^}]*top: calc\(-1 \* var\(--sailor-space-2\)\);[^}]*height: calc\(18px \+ var\(--sailor-space-2\)\)/)
     assert.match(source, /\.execution-node-tree__branch--has-next::after \{[^}]*bottom: calc\(-1 \* var\(--sailor-space-2\)\)/)
     assert.match(source, /\.execution-node-tree__row \{[^}]*padding: var\(--sailor-space-2\)/)
     assert.match(source, /\.execution-node-tree__row \{[^}]*margin-left: var\(--sailor-space-2\)/)
@@ -49,9 +51,23 @@ describe('shared execution run components', () => {
     assert.match(source, /\.execution-node-tree__row--leaf[^}]*grid-template-columns: 24px minmax\(0,1fr\) auto/)
     assert.match(source, /width: calc\(var\(--sailor-space-3\) \+ var\(--sailor-space-2\)\)/)
     assert.doesNotMatch(source, /visibility: hidden/)
+    assert.match(source, /width: max-content/)
+    assert.match(source, /min-width: 100%/)
     assert.match(source, /var\(--sailor-duration-base\)/)
     assert.doesNotMatch(source, /execution-node-tree__icon[\s\S]*background:/)
     assert.doesNotMatch(source, /execution-node-tree__icon[\s\S]*border:/)
+
+    const detail = read('ExecutionRunDetail.vue')
+    assert.match(detail, /overflow: auto/)
+  })
+
+  it('loads real catalog and plugin presentation for execution nodes', () => {
+    const source = read('ExecutionRunExplorer.vue')
+
+    assert.match(source, /workflowNodesApi\.getCatalog/)
+    assert.match(source, /pluginsApi\.getAll/)
+    assert.match(source, /resolvePluginIcon/)
+    assert.match(source, /nodePresentations/)
   })
 
   it('shows the selected real icon and guarded text payload details', () => {

@@ -29,7 +29,10 @@ function activate(node: ExecutionRunTreeNode) {
       v-for="(node, index) in props.nodes"
       :key="node.id"
       class="execution-node-tree__branch"
-      :class="{ 'execution-node-tree__branch--has-next': index < props.nodes.length - 1 }"
+      :class="{
+        'execution-node-tree__branch--first': index === 0,
+        'execution-node-tree__branch--has-next': index < props.nodes.length - 1,
+      }"
     >
       <BaseButton
         class="execution-node-tree__row"
@@ -74,7 +77,8 @@ function activate(node: ExecutionRunTreeNode) {
 <style scoped>
 .execution-node-tree {
   display: grid;
-  min-width: 0;
+  width: max-content;
+  min-width: 100%;
   gap: var(--sailor-space-2);
 }
 
@@ -102,10 +106,15 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree--nested > .execution-node-tree__branch::after {
   content: '';
   position: absolute;
-  top: calc(-1 * var(--sailor-space-2));
+  top: 0;
   left: calc(-1 * var(--sailor-space-3));
-  height: calc(18px + var(--sailor-space-2));
+  height: 18px;
   border-left: 1px solid var(--sailor-border-strong);
+}
+
+.execution-node-tree--nested > .execution-node-tree__branch--first::after {
+  top: calc(-1 * var(--sailor-space-2));
+  height: calc(18px + var(--sailor-space-2));
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch--has-next::after {

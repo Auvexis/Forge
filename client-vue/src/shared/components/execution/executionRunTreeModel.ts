@@ -6,7 +6,11 @@ import type {
   WorkflowExecutionStatus,
 } from '@/core/types/execution.types'
 import type { WorkflowItem, WorkflowNode } from '@/core/types/workflow.types'
-import type { ExecutionRunDetailModel, ExecutionRunTreeNode } from './executionRunTree.types.ts'
+import type {
+  ExecutionNodePresentation,
+  ExecutionRunDetailModel,
+  ExecutionRunTreeNode,
+} from './executionRunTree.types.ts'
 
 const NODE_ICON: Record<string, string> = {
   trigger: 'play',
@@ -95,6 +99,7 @@ export function buildLiveExecutionLog(input: {
 export function buildExecutionRunDetail(input: {
   workflow: WorkflowItem | null
   run: ExecutionLog
+  nodePresentations?: Record<string, ExecutionNodePresentation>
 }): ExecutionRunDetailModel {
   const steps = input.run.context.steps ?? {}
   const executedIds = Object.keys(steps)
@@ -116,7 +121,13 @@ export function buildExecutionRunDetail(input: {
 
   const nodesById: Record<string, ExecutionRunTreeNode | undefined> = {}
   for (const nodeId of executedIds) {
-    nodesById[nodeId] = createTreeNode(nodeId, steps[nodeId]!, input.workflow, parentByChild.get(nodeId) ?? null)
+    nodesById[nodeId] = createTreeNode(
+      nodeId,
+      steps[nodeId]!,
+      input.workflow,
+      parentByChild.get(nodeId) ?? null,
+      input.nodePresentations,
+    )
   }
 
   const attachChildren = (node: ExecutionRunTreeNode, ancestors: Set<string>) => {
@@ -151,17 +162,19 @@ function createTreeNode(
   step: ExecutionStep,
   workflow: WorkflowItem | null,
   parentId: string | null,
+  nodePresentations?: Record<string, ExecutionNodePresentation>,
 ): ExecutionRunTreeNode {
   const node = workflow?.nodes[nodeId] as WorkflowNode | undefined
   const type = node?.type ?? 'unknown'
+  const presentation = nodePresentations?.[nodeId] ?? nodePresentations?.[type]
   return {
     id: nodeId,
     nodeId,
     parentId,
     name: node?.name || nodeId,
     type,
-    icon: node?.ui?.icon || NODE_ICON[type] || 'box',
-    iconColor: NODE_ICON_COLOR[type] || 'var(--sailor-text-secondary)',
+    icon: presentation?.icon || node?.ui?.icon || NODE_ICON[type] || 'box',
+    iconColor: presentation?.iconColor || NODE_ICON_COLOR[type] || 'var(--sailor-text-secondary)',
     status: normalizeNodeStatus(step.status),
     startedAt: step.startedAt,
     endedAt: step.endedAt,

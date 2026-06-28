@@ -20,6 +20,11 @@ export interface ExecutionRunTreeNode {
   children: ExecutionRunTreeNode[]
 }
 
+export interface ExecutionNodePresentation {
+  icon: string
+  iconColor: string
+}
+
 export interface ExecutionRunDetailModel {
   id: string
   workflowId: string
