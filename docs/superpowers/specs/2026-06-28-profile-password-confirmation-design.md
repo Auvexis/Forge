@@ -51,3 +51,33 @@ Add contract tests for the shared dialog and both integrations. Cover protected 
 - [x] Gate protected Agents profile switches.
 - [x] Run focused tests, type-check, and build.
 - [x] Update `feats-map/` and commit each completed task.
+
+## Panel profile selector follow-up
+
+### Monitoring Panel
+
+- Remove the Global profile option.
+- Select the active profile whenever the panel opens.
+- Ignore repeated selection before checking password protection.
+- Remove automatic polling and refresh only on open or explicit user action.
+
+### Agents Panel
+
+- Replace the custom profile menu with `BaseDropdownSelect`.
+- Keep active-profile switching and password confirmation behavior.
+- Ignore repeated selection before checking password protection.
+- Render no numeric placeholder when the agent list is empty.
+
+### Dialog backdrop
+
+Add a reusable modal backdrop variant to `AppDialog`. The profile password dialog uses the same `rgba(0, 0, 0, 0.55)` backdrop as `BaseModal`, without the blue tint.
+
+### Follow-up tasks
+
+- [ ] Add failing Monitoring selector and refresh tests.
+- [ ] Remove Global, default to active profile, and remove polling.
+- [ ] Add failing Agents selector and empty-state tests.
+- [ ] Migrate Agents to `BaseDropdownSelect` and remove the zero placeholder.
+- [ ] Add failing backdrop contract test.
+- [ ] Match the password dialog backdrop to `BaseModal`.
+- [ ] Run focused tests, type-check, and build.
