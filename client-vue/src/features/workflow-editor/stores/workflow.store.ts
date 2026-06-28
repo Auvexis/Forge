@@ -257,10 +257,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     localStorage.removeItem(draftStorageKey.value)
   }
 
-  function discardDraft() {
-    clearDraft()
-  }
-
   function recoverDraft(workflowId: string): boolean {
     const raw = localStorage.getItem(`sailor.workflow-draft.${workflowId}`)
     if (!raw) return false
@@ -418,7 +414,6 @@ export const useWorkflowStore = defineStore('workflow', () => {
     renameNode,
     saveActiveWorkflow,
     recoverDraft,
-    discardDraft,
     setAutosaveEnabled,
     undo,
     redo,

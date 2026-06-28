@@ -36,7 +36,6 @@ describe('workflow autosave contracts', () => {
     assert.match(storeSource, /function recoverDraft\(workflowId: string\): boolean/)
     assert.match(storeSource, /activeWorkflow\.value = parsed\.workflow/)
     assert.doesNotMatch(storeSource, /_savedSnapshot\.value = serializeForDiff\(parsed\.workflow\)/)
-    assert.match(storeSource, /function discardDraft\(\)[\s\S]*clearDraft\(\)/)
   })
 
   it('commits a complete node drag as one undo history entry', () => {

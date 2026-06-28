@@ -72,9 +72,17 @@ test('workflow editor route guard supports save discard and cancel', () => {
   assert.match(source, /async function confirmUnsavedWorkflowLeave\(\)/)
   assert.match(source, /if \(result === null\) return false/)
   assert.match(source, /if \(result\) return workflowStore\.saveActiveWorkflow\(\)/)
-  assert.match(source, /workflowStore\.discardDraft\(\)/)
+  assert.match(source, /discardWorkflowDraft\(localStorage, activeWorkflowId\)/)
   assert.match(source, /function handleClose\(\)[\s\S]*closeWorkflow\(\)/)
   assert.doesNotMatch(source, /function handleClose\(\)[\s\S]*confirmUnsavedWorkflowLeave\(\)[\s\S]*closeWorkflow\(\)/)
+})
+
+test('workflow editor discards the local draft after a confirmed browser reload', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /markWorkflowReloadDiscard\(sessionStorage, activeWorkflowId\)/)
+  assert.match(source, /window\.setTimeout\(\(\) => clearWorkflowReloadDiscard\(sessionStorage\), 0\)/)
+  assert.match(source, /consumeWorkflowReloadDiscard\(localStorage, sessionStorage\)/)
 })
 
 test('workflow editor opens dev session chat through global agent modal', () => {

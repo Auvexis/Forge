@@ -25,6 +25,12 @@ import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem, WorkflowNodeType } from '@/core/types/workflow.types'
 import { listWorkflowChatTriggers } from '@/features/workflow-editor/utils/workflowRunTrigger'
+import {
+  clearWorkflowReloadDiscard,
+  consumeWorkflowReloadDiscard,
+  discardWorkflowDraft,
+  markWorkflowReloadDiscard,
+} from '@/features/workflow-editor/utils/workflowDraftLifecycle'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const route = useRoute()
@@ -56,14 +62,25 @@ async function confirmUnsavedWorkflowLeave() {
 
   if (result === null) return false
   if (result) return workflowStore.saveActiveWorkflow()
-  workflowStore.discardDraft()
+  const activeWorkflowId = workflowStore.activeWorkflow?.metadata.id
+  if (activeWorkflowId) discardWorkflowDraft(localStorage, activeWorkflowId)
   return true
 }
 
 function handleBeforeUnload(event: BeforeUnloadEvent) {
   if (!workflowStore.isDirty) return
+  const activeWorkflowId = workflowStore.activeWorkflow?.metadata.id
+  if (activeWorkflowId) {
+    markWorkflowReloadDiscard(sessionStorage, activeWorkflowId)
+    window.setTimeout(() => clearWorkflowReloadDiscard(sessionStorage), 0)
+  }
   event.preventDefault()
   event.returnValue = ''
+}
+
+function recoverWorkflowDraft(workflowId: string) {
+  if (consumeWorkflowReloadDiscard(localStorage, sessionStorage)) return false
+  return workflowStore.recoverDraft(workflowId)
 }
 
 function handleClose() {
@@ -168,7 +185,7 @@ async function initWorkflow() {
       edges: [],
     }
     useWorkflowStore().setActiveWorkflow(newWorkflow)
-    useWorkflowStore().recoverDraft(newWorkflow.metadata.id)
+    recoverWorkflowDraft(newWorkflow.metadata.id)
     gitStatus.value = null
     return
   }
@@ -185,7 +202,7 @@ async function initWorkflow() {
   }
 
   useWorkflowStore().setActiveWorkflow(workflow)
-  useWorkflowStore().recoverDraft(workflow.metadata.id)
+  recoverWorkflowDraft(workflow.metadata.id)
   await loadWorkflowGitStatus(workflow.metadata.id)
 }
 
