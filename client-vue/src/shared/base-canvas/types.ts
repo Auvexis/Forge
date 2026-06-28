@@ -38,6 +38,10 @@ export interface BaseCanvasItemsMoveEvent {
   delta: BaseCanvasMoveDelta
 }
 
+export interface BaseCanvasItemDragEvent {
+  itemId: string
+}
+
 export interface BaseCanvasContextMenuEvent {
   screen: BaseCanvasPoint
   world: BaseCanvasPoint

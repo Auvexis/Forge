@@ -11,6 +11,10 @@ const pageSource = readFileSync(
   fileURLToPath(new URL('../../../../app/pages/WorkflowEditorPage.vue', import.meta.url)),
   'utf8',
 )
+const canvasSource = readFileSync(
+  fileURLToPath(new URL('../../components/WorkflowBaseCanvas.vue', import.meta.url)),
+  'utf8',
+)
 
 describe('workflow autosave contracts', () => {
   it('autosave only runs for persisted workflows and root drafts stay disabled', () => {
@@ -26,5 +30,13 @@ describe('workflow autosave contracts', () => {
     assert.match(storeSource, /catch \(error\)[\s\S]*return false/)
     assert.match(pageSource, /const saved = await workflowStore\.saveActiveWorkflow\(\)[\s\S]*if \(!saved\) return/)
     assert.match(pageSource, /if \(!saved\) return[\s\S]*await loadWorkflowGitStatus\(\)[\s\S]*router\.replace/)
+  })
+
+  it('commits a complete node drag as one undo history entry', () => {
+    assert.match(storeSource, /function beginHistoryTransaction\(\)/)
+    assert.match(storeSource, /function commitHistoryTransaction\(\)/)
+    assert.match(storeSource, /historyTransactionSnapshot/)
+    assert.match(canvasSource, /@item-drag-start="workflowStore\.beginHistoryTransaction"/)
+    assert.match(canvasSource, /@item-drag-end="workflowStore\.commitHistoryTransaction"/)
   })
 })

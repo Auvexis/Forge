@@ -69,6 +69,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   const undoStack = ref<string[]>([])
   const redoStack = ref<string[]>([])
   let suppressHistory = false
+  let historyTransactionSnapshot: string | null = null
   let autosaveTimer: number | null = null
 
   const isDirty = computed(() => {
@@ -307,6 +308,27 @@ export const useWorkflowStore = defineStore('workflow', () => {
     applySnapshot(redoStack.value.pop()!)
   }
 
+  function beginHistoryTransaction() {
+    if (!activeWorkflow.value || historyTransactionSnapshot) return
+    historyTransactionSnapshot = JSON.stringify(activeWorkflow.value)
+  }
+
+  function commitHistoryTransaction() {
+    const previousSnapshot = historyTransactionSnapshot
+    historyTransactionSnapshot = null
+    if (!activeWorkflow.value || !previousSnapshot) return
+
+    const snapshot = JSON.stringify(activeWorkflow.value)
+    const changed = serializeForDiff(activeWorkflow.value)
+      !== serializeForDiff(JSON.parse(previousSnapshot) as WorkflowItem)
+    if (!changed) return
+
+    undoStack.value.push(previousSnapshot)
+    if (undoStack.value.length > 50) undoStack.value.shift()
+    redoStack.value = []
+    _lastHistorySnapshot.value = snapshot
+  }
+
   function scheduleAutosave() {
     if (!activeWorkflow.value) return
     saveDraft()
@@ -321,6 +343,10 @@ export const useWorkflowStore = defineStore('workflow', () => {
     activeWorkflow,
     (workflow) => {
       if (!workflow || suppressHistory) return
+      if (historyTransactionSnapshot) {
+        scheduleAutosave()
+        return
+      }
       const snapshot = JSON.stringify(workflow)
       const diffSnapshot = serializeForDiff(workflow)
       const previousDiff = _lastHistorySnapshot.value
@@ -386,6 +412,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
     setAutosaveEnabled,
     undo,
     redo,
+    beginHistoryTransaction,
+    commitHistoryTransaction,
     deleteActiveWorkflow,
     deleteWorkflow,
   }

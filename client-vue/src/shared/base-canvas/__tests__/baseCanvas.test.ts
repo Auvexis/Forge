@@ -138,6 +138,8 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /defineEmits<\{[\s\S]*'update:viewport'/)
     assert.match(source, /'update:selection'/)
     assert.match(source, /'items-move'/)
+    assert.match(source, /'item-drag-start'/)
+    assert.match(source, /'item-drag-end'/)
     assert.match(source, /'canvas-click'/)
     assert.match(source, /'item-click'/)
     assert.match(source, /<slot name="item" :item="item"/)
@@ -165,6 +167,8 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /pointercancel/)
     assert.match(source, /stopActiveGestures/)
     assert.match(source, /window\.addEventListener\('blur', stopActiveGestures\)/)
+    assert.match(source, /emit\('item-drag-start', \{ itemId: item\.id \}\)/)
+    assert.match(source, /emit\('item-drag-end', \{ itemId: drag\.itemId \}\)/)
   })
 
   it('preserves marquee selection through the synthetic canvas click', () => {

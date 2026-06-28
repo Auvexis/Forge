@@ -16,6 +16,8 @@
       data-workflow-base-canvas
       :data-workflow-items-count="workflowItems.length"
       @items-move="handleItemsMove"
+      @item-drag-start="workflowStore.beginHistoryTransaction"
+      @item-drag-end="workflowStore.commitHistoryTransaction"
     >
       <template #item="{ item }">
         <WorkflowCanvasNodeHost

@@ -56,6 +56,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type {
   BaseCanvasItem,
   BaseCanvasContextMenuEvent,
+  BaseCanvasItemDragEvent,
   BaseCanvasItemsMoveEvent,
   BaseCanvasMarqueeBorderStyle,
   BaseCanvasPatternStyle,
@@ -119,6 +120,8 @@ const emit = defineEmits<{
   'update:viewport': [viewport: BaseCanvasViewport]
   'update:selection': [selection: string[]]
   'items-move': [event: BaseCanvasItemsMoveEvent]
+  'item-drag-start': [event: BaseCanvasItemDragEvent]
+  'item-drag-end': [event: BaseCanvasItemDragEvent]
   'canvas-click': [event: MouseEvent]
   'item-click': [itemId: string]
   'context-menu': [event: BaseCanvasContextMenuEvent]
@@ -344,6 +347,7 @@ function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
     emitted: { x: 0, y: 0 },
     pointerId: event.pointerId,
   }
+  emit('item-drag-start', { itemId: item.id })
   window.addEventListener('pointermove', moveItem)
   window.addEventListener('pointerup', stopItemDrag, { once: true })
   window.addEventListener('pointercancel', stopItemDrag, { once: true })
@@ -384,10 +388,12 @@ function moveItem(event: PointerEvent) {
 }
 
 function stopItemDrag() {
+  const drag = activeDrag.value
   activeDrag.value = null
   activeAlignmentGuides.value = []
   window.removeEventListener('pointermove', moveItem)
   window.removeEventListener('pointercancel', stopItemDrag)
+  if (drag) emit('item-drag-end', { itemId: drag.itemId })
 }
 
 function startMarqueeSelection(event: PointerEvent) {
