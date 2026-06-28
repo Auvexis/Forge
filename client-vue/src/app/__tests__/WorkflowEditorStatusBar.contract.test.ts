@@ -56,6 +56,27 @@ test('workflow editor saves with Ctrl+S or Cmd+S even inside editable fields', (
   assert.match(source, /if \(key === 's'\)[\s\S]*isEditableShortcutTarget/)
 })
 
+test('workflow editor protects dirty changes during navigation and browser reload', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /onBeforeRouteLeave\(async \(\) => confirmUnsavedWorkflowLeave\(\)\)/)
+  assert.match(source, /function handleBeforeUnload\(event: BeforeUnloadEvent\)/)
+  assert.match(source, /if \(!workflowStore\.isDirty\) return[\s\S]*event\.preventDefault\(\)[\s\S]*event\.returnValue = ''/)
+  assert.match(source, /window\.addEventListener\('beforeunload', handleBeforeUnload\)/)
+  assert.match(source, /window\.removeEventListener\('beforeunload', handleBeforeUnload\)/)
+})
+
+test('workflow editor route guard supports save discard and cancel', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /async function confirmUnsavedWorkflowLeave\(\)/)
+  assert.match(source, /if \(result === null\) return false/)
+  assert.match(source, /if \(result\) return workflowStore\.saveActiveWorkflow\(\)/)
+  assert.match(source, /workflowStore\.discardDraft\(\)/)
+  assert.match(source, /function handleClose\(\)[\s\S]*closeWorkflow\(\)/)
+  assert.doesNotMatch(source, /function handleClose\(\)[\s\S]*confirmUnsavedWorkflowLeave\(\)[\s\S]*closeWorkflow\(\)/)
+})
+
 test('workflow editor opens dev session chat through global agent modal', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 

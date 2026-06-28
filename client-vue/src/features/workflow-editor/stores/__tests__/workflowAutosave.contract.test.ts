@@ -32,6 +32,13 @@ describe('workflow autosave contracts', () => {
     assert.match(pageSource, /if \(!saved\) return[\s\S]*await loadWorkflowGitStatus\(\)[\s\S]*router\.replace/)
   })
 
+  it('recovers local drafts as unsaved changes instead of saved state', () => {
+    assert.match(storeSource, /function recoverDraft\(workflowId: string\): boolean/)
+    assert.match(storeSource, /activeWorkflow\.value = parsed\.workflow/)
+    assert.doesNotMatch(storeSource, /_savedSnapshot\.value = serializeForDiff\(parsed\.workflow\)/)
+    assert.match(storeSource, /function discardDraft\(\)[\s\S]*clearDraft\(\)/)
+  })
+
   it('commits a complete node drag as one undo history entry', () => {
     assert.match(storeSource, /function beginHistoryTransaction\(\)/)
     assert.match(storeSource, /function commitHistoryTransaction\(\)/)

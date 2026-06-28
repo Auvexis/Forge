@@ -22,7 +22,7 @@ import { useToast } from '@/shared/composables/useToast'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchRefresh'
 import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import type { WorkflowItem, WorkflowNodeType } from '@/core/types/workflow.types'
 import { listWorkflowChatTriggers } from '@/features/workflow-editor/utils/workflowRunTrigger'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -44,28 +44,29 @@ const { closeWorkflow, exportWorkflow } = useWorkflowActions()
 const { confirm } = useConfirm()
 const toast = useToast()
 
-// ── Close with dirty-check guard ──────────────────────────────────────────
-async function handleClose() {
-  if (!workflowStore.isDirty) {
-    closeWorkflow()
-    return
-  }
-
+async function confirmUnsavedWorkflowLeave() {
+  if (!workflowStore.isDirty) return true
   const result = await confirm({
     title: 'Unsaved changes',
     message: 'This workflow has unsaved changes. Do you want to save before leaving?',
-    confirmText: 'Save & Close',
-    cancelText: 'Discard & Close',
+    confirmText: 'Save & Leave',
+    cancelText: 'Discard & Leave',
     variant: 'warning',
   })
 
-  // null = dismissed via X / backdrop → stay on page, do nothing
-  if (result === null) return
+  if (result === null) return false
+  if (result) return workflowStore.saveActiveWorkflow()
+  workflowStore.discardDraft()
+  return true
+}
 
-  if (result) {
-    await workflowStore.saveActiveWorkflow()
-  }
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!workflowStore.isDirty) return
+  event.preventDefault()
+  event.returnValue = ''
+}
 
+function handleClose() {
   closeWorkflow()
 }
 
@@ -415,6 +416,7 @@ watch(
 onMounted(() => {
   initWorkflow()
   window.addEventListener('keydown', handleWorkflowEditorShortcut)
+  window.addEventListener('beforeunload', handleBeforeUnload)
   window.addEventListener('sailor:command-palette:intent', handleUiIntent)
   window.addEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
@@ -423,9 +425,12 @@ onMounted(() => {
 onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
   window.removeEventListener('keydown', handleWorkflowEditorShortcut)
+  window.removeEventListener('beforeunload', handleBeforeUnload)
   window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
   window.removeEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
+
+onBeforeRouteLeave(async () => confirmUnsavedWorkflowLeave())
 
 watch(() => route.params.id, () => {
   initWorkflow()

@@ -257,14 +257,23 @@ export const useWorkflowStore = defineStore('workflow', () => {
     localStorage.removeItem(draftStorageKey.value)
   }
 
+  function discardDraft() {
+    clearDraft()
+  }
+
   function recoverDraft(workflowId: string): boolean {
     const raw = localStorage.getItem(`sailor.workflow-draft.${workflowId}`)
     if (!raw) return false
     try {
       const parsed = JSON.parse(raw) as { workflow?: WorkflowItem }
       if (!parsed.workflow) return false
-      setActiveWorkflow(parsed.workflow)
-      _savedSnapshot.value = serializeForDiff(parsed.workflow)
+      suppressHistory = true
+      activeWorkflow.value = parsed.workflow
+      _lastHistorySnapshot.value = JSON.stringify(parsed.workflow)
+      undoStack.value = []
+      redoStack.value = []
+      graphUpdateTrigger.value++
+      suppressHistory = false
       return true
     } catch {
       return false
@@ -409,6 +418,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     renameNode,
     saveActiveWorkflow,
     recoverDraft,
+    discardDraft,
     setAutosaveEnabled,
     undo,
     redo,
