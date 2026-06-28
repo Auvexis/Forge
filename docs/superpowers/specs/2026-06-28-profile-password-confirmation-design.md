@@ -40,3 +40,14 @@ Password validation errors are contained in the dialog and cleared from the shar
 ## Tests
 
 Add contract tests for the shared dialog and both integrations. Cover protected and unprotected selection, password forwarding, cancellation preserving state, validation errors, and use of `AppDialog.vue`.
+
+## Implementation tasks
+
+- [ ] Add failing shared dialog contract tests.
+- [ ] Implement the shared confirmation dialog.
+- [ ] Add failing Monitoring Panel integration tests.
+- [ ] Gate protected Monitoring profile filters.
+- [ ] Add failing Agents Panel integration tests.
+- [ ] Gate protected Agents profile switches.
+- [ ] Run focused tests, type-check, and build.
+- [ ] Update `feats-map/` and commit each completed task.
