@@ -4,7 +4,10 @@
       <div
         v-if="modelValue"
         class="app-dialog-backdrop"
-        :class="{ 'app-dialog-backdrop--top': layer === 'top' }"
+        :class="{
+          'app-dialog-backdrop--top': layer === 'top',
+          'app-dialog-backdrop--modal': backdrop === 'modal',
+        }"
         @click="onBackdropClick"
       >
         <Transition name="scale" appear>
@@ -56,11 +59,13 @@ const props = withDefaults(
     maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
     closeOnBackdrop?: boolean
     layer?: 'default' | 'top'
+    backdrop?: 'default' | 'modal'
   }>(),
   {
     maxWidth: 'md',
     closeOnBackdrop: true,
     layer: 'default',
+    backdrop: 'default',
   },
 )
 
@@ -121,6 +126,11 @@ onUnmounted(() => {
 
 .app-dialog-backdrop--top {
   z-index: 10020;
+}
+
+.app-dialog-backdrop--modal {
+  background-color: rgba(0, 0, 0, 0.55);
+  backdrop-filter: none;
 }
 
 .app-dialog {

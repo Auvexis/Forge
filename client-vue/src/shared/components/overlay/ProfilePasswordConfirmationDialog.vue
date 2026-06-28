@@ -5,6 +5,7 @@
     description="Enter this profile's password to continue."
     max-width="sm"
     layer="top"
+    backdrop="modal"
     @close="cancel"
   >
     <form class="profile-password-dialog__form" @submit.prevent="confirm">

@@ -6,6 +6,8 @@ import { describe, it } from 'node:test'
 const dialogPath = fileURLToPath(
   new URL('../ProfilePasswordConfirmationDialog.vue', import.meta.url),
 )
+const appDialogPath = fileURLToPath(new URL('../AppDialog.vue', import.meta.url))
+const baseModalPath = fileURLToPath(new URL('../../base/BaseModal.vue', import.meta.url))
 
 describe('profile password confirmation dialog contract', () => {
   it('composes AppDialog with a secure password form', () => {
@@ -40,5 +42,16 @@ describe('profile password confirmation dialog contract', () => {
     assert.match(source, /verificationAttempt/)
     assert.match(source, /attempt !== verificationAttempt/)
     assert.match(source, /finally[\s\S]*isVerifying\.value = false/)
+  })
+
+  it('uses the same neutral backdrop color as BaseModal', () => {
+    const source = readFileSync(dialogPath, 'utf8')
+    const appDialog = readFileSync(appDialogPath, 'utf8')
+    const baseModal = readFileSync(baseModalPath, 'utf8')
+
+    assert.match(source, /backdrop="modal"/)
+    assert.match(appDialog, /app-dialog-backdrop--modal/)
+    assert.match(appDialog, /background-color: rgba\(0, 0, 0, 0\.55\)/)
+    assert.match(baseModal, /background: rgba\(0, 0, 0, 0\.55\)/)
   })
 })

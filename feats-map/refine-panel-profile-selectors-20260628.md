@@ -4,5 +4,5 @@
 - [x] Refine Monitoring profile selection
 - [x] Standardize Agents profile dropdown
 - [x] Remove Agents empty zero
-- [ ] Match password dialog backdrop
+- [x] Match password dialog backdrop
 - [ ] Validate frontend
