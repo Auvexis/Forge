@@ -105,13 +105,13 @@
 - [x] Remover feature flag quando estável.
 
 ## Batch 10 - Estado e atalhos do editor
-- [ ] Corrigir o toggle duplicado de `disabled` na Node Toolbar.
-- [ ] Garantir que disable/enable use a store como fonte única.
-- [ ] Adicionar `Ctrl/Cmd + Z` para Undo.
-- [ ] Adicionar `Ctrl/Cmd + Y` para Redo.
-- [ ] Adicionar `Ctrl/Cmd + B` para alternar o Add Node Panel.
-- [ ] Ignorar atalhos em inputs, editores e campos editáveis.
-- [ ] Adicionar testes e executar type-check.
+- [x] Corrigir o toggle duplicado de `disabled` na Node Toolbar.
+- [x] Garantir que disable/enable use a store como fonte única.
+- [x] Adicionar `Ctrl/Cmd + Z` para Undo.
+- [x] Adicionar `Ctrl/Cmd + Y` para Redo.
+- [x] Adicionar `Ctrl/Cmd + B` para alternar o Add Node Panel.
+- [x] Ignorar atalhos em inputs, editores e campos editáveis.
+- [x] Adicionar testes e executar type-check.
 
 ## Batch 11 - Node Picker no canvas vazio
 - [ ] Reintroduzir o Node Picker flutuante no `WorkflowBaseCanvas`.

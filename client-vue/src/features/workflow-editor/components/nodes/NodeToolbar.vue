@@ -65,9 +65,6 @@ function deleteNode() {
 
 function toggleDisabled() {
   toolbarBus.emit({ action: 'disable', nodeId: props.nodeId })
-  const node = workflowStore.activeWorkflow?.nodes[props.nodeId]
-  if (!node) return
-  node.disabled = !node.disabled
 }
 </script>
 

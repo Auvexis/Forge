@@ -13,7 +13,7 @@ import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/Work
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
-import { useAppPanelStore } from '@/shared/stores/app-panel.store'
+import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useApi } from '@/shared/composables/useApi'
@@ -304,8 +304,8 @@ function openExecutionPanel() {
   })
 }
 
-function openGlobalAddNodePanel() {
-  appPanelStore.openPanel({
+function openGlobalAddNodePanel(toggle = false) {
+  const panel: AppPanelConfig = {
     id: 'workflow-global-add-node-panel',
     title: 'Add Node',
     component: markRaw(GlobalAddNodePanel),
@@ -330,7 +330,33 @@ function openGlobalAddNodePanel() {
         point: { x: number; y: number },
       ) => canvasRef.value?.addPluginNodeAtScreenPoint(pluginId, action, actionName, point),
     },
-  })
+  }
+  if (toggle) appPanelStore.togglePanel(panel)
+  else appPanelStore.openPanel(panel)
+}
+
+function handleWorkflowEditorShortcut(event: KeyboardEvent) {
+  if (!(event.ctrlKey || event.metaKey) || isEditableShortcutTarget(event.target)) return
+  const key = event.key.toLowerCase()
+  if (key === 'z' && !event.shiftKey) {
+    event.preventDefault()
+    workflowStore.undo()
+    return
+  }
+  if (key === 'y') {
+    event.preventDefault()
+    workflowStore.redo()
+    return
+  }
+  if (key === 'b') {
+    event.preventDefault()
+    openGlobalAddNodePanel(true)
+  }
+}
+
+function isEditableShortcutTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'))
 }
 
 function openDevSessionChat(targetTriggerNodeId?: string) {
@@ -382,6 +408,7 @@ watch(
 
 onMounted(() => {
   initWorkflow()
+  window.addEventListener('keydown', handleWorkflowEditorShortcut)
   window.addEventListener('sailor:command-palette:intent', handleUiIntent)
   window.addEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
@@ -389,6 +416,7 @@ onMounted(() => {
 // Limpa o store ao sair da página para que o canvas arranque sem dados obsoletos
 onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
+  window.removeEventListener('keydown', handleWorkflowEditorShortcut)
   window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
   window.removeEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })

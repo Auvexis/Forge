@@ -36,6 +36,19 @@ test('workflow editor status bar tracks active panel state from app panel id', (
   assert.match(source, /agentPanelUi\.close\(\)/)
 })
 
+test('workflow editor exposes undo redo and add-node keyboard shortcuts outside editable fields', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /handleWorkflowEditorShortcut/)
+  assert.match(source, /isEditableShortcutTarget/)
+  assert.match(source, /workflowStore\.undo\(\)/)
+  assert.match(source, /workflowStore\.redo\(\)/)
+  assert.match(source, /openGlobalAddNodePanel\(true\)/)
+  assert.match(source, /event\.key\.toLowerCase\(\)/)
+  assert.match(source, /window\.addEventListener\('keydown', handleWorkflowEditorShortcut\)/)
+  assert.match(source, /window\.removeEventListener\('keydown', handleWorkflowEditorShortcut\)/)
+})
+
 test('workflow editor opens dev session chat through global agent modal', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 

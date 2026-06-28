@@ -37,6 +37,8 @@ describe('workflow editor polish contracts', () => {
     assert.match(toolbar, /toggleDisabled/)
     assert.match(toolbar, /isNodeDisabled/)
     assert.match(toolbar, /title="Disable node"/)
+    assert.match(toolbar, /toolbarBus\.emit\(\{ action: 'disable', nodeId: props\.nodeId \}\)/)
+    assert.doesNotMatch(toolbar, /function toggleDisabled\(\)[\s\S]*node\.disabled = !node\.disabled/)
     assert.match(baseNode, /is-disabled/)
     assert.match(baseNode, /opacity: 0\.45/)
     assert.match(triggerNode, /is-disabled/)
