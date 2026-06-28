@@ -5,4 +5,4 @@
 - [x] Standardize Agents profile dropdown
 - [x] Remove Agents empty zero
 - [x] Match password dialog backdrop
-- [ ] Validate frontend
+- [x] Validate frontend
