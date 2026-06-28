@@ -20,7 +20,7 @@ Invalid passwords keep the dialog open and show `Invalid password`. Duplicate su
 - Selecting a protected profile stores it as pending and opens the confirmation dialog.
 - Confirmation applies the pending filter without changing the active global profile.
 - Cancellation or validation failure preserves the previous filter.
-- The Global option never requires confirmation.
+- The active profile is selected when the panel opens; there is no Global option.
 
 ## Agents Panel flow
 
