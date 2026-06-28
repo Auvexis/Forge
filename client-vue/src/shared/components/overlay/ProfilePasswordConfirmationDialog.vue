@@ -4,6 +4,7 @@
     :title="`Unlock ${profile.name}`"
     description="Enter this profile's password to continue."
     max-width="sm"
+    layer="top"
     @close="cancel"
   >
     <form class="profile-password-dialog__form" @submit.prevent="confirm">

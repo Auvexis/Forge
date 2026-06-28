@@ -33,6 +33,18 @@ describe('global automation monitor shell', () => {
     assert.match(source, /profileOptions/)
   })
 
+  it('confirms protected profile filters without switching the active profile', () => {
+    const source = readFileSync(monitorPath, 'utf8')
+
+    assert.match(source, /ProfilePasswordConfirmationDialog/)
+    assert.match(source, /pendingProfile/)
+    assert.match(source, /profile\?\.passwordProtected/)
+    assert.match(source, /confirmProtectedProfile/)
+    assert.match(source, /cancelProtectedProfile/)
+    assert.match(source, /applyProfileSelection/)
+    assert.doesNotMatch(source, /profileStore\.switchProfile/)
+  })
+
   it('uses a task-manager style sidebar and a workflow execution view with trigger tabs', () => {
     const source = readFileSync(monitorPath, 'utf8')
 

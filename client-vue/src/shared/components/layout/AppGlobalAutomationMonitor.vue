@@ -131,6 +131,14 @@
       </main>
     </section>
   </BaseModal>
+
+  <ProfilePasswordConfirmationDialog
+    v-if="pendingProfile"
+    :model-value="Boolean(pendingProfile)"
+    :profile="pendingProfile"
+    @confirmed="confirmProtectedProfile"
+    @cancel="cancelProtectedProfile"
+  />
 </template>
 
 <script lang="ts">
@@ -150,11 +158,13 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import ExecutionRunExplorer from '@/shared/components/execution/ExecutionRunExplorer.vue'
+import ProfilePasswordConfirmationDialog from '@/shared/components/overlay/ProfilePasswordConfirmationDialog.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
 import type { ExecutionLog } from '@/core/types/execution.types'
 import { useToast } from '@/shared/composables/useToast'
 import { useProfileStore } from '@/shared/stores/profile.store'
+import type { ProfileSummary } from '@/core/api/profiles.api'
 
 const toast = useToast()
 const profileStore = useProfileStore()
@@ -162,6 +172,7 @@ const loading = ref(false)
 const sidebarCollapsed = ref(false)
 const workflows = ref<ProductionWorkflowStatus[]>([])
 const selectedProfileId = ref<string | null>(null)
+const pendingProfile = ref<ProfileSummary | null>(null)
 const selectedWorkflowKey = ref<string | null>(null)
 const selectedExecutions = ref<ExecutionLog[]>([])
 const activeTriggerTabId = ref('all')
@@ -262,8 +273,33 @@ function workflowKey(workflow: ProductionWorkflowStatus): string {
 }
 
 function selectProfile(profileId: string | null) {
+  if (!profileId) {
+    applyProfileSelection(null)
+    return
+  }
+
+  const profile = profileStore.profiles.find((item) => item.id === profileId)
+  if (profile?.passwordProtected) {
+    pendingProfile.value = profile
+    return
+  }
+
+  applyProfileSelection(profileId)
+}
+
+function applyProfileSelection(profileId: string | null) {
   selectedProfileId.value = profileId
   ensureSelectedWorkflow()
+}
+
+function confirmProtectedProfile() {
+  const profileId = pendingProfile.value?.id
+  pendingProfile.value = null
+  if (profileId) applyProfileSelection(profileId)
+}
+
+function cancelProtectedProfile() {
+  pendingProfile.value = null
 }
 
 function selectWorkflow(workflow: ProductionWorkflowStatus) {

@@ -1,7 +1,12 @@
 <template>
   <Teleport to="body">
     <Transition name="fade">
-      <div v-if="modelValue" class="app-dialog-backdrop" @click="onBackdropClick">
+      <div
+        v-if="modelValue"
+        class="app-dialog-backdrop"
+        :class="{ 'app-dialog-backdrop--top': layer === 'top' }"
+        @click="onBackdropClick"
+      >
         <Transition name="scale" appear>
           <div
             v-if="modelValue"
@@ -50,10 +55,12 @@ const props = withDefaults(
     description?: string
     maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
     closeOnBackdrop?: boolean
+    layer?: 'default' | 'top'
   }>(),
   {
     maxWidth: 'md',
     closeOnBackdrop: true,
+    layer: 'default',
   },
 )
 
@@ -110,6 +117,10 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   padding: var(--sailor-space-4);
+}
+
+.app-dialog-backdrop--top {
+  z-index: 10020;
 }
 
 .app-dialog {

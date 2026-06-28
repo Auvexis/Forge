@@ -12,6 +12,7 @@ describe('profile password confirmation dialog contract', () => {
     const source = readFileSync(dialogPath, 'utf8')
 
     assert.match(source, /<AppDialog/)
+    assert.match(source, /layer="top"/)
     assert.match(source, /type="password"/)
     assert.match(source, /autocomplete="current-password"/)
     assert.match(source, /@submit\.prevent="confirm"/)
