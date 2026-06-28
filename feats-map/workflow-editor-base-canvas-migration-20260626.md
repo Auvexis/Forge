@@ -103,3 +103,29 @@
 - [x] Remover pacotes npm `@vue-flow/core` e `@vue-flow/background`.
 - [x] Atualizar testes antigos que assumem Vue Flow.
 - [x] Remover feature flag quando estável.
+
+## Batch 10 - Estado e atalhos do editor
+- [ ] Corrigir o toggle duplicado de `disabled` na Node Toolbar.
+- [ ] Garantir que disable/enable use a store como fonte única.
+- [ ] Adicionar `Ctrl/Cmd + Z` para Undo.
+- [ ] Adicionar `Ctrl/Cmd + Y` para Redo.
+- [ ] Adicionar `Ctrl/Cmd + B` para alternar o Add Node Panel.
+- [ ] Ignorar atalhos em inputs, editores e campos editáveis.
+- [ ] Adicionar testes e executar type-check.
+
+## Batch 11 - Node Picker no canvas vazio
+- [ ] Reintroduzir o Node Picker flutuante no `WorkflowBaseCanvas`.
+- [ ] Abrir o picker com botão direito apenas no canvas vazio.
+- [ ] Posicionar o picker no cursor e o novo node no world point correspondente.
+- [ ] Fechar e limpar o contexto ao cancelar ou selecionar.
+- [ ] Preservar pan, marquee, seleção e menu de nodes.
+- [ ] Adicionar testes e executar type-check.
+
+## Batch 12 - Drop de conexão no Node Picker
+- [ ] Trocar a preview edge vermelha pelo token selecionado do canvas.
+- [ ] Emitir o handle e a posição ao soltar uma conexão no vazio.
+- [ ] Abrir o mesmo Node Picker para source e target handles.
+- [ ] Conectar automaticamente o node escolhido na direção correta.
+- [ ] Alinhar os handles e preservar source/target handle IDs.
+- [ ] Limpar drafts ao cancelar e impedir edges parciais.
+- [ ] Adicionar testes focados e executar type-check.
