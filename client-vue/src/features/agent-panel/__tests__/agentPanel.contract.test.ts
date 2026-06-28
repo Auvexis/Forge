@@ -70,6 +70,15 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(directory, /profileMenuOpen/)
   })
 
+  it('keeps an empty agent directory visually blank', () => {
+    const directory = readFileSync(
+      'src/features/agent-panel/components/AgentDirectoryList.vue',
+      'utf8',
+    )
+
+    assert.doesNotMatch(directory, />\s*0\s*<\/div>/)
+  })
+
   it('chat view renders messages and sends through the agent panel api', () => {
     const view = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const composer = readFileSync(

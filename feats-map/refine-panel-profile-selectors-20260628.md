@@ -3,6 +3,6 @@
 - [x] Analyze selector and refresh behavior
 - [x] Refine Monitoring profile selection
 - [x] Standardize Agents profile dropdown
-- [ ] Remove Agents empty zero
+- [x] Remove Agents empty zero
 - [ ] Match password dialog backdrop
 - [ ] Validate frontend

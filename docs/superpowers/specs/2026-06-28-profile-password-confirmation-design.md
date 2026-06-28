@@ -78,8 +78,8 @@ Add a reusable modal backdrop variant to `AppDialog`. The profile password dialo
 - [x] Remove Global, default to active profile, and remove polling.
 - [x] Add failing Agents selector test.
 - [x] Migrate Agents to `BaseDropdownSelect`.
-- [ ] Add failing Agents empty-state test.
-- [ ] Remove the Agents zero placeholder.
+- [x] Add failing Agents empty-state test.
+- [x] Remove the Agents zero placeholder.
 - [ ] Add failing backdrop contract test.
 - [ ] Match the password dialog backdrop to `BaseModal`.
 - [ ] Run focused tests, type-check, and build.

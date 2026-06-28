@@ -46,9 +46,6 @@
           <span class="agent-directory-list__emoji">{{ agent.emoji }}</span>
         </BaseButton>
       </div>
-      <div v-if="!store.loading && !store.directoryError && !store.filteredAgents.length" class="agent-directory-list__state">
-        0
-      </div>
     </div>
 
     <footer class="agent-directory-list__footer">
