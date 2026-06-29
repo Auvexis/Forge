@@ -55,7 +55,7 @@ const ariaLabel = computed(() =>
   padding: 0 var(--sailor-space-1);
   border: 1px solid var(--sailor-bg-surface);
   border-radius: var(--sailor-radius-full);
-  background: var(--sailor-red-500);
+  background: var(--sailor-bg-inverse);
   color: var(--sailor-text-inverse);
   font-size: var(--sailor-text-xs);
   font-weight: var(--sailor-font-bold);

@@ -8,33 +8,47 @@
       No notifications
     </p>
 
-    <button
-      v-for="notification in notificationStore.filteredNotifications"
-      v-else
-      :key="notification.id"
-      type="button"
-      class="notification-list__item"
-      :class="[
-        `notification-list__item--${notification.level}`,
-        { 'notification-list__item--unread': !notification.isRead },
-      ]"
-      @click="select(notification.id)"
-    >
-      <span class="notification-list__level">{{ levelLabel(notification.level) }}</span>
-      <span class="notification-list__content">
-        <strong>{{ notification.title ?? notification.message }}</strong>
-        <span v-if="notification.title">{{ notification.message }}</span>
-        <small>{{ categoryLabel(notification.category) }} · {{ formatDate(notification.lastOccurredAt) }}</small>
-      </span>
-      <span v-if="notification.occurrenceCount > 1" class="notification-list__count">
-        {{ notification.occurrenceCount }}
-      </span>
-    </button>
+    <TransitionGroup v-else name="notification-list" tag="div" class="notification-list__items">
+      <article
+        v-for="notification in notificationStore.filteredNotifications"
+        :key="notification.id"
+        class="notification-list__item"
+        :class="[
+          `notification-list__item--${notification.level}`,
+          {
+            'notification-list__item--unread': !notification.isRead,
+            'notification-list__item--read': notification.isRead,
+          },
+        ]"
+      >
+        <button type="button" class="notification-list__open" @click="select(notification.id)">
+          <span class="notification-list__level">{{ levelLabel(notification.level) }}</span>
+          <span class="notification-list__content">
+            <strong>{{ notification.title ?? notification.message }}</strong>
+            <span v-if="notification.title">{{ notification.message }}</span>
+            <small>{{ categoryLabel(notification.category) }} - {{ formatDate(notification.lastOccurredAt) }}</small>
+          </span>
+          <span v-if="notification.occurrenceCount > 1" class="notification-list__count">
+            {{ notification.occurrenceCount }}
+          </span>
+        </button>
+        <BaseButton
+          type="button"
+          class="notification-list__delete"
+          variant="ghost"
+          size="icon"
+          iconLeft="trash-2"
+          aria-label="Delete notification"
+          @click="deleteNotification(notification.id)"
+        />
+      </article>
+    </TransitionGroup>
   </section>
 </template>
 
 <script setup lang="ts">
 import type { NotificationLevel } from '@/core/types/notification.types'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { useNotificationStore } from '@/shared/stores/notification.store'
 
 const emit = defineEmits<{ select: [notificationId: string] }>()
@@ -42,6 +56,10 @@ const notificationStore = useNotificationStore()
 
 function select(notificationId: string) {
   emit('select', notificationId)
+}
+
+function deleteNotification(notificationId: string) {
+  void notificationStore.deleteOne(notificationId)
 }
 
 function levelLabel(level: NotificationLevel) {
@@ -70,6 +88,9 @@ function formatDate(value: string) {
 .notification-list {
   display: grid;
   gap: var(--sailor-space-2);
+  max-height: calc(100vh - var(--sailor-space-12) - var(--sailor-space-12) - var(--sailor-space-8));
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .notification-list__state {
@@ -83,28 +104,58 @@ function formatDate(value: string) {
   color: var(--sailor-text-error);
 }
 
-.notification-list__item {
+.notification-list__items {
+  position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--sailor-space-3);
+  gap: var(--sailor-space-2);
+}
+
+.notification-list__item {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   width: 100%;
-  padding: var(--sailor-space-3);
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
   color: var(--sailor-text-primary);
-  text-align: left;
-  cursor: pointer;
+  transition:
+    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
+    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
 }
 
 .notification-list__item:hover,
-.notification-list__item:focus-visible {
+.notification-list__item:focus-within {
   border-color: var(--sailor-border-strong);
   background: var(--sailor-bg-elevated);
 }
 
 .notification-list__item--unread {
-  border-color: var(--sailor-border-brand);
+  color: var(--sailor-text-primary);
+}
+
+.notification-list__item--read {
+  border-color: var(--sailor-border-muted);
+  color: var(--sailor-text-muted);
+}
+
+.notification-list__open {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--sailor-space-3);
+  width: 100%;
+  min-width: 0;
+  padding: var(--sailor-space-3);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
 
 .notification-list__level,
@@ -145,5 +196,46 @@ function formatDate(value: string) {
 .notification-list__content span,
 .notification-list__content small {
   color: var(--sailor-text-secondary);
+}
+
+.notification-list__delete {
+  margin-right: var(--sailor-space-2);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(var(--sailor-space-1));
+  transition:
+    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
+    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+}
+
+.notification-list__item:hover .notification-list__delete,
+.notification-list__item:focus-within .notification-list__delete {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+.notification-list-move,
+.notification-list-enter-active,
+.notification-list-leave-active {
+  transition:
+    opacity var(--sailor-duration-normal) var(--sailor-ease-standard),
+    transform var(--sailor-duration-normal) var(--sailor-ease-standard);
+}
+
+.notification-list-leave-active {
+  position: absolute;
+  right: 0;
+  left: 0;
+}
+
+.notification-list-enter-from {
+  opacity: 0;
+  transform: translateY(var(--sailor-space-2));
+}
+
+.notification-list-leave-to {
+  opacity: 0;
+  transform: translateX(var(--sailor-space-8));
 }
 </style>

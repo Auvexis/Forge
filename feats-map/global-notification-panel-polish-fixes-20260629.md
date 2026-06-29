@@ -1,0 +1,4 @@
+- [x] Add regression contracts.
+- [x] Fix categories, dropdown stacking, refresh, detail overlay, badge, read styling, and delete animation.
+- [x] Verify focused tests and type-check.
+- [x] Commit.

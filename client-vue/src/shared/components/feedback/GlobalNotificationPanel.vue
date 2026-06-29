@@ -22,39 +22,50 @@
           <BaseButton type="button" variant="ghost" size="icon" iconLeft="x" aria-label="Close notifications" @click="closePanel" />
         </header>
 
-        <div class="notification-panel__tabs-carousel">
-          <nav class="notification-panel__tabs-track" aria-label="Notification categories">
-            <button
-              v-for="tab in categoryTabs"
-              :key="tab.id"
-              type="button"
-              class="notification-panel__tab"
-              :class="{ 'notification-panel__tab--active': notificationStore.selectedCategory === tab.id }"
-              @click="notificationStore.setCategory(tab.id)"
-            >
-              {{ tab.label }}
-            </button>
-          </nav>
-        </div>
+        <div
+          class="notification-panel__body"
+          :class="{ 'notification-panel__body--detail': notificationUi.detailNotificationId }"
+        >
+          <div class="notification-panel__list-view">
+            <div class="notification-panel__tabs-carousel">
+              <nav class="notification-panel__tabs-track" aria-label="Notification categories">
+                <button
+                  v-for="tab in categoryTabs"
+                  :key="tab.id"
+                  type="button"
+                  class="notification-panel__tab"
+                  :class="{ 'notification-panel__tab--active': notificationStore.selectedCategory === tab.id }"
+                  @click="notificationStore.setCategory(tab.id)"
+                >
+                  {{ tab.label }}
+                </button>
+              </nav>
+            </div>
 
-        <div v-if="hasNotifications" class="notification-panel__controls">
-          <BaseDropdownSelect
-            :model-value="actionMenuValue"
-            :options="actionOptions"
-            variant="ghost"
-            size="sm"
-            icon-left="sliders-horizontal"
-            direction="down"
-            menu-class="notification-panel__controls-menu"
-            title="Manage notifications"
-            @update:model-value="handleActionSelect"
-          />
-        </div>
+            <div v-if="hasNotifications" class="notification-panel__controls">
+              <BaseDropdownSelect
+                :model-value="actionMenuValue"
+                :options="actionOptions"
+                variant="ghost"
+                size="sm"
+                icon-left="sliders-horizontal"
+                direction="down"
+                menu-class="notification-panel__controls-menu"
+                title="Manage notifications"
+                @update:model-value="handleActionSelect"
+              />
+            </div>
 
-        <Transition name="notification-detail-slide" mode="out-in">
-          <NotificationDetail v-if="notificationUi.detailNotificationId" key="detail" />
-          <NotificationList v-else key="list" @select="selectDetail" />
-        </Transition>
+            <NotificationList @select="selectDetail" />
+          </div>
+
+          <Transition name="notification-detail-slide">
+            <NotificationDetail
+              v-if="notificationUi.detailNotificationId"
+              class="notification-panel__detail-view"
+            />
+          </Transition>
+        </div>
       </section>
     </div>
   </Transition>
@@ -81,11 +92,13 @@ const focusOrigin = ref<HTMLElement | null>(null)
 const actionMenuValue = ref('filter:all')
 
 const categoryTabs = computed(() => [
-  { id: 'all', label: 'All' },
-  ...notificationStore.categories.map((category) => ({
-    id: category,
-    label: labelFromIdentifier(category),
-  })),
+  { id: 'all', label: 'Global' },
+  ...notificationStore.categories
+    .filter((category) => category !== 'global')
+    .map((category) => ({
+      id: category,
+      label: labelFromIdentifier(category),
+    })),
 ])
 const levelFilters: Array<{ id: 'all' | NotificationLevel; label: string }> = [
   { id: 'all', label: 'All levels' },
@@ -192,7 +205,7 @@ function labelFromIdentifier(identifier: string) {
   gap: var(--sailor-space-4);
   width: min(var(--sailor-panel-width-wide), calc(100vw - var(--sailor-space-8)));
   max-height: calc(100vh - var(--sailor-space-4));
-  overflow: auto;
+  overflow: visible;
   padding: var(--sailor-space-4);
   border: 1px solid var(--sailor-border);
   border-top: 0;
@@ -224,6 +237,36 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__header p {
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-sm);
+}
+
+.notification-panel__body {
+  position: relative;
+  min-height: 0;
+  overflow: visible;
+}
+
+.notification-panel__list-view {
+  display: grid;
+  gap: var(--sailor-space-4);
+  min-height: 0;
+}
+
+.notification-panel__body--detail .notification-panel__list-view {
+  pointer-events: none;
+}
+
+.notification-panel__detail-view {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: auto;
+  min-height: 100%;
+  max-height: calc(100vh - var(--sailor-space-12) - var(--sailor-space-8));
+  padding: var(--sailor-space-4);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
+  box-shadow: var(--sailor-shadow-lg);
 }
 
 .notification-panel__tabs-carousel {
@@ -302,6 +345,7 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__controls :deep(.notification-panel__controls-menu) {
+  z-index: calc(var(--sailor-z-modal) + 1);
   width: 260px;
 }
 </style>

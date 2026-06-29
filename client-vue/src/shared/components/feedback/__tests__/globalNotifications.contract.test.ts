@@ -20,6 +20,8 @@ describe('global notifications UI contract', () => {
     assert.match(trigger, /notificationUi\.toggle\(\)/)
     assert.match(trigger, /aria-label/)
     assert.match(trigger, /notification-trigger__badge/)
+    assert.match(trigger, /background:\s*var\(--sailor-bg-inverse\)/)
+    assert.match(trigger, /color:\s*var\(--sailor-text-inverse\)/)
   })
 
   it('provides one top-centered global panel with filters, actions, keyboard handling, and detail transition', () => {
@@ -45,12 +47,17 @@ describe('global notifications UI contract', () => {
     assert.match(panel, /notification-panel__tabs-carousel/)
     assert.match(panel, /notification-panel__tabs-track/)
     assert.match(panel, /notification-panel__controls/)
+    assert.match(panel, /notification-panel__body/)
+    assert.match(panel, /notification-panel__body--detail/)
     assert.match(panel, /hasNotifications/)
     assert.match(panel, /actionOptions/)
     assert.match(panel, /handleActionSelect/)
     assert.match(panel, /categoryTabs/)
+    assert.match(panel, /label:\s*'Global'/)
+    assert.match(panel, /category !== 'global'/)
     assert.match(panel, /setCategory/)
     assert.match(panel, /setLevel/)
+    assert.match(panel, /overflow:\s*visible/)
     assert.match(list, /isLoading/)
     assert.match(list, /filteredNotifications/)
     assert.doesNotMatch(panel, /markRead\([^)]*\).*open/s)
@@ -60,6 +67,7 @@ describe('global notifications UI contract', () => {
 
   it('marks only selected notifications read and supports detail metadata, delete, and internal action navigation', () => {
     const detail = source('src/shared/components/feedback/NotificationDetail.vue')
+    const list = source('src/shared/components/feedback/NotificationList.vue')
 
     assert.match(detail, /markRead/)
     assert.match(detail, /detailNotificationId/)
@@ -69,6 +77,14 @@ describe('global notifications UI contract', () => {
     assert.match(detail, /occurrenceCount/)
     assert.match(detail, /JSON\.stringify/)
     assert.match(detail, /deleteOne/)
+    assert.match(list, /TransitionGroup/)
+    assert.match(list, /notification-list__delete/)
+    assert.match(list, /iconLeft="trash-2"/)
+    assert.match(list, /deleteNotification/)
+    assert.match(list, /notification-list-move/)
+    assert.doesNotMatch(list, /border-color:\s*var\(--sailor-border-brand\)/)
+    assert.match(list, /notification-list__item--read/)
+    assert.match(list, /notification-list-leave-to/)
   })
 
   it('uses theme tokens and reduced-motion transition classes', () => {

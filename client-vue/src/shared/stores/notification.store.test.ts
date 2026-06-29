@@ -43,8 +43,10 @@ const second: AppNotification = {
 class FakeNotificationsApi implements NotificationsApiClient {
   rows = [structuredClone(first), structuredClone(second)]
   failNextMutation = false
+  listCalls = 0
 
   async list(_filters: NotificationFilters = {}) {
+    this.listCalls += 1
     return structuredClone(this.rows)
   }
 
@@ -123,6 +125,7 @@ describe('notification store', () => {
     assert.equal(store.notifications[0]?.category, 'agents')
     assert.equal(store.unreadCount, 2)
     assert.deepEqual(store.categories, ['agents', 'pages', 'workflows'])
+    assert.equal(api.listCalls, 2)
   })
 
   it('marks only one notification read', async () => {

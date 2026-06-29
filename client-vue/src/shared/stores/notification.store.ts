@@ -92,6 +92,7 @@ export function createNotificationStore(api: NotificationsApiClient) {
         if (existingIndex >= 0) notifications.value.splice(existingIndex, 1)
         notifications.value.unshift(created)
         recomputeSummary()
+        await load()
         return created
       } catch (cause) {
         error.value = errorMessage(cause, 'Failed to persist notification')
