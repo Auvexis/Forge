@@ -54,6 +54,26 @@
                 title="Manage notifications"
                 @update:model-value="handleActionSelect"
               />
+              <div class="notification-panel__action-buttons">
+                <BaseButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon-left="check-check"
+                  @click="notificationStore.markAllRead()"
+                >
+                  Mark all read
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  icon-left="trash-2"
+                  @click="confirmClearAll"
+                >
+                  Clear all
+                </BaseButton>
+              </div>
             </div>
 
             <NotificationList @select="selectDetail" />
@@ -73,6 +93,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, {
   type BaseDropdownSelectOption,
 } from '@/shared/components/base/BaseDropdownSelect.vue'
@@ -113,18 +134,6 @@ const actionOptions = computed<BaseDropdownSelectOption[]>(() => [
     description: 'Filter visible notifications',
     meta: notificationStore.selectedLevel === level.id ? 'On' : 'Filter',
   })),
-  {
-    value: 'action:mark-all-read',
-    label: 'Mark all read',
-    description: 'Clear unread state for every notification',
-    meta: 'Action',
-  },
-  {
-    value: 'action:clear-all',
-    label: 'Clear all',
-    description: 'Delete every notification after confirmation',
-    meta: 'Danger',
-  },
 ])
 
 watch(
@@ -166,14 +175,7 @@ async function handleActionSelect(value: string) {
     const level = value.slice('filter:'.length) as 'all' | NotificationLevel
     notificationStore.setLevel(level)
     actionMenuValue.value = value
-    return
   }
-  actionMenuValue.value = `filter:${notificationStore.selectedLevel}`
-  if (value === 'action:mark-all-read') {
-    await notificationStore.markAllRead()
-    return
-  }
-  if (value === 'action:clear-all') await confirmClearAll()
 }
 
 function labelFromIdentifier(identifier: string) {
@@ -350,7 +352,14 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__controls {
   position: relative;
   z-index: 3;
+  justify-content: space-between;
+}
+
+.notification-panel__action-buttons {
+  display: flex;
+  align-items: center;
   justify-content: flex-end;
+  gap: var(--sailor-space-2);
 }
 
 .notification-panel__controls :deep(.notification-panel__controls-menu) {

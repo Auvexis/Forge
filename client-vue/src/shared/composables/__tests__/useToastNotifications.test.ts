@@ -86,14 +86,15 @@ describe('useToast notification integration', () => {
     assert.match(policy, /actionUrl\?: string/)
   })
 
-  it('persists each occurrence before visual duplicate suppression', () => {
+  it('persists only newly visible toasts after visual duplicate suppression', () => {
     const source = fs.readFileSync(path.resolve('src/shared/composables/useToast.ts'), 'utf8')
     const persistence = source.indexOf('persistToastNotification(')
     const duplicate = source.indexOf('const duplicate = toasts.value.find')
 
     assert.ok(persistence >= 0)
     assert.ok(duplicate >= 0)
-    assert.ok(persistence < duplicate)
+    assert.ok(duplicate < persistence)
+    assert.match(source, /if \(duplicate\) return duplicate\.id/)
   })
 })
 

@@ -35,9 +35,6 @@ const persistNotification: ToastNotificationPersister = async (payload) => {
 
 export function useToast() {
   const addToast = (toast: ToastInput) => {
-    const notification = createToastNotificationPayload(toast, toast)
-    if (notification) void persistToastNotification(notification, persistNotification)
-
     const duplicate = toasts.value.find(
       (item) =>
         item.variant === toast.variant &&
@@ -45,6 +42,9 @@ export function useToast() {
         item.message === toast.message,
     )
     if (duplicate) return duplicate.id
+
+    const notification = createToastNotificationPayload(toast, toast)
+    if (notification) void persistToastNotification(notification, persistNotification)
 
     const id = generateId('toast')
     const newToast: Toast = {
