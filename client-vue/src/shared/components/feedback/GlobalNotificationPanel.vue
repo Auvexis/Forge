@@ -20,7 +20,6 @@
             <h2 id="global-notification-panel-title">Notifications</h2>
             <p>{{ notificationStore.unreadCount }} unread</p>
           </div>
-          <BaseButton type="button" variant="ghost" size="icon" iconLeft="x" aria-label="Close notifications" @click="closePanel" />
         </header>
 
         <div
@@ -74,7 +73,6 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, {
   type BaseDropdownSelectOption,
 } from '@/shared/components/base/BaseDropdownSelect.vue'
@@ -214,7 +212,7 @@ function labelFromIdentifier(identifier: string) {
   grid-template-rows: auto minmax(0, 1fr);
   gap: var(--sailor-space-4);
   width: min(var(--sailor-panel-width-wide), calc(100vw - var(--sailor-space-8)));
-  height: min(720px, calc(100vh - var(--sailor-space-4)));
+  min-height: min(420px, calc(100vh - var(--sailor-space-4)));
   max-height: calc(100vh - var(--sailor-space-4));
   overflow: visible;
   padding: var(--sailor-space-4);
@@ -254,11 +252,13 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__body {
   position: relative;
   min-height: 0;
+  max-height: calc(100vh - var(--sailor-space-16));
   overflow: visible;
 }
 
 .notification-panel__list-view {
   display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: var(--sailor-space-4);
   min-height: 0;
 }
@@ -348,6 +348,8 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__controls {
+  position: relative;
+  z-index: 3;
   justify-content: flex-end;
 }
 

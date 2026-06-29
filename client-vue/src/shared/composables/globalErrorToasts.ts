@@ -2,6 +2,8 @@ import type { App } from 'vue'
 import { useToast } from './useToast'
 
 let installed = false
+const recentReports = new Map<string, number>()
+const globalErrorDuplicateWindowMs = 750
 
 export function installGlobalErrorToasts(app: App) {
   if (installed || typeof window === 'undefined') return
@@ -10,7 +12,9 @@ export function installGlobalErrorToasts(app: App) {
   const originalConsoleError = console.error.bind(console)
 
   function report(error: unknown, title = 'Browser error', source = 'browser-error') {
-    toast.error(formatError(error), { title, category: 'global', source })
+    const message = formatError(error)
+    if (shouldSkipDuplicateReport(message)) return
+    toast.error(message, { title, category: 'global', source })
   }
 
   console.error = (...args: unknown[]) => {
@@ -29,6 +33,16 @@ export function installGlobalErrorToasts(app: App) {
   app.config.errorHandler = (error) => {
     report(error, 'Vue error', 'browser-vue')
   }
+}
+
+function shouldSkipDuplicateReport(message: string): boolean {
+  const now = Date.now()
+  const lastSeenAt = recentReports.get(message)
+  recentReports.set(message, now)
+  for (const [key, seenAt] of recentReports) {
+    if (now - seenAt > globalErrorDuplicateWindowMs) recentReports.delete(key)
+  }
+  return lastSeenAt !== undefined && now - lastSeenAt <= globalErrorDuplicateWindowMs
 }
 
 function formatError(error: unknown): string {

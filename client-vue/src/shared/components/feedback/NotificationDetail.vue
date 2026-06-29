@@ -101,7 +101,10 @@ function formatDate(value: string) {
 <style scoped>
 .notification-detail {
   display: grid;
-  gap: var(--sailor-space-4);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--sailor-space-3);
+  height: 100%;
+  min-height: 0;
 }
 
 .notification-detail__header,
@@ -114,7 +117,10 @@ function formatDate(value: string) {
 
 .notification-detail__body {
   display: grid;
-  gap: var(--sailor-space-3);
+  align-content: start;
+  gap: var(--sailor-space-2);
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .notification-detail__level {
@@ -133,7 +139,7 @@ function formatDate(value: string) {
 
 .notification-detail h2 {
   color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xl);
+  font-size: var(--sailor-text-lg);
   line-height: var(--sailor-leading-tight);
 }
 
@@ -145,7 +151,7 @@ function formatDate(value: string) {
 .notification-detail__meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sailor-space-3);
+  gap: var(--sailor-space-2);
 }
 
 .notification-detail__meta div {

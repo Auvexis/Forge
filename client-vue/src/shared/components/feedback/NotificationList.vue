@@ -106,7 +106,7 @@ function formatDate(value: string) {
 .notification-list {
   display: grid;
   gap: var(--sailor-space-2);
-  max-height: calc(100vh - var(--sailor-space-12) - var(--sailor-space-12) - var(--sailor-space-8));
+  max-height: min(420px, calc(100vh - var(--sailor-space-16) - var(--sailor-space-12)));
   min-height: 0;
   overflow-y: auto;
 }

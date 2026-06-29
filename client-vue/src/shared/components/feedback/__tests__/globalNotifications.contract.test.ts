@@ -30,6 +30,7 @@ describe('global notifications UI contract', () => {
     assert.match(panel, /notification-panel__shell/)
     assert.match(panel, /notification-panel__backdrop/)
     assert.match(panel, /@click="closePanel"/)
+    assert.doesNotMatch(panel, /aria-label="Close notifications"/)
     assert.match(panel, /notification-panel--top-centered/)
     assert.match(panel, /notification-panel-top/)
     assert.match(panel, /@keydown\.esc/)
@@ -95,6 +96,7 @@ describe('global notifications UI contract', () => {
   it('uses theme tokens and reduced-motion transition classes', () => {
     const panel = source('src/shared/components/feedback/GlobalNotificationPanel.vue')
     const trigger = source('src/shared/components/feedback/NotificationTrigger.vue')
+    const list = source('src/shared/components/feedback/NotificationList.vue')
     const transitions = source('src/assets/styles/transitions.css')
 
     assert.doesNotMatch(panel, /#[0-9a-fA-F]{3,8}/)
@@ -102,8 +104,15 @@ describe('global notifications UI contract', () => {
     assert.match(panel, /inset:\s*0/)
     assert.match(panel, /border-radius:\s*0 0 var\(--sailor-radius-sm\) var\(--sailor-radius-sm\)/)
     assert.match(panel, /background:\s*var\(--sailor-bg-surface\)/)
-    assert.match(panel, /height:\s*min\(720px,\s*calc\(100vh - var\(--sailor-space-4\)\)\)/)
+    assert.match(panel, /min-height:\s*min\(420px,\s*calc\(100vh - var\(--sailor-space-4\)\)\)/)
+    assert.doesNotMatch(panel, /height:\s*min\(720px/)
     assert.match(panel, /grid-template-rows:\s*auto minmax\(0,\s*1fr\)/)
+    assert.match(list, /\.notification-list\s*{[^}]*overflow-y:\s*auto/s)
+    assert.match(list, /max-height:\s*min\(420px,/)
+    assert.match(panel, /\.notification-panel__controls\s*{[^}]*position:\s*relative/s)
+    assert.match(panel, /actionOptions/)
+    assert.match(panel, /action:mark-all-read/)
+    assert.match(panel, /action:clear-all/)
     assert.match(panel, /\.notification-panel__backdrop\s*{[^}]*inset:\s*0/s)
     assert.match(panel, /\.notification-panel__backdrop\s*{[^}]*background:\s*transparent/s)
     assert.doesNotMatch(panel, /\.notification-panel__detail-view\s*{[^}]*border:/s)
@@ -115,6 +124,17 @@ describe('global notifications UI contract', () => {
     assert.match(transitions, /translateY\(-100%\)/)
     assert.match(transitions, /notification-detail-slide/)
     assert.match(transitions, /prefers-reduced-motion: reduce/)
+  })
+
+  it('keeps notification detail compact inside the panel tab', () => {
+    const detail = source('src/shared/components/feedback/NotificationDetail.vue')
+
+    assert.match(detail, /\.notification-detail\s*{[^}]*grid-template-rows:\s*auto minmax\(0,\s*1fr\) auto/s)
+    assert.match(detail, /\.notification-detail__body\s*{[^}]*align-content:\s*start/s)
+    assert.match(detail, /\.notification-detail__body\s*{[^}]*overflow-y:\s*auto/s)
+    assert.match(detail, /\.notification-detail__meta\s*{[^}]*gap:\s*var\(--sailor-space-2\)/s)
+    assert.match(detail, /font-size:\s*var\(--sailor-text-lg\)/)
+    assert.doesNotMatch(detail, /font-size:\s*var\(--sailor-text-xl\)/)
   })
 
   it('mounts exactly one global panel in the app overlay host', () => {

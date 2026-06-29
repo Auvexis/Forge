@@ -96,3 +96,14 @@ describe('useToast notification integration', () => {
     assert.ok(persistence < duplicate)
   })
 })
+
+describe('global error toast integration', () => {
+  it('dedupes immediate duplicate global error reports without suppressing later repeats', () => {
+    const source = fs.readFileSync(path.resolve('src/shared/composables/globalErrorToasts.ts'), 'utf8')
+
+    assert.match(source, /recentReports/)
+    assert.match(source, /globalErrorDuplicateWindowMs/)
+    assert.match(source, /shouldSkipDuplicateReport/)
+    assert.match(source, /Date\.now\(\)/)
+  })
+})
