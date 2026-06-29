@@ -18,6 +18,7 @@
           {
             'notification-list__item--unread': !notification.isRead,
             'notification-list__item--read': notification.isRead,
+            'notification-list__item--deleting': deletingNotificationIds.has(notification.id),
           },
         ]"
       >
@@ -39,6 +40,7 @@
           size="icon"
           iconLeft="trash-2"
           aria-label="Delete notification"
+          :disabled="deletingNotificationIds.has(notification.id)"
           @click="deleteNotification(notification.id)"
         />
       </article>
@@ -47,20 +49,36 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, ref } from 'vue'
 import type { NotificationLevel } from '@/core/types/notification.types'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { useNotificationStore } from '@/shared/stores/notification.store'
 
 const emit = defineEmits<{ select: [notificationId: string] }>()
 const notificationStore = useNotificationStore()
+const deletingNotificationIds = ref(new Set<string>())
+const deleteTimers = new Map<string, number>()
+const deleteAnimationMs = 220
 
 function select(notificationId: string) {
+  if (deletingNotificationIds.value.has(notificationId)) return
   emit('select', notificationId)
 }
 
 function deleteNotification(notificationId: string) {
-  void notificationStore.deleteOne(notificationId)
+  if (deletingNotificationIds.value.has(notificationId)) return
+  deletingNotificationIds.value = new Set(deletingNotificationIds.value).add(notificationId)
+  const timer = window.setTimeout(() => {
+    deleteTimers.delete(notificationId)
+    void notificationStore.deleteOne(notificationId)
+  }, deleteAnimationMs)
+  deleteTimers.set(notificationId, timer)
 }
+
+onBeforeUnmount(() => {
+  deleteTimers.forEach((timer) => window.clearTimeout(timer))
+  deleteTimers.clear()
+})
 
 function levelLabel(level: NotificationLevel) {
   if (level === 'error') return 'Error'
@@ -141,6 +159,12 @@ function formatDate(value: string) {
 .notification-list__item--read {
   border-color: var(--sailor-border-muted);
   color: var(--sailor-text-muted);
+}
+
+.notification-list__item--deleting {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(var(--sailor-space-8));
 }
 
 .notification-list__open {

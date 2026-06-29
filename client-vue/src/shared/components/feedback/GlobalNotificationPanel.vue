@@ -262,11 +262,7 @@ function labelFromIdentifier(identifier: string) {
   overflow: auto;
   min-height: 100%;
   max-height: calc(100vh - var(--sailor-space-12) - var(--sailor-space-8));
-  padding: var(--sailor-space-4);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
   background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-lg);
 }
 
 .notification-panel__tabs-carousel {
