@@ -203,3 +203,134 @@ Frontend tests cover:
 - Plugin access to notification persistence.
 - Cross-device synchronization or external push notifications.
 - Arbitrary external action URLs.
+
+## Implementation Batches
+
+> Execute batches in order. Update these checkboxes and commit after every completed task.
+
+### Batch 1: Profile Database Foundation
+
+**Files:**
+
+- Modify `server/src/core/profiles/profile-paths.ts`
+- Modify `server/src/core/profiles/profile-database-manager.ts`
+- Modify `server/src/core/database/index.ts`
+- Create `server/src/core/database/migrations/notifications/001_initial_notifications.ts`
+- Modify `server/src/core/profiles/profile-paths.test.ts`
+- Modify `server/src/core/profiles/profile-database-manager.test.ts`
+- Modify `server/src/core/database/profile-migrations.test.ts`
+
+- [ ] Add `notificationsDbPath` and open `notifications.db` per profile.
+- [ ] Add the notification database to active database lifecycle and migrations.
+- [ ] Create the notifications table, constraints, and indexes.
+- [ ] Test profile isolation, database lifecycle, and migration execution.
+- [ ] Run the three focused database tests with `node --test` and run `npm run build` in `server`.
+- [ ] Commit as `feat: add profile notification database`.
+
+### Batch 2: Notification Domain and API
+
+**Files:**
+
+- Create `server/src/core/modules/notifications/notification-types.ts`
+- Create `server/src/core/modules/notifications/notification-repository.ts`
+- Create `server/src/core/modules/notifications/notification-service.ts`
+- Create `server/src/core/modules/notifications/notification-repository.test.ts`
+- Create `server/src/core/routes/notifications.routes.ts`
+- Create `server/src/core/routes/notifications.routes.test.ts`
+- Modify `server/src/core/server.ts`
+
+- [ ] Define create, list, summary, read, delete, and filter contracts.
+- [ ] Implement transactional insertion, 30-second coalescing, and 200-row retention.
+- [ ] Implement newest-first listing, unread summary, mark-one, mark-all, delete-one, and clear-all.
+- [ ] Validate levels, normalized categories, JSON context, and internal action URLs with Zod.
+- [ ] Register `/notifications` routes using the active profile database.
+- [ ] Test filters, coalescing, retention, mutations, validation, and profile isolation.
+- [ ] Run notification tests and `npm run build` in `server`.
+- [ ] Commit as `feat: add notification service and endpoints`.
+
+### Batch 3: Frontend API and State
+
+**Files:**
+
+- Create `client-vue/src/core/types/notification.types.ts`
+- Create `client-vue/src/core/api/notifications.api.ts`
+- Create `client-vue/src/core/api/notifications.api.contract.test.ts`
+- Create `client-vue/src/shared/stores/notification.store.ts`
+- Create `client-vue/src/shared/stores/notification-ui.store.ts`
+- Create `client-vue/src/shared/stores/notification.store.test.ts`
+- Modify `client-vue/src/features/profiles/profileSwitchRefresh.ts`
+
+- [ ] Define frontend notification, summary, filter, and mutation types.
+- [ ] Implement API methods for every notification endpoint.
+- [ ] Implement list, categories, filters, unread count, detail selection, and loading state.
+- [ ] Implement read-one, read-all, delete-one, and clear-all with failure recovery.
+- [ ] Clear stale state and reload notifications after profile switches.
+- [ ] Test API paths, store mutations, unread state, filters, and profile refresh.
+- [ ] Run focused tests and `npm run type-check` in `client-vue`.
+- [ ] Commit as `feat: add notification client state`.
+
+### Batch 4: Toast Integration
+
+**Files:**
+
+- Modify `client-vue/src/shared/composables/useToast.ts`
+- Modify `client-vue/src/shared/composables/globalErrorToasts.ts`
+- Create `client-vue/src/shared/composables/__tests__/useToastNotifications.test.ts`
+- Modify `client-vue/src/shared/composables/__tests__/globalErrorToasts.contract.test.ts`
+
+- [ ] Add optional category, source, context, action, and persistence metadata.
+- [ ] Preserve positional title and duration compatibility for existing callers.
+- [ ] Persist only error, warning, and info toasts.
+- [ ] Keep success toasts temporary only.
+- [ ] Add a suppression path so persistence failures cannot persist themselves.
+- [ ] Categorize global browser, console, Vue, and promise errors as `global`.
+- [ ] Test eligible levels, compatibility, metadata, deduplication, and recursion suppression.
+- [ ] Run composable tests and `npm run type-check` in `client-vue`.
+- [ ] Commit as `feat: persist global toast notifications`.
+
+### Batch 5: Global Panel and Detail View
+
+**Files:**
+
+- Create `client-vue/src/shared/components/feedback/NotificationTrigger.vue`
+- Create `client-vue/src/shared/components/feedback/GlobalNotificationPanel.vue`
+- Create `client-vue/src/shared/components/feedback/NotificationList.vue`
+- Create `client-vue/src/shared/components/feedback/NotificationDetail.vue`
+- Create `client-vue/src/shared/components/feedback/__tests__/globalNotifications.contract.test.ts`
+- Modify `client-vue/src/assets/styles/transitions.css`
+- Modify `client-vue/src/app/App.vue`
+
+- [ ] Build the `BaseButton`-based bell trigger and unread badge.
+- [ ] Build the top-centered global panel with level filters and dynamic category tabs.
+- [ ] Build list states without marking items read when the panel opens.
+- [ ] Mark one item read only when its detail is selected.
+- [ ] Build the detail subview with metadata, context, deletion, and internal navigation action.
+- [ ] Add reversible right-slide detail animation and reduced-motion behavior.
+- [ ] Add explicit mark-all-read and confirmed clear-all actions.
+- [ ] Use existing `tokens.css` variables for all visual decisions.
+- [ ] Add Escape handling, focus restoration, keyboard navigation, and accessible labels.
+- [ ] Mount exactly one panel in the global overlay host.
+- [ ] Run component tests, `npm run type-check`, and `npm run build` in `client-vue`.
+- [ ] Commit as `feat: add global notification panel`.
+
+### Batch 6: Shell Integration and Final Verification
+
+**Files:**
+
+- Modify `client-vue/src/app/App.vue`
+- Modify `client-vue/src/shared/components/layout/AppTopbar.vue`
+- Modify `client-vue/src/features/web-pages/components/PageChromeToolbar.vue`
+- Modify relevant layout and Pages contract tests under `client-vue/src/**/__tests__/`
+- Create `feats-map/global-notifications-20260628.md`
+
+- [ ] Add the reusable trigger to the main Sidebar footer.
+- [ ] Add the reusable trigger to `AppTopbar`.
+- [ ] Add the reusable trigger to the Pages editor topbar.
+- [ ] Verify all triggers control the same global panel and unread count.
+- [ ] Verify error, warning, and info persistence across reload and profile switches.
+- [ ] Verify success toasts are never stored.
+- [ ] Verify category filters, detail read state, actions, deletes, retention, and coalescing.
+- [ ] Run `node --test "src/**/*.test.ts"` and `npm run build` in `server`.
+- [ ] Run `node --test "src/**/*.test.ts"`, `npm run type-check`, and `npm run build` in `client-vue`.
+- [ ] Update the feature map and mark every completed batch.
+- [ ] Commit as `docs: complete global notifications tasks`.
