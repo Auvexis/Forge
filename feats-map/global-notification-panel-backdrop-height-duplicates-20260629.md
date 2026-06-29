@@ -1,0 +1,6 @@
+- [x] Add regression contracts.
+- [x] Increase panel and detail usable height.
+- [x] Add fullscreen backdrop click-to-close.
+- [x] Store repeated notifications as separate rows.
+- [x] Verify focused tests and type-check.
+- [x] Commit.

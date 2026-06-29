@@ -46,7 +46,7 @@ describe("NotificationRepository", () => {
     db.close();
   });
 
-  it("coalesces matching notifications within 30 seconds and makes them unread", async () => {
+  it("creates separate rows for matching notifications within 30 seconds", async () => {
     const { db, repository } = await createRepository();
 
     repository.create(input("repeated", { title: "Failure" }), new Date("2026-06-28T10:00:00.000Z"));
@@ -56,9 +56,9 @@ describe("NotificationRepository", () => {
       new Date("2026-06-28T10:00:20.000Z"),
     );
 
-    assert.equal(repository.list().length, 1);
-    assert.equal(result.id, "notification-repeated");
-    assert.equal(result.occurrenceCount, 2);
+    assert.deepEqual(repository.list().map(({ id }) => id), ["second-id", "notification-repeated"]);
+    assert.equal(result.id, "second-id");
+    assert.equal(result.occurrenceCount, 1);
     assert.equal(result.isRead, false);
     assert.equal(result.lastOccurredAt, "2026-06-28T10:00:20.000Z");
     db.close();

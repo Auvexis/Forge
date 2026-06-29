@@ -5,6 +5,7 @@
       class="notification-panel notification-panel--top-centered"
       @keydown.esc="closePanel"
     >
+      <div class="notification-panel__backdrop" aria-hidden="true" @click="closePanel" />
       <section
         id="global-notification-panel"
         ref="panelRef"
@@ -189,11 +190,19 @@ function labelFromIdentifier(identifier: string) {
 <style scoped>
 .notification-panel {
   position: fixed;
-  inset: 0 0 auto;
+  inset: 0;
   z-index: var(--sailor-z-modal);
   display: flex;
   justify-content: center;
   pointer-events: none;
+}
+
+.notification-panel__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: transparent;
+  pointer-events: auto;
 }
 
 .notification-panel--top-centered {
@@ -202,8 +211,10 @@ function labelFromIdentifier(identifier: string) {
 
 .notification-panel__shell {
   display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   gap: var(--sailor-space-4);
   width: min(var(--sailor-panel-width-wide), calc(100vw - var(--sailor-space-8)));
+  height: min(720px, calc(100vh - var(--sailor-space-4)));
   max-height: calc(100vh - var(--sailor-space-4));
   overflow: visible;
   padding: var(--sailor-space-4);
@@ -215,6 +226,7 @@ function labelFromIdentifier(identifier: string) {
   color: var(--sailor-text-primary);
   pointer-events: auto;
   outline: none;
+  z-index: 1;
 }
 
 .notification-panel__header,
@@ -261,7 +273,6 @@ function labelFromIdentifier(identifier: string) {
   z-index: 2;
   overflow: auto;
   min-height: 100%;
-  max-height: calc(100vh - var(--sailor-space-12) - var(--sailor-space-8));
   background: var(--sailor-bg-surface);
 }
 

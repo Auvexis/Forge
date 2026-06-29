@@ -28,6 +28,8 @@ describe('global notifications UI contract', () => {
     const panel = source('src/shared/components/feedback/GlobalNotificationPanel.vue')
 
     assert.match(panel, /notification-panel__shell/)
+    assert.match(panel, /notification-panel__backdrop/)
+    assert.match(panel, /@click="closePanel"/)
     assert.match(panel, /notification-panel--top-centered/)
     assert.match(panel, /notification-panel-top/)
     assert.match(panel, /@keydown\.esc/)
@@ -97,9 +99,13 @@ describe('global notifications UI contract', () => {
 
     assert.doesNotMatch(panel, /#[0-9a-fA-F]{3,8}/)
     assert.doesNotMatch(trigger, /#[0-9a-fA-F]{3,8}/)
-    assert.match(panel, /inset:\s*0 0 auto/)
+    assert.match(panel, /inset:\s*0/)
     assert.match(panel, /border-radius:\s*0 0 var\(--sailor-radius-sm\) var\(--sailor-radius-sm\)/)
     assert.match(panel, /background:\s*var\(--sailor-bg-surface\)/)
+    assert.match(panel, /height:\s*min\(720px,\s*calc\(100vh - var\(--sailor-space-4\)\)\)/)
+    assert.match(panel, /grid-template-rows:\s*auto minmax\(0,\s*1fr\)/)
+    assert.match(panel, /\.notification-panel__backdrop\s*{[^}]*inset:\s*0/s)
+    assert.match(panel, /\.notification-panel__backdrop\s*{[^}]*background:\s*transparent/s)
     assert.doesNotMatch(panel, /\.notification-panel__detail-view\s*{[^}]*border:/s)
     assert.doesNotMatch(panel, /\.notification-panel__detail-view\s*{[^}]*padding:/s)
     assert.doesNotMatch(panel, /\.notification-panel__detail-view\s*{[^}]*box-shadow:/s)

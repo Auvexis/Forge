@@ -46,39 +46,8 @@ export class NotificationRepository {
   create(input: CreateNotificationInput, occurredAt = new Date()): NotificationRecord {
     const db = this.databaseProvider();
     const timestamp = occurredAt.toISOString();
-    const cutoff = new Date(occurredAt.getTime() - 30_000).toISOString();
 
     return db.transaction(() => {
-      const existing = db.prepare(`
-        SELECT * FROM notifications
-        WHERE level = ? AND category = ? AND title IS ? AND message = ?
-          AND last_occurred_at >= ?
-        ORDER BY last_occurred_at DESC
-        LIMIT 1
-      `).get(input.level, input.category, input.title ?? null, input.message, cutoff) as NotificationRow | undefined;
-
-      if (existing) {
-        db.prepare(`
-          UPDATE notifications
-          SET occurrence_count = occurrence_count + 1,
-              last_occurred_at = ?,
-              is_read = 0,
-              source = ?,
-              context_json = ?,
-              action_url = ?,
-              action_label = ?
-          WHERE id = ?
-        `).run(
-          timestamp,
-          input.source ?? null,
-          serializeContext(input.context),
-          input.actionUrl ?? null,
-          input.actionLabel ?? null,
-          existing.id,
-        );
-        return this.getRequired(existing.id);
-      }
-
       db.prepare(`
         INSERT INTO notifications (
           id, level, category, title, message, source, context_json,
