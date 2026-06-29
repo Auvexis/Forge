@@ -1,6 +1,12 @@
 import { ref, readonly } from 'vue'
 import { generateId } from '../utils/id'
-import { TOAST_DURATION_MS } from '@/core/constants/app'
+import { TOAST_DURATION_MS } from '../../core/constants/app.ts'
+import {
+  createToastNotificationPayload,
+  persistToastNotification,
+  type ToastNotificationMetadata,
+  type ToastNotificationPersister,
+} from './toastNotificationPolicy.ts'
 
 export type ToastVariant = 'default' | 'success' | 'warning' | 'error'
 
@@ -12,11 +18,26 @@ export interface Toast {
   duration?: number
 }
 
+export interface ToastOptions extends ToastNotificationMetadata {
+  title?: string
+  duration?: number
+}
+
+type ToastInput = Omit<Toast, 'id'> & ToastNotificationMetadata
+
 // Global state for toasts
 const toasts = ref<Toast[]>([])
 
+const persistNotification: ToastNotificationPersister = async (payload) => {
+  const { useNotificationStore } = await import('../stores/notification.store.ts')
+  await useNotificationStore().persist(payload)
+}
+
 export function useToast() {
-  const addToast = (toast: Omit<Toast, 'id'>) => {
+  const addToast = (toast: ToastInput) => {
+    const notification = createToastNotificationPayload(toast, toast)
+    if (notification) void persistToastNotification(notification, persistNotification)
+
     const duplicate = toasts.value.find(
       (item) =>
         item.variant === toast.variant &&
@@ -27,8 +48,10 @@ export function useToast() {
 
     const id = generateId('toast')
     const newToast: Toast = {
-      ...toast,
       id,
+      message: toast.message,
+      title: toast.title,
+      variant: toast.variant,
       duration: toast.duration ?? TOAST_DURATION_MS,
     }
 
@@ -50,17 +73,29 @@ export function useToast() {
     }
   }
 
-  const success = (message: string, title?: string, duration?: number) =>
-    addToast({ message, title, variant: 'success', duration })
+  const success = (
+    message: string,
+    titleOrOptions?: string | ToastOptions,
+    duration?: number,
+  ) => addToast({ message, variant: 'success', ...normalizeToastOptions(titleOrOptions, duration) })
 
-  const error = (message: string, title?: string, duration?: number) =>
-    addToast({ message, title, variant: 'error', duration })
+  const error = (
+    message: string,
+    titleOrOptions?: string | ToastOptions,
+    duration?: number,
+  ) => addToast({ message, variant: 'error', ...normalizeToastOptions(titleOrOptions, duration) })
 
-  const warning = (message: string, title?: string, duration?: number) =>
-    addToast({ message, title, variant: 'warning', duration })
+  const warning = (
+    message: string,
+    titleOrOptions?: string | ToastOptions,
+    duration?: number,
+  ) => addToast({ message, variant: 'warning', ...normalizeToastOptions(titleOrOptions, duration) })
 
-  const info = (message: string, title?: string, duration?: number) =>
-    addToast({ message, title, variant: 'default', duration })
+  const info = (
+    message: string,
+    titleOrOptions?: string | ToastOptions,
+    duration?: number,
+  ) => addToast({ message, variant: 'default', ...normalizeToastOptions(titleOrOptions, duration) })
 
   return {
     toasts: readonly(toasts),
@@ -71,4 +106,17 @@ export function useToast() {
     warning,
     info,
   }
+}
+
+function normalizeToastOptions(
+  titleOrOptions?: string | ToastOptions,
+  duration?: number,
+): ToastOptions {
+  if (typeof titleOrOptions === 'object') {
+    return {
+      ...titleOrOptions,
+      duration: titleOrOptions.duration ?? duration,
+    }
+  }
+  return { title: titleOrOptions, duration }
 }

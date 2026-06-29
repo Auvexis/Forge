@@ -1,9 +1,9 @@
 # Global notifications — Batch 4
 
-- [ ] Add toast notification metadata
-- [ ] Preserve positional toast calls
-- [ ] Persist error, warning and info
-- [ ] Keep success ephemeral
-- [ ] Prevent persistence recursion
-- [ ] Categorize global errors
-- [ ] Run client validation
+- [x] Add toast notification metadata
+- [x] Preserve positional toast calls
+- [x] Persist error, warning and info
+- [x] Keep success ephemeral
+- [x] Prevent persistence recursion
+- [x] Categorize global errors
+- [x] Run client validation

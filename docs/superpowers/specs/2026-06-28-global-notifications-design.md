@@ -278,14 +278,14 @@ Frontend tests cover:
 - Create `client-vue/src/shared/composables/__tests__/useToastNotifications.test.ts`
 - Modify `client-vue/src/shared/composables/__tests__/globalErrorToasts.contract.test.ts`
 
-- [ ] Add optional category, source, context, action, and persistence metadata.
-- [ ] Preserve positional title and duration compatibility for existing callers.
-- [ ] Persist only error, warning, and info toasts.
-- [ ] Keep success toasts temporary only.
-- [ ] Add a suppression path so persistence failures cannot persist themselves.
-- [ ] Categorize global browser, console, Vue, and promise errors as `global`.
-- [ ] Test eligible levels, compatibility, metadata, deduplication, and recursion suppression.
-- [ ] Run composable tests and `npm run type-check` in `client-vue`.
+- [x] Add optional category, source, context, action, and persistence metadata.
+- [x] Preserve positional title and duration compatibility for existing callers.
+- [x] Persist only error, warning, and info toasts.
+- [x] Keep success toasts temporary only.
+- [x] Add a suppression path so persistence failures cannot persist themselves.
+- [x] Categorize global browser, console, Vue, and promise errors as `global`.
+- [x] Test eligible levels, compatibility, metadata, deduplication, and recursion suppression.
+- [x] Run composable tests and `npm run type-check` in `client-vue`.
 - [ ] Commit as `feat: persist global toast notifications`.
 
 ### Batch 5: Global Panel and Detail View

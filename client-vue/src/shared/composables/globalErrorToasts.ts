@@ -9,25 +9,25 @@ export function installGlobalErrorToasts(app: App) {
   const toast = useToast()
   const originalConsoleError = console.error.bind(console)
 
-  function report(error: unknown, title = 'Browser error') {
-    toast.error(formatError(error), title)
+  function report(error: unknown, title = 'Browser error', source = 'browser-error') {
+    toast.error(formatError(error), { title, category: 'global', source })
   }
 
   console.error = (...args: unknown[]) => {
     originalConsoleError(...args)
-    report(args.map(formatError).join(' '), 'Console error')
+    report(args.map(formatError).join(' '), 'Console error', 'browser-console')
   }
 
   window.addEventListener('error', (event) => {
-    report(event.error || event.message, 'Runtime error')
+    report(event.error || event.message, 'Runtime error', 'browser-runtime')
   })
 
   window.addEventListener('unhandledrejection', (event) => {
-    report(event.reason, 'Unhandled promise')
+    report(event.reason, 'Unhandled promise', 'browser-unhandled-promise')
   })
 
   app.config.errorHandler = (error) => {
-    report(error, 'Vue error')
+    report(error, 'Vue error', 'browser-vue')
   }
 }
 

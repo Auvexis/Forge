@@ -24,5 +24,8 @@ describe('global error toasts contract', () => {
     assert.match(source, /addEventListener\('unhandledrejection'/)
     assert.match(source, /app\.config\.errorHandler/)
     assert.match(source, /toast\.error/)
+    assert.match(source, /category:\s*'global'/)
+    assert.match(source, /source = 'browser-error'/)
+    assert.match(source, /'browser-console'/)
   })
 })
