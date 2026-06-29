@@ -1,0 +1,4 @@
+- [x] Add regression contract.
+- [x] Put list controls below detail subview.
+- [x] Verify focused test and type-check.
+- [x] Commit.

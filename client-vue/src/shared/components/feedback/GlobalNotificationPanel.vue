@@ -272,7 +272,7 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__detail-view {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 3;
   overflow: auto;
   min-height: 100%;
   background: var(--sailor-bg-surface);
@@ -351,7 +351,7 @@ function labelFromIdentifier(identifier: string) {
 
 .notification-panel__controls {
   position: relative;
-  z-index: 3;
+  z-index: 2;
   justify-content: space-between;
 }
 

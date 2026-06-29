@@ -64,6 +64,8 @@ describe('global notifications UI contract', () => {
     assert.match(panel, /notification-panel__action-buttons/)
     assert.match(panel, /@click="notificationStore\.markAllRead\(\)"/)
     assert.match(panel, /@click="confirmClearAll"/)
+    assert.match(panel, /\.notification-panel__detail-view\s*{[^}]*z-index:\s*3/s)
+    assert.match(panel, /\.notification-panel__controls\s*{[^}]*z-index:\s*2/s)
     assert.doesNotMatch(panel, /value:\s*'action:mark-all-read'/)
     assert.doesNotMatch(panel, /value:\s*'action:clear-all'/)
     assert.match(list, /isLoading/)
