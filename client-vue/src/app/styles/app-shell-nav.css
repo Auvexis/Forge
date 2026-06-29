@@ -132,6 +132,17 @@ button.nav-link {
   height: 34px;
 }
 
+.sidebar-activity-link.notification-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-activity-link.notification-trigger .base-button {
+  width: 36px;
+  height: 34px;
+}
+
 .app-sidebar-area--collapsed .sidebar-section {
   align-items: center;
 }

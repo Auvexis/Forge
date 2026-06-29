@@ -210,6 +210,18 @@
   margin-left: auto;
 }
 
+.web-page-chrome__global-actions {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  margin-left: var(--sailor-space-1);
+}
+
+.web-page-chrome__global-actions .base-button {
+  width: 28px;
+  height: 28px;
+}
+
 .web-page-chrome__autosave {
   margin-left: var(--sailor-space-1);
 }

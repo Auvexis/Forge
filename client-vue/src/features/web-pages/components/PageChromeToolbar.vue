@@ -114,6 +114,9 @@
         {{ saveStatusLabel }}
       </span>
     </div>
+    <div class="web-page-chrome__global-actions">
+      <NotificationTrigger />
+    </div>
   </div>
 </template>
 
@@ -122,6 +125,7 @@ import { computed, nextTick, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 

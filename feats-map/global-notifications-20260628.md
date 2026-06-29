@@ -1,0 +1,7 @@
+- [x] Batch 1: Profile notification database.
+- [x] Batch 2: Notification service and API.
+- [x] Batch 3: Notification client state.
+- [x] Batch 4: Toast persistence integration.
+- [x] Batch 5: Global panel and detail view.
+- [x] Batch 6: Shell trigger integration.
+- [ ] Full repo suites still have unrelated legacy failures.

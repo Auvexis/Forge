@@ -6,12 +6,16 @@
       <span>Search workflows, commands, plugins...</span>
       <kbd>Ctrl K</kbd>
     </button>
+    <div class="app-topbar__actions">
+      <NotificationTrigger />
+    </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useTheme } from '@/shared/composables/useTheme'
+import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
 
 defineEmits<{
   (e: 'open-command-palette'): void
@@ -88,6 +92,14 @@ const { logoSrc } = useTheme()
   font-size: 10px;
 }
 
+.app-topbar__actions {
+  position: absolute;
+  right: var(--sailor-space-5);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-2);
+}
+
 @media (max-width: 640px) {
   .app-topbar {
     padding: 0 var(--sailor-space-3);
@@ -95,6 +107,10 @@ const { logoSrc } = useTheme()
 
   .app-topbar__logo {
     left: var(--sailor-space-3);
+  }
+
+  .app-topbar__actions {
+    right: var(--sailor-space-3);
   }
 
   .app-topbar__search kbd {

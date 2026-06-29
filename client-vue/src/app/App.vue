@@ -83,6 +83,8 @@
                     </button>
                   </AppHint>
 
+                  <NotificationTrigger class="sidebar-activity-link" />
+
                   <AppHint
                     :hint="hintFor(activityById.settings.hintId ?? activityById.settings.id)"
                   >
@@ -146,6 +148,7 @@ import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
 import AppHint from '@/shared/components/hints/AppHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import GlobalNotificationPanel from '@/shared/components/feedback/GlobalNotificationPanel.vue'
+import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'

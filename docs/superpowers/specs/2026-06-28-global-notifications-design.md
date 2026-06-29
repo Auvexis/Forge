@@ -323,14 +323,14 @@ Frontend tests cover:
 - Modify relevant layout and Pages contract tests under `client-vue/src/**/__tests__/`
 - Create `feats-map/global-notifications-20260628.md`
 
-- [ ] Add the reusable trigger to the main Sidebar footer.
-- [ ] Add the reusable trigger to `AppTopbar`.
-- [ ] Add the reusable trigger to the Pages editor topbar.
-- [ ] Verify all triggers control the same global panel and unread count.
-- [ ] Verify error, warning, and info persistence across reload and profile switches.
-- [ ] Verify success toasts are never stored.
-- [ ] Verify category filters, detail read state, actions, deletes, retention, and coalescing.
-- [ ] Run `node --test "src/**/*.test.ts"` and `npm run build` in `server`.
-- [ ] Run `node --test "src/**/*.test.ts"`, `npm run type-check`, and `npm run build` in `client-vue`.
-- [ ] Update the feature map and mark every completed batch.
-- [ ] Commit as `docs: complete global notifications tasks`.
+- [x] Add the reusable trigger to the main Sidebar footer.
+- [x] Add the reusable trigger to `AppTopbar`.
+- [x] Add the reusable trigger to the Pages editor topbar.
+- [x] Verify all triggers control the same global panel and unread count.
+- [x] Verify error, warning, and info persistence across reload and profile switches.
+- [x] Verify success toasts are never stored.
+- [x] Verify category filters, detail read state, actions, deletes, retention, and coalescing.
+- [x] Run `node --test "src/**/*.test.ts"` and `npm run build` in `server`.
+- [x] Run `node --test "src/**/*.test.ts"`, `npm run type-check`, and `npm run build` in `client-vue`.
+- [x] Update the feature map and mark every completed batch.
+- [x] Commit as `docs: complete global notifications tasks`.
