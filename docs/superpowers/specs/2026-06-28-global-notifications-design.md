@@ -246,7 +246,7 @@ Frontend tests cover:
 - [x] Register `/notifications` routes using the active profile database.
 - [x] Test filters, coalescing, retention, mutations, validation, and profile isolation.
 - [x] Run notification tests and `npm run build` in `server`.
-- [ ] Commit as `feat: add notification service and endpoints`.
+- [x] Commit as `feat: add notification service and endpoints`.
 
 ### Batch 3: Frontend API and State
 
