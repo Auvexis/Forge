@@ -267,7 +267,7 @@ Frontend tests cover:
 - [x] Clear stale state and reload notifications after profile switches.
 - [x] Test API paths, store mutations, unread state, filters, and profile refresh.
 - [x] Run focused tests and `npm run type-check` in `client-vue`.
-- [ ] Commit as `feat: add notification client state`.
+- [x] Commit as `feat: add notification client state`.
 
 ### Batch 4: Toast Integration
 
