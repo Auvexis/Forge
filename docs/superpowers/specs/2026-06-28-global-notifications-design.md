@@ -300,18 +300,18 @@ Frontend tests cover:
 - Modify `client-vue/src/assets/styles/transitions.css`
 - Modify `client-vue/src/app/App.vue`
 
-- [ ] Build the `BaseButton`-based bell trigger and unread badge.
-- [ ] Build the top-centered global panel with level filters and dynamic category tabs.
-- [ ] Build list states without marking items read when the panel opens.
-- [ ] Mark one item read only when its detail is selected.
-- [ ] Build the detail subview with metadata, context, deletion, and internal navigation action.
-- [ ] Add reversible right-slide detail animation and reduced-motion behavior.
-- [ ] Add explicit mark-all-read and confirmed clear-all actions.
-- [ ] Use existing `tokens.css` variables for all visual decisions.
-- [ ] Add Escape handling, focus restoration, keyboard navigation, and accessible labels.
-- [ ] Mount exactly one panel in the global overlay host.
-- [ ] Run component tests, `npm run type-check`, and `npm run build` in `client-vue`.
-- [ ] Commit as `feat: add global notification panel`.
+- [x] Build the `BaseButton`-based bell trigger and unread badge.
+- [x] Build the top-centered global panel with level filters and dynamic category tabs.
+- [x] Build list states without marking items read when the panel opens.
+- [x] Mark one item read only when its detail is selected.
+- [x] Build the detail subview with metadata, context, deletion, and internal navigation action.
+- [x] Add reversible right-slide detail animation and reduced-motion behavior.
+- [x] Add explicit mark-all-read and confirmed clear-all actions.
+- [x] Use existing `tokens.css` variables for all visual decisions.
+- [x] Add Escape handling, focus restoration, keyboard navigation, and accessible labels.
+- [x] Mount exactly one panel in the global overlay host.
+- [x] Run component tests, `npm run type-check`, and `npm run build` in `client-vue`.
+- [x] Commit as `feat: add global notification panel`.
 
 ### Batch 6: Shell Integration and Final Verification
 

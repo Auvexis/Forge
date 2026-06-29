@@ -1,0 +1,85 @@
+import assert from 'node:assert/strict'
+import { describe, it } from 'node:test'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+const root = resolve(import.meta.dirname, '../../../../..')
+
+function source(path: string) {
+  return readFileSync(resolve(root, path), 'utf8')
+}
+
+describe('global notifications UI contract', () => {
+  it('provides a reusable BaseButton bell trigger with unread badge and UI-store toggle', () => {
+    const trigger = source('src/shared/components/feedback/NotificationTrigger.vue')
+
+    assert.match(trigger, /BaseButton/)
+    assert.match(trigger, /iconLeft="bell"/)
+    assert.match(trigger, /useNotificationStore/)
+    assert.match(trigger, /useNotificationUiStore/)
+    assert.match(trigger, /notificationUi\.toggle\(\)/)
+    assert.match(trigger, /aria-label/)
+    assert.match(trigger, /notification-trigger__badge/)
+  })
+
+  it('provides one top-centered global panel with filters, actions, keyboard handling, and detail transition', () => {
+    const panel = source('src/shared/components/feedback/GlobalNotificationPanel.vue')
+
+    assert.match(panel, /notification-panel__shell/)
+    assert.match(panel, /notification-panel--top-centered/)
+    assert.match(panel, /@keydown\.esc/)
+    assert.match(panel, /NotificationList/)
+    assert.match(panel, /NotificationDetail/)
+    assert.match(panel, /notification-detail-slide/)
+    assert.match(panel, /markAllRead/)
+    assert.match(panel, /confirmClearAll/)
+    assert.match(panel, /focusOrigin/)
+  })
+
+  it('renders dynamic categories and level filters without marking rows read on open', () => {
+    const panel = source('src/shared/components/feedback/GlobalNotificationPanel.vue')
+    const list = source('src/shared/components/feedback/NotificationList.vue')
+
+    assert.match(panel, /categoryTabs/)
+    assert.match(panel, /setCategory/)
+    assert.match(panel, /setLevel/)
+    assert.match(list, /isLoading/)
+    assert.match(list, /filteredNotifications/)
+    assert.doesNotMatch(panel, /markRead\([^)]*\).*open/s)
+  })
+
+  it('marks only selected notifications read and supports detail metadata, delete, and internal action navigation', () => {
+    const detail = source('src/shared/components/feedback/NotificationDetail.vue')
+
+    assert.match(detail, /markRead/)
+    assert.match(detail, /detailNotificationId/)
+    assert.match(detail, /router\.push/)
+    assert.match(detail, /actionUrl/)
+    assert.match(detail, /actionLabel/)
+    assert.match(detail, /occurrenceCount/)
+    assert.match(detail, /JSON\.stringify/)
+    assert.match(detail, /deleteOne/)
+  })
+
+  it('uses theme tokens and reduced-motion transition classes', () => {
+    const panel = source('src/shared/components/feedback/GlobalNotificationPanel.vue')
+    const trigger = source('src/shared/components/feedback/NotificationTrigger.vue')
+    const transitions = source('src/assets/styles/transitions.css')
+
+    assert.doesNotMatch(panel, /#[0-9a-fA-F]{3,8}/)
+    assert.doesNotMatch(trigger, /#[0-9a-fA-F]{3,8}/)
+    assert.match(panel, /var\(--sailor-/)
+    assert.match(trigger, /var\(--sailor-/)
+    assert.match(transitions, /notification-detail-slide/)
+    assert.match(transitions, /prefers-reduced-motion: reduce/)
+  })
+
+  it('mounts exactly one global panel in the app overlay host', () => {
+    const app = source('src/app/App.vue')
+    const panelRefs = app.match(/<GlobalNotificationPanel \/>/g) ?? []
+
+    assert.equal(panelRefs.length, 1)
+    assert.match(app, /import GlobalNotificationPanel/)
+    assert.match(app, /<GlobalNotificationPanel \/>/)
+  })
+})

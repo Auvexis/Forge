@@ -1,0 +1,6 @@
+- [x] Add failing global notification UI contract.
+- [x] Build trigger, panel, list, and detail components.
+- [x] Add transitions and mount one global panel.
+- [x] Run focused tests, type-check, and build.
+- [x] Update spec checkboxes.
+- [x] Commit batch 5.

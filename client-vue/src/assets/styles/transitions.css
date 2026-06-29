@@ -52,6 +52,22 @@
   transform: translateX(-16px);
 }
 
+/* Global notification detail subview */
+.notification-detail-slide-enter-active,
+.notification-detail-slide-leave-active {
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+}
+.notification-detail-slide-enter-from {
+  opacity: 0;
+  transform: translateX(16px);
+}
+.notification-detail-slide-leave-to {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
 /* ── Scale (popovers, dropdowns) ─────────────────────────── */
 .scale-enter-active,
 .scale-leave-active {
@@ -120,4 +136,16 @@
 @keyframes page-exit-anim {
   from { opacity: 1; }
   to   { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notification-detail-slide-enter-active,
+  .notification-detail-slide-leave-active {
+    transition: opacity var(--sailor-duration-fast) var(--sailor-ease-standard);
+  }
+
+  .notification-detail-slide-enter-from,
+  .notification-detail-slide-leave-to {
+    transform: none;
+  }
 }

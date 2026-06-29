@@ -120,6 +120,7 @@
       <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
       <AppGlobalAutomationMonitor />
       <AppGlobalAgentPanel />
+      <GlobalNotificationPanel />
       <StartGuideHost />
       <GuideBookHost />
       <ExternalPluginInstaller
@@ -144,6 +145,7 @@ import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
 import AppHint from '@/shared/components/hints/AppHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
+import GlobalNotificationPanel from '@/shared/components/feedback/GlobalNotificationPanel.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
