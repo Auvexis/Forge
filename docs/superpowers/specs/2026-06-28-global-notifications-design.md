@@ -225,7 +225,7 @@ Frontend tests cover:
 - [x] Create the notifications table, constraints, and indexes.
 - [x] Test profile isolation, database lifecycle, and migration execution.
 - [x] Run the three focused database tests with `node --test` and run `npm run build` in `server`.
-- [ ] Commit as `feat: add profile notification database`.
+- [x] Commit as `feat: add profile notification database`.
 
 ### Batch 2: Notification Domain and API
 
