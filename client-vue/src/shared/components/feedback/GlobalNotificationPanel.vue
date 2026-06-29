@@ -37,25 +37,18 @@
           </nav>
         </div>
 
-        <div class="notification-panel__filters" role="group" aria-label="Notification level filters">
-          <button
-            v-for="level in levelFilters"
-            :key="level.id"
-            type="button"
-            :class="{ 'notification-panel__filter--active': notificationStore.selectedLevel === level.id }"
-            @click="notificationStore.setLevel(level.id)"
-          >
-            {{ level.label }}
-          </button>
-        </div>
-
-        <div class="notification-panel__actions">
-          <BaseButton type="button" variant="ghost" size="sm" iconLeft="check-check" @click="notificationStore.markAllRead()">
-            Mark all read
-          </BaseButton>
-          <BaseButton type="button" variant="danger" size="sm" iconLeft="trash-2" @click="confirmClearAll">
-            Clear all
-          </BaseButton>
+        <div v-if="hasNotifications" class="notification-panel__controls">
+          <BaseDropdownSelect
+            :model-value="actionMenuValue"
+            :options="actionOptions"
+            variant="ghost"
+            size="sm"
+            icon-left="sliders-horizontal"
+            direction="down"
+            menu-class="notification-panel__controls-menu"
+            title="Manage notifications"
+            @update:model-value="handleActionSelect"
+          />
         </div>
 
         <Transition name="notification-detail-slide" mode="out-in">
@@ -70,6 +63,9 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseDropdownSelect, {
+  type BaseDropdownSelectOption,
+} from '@/shared/components/base/BaseDropdownSelect.vue'
 import NotificationDetail from '@/shared/components/feedback/NotificationDetail.vue'
 import NotificationList from '@/shared/components/feedback/NotificationList.vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -82,6 +78,7 @@ const notificationUi = useNotificationUiStore()
 const { confirm } = useConfirm()
 const panelRef = ref<HTMLElement | null>(null)
 const focusOrigin = ref<HTMLElement | null>(null)
+const actionMenuValue = ref('filter:all')
 
 const categoryTabs = computed(() => [
   { id: 'all', label: 'All' },
@@ -96,6 +93,27 @@ const levelFilters: Array<{ id: 'all' | NotificationLevel; label: string }> = [
   { id: 'warning', label: 'Warnings' },
   { id: 'info', label: 'Info' },
 ]
+const hasNotifications = computed(() => notificationStore.notifications.length > 0)
+const actionOptions = computed<BaseDropdownSelectOption[]>(() => [
+  ...levelFilters.map((level) => ({
+    value: `filter:${level.id}`,
+    label: level.label,
+    description: 'Filter visible notifications',
+    meta: notificationStore.selectedLevel === level.id ? 'On' : 'Filter',
+  })),
+  {
+    value: 'action:mark-all-read',
+    label: 'Mark all read',
+    description: 'Clear unread state for every notification',
+    meta: 'Action',
+  },
+  {
+    value: 'action:clear-all',
+    label: 'Clear all',
+    description: 'Delete every notification after confirmation',
+    meta: 'Danger',
+  },
+])
 
 watch(
   () => notificationUi.isOpen,
@@ -129,6 +147,21 @@ async function confirmClearAll() {
     cancelText: 'Cancel',
   })
   if (accepted) await notificationStore.clear()
+}
+
+async function handleActionSelect(value: string) {
+  if (value.startsWith('filter:')) {
+    const level = value.slice('filter:'.length) as 'all' | NotificationLevel
+    notificationStore.setLevel(level)
+    actionMenuValue.value = value
+    return
+  }
+  actionMenuValue.value = `filter:${notificationStore.selectedLevel}`
+  if (value === 'action:mark-all-read') {
+    await notificationStore.markAllRead()
+    return
+  }
+  if (value === 'action:clear-all') await confirmClearAll()
 }
 
 function labelFromIdentifier(identifier: string) {
@@ -172,7 +205,7 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__header,
-.notification-panel__actions {
+.notification-panel__controls {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -223,8 +256,7 @@ function labelFromIdentifier(identifier: string) {
   background: linear-gradient(to left, var(--sailor-bg-base), transparent);
 }
 
-.notification-panel__tabs-track,
-.notification-panel__filters {
+.notification-panel__tabs-track {
   display: flex;
   gap: var(--sailor-space-2);
   overflow-x: auto;
@@ -237,13 +269,11 @@ function labelFromIdentifier(identifier: string) {
   scroll-behavior: smooth;
 }
 
-.notification-panel__tabs-track::-webkit-scrollbar,
-.notification-panel__filters::-webkit-scrollbar {
+.notification-panel__tabs-track::-webkit-scrollbar {
   display: none;
 }
 
-.notification-panel__tab,
-.notification-panel__filters button {
+.notification-panel__tab {
   flex: 0 0 auto;
   padding: var(--sailor-space-2) var(--sailor-space-3);
   border: 1px solid var(--sailor-border);
@@ -261,11 +291,17 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__tab:hover,
-.notification-panel__filters button:hover,
-.notification-panel__tab--active,
-.notification-panel__filter--active {
+.notification-panel__tab--active {
   border-color: var(--sailor-border-strong);
   color: var(--sailor-text-primary);
   background: var(--sailor-bg-overlay);
+}
+
+.notification-panel__controls {
+  justify-content: flex-end;
+}
+
+.notification-panel__controls :deep(.notification-panel__controls-menu) {
+  width: 260px;
 }
 </style>

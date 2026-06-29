@@ -32,6 +32,7 @@ describe('global notifications UI contract', () => {
     assert.match(panel, /NotificationList/)
     assert.match(panel, /NotificationDetail/)
     assert.match(panel, /notification-detail-slide/)
+    assert.match(panel, /BaseDropdownSelect/)
     assert.match(panel, /markAllRead/)
     assert.match(panel, /confirmClearAll/)
     assert.match(panel, /focusOrigin/)
@@ -43,12 +44,18 @@ describe('global notifications UI contract', () => {
 
     assert.match(panel, /notification-panel__tabs-carousel/)
     assert.match(panel, /notification-panel__tabs-track/)
+    assert.match(panel, /notification-panel__controls/)
+    assert.match(panel, /hasNotifications/)
+    assert.match(panel, /actionOptions/)
+    assert.match(panel, /handleActionSelect/)
     assert.match(panel, /categoryTabs/)
     assert.match(panel, /setCategory/)
     assert.match(panel, /setLevel/)
     assert.match(list, /isLoading/)
     assert.match(list, /filteredNotifications/)
     assert.doesNotMatch(panel, /markRead\([^)]*\).*open/s)
+    assert.doesNotMatch(panel, /class="notification-panel__filters"/)
+    assert.doesNotMatch(panel, /class="notification-panel__actions"/)
   })
 
   it('marks only selected notifications read and supports detail metadata, delete, and internal action navigation', () => {
