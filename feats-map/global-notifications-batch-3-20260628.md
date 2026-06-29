@@ -2,7 +2,7 @@
 
 - [x] Add notification client contracts
 - [x] Add notification API client
-- [ ] Add notification data and UI stores
-- [ ] Add mutation recovery
-- [ ] Refresh state after profile switch
-- [ ] Run client validation
+- [x] Add notification data and UI stores
+- [x] Add mutation recovery
+- [x] Refresh state after profile switch
+- [x] Run client validation

@@ -260,13 +260,13 @@ Frontend tests cover:
 - Create `client-vue/src/shared/stores/notification.store.test.ts`
 - Modify `client-vue/src/features/profiles/profileSwitchRefresh.ts`
 
-- [ ] Define frontend notification, summary, filter, and mutation types.
-- [ ] Implement API methods for every notification endpoint.
-- [ ] Implement list, categories, filters, unread count, detail selection, and loading state.
-- [ ] Implement read-one, read-all, delete-one, and clear-all with failure recovery.
-- [ ] Clear stale state and reload notifications after profile switches.
-- [ ] Test API paths, store mutations, unread state, filters, and profile refresh.
-- [ ] Run focused tests and `npm run type-check` in `client-vue`.
+- [x] Define frontend notification, summary, filter, and mutation types.
+- [x] Implement API methods for every notification endpoint.
+- [x] Implement list, categories, filters, unread count, detail selection, and loading state.
+- [x] Implement read-one, read-all, delete-one, and clear-all with failure recovery.
+- [x] Clear stale state and reload notifications after profile switches.
+- [x] Test API paths, store mutations, unread state, filters, and profile refresh.
+- [x] Run focused tests and `npm run type-check` in `client-vue`.
 - [ ] Commit as `feat: add notification client state`.
 
 ### Batch 4: Toast Integration

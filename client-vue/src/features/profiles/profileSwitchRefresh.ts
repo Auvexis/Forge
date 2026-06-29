@@ -13,23 +13,35 @@ export interface ProfileSwitchRefreshDeps {
     fetchSettings: () => Promise<void>
     fetchVariables: () => Promise<void>
   }
+  notifications: {
+    clearProfileScopedState: () => void
+    load: () => Promise<void>
+  }
   dispatchRefreshEvent: () => void
 }
 
 async function runtimeDeps(): Promise<ProfileSwitchRefreshDeps> {
-  const [{ useExecutionStore }, { useWorkflowStore }, { useSettingsStore }] = await Promise.all([
+  const [
+    { useExecutionStore },
+    { useWorkflowStore },
+    { useSettingsStore },
+    { useNotificationStore },
+  ] = await Promise.all([
     import('@/features/workflow-editor'),
     import('@/features/workflow-editor/stores/workflow.store'),
     import('@/shared/stores/settings.store'),
+    import('@/shared/stores/notification.store'),
   ])
   const execution = useExecutionStore()
   const workflow = useWorkflowStore()
   const settings = useSettingsStore()
+  const notifications = useNotificationStore()
 
   return {
     execution,
     workflow,
     settings,
+    notifications,
     dispatchRefreshEvent: () => window.dispatchEvent(new CustomEvent(PROFILE_SWITCH_REFRESH_EVENT)),
   }
 }
@@ -41,7 +53,9 @@ export async function refreshAfterProfileSwitch(deps?: ProfileSwitchRefreshDeps)
   resolvedDeps.execution.resetNodeStatuses()
   resolvedDeps.workflow.clearWorkflow()
   resolvedDeps.settings.clearProfileScopedState()
+  resolvedDeps.notifications.clearProfileScopedState()
   await resolvedDeps.settings.fetchSettings()
   await resolvedDeps.settings.fetchVariables()
+  await resolvedDeps.notifications.load()
   resolvedDeps.dispatchRefreshEvent()
 }

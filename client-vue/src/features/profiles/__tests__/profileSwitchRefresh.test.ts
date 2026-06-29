@@ -18,6 +18,10 @@ describe('profile switch refresh', () => {
         fetchSettings: async () => calls.push('settings.fetchSettings'),
         fetchVariables: async () => calls.push('settings.fetchVariables'),
       },
+      notifications: {
+        clearProfileScopedState: () => calls.push('notifications.clear'),
+        load: async () => calls.push('notifications.load'),
+      },
       dispatchRefreshEvent: () => calls.push(PROFILE_SWITCH_REFRESH_EVENT),
     })
 
@@ -26,8 +30,10 @@ describe('profile switch refresh', () => {
       'execution.reset',
       'workflow.clear',
       'settings.clear',
+      'notifications.clear',
       'settings.fetchSettings',
       'settings.fetchVariables',
+      'notifications.load',
       PROFILE_SWITCH_REFRESH_EVENT,
     ])
   })
