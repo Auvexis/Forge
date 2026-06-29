@@ -239,13 +239,13 @@ Frontend tests cover:
 - Create `server/src/core/routes/notifications.routes.test.ts`
 - Modify `server/src/core/server.ts`
 
-- [ ] Define create, list, summary, read, delete, and filter contracts.
-- [ ] Implement transactional insertion, 30-second coalescing, and 200-row retention.
-- [ ] Implement newest-first listing, unread summary, mark-one, mark-all, delete-one, and clear-all.
-- [ ] Validate levels, normalized categories, JSON context, and internal action URLs with Zod.
-- [ ] Register `/notifications` routes using the active profile database.
-- [ ] Test filters, coalescing, retention, mutations, validation, and profile isolation.
-- [ ] Run notification tests and `npm run build` in `server`.
+- [x] Define create, list, summary, read, delete, and filter contracts.
+- [x] Implement transactional insertion, 30-second coalescing, and 200-row retention.
+- [x] Implement newest-first listing, unread summary, mark-one, mark-all, delete-one, and clear-all.
+- [x] Validate levels, normalized categories, JSON context, and internal action URLs with Zod.
+- [x] Register `/notifications` routes using the active profile database.
+- [x] Test filters, coalescing, retention, mutations, validation, and profile isolation.
+- [x] Run notification tests and `npm run build` in `server`.
 - [ ] Commit as `feat: add notification service and endpoints`.
 
 ### Batch 3: Frontend API and State

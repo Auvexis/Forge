@@ -14,6 +14,11 @@ import { resetWorkflowDatabaseProvider } from "../modules/workflows/repository.t
 import { resetCredentialsDatabaseProvider } from "../modules/plugins/credential-store.ts";
 import { resetOAuth2SessionDatabaseProvider } from "../modules/plugins/auth/oauth2-session-store.ts";
 import { resetPluginRegistryDatabaseProvider } from "../modules/plugins/plugin-registry.ts";
+import {
+  NotificationRepository,
+  resetNotificationDatabaseProvider,
+} from "../modules/notifications/notification-repository.ts";
+import { up as createNotificationSchema } from "../database/migrations/notifications/001_initial_notifications.ts";
 
 class FakeDatabaseManager {
   opened: string[] = [];
@@ -21,6 +26,7 @@ class FakeDatabaseManager {
   workflows = "workflows-db";
   plugins = "plugins-db";
   credentials = "credentials-db";
+  notifications = "notifications-db";
   open(paths: ProfilePaths): void {
     this.opened.push(path.basename(paths.profileDir));
   }
@@ -48,6 +54,7 @@ describe("ActiveProfileService", () => {
     resetPluginRegistryDatabaseProvider();
     resetCredentialsDatabaseProvider();
     resetOAuth2SessionDatabaseProvider();
+    resetNotificationDatabaseProvider();
   });
 
   it("starts the current profile and runs runtime hooks", async () => {
@@ -142,11 +149,13 @@ describe("ActiveProfileService", () => {
     const workflowDb = new Database(":memory:");
     const pluginsDb = new Database(":memory:");
     const credentialsDb = new Database(":memory:");
+    const notificationsDb = new Database(":memory:");
     const db = {
       app: appDb,
       workflows: workflowDb,
       plugins: pluginsDb,
       credentials: credentialsDb,
+      notifications: notificationsDb,
       open: () => {},
       close: () => {},
     };
@@ -170,6 +179,52 @@ describe("ActiveProfileService", () => {
     workflowDb.close();
     pluginsDb.close();
     credentialsDb.close();
+    notificationsDb.close();
+  });
+
+  it("uses default repository provider wiring for active profile notifications", async () => {
+    const store = createStore();
+    const appDb = new Database(":memory:");
+    const workflowDb = new Database(":memory:");
+    const pluginsDb = new Database(":memory:");
+    const credentialsDb = new Database(":memory:");
+    const notificationsDb = new Database(":memory:");
+    await createNotificationSchema(notificationsDb);
+    const db = {
+      app: appDb,
+      workflows: workflowDb,
+      plugins: pluginsDb,
+      credentials: credentialsDb,
+      notifications: notificationsDb,
+      open: () => {},
+      close: () => {},
+    };
+    const service = new ActiveProfileService({
+      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      store,
+      passwordService: new ProfilePasswordService({ store }),
+      databaseManager: db,
+      migrate: async () => {},
+      loadProfilePluginSettings: async () => {},
+      loadPlugins: async () => {},
+      scheduler: { resync: () => {} },
+    });
+
+    await service.start();
+    new NotificationRepository().create({
+      id: "notification-id",
+      level: "error",
+      category: "global",
+      message: "Profile error",
+    });
+
+    const row = notificationsDb.prepare("SELECT message FROM notifications").get() as { message: string };
+    assert.equal(row.message, "Profile error");
+    appDb.close();
+    workflowDb.close();
+    pluginsDb.close();
+    credentialsDb.close();
+    notificationsDb.close();
   });
 
   it("switches to an unprotected profile after opening runtime dependencies", async () => {

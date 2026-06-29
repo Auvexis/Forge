@@ -28,6 +28,10 @@ export interface CreateNotificationInput {
   actionLabel?: string | null;
 }
 
+export type CreateNotificationRequest = Omit<CreateNotificationInput, "id" | "category"> & {
+  category?: string;
+};
+
 export interface NotificationFilters {
   category?: string;
   level?: NotificationLevel;

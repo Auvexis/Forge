@@ -17,6 +17,7 @@ import {
 } from "../modules/plugins/auth/oauth2-session-store.ts";
 import { setPluginRegistryDatabaseProvider } from "../modules/plugins/plugin-registry.ts";
 import { getProfileDatabaseContext } from "./profile-database-context.ts";
+import { setNotificationDatabaseProvider } from "../modules/notifications/notification-repository.ts";
 
 export interface SwitchProfileInput {
   profileId: ProfileId;
@@ -30,6 +31,7 @@ interface ProfileDatabaseManagerLike {
   workflows?: unknown;
   plugins?: unknown;
   credentials?: unknown;
+  notifications?: unknown;
 }
 
 interface SchedulerLike {
@@ -171,11 +173,13 @@ function configureDefaultProfileRepositories(
   const workflows = manager.workflows;
   const plugins = manager.plugins;
   const credentials = manager.credentials;
+  const notifications = manager.notifications;
   if (
     !isDatabaseLike(app) ||
     !isDatabaseLike(workflows) ||
     !isDatabaseLike(plugins) ||
-    !isDatabaseLike(credentials)
+    !isDatabaseLike(credentials) ||
+    !isDatabaseLike(notifications)
   ) {
     return;
   }
@@ -185,6 +189,7 @@ function configureDefaultProfileRepositories(
   setPluginRegistryDatabaseProvider(() => getProfileDatabaseContext()?.plugins ?? plugins);
   setCredentialsDatabaseProvider(() => getProfileDatabaseContext()?.credentials ?? credentials);
   setOAuth2SessionDatabaseProvider(() => getProfileDatabaseContext()?.credentials ?? credentials);
+  setNotificationDatabaseProvider(() => getProfileDatabaseContext()?.notifications ?? notifications);
 }
 
 function isDatabaseLike(value: unknown): value is Database.Database {
