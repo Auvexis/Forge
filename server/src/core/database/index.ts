@@ -30,6 +30,7 @@ async function runMigrations(databases: ActiveProfileDatabases): Promise<void> {
     ["workflows", "workflows"],
     ["plugins", "plugins"],
     ["credentials", "credentials"],
+    ["notifications", "notifications"],
   ];
 
   for (const [key, dbName] of entries) {

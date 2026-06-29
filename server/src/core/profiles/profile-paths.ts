@@ -19,6 +19,7 @@ export interface ProfilePaths {
   workflowsDbPath: string;
   pluginsDbPath: string;
   credentialsDbPath: string;
+  notificationsDbPath: string;
 }
 
 export function resolveProfilesRoot(sailorHome: string): string {
@@ -45,6 +46,7 @@ export function resolveProfilePaths(input: ResolveProfilePathsInput): ProfilePat
     workflowsDbPath: path.join(dataDir, "workflows.db"),
     pluginsDbPath: path.join(dataDir, "plugins.db"),
     credentialsDbPath: path.join(dataDir, "credentials.db"),
+    notificationsDbPath: path.join(dataDir, "notifications.db"),
   };
 }
 

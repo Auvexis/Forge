@@ -22,6 +22,7 @@ describe("profile path resolver", () => {
     assert.equal(paths.workflowsDbPath, path.join(root, "default", "data", "workflows.db"));
     assert.equal(paths.pluginsDbPath, path.join(root, "default", "data", "plugins.db"));
     assert.equal(paths.credentialsDbPath, path.join(root, "default", "data", "credentials.db"));
+    assert.equal(paths.notificationsDbPath, path.join(root, "default", "data", "notifications.db"));
   });
 
   it("resolves profiles root without needing a profile id", () => {

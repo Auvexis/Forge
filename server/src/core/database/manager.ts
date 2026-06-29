@@ -51,6 +51,8 @@ export const DatabaseManager = {
   plugins: openDatabase("plugins.db"),
   /** Plugin credentials and OAuth2 tokens */
   credentials: openDatabase("credentials.db"),
+  /** Global notifications */
+  notifications: openDatabase("notifications.db"),
 } as const;
 
 export function getDatabaseDirectory(): string {

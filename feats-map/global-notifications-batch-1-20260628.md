@@ -1,7 +1,7 @@
 # Global notifications — Batch 1
 
-- [ ] Add profile notification database path
-- [ ] Add notification database lifecycle
-- [ ] Add notification database migration
-- [ ] Test profile isolation and migrations
+- [x] Add profile notification database path
+- [x] Add notification database lifecycle
+- [x] Add notification database migration
+- [x] Test profile isolation and migrations
 - [ ] Run server validation

@@ -220,11 +220,11 @@ Frontend tests cover:
 - Modify `server/src/core/profiles/profile-database-manager.test.ts`
 - Modify `server/src/core/database/profile-migrations.test.ts`
 
-- [ ] Add `notificationsDbPath` and open `notifications.db` per profile.
-- [ ] Add the notification database to active database lifecycle and migrations.
-- [ ] Create the notifications table, constraints, and indexes.
-- [ ] Test profile isolation, database lifecycle, and migration execution.
-- [ ] Run the three focused database tests with `node --test` and run `npm run build` in `server`.
+- [x] Add `notificationsDbPath` and open `notifications.db` per profile.
+- [x] Add the notification database to active database lifecycle and migrations.
+- [x] Create the notifications table, constraints, and indexes.
+- [x] Test profile isolation, database lifecycle, and migration execution.
+- [x] Run the three focused database tests with `node --test` and run `npm run build` in `server`.
 - [ ] Commit as `feat: add profile notification database`.
 
 ### Batch 2: Notification Domain and API

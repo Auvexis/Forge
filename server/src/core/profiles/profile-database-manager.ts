@@ -8,6 +8,7 @@ export interface ActiveProfileDatabases {
   workflows: Database.Database;
   plugins: Database.Database;
   credentials: Database.Database;
+  notifications: Database.Database;
 }
 
 export class ProfileDatabaseManager {
@@ -21,6 +22,7 @@ export class ProfileDatabaseManager {
       workflows: openDatabase(profilePaths.workflowsDbPath),
       plugins: openDatabase(profilePaths.pluginsDbPath),
       credentials: openDatabase(profilePaths.credentialsDbPath),
+      notifications: openDatabase(profilePaths.notificationsDbPath),
     };
   }
 
@@ -48,6 +50,10 @@ export class ProfileDatabaseManager {
 
   get credentials(): Database.Database {
     return this.requireDatabases().credentials;
+  }
+
+  get notifications(): Database.Database {
+    return this.requireDatabases().notifications;
   }
 
   getAll(): ActiveProfileDatabases {
