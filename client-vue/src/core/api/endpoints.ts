@@ -14,6 +14,13 @@ export const ENDPOINTS = {
   PROFILE_VERIFY_PASSWORD: (id: string) => `/profiles/${encodeURIComponent(id)}/verify-password`,
   PROFILE_SWITCH: (id: string) => `/profiles/${encodeURIComponent(id)}/switch`,
 
+  // Notifications
+  NOTIFICATIONS: '/notifications',
+  NOTIFICATIONS_SUMMARY: '/notifications/summary',
+  NOTIFICATION_READ: (id: string) => `/notifications/${encodeURIComponent(id)}/read`,
+  NOTIFICATIONS_READ_ALL: '/notifications/read-all',
+  NOTIFICATION_BY_ID: (id: string) => `/notifications/${encodeURIComponent(id)}`,
+
   // Workflows
   WORKFLOWS: '/workflows',
   WORKFLOW_BY_ID: (id: string) => `/workflows/${encodeURIComponent(id)}`,
