@@ -1,0 +1,4 @@
+- [x] Add style contract.
+- [x] Update panel position, background, animation, and tabs.
+- [x] Verify focused tests and type-check.
+- [x] Commit.

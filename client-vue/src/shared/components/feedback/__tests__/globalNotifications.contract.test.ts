@@ -27,6 +27,7 @@ describe('global notifications UI contract', () => {
 
     assert.match(panel, /notification-panel__shell/)
     assert.match(panel, /notification-panel--top-centered/)
+    assert.match(panel, /notification-panel-top/)
     assert.match(panel, /@keydown\.esc/)
     assert.match(panel, /NotificationList/)
     assert.match(panel, /NotificationDetail/)
@@ -40,6 +41,8 @@ describe('global notifications UI contract', () => {
     const panel = source('src/shared/components/feedback/GlobalNotificationPanel.vue')
     const list = source('src/shared/components/feedback/NotificationList.vue')
 
+    assert.match(panel, /notification-panel__tabs-carousel/)
+    assert.match(panel, /notification-panel__tabs-track/)
     assert.match(panel, /categoryTabs/)
     assert.match(panel, /setCategory/)
     assert.match(panel, /setLevel/)
@@ -68,8 +71,13 @@ describe('global notifications UI contract', () => {
 
     assert.doesNotMatch(panel, /#[0-9a-fA-F]{3,8}/)
     assert.doesNotMatch(trigger, /#[0-9a-fA-F]{3,8}/)
+    assert.match(panel, /inset:\s*0 0 auto/)
+    assert.match(panel, /border-radius:\s*0 0 var\(--sailor-radius-sm\) var\(--sailor-radius-sm\)/)
+    assert.match(panel, /background:\s*var\(--sailor-bg-surface\)/)
     assert.match(panel, /var\(--sailor-/)
     assert.match(trigger, /var\(--sailor-/)
+    assert.match(transitions, /notification-panel-top/)
+    assert.match(transitions, /translateY\(-100%\)/)
     assert.match(transitions, /notification-detail-slide/)
     assert.match(transitions, /prefers-reduced-motion: reduce/)
   })

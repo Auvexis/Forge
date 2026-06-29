@@ -1,5 +1,5 @@
 <template>
-  <Transition name="slide-up">
+  <Transition name="notification-panel-top">
     <div
       v-if="notificationUi.isOpen"
       class="notification-panel notification-panel--top-centered"
@@ -22,17 +22,20 @@
           <BaseButton type="button" variant="ghost" size="icon" iconLeft="x" aria-label="Close notifications" @click="closePanel" />
         </header>
 
-        <nav class="notification-panel__tabs" aria-label="Notification categories">
-          <button
-            v-for="tab in categoryTabs"
-            :key="tab.id"
-            type="button"
-            :class="{ 'notification-panel__tab--active': notificationStore.selectedCategory === tab.id }"
-            @click="notificationStore.setCategory(tab.id)"
-          >
-            {{ tab.label }}
-          </button>
-        </nav>
+        <div class="notification-panel__tabs-carousel">
+          <nav class="notification-panel__tabs-track" aria-label="Notification categories">
+            <button
+              v-for="tab in categoryTabs"
+              :key="tab.id"
+              type="button"
+              class="notification-panel__tab"
+              :class="{ 'notification-panel__tab--active': notificationStore.selectedCategory === tab.id }"
+              @click="notificationStore.setCategory(tab.id)"
+            >
+              {{ tab.label }}
+            </button>
+          </nav>
+        </div>
 
         <div class="notification-panel__filters" role="group" aria-label="Notification level filters">
           <button
@@ -140,7 +143,7 @@ function labelFromIdentifier(identifier: string) {
 <style scoped>
 .notification-panel {
   position: fixed;
-  inset: var(--sailor-space-4) 0 auto;
+  inset: 0 0 auto;
   z-index: var(--sailor-z-modal);
   display: flex;
   justify-content: center;
@@ -155,12 +158,13 @@ function labelFromIdentifier(identifier: string) {
   display: grid;
   gap: var(--sailor-space-4);
   width: min(var(--sailor-panel-width-wide), calc(100vw - var(--sailor-space-8)));
-  max-height: calc(100vh - var(--sailor-space-8));
+  max-height: calc(100vh - var(--sailor-space-4));
   overflow: auto;
   padding: var(--sailor-space-4);
   border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
+  border-top: 0;
+  border-radius: 0 0 var(--sailor-radius-sm) var(--sailor-radius-sm);
+  background: var(--sailor-bg-surface);
   box-shadow: var(--sailor-shadow-xl);
   color: var(--sailor-text-primary);
   pointer-events: auto;
@@ -189,14 +193,56 @@ function labelFromIdentifier(identifier: string) {
   font-size: var(--sailor-text-sm);
 }
 
-.notification-panel__tabs,
+.notification-panel__tabs-carousel {
+  position: relative;
+  overflow: hidden;
+  padding: var(--sailor-space-1);
+  border: 1px solid var(--sailor-border);
+  border-radius: var(--sailor-radius-sm);
+  background: var(--sailor-bg-base);
+}
+
+.notification-panel__tabs-carousel::before,
+.notification-panel__tabs-carousel::after {
+  position: absolute;
+  top: var(--sailor-space-1);
+  bottom: var(--sailor-space-1);
+  z-index: 1;
+  width: var(--sailor-space-6);
+  pointer-events: none;
+  content: '';
+}
+
+.notification-panel__tabs-carousel::before {
+  left: var(--sailor-space-1);
+  background: linear-gradient(to right, var(--sailor-bg-base), transparent);
+}
+
+.notification-panel__tabs-carousel::after {
+  right: var(--sailor-space-1);
+  background: linear-gradient(to left, var(--sailor-bg-base), transparent);
+}
+
+.notification-panel__tabs-track,
 .notification-panel__filters {
   display: flex;
   gap: var(--sailor-space-2);
   overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
 }
 
-.notification-panel__tabs button,
+.notification-panel__tabs-track {
+  padding: 0 var(--sailor-space-5);
+  scroll-behavior: smooth;
+}
+
+.notification-panel__tabs-track::-webkit-scrollbar,
+.notification-panel__filters::-webkit-scrollbar {
+  display: none;
+}
+
+.notification-panel__tab,
 .notification-panel__filters button {
   flex: 0 0 auto;
   padding: var(--sailor-space-2) var(--sailor-space-3);
@@ -207,9 +253,14 @@ function labelFromIdentifier(identifier: string) {
   font: inherit;
   font-size: var(--sailor-text-sm);
   cursor: pointer;
+  scroll-snap-align: start;
+  transition:
+    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
+    color var(--sailor-duration-fast) var(--sailor-ease-standard);
 }
 
-.notification-panel__tabs button:hover,
+.notification-panel__tab:hover,
 .notification-panel__filters button:hover,
 .notification-panel__tab--active,
 .notification-panel__filter--active {

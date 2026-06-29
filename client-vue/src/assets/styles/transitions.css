@@ -68,6 +68,19 @@
   transform: translateX(-16px);
 }
 
+/* Global notification panel from viewport top */
+.notification-panel-top-enter-active,
+.notification-panel-top-leave-active {
+  transition:
+    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
+    transform var(--sailor-duration-slow) var(--sailor-ease-decelerate);
+}
+.notification-panel-top-enter-from,
+.notification-panel-top-leave-to {
+  opacity: 0;
+  transform: translateY(-100%);
+}
+
 /* ── Scale (popovers, dropdowns) ─────────────────────────── */
 .scale-enter-active,
 .scale-leave-active {
@@ -140,12 +153,16 @@
 
 @media (prefers-reduced-motion: reduce) {
   .notification-detail-slide-enter-active,
-  .notification-detail-slide-leave-active {
+  .notification-detail-slide-leave-active,
+  .notification-panel-top-enter-active,
+  .notification-panel-top-leave-active {
     transition: opacity var(--sailor-duration-fast) var(--sailor-ease-standard);
   }
 
   .notification-detail-slide-enter-from,
-  .notification-detail-slide-leave-to {
+  .notification-detail-slide-leave-to,
+  .notification-panel-top-enter-from,
+  .notification-panel-top-leave-to {
     transform: none;
   }
 }
