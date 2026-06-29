@@ -286,7 +286,7 @@ Frontend tests cover:
 - [x] Categorize global browser, console, Vue, and promise errors as `global`.
 - [x] Test eligible levels, compatibility, metadata, deduplication, and recursion suppression.
 - [x] Run composable tests and `npm run type-check` in `client-vue`.
-- [ ] Commit as `feat: persist global toast notifications`.
+- [x] Commit as `feat: persist global toast notifications`.
 
 ### Batch 5: Global Panel and Detail View
 
