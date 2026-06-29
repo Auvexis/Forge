@@ -1,6 +1,6 @@
 # Global notifications — Batch 2
 
-- [ ] Add notification domain contracts
+- [x] Add notification domain contracts
 - [ ] Add repository and service
 - [ ] Add notification endpoints
 - [ ] Connect active profile database
