@@ -1,10 +1,11 @@
-import type { AiMemoryNode, AiModelNode, AiToolNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode, VectorStoreRetrieverNode, VectorStoreToolNode } from "../../../shared/models/workflow-types.ts";
+import type { AiMemoryNode, AiModelNode, AiToolNode, CallWorkflowNode, EmbeddingsNode, StructuredJsonParserNode, VectorStoreNode, VectorStoreRetrieverNode, VectorStoreToolNode } from "../../../shared/models/workflow-types.ts";
 import { validateAiModelConfig } from "../../modules/agent-runtime/agent-validation.ts";
 import type { AiMemoryNodeConfig, AiToolNodeConfig } from "../../modules/agent-runtime/agent-types.ts";
 import type { AgentToolRef, ChatModelRef, DocumentSourceRef, EmbeddingModelRef, FileDataSourceRef, OutputParserRef, RetrieverRef, VectorStoreRef } from "../../modules/ai-services/ai-service-types.ts";
 import { ChatModelExecutionService } from "../../modules/ai-services/chat-model-execution-service.ts";
 import { OutputParserExecutionService } from "../../modules/ai-services/output-parser-execution-service.ts";
 import { RetrieverExecutionService } from "../../modules/ai-services/retriever-execution-service.ts";
+import { callWorkflowNodeHandler } from "../handlers/call-workflow.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { CapabilityAdapterRegistry } from "./capability-adapter-registry.ts";
 
@@ -18,6 +19,39 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
   registry.register({ capability: "agent-tool", supports: (node) => node.type === "ai-tool", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as AiToolNode;
     return { type: "ai-tool", name: node.name, pluginId: node.pluginId, methodId: node.methodId, descriptionOverride: node.descriptionOverride ? String(TemplateEngine.evaluate(node.descriptionOverride, context.execution.context, { escape: "prompt" })) : undefined, timeoutMs: node.timeoutMs, requiresApproval: node.requiresApproval, sideEffect: node.sideEffect, inputDefaults: node.inputDefaults ? TemplateEngine.evaluate(node.inputDefaults, context.execution.context) as Record<string, any> : undefined } satisfies AiToolNodeConfig;
+  } });
+  registry.register({ capability: "agent-tool", supports: (node) => node.type === "call-workflow", resolve: async (context, nodeId) => {
+    const node = context.execution.workflow.nodes[nodeId] as CallWorkflowNode;
+    const inputDefaults = node.inputDefaults ? TemplateEngine.evaluate(node.inputDefaults, context.execution.context) as Record<string, any> : undefined;
+    return {
+      name: node.toolName,
+      description: node.toolDescription || node.name,
+      inputSchema: schemaWithoutDefaults(node.targetTrigger?.schema, inputDefaults),
+      sideEffect: "write",
+      requiresApproval: node.requiresApproval ?? false,
+      timeoutMs: node.timeoutMs ?? 120000,
+      invoke: async (args: unknown) => callWorkflowNodeHandler.execute({
+        nodeId,
+        node: {
+          ...node,
+          inputDefaults,
+        },
+        context: {
+          ...context.execution.context,
+          steps: {
+            ...context.execution.context.steps,
+            [nodeId]: {
+              ...(context.execution.context.steps[nodeId] ?? {}),
+              input: normalizeToolArgs(args),
+            },
+          },
+        },
+        workflow: context.execution.workflow,
+        edges: context.execution.edges,
+        executionId: context.execution.executionId,
+        services: context.execution.services,
+      }),
+    } satisfies AgentToolRef;
   } });
   registry.register({ capability: "agent-tool", supports: (node) => node.type === "vector-store-tool", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as VectorStoreToolNode;
@@ -110,6 +144,33 @@ function extractModelText(result: unknown): string {
   if (typeof result === "string") return result;
   if (result && typeof result === "object" && typeof (result as { content?: unknown }).content === "string") return (result as { content: string }).content;
   throw new Error("Vector Store Tool model returned no text content");
+}
+
+function schemaWithoutDefaults(
+  schema: Record<string, any> | undefined,
+  defaults: Record<string, any> | undefined,
+): Record<string, any> {
+  const base = schema && typeof schema === "object" && !Array.isArray(schema)
+    ? schema
+    : { type: "object", properties: {} };
+  const defaultKeys = Object.keys(defaults ?? {}).filter((key) => defaults?.[key] !== undefined);
+  if (defaultKeys.length === 0) return base;
+
+  const properties = base.properties && typeof base.properties === "object" && !Array.isArray(base.properties)
+    ? Object.fromEntries(Object.entries(base.properties).filter(([key]) => !defaultKeys.includes(key)))
+    : base.properties;
+
+  return {
+    ...base,
+    ...(properties ? { properties } : {}),
+    ...(Array.isArray(base.required)
+      ? { required: base.required.filter((key: unknown) => typeof key !== "string" || !defaultKeys.includes(key)) }
+      : {}),
+  };
+}
+
+function normalizeToolArgs(args: unknown): Record<string, any> {
+  return args && typeof args === "object" && !Array.isArray(args) ? args as Record<string, any> : {};
 }
 
 function toChatModelRef(node: AiModelNode): ChatModelRef {

@@ -676,6 +676,110 @@ describe("AI workflow node handlers", () => {
     assert.ok(received);
     assert.equal((received as AgentRunInput).tools[0], callableTool);
   });
+
+  it("exposes connected call-workflow nodes as callable agent tools without internal fields", async () => {
+    const registry = createUtilityNodeRegistry();
+    const base = workflowFixture();
+    const childWorkflow = workflowFixture({
+      metadata: {
+        ...base.metadata,
+        id: "child_workflow",
+        isActive: true,
+        isDraft: false,
+        publishedAt: "2026-06-30T00:00:00.000Z",
+      },
+      nodes: {
+        form_trigger: {
+          type: "trigger",
+          name: "Lead Form",
+          trigger: {
+            type: "form",
+            schema: {
+              type: "object",
+              properties: {
+                email: { type: "string" },
+                internalAccountId: { type: "string" },
+              },
+              required: ["email", "internalAccountId"],
+            },
+          },
+        },
+      },
+      edges: [],
+    });
+    const workflow = workflowFixture({
+      nodes: {
+        ...base.nodes,
+        call_child: {
+          type: "call-workflow",
+          name: "Create Lead",
+          targetWorkflowId: "child_workflow",
+          targetTriggerId: "form_trigger",
+          toolName: "create_lead",
+          toolDescription: "Create a lead in the published workflow.",
+          inputDefaults: { internalAccountId: "acct_1" },
+          requiresApproval: true,
+          timeoutMs: 45000,
+          targetTrigger: {
+            id: "form_trigger",
+            name: "Lead Form",
+            type: "form",
+            schema: {
+              type: "object",
+              properties: {
+                email: { type: "string" },
+                internalAccountId: { type: "string" },
+              },
+              required: ["email", "internalAccountId"],
+            },
+          },
+        },
+      },
+      edges: [
+        ...base.edges.filter((edge) => edge.source !== "tool"),
+        { id: "call-agent", source: "call_child", target: "agent", targetHandle: "tool" },
+      ],
+    });
+    let received: AgentRunInput | null = null;
+    let childPayload: unknown;
+    AgentRuntimeService.runAgent = async (input) => {
+      received = input;
+      const tool = input.tools[0];
+      if (!("invoke" in tool)) throw new Error("Expected call-workflow callable tool");
+      childPayload = await tool.invoke({ email: "lead@example.com" });
+      return { status: "success", output: "ok", toolCallCount: 1, iterationCount: 1 };
+    };
+    const runInput = handlerInput("agent", workflow.nodes.agent, workflow, contextFixture());
+    runInput.services.getWorkflowById = (workflowId) => workflowId === "child_workflow" ? childWorkflow : null;
+    runInput.services.executeWorkflowFromTrigger = async (_workflow, triggerNodeId, payload) => ({
+      executionId: "child_exec",
+      status: "SUCCESS",
+      context: { triggerNodeId, payload },
+    });
+
+    await registry.get("ai-agent").execute(runInput);
+
+    assert.ok(received);
+    const tool = (received as AgentRunInput).tools[0];
+    if (!("invoke" in tool)) throw new Error("Expected call-workflow callable tool");
+    assert.equal(tool.name, "create_lead");
+    assert.equal(tool.description, "Create a lead in the published workflow.");
+    assert.equal(tool.requiresApproval, true);
+    assert.equal(tool.timeoutMs, 45000);
+    assert.deepEqual(tool.inputSchema.required, ["email"]);
+    assert.deepEqual(Object.keys(tool.inputSchema.properties), ["email"]);
+    assert.equal("targetWorkflowId" in tool, false);
+    assert.equal("targetTriggerId" in tool, false);
+    assert.equal("inputDefaults" in tool, false);
+    assert.deepEqual(childPayload, {
+      executionId: "child_exec",
+      status: "SUCCESS",
+      output: {
+        triggerNodeId: "form_trigger",
+        payload: { internalAccountId: "acct_1", email: "lead@example.com" },
+      },
+    });
+  });
 });
 
 function handlerInput(

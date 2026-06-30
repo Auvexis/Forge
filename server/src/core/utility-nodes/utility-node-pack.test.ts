@@ -172,6 +172,7 @@ describe("Utility node pack contract", () => {
     assert.deepEqual(sailorCoreUtilityNodePack.nodes["file-dataset"]?.capabilities, ["file-data-source", "document-source"]);
     assert.equal((sailorCoreUtilityNodePack.nodes as Record<string, unknown>)["document-loader"], undefined);
     assert.deepEqual(sailorCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes["call-workflow"]?.capabilities, ["agent-tool"]);
   });
 
   it("keeps executable handlers aligned while planned advanced shells remain explicit", () => {

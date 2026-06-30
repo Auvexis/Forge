@@ -143,6 +143,7 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Call Workflow",
       description: "Call a published workflow through a callable trigger.",
       category: "Flow",
+      capabilities: ["agent-tool"],
       style: {
         icon: "layers-3",
         iconColor: "var(--sailor-node-subworkflow-icon)",

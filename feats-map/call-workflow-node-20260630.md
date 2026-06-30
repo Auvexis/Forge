@@ -23,12 +23,12 @@ Workflow id, trigger id, internal workflow logic, and hardcoded/default fields s
 - [x] Commit.
 
 ## Batch 3 - Agent Tool Adapter
-- [ ] Expose `call-workflow` as `agent-tool`.
-- [ ] Hide workflow, trigger, and hardcoded fields from the LLM.
-- [ ] Generate tool schema from callable trigger schema.
-- [ ] Execute target workflow from agent loop.
-- [ ] Add approval and timeout handling.
-- [ ] Commit.
+- [x] Expose `call-workflow` as `agent-tool`.
+- [x] Hide workflow, trigger, and hardcoded fields from the LLM.
+- [x] Generate tool schema from callable trigger schema.
+- [x] Execute target workflow from agent loop.
+- [x] Add approval and timeout handling.
+- [x] Commit.
 
 ## Batch 4 - Callable Workflow API
 - [ ] Add callable workflows endpoint.
