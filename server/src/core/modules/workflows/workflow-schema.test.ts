@@ -86,7 +86,7 @@ describe("workflow schema builder", () => {
 
     assert.equal(schema.nodes.script.nodeLabel, "Code Block");
     assert.equal(schema.nodes.script.nodeIcon, "code-2");
-    assert.equal(schema.nodes.script.nodeStyle.iconColor, "#60a5fa");
+    assert.equal(schema.nodes.script.nodeStyle.iconColor, "var(--sailor-node-codeblock-icon)");
     assert.equal(schema.nodes.pluginStep.pluginName, "Demo Plugin");
     assert.equal(schema.nodes.pluginStep.pluginIcon, "plug");
     assert.equal(schema.nodes.pluginStep.nodeStyle, undefined);

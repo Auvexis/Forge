@@ -150,9 +150,9 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       ],
       style: {
         icon: "workflow",
-        iconColor: "var(--sailor-node-subworkflow-icon)",
-        bgColor: "var(--sailor-node-subworkflow-bg)",
-        borderColor: "var(--sailor-node-subworkflow-border)",
+        iconColor: "var(--sailor-node-call-workflow-icon)",
+        bgColor: "var(--sailor-node-call-workflow-bg)",
+        borderColor: "var(--sailor-node-call-workflow-border)",
       },
     },
     "respond-webhook": {

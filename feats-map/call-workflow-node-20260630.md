@@ -58,10 +58,10 @@ Workflow id, trigger id, internal workflow logic, and hardcoded/default fields s
 - [x] Commit.
 
 ## Batch 7 - Cleanup
-- [ ] Remove stale `subworkflow` tests and references.
-- [ ] Update workflow schema builder.
-- [ ] Update add-node filters and selectors.
-- [ ] Update docs where needed.
-- [ ] Run backend tests.
-- [ ] Run frontend tests.
-- [ ] Commit.
+- [x] Remove stale `subworkflow` tests and references.
+- [x] Update workflow schema builder.
+- [x] Update add-node filters and selectors.
+- [x] Update docs where needed.
+- [x] Run backend tests.
+- [x] Run frontend tests.
+- [x] Commit.

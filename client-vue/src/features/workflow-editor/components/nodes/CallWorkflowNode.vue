@@ -23,8 +23,8 @@ const stepTitle = computed(() => props.data.name || 'Call Workflow')
     :title="stepTitle"
     subtitle="Callable workflow"
     icon="workflow"
-    color="var(--sailor-node-subworkflow-icon)"
-    bg="var(--sailor-node-subworkflow-bg)"
-    border-color="var(--sailor-node-subworkflow-border)"
+    color="var(--sailor-node-call-workflow-icon)"
+    bg="var(--sailor-node-call-workflow-bg)"
+    border-color="var(--sailor-node-call-workflow-border)"
   />
 </template>

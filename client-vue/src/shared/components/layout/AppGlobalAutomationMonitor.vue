@@ -350,7 +350,7 @@ function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
     form: 'Form',
     'webhook-form': 'Form',
     chat: 'Chat',
-    subworkflow: 'Sub-workflow',
+    'call-workflow': 'Call Workflow',
   }
   return labels[type] ?? type
 }

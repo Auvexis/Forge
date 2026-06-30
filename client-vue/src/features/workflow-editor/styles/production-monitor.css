@@ -161,7 +161,7 @@ Extracted from ProductionMonitorPanel.vue <style scoped>.
   color: #38bdf8;
 }
 
-.pm-badge--subworkflow {
+.pm-badge--call-workflow {
   background: color-mix(in srgb, #c084fc 15%, transparent);
   color: #c084fc;
 }
@@ -412,4 +412,3 @@ Extracted from ProductionMonitorPanel.vue <style scoped>.
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }
 }
-

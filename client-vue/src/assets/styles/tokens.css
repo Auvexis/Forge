@@ -326,10 +326,10 @@
   --sailor-node-http-icon: rgb(251, 146, 60);
   --sailor-node-http-border: rgba(251, 146, 60, 0.4);
 
-  /* Sub Workflow */
-  --sailor-node-subworkflow-bg: rgba(251, 113, 133, 0.12);
-  --sailor-node-subworkflow-icon: rgb(251, 113, 133);
-  --sailor-node-subworkflow-border: rgba(251, 113, 133, 0.4);
+  /* Call Workflow */
+  --sailor-node-call-workflow-bg: rgba(251, 113, 133, 0.12);
+  --sailor-node-call-workflow-icon: rgb(251, 113, 133);
+  --sailor-node-call-workflow-border: rgba(251, 113, 133, 0.4);
 
   /* Event */
   --sailor-node-event-bg: rgba(250, 204, 21, 0.12);
@@ -389,9 +389,9 @@
   --sailor-node-if-tag-text: rgb(167, 139, 250);
   --sailor-node-if-tag-border: rgba(167, 139, 250, 0.1);
 
-  --sailor-node-subworkflow-tag-bg: rgba(251, 113, 133, 0.05);
-  --sailor-node-subworkflow-tag-text: rgb(251, 113, 133);
-  --sailor-node-subworkflow-tag-border: rgba(251, 113, 133, 0.1);
+  --sailor-node-call-workflow-tag-bg: rgba(251, 113, 133, 0.05);
+  --sailor-node-call-workflow-tag-text: rgb(251, 113, 133);
+  --sailor-node-call-workflow-tag-border: rgba(251, 113, 133, 0.1);
 
   --sailor-node-event-tag-bg: rgba(250, 204, 21, 0.05);
   --sailor-node-event-tag-text: rgb(250, 204, 21);

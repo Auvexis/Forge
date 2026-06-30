@@ -389,7 +389,7 @@ const iconsMap = computed(() => {
     http: 'globe',
     code: 'code',
     loop: 'repeat',
-    subworkflow: 'layers',
+    'call-workflow': 'workflow',
     event: 'bell',
     'event-listener': 'radio',
     if: 'git-branch',

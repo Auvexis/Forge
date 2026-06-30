@@ -163,18 +163,18 @@ const nodeTextByType: Partial<Record<string, Record<StartGuideLang, StartGuideSt
         description: 'Espera un evento compatible y continua el workflow desde esa senal.',
       },
   },
-  subworkflow: {
+  'call-workflow': {
       en: {
-        title: 'Sub-Workflow node',
-        description: 'Call another workflow as a reusable step inside the current workflow.',
+        title: 'Call Workflow node',
+        description: 'Call a published workflow through a callable trigger as a reusable step.',
       },
       pt: {
-        title: 'Node Sub-Workflow',
-        description: 'Chame outro workflow como uma etapa reutilizavel dentro do workflow atual.',
+        title: 'Node Call Workflow',
+        description: 'Chame um workflow publicado por um trigger chamavel como etapa reutilizavel.',
       },
       es: {
-        title: 'Nodo Sub-Workflow',
-        description: 'Llama otro workflow como paso reutilizable dentro del workflow actual.',
+        title: 'Nodo Call Workflow',
+        description: 'Llama un workflow publicado mediante un trigger invocable como paso reutilizable.',
       },
   },
   'respond-webhook': {
