@@ -10,7 +10,7 @@ import HttpEditor from './HttpEditor.vue'
 import CodeEditor from './CodeEditor.vue'
 import IfEditor from './IfEditor.vue'
 import LoopEditor from './LoopEditor.vue'
-import SubWorkflowEditor from './SubWorkflowEditor.vue'
+import CallWorkflowEditor from './CallWorkflowEditor.vue'
 import EventEditor from './EventEditor.vue'
 import EventListenerEditor from './EventListenerEditor.vue'
 import PluginEditor from './PluginEditor.vue'
@@ -42,7 +42,7 @@ export const NODE_EDITOR_REGISTRY: Partial<Record<WorkflowNodeType | 'trigger', 
   code: CodeEditor,
   if: IfEditor,
   loop: LoopEditor,
-  'call-workflow': SubWorkflowEditor,
+  'call-workflow': CallWorkflowEditor,
   http: HttpEditor,
   event: EventEditor,
   'event-listener': EventListenerEditor,

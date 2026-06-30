@@ -40,13 +40,13 @@ Workflow id, trigger id, internal workflow logic, and hardcoded/default fields s
 - [x] Commit.
 
 ## Batch 5 - Frontend Node Catalog
-- [ ] Add `Call Workflow` utility node.
-- [ ] Remove `Sub-Workflow` catalog item.
-- [ ] Add node presentation and handles.
-- [ ] Register `CallWorkflowEditor`.
-- [ ] Remove `SubWorkflowEditor`.
-- [ ] Add frontend contract tests.
-- [ ] Commit.
+- [x] Add `Call Workflow` utility node.
+- [x] Remove `Sub-Workflow` catalog item.
+- [x] Add node presentation and handles.
+- [x] Register `CallWorkflowEditor`.
+- [x] Remove `SubWorkflowEditor`.
+- [x] Add frontend contract tests.
+- [x] Commit.
 
 ## Batch 6 - Frontend Editor
 - [ ] Add published workflow select.

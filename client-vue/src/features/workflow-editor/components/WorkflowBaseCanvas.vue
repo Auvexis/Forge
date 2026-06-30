@@ -123,7 +123,7 @@ import EventNode from './nodes/EventNode.vue'
 import EventListenerNode from './nodes/EventListenerNode.vue'
 import PluginNode from './nodes/PluginNode.vue'
 import IfNode from './nodes/IfNode.vue'
-import SubWorkflowNode from './nodes/SubWorkflowNode.vue'
+import CallWorkflowNode from './nodes/CallWorkflowNode.vue'
 import SetNode from './nodes/SetNode.vue'
 import SwitchNode from './nodes/SwitchNode.vue'
 import MergeNode from './nodes/MergeNode.vue'
@@ -186,7 +186,7 @@ const nodeComponentByType: Record<string, Component> = {
   'event-listener': EventListenerNode,
   plugin: PluginNode,
   if: IfNode,
-  'call-workflow': SubWorkflowNode,
+  'call-workflow': CallWorkflowNode,
   set: SetNode,
   switch: SwitchNode,
   merge: MergeNode,
