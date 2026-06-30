@@ -21,7 +21,7 @@ import {
 } from "../../nodes/handlers/retrieval.ts";
 import { setNodeHandler } from "../../nodes/handlers/set.ts";
 import { splitInBatchesNodeHandler } from "../../nodes/handlers/split-in-batches.ts";
-import { subWorkflowNodeHandler } from "../../nodes/handlers/subworkflow.ts";
+import { callWorkflowNodeHandler } from "../../nodes/handlers/call-workflow.ts";
 import { switchNodeHandler } from "../../nodes/handlers/switch.ts";
 import { triggerNodeHandler } from "../../nodes/handlers/trigger.ts";
 import { waitFormNodeHandler } from "../../nodes/handlers/wait-form.ts";
@@ -50,7 +50,7 @@ const handlers: NodeHandler[] = [
   setNodeHandler,
   eventNodeHandler,
   eventListenerNodeHandler,
-  subWorkflowNodeHandler,
+  callWorkflowNodeHandler,
   respondWebhookNodeHandler,
   waitFormNodeHandler,
   aiAgentNodeHandler,

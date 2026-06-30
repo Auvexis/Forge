@@ -96,6 +96,7 @@ function createNodeServices(
     executePluginMethod: PluginExecutor.execute,
     executeNode: dispatchNode,
     executeWorkflow: WorkflowEngine.executeWorkflow,
+    executeWorkflowFromTrigger: WorkflowEngine.executeWorkflowFromTrigger,
     getWorkflowById: WorkflowRepository.getWorkflowById,
     emitInternalEvent: InternalEventBus.emit,
     resolvePendingWebhookResponse: PendingWebhookResponseRegistry.resolve,

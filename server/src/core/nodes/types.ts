@@ -49,6 +49,12 @@ export interface NodeHandlerServices {
     triggerPayload: any,
     executionId?: string,
   ) => Promise<any>;
+  executeWorkflowFromTrigger?: (
+    workflow: WorkflowItem,
+    triggerNodeId: string,
+    triggerPayload: any,
+    executionId?: string,
+  ) => Promise<any>;
   getWorkflowById: (workflowId: string) => WorkflowItem | null;
   emitInternalEvent: (event: InternalEvent) => Promise<{ triggered: string[] }>;
   resolvePendingWebhookResponse: (

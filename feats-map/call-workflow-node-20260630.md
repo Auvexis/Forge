@@ -14,13 +14,13 @@ Workflow id, trigger id, internal workflow logic, and hardcoded/default fields s
 - [x] Commit.
 
 ## Batch 2 - Backend Runtime
-- [ ] Add `call-workflow` handler.
-- [ ] Restrict target triggers to `manual`, `form`, and `webhook`.
-- [ ] Require target workflow to be published.
-- [ ] Merge hardcoded defaults with runtime inputs.
-- [ ] Return child execution status and output.
-- [ ] Remove old `subworkflow` handler.
-- [ ] Commit.
+- [x] Add `call-workflow` handler.
+- [x] Restrict target triggers to `manual`, `form`, and `webhook`.
+- [x] Require target workflow to be published.
+- [x] Merge hardcoded defaults with runtime inputs.
+- [x] Return child execution status and output.
+- [x] Remove old `subworkflow` handler.
+- [x] Commit.
 
 ## Batch 3 - Agent Tool Adapter
 - [ ] Expose `call-workflow` as `agent-tool`.

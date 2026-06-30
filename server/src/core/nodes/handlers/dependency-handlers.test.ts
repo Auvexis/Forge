@@ -6,7 +6,7 @@ import { codeNodeHandler } from "./code.ts";
 import { eventNodeHandler } from "./event.ts";
 import { httpNodeHandler } from "./http.ts";
 import { respondWebhookNodeHandler } from "./respond-webhook.ts";
-import { subWorkflowNodeHandler } from "./subworkflow.ts";
+import { callWorkflowNodeHandler } from "./call-workflow.ts";
 import type {
   NodeHandlerInput,
   NodeHandlerServices,
@@ -36,6 +36,7 @@ function services(overrides: Partial<NodeHandlerServices> = {}): NodeHandlerServ
   return {
     executeNode: async () => undefined,
     executeWorkflow: async () => undefined,
+    executeWorkflowFromTrigger: async () => undefined,
     emitNodeStart: () => undefined,
     emitNodeSuccess: () => undefined,
     emitNodeFailure: () => undefined,
@@ -182,26 +183,118 @@ describe("dependency-backed utility node handlers", () => {
     assert.deepEqual(result, { statusCode: 201, body: { id: "created_1" }, resolved: true });
   });
 
-  it("executes call-workflow nodes by loading the child workflow through services", async () => {
-    const childWorkflow = workflowWith({ type: "trigger", name: "Trigger" });
+  it("executes call-workflow nodes against published callable triggers", async () => {
+    const childWorkflow = {
+      ...workflowWith({
+        type: "trigger",
+        name: "Public Form",
+        trigger: { type: "form" },
+      }),
+      metadata: {
+        ...workflowWith({ type: "trigger", name: "Trigger" }).metadata,
+        id: "child-1",
+        isActive: true,
+        isDraft: false,
+        publishedAt: "2026-06-30T00:00:00.000Z",
+      },
+      nodes: {
+        form_trigger: {
+          type: "trigger",
+          name: "Public Form",
+          trigger: { type: "form" },
+        },
+      },
+    } satisfies WorkflowItem;
 
-    const result = await subWorkflowNodeHandler.execute(input({
+    const calls: any[] = [];
+
+    const result = await callWorkflowNodeHandler.execute(input({
       type: "call-workflow",
       name: "Child",
       targetWorkflowId: "child-1",
-      targetTriggerId: "manual",
+      targetTriggerId: "form_trigger",
       toolName: "child_tool",
-      inputDefaults: { invoiceId: "trigger.invoice.id" },
-    }, { trigger: { invoice: { id: "inv_1" } }, steps: {}, variables: {} }, {
+      inputDefaults: { source: "workflow", invoiceId: "default" },
+    }, {
+      trigger: {},
+      steps: { "node-1": { input: { invoiceId: "inv_1" } } },
+      variables: {},
+    }, {
       getWorkflowById: (workflowId) => workflowId === "child-1" ? childWorkflow : null,
-      executeWorkflow: async (_workflow, triggerPayload) => ({
-        context: { trigger: triggerPayload, steps: { done: true } },
-      }),
+      executeWorkflowFromTrigger: async (...args: [WorkflowItem, string, any, string?]) => {
+        calls.push(args);
+        return {
+          executionId: "child-exec-1",
+          status: "SUCCESS",
+          context: { trigger: args[2], steps: { done: { output: "ok" } } },
+        };
+      },
     }));
 
+    assert.equal(calls[0][0], childWorkflow);
+    assert.equal(calls[0][1], "form_trigger");
+    assert.deepEqual(calls[0][2], { source: "workflow", invoiceId: "inv_1" });
+    assert.match(calls[0][3], /^exec_call_node-1_/);
     assert.deepEqual(result, {
-      trigger: { invoiceId: "inv_1" },
-      steps: { done: true },
+      executionId: "child-exec-1",
+      status: "SUCCESS",
+      output: { trigger: { source: "workflow", invoiceId: "inv_1" }, steps: { done: { output: "ok" } } },
     });
+  });
+
+  it("rejects call-workflow targets that are not published", async () => {
+    const childWorkflow = {
+      ...workflowWith({ type: "trigger", name: "Trigger" }),
+      metadata: {
+        ...workflowWith({ type: "trigger", name: "Trigger" }).metadata,
+        id: "draft-child",
+        isActive: false,
+        isDraft: true,
+        publishedAt: null,
+      },
+    };
+
+    await assert.rejects(
+      () => callWorkflowNodeHandler.execute(input({
+        type: "call-workflow",
+        name: "Child",
+        targetWorkflowId: "draft-child",
+        targetTriggerId: "trigger",
+        toolName: "child_tool",
+      }, { trigger: {}, steps: {}, variables: {} }, {
+        getWorkflowById: () => childWorkflow,
+      })),
+      /must be published/,
+    );
+  });
+
+  it("rejects call-workflow targets that are not callable trigger types", async () => {
+    const childWorkflow = {
+      ...workflowWith({
+        type: "trigger",
+        name: "Cron",
+        trigger: { type: "cron", cronExpression: "* * * * *" },
+      }),
+      metadata: {
+        ...workflowWith({ type: "trigger", name: "Trigger" }).metadata,
+        id: "cron-child",
+        isActive: true,
+        isDraft: false,
+        publishedAt: "2026-06-30T00:00:00.000Z",
+      },
+    };
+
+    await assert.rejects(
+      () => callWorkflowNodeHandler.execute(input({
+        type: "call-workflow",
+        name: "Child",
+        targetWorkflowId: "cron-child",
+        targetTriggerId: "node-1",
+        toolName: "child_tool",
+      }, { trigger: {}, steps: {}, variables: {} }, {
+        getWorkflowById: () => childWorkflow,
+      })),
+      /not callable/,
+    );
   });
 });
