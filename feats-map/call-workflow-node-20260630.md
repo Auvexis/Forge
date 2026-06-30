@@ -49,13 +49,13 @@ Workflow id, trigger id, internal workflow logic, and hardcoded/default fields s
 - [x] Commit.
 
 ## Batch 6 - Frontend Editor
-- [ ] Add published workflow select.
-- [ ] Add callable trigger select.
-- [ ] Show trigger icon, id, and type badge.
-- [ ] Render trigger parameters.
-- [ ] Support hardcoded/default fields.
-- [ ] Add tool instructions, approval, and timeout controls.
-- [ ] Commit.
+- [x] Add published workflow select.
+- [x] Add callable trigger select.
+- [x] Show trigger icon, id, and type badge.
+- [x] Render trigger parameters.
+- [x] Support hardcoded/default fields.
+- [x] Add tool instructions, approval, and timeout controls.
+- [x] Commit.
 
 ## Batch 7 - Cleanup
 - [ ] Remove stale `subworkflow` tests and references.

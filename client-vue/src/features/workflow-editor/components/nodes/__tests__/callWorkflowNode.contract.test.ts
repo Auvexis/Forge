@@ -53,8 +53,8 @@ test('call workflow editor names the callable target instead of sub-workflow cop
   assert.equal(existsSync(editorPath), true)
 
   const editor = read('src/features/workflow-editor/components/settings/editors/CallWorkflowEditor.vue')
-  assert.match(editor, /Target Workflow ID/)
-  assert.match(editor, /Target Trigger ID/)
+  assert.match(editor, /Published Workflow/)
+  assert.match(editor, /Callable Trigger/)
   assert.match(editor, /Tool Name/)
   assert.doesNotMatch(editor, /sub-workflow/i)
 })

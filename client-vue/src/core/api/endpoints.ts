@@ -23,6 +23,7 @@ export const ENDPOINTS = {
 
   // Workflows
   WORKFLOWS: '/workflows',
+  WORKFLOWS_CALLABLE: '/workflows/callable',
   WORKFLOW_BY_ID: (id: string) => `/workflows/${encodeURIComponent(id)}`,
   WORKFLOW_GIT_STATUS: (id: string) => `/workflows/${encodeURIComponent(id)}/git/status`,
   WORKFLOW_GIT_SNAPSHOTS: (id: string) => `/workflows/${encodeURIComponent(id)}/git/snapshots`,

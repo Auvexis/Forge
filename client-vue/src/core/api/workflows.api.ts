@@ -102,6 +102,21 @@ export interface WorkflowGitCommitResult {
   status: WorkflowGitSnapshotStatus
 }
 
+export interface CallableWorkflowTrigger {
+  id: string
+  name: string
+  type: 'manual' | 'form' | 'webhook'
+  icon?: string
+  schema?: Record<string, any>
+}
+
+export interface CallableWorkflowSummary {
+  id: string
+  name: string
+  description?: string
+  triggers: CallableWorkflowTrigger[]
+}
+
 // ── Server response shape (snake_case from SQLite row) ────────
 
 /**
@@ -184,6 +199,10 @@ function mapExecutionLog(raw: ServerExecutionLog): ExecutionLog {
 export const workflowsApi = {
   /** Get all workflows */
   getAll: () => apiRequest<WorkflowItem[]>(ENDPOINTS.WORKFLOWS),
+
+  /** Get published workflows with callable triggers */
+  listCallable: () =>
+    apiRequest<CallableWorkflowSummary[]>(ENDPOINTS.WORKFLOWS_CALLABLE),
 
   /** Get a specific workflow by ID */
   getById: (id: string) => apiRequest<WorkflowItem>(ENDPOINTS.WORKFLOW_BY_ID(id)),
