@@ -138,10 +138,10 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
         borderColor: "var(--sailor-node-event-listener-border)",
       },
     },
-    subworkflow: {
-      type: "subworkflow",
-      label: "Sub-Workflow",
-      description: "Call another workflow as a sub-step.",
+    "call-workflow": {
+      type: "call-workflow",
+      label: "Call Workflow",
+      description: "Call a published workflow through a callable trigger.",
       category: "Flow",
       style: {
         icon: "layers-3",

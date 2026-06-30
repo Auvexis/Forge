@@ -9,7 +9,7 @@ export const VALID_NODE_TYPES = new Set<WorkflowNodeType>([
   'code',
   'if',
   'loop',
-  'subworkflow',
+  'call-workflow',
   'trigger',
   'http',
   'event',
@@ -68,8 +68,8 @@ export const NODE_TYPE_META: Record<
     color: 'var(--sailor-node-flow)',
     category: 'flow',
   },
-  subworkflow: {
-    label: 'Sub-Workflow',
+  'call-workflow': {
+    label: 'Call Workflow',
     color: 'var(--sailor-node-plugin)',
     category: 'flow',
   },

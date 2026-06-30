@@ -7,7 +7,7 @@ export const VALID_NODE_TYPES = new Set([
   "code",
   "if",
   "loop",
-  "subworkflow",
+  "call-workflow",
   "trigger",
   "http",
   "event",
@@ -303,9 +303,15 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       return !node.collection || typeof node.collection !== "string"
         ? `Loop node "${nodeId}" must have a collection expression`
         : null;
-    case "subworkflow":
-      return !node.workflowId
-        ? `SubWorkflow node "${nodeId}" must have a workflowId`
+    case "call-workflow":
+      if (!node.targetWorkflowId || typeof node.targetWorkflowId !== "string") {
+        return `Call Workflow node "${nodeId}" must have a targetWorkflowId`;
+      }
+      if (!node.targetTriggerId || typeof node.targetTriggerId !== "string") {
+        return `Call Workflow node "${nodeId}" must have a targetTriggerId`;
+      }
+      return !node.toolName || typeof node.toolName !== "string"
+        ? `Call Workflow node "${nodeId}" must have a toolName`
         : null;
     case "http":
       if (!node.url || typeof node.url !== "string") {

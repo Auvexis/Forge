@@ -58,9 +58,12 @@ export function buildWorkflowSchema(
         baseSchema.maxIterations = node.maxIterations;
         baseSchema.handles = ["loop-body", "loop-done"];
         break;
-      case "subworkflow":
-        baseSchema.workflowId = node.workflowId;
-        baseSchema.inputMapping = node.inputMapping;
+      case "call-workflow":
+        baseSchema.targetWorkflowId = node.targetWorkflowId;
+        baseSchema.targetTriggerId = node.targetTriggerId;
+        baseSchema.inputDefaults = node.inputDefaults ?? {};
+        baseSchema.toolName = node.toolName;
+        baseSchema.toolDescription = node.toolDescription;
         break;
       case "http":
         baseSchema.method = node.method;

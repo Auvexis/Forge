@@ -182,14 +182,16 @@ describe("dependency-backed utility node handlers", () => {
     assert.deepEqual(result, { statusCode: 201, body: { id: "created_1" }, resolved: true });
   });
 
-  it("executes subworkflows by loading the child workflow through services", async () => {
+  it("executes call-workflow nodes by loading the child workflow through services", async () => {
     const childWorkflow = workflowWith({ type: "trigger", name: "Trigger" });
 
     const result = await subWorkflowNodeHandler.execute(input({
-      type: "subworkflow",
+      type: "call-workflow",
       name: "Child",
-      workflowId: "child-1",
-      inputMapping: { invoiceId: "trigger.invoice.id" },
+      targetWorkflowId: "child-1",
+      targetTriggerId: "manual",
+      toolName: "child_tool",
+      inputDefaults: { invoiceId: "trigger.invoice.id" },
     }, { trigger: { invoice: { id: "inv_1" } }, steps: {}, variables: {} }, {
       getWorkflowById: (workflowId) => workflowId === "child-1" ? childWorkflow : null,
       executeWorkflow: async (_workflow, triggerPayload) => ({

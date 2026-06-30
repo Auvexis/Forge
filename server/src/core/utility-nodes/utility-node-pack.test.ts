@@ -52,7 +52,7 @@ describe("Utility node pack contract", () => {
       "set",
       "event",
       "event-listener",
-      "subworkflow",
+      "call-workflow",
       "respond-webhook",
       "wait-form",
       "ai-agent",
@@ -95,7 +95,7 @@ describe("Utility node pack contract", () => {
       set: "set",
       event: "event",
       "event-listener": "event-listener",
-      subworkflow: "subworkflow",
+      "call-workflow": "subworkflow",
       "respond-webhook": "respond-webhook",
     } as const;
 

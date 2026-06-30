@@ -10,7 +10,7 @@ export type WorkflowNodeType =
   | 'code'
   | 'if'
   | 'loop'
-  | 'subworkflow'
+  | 'call-workflow'
   | 'trigger'
   | 'http'
   | 'event'
@@ -42,6 +42,7 @@ export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
 
 export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
 export type AgentExecutionMode = 'loop' | 'plan'
+export type CallableWorkflowTriggerType = 'manual' | 'form' | 'webhook'
 export type DatasetSourceType = 'text' | 'file' | 'database'
 export type VectorDistanceMetric = 'cosine' | 'dot' | 'euclidean'
 export type VectorStoreMethodId =
@@ -58,6 +59,14 @@ export type AgentToolSideEffect =
   | 'external-message'
   | 'external-payment'
   | 'filesystem'
+
+export interface CallableWorkflowTriggerMetadata {
+  id: string
+  name: string
+  type: CallableWorkflowTriggerType
+  icon?: string
+  schema?: Record<string, any>
+}
 
 // ── Retry Policy ─────────────────────────────────────────────
 
@@ -120,12 +129,18 @@ export interface LoopNode extends WorkflowNodeBase {
   maxIterations: number
 }
 
-// ── SubWorkflow Node ─────────────────────────────────────────
+// ── Call Workflow Node ───────────────────────────────────────
 
-export interface SubWorkflowNode extends WorkflowNodeBase {
-  type: 'subworkflow'
-  workflowId: string
-  inputMapping: Record<string, string>
+export interface CallWorkflowNode extends WorkflowNodeBase {
+  type: 'call-workflow'
+  targetWorkflowId: string
+  targetTriggerId: string
+  targetTrigger?: CallableWorkflowTriggerMetadata
+  toolName: string
+  toolDescription?: string
+  inputDefaults?: Record<string, any>
+  timeoutMs?: number
+  requiresApproval?: boolean
 }
 
 // ── HTTP Node ────────────────────────────────────────────────
@@ -500,7 +515,7 @@ export type WorkflowNode =
   | CodeNode
   | IfNode
   | LoopNode
-  | SubWorkflowNode
+  | CallWorkflowNode
   | TriggerNode
   | HttpNode
   | EventNode

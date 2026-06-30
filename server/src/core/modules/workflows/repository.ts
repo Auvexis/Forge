@@ -441,6 +441,15 @@ export function migrateWorkflow(workflow: any): WorkflowItem {
   if (workflow.nodes) {
     for (const [_id, node] of Object.entries(workflow.nodes)) {
       const n = node as any;
+      if (n.type === "subworkflow") {
+        n.type = "call-workflow";
+        n.targetWorkflowId = n.workflowId;
+        n.targetTriggerId = n.targetTriggerId ?? "manual";
+        n.toolName = n.toolName ?? n.name ?? "Call Workflow";
+        n.inputDefaults = n.inputDefaults ?? n.inputMapping ?? {};
+        delete n.workflowId;
+        delete n.inputMapping;
+      }
       if (!n.type) n.type = "plugin";
     }
   }

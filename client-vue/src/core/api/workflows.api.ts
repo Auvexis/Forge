@@ -27,7 +27,7 @@ export interface ProductionWorkflowStatus {
     | 'form'
     | 'webhook-form'
     | 'chat'
-    | 'subworkflow'
+    | 'call-workflow'
   publishedAt: string | null
   lastExecution: {
     id: string

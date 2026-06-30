@@ -49,7 +49,7 @@ describe("NodeHandlerRegistry", () => {
       "code",
       "if",
       "loop",
-      "subworkflow",
+      "call-workflow",
       "trigger",
       "http",
       "event",

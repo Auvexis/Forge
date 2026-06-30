@@ -1,18 +1,18 @@
-import type { SubWorkflowNode } from "../../../shared/models/workflow-types.ts";
+import type { CallWorkflowNode } from "../../../shared/models/workflow-types.ts";
 import { resolvePath } from "../../modules/workflows/parser.ts";
 import { createNodeHandler } from "../handler.ts";
 
-export const subWorkflowNodeHandler = createNodeHandler<SubWorkflowNode>(
-  "subworkflow",
+export const subWorkflowNodeHandler = createNodeHandler<CallWorkflowNode>(
+  "call-workflow",
   async ({ node, context, services }) => {
-    const childWorkflow = services.getWorkflowById(node.workflowId);
+    const childWorkflow = services.getWorkflowById(node.targetWorkflowId);
     if (!childWorkflow) {
-      throw new Error(`Sub-workflow ${node.workflowId} not found`);
+      throw new Error(`Call workflow target ${node.targetWorkflowId} not found`);
     }
 
     const childTrigger: Record<string, any> = {};
-    for (const [childKey, parentPath] of Object.entries(node.inputMapping)) {
-      childTrigger[childKey] = resolvePath(context, parentPath);
+    for (const [childKey, parentPath] of Object.entries(node.inputDefaults ?? {})) {
+      childTrigger[childKey] = typeof parentPath === "string" ? resolvePath(context, parentPath) : parentPath;
     }
 
     const childExecutionId = `exec_sub_${Date.now()}_${Math.random()
@@ -26,6 +26,6 @@ export const subWorkflowNodeHandler = createNodeHandler<SubWorkflowNode>(
     execution: "long-running",
     sideEffects: ["workflow-dispatch"],
     outputs: [{ id: "default", label: "Child context" }],
-    errors: ["Sub-workflow not found", "Sub-workflow execution failed"],
+    errors: ["Call workflow target not found", "Call workflow execution failed"],
   },
 );
