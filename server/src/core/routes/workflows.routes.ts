@@ -2,9 +2,15 @@ import crypto from "crypto";
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import type {
+  CallableWorkflowTriggerMetadata,
+  CallableWorkflowTriggerType,
+  FormTriggerField,
+  WebhookBodyField,
   WorkflowItem,
   WorkflowNode,
+  WorkflowTrigger,
 } from "../../shared/models/workflow-types.ts";
+import { normalizeFormFields } from "../modules/forms/form-fields.ts";
 import { registerFormRoutes } from "../modules/forms/form-routes.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
 import {
@@ -37,6 +43,11 @@ const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
 const DEV_SESSION_STREAM_RECONNECT_GRACE_MS = 5000;
 const devSessionStreamConnections = new Map<string, number>();
 const devSessionStopTimers = new Map<string, ReturnType<typeof setTimeout>>();
+const CALLABLE_WORKFLOW_TRIGGER_TYPES = new Set<WorkflowTrigger["type"]>([
+  "manual",
+  "form",
+  "webhook",
+]);
 
 interface ProfileScopeRunnerLike {
   listProfileIds(): string[];
@@ -45,6 +56,117 @@ interface ProfileScopeRunnerLike {
 
 interface WorkflowsRoutesOptions {
   profileScopeRunner?: ProfileScopeRunnerLike;
+}
+
+interface CallableWorkflowSummary {
+  id: string;
+  name: string;
+  description?: string;
+  triggers: CallableWorkflowTriggerMetadata[];
+}
+
+const EMPTY_OBJECT_SCHEMA = { type: "object", properties: {} };
+
+function callableTriggerIcon(type: CallableWorkflowTriggerType): string {
+  if (type === "form") return "clipboard-list";
+  if (type === "webhook") return "webhook";
+  return "play-circle";
+}
+
+function formFieldJsonSchema(field: FormTriggerField): Record<string, any> {
+  const schema: Record<string, any> = {
+    type: field.type === "number"
+      ? "number"
+      : field.type === "checkbox"
+        ? "boolean"
+        : field.type === "multiselect" || field.type === "checkbox-group" || field.type === "file"
+          ? "array"
+          : "string",
+    title: field.label,
+  };
+  if (field.description) schema.description = field.description;
+  if (field.type === "email") schema.format = "email";
+  if (field.type === "url") schema.format = "uri";
+  if (field.type === "date") schema.format = "date";
+  if (field.options?.length) {
+    const values = field.options.map((option) => option.value);
+    if (schema.type === "array") {
+      schema.items = { type: "string", enum: values };
+    } else {
+      schema.enum = values;
+    }
+  }
+  return schema;
+}
+
+function normalizeFormTriggerSchema(fields: unknown): Record<string, any> {
+  const normalized = normalizeFormFields(fields);
+  const properties = Object.fromEntries(
+    normalized.map((field) => [field.name, formFieldJsonSchema(field as FormTriggerField)]),
+  );
+  const required = normalized.filter((field) => field.required).map((field) => field.name);
+  return {
+    type: "object",
+    properties,
+    ...(required.length ? { required } : {}),
+  };
+}
+
+function normalizeWebhookTriggerSchema(
+  fields: Record<string, WebhookBodyField> | undefined,
+): Record<string, any> {
+  const entries = Object.entries(fields ?? {});
+  const properties = Object.fromEntries(
+    entries.map(([name, field]) => [
+      name,
+      {
+        type: field.type,
+        ...(field.description ? { description: field.description } : {}),
+      },
+    ]),
+  );
+  const required = entries
+    .filter(([, field]) => field.required)
+    .map(([name]) => name);
+  return {
+    type: "object",
+    properties,
+    ...(required.length ? { required } : {}),
+  };
+}
+
+function normalizeCallableTriggerSchema(trigger: WorkflowTrigger): Record<string, any> {
+  if (trigger.schema) return trigger.schema;
+  if (trigger.type === "form") return normalizeFormTriggerSchema(trigger.formFields);
+  if (trigger.type === "webhook") return normalizeWebhookTriggerSchema(trigger.webhookBodySchema);
+  return EMPTY_OBJECT_SCHEMA;
+}
+
+function listCallableWorkflowSummaries(): CallableWorkflowSummary[] {
+  return WorkflowRepository.getActiveWorkflows()
+    .map((workflow) => {
+      const triggers = listTriggerEntries(workflow)
+        .filter((entry) => !entry.disabled)
+        .filter((entry) => CALLABLE_WORKFLOW_TRIGGER_TYPES.has(entry.trigger.type))
+        .map((entry) => {
+          const type = entry.trigger.type as CallableWorkflowTriggerType;
+          return {
+            id: entry.id,
+            name: entry.name,
+            type,
+            icon: callableTriggerIcon(type),
+            schema: normalizeCallableTriggerSchema(entry.trigger),
+          };
+        });
+
+      return {
+        id: workflow.metadata.id,
+        name: workflow.metadata.name,
+        description: workflow.metadata.description,
+        triggers,
+      };
+    })
+    .filter((workflow) => workflow.triggers.length > 0);
 }
 
 // ──────────── Safe SSE serializer ────────────
@@ -699,6 +821,24 @@ export default async function workflowsRoutes(
       return sendResponse(reply, {
         status_code: 500,
         message: "Failed to fetch workflows",
+        error: error.message,
+        data: null,
+      });
+    }
+  });
+
+  fastify.get("/workflows/callable", async (_req, reply) => {
+    try {
+      return sendResponse(reply, {
+        status_code: 200,
+        message: "Callable workflows fetched successfully",
+        error: null,
+        data: listCallableWorkflowSummaries(),
+      });
+    } catch (error: any) {
+      return sendResponse(reply, {
+        status_code: 500,
+        message: "Failed to fetch callable workflows",
         error: error.message,
         data: null,
       });

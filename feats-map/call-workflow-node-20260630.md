@@ -31,13 +31,13 @@ Workflow id, trigger id, internal workflow logic, and hardcoded/default fields s
 - [x] Commit.
 
 ## Batch 4 - Callable Workflow API
-- [ ] Add callable workflows endpoint.
-- [ ] List only published workflows.
-- [ ] List only callable triggers.
-- [ ] Normalize `manual`, `form`, and `webhook` inputs.
-- [ ] Include trigger icon, id, name, type, and schema.
-- [ ] Add route tests.
-- [ ] Commit.
+- [x] Add callable workflows endpoint.
+- [x] List only published workflows.
+- [x] List only callable triggers.
+- [x] Normalize `manual`, `form`, and `webhook` inputs.
+- [x] Include trigger icon, id, name, type, and schema.
+- [x] Add route tests.
+- [x] Commit.
 
 ## Batch 5 - Frontend Node Catalog
 - [ ] Add `Call Workflow` utility node.
