@@ -155,6 +155,18 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
         borderColor: "var(--sailor-node-call-workflow-border)",
       },
     },
+    return: {
+      type: "return",
+      label: "Return",
+      description: "Stop the workflow and expose a final result.",
+      category: "Flow",
+      style: {
+        icon: "corner-down-left",
+        iconColor: "var(--sailor-node-flow)",
+        bgColor: "var(--sailor-node-body)",
+        borderColor: "var(--sailor-node-border)",
+      },
+    },
     "respond-webhook": {
       type: "respond-webhook",
       label: "Respond to Webhook",

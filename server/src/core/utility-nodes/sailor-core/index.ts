@@ -11,6 +11,7 @@ import { ifNodeHandler } from "../../nodes/handlers/if.ts";
 import { loopNodeHandler } from "../../nodes/handlers/loop.ts";
 import { mergeNodeHandler } from "../../nodes/handlers/merge.ts";
 import { respondWebhookNodeHandler } from "../../nodes/handlers/respond-webhook.ts";
+import { returnNodeHandler } from "../../nodes/handlers/return.ts";
 import {
   databaseDatasetNodeHandler,
   embeddingsNodeHandler,
@@ -51,6 +52,7 @@ const handlers: NodeHandler[] = [
   eventNodeHandler,
   eventListenerNodeHandler,
   callWorkflowNodeHandler,
+  returnNodeHandler,
   respondWebhookNodeHandler,
   waitFormNodeHandler,
   aiAgentNodeHandler,

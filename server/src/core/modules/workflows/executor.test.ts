@@ -189,6 +189,137 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(success.data.result.steps.set_b.output.branch, "b");
   });
 
+  it("returns all executed steps and stops execution after a return node", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "all-steps",
+    };
+    wf.nodes.after_return = {
+      type: "set",
+      name: "After Return",
+      assignments: [{ key: "shouldRun", value: "no" }],
+    };
+    wf.edges = [
+      { id: "trigger-set", source: "trigger_b", target: "set_b" },
+      { id: "set-return", source: "set_b", target: "return_result" },
+      { id: "return-after", source: "return_result", target: "after_return" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      { source: "test" },
+      "exec_return_all_steps",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.resultSource, {
+      type: "return",
+      nodeId: "return_result",
+    });
+    assert.equal(result.context.result.steps.set_b.output.branch, "b");
+    assert.equal(result.context.result.steps.return_result, undefined);
+    assert.deepEqual(result.context.steps.return_result.output, result.context.result);
+    assert.equal(result.context.steps.after_return, undefined);
+  });
+
+  it("returns custom fields from templates", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "fields",
+      fields: [
+        { key: "branch", value: "{{steps.set_b.output.branch}}" },
+        { key: "source", value: "{{trigger.source}}" },
+      ],
+    };
+    wf.edges = [
+      { id: "trigger-set", source: "trigger_b", target: "set_b" },
+      { id: "set-return", source: "set_b", target: "return_result" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      { source: "test" },
+      "exec_return_fields",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.result, { branch: "b", source: "test" });
+    assert.deepEqual(result.context.steps.return_result.output, result.context.result);
+  });
+
+  it("returns a single expression value", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "expression",
+      expression: "({ branch: steps.set_b.output.branch, source: trigger.source })",
+    };
+    wf.edges = [
+      { id: "trigger-set", source: "trigger_b", target: "set_b" },
+      { id: "set-return", source: "set_b", target: "return_result" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      { source: "test" },
+      "exec_return_expression",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.result, { branch: "b", source: "test" });
+    assert.deepEqual(result.context.resultSource, {
+      type: "return",
+      nodeId: "return_result",
+    });
+  });
+
+  it("uses the first reached return when multiple return nodes are connected", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.return_first = {
+      type: "return",
+      name: "Return First",
+      mode: "fields",
+      fields: [{ key: "winner", value: "first" }],
+    };
+    wf.nodes.return_second = {
+      type: "return",
+      name: "Return Second",
+      mode: "fields",
+      fields: [{ key: "winner", value: "second" }],
+    };
+    wf.edges = [
+      { id: "trigger-first", source: "trigger_b", target: "return_first" },
+      { id: "first-second", source: "return_first", target: "return_second" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      { source: "test" },
+      "exec_first_return_wins",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.result, { winner: "first" });
+    assert.deepEqual(result.context.resultSource, {
+      type: "return",
+      nodeId: "return_first",
+    });
+    assert.equal(result.context.steps.return_second, undefined);
+  });
+
   it("passes through disabled normal nodes to their downstream targets", async () => {
     const wf = baseWorkflow();
     wf.nodes.disabled_mid = {

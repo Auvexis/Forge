@@ -239,6 +239,11 @@ export const WorkflowEngine = {
           executionId: execId,
         });
 
+        if (node.type === "return") {
+          queue.length = 0;
+          continue;
+        }
+
         if (node.type === "event") {
           enqueueMatchingEventListeners(
             workflow,
@@ -473,6 +478,11 @@ async function continueWorkflowExecution(input: {
         workflow,
         executionId,
       });
+
+      if (node.type === "return") {
+        queue.length = 0;
+        continue;
+      }
 
       if (node.type === "event") {
         enqueueMatchingEventListeners(

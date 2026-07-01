@@ -25,15 +25,15 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 3 - Return Node Runtime
-- [ ] Add `return` handler.
-- [ ] Support `all-steps` return mode.
-- [ ] Support custom `fields` return mode.
-- [ ] Support single `expression` return mode.
-- [ ] Stop workflow execution after `Return`.
-- [ ] Keep `Return` step output equal to returned value.
-- [ ] Add branch and multi-return tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Add `return` handler.
+- [x] Support `all-steps` return mode.
+- [x] Support custom `fields` return mode.
+- [x] Support single `expression` return mode.
+- [x] Stop workflow execution after `Return`.
+- [x] Keep `Return` step output equal to returned value.
+- [x] Add branch and multi-return tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 4 - Call Workflow Result
 - [ ] Return child `context.result` directly from `call-workflow`.
