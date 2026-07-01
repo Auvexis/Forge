@@ -1,0 +1,5 @@
+- [x] Add shared dropdown outside-click contract
+- [x] Use pointerdown capture in BaseDropdownSelect
+- [x] Use pointerdown capture in BaseToolDropdown
+- [x] Verify focused test and type-check
+- [x] Commit fix

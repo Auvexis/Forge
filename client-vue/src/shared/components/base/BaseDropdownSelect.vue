@@ -117,18 +117,18 @@ function selectOption(value: string) {
   isOpen.value = false
 }
 
-function handleOutsideClick(event: MouseEvent) {
+function handleOutsidePointerDown(event: PointerEvent) {
   const target = event.target as Node | null
   if (!target || rootRef.value?.contains(target)) return
   isOpen.value = false
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleOutsideClick)
+  document.addEventListener('pointerdown', handleOutsidePointerDown, true)
 })
 
 onUnmounted(() => {
-  document.removeEventListener('click', handleOutsideClick)
+  document.removeEventListener('pointerdown', handleOutsidePointerDown, true)
 })
 </script>
 

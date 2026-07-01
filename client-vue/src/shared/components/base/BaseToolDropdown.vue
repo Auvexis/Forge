@@ -176,12 +176,12 @@ watch(
 )
 
 onMounted(() => {
-  document.addEventListener('pointerdown', onDocumentPointerDown)
+  document.addEventListener('pointerdown', onDocumentPointerDown, true)
   window.addEventListener('resize', updateMenuPosition)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('pointerdown', onDocumentPointerDown)
+  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
   window.removeEventListener('resize', updateMenuPosition)
 })
 </script>
