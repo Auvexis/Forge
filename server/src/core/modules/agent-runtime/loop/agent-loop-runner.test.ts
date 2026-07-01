@@ -340,6 +340,74 @@ describe("agent loop runner", () => {
     assert.deepEqual(calls, ["download", "send:user@example.com"]);
   });
 
+  it("falls back to sending large text workflow output as an email body after invalid JSON", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-text-ref-"));
+    const recipe = `Bolo de milho\n\n${"Misture milho, ovos e leite. ".repeat(80)}`;
+    const emailArgs: any[] = [];
+    let decisionCalls = 0;
+
+    const result = await runAgentLoop({
+      userMessage: "Gere uma receita de bolo utilizando o ingrediente: milho\nE depois envie por email para: andre.emailto@gmail.com",
+      contextMessages: [],
+      fileRefStore: new AgentFileRefStore({ rootDir: root }),
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson() {
+          decisionCalls += 1;
+          if (emailArgs.length > 0) {
+            return { action: "final", response: "Email enviado." } as any;
+          }
+          if (decisionCalls === 1) {
+            return {
+              action: "tool",
+              toolName: "call_recipe_generator_trigger",
+              params: { ingredient: "milho" },
+            } as any;
+          }
+          throw new AgentRuntimeError(
+            "Model returned invalid JSON",
+            "AGENT_MODEL_JSON_INVALID",
+            "Model returned invalid JSON",
+            502,
+          );
+        },
+        async generateFinalResponse() {
+          return "Email enviado.";
+        },
+      },
+      tools: [
+        {
+          ...tool("call_recipe_generator_trigger", async () => ({ recipe })),
+          sideEffect: "read",
+        },
+        {
+          ...tool("send_email", async (args) => {
+            emailArgs.push(args);
+            return { sent: true };
+          }),
+          description: "Send email message",
+          sideEffect: "external-message",
+          requiresApproval: false,
+          inputSchema: {
+            type: "object",
+            required: ["to", "body"],
+            properties: {
+              to: { type: "string", description: "Recipient email" },
+              body: { type: "string", description: "Email body message text" },
+            },
+          },
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Email enviado.");
+    assert.equal(emailArgs[0].to, "andre.emailto@gmail.com");
+    assert.equal(emailArgs[0].body, recipe);
+  });
+
   it("retries file not found tool errors with new parameters", async () => {
     const decisions = [
       { action: "tool", toolName: "download_file", params: { fileId: "wrong_file." } },

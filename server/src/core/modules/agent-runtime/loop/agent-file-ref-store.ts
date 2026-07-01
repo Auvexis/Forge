@@ -5,6 +5,8 @@ import { Readable } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { AgentRuntimeError } from "../agent-errors.ts";
 
+const LARGE_TEXT_REF_CHARS = 1200;
+
 export interface AgentFileRef {
   type: "file";
   ref: string;
@@ -127,6 +129,17 @@ async function storeFileRefs(
     });
   }
 
+  if (isLargeTextValue(value)) {
+    const key = pathParts.at(-1) ?? "text";
+    return store.put({
+      toolCallId,
+      path: pathParts.join("/"),
+      value,
+      fileName: `${key}.txt`,
+      mimeType: "text/plain",
+    });
+  }
+
   if (Array.isArray(value)) {
     return Promise.all(value.map((item, index) =>
       storeFileRefs(store, toolCallId, item, [...pathParts, String(index)], inherited)
@@ -165,6 +178,12 @@ function resolveFileRefs(store: AgentFileRefStore, value: unknown, keyHint = "")
   const record = value as Record<string, unknown>;
   if (typeof record.ref === "string" && record.ref.startsWith("agent-file://")) {
     const stored = store.resolve(record.ref);
+    if (
+      isTextParamKey(keyHint.toLowerCase()) &&
+      firstString(record.mimeType, record.mimetype, stored.mimeType)?.toLowerCase().startsWith("text/")
+    ) {
+      return fs.readFileSync(stored.filePath, "utf8");
+    }
     return {
       filename: firstString(record.fileName, record.filename, stored.fileName) ?? "attachment.bin",
       ...(firstString(record.mimeType, record.mimetype, stored.mimeType)
@@ -203,6 +222,9 @@ function resolveRefForKey(store: AgentFileRefStore, ref: string, keyHint: string
   if (key === "contentbase64" || key.endsWith("base64")) {
     return fs.readFileSync(stored.filePath).toString("base64");
   }
+  if (isTextParamKey(key) && stored.mimeType?.toLowerCase().startsWith("text/")) {
+    return fs.readFileSync(stored.filePath, "utf8");
+  }
   if (key === "content" || key === "buffer" || key === "data" || key === "input") {
     return fs.createReadStream(stored.filePath);
   }
@@ -223,6 +245,26 @@ function isFileContentValue(
   const key = pathParts.at(-1)?.toLowerCase() ?? "";
   if (key.includes("base64") && isLikelyBase64(value)) return true;
   return Boolean(inherited.fileName && key === "content");
+}
+
+function isLargeTextValue(value: unknown): value is string {
+  return typeof value === "string" &&
+    value.length > LARGE_TEXT_REF_CHARS &&
+    !isLikelyBase64(value);
+}
+
+function isTextParamKey(key: string): boolean {
+  return [
+    "body",
+    "message",
+    "text",
+    "content",
+    "description",
+    "html",
+    "texto",
+    "mensagem",
+    "emailbody",
+  ].includes(key);
 }
 
 async function writeFileValue(filePath: string, value: unknown): Promise<number> {

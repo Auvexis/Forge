@@ -208,8 +208,8 @@ function createTreeNode(
   }
 }
 
-function normalizeNodeStatus(status: string): NodeExecutionStatus {
-  const normalized = status.toLowerCase()
+function normalizeNodeStatus(status: unknown): NodeExecutionStatus {
+  const normalized = typeof status === 'string' ? status.toLowerCase() : ''
   if (normalized === 'running' || normalized === 'retrying' || normalized === 'success' || normalized === 'failed' || normalized === 'waiting') return normalized
   return 'idle'
 }

@@ -636,6 +636,7 @@ function inferFallbackToolParams(
   const email = extractFirstEmail(userMessage);
   const file = latestFileLikeResult(history);
   const url = latestUrlResult(history);
+  const text = latestTextResult(history);
 
   for (const [name, schema] of Object.entries(properties)) {
     const property = schema as Record<string, unknown>;
@@ -648,6 +649,10 @@ function inferFallbackToolParams(
     ].filter((item) => typeof item === "string").join(" "));
     const type = typeof property.type === "string" ? property.type : "";
 
+    if (text !== undefined && isTextParamHint(hint)) {
+      params[name] = text;
+      continue;
+    }
     if (email && isEmailParamHint(hint)) {
       params[name] = email;
       continue;
@@ -678,6 +683,10 @@ function isEmailParamHint(hint: string): boolean {
 
 function isUrlParamHint(hint: string): boolean {
   return /\b(url|link|body|message|content|texto|mensagem)\b/.test(hint);
+}
+
+function isTextParamHint(hint: string): boolean {
+  return /\b(body|message|content|text|texto|mensagem|description|html|corpo)\b/.test(hint);
 }
 
 function isFileParamHint(hint: string, schema: Record<string, unknown>): boolean {
@@ -732,6 +741,43 @@ function latestUrlResult(history: AgentLoopHistoryItem[]): string {
     if (found) return found;
   }
   return "";
+}
+
+function latestTextResult(history: AgentLoopHistoryItem[]): unknown {
+  for (const item of [...history].reverse()) {
+    if (item.type !== "tool_result") continue;
+    const found = findTextValue(item.result);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
+function findTextValue(value: unknown): unknown {
+  if (typeof value === "string") return value.trim() ? value : undefined;
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findTextValue(item);
+      if (found !== undefined) return found;
+    }
+    return undefined;
+  }
+  if (!value || typeof value !== "object" || Buffer.isBuffer(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  if (typeof record.ref === "string" && record.ref.startsWith("agent-file://")) {
+    const mimeType = typeof record.mimeType === "string" ? record.mimeType.toLowerCase() : "";
+    if (mimeType.startsWith("text/")) return record;
+  }
+  for (const key of ["recipe", "body", "message", "text", "content", "output", "result"]) {
+    if (key in record) {
+      const found = findTextValue(record[key]);
+      if (found !== undefined) return found;
+    }
+  }
+  for (const item of Object.values(record)) {
+    const found = findTextValue(item);
+    if (found !== undefined) return found;
+  }
+  return undefined;
 }
 
 function findUrlValue(value: unknown): string {

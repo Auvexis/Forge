@@ -115,6 +115,24 @@ describe('execution run tree model', () => {
     assert.equal(detail.roots[0]?.icon, 'box')
   })
 
+  it('treats persisted steps without status as idle instead of crashing', () => {
+    const detail = buildExecutionRunDetail({
+      workflow,
+      run: {
+        ...run,
+        context: {
+          ...run.context,
+          steps: {
+            agent: { output: { error: 'Model returned invalid JSON' } },
+          },
+        },
+      } as unknown as ExecutionLog,
+    })
+
+    assert.equal(detail.nodesById.agent?.status, 'idle')
+    assert.deepEqual(detail.nodesById.agent?.output, { error: 'Model returned invalid JSON' })
+  })
+
   it('normalizes live execution state into the persisted run shape', () => {
     const live = buildLiveExecutionLog({
       executionId: 'live-1',
