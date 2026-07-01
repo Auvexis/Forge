@@ -177,6 +177,20 @@ const nodeTextByType: Partial<Record<string, Record<StartGuideLang, StartGuideSt
         description: 'Llama un workflow publicado mediante un trigger invocable como paso reutilizable.',
       },
   },
+  return: {
+      en: {
+        title: 'Return node',
+        description: 'Stop the workflow and expose the final result for callers, monitors, and execution details.',
+      },
+      pt: {
+        title: 'Node Return',
+        description: 'Pare o workflow e exponha o resultado final para chamadas, monitoramento e detalhes da execucao.',
+      },
+      es: {
+        title: 'Nodo Return',
+        description: 'Detiene el workflow y expone el resultado final para llamadas, monitoreo y detalles de ejecucion.',
+      },
+  },
   'respond-webhook': {
       en: {
         title: 'Respond to Webhook node',

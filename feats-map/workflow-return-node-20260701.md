@@ -76,21 +76,21 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 8 - Global Automation Monitor
-- [ ] Surface final result in `AppGlobalAutomationMonitor.vue`.
-- [ ] Show result summary on finished runs.
-- [ ] Open full JSON result in run detail.
-- [ ] Support Return and fallback result labels.
-- [ ] Add monitor contract tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Surface final result in `AppGlobalAutomationMonitor.vue`.
+- [x] Show result summary on finished runs.
+- [x] Open full JSON result in run detail.
+- [x] Support Return and fallback result labels.
+- [x] Add monitor contract tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 9 - Cleanup And Compatibility
-- [ ] Update workflow schema builder.
-- [ ] Update variable tree icons and inference.
-- [ ] Update docs/start guide where needed.
-- [ ] Run backend tests.
-- [ ] Run frontend tests.
-- [ ] Run backend build.
-- [ ] Run frontend build.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Update workflow schema builder.
+- [x] Update variable tree icons and inference.
+- [x] Update docs/start guide where needed.
+- [x] Run backend tests.
+- [x] Run frontend tests.
+- [x] Run backend build.
+- [x] Run frontend build.
+- [x] Update feature map.
+- [x] Commit.

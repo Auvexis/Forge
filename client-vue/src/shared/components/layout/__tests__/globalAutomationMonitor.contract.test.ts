@@ -80,6 +80,18 @@ describe('global automation monitor shell', () => {
     assert.match(source, /:workflow="selectedWorkflow\.workflow"/)
     assert.match(source, /executionTriggerId/)
   })
+
+  it('surfaces final result summaries for finished runs and keeps full JSON in run detail', () => {
+    const source = readFileSync(monitorPath, 'utf8')
+
+    assert.match(source, /workflowResultSummary/)
+    assert.match(source, /workflowResultLabel/)
+    assert.match(source, /resultSource\?\.type === 'return'/)
+    assert.match(source, /Returned result/)
+    assert.match(source, /Executed steps result/)
+    assert.match(source, /gam-run-result/)
+    assert.match(source, /ExecutionRunExplorer/)
+  })
 })
 
 describe('global automation monitor wiring', () => {

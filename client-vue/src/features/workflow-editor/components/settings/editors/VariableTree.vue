@@ -32,7 +32,7 @@ import {
 } from '@/core/utils/schemaResolver'
 import type { WorkflowTrigger, WorkflowNode, PluginNode } from '@/core/types/workflow.types'
 import type { NodeData } from './types'
-import { inferAssignedPath, inferEventListenerPaths, inferWaitFormOutputPaths } from './variableTreeInference'
+import { inferAssignedPath, inferEventListenerPaths, inferReturnOutputPaths, inferWaitFormOutputPaths } from './variableTreeInference'
 import { buildEventListenerOutputPathsFromStatuses } from '../nodeInspectorPreview'
 import { useWorkflowStore } from '../../../stores/workflow.store'
 import { useExecutionStore } from '../../../stores/execution.store'
@@ -275,6 +275,15 @@ const allPaths = computed(() => {
         } else {
           paths.push({ path: `steps.${upNode.id}.output`, label: 'output', type: 'any', sourceNodeName: nodeName })
         }
+      } else if (upData.type === 'return') {
+        paths.push(...inferReturnOutputPaths({
+          nodeId: upNode.id,
+          sourceNodeName: nodeName,
+          mode: (upData as any).mode,
+          fields: (upData as any).fields,
+          expression: (upData as any).expression,
+          knownPaths: paths,
+        }))
       } else if (upData.type === 'switch') {
         paths.push({ path: `steps.${upNode.id}.output.activeHandle`, label: 'activeHandle', type: 'string', sourceNodeName: nodeName })
       } else if (upData.type === 'if') {
@@ -390,6 +399,7 @@ const iconsMap = computed(() => {
     code: 'code',
     loop: 'repeat',
     'call-workflow': 'workflow',
+    return: 'corner-down-left',
     event: 'bell',
     'event-listener': 'radio',
     if: 'git-branch',

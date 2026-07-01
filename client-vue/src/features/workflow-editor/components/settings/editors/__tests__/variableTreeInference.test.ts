@@ -1,11 +1,16 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
 import { describe, it } from 'node:test'
 
 import {
   inferAssignedPath,
   inferEventListenerPaths,
+  inferReturnOutputPaths,
   inferWaitFormOutputPaths,
 } from '../variableTreeInference.ts'
+
+const currentDir = import.meta.dirname
 
 describe('variable tree inference', () => {
   it('preserves the real value when a set field uses a resolved template', () => {
@@ -139,5 +144,40 @@ describe('variable tree inference', () => {
       ['steps.wait-form_1.output.formUrl', 'string', undefined],
       ['steps.wait-form_1.output.expiresAt', 'number', undefined],
     ])
+  })
+
+  it('infers return fields as a normal step output shape', () => {
+    const paths = inferReturnOutputPaths({
+      nodeId: 'return_1',
+      sourceNodeName: 'Return',
+      mode: 'fields',
+      fields: [
+        { key: 'recipe', value: '{{ steps.generate.output.recipe }}' },
+        { key: 'servings', value: '4' },
+      ],
+      knownPaths: [
+        {
+          path: 'steps.generate.output.recipe',
+          label: 'recipe',
+          type: 'string',
+          sourceNodeName: 'Generate',
+          value: 'Cake',
+        },
+      ],
+    })
+
+    assert.deepEqual(paths.map((path) => [path.path, path.type, path.value]), [
+      ['steps.return_1.output', 'object', undefined],
+      ['steps.return_1.output.recipe', 'string', 'Cake'],
+      ['steps.return_1.output.servings', 'number', 4],
+    ])
+  })
+
+  it('maps return nodes to return icons and static inference', () => {
+    const source = readFileSync(resolve(currentDir, '../VariableTree.vue'), 'utf8')
+
+    assert.match(source, /inferReturnOutputPaths/)
+    assert.match(source, /upData\.type === 'return'/)
+    assert.match(source, /return: 'corner-down-left'/)
   })
 })

@@ -91,4 +91,38 @@ describe("workflow schema builder", () => {
     assert.equal(schema.nodes.pluginStep.pluginIcon, "plug");
     assert.equal(schema.nodes.pluginStep.nodeStyle, undefined);
   });
+
+  it("describes Return node result configuration", () => {
+    const workflow: WorkflowItem = {
+      metadata: {
+        id: "wf-1",
+        name: "Workflow",
+        version: "1.0.0",
+        isActive: true,
+        isDraft: false,
+        public: false,
+        createdAt: "2026-05-09T00:00:00.000Z",
+      },
+      trigger: { type: "manual" },
+      nodes: {
+        return_1: {
+          type: "return",
+          name: "Return",
+          mode: "fields",
+          fields: [{ key: "recipe", value: "{{ steps.generate.output.recipe }}" }],
+        },
+      },
+      edges: [],
+      variables: [],
+    };
+
+    const schema = buildWorkflowSchema(workflow);
+
+    assert.equal(schema.nodes.return_1.nodeLabel, "Return");
+    assert.equal(schema.nodes.return_1.nodeIcon, "corner-down-left");
+    assert.equal(schema.nodes.return_1.mode, "fields");
+    assert.deepEqual(schema.nodes.return_1.fields, [
+      { key: "recipe", value: "{{ steps.generate.output.recipe }}" },
+    ]);
+  });
 });

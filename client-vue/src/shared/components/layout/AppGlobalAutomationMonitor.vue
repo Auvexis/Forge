@@ -59,6 +59,10 @@
                 <span>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</span>
                 <span>{{ workflowRunLabel(workflow) }}</span>
               </small>
+              <span v-if="workflowResultSummary(workflow)" class="gam-run-result">
+                <LucideIcon name="corner-down-left" :size="11" />
+                <span>{{ workflowResultSummary(workflow) }}</span>
+              </span>
             </span>
           </BaseButton>
         </div>
@@ -119,6 +123,14 @@
               <small>{{ tab.runs.length }}</small>
             </BaseButton>
           </div>
+
+          <section v-if="activeRunResultSummary" class="gam-run-result-panel">
+            <span>
+              <small>{{ activeRunResultSummary.label }}</small>
+              <strong>{{ activeRunResultSummary.summary }}</strong>
+            </span>
+            <small>Open a run to inspect the full JSON result.</small>
+          </section>
 
           <div class="gam-execution-body">
             <ExecutionRunExplorer
@@ -263,6 +275,15 @@ const activeTriggerRuns = computed(
   () => triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)?.runs ?? [],
 )
 
+const activeRunResultSummary = computed(() => {
+  const run = activeTriggerRuns.value.find((item) => item.context.resultSource)
+  if (!run) return null
+  return {
+    label: workflowResultLabel(run),
+    summary: workflowResultSummary(run),
+  }
+})
+
 function workflowKey(workflow: ProductionWorkflowStatus): string {
   return `${workflow.profileId ?? 'global'}:${workflow.id}`
 }
@@ -360,6 +381,36 @@ function workflowRunLabel(workflow: ProductionWorkflowStatus): string {
     return `${workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : 'Published'} / No runs`
   }
   return `Last run ${formatTime(workflow.lastExecution.startTime)}`
+}
+
+function workflowResultLabel(execution: ExecutionLog): string {
+  return execution.context.resultSource?.type === 'return'
+    ? 'Returned result'
+    : 'Executed steps result'
+}
+
+function workflowResultSummary(input: ProductionWorkflowStatus | ExecutionLog): string {
+  const execution = 'context' in input ? input : null
+  const value = execution?.context.result
+  if (!execution || execution.status === 'RUNNING' || !execution.context.resultSource) return ''
+  const label = workflowResultLabel(execution)
+  return `${label}: ${summarizeJson(value)}`
+}
+
+function summarizeJson(value: unknown): string {
+  if (value === undefined) return 'No data'
+  if (typeof value === 'string') return truncate(value)
+  if (typeof value === 'number' || typeof value === 'boolean' || value === null) return String(value)
+  if (Array.isArray(value)) return `${value.length} item${value.length === 1 ? '' : 's'}`
+  if (typeof value === 'object') {
+    const keys = Object.keys(value as Record<string, unknown>)
+    return keys.length ? keys.slice(0, 3).join(', ') : 'Empty object'
+  }
+  return truncate(String(value))
+}
+
+function truncate(value: string): string {
+  return value.length > 80 ? `${value.slice(0, 77)}...` : value
 }
 
 function formatTime(timestamp: number): string {
@@ -598,6 +649,21 @@ watch(triggerTabs, (next) => {
   color: var(--sailor-border-strong);
 }
 
+.gam-run-result {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+}
+
+.gam-run-result > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .gam-main {
   display: flex;
   flex-direction: column;
@@ -670,6 +736,37 @@ watch(triggerTabs, (next) => {
   border-bottom: 1px solid var(--sailor-border);
   overflow-x: auto;
   padding: var(--sailor-space-1);
+}
+
+.gam-run-result-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sailor-space-3);
+  min-height: 44px;
+  padding: var(--sailor-space-2) var(--sailor-space-4);
+  border-bottom: 1px solid var(--sailor-border);
+  color: var(--sailor-text-muted);
+}
+
+.gam-run-result-panel span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.gam-run-result-panel small {
+  color: var(--sailor-text-muted);
+  font-size: 10px;
+}
+
+.gam-run-result-panel strong {
+  overflow: hidden;
+  color: var(--sailor-text-primary);
+  font-size: var(--sailor-text-xs);
+  font-weight: var(--sailor-font-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .gam-tab {

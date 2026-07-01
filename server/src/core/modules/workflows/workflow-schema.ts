@@ -65,6 +65,11 @@ export function buildWorkflowSchema(
         baseSchema.toolName = node.toolName;
         baseSchema.toolDescription = node.toolDescription;
         break;
+      case "return":
+        baseSchema.mode = node.mode;
+        baseSchema.fields = node.fields;
+        baseSchema.expression = node.expression;
+        break;
       case "http":
         baseSchema.method = node.method;
         baseSchema.url = node.url;

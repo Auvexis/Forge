@@ -29,6 +29,15 @@ interface InferWaitFormOutputPathsOptions {
   liveOutput?: unknown
 }
 
+interface InferReturnOutputPathsOptions {
+  nodeId: string
+  sourceNodeName: string
+  mode?: string
+  fields?: Array<{ key?: string; value?: unknown }>
+  expression?: string
+  knownPaths: VariableTreePath[]
+}
+
 const EXACT_TEMPLATE_RE = /^{{\s*([^{}]+?)\s*}}$/
 const TEMPLATE_RE = /{{\s*([^{}]+?)\s*}}/g
 
@@ -175,6 +184,47 @@ export function inferWaitFormOutputPaths(options: InferWaitFormOutputPathsOption
   )
 
   return paths
+}
+
+export function inferReturnOutputPaths(options: InferReturnOutputPathsOptions): VariableTreePath[] {
+  const prefix = `steps.${options.nodeId}.output`
+  if (options.mode === 'fields') {
+    const paths: VariableTreePath[] = [
+      {
+        path: prefix,
+        label: 'output',
+        type: 'object',
+        sourceNodeName: options.sourceNodeName,
+      },
+    ]
+
+    for (const field of options.fields ?? []) {
+      if (!field.key) continue
+      paths.push(inferAssignedPath({
+        path: `${prefix}.${field.key}`,
+        label: field.key,
+        sourceNodeName: options.sourceNodeName,
+        rawValue: field.value,
+        knownPaths: options.knownPaths,
+      }))
+    }
+
+    return paths
+  }
+
+  if (options.mode === 'expression') {
+    return [
+      inferAssignedPath({
+        path: prefix,
+        label: 'output',
+        sourceNodeName: options.sourceNodeName,
+        rawValue: options.expression,
+        knownPaths: options.knownPaths,
+      }),
+    ]
+  }
+
+  return [{ path: prefix, label: 'output', type: 'object', sourceNodeName: options.sourceNodeName }]
 }
 
 function buildPath(
