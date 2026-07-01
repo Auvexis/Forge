@@ -331,6 +331,11 @@
   --sailor-node-call-workflow-icon: rgb(251, 113, 133);
   --sailor-node-call-workflow-border: rgba(251, 113, 133, 0.4);
 
+  /* Return */
+  --sailor-node-return-bg: rgba(132, 204, 22, 0.12);
+  --sailor-node-return-icon: rgb(132, 204, 22);
+  --sailor-node-return-border: rgba(132, 204, 22, 0.4);
+
   /* Event */
   --sailor-node-event-bg: rgba(250, 204, 21, 0.12);
   --sailor-node-event-icon: rgb(250, 204, 21);

@@ -45,14 +45,14 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 5 - Catalog And Canvas
-- [ ] Register `Return` in Sailor Core utility manifest.
-- [ ] Add `Return` style tokens.
-- [ ] Add canvas node presentation.
-- [ ] Add add-node catalog entry.
-- [ ] Add quick-add behavior as normal flow node.
-- [ ] Add catalog and presentation tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Register `Return` in Sailor Core utility manifest.
+- [x] Add `Return` style tokens.
+- [x] Add canvas node presentation.
+- [x] Add add-node catalog entry.
+- [x] Add quick-add behavior as normal flow node.
+- [x] Add catalog and presentation tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 6 - Return Editor
 - [ ] Register `ReturnEditor`.

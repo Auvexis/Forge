@@ -124,6 +124,7 @@ import EventListenerNode from './nodes/EventListenerNode.vue'
 import PluginNode from './nodes/PluginNode.vue'
 import IfNode from './nodes/IfNode.vue'
 import CallWorkflowNode from './nodes/CallWorkflowNode.vue'
+import ReturnNode from './nodes/ReturnNode.vue'
 import SetNode from './nodes/SetNode.vue'
 import SwitchNode from './nodes/SwitchNode.vue'
 import MergeNode from './nodes/MergeNode.vue'
@@ -187,6 +188,7 @@ const nodeComponentByType: Record<string, Component> = {
   plugin: PluginNode,
   if: IfNode,
   'call-workflow': CallWorkflowNode,
+  return: ReturnNode,
   set: SetNode,
   switch: SwitchNode,
   merge: MergeNode,
@@ -658,6 +660,7 @@ function defaultNodeName(type: WorkflowNodeType, id: string) {
     if: 'Conditional',
     loop: 'Loop / ForEach',
     'call-workflow': 'Call Workflow',
+    return: 'Return',
     http: 'HTTP Request',
     event: 'Emit Event',
     'event-listener': 'Wait for Event',
@@ -692,6 +695,7 @@ function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
   if (type === 'code') return { language: 'javascript', script: 'return { status: "ok" };' }
   if (type === 'if') return { condition: 'true' }
   if (type === 'loop') return { collection: '[]', maxIterations: 100 }
+  if (type === 'return') return { mode: 'all-steps' }
   if (type === 'set') return { assignments: [{ key: 'field', value: '' }] }
   if (type === 'switch')
     return { inputExpression: 'steps.prev.output.status', cases: [], fallbackHandleId: 'fallback' }

@@ -160,11 +160,14 @@ export const sailorCoreUtilityNodePack = defineUtilityNodePack({
       label: "Return",
       description: "Stop the workflow and expose a final result.",
       category: "Flow",
+      handles: [
+        { id: "target", label: "", type: "target", position: "left" },
+      ],
       style: {
         icon: "corner-down-left",
-        iconColor: "var(--sailor-node-flow)",
-        bgColor: "var(--sailor-node-body)",
-        borderColor: "var(--sailor-node-border)",
+        iconColor: "var(--sailor-node-return-icon)",
+        bgColor: "var(--sailor-node-return-bg)",
+        borderColor: "var(--sailor-node-return-border)",
       },
     },
     "respond-webhook": {

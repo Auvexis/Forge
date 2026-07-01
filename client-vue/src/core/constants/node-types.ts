@@ -76,7 +76,7 @@ export const NODE_TYPE_META: Record<
   },
   return: {
     label: 'Return',
-    color: 'var(--sailor-node-flow)',
+    color: 'var(--sailor-node-return-icon)',
     category: 'output',
   },
   http: {

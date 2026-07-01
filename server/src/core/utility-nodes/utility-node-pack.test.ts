@@ -53,6 +53,7 @@ describe("Utility node pack contract", () => {
       "event",
       "event-listener",
       "call-workflow",
+      "return",
       "respond-webhook",
       "wait-form",
       "ai-agent",
@@ -96,6 +97,7 @@ describe("Utility node pack contract", () => {
       event: "event",
       "event-listener": "event-listener",
       "call-workflow": "call-workflow",
+      return: "return",
       "respond-webhook": "respond-webhook",
     } as const;
 
@@ -173,6 +175,10 @@ describe("Utility node pack contract", () => {
     assert.equal((sailorCoreUtilityNodePack.nodes as Record<string, unknown>)["document-loader"], undefined);
     assert.deepEqual(sailorCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
     assert.deepEqual(sailorCoreUtilityNodePack.nodes["call-workflow"]?.capabilities, ["agent-tool"]);
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes.return?.handles, [
+      { id: "target", label: "", type: "target", position: "left" },
+    ]);
+    assert.deepEqual(sailorCoreUtilityNodePack.nodes.return?.capabilities, []);
   });
 
   it("keeps executable handlers aligned while planned advanced shells remain explicit", () => {
