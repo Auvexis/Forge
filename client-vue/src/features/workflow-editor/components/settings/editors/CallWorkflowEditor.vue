@@ -214,6 +214,7 @@ function handleWorkflowChange(value: string | number | null) {
   const firstTrigger = workflow?.triggers[0]
   props.updateNodeData({
     targetWorkflowId: workflowId,
+    targetWorkflowName: workflow?.name,
     targetTriggerId: firstTrigger?.id ?? '',
     targetTrigger: firstTrigger,
     toolName: firstTrigger ? defaultToolName(workflow?.name ?? '', firstTrigger.name) : '',

@@ -28,9 +28,20 @@ test('call workflow node presentation uses call workflow naming and handles', ()
   assert.match(component, /type \{ CallWorkflowNode \}/)
   assert.match(component, /has-target/)
   assert.match(component, /has-source/)
-  assert.match(component, /subtitle="Callable workflow"/)
+  assert.match(component, /nodeDescription/)
+  assert.match(component, /targetWorkflowName/)
+  assert.match(component, /\$\{workflowName\} \| \$\{triggerId\}/)
+  assert.match(component, /:subtitle="nodeDescription"/)
   assert.match(component, /icon="workflow"/)
   assert.doesNotMatch(component, /sub-workflow/i)
+})
+
+test('call workflow editor stores selected workflow name for canvas presentation', () => {
+  const editor = read('src/features/workflow-editor/components/settings/editors/CallWorkflowEditor.vue')
+  const types = read('src/core/types/workflow.types.ts')
+
+  assert.match(types, /targetWorkflowName\?: string/)
+  assert.match(editor, /targetWorkflowName: workflow\?\.name/)
 })
 
 test('settings registry registers CallWorkflowEditor and removes SubWorkflowEditor', () => {

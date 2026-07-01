@@ -11,6 +11,11 @@ const props = defineProps<
 >()
 
 const stepTitle = computed(() => props.data.name || 'Call Workflow')
+const nodeDescription = computed(() => {
+  const workflowName = props.data.targetWorkflowName || props.data.targetWorkflowId || 'Select workflow'
+  const triggerId = props.data.targetTriggerId || 'select-trigger'
+  return `${workflowName} | ${triggerId}`
+})
 </script>
 
 <template>
@@ -21,7 +26,7 @@ const stepTitle = computed(() => props.data.name || 'Call Workflow')
     has-target
     has-source
     :title="stepTitle"
-    subtitle="Callable workflow"
+    :subtitle="nodeDescription"
     icon="workflow"
     color="var(--sailor-node-call-workflow-icon)"
     bg="var(--sailor-node-call-workflow-bg)"

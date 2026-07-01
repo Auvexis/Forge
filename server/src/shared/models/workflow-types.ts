@@ -221,6 +221,7 @@ export interface LoopNode extends WorkflowNodeBase {
 export interface CallWorkflowNode extends WorkflowNodeBase {
   type: "call-workflow";
   targetWorkflowId: string;
+  targetWorkflowName?: string;
   targetTriggerId: string;
   targetTrigger?: CallableWorkflowTriggerMetadata;
   toolName: string;
