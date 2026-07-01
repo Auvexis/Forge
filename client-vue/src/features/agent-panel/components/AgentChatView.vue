@@ -76,7 +76,7 @@
                 :title="message.content.tool?.pluginName ?? message.content.tool?.name"
               >
                 <LucideIcon
-                  :name="pluginIconName(message.content.tool?.pluginId, progressIcon(message.content.status))"
+                  :name="progressIconName(message.content)"
                   :size="14"
                 />
               </span>
@@ -493,7 +493,7 @@ function isShimmeringProgress(content: AgentPanelProgressContent): boolean {
 }
 
 function isSpinningProgress(content: AgentPanelProgressContent): boolean {
-  return !content.tool && (content.status === 'running' || content.status === 'retrying')
+  return content.status === 'running' || content.status === 'retrying'
 }
 
 function progressIcon(status: AgentPanelProgressContent['status']): string {
@@ -502,6 +502,12 @@ function progressIcon(status: AgentPanelProgressContent['status']): string {
   if (status === 'retrying') return 'rotate-cw'
   if (status === 'running') return 'loader-circle'
   return 'wrench'
+}
+
+function progressIconName(content: AgentPanelProgressContent): string {
+  if (content.tool && content.status === 'success') return 'check'
+  if (content.status === 'running' || content.status === 'retrying') return progressIcon(content.status)
+  return pluginIconName(content.tool?.pluginId, progressIcon(content.status))
 }
 
 function pluginIconName(pluginId: string | undefined, fallback: string): string {

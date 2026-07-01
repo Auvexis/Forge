@@ -1,0 +1,5 @@
+- [x] Add regressions for ignored text refs and progress icons
+- [x] Guard message tools from ignoring produced text refs
+- [x] Update Agent Panel running/completed icons
+- [x] Verify builds and focused tests
+- [x] Commit fix

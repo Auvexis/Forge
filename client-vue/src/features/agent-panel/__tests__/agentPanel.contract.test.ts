@@ -495,10 +495,12 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /statusCycleIndex/)
   })
 
-  it('spins only transient status icons and keeps plugin step icons stable', () => {
+  it('spins running tool status icons and settles completed tool status icons as checks', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
-    assert.match(chat, /return !content\.tool && \(content\.status === 'running' \|\| content\.status === 'retrying'\)/)
+    assert.match(chat, /return content\.status === 'running' \|\| content\.status === 'retrying'/)
+    assert.match(chat, /progressIconName\(message\.content\)/)
+    assert.match(chat, /if \(content\.tool && content\.status === 'success'\) return 'check'/)
   })
 
   it('renders tool progress details as expandable params and output blocks', () => {

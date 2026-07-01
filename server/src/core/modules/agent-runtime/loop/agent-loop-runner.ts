@@ -196,6 +196,15 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       });
       continue;
     }
+    const missingTextRefError = messageMissingAvailableTextRef(tool, displayParams, history);
+    if (missingTextRefError) {
+      history.push({
+        type: "tool_error",
+        toolName: tool.name,
+        error: missingTextRefError,
+      });
+      continue;
+    }
     const repeatedCompletedReadError = completedReadToolReplayError(tool, requiredTools, toolCalls, history);
     if (repeatedCompletedReadError) {
       history.push({
@@ -845,6 +854,77 @@ function approvalMissingAvailableFileRef(
     `Use this agent-file:// ref in the file or attachment params: ${refs.join(", ")}.`,
     "Do not use raw file ids, web links, filenames, or MIME metadata as attachment content.",
   ].join(" ");
+}
+
+function messageMissingAvailableTextRef(
+  tool: AgentPlanTool,
+  params: Record<string, unknown>,
+  history: AgentLoopHistoryItem[],
+): string | null {
+  if (!isMessageTool(tool)) return null;
+  if (!containsTextLikeParam(tool, params)) return null;
+  if (containsAgentFileRef(params)) return null;
+  const refs = collectAgentTextRefs(history);
+  if (refs.length === 0) return null;
+  return [
+    "Use the available text result from history instead of summarizing or rewriting it.",
+    `Pass this agent-file:// ref object in the message body/text/content param: ${refs[0]}.`,
+    "Do not invent a shortened body when the previous tool produced the requested content.",
+  ].join(" ");
+}
+
+function isMessageTool(tool: AgentPlanTool): boolean {
+  if (tool.sideEffect !== "external-message" && !tool.requiresApproval) return false;
+  const text = normalizeSearchText([
+    tool.name,
+    tool.description,
+    tool.instructions ?? "",
+    tool.pluginId ?? "",
+    tool.pluginName ?? "",
+    tool.methodId ?? "",
+  ].join(" "));
+  return /\b(email|mail|message|mensagem|send|envie|enviar)\b/.test(text);
+}
+
+function containsTextLikeParam(tool: AgentPlanTool, params: Record<string, unknown>): boolean {
+  const properties = tool.inputSchema?.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) {
+    return Object.keys(params).some((key) => isTextParamHint(normalizeSearchText(key)));
+  }
+  return Object.entries(properties).some(([name, schema]) => {
+    const property = schema as Record<string, unknown>;
+    const hint = normalizeSearchText([
+      name,
+      property.description,
+      property["x-label"],
+      property["x-input-type"],
+      property.format,
+    ].filter((item) => typeof item === "string").join(" "));
+    return params[name] !== undefined && isTextParamHint(hint);
+  });
+}
+
+function collectAgentTextRefs(history: AgentLoopHistoryItem[]): string[] {
+  const refs = new Set<string>();
+  for (const item of history) {
+    if (item.type === "tool_result") collectAgentTextRefsFromValue(item.result, refs);
+  }
+  return [...refs];
+}
+
+function collectAgentTextRefsFromValue(value: unknown, refs: Set<string>): void {
+  if (Array.isArray(value)) {
+    for (const item of value) collectAgentTextRefsFromValue(item, refs);
+    return;
+  }
+  if (!value || typeof value !== "object") return;
+  const record = value as Record<string, unknown>;
+  if (typeof record.ref === "string" && record.ref.startsWith("agent-file://")) {
+    const mimeType = typeof record.mimeType === "string" ? record.mimeType.toLowerCase() : "";
+    if (mimeType.startsWith("text/")) refs.add(record.ref);
+    return;
+  }
+  for (const item of Object.values(record)) collectAgentTextRefsFromValue(item, refs);
 }
 
 function completedReadToolReplayError(
