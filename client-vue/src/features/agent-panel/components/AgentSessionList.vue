@@ -80,6 +80,7 @@
       <Transition name="agent-session-menu">
         <div
           v-if="openMenuSession"
+          ref="menuRef"
           class="agent-session-list__menu"
           :style="menuStyle"
           role="menu"
@@ -101,7 +102,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import type { AgentChatSession } from '@/features/agent-runtime/types/agent.types'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
@@ -111,6 +112,8 @@ const store = useAgentPanelStore()
 const sessionSearch = ref('')
 const openMenuSessionId = ref('')
 const menuAnchorRect = ref<DOMRect | null>(null)
+const menuRef = ref<HTMLElement | null>(null)
+const menuTriggerRef = ref<HTMLElement | null>(null)
 const collapsedGroups = ref(new Set<string>())
 const filteredSessions = computed(() => {
   const query = sessionSearch.value.trim().toLowerCase()
@@ -158,20 +161,43 @@ function toggleGroup(key: string) {
 
 function toggleSessionMenu(sessionId: string, event: MouseEvent) {
   if (openMenuSessionId.value === sessionId) {
-    openMenuSessionId.value = ''
-    menuAnchorRect.value = null
+    closeSessionMenu()
     return
   }
 
   const target = event.currentTarget as HTMLElement | null
   menuAnchorRect.value = target?.getBoundingClientRect() ?? null
+  menuTriggerRef.value = target
   openMenuSessionId.value = sessionId
+}
+
+function closeSessionMenu() {
+  openMenuSessionId.value = ''
+  menuAnchorRect.value = null
+  menuTriggerRef.value = null
+}
+
+function handleDocumentPointerDown(event: PointerEvent) {
+  if (!openMenuSessionId.value) return
+  const target = event.target as Node | null
+  if (!target) return
+  if (menuRef.value?.contains(target)) return
+  if (menuTriggerRef.value?.contains(target)) return
+  closeSessionMenu()
 }
 
 async function deleteSession(sessionId: string) {
   await store.deleteSession(sessionId, 'session')
-  openMenuSessionId.value = ''
+  closeSessionMenu()
 }
+
+onMounted(() => {
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+})
 </script>
 
 <style scoped>

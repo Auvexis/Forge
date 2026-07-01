@@ -61,6 +61,19 @@ describe('agent panel modal contract', () => {
     assert.doesNotMatch(sessions, /z-index:\s*99999/)
   })
 
+  it('closes chat actions when clicking outside the menu and trigger', () => {
+    const sessions = readFileSync('src/features/agent-panel/components/AgentSessionList.vue', 'utf8')
+
+    assert.match(sessions, /ref="menuRef"/)
+    assert.match(sessions, /function closeSessionMenu/)
+    assert.match(sessions, /function handleDocumentPointerDown/)
+    assert.match(sessions, /menuTriggerRef\.value = target/)
+    assert.match(sessions, /document\.addEventListener\('pointerdown', handleDocumentPointerDown/)
+    assert.match(sessions, /document\.removeEventListener\('pointerdown', handleDocumentPointerDown/)
+    assert.match(sessions, /menuRef\.value\?\.contains\(target\)/)
+    assert.match(sessions, /menuTriggerRef\.value\?\.contains\(target\)/)
+  })
+
   it('confirms protected profile switches and preserves the current profile on cancel', () => {
     const directory = readFileSync(
       'src/features/agent-panel/components/AgentDirectoryList.vue',

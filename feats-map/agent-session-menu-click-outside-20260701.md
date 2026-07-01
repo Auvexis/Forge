@@ -1,0 +1,4 @@
+- [x] Add regression contract for outside click close
+- [x] Close session menu on outside pointer
+- [x] Verify focused test and type-check
+- [x] Commit fix
