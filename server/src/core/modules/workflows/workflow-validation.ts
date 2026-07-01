@@ -82,7 +82,7 @@ export function validateWorkflowDefinition(workflow: WorkflowItem): string | nul
       return `Node "${nodeId}" has invalid type: "${(node as any).type}". Valid types: ${[...VALID_NODE_TYPES].join(", ")}`;
     }
 
-    const nodeError = validateNode(nodeId, node);
+    const nodeError = validateNode(workflow, nodeId, node);
     if (nodeError) return nodeError;
   }
 
@@ -285,7 +285,7 @@ function isValidVectorMetric(value: unknown): boolean {
   return value === "cosine" || value === "dot" || value === "euclidean";
 }
 
-function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): string | null {
+function validateNode(workflow: WorkflowItem, nodeId: string, node: WorkflowItem["nodes"][string]): string | null {
   switch (node.type) {
     case "plugin":
       return !node.pluginId || !node.action
@@ -310,7 +310,7 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
       if (!node.targetTriggerId || typeof node.targetTriggerId !== "string") {
         return `Call Workflow node "${nodeId}" must have a targetTriggerId`;
       }
-      return !node.toolName || typeof node.toolName !== "string"
+      return isAgentToolDependency(workflow, nodeId) && (!node.toolName || typeof node.toolName !== "string")
         ? `Call Workflow node "${nodeId}" must have a toolName`
         : null;
     case "http":
@@ -577,4 +577,12 @@ function validateNode(nodeId: string, node: WorkflowItem["nodes"][string]): stri
   }
 
   return `Node "${nodeId}" has unsupported type`;
+}
+
+function isAgentToolDependency(workflow: WorkflowItem, nodeId: string): boolean {
+  return workflow.edges.some((edge) => (
+    edge.source === nodeId
+    && edge.targetHandle === "tool"
+    && workflow.nodes[edge.target]?.type === "ai-agent"
+  ));
 }

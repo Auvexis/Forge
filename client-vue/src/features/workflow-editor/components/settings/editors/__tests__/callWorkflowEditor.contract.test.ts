@@ -44,13 +44,17 @@ test('call workflow editor shows selected trigger metadata and renders defaults 
   assert.match(source, /inputDefaults/)
 })
 
-test('call workflow editor supports tool instructions approval and timeout controls', () => {
+test('call workflow editor only shows agent tool controls when connected to an AI Agent tool handle', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/CallWorkflowEditor.vue')
 
+  assert.match(source, /isAgentTool/)
+  assert.match(source, /edge\.source !== props\.node\.id/)
+  assert.match(source, /edge\.targetHandle !== 'tool'/)
   assert.match(source, /Tool Instructions/)
   assert.match(source, /toolDescription/)
   assert.match(source, /updateToolDescription/)
   assert.match(source, /BaseSwitch/)
   assert.match(source, /requiresApproval/)
   assert.match(source, /timeoutMs/)
+  assert.match(source, /v-if="isAgentTool"/)
 })

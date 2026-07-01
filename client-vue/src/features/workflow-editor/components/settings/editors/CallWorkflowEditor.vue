@@ -37,22 +37,24 @@
       </div>
     </div>
 
-    <EditorField label="Tool Name" icon="wrench">
-      <BaseInput
-        :model-value="(node.data.toolName as string) || ''"
-        placeholder="call_customer_lookup"
-        @update:model-value="updateNodeData({ toolName: $event as string })"
-      />
-    </EditorField>
+    <template v-if="isAgentTool">
+      <EditorField label="Tool Name" icon="wrench">
+        <BaseInput
+          :model-value="(node.data.toolName as string) || ''"
+          placeholder="call_customer_lookup"
+          @update:model-value="updateNodeData({ toolName: $event as string })"
+        />
+      </EditorField>
 
-    <EditorField label="Tool Instructions">
-      <ExpressionTextarea
-        :model-value="(node.data.toolDescription as string) || ''"
-        :rows="5"
-        placeholder="Tell the agent when to use this workflow, what it should send, and how to interpret the result."
-        @update:model-value="updateToolDescription"
-      />
-    </EditorField>
+      <EditorField label="Tool Instructions">
+        <ExpressionTextarea
+          :model-value="(node.data.toolDescription as string) || ''"
+          :rows="5"
+          placeholder="Tell the agent when to use this workflow, what it should send, and how to interpret the result."
+          @update:model-value="updateToolDescription"
+        />
+      </EditorField>
+    </template>
 
     <div v-if="schemaProperties.length" class="editor-stack mt-2">
       <div class="cw-params-header">
@@ -109,22 +111,24 @@
       </div>
     </div>
 
-    <EditorField label="Approval">
-      <BaseSwitch
-        :model-value="Boolean(node.data.requiresApproval)"
-        label="Require approval"
-        @update:model-value="updateNodeData({ requiresApproval: $event })"
-      />
-    </EditorField>
+    <template v-if="isAgentTool">
+      <EditorField label="Approval">
+        <BaseSwitch
+          :model-value="Boolean(node.data.requiresApproval)"
+          label="Require approval"
+          @update:model-value="updateNodeData({ requiresApproval: $event })"
+        />
+      </EditorField>
 
-    <EditorField label="Timeout">
-      <BaseInput
-        type="number"
-        :model-value="Number(node.data.timeoutMs ?? 30000)"
-        placeholder="30000"
-        @update:model-value="updateNodeData({ timeoutMs: Number($event) })"
-      />
-    </EditorField>
+      <EditorField label="Timeout">
+        <BaseInput
+          type="number"
+          :model-value="Number(node.data.timeoutMs ?? 30000)"
+          placeholder="30000"
+          @update:model-value="updateNodeData({ timeoutMs: Number($event) })"
+        />
+      </EditorField>
+    </template>
   </div>
 </template>
 
@@ -158,6 +162,14 @@ const selectedWorkflow = computed(() => {
 const selectedTrigger = computed<CallableWorkflowTrigger | undefined>(() => {
   const triggerId = props.node.data.targetTriggerId
   return selectedWorkflow.value?.triggers.find((trigger) => trigger.id === triggerId)
+})
+
+const isAgentTool = computed(() => {
+  return props.edges.some((edge) => {
+    if (edge.source !== props.node.id) return false
+    if (edge.targetHandle !== 'tool') return false
+    return props.nodes.find((node) => node.id === edge.target)?.data.type === 'ai-agent'
+  })
 })
 
 const workflowOptions = computed(() => {

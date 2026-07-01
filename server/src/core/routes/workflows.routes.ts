@@ -135,8 +135,31 @@ function normalizeWebhookTriggerSchema(
   };
 }
 
+function normalizeManualTriggerSchema(schema: Record<string, any> | undefined): Record<string, any> {
+  if (!schema) return EMPTY_OBJECT_SCHEMA;
+  if (schema.type === "object" && schema.properties && typeof schema.properties === "object") {
+    return schema;
+  }
+  const properties = Object.fromEntries(
+    Object.entries(schema).map(([name, field]) => {
+      const { required: _required, ...propertySchema } = field && typeof field === "object"
+        ? field as Record<string, any>
+        : { type: "string" };
+      return [name, propertySchema];
+    }),
+  );
+  const required = Object.entries(schema)
+    .filter(([, field]) => Boolean((field as Record<string, any> | undefined)?.required))
+    .map(([name]) => name);
+  return {
+    type: "object",
+    properties,
+    ...(required.length ? { required } : {}),
+  };
+}
+
 function normalizeCallableTriggerSchema(trigger: WorkflowTrigger): Record<string, any> {
-  if (trigger.schema) return trigger.schema;
+  if (trigger.type === "manual") return normalizeManualTriggerSchema(trigger.schema);
   if (trigger.type === "form") return normalizeFormTriggerSchema(trigger.formFields);
   if (trigger.type === "webhook") return normalizeWebhookTriggerSchema(trigger.webhookBodySchema);
   return EMPTY_OBJECT_SCHEMA;

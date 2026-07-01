@@ -44,6 +44,52 @@ describe("workflow validation", () => {
     assert.equal(VALID_NODE_TYPES.has("vector-store-tool"), true);
   });
 
+  it("accepts a normal call workflow step without agent tool metadata", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        call: {
+          type: "call-workflow",
+          name: "Call Child",
+          targetWorkflowId: "wf-child",
+          targetTriggerId: "manual",
+        } as any,
+      },
+      edges: [
+        { id: "trigger-call", source: "trigger", target: "call" },
+      ],
+    }));
+
+    assert.equal(error, null);
+  });
+
+  it("requires toolName only when call workflow is connected as an AI Agent tool", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        agent: {
+          type: "ai-agent",
+          name: "Agent",
+          prompt: "Help users.",
+          maxIterations: 8,
+          maxToolCalls: 12,
+          timeoutMs: 180000,
+          requireApprovalForSideEffects: [],
+          outputMode: "text",
+        } as any,
+        call: {
+          type: "call-workflow",
+          name: "Call Child",
+          targetWorkflowId: "wf-child",
+          targetTriggerId: "manual",
+        } as any,
+      },
+      edges: [
+        { id: "call-agent", source: "call", target: "agent", targetHandle: "tool" },
+      ],
+    }));
+
+    assert.match(error ?? "", /toolName/);
+  });
+
   it("accepts a minimal valid workflow definition", () => {
     assert.equal(validateWorkflowDefinition(baseWorkflow()), null);
   });

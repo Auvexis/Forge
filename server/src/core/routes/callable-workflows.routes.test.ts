@@ -159,4 +159,48 @@ describe("callable workflows routes", () => {
     await app.close();
     db.close();
   });
+
+  it("normalizes manual trigger editor field maps into callable JSON schema", async () => {
+    const db = await createWorkflowDb();
+    setWorkflowDatabaseProvider(() => db);
+    WorkflowRepository.saveWorkflow({
+      ...workflow("wf-manual-map", "Manual Map", { type: "manual" }),
+      nodes: {
+        manualTrigger: {
+          type: "trigger",
+          name: "Manual Intake",
+          trigger: {
+            type: "manual",
+            schema: {
+              email: { type: "string", required: true },
+              count: { type: "number", required: false },
+            },
+          },
+        },
+      },
+    });
+
+    const app = Fastify({ logger: false });
+    await app.register(workflowsRoutes);
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/workflows/callable",
+    });
+
+    assert.equal(response.statusCode, 200, response.body);
+    const body = response.json();
+    const [callable] = body.data;
+    assert.deepEqual(callable.triggers[0].schema, {
+      type: "object",
+      properties: {
+        email: { type: "string" },
+        count: { type: "number" },
+      },
+      required: ["email"],
+    });
+
+    await app.close();
+    db.close();
+  });
 });
