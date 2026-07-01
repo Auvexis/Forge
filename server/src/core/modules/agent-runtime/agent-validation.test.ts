@@ -61,6 +61,14 @@ describe("agent runtime validation", () => {
     assert.equal(model.baseUrl, "http://localhost:11434");
   });
 
+  it("defaults AI model temperature when the editor fallback was not persisted", () => {
+    const { temperature: _temperature, ...config } = validModel();
+
+    const model = validateAiModelConfig(config);
+
+    assert.equal(model.temperature, 0.2);
+  });
+
   it("normalizes legacy OpenAI model configs", () => {
     const model = validateAiModelConfig(legacyModel("openai"));
 

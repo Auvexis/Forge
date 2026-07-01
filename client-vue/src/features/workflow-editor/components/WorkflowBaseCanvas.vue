@@ -700,6 +700,7 @@ function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
   if (type === 'switch')
     return { inputExpression: 'steps.prev.output.status', cases: [], fallbackHandleId: 'fallback' }
   if (type === 'merge') return { mode: 'wait-any' }
+  if (type === 'ai-model') return { temperature: 0.2 }
   if (type === 'ai-agent')
     return {
       prompt: 'You are a helpful workflow agent. Use tools only when needed.',

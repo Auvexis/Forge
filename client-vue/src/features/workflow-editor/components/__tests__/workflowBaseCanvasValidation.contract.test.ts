@@ -31,4 +31,10 @@ describe('workflow BaseCanvas validation contract', () => {
       assert.match(shell, new RegExp(`['"]${nodeType}['"]`))
     }
   })
+
+  it('persists AI model generation defaults when creating nodes', () => {
+    const shell = read('WorkflowBaseCanvas.vue')
+
+    assert.match(shell, /if \(type === 'ai-model'\)\s*return \{\s*temperature: 0\.2\s*\}/)
+  })
 })
