@@ -6,6 +6,7 @@ export type WorkflowNodeType =
   | "if"
   | "loop"
   | "call-workflow"
+  | "return"
   | "trigger"
   | "http"
   | "event"
@@ -38,6 +39,8 @@ export type AgentMemoryAdapter = "sailor-internal" | "plugin-memory-store";
 export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
 export type AgentExecutionMode = "loop" | "plan";
 export type CallableWorkflowTriggerType = "manual" | "form" | "webhook";
+export type WorkflowReturnMode = "all-steps" | "fields" | "expression";
+export type WorkflowResultSourceType = "return" | "fallback-steps";
 export type DatasetSourceType = "text" | "file" | "database";
 export type VectorDistanceMetric = "cosine" | "dot" | "euclidean";
 export type VectorStoreMethodId =
@@ -61,6 +64,11 @@ export interface CallableWorkflowTriggerMetadata {
   type: CallableWorkflowTriggerType;
   icon?: string;
   schema?: Record<string, any>;
+}
+
+export interface WorkflowResultSource {
+  type: WorkflowResultSourceType;
+  nodeId?: string;
 }
 
 export interface DatasetItem {
@@ -220,6 +228,18 @@ export interface CallWorkflowNode extends WorkflowNodeBase {
   inputDefaults?: Record<string, any>;
   timeoutMs?: number;
   requiresApproval?: boolean;
+}
+
+export interface ReturnNodeField {
+  key: string;
+  value: string;
+}
+
+export interface ReturnNode extends WorkflowNodeBase {
+  type: "return";
+  mode: WorkflowReturnMode;
+  fields?: ReturnNodeField[];
+  expression?: string;
 }
 
 // ──────────── HTTP Request Node ────────────
@@ -524,6 +544,7 @@ export type WorkflowNode =
   | IfNode
   | LoopNode
   | CallWorkflowNode
+  | ReturnNode
   | TriggerNode
   | HttpNode
   | EventNode

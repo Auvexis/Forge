@@ -6,13 +6,13 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 `Call Workflow`, Execution Panel, and Global Automation Monitor must show/use the same final result.
 
 ## Batch 1 - Contracts
-- [ ] Add shared workflow result types.
-- [ ] Add `return` node type.
-- [ ] Add return mode types: `all-steps`, `fields`, `expression`.
-- [ ] Add backend contract tests.
-- [ ] Add frontend contract tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Add shared workflow result types.
+- [x] Add `return` node type.
+- [x] Add return mode types: `all-steps`, `fields`, `expression`.
+- [x] Add backend contract tests.
+- [x] Add frontend contract tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 2 - Runtime Result Contract
 - [ ] Add `context.result`.

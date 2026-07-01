@@ -4,6 +4,8 @@
 
 // ── SSE Event Types (mirrors server event-bus.ts) ─────────────
 
+import type { WorkflowResultSource } from './workflow.types'
+
 export type WorkflowEventType =
   | 'session:start'
   | 'session:ready'
@@ -102,6 +104,8 @@ export interface ExecutionLog {
       }
     >
     variables?: Record<string, unknown>
+    result?: unknown
+    resultSource?: WorkflowResultSource
   }
 }
 

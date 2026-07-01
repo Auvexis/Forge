@@ -6,6 +6,7 @@ import type {
   WorkflowItem,
   WorkflowNode,
   WorkflowNodeType,
+  WorkflowResultSource,
 } from "../../shared/models/workflow-types.ts";
 import type {
   InternalEvent,
@@ -23,6 +24,8 @@ export interface WorkflowExecutionContext {
   trigger: any;
   steps: Record<string, any>;
   variables: Record<string, any>;
+  result?: unknown;
+  resultSource?: WorkflowResultSource;
   env?: Record<string, any>;
 }
 
