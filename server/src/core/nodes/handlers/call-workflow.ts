@@ -1,4 +1,5 @@
 import type { CallWorkflowNode, WorkflowTrigger } from "../../../shared/models/workflow-types.ts";
+import { WorkflowParser } from "../../modules/workflows/parser.ts";
 import { getTriggerEntry } from "../../modules/workflows/workflow-triggers.ts";
 import { createNodeHandler } from "../handler.ts";
 
@@ -24,7 +25,7 @@ export const callWorkflowNodeHandler = createNodeHandler<CallWorkflowNode>(
     }
 
     const triggerPayload = {
-      ...(node.inputDefaults ?? {}),
+      ...WorkflowParser.evalParams(node.inputDefaults ?? {}, context),
       ...runtimeInputForNode(context, nodeId),
     };
     if (!services.executeWorkflowFromTrigger) {
@@ -40,13 +41,25 @@ export const callWorkflowNodeHandler = createNodeHandler<CallWorkflowNode>(
       childExecutionId,
     );
     const childContext = result?.context ?? {};
+    const childStatus = result?.status ?? "UNKNOWN";
+    if (childStatus !== "SUCCESS") {
+      const childError = childContext.steps?.error;
+      throw new Error(
+        `Child workflow ${childWorkflow.metadata.id} failed with status ${childStatus}${
+          childError ? `: ${childError}` : ""
+        }`,
+      );
+    }
+    const resultSource = childContext.resultSource ?? { type: "fallback-steps" };
 
     return {
-      output: childContext.result ?? { steps: childContext.steps ?? {} },
+      output: resultSource.type === "return"
+        ? childContext.result
+        : { steps: childContext.steps ?? {} },
       childExecution: {
         executionId: result?.executionId ?? childExecutionId,
-        status: result?.status ?? "UNKNOWN",
-        resultSource: childContext.resultSource ?? { type: "fallback-steps" },
+        status: childStatus,
+        resultSource,
       },
     };
   },

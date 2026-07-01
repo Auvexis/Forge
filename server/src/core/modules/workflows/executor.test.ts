@@ -407,6 +407,132 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(result.context.steps.call_child.output.executionId, undefined);
   });
 
+  it("evaluates call-workflow input defaults against the parent context", async () => {
+    const child = baseWorkflow();
+    child.metadata.id = "wf-child-templated-defaults";
+    child.metadata.name = "Child Templated Defaults";
+    child.metadata.isActive = true;
+    child.metadata.isDraft = false;
+    child.metadata.publishedAt = "2026-07-01T00:00:00.000Z";
+    child.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "fields",
+      fields: [{ key: "ingredient", value: "{{trigger.ingredient}}" }],
+    };
+    child.edges = [{ id: "trigger-return", source: "trigger_b", target: "return_result" }];
+
+    const parent = baseWorkflow();
+    parent.metadata.id = "wf-parent-templated-defaults";
+    parent.nodes.call_child = {
+      type: "call-workflow",
+      name: "Call Child",
+      targetWorkflowId: child.metadata.id,
+      targetTriggerId: "trigger_b",
+      toolName: "child_recipe",
+      inputDefaults: { ingredient: "{{trigger.ingredient}}" },
+    };
+    parent.edges = [{ id: "trigger-call", source: "trigger_a", target: "call_child" }];
+
+    WorkflowRepository.saveWorkflow(child);
+    WorkflowRepository.saveWorkflow(parent);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      parent,
+      "trigger_a",
+      { ingredient: "banana" },
+      "exec_call_templated_defaults",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.steps.call_child.output, { ingredient: "banana" });
+  });
+
+  it("fails the parent call-workflow step when the child workflow fails", async () => {
+    const child = baseWorkflow();
+    child.metadata.id = "wf-child-fails";
+    child.metadata.name = "Child Fails";
+    child.metadata.isActive = true;
+    child.metadata.isDraft = false;
+    child.metadata.publishedAt = "2026-07-01T00:00:00.000Z";
+    child.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "expression",
+      expression: "missing.value",
+    };
+    child.edges = [{ id: "trigger-return", source: "trigger_b", target: "return_result" }];
+
+    const parent = baseWorkflow();
+    parent.metadata.id = "wf-parent-child-fails";
+    parent.nodes.call_child = {
+      type: "call-workflow",
+      name: "Call Child",
+      targetWorkflowId: child.metadata.id,
+      targetTriggerId: "trigger_b",
+      toolName: "child_fails",
+    };
+    parent.edges = [{ id: "trigger-call", source: "trigger_a", target: "call_child" }];
+
+    WorkflowRepository.saveWorkflow(child);
+    WorkflowRepository.saveWorkflow(parent);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      parent,
+      "trigger_a",
+      {},
+      "exec_call_child_failure",
+    );
+
+    assert.equal(result.status, "FAILED");
+    assert.match(result.context.steps.error, /Child workflow wf-child-fails failed/);
+    assert.equal(result.context.steps.call_child.status, "FAILED");
+  });
+
+  it("preserves an explicit undefined child return instead of falling back to steps", async () => {
+    const child = baseWorkflow();
+    child.metadata.id = "wf-child-undefined-return";
+    child.metadata.name = "Child Undefined Return";
+    child.metadata.isActive = true;
+    child.metadata.isDraft = false;
+    child.metadata.publishedAt = "2026-07-01T00:00:00.000Z";
+    child.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "expression",
+      expression: "undefined",
+    };
+    child.edges = [{ id: "trigger-return", source: "trigger_b", target: "return_result" }];
+
+    const parent = baseWorkflow();
+    parent.metadata.id = "wf-parent-undefined-return";
+    parent.nodes.call_child = {
+      type: "call-workflow",
+      name: "Call Child",
+      targetWorkflowId: child.metadata.id,
+      targetTriggerId: "trigger_b",
+      toolName: "child_undefined",
+    };
+    parent.edges = [{ id: "trigger-call", source: "trigger_a", target: "call_child" }];
+
+    WorkflowRepository.saveWorkflow(child);
+    WorkflowRepository.saveWorkflow(parent);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      parent,
+      "trigger_a",
+      {},
+      "exec_call_child_undefined_return",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.steps.call_child.childExecution.resultSource, {
+      type: "return",
+      nodeId: "return_result",
+    });
+    assert.equal(result.context.steps.call_child.output, undefined);
+  });
+
   it("passes through disabled normal nodes to their downstream targets", async () => {
     const wf = baseWorkflow();
     wf.nodes.disabled_mid = {

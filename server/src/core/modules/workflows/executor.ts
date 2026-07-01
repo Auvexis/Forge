@@ -557,7 +557,7 @@ function finalizeWorkflowResult(
   context: WorkflowExecutionContext,
   status: string,
 ): void {
-  if (status !== "SUCCESS" || context.result !== undefined) return;
+  if (status !== "SUCCESS" || context.resultSource) return;
 
   context.result = {
     steps: context.steps,
