@@ -1,0 +1,34 @@
+{
+  "name": "sailor",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n api,client -c blue,green \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/client\"",
+    "dev:api": "npm run dev --workspace apps/api",
+    "dev:client": "npm run dev --workspace apps/client",
+    "build": "npm run build --workspaces"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/client"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/euandresimoes/sailor.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/euandresimoes/sailor/issues"
+  },
+  "homepage": "https://github.com/euandresimoes/sailor#readme",
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}

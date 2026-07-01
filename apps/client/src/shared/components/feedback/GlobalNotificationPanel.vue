@@ -298,16 +298,6 @@ function labelFromIdentifier(identifier: string) {
   content: '';
 }
 
-.notification-panel__tabs-carousel::before {
-  left: var(--sailor-space-1);
-  background: linear-gradient(to right, var(--sailor-bg-base), transparent);
-}
-
-.notification-panel__tabs-carousel::after {
-  right: var(--sailor-space-1);
-  background: linear-gradient(to left, var(--sailor-bg-base), transparent);
-}
-
 .notification-panel__tabs-track {
   display: flex;
   gap: var(--sailor-space-2);
@@ -317,7 +307,6 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__tabs-track {
-  padding: 0 var(--sailor-space-5);
   scroll-behavior: smooth;
 }
 
