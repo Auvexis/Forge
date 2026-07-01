@@ -491,8 +491,86 @@ describe("agent loop runner", () => {
     assert.equal(result.output, "Email enviado.");
     assert.equal(emailArgs.length, 1);
     assert.equal(emailArgs[0].body, recipe);
-    assert.match(prompts[2] ?? "", /Use the available text result/i);
-    assert.match(prompts[2] ?? "", /agent-file:\/\//i);
+    assert.equal(prompts.length, 4);
+  });
+
+  it("repairs ignored text ref params and finalizes when final decision JSON is invalid", async () => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-text-ref-invalid-json-"));
+    const recipe = `Bolo de milho\n\n${"Misture milho, ovos e leite. ".repeat(80)}`;
+    const emailArgs: any[] = [];
+    let decisionCalls = 0;
+
+    const result = await runAgentLoop({
+      userMessage: "Gere uma receita de bolo utilizando o ingrediente: milho\nE depois envie por email para: andre.emailto@gmail.com",
+      contextMessages: [],
+      fileRefStore: new AgentFileRefStore({ rootDir: root }),
+      model: {
+        async routeIntent() {
+          return { mode: "tool_plan", reason: "Needs tools.", confidence: 0.9 };
+        },
+        async invokeJson() {
+          decisionCalls += 1;
+          if (decisionCalls === 1) {
+            return {
+              action: "tool",
+              toolName: "call_recipe_generator_trigger",
+              params: { ingredient: "milho" },
+            } as any;
+          }
+          if (decisionCalls === 2) {
+            return {
+              action: "tool",
+              toolName: "call_email_sender_trigger",
+              params: {
+                recipient: "andre.emailto@gmail.com",
+                subject: "Receita de Bolo com Milho",
+                body: "Ola! Aqui esta uma receita deliciosa de bolo feito com milho. Aproveite!",
+              },
+            } as any;
+          }
+          throw new AgentRuntimeError(
+            "Ollama returned invalid JSON: Expected ',' or '}' after property value",
+            "AGENT_MODEL_JSON_INVALID",
+            "Model returned invalid JSON",
+            502,
+          );
+        },
+        async generateFinalResponse() {
+          return "Email enviado.";
+        },
+      },
+      tools: [
+        {
+          ...tool("call_recipe_generator_trigger", async () => ({ recipe })),
+          sideEffect: "read",
+        },
+        {
+          ...tool("call_email_sender_trigger", async (args) => {
+            emailArgs.push(args);
+            return { message: "email sent successfully" };
+          }),
+          description: "Send an email message",
+          sideEffect: "external-message",
+          requiresApproval: false,
+          inputSchema: {
+            type: "object",
+            required: ["recipient", "subject", "body"],
+            properties: {
+              recipient: { type: "string", description: "Recipient email" },
+              subject: { type: "string", description: "Email subject" },
+              body: { type: "string", description: "Email body message text" },
+            },
+          },
+        },
+      ],
+      emitEvent: () => {},
+    });
+
+    assert.equal(result.output, "Email enviado.");
+    assert.equal(emailArgs.length, 1);
+    assert.equal(emailArgs[0].recipient, "andre.emailto@gmail.com");
+    assert.equal(emailArgs[0].body, recipe);
+    assert.equal(decisionCalls, 4);
   });
 
   it("retries file not found tool errors with new parameters", async () => {

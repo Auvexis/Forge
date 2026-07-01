@@ -145,7 +145,25 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
         toolCalls,
         history,
       });
-      if (!fallbackDecision) throw error;
+      if (!fallbackDecision) {
+        if (isInvalidJsonModelError(error) && unmetRequiredTools(requiredTools, toolCalls).length === 0) {
+          const output = await generateAgentFinalResponse({
+            model: input.model,
+            userMessage: input.userMessage,
+            plan: emptyPlan(),
+            execution: {
+              status: "success",
+              output: sanitizeAgentToolValue(history),
+              toolCallCount,
+              iterationCount: iteration,
+              toolCalls,
+              outputs: { loop: sanitizeAgentToolValue(history) },
+            },
+          });
+          return success(output, toolCallCount, iteration, toolCalls);
+        }
+        throw error;
+      }
       decision = fallbackDecision;
     }
 
@@ -185,8 +203,7 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
       );
     }
 
-    const displayParams = decision.params ?? {};
-    const successfulToolCallKey = createSuccessfulToolCallKey(tool, displayParams);
+    let displayParams = decision.params ?? {};
     const missingFileRefError = approvalMissingAvailableFileRef(tool, displayParams, history);
     if (missingFileRefError) {
       history.push({
@@ -198,13 +215,19 @@ export async function runAgentLoop(input: RunAgentLoopInput): Promise<AgentRunRe
     }
     const missingTextRefError = messageMissingAvailableTextRef(tool, displayParams, history);
     if (missingTextRefError) {
-      history.push({
-        type: "tool_error",
-        toolName: tool.name,
-        error: missingTextRefError,
-      });
-      continue;
+      const repairedTextParams = repairMessageTextRefParams(tool, displayParams, history);
+      if (repairedTextParams) {
+        displayParams = repairedTextParams;
+      } else {
+        history.push({
+          type: "tool_error",
+          toolName: tool.name,
+          error: missingTextRefError,
+        });
+        continue;
+      }
     }
+    const successfulToolCallKey = createSuccessfulToolCallKey(tool, displayParams);
     const repeatedCompletedReadError = completedReadToolReplayError(tool, requiredTools, toolCalls, history);
     if (repeatedCompletedReadError) {
       history.push({
@@ -871,6 +894,41 @@ function messageMissingAvailableTextRef(
     `Pass this agent-file:// ref object in the message body/text/content param: ${refs[0]}.`,
     "Do not invent a shortened body when the previous tool produced the requested content.",
   ].join(" ");
+}
+
+function repairMessageTextRefParams(
+  tool: AgentPlanTool,
+  params: Record<string, unknown>,
+  history: AgentLoopHistoryItem[],
+): Record<string, unknown> | null {
+  const ref = collectAgentTextRefs(history)[0];
+  if (!ref) return null;
+  const key = textParamKey(tool, params);
+  if (!key) return null;
+  return {
+    ...params,
+    [key]: { ref },
+  };
+}
+
+function textParamKey(tool: AgentPlanTool, params: Record<string, unknown>): string {
+  const properties = tool.inputSchema?.properties;
+  if (!properties || typeof properties !== "object" || Array.isArray(properties)) {
+    return Object.keys(params).find((key) => isTextParamHint(normalizeSearchText(key))) ?? "";
+  }
+  for (const [name, schema] of Object.entries(properties)) {
+    if (params[name] === undefined) continue;
+    const property = schema as Record<string, unknown>;
+    const hint = normalizeSearchText([
+      name,
+      property.description,
+      property["x-label"],
+      property["x-input-type"],
+      property.format,
+    ].filter((item) => typeof item === "string").join(" "));
+    if (isTextParamHint(hint)) return name;
+  }
+  return "";
 }
 
 function isMessageTool(tool: AgentPlanTool): boolean {
