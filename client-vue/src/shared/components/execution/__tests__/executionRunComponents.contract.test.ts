@@ -73,6 +73,21 @@ describe('shared execution run components', () => {
     assert.match(source, /nodePresentations/)
   })
 
+  it('shows final workflow result above the step tree while keeping the tree visible', () => {
+    const detail = read('ExecutionRunDetail.vue')
+    const types = read('executionRunTree.types.ts')
+
+    assert.match(types, /ExecutionRunFinalResult/)
+    assert.match(types, /finalResult\?: ExecutionRunFinalResult/)
+    assert.match(detail, /Final Result/)
+    assert.match(detail, /detail\.finalResult/)
+    assert.match(detail, /detail\.finalResult\.label/)
+    assert.match(detail, /detail\.finalResult\.value/)
+    assert.match(detail, /BaseCodeEditor/)
+    assert.match(detail, /ExecutionNodeTree/)
+    assert.match(detail, /execution-run-detail__result/)
+  })
+
   it('shows the selected real icon and guarded text payload details', () => {
     const source = read('ExecutionNodeInspector.vue')
 

@@ -8,6 +8,7 @@ import type {
 import type { WorkflowItem, WorkflowNode } from '@/core/types/workflow.types'
 import type {
   ExecutionNodePresentation,
+  ExecutionRunFinalResult,
   ExecutionRunDetailModel,
   ExecutionRunTreeNode,
 } from './executionRunTree.types.ts'
@@ -154,8 +155,21 @@ export function buildExecutionRunDetail(input: {
     startedAt: input.run.startedAt,
     endedAt: input.run.endedAt,
     durationMs: durationBetween(input.run.startedAt, input.run.endedAt ?? undefined),
+    finalResult: buildFinalResult(input.run),
     roots,
     nodesById,
+  }
+}
+
+function buildFinalResult(run: ExecutionLog): ExecutionRunFinalResult | undefined {
+  const source = run.context.resultSource
+  if (!source) return undefined
+  const label = source.type === 'return' ? 'Returned result' : 'Executed steps result'
+  return {
+    label,
+    sourceType: source.type,
+    nodeId: source.nodeId,
+    value: run.context.result,
   }
 }
 

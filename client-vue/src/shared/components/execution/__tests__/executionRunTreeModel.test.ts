@@ -66,6 +66,48 @@ describe('execution run tree model', () => {
     assert.equal(detail.nodesById.detached?.error, 'boom')
   })
 
+  it('exposes explicit Return results in the run detail model', () => {
+    const detail = buildExecutionRunDetail({
+      workflow,
+      run: {
+        ...run,
+        context: {
+          ...run.context,
+          result: { recipe: 'cake' },
+          resultSource: { type: 'return', nodeId: 'return_1' },
+        },
+      } as ExecutionLog,
+    })
+
+    assert.deepEqual(detail.finalResult, {
+      label: 'Returned result',
+      sourceType: 'return',
+      nodeId: 'return_1',
+      value: { recipe: 'cake' },
+    })
+  })
+
+  it('exposes fallback steps results in the run detail model', () => {
+    const detail = buildExecutionRunDetail({
+      workflow,
+      run: {
+        ...run,
+        context: {
+          ...run.context,
+          result: { steps: { output: { answer: 'hi' } } },
+          resultSource: { type: 'fallback-steps' },
+        },
+      } as ExecutionLog,
+    })
+
+    assert.deepEqual(detail.finalResult, {
+      label: 'Executed steps result',
+      sourceType: 'fallback-steps',
+      nodeId: undefined,
+      value: { steps: { output: { answer: 'hi' } } },
+    })
+  })
+
   it('degrades missing graph metadata to ordered flat roots', () => {
     const detail = buildExecutionRunDetail({ workflow: null, run })
 

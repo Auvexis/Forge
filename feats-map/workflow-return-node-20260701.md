@@ -55,25 +55,25 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 6 - Return Editor
-- [ ] Register `ReturnEditor`.
-- [ ] Add mode selector.
-- [ ] Add fields editor.
-- [ ] Add expression editor.
-- [ ] Add all-steps read-only hint.
-- [ ] Add variable picker support.
-- [ ] Add editor tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Register `ReturnEditor`.
+- [x] Add mode selector.
+- [x] Add fields editor.
+- [x] Add expression editor.
+- [x] Add all-steps read-only hint.
+- [x] Add variable picker support.
+- [x] Add editor tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 7 - Execution UI Result
-- [ ] Add result model helper for execution logs.
-- [ ] Show final result in Execution Run Detail.
-- [ ] Show explicit `Return` result label.
-- [ ] Show fallback steps result label.
-- [ ] Keep step tree visible below result.
-- [ ] Add execution component tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Add result model helper for execution logs.
+- [x] Show final result in Execution Run Detail.
+- [x] Show explicit `Return` result label.
+- [x] Show fallback steps result label.
+- [x] Keep step tree visible below result.
+- [x] Add execution component tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 8 - Global Automation Monitor
 - [ ] Surface final result in `AppGlobalAutomationMonitor.vue`.
