@@ -352,7 +352,7 @@ async function deleteSession(sessionId: string) {
 
 .agent-session-list__menu {
   position: fixed;
-  z-index: 99999;
+  z-index: 2147483647;
   width: 136px;
   border: 1px solid var(--sailor-border);
   border-radius: var(--sailor-radius-md);
