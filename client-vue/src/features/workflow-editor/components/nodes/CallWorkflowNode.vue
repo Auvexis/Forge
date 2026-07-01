@@ -13,8 +13,8 @@ const props = defineProps<
 const stepTitle = computed(() => props.data.name || 'Call Workflow')
 const nodeDescription = computed(() => {
   const workflowName = props.data.targetWorkflowName || props.data.targetWorkflowId || 'Select workflow'
-  const triggerId = props.data.targetTriggerId || 'select-trigger'
-  return `${workflowName} | ${triggerId}`
+  const triggerName = props.data.targetTrigger?.name || props.data.targetTriggerId || 'Select trigger'
+  return `${workflowName} | ${triggerName}`
 })
 </script>
 
