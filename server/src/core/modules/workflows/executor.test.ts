@@ -9,6 +9,7 @@ import { AgentToolApprovalRequiredError } from "../agent-runtime/agent-errors.ts
 import { AgentApprovalService } from "../agent-runtime/agent-approval-service.ts";
 import { AgentRuntimeService } from "../agent-runtime/agent-runtime-service.ts";
 import { WorkflowEngine } from "./executor.ts";
+import { workflowEventBus } from "./event-bus.ts";
 import {
   resetWorkflowDatabaseProvider,
   setWorkflowDatabaseProvider,
@@ -120,6 +121,72 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.deepEqual(result.context.trigger, payload);
     assert.deepEqual(result.context.steps.trigger_b.output, payload);
     assert.equal(result.context.steps.trigger_b.status, "SUCCESS");
+  });
+
+  it("sets fallback workflow result from executed steps when no return node runs", async () => {
+    const wf = baseWorkflow();
+    WorkflowRepository.saveWorkflow(wf);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      { source: "test" },
+      "exec_fallback_result",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.resultSource, { type: "fallback-steps" });
+    assert.equal(result.context.result.steps.trigger_b.status, "SUCCESS");
+    assert.deepEqual(result.context.result.steps.trigger_b.output, { source: "test" });
+    assert.equal(result.context.result.steps.set_b.status, "SUCCESS");
+    assert.deepEqual(result.context.result.steps.set_b.output, { branch: "b" });
+    assert.equal(result.context.result.steps.set_a, undefined);
+  });
+
+  it("persists fallback workflow result in the execution log", async () => {
+    const wf = baseWorkflow();
+    WorkflowRepository.saveWorkflow(wf);
+
+    await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_b",
+      { source: "test" },
+      "exec_fallback_result_persisted",
+    );
+
+    const execution = WorkflowRepository.getWorkflowExecutionById(
+      "exec_fallback_result_persisted",
+    )!;
+
+    assert.deepEqual(execution.context_state.resultSource, { type: "fallback-steps" });
+    assert.equal(execution.context_state.result.steps.trigger_b.status, "SUCCESS");
+    assert.equal(execution.context_state.result.steps.set_b.output.branch, "b");
+  });
+
+  it("emits final workflow result on workflow success events", async () => {
+    const wf = baseWorkflow();
+    WorkflowRepository.saveWorkflow(wf);
+    const events: any[] = [];
+    const unsubscribe = workflowEventBus.onExecution(
+      "exec_fallback_result_event",
+      (event) => events.push(event),
+    );
+
+    try {
+      await WorkflowEngine.executeWorkflowFromTrigger(
+        wf,
+        "trigger_b",
+        { source: "test" },
+        "exec_fallback_result_event",
+      );
+    } finally {
+      unsubscribe();
+    }
+
+    const success = events.find((event) => event.type === "workflow:success");
+    assert.ok(success);
+    assert.deepEqual(success.data.resultSource, { type: "fallback-steps" });
+    assert.equal(success.data.result.steps.set_b.output.branch, "b");
   });
 
   it("passes through disabled normal nodes to their downstream targets", async () => {

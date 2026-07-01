@@ -15,14 +15,14 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 2 - Runtime Result Contract
-- [ ] Add `context.result`.
-- [ ] Add `context.resultSource`.
-- [ ] Add fallback result from executed steps.
-- [ ] Persist result in execution logs.
-- [ ] Emit final result on workflow success events.
-- [ ] Add executor tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Add `context.result`.
+- [x] Add `context.resultSource`.
+- [x] Add fallback result from executed steps.
+- [x] Persist result in execution logs.
+- [x] Emit final result on workflow success events.
+- [x] Add executor tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 3 - Return Node Runtime
 - [ ] Add `return` handler.

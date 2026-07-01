@@ -275,6 +275,8 @@ export const WorkflowEngine = {
         context.steps.error = error.message;
       }
     } finally {
+      finalizeWorkflowResult(context, status);
+
       workflowEventBus.emitWorkflowEvent({
         executionId: execId,
         workflowId: workflow.metadata.id,
@@ -287,6 +289,12 @@ export const WorkflowEngine = {
                 ? "workflow:waiting-approval"
                 : "workflow:failed",
         timestamp: Date.now(),
+        data: status === "SUCCESS"
+          ? sanitizeContextForLogging({
+              result: context.result,
+              resultSource: context.resultSource,
+            })
+          : undefined,
       });
 
       WorkflowRepository.saveExecutionLog(
@@ -497,6 +505,8 @@ async function continueWorkflowExecution(input: {
       context.steps.error = error.message;
     }
   } finally {
+    finalizeWorkflowResult(context, status);
+
     workflowEventBus.emitWorkflowEvent({
       executionId,
       workflowId: workflow.metadata.id,
@@ -509,6 +519,12 @@ async function continueWorkflowExecution(input: {
               ? "workflow:waiting-approval"
               : "workflow:failed",
       timestamp: Date.now(),
+      data: status === "SUCCESS"
+        ? sanitizeContextForLogging({
+            result: context.result,
+            resultSource: context.resultSource,
+          })
+        : undefined,
     });
 
     WorkflowRepository.saveExecutionLog(
@@ -525,6 +541,18 @@ async function continueWorkflowExecution(input: {
   }
 
   return { executionId, status, context };
+}
+
+function finalizeWorkflowResult(
+  context: WorkflowExecutionContext,
+  status: string,
+): void {
+  if (status !== "SUCCESS" || context.result !== undefined) return;
+
+  context.result = {
+    steps: context.steps,
+  };
+  context.resultSource = { type: "fallback-steps" };
 }
 
 function successfulStepIds(context: WorkflowExecutionContext, pausedNodeId: string): Set<string> {
