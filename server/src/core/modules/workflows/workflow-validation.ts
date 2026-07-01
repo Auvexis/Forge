@@ -8,6 +8,7 @@ export const VALID_NODE_TYPES = new Set([
   "if",
   "loop",
   "call-workflow",
+  "return",
   "trigger",
   "http",
   "event",
@@ -312,6 +313,10 @@ function validateNode(workflow: WorkflowItem, nodeId: string, node: WorkflowItem
       }
       return isAgentToolDependency(workflow, nodeId) && (!node.toolName || typeof node.toolName !== "string")
         ? `Call Workflow node "${nodeId}" must have a toolName`
+        : null;
+    case "return":
+      return !["all-steps", "fields", "expression"].includes(node.mode)
+        ? `Return node "${nodeId}" must have mode all-steps, fields, or expression`
         : null;
     case "http":
       if (!node.url || typeof node.url !== "string") {

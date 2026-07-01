@@ -134,7 +134,7 @@ function updateDropdownPosition() {
     left: `${rect.left}px`,
     width: `${rect.width}px`,
     maxHeight: `${Math.min(preferredMaxHeight, availableHeight)}px`,
-    zIndex: '10000',
+    zIndex: '2147483647',
   }
 }
 

@@ -29,6 +29,7 @@ function baseWorkflow(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
 describe("workflow validation", () => {
   it("exports the first-party node type set used by routes and schemas", () => {
     assert.equal(VALID_NODE_TYPES.has("plugin"), true);
+    assert.equal(VALID_NODE_TYPES.has("return"), true);
     assert.equal(VALID_NODE_TYPES.has("respond-webhook"), true);
     assert.equal(VALID_NODE_TYPES.has("wait-form"), true);
     assert.equal(VALID_NODE_TYPES.has("text-dataset"), true);
@@ -92,6 +93,24 @@ describe("workflow validation", () => {
 
   it("accepts a minimal valid workflow definition", () => {
     assert.equal(validateWorkflowDefinition(baseWorkflow()), null);
+  });
+
+  it("accepts return nodes with supported modes", () => {
+    const error = validateWorkflowDefinition(baseWorkflow({
+      nodes: {
+        return_1: {
+          type: "return",
+          name: "Return Result",
+          mode: "fields",
+          fields: [{ key: "answer", value: "{{steps.generate.output}}" }],
+        },
+      },
+      edges: [
+        { id: "trigger-return", source: "trigger", target: "return_1" },
+      ],
+    }));
+
+    assert.equal(error, null);
   });
 
   it("rejects edges that reference missing nodes", () => {
