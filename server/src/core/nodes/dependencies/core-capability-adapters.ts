@@ -180,7 +180,8 @@ function toChatModelRef(node: AiModelNode): ChatModelRef {
   const legacyProvider = (node as unknown as { provider?: unknown }).provider;
   const configuration = validateAiModelConfig({ type: "ai-model", name: node.name,
     ...(typeof node.pluginId === "string" || typeof node.adapter === "string" ? { pluginId: node.pluginId, adapter: node.adapter } : typeof legacyProvider === "string" ? { provider: legacyProvider } : { pluginId: node.pluginId, adapter: node.adapter }),
-    model: node.model, temperature: node.temperature, maxTokens: node.maxTokens, credentialId: node.credentialId, baseUrl: node.baseUrl,
+    model: node.model, temperature: node.temperature, maxTokens: node.maxTokens, numCtx: node.numCtx, topP: node.topP, topK: node.topK,
+    repeatPenalty: node.repeatPenalty, seed: node.seed, keepAlive: node.keepAlive, ollamaOptions: node.ollamaOptions, credentialId: node.credentialId, baseUrl: node.baseUrl,
     thinkingEnabled: node.thinkingEnabled, thinkingRequest: node.thinkingRequest, thinkingSupported: node.thinkingSupported });
   return { providerId: configuration.pluginId, configuration };
 }

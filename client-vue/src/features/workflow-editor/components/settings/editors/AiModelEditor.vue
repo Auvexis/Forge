@@ -50,6 +50,70 @@
       />
     </EditorField>
 
+    <template v-if="node.data.adapter === 'ollama'">
+      <EditorField label="Context Window">
+        <BaseInput
+          type="number"
+          :model-value="Number(node.data.numCtx ?? 0)"
+          @update:model-value="updateNodeData({ numCtx: Number($event) || undefined })"
+          placeholder="Optional"
+        />
+      </EditorField>
+
+      <EditorField label="Top P">
+        <BaseInput
+          type="number"
+          :model-value="Number(node.data.topP ?? 0)"
+          @update:model-value="updateNodeData({ topP: Number($event) || undefined })"
+          placeholder="Optional"
+        />
+      </EditorField>
+
+      <EditorField label="Top K">
+        <BaseInput
+          type="number"
+          :model-value="Number(node.data.topK ?? 0)"
+          @update:model-value="updateNodeData({ topK: Number($event) || undefined })"
+          placeholder="Optional"
+        />
+      </EditorField>
+
+      <EditorField label="Repeat Penalty">
+        <BaseInput
+          type="number"
+          :model-value="Number(node.data.repeatPenalty ?? 0)"
+          @update:model-value="updateNodeData({ repeatPenalty: Number($event) || undefined })"
+          placeholder="Optional"
+        />
+      </EditorField>
+
+      <EditorField label="Seed">
+        <BaseInput
+          type="number"
+          :model-value="Number(node.data.seed ?? 0)"
+          @update:model-value="updateNodeData({ seed: Number($event) || undefined })"
+          placeholder="Optional"
+        />
+      </EditorField>
+
+      <EditorField label="Keep Alive">
+        <BaseInput
+          :model-value="String(node.data.keepAlive ?? '')"
+          @update:model-value="updateNodeData({ keepAlive: ($event as string) || undefined })"
+          placeholder="5m"
+        />
+      </EditorField>
+
+      <EditorField label="Ollama Options">
+        <BaseTextarea
+          :model-value="ollamaOptionsText"
+          @update:model-value="updateOllamaOptions($event as string)"
+          placeholder='{"mirostat":2}'
+          :rows="4"
+        />
+      </EditorField>
+    </template>
+
     <EditorField label="Thinking">
       <BaseSwitch
         :model-value="Boolean(node.data.thinkingEnabled)"
@@ -72,10 +136,46 @@
 
 <script setup lang="ts">
 import type { NodeEditorProps } from './types'
+import { ref, watch } from 'vue'
 import EditorField from './EditorField.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 
-defineProps<NodeEditorProps>()
+const props = defineProps<NodeEditorProps>()
+const { node, updateNodeData } = props
+const ollamaOptionsText = ref(formatOllamaOptions())
+
+function formatOllamaOptions(): string {
+  const options = props.node.data.ollamaOptions
+  return options && typeof options === 'object'
+    ? JSON.stringify(options, null, 2)
+    : ''
+}
+
+watch(
+  () => props.node.id,
+  () => {
+    ollamaOptionsText.value = formatOllamaOptions()
+  },
+)
+
+function updateOllamaOptions(value: string) {
+  ollamaOptionsText.value = value
+  const trimmed = value.trim()
+  if (!trimmed) {
+    props.updateNodeData({ ollamaOptions: undefined })
+    return
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed)
+    props.updateNodeData({
+      ollamaOptions: parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+        ? parsed
+        : undefined,
+    })
+  } catch {}
+}
 
 </script>

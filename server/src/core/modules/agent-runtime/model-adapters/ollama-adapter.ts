@@ -106,6 +106,8 @@ export class OllamaAdapter implements AgentModelAdapter {
   }
 
   private async chat(input: AgentModelInvokeInput, format?: "json" | Record<string, any>): Promise<OllamaChatResponse> {
+    const keepAlive = input.keepAlive ?? this.keepAlive;
+    const options = buildOllamaOptions(input);
     const response = await this.fetch(`${normalizeOllamaHost(input.baseUrl)}/api/chat`, {
       method: "POST",
       headers: ollamaHeaders(input.credentials),
@@ -114,10 +116,10 @@ export class OllamaAdapter implements AgentModelAdapter {
         model: input.model,
         messages: input.messages.map(toOllamaMessage),
         stream: false,
-        think: input.thinkingEnabled === true,
-        ...(this.keepAlive !== undefined ? { keep_alive: this.keepAlive } : {}),
+        think: resolveThink(input),
+        ...(keepAlive !== undefined ? { keep_alive: keepAlive } : {}),
         ...(format ? { format } : {}),
-        ...(input.temperature !== undefined ? { options: { temperature: input.temperature } } : {}),
+        ...(Object.keys(options).length > 0 ? { options } : {}),
       }),
     });
 
@@ -132,6 +134,39 @@ export class OllamaAdapter implements AgentModelAdapter {
 
     return response.json() as Promise<OllamaChatResponse>;
   }
+}
+
+function resolveThink(input: AgentModelInvokeInput): boolean | string {
+  if (input.thinkingEnabled !== true) {
+    return false;
+  }
+
+  const requestedThink = input.thinkingRequest?.think;
+  return typeof requestedThink === "string" || typeof requestedThink === "boolean"
+    ? requestedThink
+    : true;
+}
+
+function buildOllamaOptions(input: AgentModelInvokeInput): Record<string, any> {
+  return {
+    ...(input.ollamaOptions ?? {}),
+    ...definedNumberOption("temperature", input.temperature),
+    ...definedNumberOption("num_predict", input.maxTokens),
+    ...definedNumberOption("num_ctx", input.numCtx),
+    ...definedNumberOption("top_p", input.topP),
+    ...definedNumberOption("top_k", input.topK),
+    ...definedNumberOption("repeat_penalty", input.repeatPenalty),
+    ...definedNumberOption("seed", input.seed),
+  };
+}
+
+function definedNumberOption(key: string, value: unknown): Record<string, number> {
+  if (value === undefined || value === null || value === "") {
+    return {};
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? { [key]: numericValue } : {};
 }
 
 export function normalizeOllamaHost(baseUrl: string | undefined): string {

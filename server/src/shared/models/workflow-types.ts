@@ -379,6 +379,13 @@ export interface AiModelNode extends WorkflowNodeBase {
   model: string;
   temperature: number;
   maxTokens?: number;
+  numCtx?: number;
+  topP?: number;
+  topK?: number;
+  repeatPenalty?: number;
+  seed?: number;
+  keepAlive?: string | number;
+  ollamaOptions?: Record<string, any>;
   credentialId?: string;
   baseUrl?: string;
   thinkingEnabled?: boolean;

@@ -108,6 +108,45 @@ describe("OllamaAdapter", () => {
     assert.equal(requests[0].body.think, true);
   });
 
+  it("sends advanced Ollama model options from AI model configuration", async () => {
+    const requests: Array<{ body: any }> = [];
+    const adapter = new OllamaAdapter({
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ message: { content: "done" } });
+      },
+    });
+
+    await adapter.invokeText({
+      model: "qwen3.5:4b",
+      messages: [{ role: "user", content: "Tune this" }],
+      thinkingEnabled: true,
+      thinkingRequest: { think: "high" },
+      temperature: 0.3,
+      maxTokens: 512,
+      numCtx: 8192,
+      topP: 0.85,
+      topK: 50,
+      repeatPenalty: 1.15,
+      seed: 456,
+      keepAlive: "20m",
+      ollamaOptions: { mirostat: 2 },
+    });
+
+    assert.equal(requests[0].body.think, "high");
+    assert.equal(requests[0].body.keep_alive, "20m");
+    assert.deepEqual(requests[0].body.options, {
+      mirostat: 2,
+      temperature: 0.3,
+      num_predict: 512,
+      num_ctx: 8192,
+      top_p: 0.85,
+      top_k: 50,
+      repeat_penalty: 1.15,
+      seed: 456,
+    });
+  });
+
   it("sends bearer auth only when credentials provide an api key", async () => {
     const headers: Record<string, string>[] = [];
     const adapter = new OllamaAdapter({

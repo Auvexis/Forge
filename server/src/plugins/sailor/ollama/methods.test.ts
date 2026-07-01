@@ -60,8 +60,101 @@ describe("ollama plugin", () => {
       );
 
       assert.equal(result.done, true);
-      assert.equal(calls[0].url, "http://localhost:11434/api/chat");
+      assert.equal(calls[0].url, "http://localhost:11434/api/generate");
       assert.equal((calls[0].init.headers as Record<string, string>).Authorization, undefined);
+    } finally {
+      restore();
+    }
+  });
+
+  it("sends advanced generate options to Ollama", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const restore = mockFetch(calls, { model: "llama3.2", response: "ok", done: true });
+
+    try {
+      await createMethods().generate(
+        {
+          prompt: "hi",
+          model: "llama3.2",
+          think: true,
+          context: [1, 2, 3],
+          keepAlive: "30m",
+          numCtx: 8192,
+          temperature: 0.4,
+          topP: 0.9,
+          topK: 40,
+          repeatPenalty: 1.2,
+          seed: 123,
+          numPredict: 512,
+          options: { mirostat: 2 },
+        },
+        { credentials: { host: "http://localhost:11434" } } as any,
+      );
+
+      assert.equal(calls[0].url, "http://localhost:11434/api/generate");
+      assert.deepEqual(JSON.parse(String(calls[0].init.body)), {
+        model: "llama3.2",
+        prompt: "hi",
+        stream: false,
+        think: true,
+        context: [1, 2, 3],
+        keep_alive: "30m",
+        options: {
+          mirostat: 2,
+          num_ctx: 8192,
+          temperature: 0.4,
+          top_p: 0.9,
+          top_k: 40,
+          repeat_penalty: 1.2,
+          seed: 123,
+          num_predict: 512,
+        },
+      });
+    } finally {
+      restore();
+    }
+  });
+
+  it("sends advanced chat options to Ollama", async () => {
+    const calls: Array<{ url: string; init: RequestInit }> = [];
+    const restore = mockFetch(calls, { model: "llama3.2", message: { content: "ok" }, done: true });
+
+    try {
+      await createMethods().chat(
+        {
+          model: "llama3.2",
+          messages: [{ role: "user", content: "hi" }],
+          think: "medium",
+          keepAlive: "10m",
+          numCtx: 4096,
+          temperature: 0.1,
+          topP: 0.8,
+          topK: 30,
+          repeatPenalty: 1.1,
+          seed: 321,
+          numPredict: 128,
+          options: { stop: ["END"] },
+        },
+        { credentials: { host: "http://localhost:11434" } } as any,
+      );
+
+      assert.deepEqual(JSON.parse(String(calls[0].init.body)), {
+        model: "llama3.2",
+        messages: [{ role: "user", content: "hi" }],
+        stream: false,
+        think: "medium",
+        keep_alive: "10m",
+        options: {
+          stop: ["END"],
+          num_ctx: 4096,
+          temperature: 0.1,
+          top_p: 0.8,
+          top_k: 30,
+          repeat_penalty: 1.1,
+          seed: 321,
+          num_predict: 128,
+        },
+      });
     } finally {
       restore();
     }
@@ -110,6 +203,18 @@ describe("ollama plugin", () => {
     assert.equal(typeof plugin.methods.listModels, "function");
     assert.equal(typeof plugin.methods.chat, "function");
     assert.equal(typeof plugin.methods.showModel, "function");
+  });
+
+  it("declares advanced Ollama parameters in chat and generate manifests", () => {
+    const chatProperties = plugin.manifest.methods.chat.parameters.properties!;
+    const generateProperties = plugin.manifest.methods.generate.parameters.properties!;
+
+    for (const key of ["think", "keepAlive", "numCtx", "temperature", "topP", "topK", "repeatPenalty", "seed", "numPredict", "options"]) {
+      assert.ok(chatProperties[key], `chat should expose ${key}`);
+      assert.ok(generateProperties[key], `generate should expose ${key}`);
+    }
+
+    assert.ok(generateProperties.context);
   });
 
   it("declares and creates embeddings through the configured Ollama host", async () => {

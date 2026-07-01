@@ -54,6 +54,48 @@ export default definePluginManifest({
         "timeoutMs": 30000
       }
     },
+    "createEmbeddings": {
+      "metadata": {
+        "label": "Create Embeddings",
+        "description": "Create embedding vectors with an Ollama embedding model."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string",
+            "default": "nomic-embed-text",
+            "description": "The embedding model to use.",
+            "x-input-type": "text"
+          },
+          "input": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Texts to embed."
+          },
+          "dimension": {
+            "type": "number",
+            "default": 768,
+            "description": "Expected output vector dimension.",
+            "x-input-type": "number"
+          },
+          "batchSize": {
+            "type": "number",
+            "default": 64,
+            "x-input-type": "number"
+          }
+        },
+        "required": [
+          "model",
+          "input"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      }
+    },
     "chat": {
       "metadata": {
         "label": "Chat",
@@ -92,6 +134,57 @@ export default definePluginManifest({
             "description": "Return the response in JSON format.",
             "default": false,
             "x-input-type": "toggle"
+          },
+          "think": {
+            "type": "boolean",
+            "description": "Return separate thinking output for supported models.",
+            "default": false,
+            "x-input-type": "toggle"
+          },
+          "keepAlive": {
+            "type": "string",
+            "description": "How long Ollama should keep the model loaded, e.g. 5m, 30m, 0.",
+            "x-input-type": "text"
+          },
+          "numCtx": {
+            "type": "number",
+            "description": "Context window size.",
+            "x-input-type": "number"
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Sampling temperature.",
+            "x-input-type": "number"
+          },
+          "topP": {
+            "type": "number",
+            "description": "Top-p sampling value.",
+            "x-input-type": "number"
+          },
+          "topK": {
+            "type": "number",
+            "description": "Top-k sampling value.",
+            "x-input-type": "number"
+          },
+          "repeatPenalty": {
+            "type": "number",
+            "description": "Penalty for repeated tokens.",
+            "x-input-type": "number"
+          },
+          "seed": {
+            "type": "number",
+            "description": "Random seed.",
+            "x-input-type": "number"
+          },
+          "numPredict": {
+            "type": "number",
+            "description": "Maximum number of tokens to predict.",
+            "x-input-type": "number"
+          },
+          "options": {
+            "type": "object",
+            "description": "Additional Ollama options merged into the request options object.",
+            "x-input-type": "json"
           }
         },
         "required": [
@@ -139,6 +232,64 @@ export default definePluginManifest({
             "description": "Return the response in JSON format.",
             "default": false,
             "x-input-type": "toggle"
+          },
+          "think": {
+            "type": "boolean",
+            "description": "Return separate thinking output for supported models.",
+            "default": false,
+            "x-input-type": "toggle"
+          },
+          "context": {
+            "type": "array",
+            "description": "Deprecated Ollama context array returned by a previous generate request.",
+            "items": {
+              "type": "number"
+            }
+          },
+          "keepAlive": {
+            "type": "string",
+            "description": "How long Ollama should keep the model loaded, e.g. 5m, 30m, 0.",
+            "x-input-type": "text"
+          },
+          "numCtx": {
+            "type": "number",
+            "description": "Context window size.",
+            "x-input-type": "number"
+          },
+          "temperature": {
+            "type": "number",
+            "description": "Sampling temperature.",
+            "x-input-type": "number"
+          },
+          "topP": {
+            "type": "number",
+            "description": "Top-p sampling value.",
+            "x-input-type": "number"
+          },
+          "topK": {
+            "type": "number",
+            "description": "Top-k sampling value.",
+            "x-input-type": "number"
+          },
+          "repeatPenalty": {
+            "type": "number",
+            "description": "Penalty for repeated tokens.",
+            "x-input-type": "number"
+          },
+          "seed": {
+            "type": "number",
+            "description": "Random seed.",
+            "x-input-type": "number"
+          },
+          "numPredict": {
+            "type": "number",
+            "description": "Maximum number of tokens to predict.",
+            "x-input-type": "number"
+          },
+          "options": {
+            "type": "object",
+            "description": "Additional Ollama options merged into the request options object.",
+            "x-input-type": "json"
           }
         },
         "required": [

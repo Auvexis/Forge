@@ -65,6 +65,7 @@ export function createMethods(): Record<
           ],
           stream: false,
           format: jsonMode ? "json" : undefined,
+          ...buildOllamaAdvancedPayload(params),
         }),
       });
 
@@ -84,20 +85,16 @@ export function createMethods(): Record<
         throw new Error("Missing prompt or model");
       }
 
-      const response = await fetch(`${host}/api/chat`, {
+      const response = await fetch(`${host}/api/generate`, {
         method: "POST",
         headers: ollamaHeaders(context),
         body: JSON.stringify({
           model,
-          messages: [
-            ...(system ? [{ role: "system", content: system }] : []),
-            {
-              role: "user",
-              content: prompt,
-            },
-          ],
+          prompt,
+          ...(system ? { system } : {}),
           stream: false,
           format: jsonMode ? "json" : undefined,
+          ...buildOllamaAdvancedPayload(params),
         }),
       });
 
@@ -121,6 +118,41 @@ export function createMethods(): Record<
       return parseOllamaResponse(response);
     },
   };
+}
+
+function buildOllamaAdvancedPayload(params: Record<string, any>): Record<string, any> {
+  const options = buildOllamaOptions(params);
+  return {
+    ...(params.think !== undefined ? { think: params.think } : {}),
+    ...(params.context !== undefined ? { context: params.context } : {}),
+    ...(params.keepAlive !== undefined && params.keepAlive !== "" ? { keep_alive: params.keepAlive } : {}),
+    ...(Object.keys(options).length > 0 ? { options } : {}),
+  };
+}
+
+function buildOllamaOptions(params: Record<string, any>): Record<string, any> {
+  const rawOptions = params.options && typeof params.options === "object" && !Array.isArray(params.options)
+    ? params.options
+    : {};
+  return {
+    ...rawOptions,
+    ...definedNumberOption("num_ctx", params.numCtx),
+    ...definedNumberOption("temperature", params.temperature),
+    ...definedNumberOption("top_p", params.topP),
+    ...definedNumberOption("top_k", params.topK),
+    ...definedNumberOption("repeat_penalty", params.repeatPenalty),
+    ...definedNumberOption("seed", params.seed),
+    ...definedNumberOption("num_predict", params.numPredict),
+  };
+}
+
+function definedNumberOption(key: string, value: unknown): Record<string, number> {
+  if (value === undefined || value === null || value === "") {
+    return {};
+  }
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? { [key]: numericValue } : {};
 }
 
 function getHost(context?: PluginContext): string {

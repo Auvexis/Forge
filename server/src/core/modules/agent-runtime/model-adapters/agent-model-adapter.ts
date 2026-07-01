@@ -14,6 +14,13 @@ export interface AgentModelInvokeInput {
   credentials?: Record<string, string>;
   temperature?: number;
   maxTokens?: number;
+  numCtx?: number;
+  topP?: number;
+  topK?: number;
+  repeatPenalty?: number;
+  seed?: number;
+  keepAlive?: string | number;
+  ollamaOptions?: Record<string, any>;
   thinkingEnabled?: boolean;
   thinkingRequest?: Record<string, any>;
   abortSignal?: AbortSignal;

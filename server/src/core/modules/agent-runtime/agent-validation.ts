@@ -50,6 +50,13 @@ const aiModelSchema = z
     model: z.string().trim().min(1).max(160),
     temperature: z.number().min(0).max(2),
     maxTokens: z.number().int().min(1).max(200000).optional(),
+    numCtx: z.number().int().min(1).max(200000).optional(),
+    topP: z.number().min(0).max(1).optional(),
+    topK: z.number().int().min(1).max(1000).optional(),
+    repeatPenalty: z.number().min(0).max(10).optional(),
+    seed: z.number().int().optional(),
+    keepAlive: z.union([z.string().trim().min(1).max(40), z.number()]).optional(),
+    ollamaOptions: jsonObjectSchema.optional(),
     credentialId: z.string().trim().min(1).max(160).optional(),
     baseUrl: z.string().url().optional(),
     thinkingEnabled: z.boolean().optional(),
@@ -60,6 +67,9 @@ const aiModelSchema = z
   .superRefine((value, context) => {
     if (value.thinkingRequest) {
       validateJsonPolicy(value.thinkingRequest, ["thinkingRequest"], context);
+    }
+    if (value.ollamaOptions) {
+      validateJsonPolicy(value.ollamaOptions, ["ollamaOptions"], context);
     }
   });
 
