@@ -27,11 +27,11 @@ const props = withDefaults(defineProps<{
   autoOrganize: false,
   inputPosition: 'left',
   outputPosition: 'right',
-  rounded: 'md',
   borderStyle: 'default',
   width: '236px',
   height: '100px',
 })
+
 </script>
 
 <template>
@@ -46,6 +46,7 @@ const props = withDefaults(defineProps<{
       :input-position="props.inputPosition"
       :output-position="props.outputPosition"
       :rounded="props.rounded"
+      default-rounded="md"
       :border-style="props.borderStyle"
       :width="props.width"
       :height="props.height"

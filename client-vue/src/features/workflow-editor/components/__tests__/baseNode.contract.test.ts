@@ -118,3 +118,17 @@ test('BaseAdvancedNode composes BaseNode and declares automatic organization', (
   assert.match(source, /<slot name="icon-left"/)
   assert.match(source, /data-auto-organize/)
 })
+
+test('nodes connected to advanced target handles become circular subnodes automatically', () => {
+  const baseNode = read('BaseNode.vue')
+  const advancedNode = read('BaseAdvancedNode.vue')
+
+  assert.match(baseNode, /isConnectedAsAdvancedSubnode/)
+  assert.match(baseNode, /edge\.source === props\.id/)
+  assert.match(baseNode, /\(edge\.targetHandle \?\? 'target'\) !== 'target'/)
+  assert.match(baseNode, /effectiveRounded/)
+  assert.match(baseNode, /defaultRounded/)
+  assert.match(baseNode, /is-rounded-\$\{effectiveRounded\}/)
+  assert.match(advancedNode, /default-rounded="md"/)
+  assert.doesNotMatch(advancedNode, /rounded: 'md'/)
+})

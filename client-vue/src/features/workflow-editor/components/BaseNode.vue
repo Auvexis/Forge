@@ -42,6 +42,7 @@ const props = defineProps<{
   inputPosition?: NodeSide
   outputPosition?: NodeSide
   rounded?: NodeRounding
+  defaultRounded?: NodeRounding
   borderStyle?: NodeBorderStyle
   handlers?: BaseNodeHandlerDefinition[]
 
@@ -163,6 +164,17 @@ const hasOutgoingConnection = computed(() => {
   return allEdges.value.some((e) => e.source === props.id)
 })
 
+const isConnectedAsAdvancedSubnode = computed(() => {
+  if (!props.id) return false
+  return allEdges.value.some(
+    (edge) => edge.source === props.id && (edge.targetHandle ?? 'target') !== 'target',
+  )
+})
+
+const effectiveRounded = computed(() =>
+  props.rounded ?? (isConnectedAsAdvancedSubnode.value ? 'full' : props.defaultRounded ?? 'lg'),
+)
+
 const onQuickAdd = (event: MouseEvent) => {
   if (props.id) {
     const anchorRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
@@ -177,7 +189,7 @@ const onQuickAdd = (event: MouseEvent) => {
     :class="[
       { 'is-selected': selected, 'is-disabled': isDisabled },
       statusClasses,
-      `is-rounded-${props.rounded ?? 'lg'}`,
+      `is-rounded-${effectiveRounded}`,
       `is-border-${props.borderStyle ?? 'default'}`,
     ]"
     :style="{ 
