@@ -1,0 +1,4 @@
+- [x] Add top-handle contract
+- [x] Implement subnode top handle
+- [x] Run focused frontend tests
+- [x] Commit changes

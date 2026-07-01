@@ -71,8 +71,19 @@ const positionBySide = {
   right: Position.Right,
 } as const
 
+const isConnectedAsAdvancedSubnode = computed(() => {
+  if (!props.id) return false
+  return allEdges.value.some(
+    (edge) => edge.source === props.id && (edge.targetHandle ?? 'target') !== 'target',
+  )
+})
+
+const effectiveHasTarget = computed(() => !!props.hasTarget && !isConnectedAsAdvancedSubnode.value)
+const effectiveHasSource = computed(() => !!props.hasSource || isConnectedAsAdvancedSubnode.value)
 const effectiveInputPosition = computed(() => positionBySide[props.inputPosition ?? 'left'])
-const effectiveOutputPosition = computed(() => positionBySide[props.outputPosition ?? 'right'])
+const effectiveOutputPosition = computed(() =>
+  isConnectedAsAdvancedSubnode.value ? Position.Top : positionBySide[props.outputPosition ?? 'right'],
+)
 const handlerSides = computed(() =>
   [Position.Top, Position.Right, Position.Bottom, Position.Left]
     .map((position) => ({
@@ -83,8 +94,8 @@ const handlerSides = computed(() =>
 )
 const handleGeometrySignature = computed(() =>
   JSON.stringify({
-    target: props.hasTarget ? effectiveInputPosition.value : null,
-    source: props.hasSource ? effectiveOutputPosition.value : null,
+    target: effectiveHasTarget.value ? effectiveInputPosition.value : null,
+    source: effectiveHasSource.value ? effectiveOutputPosition.value : null,
     handlers: (props.handlers ?? []).map((handler) => [
       handler.id,
       handler.type,
@@ -164,13 +175,6 @@ const hasOutgoingConnection = computed(() => {
   return allEdges.value.some((e) => e.source === props.id)
 })
 
-const isConnectedAsAdvancedSubnode = computed(() => {
-  if (!props.id) return false
-  return allEdges.value.some(
-    (edge) => edge.source === props.id && (edge.targetHandle ?? 'target') !== 'target',
-  )
-})
-
 const effectiveRounded = computed(() =>
   props.rounded ?? (isConnectedAsAdvancedSubnode.value ? 'full' : props.defaultRounded ?? 'lg'),
 )
@@ -221,8 +225,8 @@ const onQuickAdd = (event: MouseEvent) => {
     </div>
 
     <!-- AUTO HANDLES -->
-    <BaseHandle v-if="props.hasTarget" id="target" type="target" :position="effectiveInputPosition" />
-    <BaseHandle v-if="props.hasSource" id="source" type="source" :position="effectiveOutputPosition" />
+    <BaseHandle v-if="effectiveHasTarget" id="target" type="target" :position="effectiveInputPosition" />
+    <BaseHandle v-if="effectiveHasSource" id="source" type="source" :position="effectiveOutputPosition" />
 
     <div
       v-for="side in handlerSides"
@@ -265,7 +269,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
     <!-- Quick Add Cable (n8n style) -->
     <div
-      v-if="props.hasSource && !hasOutgoingConnection && props.id"
+      v-if="props.hasSource && !isConnectedAsAdvancedSubnode && !hasOutgoingConnection && props.id"
       class="sailor-base-node__quick-add"
       title="Add connected node"
       @click.stop="onQuickAdd"

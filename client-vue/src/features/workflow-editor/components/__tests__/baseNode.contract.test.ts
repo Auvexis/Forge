@@ -132,3 +132,14 @@ test('nodes connected to advanced target handles become circular subnodes automa
   assert.match(advancedNode, /default-rounded="md"/)
   assert.doesNotMatch(advancedNode, /rounded: 'md'/)
 })
+
+test('advanced subnodes use only a top source handle', () => {
+  const baseNode = read('BaseNode.vue')
+
+  assert.match(baseNode, /effectiveHasTarget/)
+  assert.match(baseNode, /effectiveHasSource/)
+  assert.match(baseNode, /isConnectedAsAdvancedSubnode\.value \? Position\.Top :/)
+  assert.match(baseNode, /v-if="effectiveHasTarget"/)
+  assert.match(baseNode, /v-if="effectiveHasSource"/)
+  assert.match(baseNode, /props\.hasSource && !isConnectedAsAdvancedSubnode && !hasOutgoingConnection/)
+})
