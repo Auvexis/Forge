@@ -390,11 +390,13 @@ export async function normalizeGmailAttachments(attachments?: any[]): Promise<Gm
   if (!attachments?.length) return undefined;
 
   const normalized = await Promise.all(attachments.map(normalizeGmailAttachment));
-  return normalized.filter(Boolean) as GmailAttachment[];
+  const validAttachments = normalized.filter(Boolean) as GmailAttachment[];
+  return validAttachments.length > 0 ? validAttachments : undefined;
 }
 
 async function normalizeGmailAttachment(att: any): Promise<GmailAttachment | null> {
   if (!att) return null;
+  if (typeof att === "string" && /^\s*\{\{[^{}]+\}\}\s*$/.test(att)) return null;
   if (Buffer.isBuffer(att)) {
     return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
   }

@@ -699,6 +699,7 @@ describe("AI workflow node handlers", () => {
               properties: {
                 email: { type: "string" },
                 internalAccountId: { type: "string" },
+                attachment: { type: "file" },
               },
               required: ["email", "internalAccountId"],
             },
@@ -770,7 +771,7 @@ describe("AI workflow node handlers", () => {
     assert.equal(tool.requiresApproval, true);
     assert.equal(tool.timeoutMs, 45000);
     assert.deepEqual(tool.inputSchema.required, ["email"]);
-    assert.deepEqual(Object.keys(tool.inputSchema.properties), ["email"]);
+    assert.deepEqual(Object.keys(tool.inputSchema.properties), ["email", "attachment"]);
     assert.equal("targetWorkflowId" in tool, false);
     assert.equal("targetTriggerId" in tool, false);
     assert.equal("inputDefaults" in tool, false);

@@ -7,6 +7,7 @@ import { OutputParserExecutionService } from "../../modules/ai-services/output-p
 import { RetrieverExecutionService } from "../../modules/ai-services/retriever-execution-service.ts";
 import { callWorkflowNodeHandler } from "../handlers/call-workflow.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
+import { getTriggerEntry } from "../../modules/workflows/workflow-triggers.ts";
 import { CapabilityAdapterRegistry } from "./capability-adapter-registry.ts";
 
 export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry {
@@ -23,10 +24,14 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
   registry.register({ capability: "agent-tool", supports: (node) => node.type === "call-workflow", resolve: async (context, nodeId) => {
     const node = context.execution.workflow.nodes[nodeId] as CallWorkflowNode;
     const inputDefaults = node.inputDefaults ? TemplateEngine.evaluate(node.inputDefaults, context.execution.context) as Record<string, any> : undefined;
+    const targetWorkflow = context.execution.services.getWorkflowById(node.targetWorkflowId);
+    const publishedTrigger = targetWorkflow
+      ? getTriggerEntry(targetWorkflow, node.targetTriggerId)
+      : null;
     return {
       name: node.toolName,
       description: node.toolDescription || node.name,
-      inputSchema: schemaWithoutDefaults(node.targetTrigger?.schema, inputDefaults),
+      inputSchema: schemaWithoutDefaults(publishedTrigger?.trigger.schema ?? node.targetTrigger?.schema, inputDefaults),
       sideEffect: "write",
       requiresApproval: node.requiresApproval ?? false,
       timeoutMs: node.timeoutMs ?? 120000,

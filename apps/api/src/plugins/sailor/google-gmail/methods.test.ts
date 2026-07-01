@@ -34,4 +34,12 @@ describe("google gmail methods", () => {
       /content/i,
     );
   });
+
+  it("ignores an unresolved optional attachment template", async () => {
+    const attachments = await normalizeGmailAttachments([
+      "{{ trigger.attachment }}",
+    ]);
+
+    assert.equal(attachments, undefined);
+  });
 });
