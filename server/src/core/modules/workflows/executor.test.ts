@@ -320,6 +320,93 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(result.context.steps.return_second, undefined);
   });
 
+  it("stores child return result as clean call-workflow step output", async () => {
+    const child = baseWorkflow();
+    child.metadata.id = "wf-child-return-result";
+    child.metadata.name = "Child Return Result";
+    child.metadata.isActive = true;
+    child.metadata.isDraft = false;
+    child.metadata.publishedAt = "2026-07-01T00:00:00.000Z";
+    child.nodes.return_result = {
+      type: "return",
+      name: "Return Result",
+      mode: "fields",
+      fields: [{ key: "recipe", value: "{{trigger.ingredient}} cake" }],
+    };
+    child.edges = [{ id: "trigger-return", source: "trigger_b", target: "return_result" }];
+
+    const parent = baseWorkflow();
+    parent.metadata.id = "wf-parent-call-return";
+    parent.nodes.call_child = {
+      type: "call-workflow",
+      name: "Call Child",
+      targetWorkflowId: child.metadata.id,
+      targetTriggerId: "trigger_b",
+      toolName: "child_recipe",
+      inputDefaults: { ingredient: "banana" },
+    };
+    parent.edges = [{ id: "trigger-call", source: "trigger_a", target: "call_child" }];
+
+    WorkflowRepository.saveWorkflow(child);
+    WorkflowRepository.saveWorkflow(parent);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      parent,
+      "trigger_a",
+      {},
+      "exec_parent_child_return",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.steps.call_child.output, { recipe: "banana cake" });
+    assert.equal(result.context.steps.call_child.childExecution.status, "SUCCESS");
+    assert.deepEqual(result.context.steps.call_child.childExecution.resultSource, {
+      type: "return",
+      nodeId: "return_result",
+    });
+    assert.equal(result.context.steps.call_child.output.executionId, undefined);
+    assert.equal(result.context.steps.call_child.output.status, undefined);
+  });
+
+  it("stores child fallback result as clean call-workflow step output", async () => {
+    const child = baseWorkflow();
+    child.metadata.id = "wf-child-fallback-result";
+    child.metadata.name = "Child Fallback Result";
+    child.metadata.isActive = true;
+    child.metadata.isDraft = false;
+    child.metadata.publishedAt = "2026-07-01T00:00:00.000Z";
+
+    const parent = baseWorkflow();
+    parent.metadata.id = "wf-parent-call-fallback";
+    parent.nodes.call_child = {
+      type: "call-workflow",
+      name: "Call Child",
+      targetWorkflowId: child.metadata.id,
+      targetTriggerId: "trigger_b",
+      toolName: "child_fallback",
+      inputDefaults: { source: "parent" },
+    };
+    parent.edges = [{ id: "trigger-call", source: "trigger_a", target: "call_child" }];
+
+    WorkflowRepository.saveWorkflow(child);
+    WorkflowRepository.saveWorkflow(parent);
+
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      parent,
+      "trigger_a",
+      {},
+      "exec_parent_child_fallback",
+    );
+
+    assert.equal(result.status, "SUCCESS");
+    assert.deepEqual(result.context.steps.call_child.childExecution.resultSource, {
+      type: "fallback-steps",
+    });
+    assert.equal(result.context.steps.call_child.output.steps.trigger_b.output.source, "parent");
+    assert.equal(result.context.steps.call_child.output.steps.set_b.output.branch, "b");
+    assert.equal(result.context.steps.call_child.output.executionId, undefined);
+  });
+
   it("passes through disabled normal nodes to their downstream targets", async () => {
     const wf = baseWorkflow();
     wf.nodes.disabled_mid = {

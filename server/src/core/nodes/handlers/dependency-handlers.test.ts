@@ -236,9 +236,53 @@ describe("dependency-backed utility node handlers", () => {
     assert.deepEqual(calls[0][2], { source: "workflow", invoiceId: "inv_1" });
     assert.match(calls[0][3], /^exec_call_node-1_/);
     assert.deepEqual(result, {
-      executionId: "child-exec-1",
-      status: "SUCCESS",
-      output: { trigger: { source: "workflow", invoiceId: "inv_1" }, steps: { done: { output: "ok" } } },
+      output: { steps: { done: { output: "ok" } } },
+      childExecution: {
+        executionId: "child-exec-1",
+        status: "SUCCESS",
+        resultSource: { type: "fallback-steps" },
+      },
+    });
+  });
+
+  it("returns the child workflow result from call-workflow without metadata in output", async () => {
+    const childWorkflow = {
+      ...workflowWith({ type: "trigger", name: "Trigger" }),
+      metadata: {
+        ...workflowWith({ type: "trigger", name: "Trigger" }).metadata,
+        id: "child-returns",
+        isActive: true,
+        isDraft: false,
+        publishedAt: "2026-06-30T00:00:00.000Z",
+      },
+    };
+
+    const result = await callWorkflowNodeHandler.execute(input({
+      type: "call-workflow",
+      name: "Child",
+      targetWorkflowId: "child-returns",
+      targetTriggerId: "node-1",
+      toolName: "child_tool",
+    }, { trigger: {}, steps: {}, variables: {} }, {
+      getWorkflowById: () => childWorkflow,
+      executeWorkflowFromTrigger: async () => ({
+        executionId: "child-exec-return",
+        status: "SUCCESS",
+        context: {
+          result: { recipe: "cake" },
+          resultSource: { type: "return", nodeId: "return_result" },
+          steps: { return_result: { output: { recipe: "cake" } } },
+        },
+      }),
+    }));
+
+    assert.deepEqual(result, {
+      output: { recipe: "cake" },
+      childExecution: {
+        executionId: "child-exec-return",
+        status: "SUCCESS",
+        resultSource: { type: "return", nodeId: "return_result" },
+      },
     });
   });
 

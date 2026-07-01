@@ -39,11 +39,15 @@ export const callWorkflowNodeHandler = createNodeHandler<CallWorkflowNode>(
       triggerPayload,
       childExecutionId,
     );
+    const childContext = result?.context ?? {};
 
     return {
-      executionId: result?.executionId ?? childExecutionId,
-      status: result?.status ?? "UNKNOWN",
-      output: result?.context ?? null,
+      output: childContext.result ?? { steps: childContext.steps ?? {} },
+      childExecution: {
+        executionId: result?.executionId ?? childExecutionId,
+        status: result?.status ?? "UNKNOWN",
+        resultSource: childContext.resultSource ?? { type: "fallback-steps" },
+      },
     };
   },
   {

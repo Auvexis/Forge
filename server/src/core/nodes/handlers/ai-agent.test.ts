@@ -754,7 +754,10 @@ describe("AI workflow node handlers", () => {
     runInput.services.executeWorkflowFromTrigger = async (_workflow, triggerNodeId, payload) => ({
       executionId: "child_exec",
       status: "SUCCESS",
-      context: { triggerNodeId, payload },
+      context: {
+        result: { leadId: "lead_1", triggerNodeId, payload },
+        resultSource: { type: "return", nodeId: "return_result" },
+      },
     });
 
     await registry.get("ai-agent").execute(runInput);
@@ -772,12 +775,9 @@ describe("AI workflow node handlers", () => {
     assert.equal("targetTriggerId" in tool, false);
     assert.equal("inputDefaults" in tool, false);
     assert.deepEqual(childPayload, {
-      executionId: "child_exec",
-      status: "SUCCESS",
-      output: {
-        triggerNodeId: "form_trigger",
-        payload: { internalAccountId: "acct_1", email: "lead@example.com" },
-      },
+      leadId: "lead_1",
+      triggerNodeId: "form_trigger",
+      payload: { internalAccountId: "acct_1", email: "lead@example.com" },
     });
   });
 });

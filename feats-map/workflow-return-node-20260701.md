@@ -36,13 +36,13 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 4 - Call Workflow Result
-- [ ] Return child `context.result` directly from `call-workflow`.
-- [ ] Keep execution metadata available without polluting user output.
-- [ ] Use fallback steps tree when child has no `Return`.
-- [ ] Update agent tool adapter expectations.
-- [ ] Add parent-child workflow tests.
-- [ ] Update feature map.
-- [ ] Commit.
+- [x] Return child `context.result` directly from `call-workflow`.
+- [x] Keep execution metadata available without polluting user output.
+- [x] Use fallback steps tree when child has no `Return`.
+- [x] Update agent tool adapter expectations.
+- [x] Add parent-child workflow tests.
+- [x] Update feature map.
+- [x] Commit.
 
 ## Batch 5 - Catalog And Canvas
 - [ ] Register `Return` in Sailor Core utility manifest.

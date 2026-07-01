@@ -30,27 +30,30 @@ export function createCoreCapabilityAdapterRegistry(): CapabilityAdapterRegistry
       sideEffect: "write",
       requiresApproval: node.requiresApproval ?? false,
       timeoutMs: node.timeoutMs ?? 120000,
-      invoke: async (args: unknown) => callWorkflowNodeHandler.execute({
-        nodeId,
-        node: {
-          ...node,
-          inputDefaults,
-        },
-        context: {
-          ...context.execution.context,
-          steps: {
-            ...context.execution.context.steps,
-            [nodeId]: {
-              ...(context.execution.context.steps[nodeId] ?? {}),
-              input: normalizeToolArgs(args),
+      invoke: async (args: unknown) => {
+        const result = await callWorkflowNodeHandler.execute({
+          nodeId,
+          node: {
+            ...node,
+            inputDefaults,
+          },
+          context: {
+            ...context.execution.context,
+            steps: {
+              ...context.execution.context.steps,
+              [nodeId]: {
+                ...(context.execution.context.steps[nodeId] ?? {}),
+                input: normalizeToolArgs(args),
+              },
             },
           },
-        },
-        workflow: context.execution.workflow,
-        edges: context.execution.edges,
-        executionId: context.execution.executionId,
-        services: context.execution.services,
-      }),
+          workflow: context.execution.workflow,
+          edges: context.execution.edges,
+          executionId: context.execution.executionId,
+          services: context.execution.services,
+        });
+        return result.output;
+      },
     } satisfies AgentToolRef;
   } });
   registry.register({ capability: "agent-tool", supports: (node) => node.type === "vector-store-tool", resolve: async (context, nodeId) => {

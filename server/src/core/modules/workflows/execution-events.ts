@@ -40,7 +40,9 @@ export function emitNodeSuccess(
   result: any,
   node?: WorkflowNode,
 ): void {
-  const data = node?.type === "code" ? result.output : result;
+  const data = node?.type === "code" || node?.type === "call-workflow"
+    ? result.output
+    : result;
   workflowEventBus.emitWorkflowEvent({
     executionId,
     workflowId,
@@ -73,14 +75,15 @@ export function recordSuccessfulStep(
   node: WorkflowNode,
   result: any,
 ): void {
-  if (node.type === "code") {
+  if (node.type === "code" || node.type === "call-workflow") {
     const startedAt = context.steps[nodeId]?.startedAt;
     const attempts = context.steps[nodeId]?.attempts ?? 1;
     const retries = context.steps[nodeId]?.retries ?? [];
     context.steps[nodeId] = {
       status: "SUCCESS",
       output: result.output,
-      logs: result.logs,
+      ...(node.type === "code" ? { logs: result.logs } : {}),
+      ...(node.type === "call-workflow" ? { childExecution: result.childExecution } : {}),
       startedAt,
       endedAt: Date.now(),
       attempts,
