@@ -5,4 +5,4 @@
 - [x] Add OAuth callback service
 - [x] Add account status/logout/revoke service
 - [x] Add Fastify routes
-- [ ] Verify backend OAuth flow
+- [x] Verify backend OAuth flow
