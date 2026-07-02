@@ -64,6 +64,10 @@ export interface SaveConnectedInput {
   tokens: StoredAuvexisTokenSet;
 }
 
+export interface MarkValidatedInput {
+  account: StoredAuvexisAccount;
+}
+
 const CONNECTION_FILE = "auvexis-account.json";
 
 export function createAuvexisAccountStorage(
@@ -106,6 +110,18 @@ export function createAuvexisAccountStorage(
         ...current,
         status: "needs_reconnect",
         updatedAt: clock().toISOString(),
+      });
+    },
+
+    markValidated(input: MarkValidatedInput): void {
+      const now = clock().toISOString();
+      const current = readFile();
+      writeFile({
+        ...current,
+        status: "connected",
+        account: input.account,
+        updatedAt: now,
+        lastValidatedAt: now,
       });
     },
 

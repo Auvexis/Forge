@@ -1,10 +1,13 @@
 import type {
   AuthorizationTransaction,
+  AuvexisAccountsErrorCode,
   AuvexisProfile,
   AuvexisTokenSet,
   createAuvexisAccountsClient,
 } from "@auvexis/accounts";
 import type {
+  AuvexisAccountConnection,
+  AuvexisAccountConnectionStatus,
   StoredAuvexisAccount,
   StoredAuvexisTokenSet,
 } from "./auvexis-account-storage.ts";
@@ -14,8 +17,13 @@ type AuvexisAccountsClient = Pick<
   "createAuthorization"
 > &
   Partial<
-    Pick<ReturnType<typeof createAuvexisAccountsClient>, "exchangeCode" | "getProfile">
-  >;
+    Pick<
+      ReturnType<typeof createAuvexisAccountsClient>,
+      "exchangeCode" | "getProfile"
+    >
+  > & {
+    revoke?: (token: string) => Promise<unknown> | unknown;
+  };
 
 export interface CreateAuvexisAccountLinkInput {
   profileId: string;
@@ -47,16 +55,26 @@ export interface AuvexisOAuthTransactionStore {
 }
 
 export interface AuvexisAccountConnectionStorage {
+  read?(): AuvexisAccountConnection;
   saveConnected(input: {
     account: StoredAuvexisAccount;
     tokens: StoredAuvexisTokenSet;
   }): void;
+  markNeedsReconnect?(): void;
+  markValidated?(input: { account: StoredAuvexisAccount }): void;
+  clearLocal?(): void;
 }
 
 export interface CompleteAuvexisCallbackInput {
   profileId: string;
   callbackUrl: string;
   state: string;
+}
+
+export interface AuvexisAccountStatusResult {
+  status: AuvexisAccountConnectionStatus;
+  account: StoredAuvexisAccount | null;
+  lastValidatedAt: string | null;
 }
 
 export function createAuvexisAccountLinkService(
@@ -110,6 +128,56 @@ export function createAuvexisAccountLinkService(
         },
       };
     },
+
+    async getStatus(): Promise<AuvexisAccountStatusResult> {
+      const current = options.storage?.read?.() ?? disconnectedConnection();
+      if (
+        current.status !== "connected" ||
+        !current.tokens ||
+        !options.client.getProfile
+      ) {
+        return safeStatus(current);
+      }
+
+      try {
+        const profile = await options.client.getProfile(current.tokens.accessToken);
+        const account = mapProfileToStoredAccount(profile);
+        options.storage?.markValidated?.({ account });
+        return {
+          status: "connected",
+          account,
+          lastValidatedAt: new Date().toISOString(),
+        };
+      } catch (error) {
+        if (isAuvexisAccountsError(error, "reauth_required")) {
+          options.storage?.markNeedsReconnect?.();
+          return {
+            status: "needs_reconnect",
+            account: current.account,
+            lastValidatedAt: current.lastValidatedAt,
+          };
+        }
+        if (isAuvexisAccountsError(error, "unavailable")) {
+          return safeStatus(current);
+        }
+        throw error;
+      }
+    },
+
+    async logoutLocal(): Promise<{ status: "disconnected" }> {
+      options.storage?.clearLocal?.();
+      return { status: "disconnected" };
+    },
+
+    async revokeRemote(): Promise<{ status: "disconnected" }> {
+      const current = options.storage?.read?.() ?? disconnectedConnection();
+      const token = current.tokens?.refreshToken ?? current.tokens?.accessToken;
+      if (token && options.client.revoke) {
+        await options.client.revoke(token);
+      }
+      options.storage?.clearLocal?.();
+      return { status: "disconnected" };
+    },
   };
 }
 
@@ -143,4 +211,38 @@ function mapTokensToStoredTokens(tokens: AuvexisTokenSet): StoredAuvexisTokenSet
     scope: tokens.scope,
     ...(tokens.expiresAt ? { expiresAt: tokens.expiresAt } : {}),
   };
+}
+
+function safeStatus(
+  connection: AuvexisAccountConnection,
+): AuvexisAccountStatusResult {
+  return {
+    status: connection.status,
+    account: connection.account,
+    lastValidatedAt: connection.lastValidatedAt,
+  };
+}
+
+function disconnectedConnection(): AuvexisAccountConnection {
+  return {
+    version: 1,
+    status: "disconnected",
+    account: null,
+    tokens: null,
+    connectedAt: null,
+    updatedAt: new Date(0).toISOString(),
+    lastValidatedAt: null,
+  };
+}
+
+function isAuvexisAccountsError(
+  error: unknown,
+  code: AuvexisAccountsErrorCode,
+): error is Error & { code: AuvexisAccountsErrorCode } {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === code
+  );
 }

@@ -4,8 +4,10 @@ import { describe, it } from "node:test";
 import { createAuvexisAccountLinkService } from "./auvexis-account-link-service.ts";
 import type {
   AuthorizationTransaction,
+  AuvexisAccountsErrorCode,
   AuvexisProductSubject,
 } from "@auvexis/accounts";
+import { AuvexisAccountsError } from "@auvexis/accounts";
 
 const fakeTransaction: AuthorizationTransaction = {
   authorizationUrl: new URL(
@@ -23,6 +25,28 @@ const fakeCreateAuthorization = async (
   void input;
   return fakeTransaction;
 };
+
+const connectedState = {
+  version: 1 as const,
+  status: "connected" as const,
+  account: {
+    id: "account-1",
+    username: "andre",
+    badges: [],
+  },
+  tokens: {
+    accessToken: "access",
+    refreshToken: "refresh",
+    tokenType: "Bearer",
+    scope: ["openid", "profile"],
+  },
+  connectedAt: "2026-07-01T12:00:00.000Z",
+  updatedAt: "2026-07-01T12:00:00.000Z",
+  lastValidatedAt: null,
+};
+
+const oauthError = (code: AuvexisAccountsErrorCode) =>
+  new AuvexisAccountsError(code, code);
 
 describe("Auvexis account link service", () => {
   it("creates an OAuth authorization for the active Sailor profile", async () => {
@@ -136,5 +160,104 @@ describe("Auvexis account link service", () => {
     assert.equal(result.status, "connected");
     assert.deepEqual(result.account, { id: "account-1", username: "andre" });
     assert.equal((saved[0] as { tokens: { accessToken: string } }).tokens.accessToken, "access");
+  });
+
+  it("returns status without exposing tokens and validates the live profile", async () => {
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        getProfile: async (accessToken) => {
+          assert.equal(accessToken, "access");
+          return {
+            id: "account-1",
+            username: "andre-live",
+            joinedAt: "2026-07-01T00:00:00.000Z",
+            linkedProviders: ["github"],
+            badges: [],
+          };
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+        markNeedsReconnect: () => undefined,
+        clearLocal: () => undefined,
+        markValidated: () => undefined,
+      },
+    });
+
+    const result = await service.getStatus();
+
+    assert.equal(result.status, "connected");
+    assert.equal(result.account?.username, "andre-live");
+    assert.equal("tokens" in result, false);
+  });
+
+  it("marks reconnect when live validation requires reauth", async () => {
+    let markedReconnect = false;
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        getProfile: async () => {
+          throw oauthError("reauth_required");
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+        markNeedsReconnect: () => {
+          markedReconnect = true;
+        },
+        clearLocal: () => undefined,
+        markValidated: () => undefined,
+      },
+    });
+
+    const result = await service.getStatus();
+
+    assert.equal(result.status, "needs_reconnect");
+    assert.equal(markedReconnect, true);
+  });
+
+  it("clears local state without remote revocation", async () => {
+    const calls: string[] = [];
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        revoke: async () => calls.push("revoke"),
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+        markNeedsReconnect: () => undefined,
+        clearLocal: () => calls.push("clear"),
+        markValidated: () => undefined,
+      },
+    });
+
+    await assert.doesNotReject(() => service.logoutLocal());
+    assert.deepEqual(calls, ["clear"]);
+  });
+
+  it("revokes remotely with refresh token and clears local state", async () => {
+    const calls: string[] = [];
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        revoke: async (token) => calls.push(`revoke:${token}`),
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+        markNeedsReconnect: () => undefined,
+        clearLocal: () => calls.push("clear"),
+        markValidated: () => undefined,
+      },
+    });
+
+    const result = await service.revokeRemote();
+
+    assert.deepEqual(calls, ["revoke:refresh", "clear"]);
+    assert.deepEqual(result, { status: "disconnected" });
   });
 });
