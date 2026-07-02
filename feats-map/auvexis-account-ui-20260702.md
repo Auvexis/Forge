@@ -2,5 +2,5 @@
 
 - [x] Add frontend API client
 - [x] Add account store
-- [ ] Add Settings UI
+- [x] Add Settings UI
 - [ ] Verify UI integration

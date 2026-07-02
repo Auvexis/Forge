@@ -80,6 +80,12 @@
               <p class="gs-section__desc">System preferences for this Sailor instance.</p>
             </div>
           </div>
+          <div v-else-if="activeTab === 'auvexis'" key="head-auvexis" class="gs-section__head">
+            <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
+              <h2 class="gs-section__title">Auvexis</h2>
+              <p class="gs-section__desc">Connect this Sailor profile to Auvexis Accounts.</p>
+            </div>
+          </div>
         </transition>
 
         <!-- ── Bodies (Slide Up) ────────────────────────────────────── -->
@@ -540,6 +546,10 @@
               </div>
             </div>
           </div>
+
+          <div v-else-if="activeTab === 'auvexis'" key="body-auvexis" class="gs-pref-list">
+            <AuvexisAccountSettings />
+          </div>
         </transition>
       </main>
     </div>
@@ -555,6 +565,7 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
+import AuvexisAccountSettings from '@/shared/components/layout/AuvexisAccountSettings.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
@@ -570,6 +581,7 @@ const { isDark, setMode } = useTheme()
 
 const tabs = [
   { id: 'preferences', label: 'Preferences', icon: 'sliders-horizontal' },
+  { id: 'auvexis', label: 'Auvexis', icon: 'shield-check' },
   { id: 'credentials', label: 'Credentials', icon: 'lock-keyhole' },
   { id: 'variables', label: 'Variables', icon: 'key-round' },
 ] as const
