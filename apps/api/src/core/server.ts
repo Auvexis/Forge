@@ -17,6 +17,7 @@ import pagesRoutes from "./routes/pages.routes.ts";
 import agentChatRoutes from "./routes/agent-chat.routes.ts";
 import agentPanelRoutes from "./routes/agent-panel.routes.ts";
 import notificationsRoutes from "./routes/notifications.routes.ts";
+import auvexisAccountRoutes from "./modules/auvexis/auvexis-account-routes.ts";
 import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
 import { sailorHomePaths } from "./runtime/sailor-home.ts";
 import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
@@ -80,6 +81,10 @@ fastify.register(profilesRoutes, {
   store: activeProfileRuntime.profileStore,
   passwordService: activeProfileRuntime.passwordService,
   activeProfileService: activeProfileRuntime.activeProfileService,
+});
+fastify.register(auvexisAccountRoutes, {
+  getActiveProfileId: () =>
+    activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? null,
 });
 fastify.register(commandPaletteRoutes);
 

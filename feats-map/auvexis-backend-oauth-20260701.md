@@ -4,5 +4,5 @@
 - [x] Add encrypted profile storage
 - [x] Add OAuth callback service
 - [x] Add account status/logout/revoke service
-- [ ] Add Fastify routes
+- [x] Add Fastify routes
 - [ ] Verify backend OAuth flow
