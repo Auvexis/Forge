@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import type { ScheduledTask } from "node-cron";
 import { WorkflowRepository } from "../workflows/repository.ts";
 import { WorkflowEngine } from "../workflows/executor.ts";
 import { listCronTriggers } from "../workflows/workflow-triggers.ts";
@@ -8,7 +9,7 @@ interface ScheduledJob {
   workflowId: string;
   triggerNodeId: string;
   cronExpression: string;
-  task: cron.ScheduledTask;
+  task: ScheduledTask;
 }
 
 interface SchedulerProfileScope {
