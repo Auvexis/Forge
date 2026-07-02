@@ -16,6 +16,7 @@ import {
   type CompleteAuvexisCallbackInput,
   type CreateAuvexisAccountLinkInput,
 } from "./auvexis-account-link-service.ts";
+import { loadOrCreateAuvexisLocalSecret } from "./auvexis-local-secret.ts";
 import { createAuvexisAccountStorage } from "./auvexis-account-storage.ts";
 
 interface ApiResponse<T> {
@@ -128,9 +129,13 @@ function createDefaultService(
   profileId: string,
   options: AuvexisAccountRoutesOptions,
 ): AuvexisAccountRouteService {
-  const config = loadAuvexisAccountConfig();
+  const sailorHome = options.sailorHome ?? sailorHomePaths.home;
+  const config = loadAuvexisAccountConfig(
+    process.env,
+    loadOrCreateAuvexisLocalSecret({ sailorHome }),
+  );
   const paths = resolveProfilePaths({
-    sailorHome: options.sailorHome ?? sailorHomePaths.home,
+    sailorHome,
     profileId,
   });
 
