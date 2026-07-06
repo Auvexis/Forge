@@ -65,6 +65,31 @@ describe("Auvexis account routes", () => {
     assert.equal((calls[0] as { state: string }).state, "state-1");
   });
 
+  it("renders a browser-friendly callback result page", async () => {
+    const app = Fastify();
+    await app.register(auvexisAccountRoutes, {
+      getActiveProfileId: () => "default",
+      createService: () => ({
+        completeCallback: async () => ({
+          status: "connected",
+          account: { id: "account-1", username: "andre" },
+        }),
+      }),
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: "/auvexis/account/connect/callback?code=abc&state=state-1",
+      headers: { accept: "text/html" },
+    });
+
+    assert.equal(response.statusCode, 200);
+    assert.match(response.headers["content-type"] as string, /text\/html/);
+    assert.match(response.body, /Auvexis account connected/);
+    assert.match(response.body, /@andre/);
+    assert.equal(response.body.includes("accessToken"), false);
+  });
+
   it("returns safe account status without tokens", async () => {
     const app = Fastify();
     await app.register(auvexisAccountRoutes, {

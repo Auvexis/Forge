@@ -88,6 +88,11 @@ export default async function auvexisAccountRoutes(
       callbackUrl: absoluteRequestUrl(request.url, request.headers.host),
       state,
     });
+    if (prefersHtml(request.headers.accept)) {
+      return reply
+        .type("text/html; charset=utf-8")
+        .send(renderCallbackResultPage(result.account.username));
+    }
     return send(reply, 200, "Auvexis account connected", result);
   });
 
@@ -256,6 +261,64 @@ function readQueryString(query: unknown, key: string): string | null {
 
 function absoluteRequestUrl(requestUrl: string, host: string | undefined): string {
   return new URL(requestUrl, `http://${host ?? "127.0.0.1:23801"}`).toString();
+}
+
+function prefersHtml(acceptHeader: string | undefined): boolean {
+  return acceptHeader?.includes("text/html") ?? false;
+}
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function renderCallbackResultPage(username: string): string {
+  const safeUsername = escapeHtml(username);
+  return `<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Auvexis connected · Sailor</title>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: #090b10;
+        color: #f7f8fb;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main {
+        width: min(100%, 420px);
+        padding: 28px;
+        border: 1px solid #2b3240;
+        border-radius: 18px;
+        background: #141821;
+        text-align: center;
+      }
+      h1 { margin: 0 0 12px; font-size: 24px; }
+      p { margin: 0; color: #b8bfcc; line-height: 1.6; }
+      strong { color: #f7f8fb; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Auvexis account connected</h1>
+      <p>Connected as <strong>@${safeUsername}</strong>.</p>
+      <p>You can close this tab and return to Sailor. If Sailor does not update automatically, click Refresh.</p>
+    </main>
+    <script>
+      setTimeout(() => window.close(), 700);
+    </script>
+  </body>
+</html>`;
 }
 
 function send<T>(
