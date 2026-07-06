@@ -85,6 +85,7 @@ export function createAuvexisAccountLinkService(
       input: CreateAuvexisAccountLinkInput,
     ): Promise<AuvexisAccountLinkAuthorization> {
       const transaction = await options.client.createAuthorization({
+        prompt: "login",
         productSubject: {
           type: "local_profile",
           id: input.profileId,

@@ -30,5 +30,8 @@
   "homepage": "https://github.com/euandresimoes/sailor#readme",
   "devDependencies": {
     "concurrently": "^10.0.3"
+  },
+  "dependencies": {
+    "@auvexis/accounts": "^0.1.4"
   }
 }

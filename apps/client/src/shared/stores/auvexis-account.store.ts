@@ -47,23 +47,10 @@ export const useAuvexisAccountStore = defineStore('auvexis-account', () => {
     isDisconnecting.value = true
     error.value = null
     try {
-      await auvexisAccountApi.logout()
-      clearProfileScopedState()
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to disconnect Auvexis account'
-    } finally {
-      isDisconnecting.value = false
-    }
-  }
-
-  async function revoke() {
-    isDisconnecting.value = true
-    error.value = null
-    try {
       await auvexisAccountApi.revoke()
       clearProfileScopedState()
     } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Failed to revoke Auvexis account'
+      error.value = err instanceof Error ? err.message : 'Failed to disconnect Auvexis account'
     } finally {
       isDisconnecting.value = false
     }
@@ -86,7 +73,6 @@ export const useAuvexisAccountStore = defineStore('auvexis-account', () => {
     loadStatus,
     connect,
     logout,
-    revoke,
     clearProfileScopedState,
   }
 })

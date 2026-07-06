@@ -20,7 +20,10 @@ const fakeTransaction: AuthorizationTransaction = {
 };
 
 const fakeCreateAuthorization = async (
-  input: { productSubject?: AuvexisProductSubject } = {},
+  input: {
+    productSubject?: AuvexisProductSubject;
+    prompt?: "login" | "select_account";
+  } = {},
 ) => {
   void input;
   return fakeTransaction;
@@ -54,7 +57,10 @@ describe("Auvexis account link service", () => {
     const service = createAuvexisAccountLinkService({
       client: {
         createAuthorization: async (
-          input: { productSubject?: AuvexisProductSubject } = {},
+          input: {
+            productSubject?: AuvexisProductSubject;
+            prompt?: "login" | "select_account";
+          } = {},
         ) => {
           calls.push(input);
           return fakeTransaction;
@@ -74,6 +80,7 @@ describe("Auvexis account link service", () => {
     assert.equal(result.createdAt, 1_782_950_400_000);
     assert.deepEqual(calls, [
       {
+        prompt: "login",
         productSubject: {
           type: "local_profile",
           id: "default",

@@ -61,6 +61,7 @@
 
         <div class="auvexis-settings__actions">
           <BaseButton
+            v-if="accountStore.status !== 'connected'"
             variant="primary"
             :loading="accountStore.isConnecting"
             @click="accountStore.connect"
@@ -80,20 +81,11 @@
 
           <BaseButton
             v-if="accountStore.status !== 'disconnected'"
-            variant="ghost"
+            variant="danger"
             :loading="accountStore.isDisconnecting"
             @click="accountStore.logout"
           >
-            Logout local
-          </BaseButton>
-
-          <BaseButton
-            v-if="accountStore.status !== 'disconnected'"
-            variant="danger"
-            :loading="accountStore.isDisconnecting"
-            @click="accountStore.revoke"
-          >
-            Revoke
+            Logout
           </BaseButton>
         </div>
       </div>
