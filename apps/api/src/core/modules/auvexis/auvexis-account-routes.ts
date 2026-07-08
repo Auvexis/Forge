@@ -30,10 +30,13 @@ export interface AuvexisAccountRouteService {
   createAuthorization?(
     input: CreateAuvexisAccountLinkInput,
   ): Promise<AuvexisAccountLinkAuthorization>;
-  completeCallback?(
-    input: CompleteAuvexisCallbackInput,
-  ): Promise<{ status: "connected"; account: { id: string; username: string } }>;
-  getStatus?(): Promise<AuvexisAccountStatusResult>;
+  completeCallback?(input: CompleteAuvexisCallbackInput): Promise<{
+    status: "connected";
+    account: { id: string; username: string };
+  }>;
+  getStatus?(input?: {
+    profileId?: string;
+  }): Promise<AuvexisAccountStatusResult>;
   logoutLocal?(): Promise<{ status: "disconnected" }>;
   revokeRemote?(): Promise<{ status: "disconnected" }>;
 }
@@ -104,7 +107,12 @@ export default async function auvexisAccountRoutes(
     if (!service.getStatus) {
       return send(reply, 500, "AUVEXIS_SERVICE_UNAVAILABLE", null);
     }
-    return send(reply, 200, "Auvexis account status", await service.getStatus());
+    return send(
+      reply,
+      200,
+      "Auvexis account status",
+      await service.getStatus({ profileId }),
+    );
   });
 
   fastify.post("/auvexis/account/logout", async (_request, reply) => {
@@ -115,7 +123,12 @@ export default async function auvexisAccountRoutes(
     if (!service.logoutLocal) {
       return send(reply, 500, "AUVEXIS_SERVICE_UNAVAILABLE", null);
     }
-    return send(reply, 200, "Auvexis account logged out locally", await service.logoutLocal());
+    return send(
+      reply,
+      200,
+      "Auvexis account logged out locally",
+      await service.logoutLocal(),
+    );
   });
 
   fastify.post("/auvexis/account/revoke", async (_request, reply) => {
@@ -126,7 +139,12 @@ export default async function auvexisAccountRoutes(
     if (!service.revokeRemote) {
       return send(reply, 500, "AUVEXIS_SERVICE_UNAVAILABLE", null);
     }
-    return send(reply, 200, "Auvexis account revoked", await service.revokeRemote());
+    return send(
+      reply,
+      200,
+      "Auvexis account revoked",
+      await service.revokeRemote(),
+    );
   });
 }
 
@@ -216,7 +234,9 @@ function deserializeTransaction(
   };
 }
 
-function readTransactions(filePath: string): Record<string, TransactionFileEntry> {
+function readTransactions(
+  filePath: string,
+): Record<string, TransactionFileEntry> {
   if (!fs.existsSync(filePath)) return {};
   return JSON.parse(fs.readFileSync(filePath, "utf8")) as Record<
     string,
@@ -229,7 +249,11 @@ function writeTransactions(
   transactions: Record<string, TransactionFileEntry>,
 ): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, `${JSON.stringify(transactions, null, 2)}\n`, "utf8");
+  fs.writeFileSync(
+    filePath,
+    `${JSON.stringify(transactions, null, 2)}\n`,
+    "utf8",
+  );
 }
 
 function pruneTransactions(
@@ -254,12 +278,16 @@ function requireActiveProfileId(
 }
 
 function readQueryString(query: unknown, key: string): string | null {
-  if (typeof query !== "object" || query === null || !(key in query)) return null;
+  if (typeof query !== "object" || query === null || !(key in query))
+    return null;
   const value = (query as Record<string, unknown>)[key];
   return typeof value === "string" ? value : null;
 }
 
-function absoluteRequestUrl(requestUrl: string, host: string | undefined): string {
+function absoluteRequestUrl(
+  requestUrl: string,
+  host: string | undefined,
+): string {
   return new URL(requestUrl, `http://${host ?? "127.0.0.1:23801"}`).toString();
 }
 

@@ -166,7 +166,10 @@ describe("Auvexis account link service", () => {
 
     assert.equal(result.status, "connected");
     assert.deepEqual(result.account, { id: "account-1", username: "andre" });
-    assert.equal((saved[0] as { tokens: { accessToken: string } }).tokens.accessToken, "access");
+    assert.equal(
+      (saved[0] as { tokens: { accessToken: string } }).tokens.accessToken,
+      "access",
+    );
   });
 
   it("returns status without exposing tokens and validates the live profile", async () => {
@@ -221,6 +224,47 @@ describe("Auvexis account link service", () => {
     });
 
     const result = await service.getStatus();
+
+    assert.equal(result.status, "needs_reconnect");
+    assert.equal(markedReconnect, true);
+  });
+
+  it("marks reconnect when the local profile authorization was replaced", async () => {
+    let markedReconnect = false;
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        getProfile: async () => ({
+          id: "account-1",
+          username: "andre-live",
+          joinedAt: "2026-07-01T00:00:00.000Z",
+          linkedProviders: ["github"],
+          badges: [],
+        }),
+        validateProductAuthorization: async (accessToken, subject) => {
+          assert.equal(accessToken, "access");
+          assert.deepEqual(subject, { type: "local_profile", id: "default" });
+          return {
+            active: false,
+            productId: "sailor",
+            userId: "account-1",
+            subjectType: "local_profile",
+            subjectId: "default",
+          };
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+        markNeedsReconnect: () => {
+          markedReconnect = true;
+        },
+        clearLocal: () => undefined,
+        markValidated: () => undefined,
+      },
+    });
+
+    const result = await service.getStatus({ profileId: "default" });
 
     assert.equal(result.status, "needs_reconnect");
     assert.equal(markedReconnect, true);

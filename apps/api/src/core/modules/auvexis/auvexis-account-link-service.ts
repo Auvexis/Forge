@@ -19,7 +19,7 @@ type AuvexisAccountsClient = Pick<
   Partial<
     Pick<
       ReturnType<typeof createAuvexisAccountsClient>,
-      "exchangeCode" | "getProfile"
+      "exchangeCode" | "getProfile" | "validateProductAuthorization"
     >
   > & {
     revoke?: (token: string) => Promise<unknown> | unknown;
@@ -130,7 +130,9 @@ export function createAuvexisAccountLinkService(
       };
     },
 
-    async getStatus(): Promise<AuvexisAccountStatusResult> {
+    async getStatus(input?: {
+      profileId?: string;
+    }): Promise<AuvexisAccountStatusResult> {
       const current = options.storage?.read?.() ?? disconnectedConnection();
       if (
         current.status !== "connected" ||
@@ -141,7 +143,27 @@ export function createAuvexisAccountLinkService(
       }
 
       try {
-        const profile = await options.client.getProfile(current.tokens.accessToken);
+        if (input?.profileId && options.client.validateProductAuthorization) {
+          const authorization =
+            await options.client.validateProductAuthorization(
+              current.tokens.accessToken,
+              {
+                type: "local_profile",
+                id: input.profileId,
+              },
+            );
+          if (!authorization.active) {
+            options.storage?.markNeedsReconnect?.();
+            return {
+              status: "needs_reconnect",
+              account: current.account,
+              lastValidatedAt: current.lastValidatedAt,
+            };
+          }
+        }
+        const profile = await options.client.getProfile(
+          current.tokens.accessToken,
+        );
         const account = mapProfileToStoredAccount(profile);
         options.storage?.markValidated?.({ account });
         return {
@@ -194,7 +216,9 @@ function serializeAuthorizationTransaction(
   };
 }
 
-function mapProfileToStoredAccount(profile: AuvexisProfile): StoredAuvexisAccount {
+function mapProfileToStoredAccount(
+  profile: AuvexisProfile,
+): StoredAuvexisAccount {
   return {
     id: profile.id,
     username: profile.username,
@@ -203,7 +227,9 @@ function mapProfileToStoredAccount(profile: AuvexisProfile): StoredAuvexisAccoun
   };
 }
 
-function mapTokensToStoredTokens(tokens: AuvexisTokenSet): StoredAuvexisTokenSet {
+function mapTokensToStoredTokens(
+  tokens: AuvexisTokenSet,
+): StoredAuvexisTokenSet {
   return {
     accessToken: tokens.accessToken,
     ...(tokens.refreshToken ? { refreshToken: tokens.refreshToken } : {}),
