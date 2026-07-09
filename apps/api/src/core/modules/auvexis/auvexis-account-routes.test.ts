@@ -21,7 +21,7 @@ describe("Auvexis account routes", () => {
       state: "state-1",
       nonce: "nonce-1",
       codeVerifier: "verifier-1",
-      createdAt: 1_782_950_400_000,
+      createdAt: Date.now(),
       productSubject: {
         type: "local_profile",
         id: "profile-1",

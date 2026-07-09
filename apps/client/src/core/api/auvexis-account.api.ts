@@ -7,9 +7,12 @@ export interface AuvexisAccountBadge {
   id: string
   slug: string
   name: string
-  backgroundColor: string
-  borderColor: string
-  iconUrl: string
+  style: {
+    backgroundColor: string
+    borderColor: string
+    textColor: string
+  }
+  iconUrl: string | null
   awardedAt: string
 }
 

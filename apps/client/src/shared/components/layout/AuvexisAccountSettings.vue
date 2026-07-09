@@ -32,14 +32,21 @@
           </div>
 
           <div class="auvexis-settings__badges">
-            <BaseBadge
+            <span
               v-for="badge in accountStore.account.badges"
               :key="badge.id"
-              variant="brand"
-              size="sm"
+              class="auvexis-settings__badge"
+              :style="badgeStyle(badge)"
             >
+              <img
+                v-if="badge.iconUrl"
+                class="auvexis-settings__badge-icon"
+                :src="badge.iconUrl"
+                alt=""
+                aria-hidden="true"
+              />
               {{ badge.name }}
-            </BaseBadge>
+            </span>
             <span v-if="accountStore.account.badges.length === 0" class="auvexis-settings__muted">
               No badges yet
             </span>
@@ -97,6 +104,7 @@
 import { computed, onMounted } from 'vue'
 import BaseBadge, { type BadgeVariant } from '@/shared/components/base/BaseBadge.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import type { AuvexisAccountBadge } from '@/core/api/auvexis-account.api'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAuvexisAccountStore } from '@/shared/stores/auvexis-account.store'
 
@@ -118,6 +126,12 @@ const statusBadgeIcon = computed(() => {
   if (accountStore.status === 'connected') return 'check'
   if (accountStore.status === 'needs_reconnect') return 'circle-alert'
   return 'link'
+})
+
+const badgeStyle = (badge: AuvexisAccountBadge) => ({
+  backgroundColor: badge.style.backgroundColor,
+  borderColor: badge.style.borderColor,
+  color: badge.style.textColor,
 })
 
 onMounted(() => {
@@ -218,6 +232,26 @@ onMounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: var(--sailor-space-2);
+}
+
+.auvexis-settings__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
+  min-height: 24px;
+  padding: 2px 9px;
+  border: 1px solid;
+  border-radius: 999px;
+  font-size: var(--sailor-text-xs);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.auvexis-settings__badge-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  object-fit: cover;
 }
 
 .auvexis-settings__error {

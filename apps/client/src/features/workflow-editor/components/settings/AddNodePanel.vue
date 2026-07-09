@@ -126,9 +126,7 @@
                       :description="item.description"
                       icon="workflow"
                       @click="
-                        isEmbeddingContext
-                          ? addEmbeddingNode(methodSubmenuPlugin, item.methodKey)
-                          : addPluginAction(methodSubmenuPlugin, item.methodKey, item.label)
+                        selectMethodSubmenuItem(item.methodKey, item.label)
                       "
                     />
                     <div v-if="methodSubmenuItems.length === 0" class="add-node-cascade__empty">
@@ -444,6 +442,16 @@ const addSinglePluginMethod = (plugin: PluginSummary) => {
   const action = pluginActionItems(plugin)[0]
   if (!action) return
   addPluginAction(plugin, action.methodKey, action.label)
+}
+
+const selectMethodSubmenuItem = (methodKey: string, label: string) => {
+  const plugin = methodSubmenuPlugin.value
+  if (!plugin) return
+  if (isEmbeddingContext.value) {
+    addEmbeddingNode(plugin, methodKey)
+    return
+  }
+  addPluginAction(plugin, methodKey, label)
 }
 
 const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
