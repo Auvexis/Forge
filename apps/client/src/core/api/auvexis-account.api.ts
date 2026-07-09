@@ -13,6 +13,7 @@ export interface AuvexisAccountBadge {
     textColor: string
   }
   iconUrl: string | null
+  permissions?: Record<string, Record<string, boolean>>
   awardedAt: string
 }
 
@@ -26,6 +27,10 @@ export interface AuvexisAccountProfile {
 export interface AuvexisAccountStatus {
   status: AuvexisAccountConnectionStatus
   account: AuvexisAccountProfile | null
+  capabilities: {
+    canUseDonatorTheme: boolean
+    canCreateMoreThan6Workflows: boolean
+  }
   lastValidatedAt: string | null
 }
 

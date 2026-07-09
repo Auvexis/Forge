@@ -9,6 +9,7 @@ import type {
   AuvexisAccountConnection,
   AuvexisAccountConnectionStatus,
   StoredAuvexisAccount,
+  StoredAuvexisCapabilities,
   StoredAuvexisTokenSet,
 } from "./auvexis-account-storage.ts";
 
@@ -74,6 +75,7 @@ export interface CompleteAuvexisCallbackInput {
 export interface AuvexisAccountStatusResult {
   status: AuvexisAccountConnectionStatus;
   account: StoredAuvexisAccount | null;
+  capabilities: StoredAuvexisCapabilities;
   lastValidatedAt: string | null;
 }
 
@@ -157,6 +159,7 @@ export function createAuvexisAccountLinkService(
             return {
               status: "needs_reconnect",
               account: current.account,
+              capabilities: deriveSailorCapabilities(current.account),
               lastValidatedAt: current.lastValidatedAt,
             };
           }
@@ -169,6 +172,7 @@ export function createAuvexisAccountLinkService(
         return {
           status: "connected",
           account,
+          capabilities: deriveSailorCapabilities(account),
           lastValidatedAt: new Date().toISOString(),
         };
       } catch (error) {
@@ -177,6 +181,7 @@ export function createAuvexisAccountLinkService(
           return {
             status: "needs_reconnect",
             account: current.account,
+            capabilities: deriveSailorCapabilities(current.account),
             lastValidatedAt: current.lastValidatedAt,
           };
         }
@@ -246,7 +251,25 @@ function safeStatus(
   return {
     status: connection.status,
     account: connection.account,
+    capabilities: deriveSailorCapabilities(connection.account),
     lastValidatedAt: connection.lastValidatedAt,
+  };
+}
+
+function deriveSailorCapabilities(
+  account: StoredAuvexisAccount | null,
+): StoredAuvexisCapabilities {
+  const sailorPermissions = account?.badges.reduce<Record<string, boolean>>(
+    (merged, badge) => ({
+      ...merged,
+      ...(badge.permissions?.sailor ?? {}),
+    }),
+    {},
+  );
+  return {
+    canUseDonatorTheme: sailorPermissions?.grantDonatorTheme === true,
+    canCreateMoreThan6Workflows:
+      sailorPermissions?.createMoreThan6Workflows === true,
   };
 }
 

@@ -17,6 +17,7 @@ export interface StoredAuvexisBadge {
     textColor: string;
   };
   iconUrl: string | null;
+  permissions?: Record<string, Record<string, boolean>>;
   awardedAt: string;
 }
 
@@ -25,6 +26,11 @@ export interface StoredAuvexisAccount {
   username: string;
   email?: string;
   badges: StoredAuvexisBadge[];
+}
+
+export interface StoredAuvexisCapabilities {
+  canUseDonatorTheme: boolean;
+  canCreateMoreThan6Workflows: boolean;
 }
 
 export interface StoredAuvexisTokenSet {

@@ -140,7 +140,26 @@ describe("Auvexis account link service", () => {
             username: "andre",
             joinedAt: "2026-07-01T00:00:00.000Z",
             linkedProviders: ["github"],
-            badges: [],
+            badges: [
+              {
+                id: "badge-1",
+                slug: "donator",
+                name: "Donator",
+                style: {
+                  backgroundColor: "#171A23",
+                  borderColor: "#8067FF",
+                  textColor: "#FFFFFF",
+                },
+                iconUrl: null,
+                permissions: {
+                  sailor: {
+                    grantDonatorTheme: true,
+                    createMoreThan6Workflows: true,
+                  },
+                },
+                awardedAt: "2026-07-01T00:01:00.000Z",
+              },
+            ],
           };
         },
       },
@@ -183,7 +202,26 @@ describe("Auvexis account link service", () => {
             username: "andre-live",
             joinedAt: "2026-07-01T00:00:00.000Z",
             linkedProviders: ["github"],
-            badges: [],
+            badges: [
+              {
+                id: "badge-donator",
+                slug: "donator",
+                name: "Donator",
+                style: {
+                  backgroundColor: "#171A23",
+                  borderColor: "#8067FF",
+                  textColor: "#FFFFFF",
+                },
+                iconUrl: null,
+                awardedAt: "2026-07-01T00:00:00.000Z",
+                permissions: {
+                  sailor: {
+                    grantDonatorTheme: true,
+                    createMoreThan6Workflows: true,
+                  },
+                },
+              },
+            ],
           };
         },
       },
@@ -200,6 +238,10 @@ describe("Auvexis account link service", () => {
 
     assert.equal(result.status, "connected");
     assert.equal(result.account?.username, "andre-live");
+    assert.deepEqual(result.capabilities, {
+      canUseDonatorTheme: true,
+      canCreateMoreThan6Workflows: true,
+    });
     assert.equal("tokens" in result, false);
   });
 
