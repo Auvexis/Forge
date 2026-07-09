@@ -176,7 +176,7 @@ function createDefaultService(
   });
 }
 
-function createFileAuvexisOAuthTransactionStore(dataDir: string) {
+export function createFileAuvexisOAuthTransactionStore(dataDir: string) {
   const filePath = path.join(dataDir, TRANSACTIONS_FILE);
 
   return {
@@ -206,6 +206,10 @@ interface SerializedTransaction {
   nonce: string;
   codeVerifier: string;
   createdAt: number;
+  productSubject?: {
+    type: string;
+    id: string;
+  };
 }
 
 interface TransactionFileEntry {
@@ -222,6 +226,9 @@ function serializeTransaction(
     nonce: transaction.nonce,
     codeVerifier: transaction.codeVerifier,
     createdAt: transaction.createdAt,
+    ...(transaction.productSubject
+      ? { productSubject: transaction.productSubject }
+      : {}),
   };
 }
 

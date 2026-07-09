@@ -1,11 +1,41 @@
 import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { describe, it } from "node:test";
 import Fastify from "fastify";
 
 import auvexisAccountRoutes from "./auvexis-account-routes.ts";
+import { createFileAuvexisOAuthTransactionStore } from "./auvexis-account-routes.ts";
 import type { CompleteAuvexisCallbackInput } from "./auvexis-account-link-service.ts";
 
 describe("Auvexis account routes", () => {
+  it("preserves product subject across the OAuth callback transaction", async () => {
+    const dataDir = await fs.promises.mkdtemp(
+      path.join(os.tmpdir(), "sailor-auvexis-transaction-"),
+    );
+    const store = createFileAuvexisOAuthTransactionStore(dataDir);
+
+    await store.save("profile-1", {
+      authorizationUrl: new URL("https://accounts.auvexis.com/oauth"),
+      state: "state-1",
+      nonce: "nonce-1",
+      codeVerifier: "verifier-1",
+      createdAt: 1_782_950_400_000,
+      productSubject: {
+        type: "local_profile",
+        id: "profile-1",
+      },
+    });
+
+    const consumed = await store.consume("profile-1", "state-1");
+
+    assert.deepEqual(consumed?.productSubject, {
+      type: "local_profile",
+      id: "profile-1",
+    });
+  });
+
   it("starts OAuth and returns only the authorization URL", async () => {
     const app = Fastify();
     await app.register(auvexisAccountRoutes, {
