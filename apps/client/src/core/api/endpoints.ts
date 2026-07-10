@@ -109,6 +109,7 @@ export const ENDPOINTS = {
   AUVEXIS_ACCOUNT_CONNECT_START: '/auvexis/account/connect/start',
   AUVEXIS_ACCOUNT_LOGOUT: '/auvexis/account/logout',
   AUVEXIS_ACCOUNT_REVOKE: '/auvexis/account/revoke',
+  AUVEXIS_EVENTS: '/auvexis/events',
 
   // Plugin Dynamic Options (for x-dynamic-options in manifests)
   PLUGIN_DYNAMIC_OPTIONS: (id: string, method: string) => `/plugins/${encodeURIComponent(id)}/dynamic-options/${encodeURIComponent(method)}`,

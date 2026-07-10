@@ -10,12 +10,13 @@ describe('Auvexis account api contract', () => {
     assert.match(source, /AUVEXIS_ACCOUNT_CONNECT_START: '\/auvexis\/account\/connect\/start'/)
     assert.match(source, /AUVEXIS_ACCOUNT_LOGOUT: '\/auvexis\/account\/logout'/)
     assert.match(source, /AUVEXIS_ACCOUNT_REVOKE: '\/auvexis\/account\/revoke'/)
+    assert.match(source, /AUVEXIS_EVENTS: '\/auvexis\/events'/)
   })
 
   it('exposes safe account methods and no token fields', () => {
     const source = readFileSync('src/core/api/auvexis-account.api.ts', 'utf8')
 
-    for (const method of ['getStatus', 'startConnect', 'logout', 'revoke']) {
+    for (const method of ['getStatus', 'startConnect', 'logout', 'revoke', 'emitProductEvent']) {
       assert.match(source, new RegExp(`${method}:`))
     }
     assert.doesNotMatch(source, /accessToken|refreshToken|idToken|codeVerifier/)

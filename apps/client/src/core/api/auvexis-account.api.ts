@@ -42,6 +42,24 @@ export interface AuvexisDisconnectResult {
   status: 'disconnected'
 }
 
+export interface AuvexisProductEventInput {
+  type: string
+  eventId?: string
+  occurredAt?: string
+  evidence?: Record<string, string>
+}
+
+export interface AuvexisProductEventResult {
+  eventId: string
+  productId: string
+  status: 'accepted'
+  outcomes: Array<{
+    campaignId: string
+    outcome: 'claimed' | 'already_claimed' | 'ineligible' | 'failed'
+    reason: string | null
+  }>
+}
+
 export const auvexisAccountApi = {
   getStatus: () => apiRequest<AuvexisAccountStatus>(ENDPOINTS.AUVEXIS_ACCOUNT),
 
@@ -58,5 +76,11 @@ export const auvexisAccountApi = {
   revoke: () =>
     apiRequest<AuvexisDisconnectResult>(ENDPOINTS.AUVEXIS_ACCOUNT_REVOKE, {
       method: 'POST',
+    }),
+
+  emitProductEvent: (input: AuvexisProductEventInput) =>
+    apiRequest<AuvexisProductEventResult>(ENDPOINTS.AUVEXIS_EVENTS, {
+      method: 'POST',
+      body: input,
     }),
 }
