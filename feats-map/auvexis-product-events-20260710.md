@@ -3,3 +3,4 @@
 - [x] Add frontend API and hook for triggering Auvexis events
 - [x] Add contract tests
 - [x] Run validation
+- [x] Trigger `sailor.workflow.published` after successful workflow publish

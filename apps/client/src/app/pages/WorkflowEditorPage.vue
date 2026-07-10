@@ -17,6 +17,7 @@ import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useApi } from '@/shared/composables/useApi'
+import { useAuvexisProductEvents } from '@/shared/composables/useAuvexisProductEvents'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
@@ -48,6 +49,7 @@ const agentPanelStore = useAgentPanelStore()
 const { closeWorkflow, exportWorkflow } = useWorkflowActions()
 const { confirm } = useConfirm()
 const toast = useToast()
+const { triggerAuvexisEvent } = useAuvexisProductEvents()
 
 async function confirmUnsavedWorkflowLeave() {
   if (!workflowStore.isDirty) return true
@@ -544,7 +546,24 @@ async function handlePublishWorkflow() {
 
   workflowStore.setActiveWorkflow(updated)
   await loadWorkflowGitStatus(updated.metadata.id)
+
+  if (!isPublished) {
+    await emitWorkflowPublishedEvent(updated.metadata.id)
+  }
+
   toast.success(isPublished ? 'Workflow unpublished' : 'Workflow published')
+}
+
+async function emitWorkflowPublishedEvent(workflowId: string) {
+  try {
+    await triggerAuvexisEvent({
+      type: 'sailor.workflow.published',
+      eventId: `sailor.workflow.published:${workflowId}`,
+      evidence: { workflowId },
+    })
+  } catch {
+    toast.warning('Workflow published, but Auvexis campaign rewards could not be checked.')
+  }
 }
 
 watch(
