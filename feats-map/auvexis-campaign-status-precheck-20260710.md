@@ -1,3 +1,3 @@
 - [x] Update Auvexis Accounts SDK
 - [x] Skip redundant workflow campaign events
-- [ ] Validate Sailor
+- [x] Validate Sailor
