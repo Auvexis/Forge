@@ -18,4 +18,6 @@ test('workflow publish triggers the Auvexis workflow published product event', (
   assert.match(source, /type: 'sailor\.workflow\.published'/)
   assert.match(source, /eventId: `sailor\.workflow\.published:\$\{workflowId\}`/)
   assert.match(source, /evidence: \{ workflowId \}/)
+  assert.match(source, /showWorkflowPublishedEventFeedback\(result\.outcomes\)/)
+  assert.match(source, /Auvexis event sent, but no active campaign matched it\./)
 })
