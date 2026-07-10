@@ -114,25 +114,6 @@ export const ENDPOINTS = {
   // Plugin Dynamic Options (for x-dynamic-options in manifests)
   PLUGIN_DYNAMIC_OPTIONS: (id: string, method: string) => `/plugins/${encodeURIComponent(id)}/dynamic-options/${encodeURIComponent(method)}`,
 
-  // Plugin Creator
-  PLUGIN_CREATOR_BLUEPRINTS: '/plugin-creator/blueprints',
-  PLUGIN_CREATOR_BLUEPRINT: (id: string) => `/plugin-creator/blueprints/${encodeURIComponent(id)}`,
-  PLUGIN_CREATOR_ICON_ASSET: (id: string, slot: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/assets/icons/${encodeURIComponent(slot)}`,
-  PLUGIN_CREATOR_TEST_METHOD: (id: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/test-method`,
-  PLUGIN_CREATOR_GENERATE_PREVIEW: (id: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/generate-preview`,
-  PLUGIN_CREATOR_PREVIEW_CODE: '/plugin-creator/blueprints/preview-code',
-  PLUGIN_CREATOR_PUBLISH: (id: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/publish`,
-  PLUGIN_CREATOR_VERSIONS: (id: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/versions`,
-  PLUGIN_CREATOR_ROLLBACK: (id: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/rollback`,
-  PLUGIN_CREATOR_EXPORT_ZIP: (id: string) =>
-    `/plugin-creator/blueprints/${encodeURIComponent(id)}/export.zip`,
-
   // Command Palette
   COMMAND_PALETTE_COMMANDS: '/command-palette/commands',
   COMMAND_PALETTE_SEARCH: '/command-palette/search',

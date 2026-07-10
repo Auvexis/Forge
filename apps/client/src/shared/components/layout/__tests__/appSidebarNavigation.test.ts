@@ -39,7 +39,6 @@ describe('app sidebar navigation', () => {
     assert.match(items.find((item) => item.id === 'workflows')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
     assert.match(items.find((item) => item.id === 'pages')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
     assert.match(items.find((item) => item.id === 'universe')?.accent ?? '', /^#[0-9a-fA-F]{6}$/)
-    assert.equal(items.some((item) => item.id === 'plugin-creator'), false)
   })
 
   it('provides routes for each visible suite navigation item', () => {
@@ -48,7 +47,6 @@ describe('app sidebar navigation', () => {
     assert.equal(items.find((item) => item.id === 'workflows')?.route, '/workflows')
     assert.equal(items.find((item) => item.id === 'pages')?.route, '/pages')
     assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')
-    assert.equal(items.some((item) => item.route === '/plugin-creator'), false)
   })
 
   it('opens the external plugin installer through a dispatched sidebar intent', () => {
@@ -109,7 +107,6 @@ describe('app sidebar navigation', () => {
     assert.equal(sidebarPageLabelForPath('/pages'), 'Pages')
     assert.equal(sidebarPageLabelForPath('/pages/page_1'), 'Pages')
     assert.equal(sidebarPageLabelForPath('/universe'), 'Universe')
-    assert.equal(sidebarPageLabelForPath('/plugin-creator'), 'Sailor')
   })
 
   it('matches the reference sidebar spacing rhythm', () => {
