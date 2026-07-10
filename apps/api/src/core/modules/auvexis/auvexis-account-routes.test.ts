@@ -7,7 +7,10 @@ import Fastify from "fastify";
 
 import auvexisAccountRoutes from "./auvexis-account-routes.ts";
 import { createFileAuvexisOAuthTransactionStore } from "./auvexis-account-routes.ts";
-import type { CompleteAuvexisCallbackInput } from "./auvexis-account-link-service.ts";
+import type {
+  CompleteAuvexisCallbackInput,
+  EmitAuvexisProductEventInput,
+} from "./auvexis-account-link-service.ts";
 
 describe("Auvexis account routes", () => {
   it("preserves product subject across the OAuth callback transaction", async () => {
@@ -181,7 +184,7 @@ describe("Auvexis account routes", () => {
     await app.register(auvexisAccountRoutes, {
       getActiveProfileId: () => "profile-1",
       createService: () => ({
-        emitProductEvent: async (input) => {
+        emitProductEvent: async (input: EmitAuvexisProductEventInput) => {
           calls.push(input);
           return {
             eventId: input.eventId,

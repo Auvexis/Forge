@@ -2,4 +2,4 @@
 - [x] Add backend route to emit Auvexis product events
 - [x] Add frontend API and hook for triggering Auvexis events
 - [x] Add contract tests
-- [ ] Run validation
+- [x] Run validation
