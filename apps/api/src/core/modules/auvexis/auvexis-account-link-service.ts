@@ -1,7 +1,10 @@
+import crypto from "node:crypto";
 import type {
   AuthorizationTransaction,
   AuvexisAccountsErrorCode,
   AuvexisProfile,
+  AuvexisProductEventInput,
+  AuvexisProductEventResult,
   AuvexisTokenSet,
   createAuvexisAccountsClient,
 } from "@auvexis/accounts";
@@ -20,7 +23,11 @@ type AuvexisAccountsClient = Pick<
   Partial<
     Pick<
       ReturnType<typeof createAuvexisAccountsClient>,
-      "exchangeCode" | "getProfile" | "validateProductAuthorization"
+      | "exchangeCode"
+      | "getProfile"
+      | "refresh"
+      | "emitProductEvent"
+      | "validateProductAuthorization"
     >
   > & {
     revoke?: (token: string) => Promise<unknown> | unknown;
@@ -70,6 +77,14 @@ export interface CompleteAuvexisCallbackInput {
   profileId: string;
   callbackUrl: string;
   state: string;
+}
+
+export interface EmitAuvexisProductEventInput {
+  profileId: string;
+  eventId?: string;
+  type: string;
+  occurredAt?: string;
+  evidence?: Record<string, string>;
 }
 
 export interface AuvexisAccountStatusResult {
@@ -192,6 +207,50 @@ export function createAuvexisAccountLinkService(
       }
     },
 
+    async emitProductEvent(
+      input: EmitAuvexisProductEventInput,
+    ): Promise<AuvexisProductEventResult> {
+      const current = options.storage?.read?.() ?? disconnectedConnection();
+      if (
+        current.status !== "connected" ||
+        !current.account ||
+        !current.tokens
+      ) {
+        throw new Error("AUVEXIS_ACCOUNT_NOT_CONNECTED");
+      }
+      if (!options.client.emitProductEvent) {
+        throw new Error("AUVEXIS_OAUTH_CLIENT_INCOMPLETE");
+      }
+
+      const event = buildProductEvent(input, current.account.id);
+      try {
+        return await options.client.emitProductEvent(
+          current.tokens.accessToken,
+          event,
+        );
+      } catch (error) {
+        if (
+          isAuvexisAccountsError(error, "reauth_required") &&
+          current.tokens.refreshToken &&
+          options.client.refresh
+        ) {
+          const refreshed = await options.client.refresh(
+            current.tokens.refreshToken,
+          );
+          const tokens = mapTokensToStoredTokens(refreshed);
+          options.storage?.saveConnected({
+            account: current.account,
+            tokens,
+          });
+          return await options.client.emitProductEvent(tokens.accessToken, event);
+        }
+        if (isAuvexisAccountsError(error, "reauth_required")) {
+          options.storage?.markNeedsReconnect?.();
+        }
+        throw error;
+      }
+    },
+
     async logoutLocal(): Promise<{ status: "disconnected" }> {
       options.storage?.clearLocal?.();
       return { status: "disconnected" };
@@ -206,6 +265,21 @@ export function createAuvexisAccountLinkService(
       options.storage?.clearLocal?.();
       return { status: "disconnected" };
     },
+  };
+}
+
+function buildProductEvent(
+  input: EmitAuvexisProductEventInput,
+  accountId: string,
+): AuvexisProductEventInput {
+  return {
+    eventId:
+      input.eventId ??
+      `sailor.event:${input.type}:${crypto.randomUUID()}:${accountId}`,
+    type: input.type,
+    userId: accountId,
+    occurredAt: input.occurredAt ?? new Date().toISOString(),
+    ...(input.evidence ? { evidence: input.evidence } : {}),
   };
 }
 

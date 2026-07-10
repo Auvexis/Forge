@@ -1,5 +1,5 @@
 - [x] Map Auvexis account backend/frontend integration
-- [ ] Add backend route to emit Auvexis product events
+- [x] Add backend route to emit Auvexis product events
 - [ ] Add frontend API and hook for triggering Auvexis events
 - [ ] Add contract tests
 - [ ] Run validation

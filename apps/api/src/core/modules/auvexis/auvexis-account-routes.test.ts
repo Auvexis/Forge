@@ -175,6 +175,72 @@ describe("Auvexis account routes", () => {
     assert.deepEqual(calls, ["logout", "revoke"]);
   });
 
+  it("emits an Auvexis product event for the active Sailor profile", async () => {
+    const calls: unknown[] = [];
+    const app = Fastify();
+    await app.register(auvexisAccountRoutes, {
+      getActiveProfileId: () => "profile-1",
+      createService: () => ({
+        emitProductEvent: async (input) => {
+          calls.push(input);
+          return {
+            eventId: input.eventId,
+            productId: "sailor",
+            status: "accepted",
+            outcomes: [],
+          };
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/auvexis/events",
+      payload: {
+        eventId: "sailor.workflow.published:workflow-1",
+        type: "sailor.workflow.published",
+        evidence: { workflowId: "workflow-1" },
+      },
+    });
+    const body = response.json();
+
+    assert.equal(response.statusCode, 200);
+    assert.equal(body.data.status, "accepted");
+    assert.deepEqual(calls, [
+      {
+        profileId: "profile-1",
+        eventId: "sailor.workflow.published:workflow-1",
+        type: "sailor.workflow.published",
+        evidence: { workflowId: "workflow-1" },
+      },
+    ]);
+    assert.equal(JSON.stringify(body).includes("accessToken"), false);
+  });
+
+  it("returns a safe conflict when emitting an event without a connected Auvexis account", async () => {
+    const app = Fastify();
+    await app.register(auvexisAccountRoutes, {
+      getActiveProfileId: () => "profile-1",
+      createService: () => ({
+        emitProductEvent: async () => {
+          throw new Error("AUVEXIS_ACCOUNT_NOT_CONNECTED");
+        },
+      }),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/auvexis/events",
+      payload: {
+        type: "sailor.workflow.published",
+      },
+    });
+    const body = response.json();
+
+    assert.equal(response.statusCode, 409);
+    assert.equal(body.error, "AUVEXIS_ACCOUNT_NOT_CONNECTED");
+  });
+
   it("requires an active Sailor profile", async () => {
     const app = Fastify();
     await app.register(auvexisAccountRoutes, {

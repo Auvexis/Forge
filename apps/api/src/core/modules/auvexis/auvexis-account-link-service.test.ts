@@ -312,6 +312,103 @@ describe("Auvexis account link service", () => {
     assert.equal(markedReconnect, true);
   });
 
+  it("emits product events with the connected Auvexis account id", async () => {
+    const calls: unknown[] = [];
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        emitProductEvent: async (accessToken, event) => {
+          calls.push({ accessToken, event });
+          return {
+            eventId: event.eventId,
+            productId: "sailor",
+            status: "accepted",
+            outcomes: [],
+          };
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+      },
+    });
+
+    const result = await service.emitProductEvent({
+      profileId: "default",
+      eventId: "sailor.workflow.published:workflow-1",
+      type: "sailor.workflow.published",
+      evidence: { workflowId: "workflow-1" },
+    });
+
+    assert.equal(result.status, "accepted");
+    assert.deepEqual(calls, [
+      {
+        accessToken: "access",
+        event: {
+          eventId: "sailor.workflow.published:workflow-1",
+          type: "sailor.workflow.published",
+          userId: "account-1",
+          occurredAt: result.eventId
+            ? (calls[0] as { event: { occurredAt: string } }).event.occurredAt
+            : "",
+          evidence: { workflowId: "workflow-1" },
+        },
+      },
+    ]);
+  });
+
+  it("refreshes an expired token before retrying a product event", async () => {
+    const calls: string[] = [];
+    const saved: unknown[] = [];
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        emitProductEvent: async (accessToken, event) => {
+          calls.push(`emit:${accessToken}:${event.userId}`);
+          if (accessToken === "access") {
+            throw oauthError("reauth_required");
+          }
+          return {
+            eventId: event.eventId,
+            productId: "sailor",
+            status: "accepted",
+            outcomes: [],
+          };
+        },
+        refresh: async (refreshToken) => {
+          calls.push(`refresh:${refreshToken}`);
+          return {
+            accessToken: "access-2",
+            refreshToken: "refresh-2",
+            tokenType: "Bearer",
+            scope: ["openid", "profile"],
+          };
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: (input) => saved.push(input),
+      },
+    });
+
+    const result = await service.emitProductEvent({
+      profileId: "default",
+      eventId: "sailor.workflow.published:workflow-1",
+      type: "sailor.workflow.published",
+    });
+
+    assert.equal(result.status, "accepted");
+    assert.deepEqual(calls, [
+      "emit:access:account-1",
+      "refresh:refresh",
+      "emit:access-2:account-1",
+    ]);
+    assert.equal(
+      (saved[0] as { tokens: { accessToken: string } }).tokens.accessToken,
+      "access-2",
+    );
+  });
+
   it("clears local state without remote revocation", async () => {
     const calls: string[] = [];
     const service = createAuvexisAccountLinkService({

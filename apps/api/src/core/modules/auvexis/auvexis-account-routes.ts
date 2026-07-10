@@ -15,6 +15,7 @@ import {
   type AuvexisAccountStatusResult,
   type CompleteAuvexisCallbackInput,
   type CreateAuvexisAccountLinkInput,
+  type EmitAuvexisProductEventInput,
 } from "./auvexis-account-link-service.ts";
 import { loadOrCreateAuvexisLocalSecret } from "./auvexis-local-secret.ts";
 import { createAuvexisAccountStorage } from "./auvexis-account-storage.ts";
@@ -37,6 +38,7 @@ export interface AuvexisAccountRouteService {
   getStatus?(input?: {
     profileId?: string;
   }): Promise<AuvexisAccountStatusResult>;
+  emitProductEvent?(input: EmitAuvexisProductEventInput): Promise<unknown>;
   logoutLocal?(): Promise<{ status: "disconnected" }>;
   revokeRemote?(): Promise<{ status: "disconnected" }>;
 }
@@ -145,6 +147,41 @@ export default async function auvexisAccountRoutes(
       "Auvexis account revoked",
       await service.revokeRemote(),
     );
+  });
+
+  fastify.post("/auvexis/events", async (request, reply) => {
+    const profileId = requireActiveProfileId(getActiveProfileId, reply);
+    if (!profileId) return;
+
+    const body = parseProductEventBody(request.body);
+    if (!body) {
+      return send(reply, 400, "AUVEXIS_EVENT_INVALID_BODY", null);
+    }
+
+    const service = createService(profileId);
+    if (!service.emitProductEvent) {
+      return send(reply, 500, "AUVEXIS_SERVICE_UNAVAILABLE", null);
+    }
+
+    try {
+      return send(
+        reply,
+        200,
+        "Auvexis product event emitted",
+        await service.emitProductEvent({
+          profileId,
+          ...body,
+        }),
+      );
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === "AUVEXIS_ACCOUNT_NOT_CONNECTED"
+      ) {
+        return send(reply, 409, "AUVEXIS_ACCOUNT_NOT_CONNECTED", null);
+      }
+      throw error;
+    }
   });
 }
 
@@ -289,6 +326,40 @@ function readQueryString(query: unknown, key: string): string | null {
     return null;
   const value = (query as Record<string, unknown>)[key];
   return typeof value === "string" ? value : null;
+}
+
+function parseProductEventBody(
+  body: unknown,
+): Omit<EmitAuvexisProductEventInput, "profileId"> | null {
+  if (typeof body !== "object" || body === null) return null;
+  const record = body as Record<string, unknown>;
+  if (typeof record.type !== "string" || record.type.trim().length === 0) {
+    return null;
+  }
+  if ("eventId" in record && typeof record.eventId !== "string") return null;
+  if ("occurredAt" in record && typeof record.occurredAt !== "string")
+    return null;
+  if ("evidence" in record && !isStringRecord(record.evidence)) return null;
+
+  return {
+    type: record.type.trim(),
+    ...(typeof record.eventId === "string" && record.eventId.trim()
+      ? { eventId: record.eventId.trim() }
+      : {}),
+    ...(typeof record.occurredAt === "string" && record.occurredAt.trim()
+      ? { occurredAt: record.occurredAt.trim() }
+      : {}),
+    ...(isStringRecord(record.evidence) ? { evidence: record.evidence } : {}),
+  };
+}
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.values(value).every((entry) => typeof entry === "string")
+  );
 }
 
 function absoluteRequestUrl(
