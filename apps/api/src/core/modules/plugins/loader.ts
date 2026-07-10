@@ -45,10 +45,6 @@ function buildSailorManifestSchema(): any {
   const methodDefinition = schema.$defs.MethodDefinition;
   const triggerDefinition = schema.$defs.TriggerDefinition;
 
-  schema.properties["x-created-by"] = { const: "sailor-plugin-creator" };
-  schema.properties["x-creator-version"] = { type: "string" };
-  schema.properties["x-editable-low-code"] = { type: "boolean" };
-
   metadataDefinition.properties.agentCapabilities = {
     type: "object",
     additionalProperties: false,
