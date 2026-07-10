@@ -409,6 +409,114 @@ describe("Auvexis account link service", () => {
     );
   });
 
+  it("skips emitting product events when campaign status is already claimed", async () => {
+    const calls: string[] = [];
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        getProductCampaignStatuses: async (accessToken, trigger) => {
+          calls.push(`status:${accessToken}:${trigger}`);
+          return [
+            {
+              id: "campaign-1",
+              slug: "bee-event-2026",
+              productId: "seed-sailor-product",
+              status: "active",
+              trigger: { type: "sailor.workflow.published" },
+              startsAt: "2026-07-01T00:00:00.000Z",
+              endsAt: "2026-08-01T00:00:00.000Z",
+              capacity: 5,
+              claimedCount: 1,
+              activeNow: true,
+              claimed: true,
+              capacityReached: false,
+              reason: "already_claimed",
+              badge: { id: "badge-1", key: "bee", name: "Bee" },
+            },
+          ];
+        },
+        emitProductEvent: async () => {
+          calls.push("emit");
+          throw new Error("SHOULD_NOT_EMIT");
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+      },
+    });
+
+    const result = await service.emitProductEvent({
+      profileId: "default",
+      eventId: "sailor.workflow.published:workflow-1",
+      type: "sailor.workflow.published",
+    });
+
+    assert.deepEqual(calls, ["status:access:sailor.workflow.published"]);
+    assert.deepEqual(result, {
+      eventId: "sailor.workflow.published:workflow-1",
+      productId: "seed-sailor-product",
+      status: "accepted",
+      outcomes: [
+        {
+          campaignId: "campaign-1",
+          outcome: "already_claimed",
+          reason: null,
+        },
+      ],
+    });
+  });
+
+  it("skips emitting product events when campaign capacity is reached", async () => {
+    const calls: string[] = [];
+    const service = createAuvexisAccountLinkService({
+      client: {
+        createAuthorization: fakeCreateAuthorization,
+        getProductCampaignStatuses: async () => [
+          {
+            id: "campaign-1",
+            slug: "bee-event-2026",
+            productId: "seed-sailor-product",
+            status: "active",
+            trigger: { type: "sailor.workflow.published" },
+            startsAt: "2026-07-01T00:00:00.000Z",
+            endsAt: "2026-08-01T00:00:00.000Z",
+            capacity: 5,
+            claimedCount: 5,
+            activeNow: true,
+            claimed: false,
+            capacityReached: true,
+            reason: "capacity_reached",
+            badge: { id: "badge-1", key: "bee", name: "Bee" },
+          },
+        ],
+        emitProductEvent: async () => {
+          calls.push("emit");
+          throw new Error("SHOULD_NOT_EMIT");
+        },
+      },
+      storage: {
+        read: () => connectedState,
+        saveConnected: () => undefined,
+      },
+    });
+
+    const result = await service.emitProductEvent({
+      profileId: "default",
+      eventId: "sailor.workflow.published:workflow-1",
+      type: "sailor.workflow.published",
+    });
+
+    assert.deepEqual(calls, []);
+    assert.deepEqual(result.outcomes, [
+      {
+        campaignId: "campaign-1",
+        outcome: "ineligible",
+        reason: "capacity_reached",
+      },
+    ]);
+  });
+
   it("clears local state without remote revocation", async () => {
     const calls: string[] = [];
     const service = createAuvexisAccountLinkService({

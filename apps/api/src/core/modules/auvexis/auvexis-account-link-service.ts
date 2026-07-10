@@ -3,6 +3,7 @@ import type {
   AuthorizationTransaction,
   AuvexisAccountsErrorCode,
   AuvexisProfile,
+  AuvexisProductCampaignStatus,
   AuvexisProductEventInput,
   AuvexisProductEventResult,
   AuvexisTokenSet,
@@ -27,6 +28,7 @@ type AuvexisAccountsClient = Pick<
       | "getProfile"
       | "refresh"
       | "emitProductEvent"
+      | "getProductCampaignStatuses"
       | "validateProductAuthorization"
     >
   > & {
@@ -224,6 +226,12 @@ export function createAuvexisAccountLinkService(
 
       const event = buildProductEvent(input, current.account.id);
       try {
+        const skipped = await precheckProductEvent({
+          client: options.client,
+          accessToken: current.tokens.accessToken,
+          event,
+        });
+        if (skipped) return skipped;
         return await options.client.emitProductEvent(
           current.tokens.accessToken,
           event,
@@ -242,6 +250,12 @@ export function createAuvexisAccountLinkService(
             account: current.account,
             tokens,
           });
+          const skipped = await precheckProductEvent({
+            client: options.client,
+            accessToken: tokens.accessToken,
+            event,
+          });
+          if (skipped) return skipped;
           return await options.client.emitProductEvent(tokens.accessToken, event);
         }
         if (isAuvexisAccountsError(error, "reauth_required")) {
@@ -265,6 +279,41 @@ export function createAuvexisAccountLinkService(
       options.storage?.clearLocal?.();
       return { status: "disconnected" };
     },
+  };
+}
+
+async function precheckProductEvent(input: {
+  client: AuvexisAccountsClient;
+  accessToken: string;
+  event: AuvexisProductEventInput;
+}): Promise<AuvexisProductEventResult | null> {
+  if (!input.client.getProductCampaignStatuses) return null;
+  const statuses = await input.client.getProductCampaignStatuses(
+    input.accessToken,
+    input.event.type,
+  );
+  const skipped = statuses.find(
+    (campaign) => campaign.claimed || campaign.capacityReached,
+  );
+  if (!skipped) return null;
+  return productEventResultFromCampaignStatus(input.event.eventId, skipped);
+}
+
+function productEventResultFromCampaignStatus(
+  eventId: string,
+  campaign: AuvexisProductCampaignStatus,
+): AuvexisProductEventResult {
+  return {
+    eventId,
+    productId: campaign.productId,
+    status: "accepted",
+    outcomes: [
+      {
+        campaignId: campaign.id,
+        outcome: campaign.claimed ? "already_claimed" : "ineligible",
+        reason: campaign.claimed ? null : "capacity_reached",
+      },
+    ],
   };
 }
 
