@@ -1,0 +1,4 @@
+﻿- [x] Map toast and notification flow
+- [ ] Add reward toast and notification variant
+- [ ] Show only claimed Auvexis rewards
+- [ ] Validate reward notification flow
