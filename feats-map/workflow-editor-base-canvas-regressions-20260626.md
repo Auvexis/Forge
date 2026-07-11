@@ -3,7 +3,7 @@
 ## Motivo
 - A Batch 9 removeu Vue Flow do Workflow Editor.
 - O novo canvas precisa preservar drag, handles, quick add e edge alignment.
-- O `BaseCanvas` compartilhado deve continuar seguro para Sailor Pages.
+- O `BaseCanvas` compartilhado deve continuar seguro para Fabric Pages.
 
 ## Tasks
 - [x] Corrigir drag com snap sem o mouse escapar do node.
@@ -11,4 +11,4 @@
 - [x] Alinhar node criado pelo Quick Add ao ponto esperado.
 - [x] Recalcular edges quando o canvas muda de tamanho.
 - [x] Bloquear seleção nativa de texto/imagem durante drag.
-- [x] Validar Workflow Editor e Sailor Pages.
+- [x] Validar Workflow Editor e Fabric Pages.

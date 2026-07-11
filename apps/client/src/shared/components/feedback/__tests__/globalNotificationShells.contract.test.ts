@@ -32,7 +32,7 @@ describe('global notification shell integration', () => {
     assert.ok(source.indexOf('app-topbar__search') < source.indexOf('app-topbar__actions'))
   })
 
-  it('adds a reusable notification trigger to Pages chrome when the Sailor shell is hidden', () => {
+  it('adds a reusable notification trigger to Pages chrome when the Fabric shell is hidden', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
 
     assert.match(source, /import NotificationTrigger/)

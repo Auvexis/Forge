@@ -4,12 +4,12 @@ import { PluginManager } from "../../plugins/manager.ts";
 import { Vault } from "../../plugins/vault.ts";
 import type {
   CredentialSchema,
-  SailorPlugin,
+  FabricPlugin,
   OAuth2Provider,
   OAuth2Tokens,
   PluginAuthType,
   PluginStatus,
-} from "@auvexis/sailor-sdk";
+} from "@auvexis/fabric-sdk";
 import type {
   CommandDescriptor,
   CommandDrilldown,
@@ -19,8 +19,8 @@ import type {
 } from "../command-types.ts";
 
 interface PluginCommandServices {
-  listPlugins: () => SailorPlugin[];
-  getPlugin: (id: string) => SailorPlugin;
+  listPlugins: () => FabricPlugin[];
+  getPlugin: (id: string) => FabricPlugin;
   getPluginStatus: (
     pluginId: string,
     authType: PluginAuthType,
@@ -51,19 +51,19 @@ function pluginServices(context: CommandExecutionContext): PluginCommandServices
   };
 }
 
-function pluginCredentialSchema(plugin: SailorPlugin): CredentialSchema | undefined {
+function pluginCredentialSchema(plugin: FabricPlugin): CredentialSchema | undefined {
   return (plugin.auth as { credentialSchema?: CredentialSchema }).credentialSchema;
 }
 
-function pluginStatus(plugin: SailorPlugin, services: PluginCommandServices): PluginStatus {
+function pluginStatus(plugin: FabricPlugin, services: PluginCommandServices): PluginStatus {
   return services.getPluginStatus(plugin.id, plugin.auth.type, pluginCredentialSchema(plugin));
 }
 
-function pluginCategoryLabels(plugin: SailorPlugin): string[] {
+function pluginCategoryLabels(plugin: FabricPlugin): string[] {
   return [...plugin.manifest.metadata.categories];
 }
 
-function pluginKeywords(plugin: SailorPlugin, extra: string[] = []): string[] {
+function pluginKeywords(plugin: FabricPlugin, extra: string[] = []): string[] {
   const metadata = plugin.manifest.metadata;
   return [
     plugin.id,
@@ -75,7 +75,7 @@ function pluginKeywords(plugin: SailorPlugin, extra: string[] = []): string[] {
   ].filter(Boolean);
 }
 
-function pluginIconFields(plugin: SailorPlugin): Pick<CommandDescriptor, "icon" | "iconLight" | "iconDark"> {
+function pluginIconFields(plugin: FabricPlugin): Pick<CommandDescriptor, "icon" | "iconLight" | "iconDark"> {
   const metadata = plugin.manifest.metadata;
   return {
     icon: metadata.icon || "plug",
@@ -84,7 +84,7 @@ function pluginIconFields(plugin: SailorPlugin): Pick<CommandDescriptor, "icon" 
   };
 }
 
-async function oauthUrl(plugin: SailorPlugin, services: PluginCommandServices): Promise<string> {
+async function oauthUrl(plugin: FabricPlugin, services: PluginCommandServices): Promise<string> {
   if (plugin.auth.type !== "oauth2") {
     throw new Error("Plugin does not support OAuth2");
   }
@@ -103,7 +103,7 @@ async function oauthUrl(plugin: SailorPlugin, services: PluginCommandServices): 
 
 // ─── Drilldown builder ────────────────────────────────────────────────────────
 
-function pluginDrilldown(plugin: SailorPlugin, context: CommandExecutionContext): CommandDrilldown {
+function pluginDrilldown(plugin: FabricPlugin, context: CommandExecutionContext): CommandDrilldown {
   const services = pluginServices(context);
   const status = pluginStatus(plugin, services);
   const isOAuth = plugin.auth.type === "oauth2";
@@ -185,7 +185,7 @@ function pluginDrilldown(plugin: SailorPlugin, context: CommandExecutionContext)
 
 // ─── Per-plugin parent entry (shown in main list) ─────────────────────────────
 
-function pluginEntryCommand(plugin: SailorPlugin): CommandHandler {
+function pluginEntryCommand(plugin: FabricPlugin): CommandHandler {
   return {
     describe: (context): CommandDescriptor => {
       const services = pluginServices(context);
@@ -211,7 +211,7 @@ function pluginEntryCommand(plugin: SailorPlugin): CommandHandler {
 // These are hidden from the main list (availability.hidden = true) and only
 // reachable via the drilldown mechanism.
 
-function openPluginCommand(plugin: SailorPlugin): CommandHandler {
+function openPluginCommand(plugin: FabricPlugin): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
       id: `plugin.open.${plugin.id}`,
@@ -234,7 +234,7 @@ function openPluginCommand(plugin: SailorPlugin): CommandHandler {
   };
 }
 
-function connectPluginCommand(plugin: SailorPlugin): CommandHandler {
+function connectPluginCommand(plugin: FabricPlugin): CommandHandler {
   return {
     describe: (context): CommandDescriptor => {
       const services = pluginServices(context);
@@ -260,7 +260,7 @@ function connectPluginCommand(plugin: SailorPlugin): CommandHandler {
   };
 }
 
-function disconnectPluginCommand(plugin: SailorPlugin): CommandHandler {
+function disconnectPluginCommand(plugin: FabricPlugin): CommandHandler {
   return {
     describe: (context): CommandDescriptor => ({
       id: `plugin.disconnect.${plugin.id}`,
@@ -309,7 +309,7 @@ function installPluginCommand(): CommandHandler {
   };
 }
 
-function pluginCommands(plugin: SailorPlugin): CommandHandler[] {
+function pluginCommands(plugin: FabricPlugin): CommandHandler[] {
   return [
     pluginEntryCommand(plugin),
     openPluginCommand(plugin),

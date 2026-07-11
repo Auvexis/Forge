@@ -8,7 +8,7 @@ const currentDir = path.dirname(fileURLToPath(import.meta.url))
 const read = (relativePath: string) => fs.readFileSync(path.join(currentDir, relativePath), 'utf8')
 
 test('advanced handles preserve bottom targets, top diamond sources, and persistent Quick Add', () => {
-  const manifest = read('../../../../../../../server/src/core/utility-nodes/sailor-core/manifest.ts')
+  const manifest = read('../../../../../../../server/src/core/utility-nodes/fabric-core/manifest.ts')
   assert.match(manifest, /"basic-llm-chain"[\s\S]*id: "model"[\s\S]*position: "bottom"[\s\S]*style: "diamond"/)
   assert.match(manifest, /id: "outputParser"[\s\S]*quickAddAfterConnected: true/)
   assert.match(manifest, /"structured-json-parser"[\s\S]*id: "source"[\s\S]*position: "top"[\s\S]*style: "diamond"/)
@@ -39,7 +39,7 @@ test('configuration edge styling is catalog-driven without hardcoded handle ids'
 
 test('advanced layout and canvas support nested auto-organized dependencies', () => {
   const canvas = read('../../WorkflowBaseCanvas.vue')
-  const host = read('../../SailorWorkflowCanvas.vue')
+  const host = read('../../FabricWorkflowCanvas.vue')
   const layout = read('../../../layout/advancedNodeLayout.ts')
   assert.match(canvas, /getAdvancedChildPosition/)
   assert.match(canvas, /arrangeAdvancedConfigNodes/)

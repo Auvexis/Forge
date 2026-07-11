@@ -109,7 +109,7 @@ export function createMigrationEngine(
     storage: new SQLiteStorage(db),
     logger: {
       info: (msg) => {
-        const tag = `[SAILOR | DB | ${dbName.toUpperCase()}]`;
+        const tag = `[FABRIC | DB | ${dbName.toUpperCase()}]`;
         if (msg["event"] === "migrating") {
           console.log(`${tag}: Running migration "${msg["name"]}"`);
         } else if (msg["event"] === "migrated") {
@@ -123,11 +123,11 @@ export function createMigrationEngine(
       },
       warn: (msg) =>
         console.warn(
-          `[SAILOR | DB | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
+          `[FABRIC | DB | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
         ),
       error: (msg) =>
         console.error(
-          `[SAILOR | DB | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
+          `[FABRIC | DB | ${dbName.toUpperCase()}]: ${JSON.stringify(msg)}`,
         ),
       debug: () => {}, // suppress debug noise
     },

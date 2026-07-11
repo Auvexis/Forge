@@ -1,20 +1,20 @@
 <template>
   <div v-if="showBox" class="workflow-selection-box" data-workflow-selection-box :style="viewportTransform">
-    <div class="sailor-group-box-outer" :style="outerBoxStyle">
-      <div class="sailor-group-box-inner" />
+    <div class="fabric-group-box-outer" :style="outerBoxStyle">
+      <div class="fabric-group-box-inner" />
     </div>
 
-    <div class="sailor-group-toolbar" :style="toolbarStyle">
-      <span class="sailor-group-count">
+    <div class="fabric-group-toolbar" :style="toolbarStyle">
+      <span class="fabric-group-count">
         <LucideIcon name="layers" :size="12" />
         {{ selectedItems.length }} nodes selected
       </span>
-      <div class="sailor-group-divider" />
-      <button class="sailor-group-btn" type="button" title="Duplicate all" @click.stop="duplicateSelection">
+      <div class="fabric-group-divider" />
+      <button class="fabric-group-btn" type="button" title="Duplicate all" @click.stop="duplicateSelection">
         <LucideIcon name="copy" :size="13" />
         <span>Duplicate</span>
       </button>
-      <button class="sailor-group-btn sailor-group-btn--danger" type="button" title="Delete all selected" @click.stop="deleteSelection">
+      <button class="fabric-group-btn fabric-group-btn--danger" type="button" title="Delete all selected" @click.stop="deleteSelection">
         <LucideIcon name="trash-2" :size="13" />
         <span>Delete All</span>
       </button>
@@ -111,26 +111,26 @@ function deleteSelection() {
   transform-origin: 0 0;
 }
 
-.sailor-group-box-outer {
+.fabric-group-box-outer {
   position: absolute;
   left: 0;
   top: 0;
   box-sizing: border-box;
-  border: 2px dashed color-mix(in srgb, var(--sailor-accent) 30%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--fabric-accent) 30%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--sailor-accent) 4%, transparent);
+  background: color-mix(in srgb, var(--fabric-accent) 4%, transparent);
   pointer-events: none;
 }
 
-.sailor-group-box-inner {
+.fabric-group-box-inner {
   position: absolute;
   inset: 4px;
-  border: 1.5px solid color-mix(in srgb, var(--sailor-accent) 60%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--fabric-accent) 60%, transparent);
   border-radius: 6px;
   pointer-events: none;
 }
 
-.sailor-group-toolbar {
+.fabric-group-toolbar {
   position: absolute;
   left: 0;
   top: 0;
@@ -138,16 +138,16 @@ function deleteSelection() {
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  box-shadow: var(--sailor-shadow-md), 0 0 0 1px color-mix(in srgb, var(--sailor-accent) 20%, transparent);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  box-shadow: var(--fabric-shadow-md), 0 0 0 1px color-mix(in srgb, var(--fabric-accent) 20%, transparent);
   white-space: nowrap;
   pointer-events: auto;
 }
 
-.sailor-group-count,
-.sailor-group-btn {
+.fabric-group-count,
+.fabric-group-btn {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -155,34 +155,34 @@ function deleteSelection() {
   font-weight: 500;
 }
 
-.sailor-group-count {
-  color: var(--sailor-text-secondary);
+.fabric-group-count {
+  color: var(--fabric-text-secondary);
 }
 
-.sailor-group-divider {
+.fabric-group-divider {
   width: 1px;
   height: 18px;
   margin: 0 2px;
-  background: var(--sailor-border);
+  background: var(--fabric-border);
 }
 
-.sailor-group-btn {
+.fabric-group-btn {
   padding: 4px 8px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   background: none;
   border: none;
-  border-radius: var(--sailor-radius-xs, 3px);
+  border-radius: var(--fabric-radius-xs, 3px);
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sailor-group-btn:hover {
-  color: var(--sailor-text-primary);
-  background: var(--sailor-bg-elevated);
+.fabric-group-btn:hover {
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-elevated);
 }
 
-.sailor-group-btn--danger:hover {
-  color: var(--sailor-red-500, #ef4444);
-  background: color-mix(in srgb, var(--sailor-red-500, #ef4444) 12%, transparent);
+.fabric-group-btn--danger:hover {
+  color: var(--fabric-red-500, #ef4444);
+  background: color-mix(in srgb, var(--fabric-red-500, #ef4444) 12%, transparent);
 }
 </style>

@@ -4,9 +4,9 @@ import { describe, it } from "node:test";
 import { PageActionService } from "./page-actions.ts";
 import { renderPageBody } from "./page-renderer.ts";
 import { validatePageInput } from "./page-validation.ts";
-import type { PublishedPage, SailorPage } from "./page-types.ts";
+import type { PublishedPage, FabricPage } from "./page-types.ts";
 
-function page(blocks: SailorPage["blocks"]): SailorPage {
+function page(blocks: FabricPage["blocks"]): FabricPage {
   return {
     id: "page_1",
     profileId: "profile_a",

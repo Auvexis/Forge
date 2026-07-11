@@ -51,7 +51,7 @@ describe('page drag prediction contract', () => {
     const dropIndicatorRule = source.match(/\.web-page-drop-indicator\s*\{[\s\S]*?\n\}/)?.[0] ?? ''
 
     assert.match(source, /--web-page-drop-color/)
-    assert.doesNotMatch(source, /--web-page-drop-color:[^;]*sailor-accent/)
+    assert.doesNotMatch(source, /--web-page-drop-color:[^;]*fabric-accent/)
     assert.match(dropIndicatorRule, /border-radius:\s*0/)
     assert.match(dropIndicatorRule, /height:\s*4px/)
     assert.match(source, /outline:\s*2px solid var\(--web-page-drop-color\)/)

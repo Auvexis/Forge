@@ -4,7 +4,7 @@ import type {
   OAuth2Tokens,
   PluginAuthType,
   PluginStatus,
-} from "@auvexis/sailor-sdk";
+} from "@auvexis/fabric-sdk";
 import type Database from "better-sqlite3";
 
 // ─── Database Connection ──────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-export const PROFILE_SWITCH_REFRESH_EVENT = 'sailor:profile-switched'
+export const PROFILE_SWITCH_REFRESH_EVENT = 'fabric:profile-switched'
 
 export interface ProfileSwitchRefreshDeps {
   execution: {

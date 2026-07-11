@@ -83,7 +83,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
   // edit-profile → open profile settings panel
   window.dispatchEvent(
-    new CustomEvent('sailor:profiles:intent', {
+    new CustomEvent('fabric:profiles:intent', {
       detail: {
         type: actionId,
         profileId: profileStore.currentProfile?.id,
@@ -102,7 +102,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   width: 30px;
   height: 30px;
   padding: 0;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
 }
 
 .profile-switcher__trigger {
@@ -115,7 +115,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   min-height: 34px;
   padding: 0;
   border: 0;
-  color: var(--sailor-sidebar-text);
+  color: var(--fabric-sidebar-text);
   background: transparent;
   font: inherit;
   text-align: left;
@@ -137,11 +137,11 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-bg-base);
   font-size: 17px;
   line-height: 1;
-  border: 1px solid var(--sailor-border);
+  border: 1px solid var(--fabric-border);
 }
 
 .profile-switcher__summary-text {
@@ -153,9 +153,9 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
 .profile-switcher__summary-name {
   overflow: hidden;
-  color: var(--sailor-sidebar-text);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-sidebar-text);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -163,8 +163,8 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
 .profile-switcher__summary-email {
   overflow: hidden;
-  color: var(--sailor-sidebar-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-sidebar-text-muted);
+  font-size: var(--fabric-text-xs);
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -174,10 +174,10 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2) var(--sailor-space-3) var(--sailor-space-3);
-  margin-bottom: var(--sailor-space-1);
-  border-bottom: 1px solid var(--sailor-border);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-2) var(--fabric-space-3) var(--fabric-space-3);
+  margin-bottom: var(--fabric-space-1);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .profile-switcher__summary-avatar {
@@ -187,10 +187,10 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 }
 
 .profile-switcher__summary-name {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .profile-switcher__summary-email {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 </style>

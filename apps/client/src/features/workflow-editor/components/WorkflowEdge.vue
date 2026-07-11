@@ -1,13 +1,13 @@
 <template>
   <g
-    class="sailor-workflow-edge"
-    :class="[`sailor-workflow-edge--${status}`, { 'sailor-workflow-edge--selected': selected }]"
+    class="fabric-workflow-edge"
+    :class="[`fabric-workflow-edge--${status}`, { 'fabric-workflow-edge--selected': selected }]"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
     @dblclick.stop="startEditLabel"
   >
     <path
-      class="sailor-workflow-edge__path"
+      class="fabric-workflow-edge__path"
       :d="path"
       :style="pathStyle"
       fill="none"
@@ -16,7 +16,7 @@
 
     <foreignObject
       v-if="!isConfigurationEdge"
-      class="sailor-edge-toolbar-object"
+      class="fabric-edge-toolbar-object"
       :x="labelX - 36"
       :y="labelY - 54"
       width="72"
@@ -24,13 +24,13 @@
     >
       <div
         xmlns="http://www.w3.org/1999/xhtml"
-        class="sailor-edge-toolbar"
-        :class="{ 'sailor-edge-toolbar--visible': isHovered || selected }"
+        class="fabric-edge-toolbar"
+        :class="{ 'fabric-edge-toolbar--visible': isHovered || selected }"
       >
-        <button class="sailor-edge-btn" type="button" title="Insert node here" @click.stop="onQuickAdd">
+        <button class="fabric-edge-btn" type="button" title="Insert node here" @click.stop="onQuickAdd">
           <LucideIcon name="plus" :size="13" />
         </button>
-        <button class="sailor-edge-btn sailor-edge-btn--danger" type="button" title="Delete connection" @click.stop="onDelete">
+        <button class="fabric-edge-btn fabric-edge-btn--danger" type="button" title="Delete connection" @click.stop="onDelete">
           <LucideIcon name="trash" :size="13" />
         </button>
       </div>
@@ -38,37 +38,37 @@
 
     <foreignObject
       v-if="itemCountLabel"
-      class="sailor-edge-item-count-object"
+      class="fabric-edge-item-count-object"
       :x="labelX - 50"
       :y="labelY - 76"
       width="100"
       height="18"
     >
-      <div xmlns="http://www.w3.org/1999/xhtml" class="sailor-edge-item-count">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="fabric-edge-item-count">
         {{ itemCountLabel }}
       </div>
     </foreignObject>
 
     <foreignObject
       v-if="edgeLabel || isEditingLabel"
-      class="sailor-edge-label-object"
+      class="fabric-edge-label-object"
       :x="labelX - 58"
       :y="labelY - 12"
       width="116"
       height="28"
     >
-      <div xmlns="http://www.w3.org/1999/xhtml" class="sailor-edge-label-shell" @dblclick.stop="startEditLabel">
+      <div xmlns="http://www.w3.org/1999/xhtml" class="fabric-edge-label-shell" @dblclick.stop="startEditLabel">
         <input
           v-if="isEditingLabel"
           ref="labelInputRef"
           v-model="labelDraft"
-          class="sailor-edge-label-input"
+          class="fabric-edge-label-input"
           placeholder="Label..."
           @keydown.enter.stop="commitLabel"
           @keydown.escape.stop="cancelLabel"
           @blur="commitLabel"
         />
-        <span v-else class="sailor-edge-label">{{ edgeLabel }}</span>
+        <span v-else class="fabric-edge-label">{{ edgeLabel }}</span>
       </div>
     </foreignObject>
   </g>
@@ -120,11 +120,11 @@ const pathStyle = computed(() => {
 })
 
 const markerEnd = computed(() => {
-  if (props.selected) return 'url(#sailor-workflow-arrow-selected)'
+  if (props.selected) return 'url(#fabric-workflow-arrow-selected)'
   const markerStatus = ['success', 'failed', 'running', 'waiting', 'retrying'].includes(props.status)
     ? props.status
     : 'idle'
-  return `url(#sailor-workflow-arrow-${markerStatus})`
+  return `url(#fabric-workflow-arrow-${markerStatus})`
 })
 
 function onDelete() {
@@ -153,27 +153,27 @@ function cancelLabel() {
 </script>
 
 <style scoped>
-.sailor-workflow-edge {
+.fabric-workflow-edge {
   pointer-events: none;
 }
 
-.sailor-workflow-edge__path {
+.fabric-workflow-edge__path {
   pointer-events: stroke;
   cursor: pointer;
 }
 
-.sailor-edge-toolbar-object,
-.sailor-edge-label-object {
+.fabric-edge-toolbar-object,
+.fabric-edge-label-object {
   overflow: visible;
   pointer-events: auto;
 }
 
-.sailor-edge-item-count-object {
+.fabric-edge-item-count-object {
   overflow: visible;
   pointer-events: none;
 }
 
-.sailor-edge-toolbar {
+.fabric-edge-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,15 +182,15 @@ function cancelLabel() {
   transition: opacity 0.15s ease;
 }
 
-.sailor-edge-toolbar--visible {
+.fabric-edge-toolbar--visible {
   opacity: 1;
 }
 
-.sailor-edge-btn {
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-xs, 3px);
-  color: var(--sailor-text-muted);
+.fabric-edge-btn {
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-xs, 3px);
+  color: var(--fabric-text-muted);
   width: 24px;
   height: 24px;
   display: inline-flex;
@@ -200,31 +200,31 @@ function cancelLabel() {
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sailor-edge-btn:hover {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+.fabric-edge-btn:hover {
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
-.sailor-edge-btn--danger:hover {
-  background: color-mix(in srgb, var(--sailor-red-500, #ef4444) 15%, transparent);
-  color: var(--sailor-red-500, #ef4444);
+.fabric-edge-btn--danger:hover {
+  background: color-mix(in srgb, var(--fabric-red-500, #ef4444) 15%, transparent);
+  color: var(--fabric-red-500, #ef4444);
 }
 
-.sailor-edge-item-count {
-  color: var(--sailor-text-muted);
-  font-family: var(--sailor-font-mono);
+.fabric-edge-item-count {
+  color: var(--fabric-text-muted);
+  font-family: var(--fabric-font-mono);
   font-size: 10px;
   line-height: 18px;
   text-align: center;
   white-space: nowrap;
 }
 
-.sailor-edge-label-shell {
+.fabric-edge-label-shell {
   display: flex;
   justify-content: center;
 }
 
-.sailor-edge-label {
+.fabric-edge-label {
   display: inline-flex;
   max-width: 112px;
   overflow: hidden;
@@ -233,18 +233,18 @@ function cancelLabel() {
   font-size: 13px;
   font-weight: 500;
   line-height: 1;
-  color: var(--sailor-text-secondary);
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-xs, 3px);
+  color: var(--fabric-text-secondary);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-xs, 3px);
   padding: 4px 8px;
 }
 
-.sailor-edge-label-input {
-  background: var(--sailor-bg-base);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-xs, 3px);
-  color: var(--sailor-text-primary);
+.fabric-edge-label-input {
+  background: var(--fabric-bg-base);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-xs, 3px);
+  color: var(--fabric-text-primary);
   font-size: 12px;
   height: 22px;
   padding: 0 6px;
@@ -252,7 +252,7 @@ function cancelLabel() {
   outline: none;
 }
 
-.sailor-edge-label-input:focus {
-  border-color: var(--sailor-accent);
+.fabric-edge-label-input:focus {
+  border-color: var(--fabric-accent);
 }
 </style>

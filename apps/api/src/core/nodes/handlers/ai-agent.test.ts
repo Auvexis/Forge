@@ -108,7 +108,7 @@ describe("AI workflow node handlers", () => {
           type: "ai-model",
           name: "Ollama Model",
           provider: "openai",
-          pluginId: "sailor-ollama",
+          pluginId: "fabric-ollama",
           adapter: "generic",
           model: "llama3.2",
           temperature: 0,
@@ -133,7 +133,7 @@ describe("AI workflow node handlers", () => {
 
     assert.ok(received);
     const runCall = received as AgentRunInput;
-    assert.equal(runCall.model.pluginId, "sailor-ollama");
+    assert.equal(runCall.model.pluginId, "fabric-ollama");
     assert.equal(runCall.model.adapter, "generic");
     assert.equal(runCall.model.baseUrl, "http://localhost:11434/v1");
   });
@@ -283,8 +283,8 @@ describe("AI workflow node handlers", () => {
       steps: {
         retriever: {
           output: {
-            context: "Use Sailor retrieval context.",
-            items: [{ text: "Use Sailor retrieval context.", score: 0.92 }],
+            context: "Use Fabric retrieval context.",
+            items: [{ text: "Use Fabric retrieval context.", score: 0.92 }],
           },
         },
       },
@@ -349,7 +349,7 @@ describe("AI workflow node handlers", () => {
     assert.equal((received as AgentRunInput).contextMessages, undefined);
   });
 
-  it("passes chat-scoped memory sqlite path for sailor internal session memory", async () => {
+  it("passes chat-scoped memory sqlite path for fabric internal session memory", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();
     const memory = fixture.nodes.memory;
@@ -359,7 +359,7 @@ describe("AI workflow node handlers", () => {
         ...fixture.nodes,
         memory: {
           ...memory,
-          adapter: "sailor-internal",
+          adapter: "fabric-internal",
           scope: "session",
         },
       },
@@ -465,7 +465,7 @@ describe("AI workflow node handlers", () => {
         memory: {
           ...memory,
           adapter: "plugin-memory-store",
-          pluginId: "sailor-postgresql",
+          pluginId: "fabric-postgresql",
           searchMethodId: "searchAgentMemory",
           putMethodId: "putAgentMemory",
         },

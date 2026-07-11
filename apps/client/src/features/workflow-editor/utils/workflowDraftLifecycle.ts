@@ -1,5 +1,5 @@
-const WORKFLOW_DRAFT_PREFIX = 'sailor.workflow-draft.'
-const RELOAD_DISCARD_KEY = 'sailor.workflow-discard-on-reload'
+const WORKFLOW_DRAFT_PREFIX = 'fabric.workflow-draft.'
+const RELOAD_DISCARD_KEY = 'fabric.workflow-discard-on-reload'
 
 export function discardWorkflowDraft(storage: Storage, workflowId: string) {
   storage.removeItem(`${WORKFLOW_DRAFT_PREFIX}${workflowId}`)

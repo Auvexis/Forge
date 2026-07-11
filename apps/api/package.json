@@ -1,5 +1,5 @@
 {
-  "name": "sailor",
+  "name": "fabric",
   "version": "1.0.0",
   "description": "",
   "main": "src/core/server.ts",
@@ -14,7 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@auvexis/accounts": "^0.1.10",
-    "@auvexis/sailor-sdk": "^2.0.1",
+    "@auvexis/fabric-sdk": "^2.0.1",
     "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",
     "@fastify/multipart": "^9.4.0",

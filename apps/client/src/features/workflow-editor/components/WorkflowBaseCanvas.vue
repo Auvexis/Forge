@@ -1,5 +1,5 @@
 <template>
-  <div ref="shellRef" class="sailor-workflow-base-canvas-shell" data-workflow-base-canvas-shell>
+  <div ref="shellRef" class="fabric-workflow-base-canvas-shell" data-workflow-base-canvas-shell>
     <BaseCanvas
       ref="baseCanvasRef"
       v-model:viewport="viewport"
@@ -8,11 +8,11 @@
       :snap-to-grid="true"
       :grid-size="20"
       :marquee-selection="true"
-      background-color="var(--sailor-canvas-bg)"
-      pattern-color="var(--sailor-canvas-grid)"
+      background-color="var(--fabric-canvas-bg)"
+      pattern-color="var(--fabric-canvas-grid)"
       pattern-style="dot"
       :pattern-size="30"
-      class="sailor-workflow-base-canvas"
+      class="fabric-workflow-base-canvas"
       data-workflow-base-canvas
       :data-workflow-items-count="workflowItems.length"
       @items-move="handleItemsMove"
@@ -964,18 +964,18 @@ defineExpose({
 </script>
 
 <style scoped>
-.sailor-workflow-base-canvas-shell {
+.fabric-workflow-base-canvas-shell {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
-.sailor-workflow-base-canvas {
+.fabric-workflow-base-canvas {
   width: 100%;
   height: 100%;
 }
 
-.sailor-workflow-base-canvas :deep(.base-canvas__viewport) {
+.fabric-workflow-base-canvas :deep(.base-canvas__viewport) {
   z-index: 5;
 }
 </style>

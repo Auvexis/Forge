@@ -1,5 +1,5 @@
 /* =========================================================
-   SAILOR — CSS Reset
+   FABRIC — CSS Reset
    A minimal, opinionated reset for consistent rendering.
    ========================================================= */
 
@@ -19,12 +19,12 @@ html {
 }
 
 body {
-  font-family: var(--sailor-font-sans);
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-normal);
-  line-height: var(--sailor-leading-normal);
-  color: var(--sailor-text-primary);
-  background-color: var(--sailor-bg-base);
+  font-family: var(--fabric-font-sans);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-normal);
+  line-height: var(--fabric-leading-normal);
+  color: var(--fabric-text-primary);
+  background-color: var(--fabric-bg-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
@@ -36,13 +36,13 @@ h3,
 h4,
 h5,
 h6 {
-  font-weight: var(--sailor-font-semibold);
-  line-height: var(--sailor-leading-tight);
-  color: var(--sailor-text-primary);
+  font-weight: var(--fabric-font-semibold);
+  line-height: var(--fabric-leading-tight);
+  color: var(--fabric-text-primary);
 }
 
 a {
-  color: var(--sailor-text-brand);
+  color: var(--fabric-text-brand);
   text-decoration: none;
 }
 
@@ -82,14 +82,14 @@ ol {
 
 p,
 li {
-  line-height: var(--sailor-leading-normal);
+  line-height: var(--fabric-leading-normal);
 }
 
 code,
 pre,
 kbd,
 samp {
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
 }
 
 /* Scrollbar styling (webkit) */
@@ -103,17 +103,17 @@ samp {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--sailor-bg-muted);
-  border-radius: var(--sailor-radius-full);
+  background: var(--fabric-bg-muted);
+  border-radius: var(--fabric-radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--sailor-bg-subtle);
+  background: var(--fabric-bg-subtle);
 }
 
 /* Focus ring — accessible, not obtrusive */
 :focus-visible {
-  outline: 2px solid var(--sailor-border-strong);
+  outline: 2px solid var(--fabric-border-strong);
   outline-offset: 2px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
 }

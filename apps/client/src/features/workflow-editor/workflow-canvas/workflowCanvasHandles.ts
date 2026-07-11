@@ -136,7 +136,7 @@ export function getWorkflowHandleOffset(
 function getWorkflowHandleNodeElement(
   registration: WorkflowHandleRegistration,
 ): HTMLElement | null {
-  return registration.element.closest('.sailor-workflow-base-canvas__node') as HTMLElement | null
+  return registration.element.closest('.fabric-workflow-base-canvas__node') as HTMLElement | null
 }
 
 export function normalizeWorkflowHandleSide(position: unknown): WorkflowHandleSide {

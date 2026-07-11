@@ -22,8 +22,8 @@ const stepTitle = computed(() => props.data.name || 'Return')
     :title="stepTitle"
     subtitle="Workflow result"
     icon="corner-down-left"
-    color="var(--sailor-node-return-icon)"
-    bg="var(--sailor-node-return-bg)"
-    border-color="var(--sailor-node-return-border)"
+    color="var(--fabric-node-return-icon)"
+    bg="var(--fabric-node-return-bg)"
+    border-color="var(--fabric-node-return-border)"
   />
 </template>

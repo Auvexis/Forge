@@ -1,8 +1,8 @@
 import type { PageBlock, PageBlockProps, PageBlockTag, PublishedPage } from "./page-types.ts";
-import type { SailorSite } from "./site-types.ts";
+import type { FabricSite } from "./site-types.ts";
 
 interface RenderOptions {
-  site?: SailorSite | null;
+  site?: FabricSite | null;
 }
 
 const RENDER_TAGS: Record<PageBlockTag, string> = {
@@ -77,7 +77,7 @@ const STYLE_ALLOWLIST = new Set([
 
 const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/style|<\s*script/i;
 
-export function renderPublishedPage(page: PublishedPage, site?: SailorSite | null): string {
+export function renderPublishedPage(page: PublishedPage, site?: FabricSite | null): string {
   const title = escapeHtml(page.metaTitle?.trim() || page.title);
   const pageJs = renderPageJs(page, site);
   const siteJs = renderSiteJs(page, site);
@@ -156,7 +156,7 @@ function renderBlock(block: PageBlock, options: RenderOptions): string {
 
 function renderAttributes(block: PageBlock, options: RenderOptions): string {
   const attrs: Record<string, string> = {
-    class: ["sailor-page-block", blockClass(block.id), sanitizeClassName(block.className)]
+    class: ["fabric-page-block", blockClass(block.id), sanitizeClassName(block.className)]
       .filter(Boolean)
       .join(" "),
   };
@@ -200,8 +200,8 @@ function renderAttributes(block: PageBlock, options: RenderOptions): string {
   }
 
   if (block.action && (block.tag === "form" || block.tag === "button")) {
-    attrs["data-sailor-action-id"] = block.action.id;
-    attrs["data-sailor-action-type"] = block.action.type;
+    attrs["data-fabric-action-id"] = block.action.id;
+    attrs["data-fabric-action-type"] = block.action.type;
     if (block.action.type === "openUrl" && isSafeLinkUrl(block.action.url)) {
       attrs.href = block.action.url;
       attrs.target = block.action.target ?? "_blank";
@@ -243,17 +243,17 @@ function formatCustomCss(block: PageBlock): string[] {
   return [`.${blockClass(block.id)} {\n  ${css}\n}`];
 }
 
-function renderPageJs(page: PublishedPage, site?: SailorSite | null): string {
+function renderPageJs(page: PublishedPage, site?: FabricSite | null): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
   const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page, site) : "";
   return [actionRuntime, ...scripts].filter(Boolean).join("\n");
 }
 
-function renderSiteCss(page: PublishedPage, site?: SailorSite | null): string {
+function renderSiteCss(page: PublishedPage, site?: FabricSite | null): string {
   return renderPageLocalFiles(site, "css", pageFileSlug(page));
 }
 
-function renderPageLocalFiles(site: SailorSite | null | undefined, extension: "css" | "js", slug?: string): string {
+function renderPageLocalFiles(site: FabricSite | null | undefined, extension: "css" | "js", slug?: string): string {
   if (!site || !slug) return "";
   return (site?.files ?? [])
     .filter((file) => file.kind === "file" && file.path.startsWith(`pages/${slug}/`) && file.path.endsWith(`.${extension}`))
@@ -267,12 +267,12 @@ function renderBaseCss(): string {
   return [
     "html { width: 100%; height: 100%; }",
     "body { box-sizing: border-box; }",
-    ".sailor-page-block { box-sizing: border-box; }",
-    ":where(input.sailor-page-block, button.sailor-page-block, textarea.sailor-page-block, select.sailor-page-block) { font: inherit; }",
+    ".fabric-page-block { box-sizing: border-box; }",
+    ":where(input.fabric-page-block, button.fabric-page-block, textarea.fabric-page-block, select.fabric-page-block) { font: inherit; }",
   ].join("\n");
 }
 
-function renderSiteFontFaces(site?: SailorSite | null): string {
+function renderSiteFontFaces(site?: FabricSite | null): string {
   return (site?.files ?? [])
     .filter((file) => file.kind === "asset" && isFontAsset(file.path, file.mimeType) && file.url && isSafeMediaUrl(file.url))
     .map((file) => {
@@ -301,7 +301,7 @@ function isFontAsset(path: string, mimeType = ""): boolean {
 
 function fontFamilyFromAssetPath(path: string): string {
   const filename = path.split(/[\\/]/).pop() ?? path;
-  return filename.replace(/\.(woff2?|ttf|otf)$/i, "").replace(/[_-]+/g, " ").trim() || "Sailor Font";
+  return filename.replace(/\.(woff2?|ttf|otf)$/i, "").replace(/[_-]+/g, " ").trim() || "Fabric Font";
 }
 
 function fontFormat(path: string): string {
@@ -311,7 +311,7 @@ function fontFormat(path: string): string {
   return "truetype";
 }
 
-function renderSiteJs(page: PublishedPage, site?: SailorSite | null): string {
+function renderSiteJs(page: PublishedPage, site?: FabricSite | null): string {
   return renderPageLocalFiles(site, "js", pageFileSlug(page));
 }
 
@@ -323,7 +323,7 @@ function hasPageActions(blocks: PageBlock[]): boolean {
   return blocks.some((block) => block.action || hasPageActions(block.children ?? []));
 }
 
-function renderActionRuntime(page: PublishedPage, site?: SailorSite | null): string {
+function renderActionRuntime(page: PublishedPage, site?: FabricSite | null): string {
   return [
     `;(() => {`,
     `  const slug = ${JSON.stringify(page.slug)};`,
@@ -332,7 +332,7 @@ function renderActionRuntime(page: PublishedPage, site?: SailorSite | null): str
     `  let executionId = "";`,
     `  let runtimeError = "";`,
     `  const status = document.createElement("div");`,
-    `  status.setAttribute("data-sailor-runtime-status", "");`,
+    `  status.setAttribute("data-fabric-runtime-status", "");`,
     `  document.body.appendChild(status);`,
     `  function updateStatus() {`,
     `    status.textContent = runtimeError || (executionId ? "Accepted: " + executionId : "");`,
@@ -363,17 +363,17 @@ function renderActionRuntime(page: PublishedPage, site?: SailorSite | null): str
     `  }`,
     `  document.addEventListener("submit", (event) => {`,
     `    const form = event.target;`,
-    `    const actionId = form?.dataset?.sailorActionId;`,
+    `    const actionId = form?.dataset?.fabricActionId;`,
     `    if (!actionId) return;`,
     `    event.preventDefault();`,
     `    submitAction(actionId, Object.fromEntries(new FormData(form).entries()));`,
     `  });`,
     `  document.addEventListener("click", (event) => {`,
-    `    const actionElement = event.target?.closest?.("[data-sailor-action-id]");`,
+    `    const actionElement = event.target?.closest?.("[data-fabric-action-id]");`,
     `    if (!actionElement || actionElement.tagName.toLowerCase() === "form") return;`,
-    `    const actionId = actionElement.dataset.sailorActionId;`,
+    `    const actionId = actionElement.dataset.fabricActionId;`,
     `    if (!actionId) return;`,
-    `    if (actionElement.dataset.sailorActionType === "openUrl") return;`,
+    `    if (actionElement.dataset.fabricActionType === "openUrl") return;`,
     `    event.preventDefault();`,
     `    submitAction(actionId, {});`,
     `  });`,
@@ -406,7 +406,7 @@ function sanitizeClassName(className: unknown): string {
 }
 
 function blockClass(id: string): string {
-  return `sailor-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+  return `fabric-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
 }
 
 function propToAttributeName(prop: string): string {
@@ -441,7 +441,7 @@ function containsDangerousCss(value: string): boolean {
   return DANGEROUS_CSS_PATTERN.test(value);
 }
 
-function resolveImageSrc(src: string, site?: SailorSite | null): string {
+function resolveImageSrc(src: string, site?: FabricSite | null): string {
   if (!src.startsWith("assets/") || !site) return src;
   const assetPath = src.slice("assets/".length);
   if (!assetPath || assetPath.includes("..") || assetPath.includes("\\") || assetPath.startsWith("/")) return src;

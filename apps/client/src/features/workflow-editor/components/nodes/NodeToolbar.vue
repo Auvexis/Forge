@@ -83,7 +83,7 @@ function toggleDisabled() {
   padding: 3px 5px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity var(--sailor-duration-fast);
+  transition: opacity var(--fabric-duration-fast);
   white-space: nowrap;
   z-index: 20;
 }
@@ -101,34 +101,34 @@ function toggleDisabled() {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
   border: none;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   transition:
-    background-color var(--sailor-duration-fast),
-    color var(--sailor-duration-fast);
+    background-color var(--fabric-duration-fast),
+    color var(--fabric-duration-fast);
 }
 
 .nt-btn:hover {
-  background-color: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background-color: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 /* Output button when node errored */
 .nt-btn--error {
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 
 .nt-btn--error:hover {
   background-color: rgba(245, 158, 11, 0.1);
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 
 /* Delete button */
 .nt-btn--danger:hover {
   background-color: rgba(239, 68, 68, 0.1);
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 </style>

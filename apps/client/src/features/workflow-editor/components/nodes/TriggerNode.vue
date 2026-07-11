@@ -35,7 +35,7 @@ const toast = useToast()
 const { isDark } = useTheme()
 const selectedPlugin = ref<PluginSummary | null>(null)
 const pluginIcon = ref('plug')
-const pluginIconColor = ref('var(--sailor-node-plugin-icon)')
+const pluginIconColor = ref('var(--fabric-node-plugin-icon)')
 
 const triggerData = computed<WorkflowTrigger | undefined>(() => {
   const data = props.data as unknown as TriggerNode | WorkflowTrigger
@@ -51,9 +51,9 @@ const triggerConfig = computed(() => {
       icon: 'mouse-pointer-2',
       title: 'Manual Trigger',
       subtitle: null,
-      color: 'var(--sailor-text-primary)',
-      bg: 'var(--sailor-node-body)',
-      borderColor: 'var(--sailor-node-border)',
+      color: 'var(--fabric-text-primary)',
+      bg: 'var(--fabric-node-body)',
+      borderColor: 'var(--fabric-node-border)',
     },
     webhook: {
       icon: 'webhook',
@@ -84,8 +84,8 @@ const triggerConfig = computed(() => {
       title: 'Plugin Trigger',
       subtitle: pluginTriggerEventLabel.value,
       color: pluginIconColor.value,
-      bg: 'var(--sailor-node-plugin-bg)',
-      borderColor: 'var(--sailor-node-plugin-border)',
+      bg: 'var(--fabric-node-plugin-bg)',
+      borderColor: 'var(--fabric-node-plugin-border)',
     },
     chat: {
       icon: 'message-circle',
@@ -146,7 +146,7 @@ async function loadSelectedPlugin() {
   const pluginId = triggerData.value?.type === 'plugin' ? triggerData.value.pluginId : undefined
   selectedPlugin.value = null
   pluginIcon.value = 'plug'
-  pluginIconColor.value = 'var(--sailor-node-plugin-icon)'
+  pluginIconColor.value = 'var(--fabric-node-plugin-icon)'
   if (!pluginId) return
 
   try {
@@ -156,7 +156,7 @@ async function loadSelectedPlugin() {
       isDark: isDark.value,
       fallback: 'plug',
     })
-    pluginIconColor.value = plugin.manifest.metadata.style?.iconColor ?? 'var(--sailor-node-plugin-icon)'
+    pluginIconColor.value = plugin.manifest.metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)'
   } catch (err) {
     console.warn(`Failed to load plugin trigger icon for ${pluginId}`, err)
   }
@@ -322,7 +322,7 @@ const onQuickAdd = (event: MouseEvent) => {
   position: relative;
   width: 100px;
   height: 100px;
-  background-color: var(--sailor-node-body);
+  background-color: var(--fabric-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
   border: 2px solid var(--trigger-border, #3c3c3c);
   border-radius: 50px 16px 16px 50px;
@@ -342,7 +342,7 @@ const onQuickAdd = (event: MouseEvent) => {
   border-color: color-mix(
     in srgb,
     var(--trigger-border, #3c3c3c) 80%,
-    var(--sailor-text-primary) 20%
+    var(--fabric-text-primary) 20%
   );
 }
 
@@ -363,7 +363,7 @@ const onQuickAdd = (event: MouseEvent) => {
   border-color: color-mix(
     in srgb,
     var(--trigger-border, #3c3c3c) 80%,
-    var(--sailor-text-primary) 20%
+    var(--fabric-text-primary) 20%
   );
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.5),
@@ -371,11 +371,11 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .trigger-node.is-running {
-  border-color: var(--sailor-amber-400);
+  border-color: var(--fabric-amber-400);
 }
 
 .trigger-node.is-waiting {
-  border-color: var(--sailor-purple-400, #8b5cf6);
+  border-color: var(--fabric-purple-400, #8b5cf6);
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.5),
     0 0 0 3px rgba(139, 92, 246, 0.2);
@@ -383,11 +383,11 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .trigger-node.is-success {
-  border-color: var(--sailor-green-400);
+  border-color: var(--fabric-green-400);
 }
 
 .trigger-node.is-failed {
-  border-color: var(--sailor-red-400);
+  border-color: var(--fabric-red-400);
 }
 
 .trigger-node.is-disabled {
@@ -411,12 +411,12 @@ const onQuickAdd = (event: MouseEvent) => {
   top: 50%;
   left: -50px;
   transform: translateY(-50%);
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   opacity: 0.9;
   display: flex;
   align-items: center;
   line-height: 1;
-  transition: opacity 0.2s var(--sailor-ease-standard);
+  transition: opacity 0.2s var(--fabric-ease-standard);
 }
 
 .trigger-node:hover .trigger-node__lightning {
@@ -484,7 +484,7 @@ const onQuickAdd = (event: MouseEvent) => {
 .trigger-node__label-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   line-height: 1.3;
   max-width: 140px;
   white-space: nowrap;
@@ -495,7 +495,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 .trigger-node__label-subtitle {
   font-size: 11px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   text-align: center;
   margin-top: 2px;
   max-width: 140px;
@@ -519,15 +519,15 @@ const onQuickAdd = (event: MouseEvent) => {
 .trigger-node__quick-add-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--sailor-node-handle);
+  background-color: var(--fabric-node-handle);
   transition: background-color 0.2s;
 }
 
 .trigger-node__quick-add-btn {
-  border-radius: var(--sailor-radius-sm);
-  background-color: var(--sailor-node-border);
-  border: 2px solid var(--sailor-border-strong);
-  color: var(--sailor-text-primary);
+  border-radius: var(--fabric-radius-sm);
+  background-color: var(--fabric-node-border);
+  border: 2px solid var(--fabric-border-strong);
+  color: var(--fabric-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

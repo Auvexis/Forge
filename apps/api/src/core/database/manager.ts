@@ -1,20 +1,20 @@
 import Database from "better-sqlite3";
 import path from "path";
-import { ensureSailorHomeStructure, sailorHomePaths } from "../runtime/sailor-home.ts";
-import { prepareSailorDataDirectory } from "../runtime/sailor-data-directory.ts";
+import { ensureFabricHomeStructure, fabricHomePaths } from "../runtime/fabric-home.ts";
+import { prepareFabricDataDirectory } from "../runtime/fabric-data-directory.ts";
 
 // ─── Resolve data directory ───────────────────────────────────────────────────
 
-ensureSailorHomeStructure(sailorHomePaths);
-const dataPreparation = prepareSailorDataDirectory({ dataDir: sailorHomePaths.dataDir });
+ensureFabricHomeStructure(fabricHomePaths);
+const dataPreparation = prepareFabricDataDirectory({ dataDir: fabricHomePaths.dataDir });
 
 if (dataPreparation.copied) {
   console.log(
-    `[SAILOR | RUNTIME]: Copied legacy databases into ${sailorHomePaths.dataDir}: ${dataPreparation.files.join(", ")}`,
+    `[FABRIC | RUNTIME]: Copied legacy databases into ${fabricHomePaths.dataDir}: ${dataPreparation.files.join(", ")}`,
   );
 }
 
-const DATA_DIR = sailorHomePaths.dataDir;
+const DATA_DIR = fabricHomePaths.dataDir;
 
 // ─── Factory ──────────────────────────────────────────────────────────────────
 
@@ -35,7 +35,7 @@ function openDatabase(filename: string): Database.Database {
 /**
  * Central Database Manager.
  *
- * Each key maps to an isolated SQLite file in SAILOR_HOME/data.
+ * Each key maps to an isolated SQLite file in FABRIC_HOME/data.
  * Consumers import this object instead of opening their own connections.
  *
  * @example

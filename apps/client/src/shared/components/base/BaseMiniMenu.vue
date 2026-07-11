@@ -4,7 +4,7 @@
       <div v-if="isOpen" class="bmm-overlay" @click.self="$emit('close')">
         <div class="bmm-dialog" :style="{ maxWidth, maxHeight }">
           <div class="bmm-header">
-            <div style="display: flex; align-items: center; gap: var(--sailor-space-3)">
+            <div style="display: flex; align-items: center; gap: var(--fabric-space-3)">
               <img v-if="logo && isUrl(logo)" :src="logo" alt="Logo" class="bmm-logo" />
               <LucideIcon v-else-if="icon" :name="icon" :size="18" style="opacity: 0.7;" />
               <h1 v-if="title" class="bmm-title">{{ title }}</h1>
@@ -75,9 +75,9 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 
 .bmm-dialog {
   width: 100%;
-  background: var(--sailor-bg-base);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  background: var(--fabric-bg-base);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   display: flex;
   flex-direction: column;
@@ -89,15 +89,15 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   align-items: center;
   justify-content: space-between;
   padding: 0.5rem 1.25rem;
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-base);
 }
 
 .bmm-title {
   margin: 0;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .bmm-logo {
@@ -117,8 +117,8 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 
 .bmm-footer {
   padding: 1rem 1.25rem;
-  border-top: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  border-top: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
   display: flex;
   align-items: center;
   justify-content: flex-end;

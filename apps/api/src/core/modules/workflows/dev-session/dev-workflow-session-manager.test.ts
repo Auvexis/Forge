@@ -418,7 +418,7 @@ describe("DevWorkflowSessionManager", () => {
         name: "Plugin A",
         trigger: {
           type: "plugin",
-          pluginId: "sailor.test",
+          pluginId: "fabric.test",
           triggerName: "message",
           webhookPath: "plugin-hook",
         },
@@ -454,7 +454,7 @@ describe("DevWorkflowSessionManager", () => {
         name: "Plugin A",
         trigger: {
           type: "plugin",
-          pluginId: "sailor.test",
+          pluginId: "fabric.test",
           triggerName: "message",
           webhookPath: "plugin-hook",
         },
@@ -488,7 +488,7 @@ describe("DevWorkflowSessionManager", () => {
         name: "Plugin A",
         trigger: {
           type: "plugin",
-          pluginId: "sailor.test",
+          pluginId: "fabric.test",
           triggerName: "message",
           webhookPath: "plugin-hook",
         },

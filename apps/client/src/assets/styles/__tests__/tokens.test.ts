@@ -6,20 +6,20 @@ const tokensCss = readFileSync(new URL('../tokens.css', import.meta.url), 'utf8'
 
 describe('layout color tokens', () => {
   const tokenNames = [
-    '--sailor-sidebar-bg',
-    '--sailor-sidebar-border',
-    '--sailor-sidebar-divider',
-    '--sailor-sidebar-text',
-    '--sailor-sidebar-text-muted',
-    '--sailor-sidebar-link-text',
-    '--sailor-topbar-bg',
-    '--sailor-topbar-border',
-    '--sailor-topbar-search-bg',
-    '--sailor-topbar-search-border',
-    '--sailor-topbar-search-text',
-    '--sailor-topbar-search-hover-text',
-    '--sailor-topbar-search-hover-bg',
-    '--sailor-topbar-kbd-bg',
+    '--fabric-sidebar-bg',
+    '--fabric-sidebar-border',
+    '--fabric-sidebar-divider',
+    '--fabric-sidebar-text',
+    '--fabric-sidebar-text-muted',
+    '--fabric-sidebar-link-text',
+    '--fabric-topbar-bg',
+    '--fabric-topbar-border',
+    '--fabric-topbar-search-bg',
+    '--fabric-topbar-search-border',
+    '--fabric-topbar-search-text',
+    '--fabric-topbar-search-hover-text',
+    '--fabric-topbar-search-hover-bg',
+    '--fabric-topbar-kbd-bg',
   ]
 
   it('defines sidebar and topbar color tokens for dark and light themes', () => {

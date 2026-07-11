@@ -20,8 +20,8 @@ const isLongTermMemory = computed(() => props.data?.adapter === 'plugin-memory-s
 const subtitle = computed(() => isLongTermMemory.value ? `${scope.value} long-term memory` : 'short-term memory')
 const pluginId = computed(() => (props.data as any)?.pluginId || provider.value)
 const defaultMemoryIcon = computed(() => {
-  if (pluginId.value === 'sailor-postgresql') return 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg'
-  if (pluginId.value === 'sailor-supabase') return 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/supabase.svg'
+  if (pluginId.value === 'fabric-postgresql') return 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/postgresql.svg'
+  if (pluginId.value === 'fabric-supabase') return 'https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/supabase.svg'
   return 'database'
 })
 
@@ -65,9 +65,9 @@ watch(() => isDark.value, loadPluginAppearance)
       :title="stepTitle"
       :subtitle="subtitle"
       :icon="pluginIcon"
-      :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
-      :bg="customBg || 'var(--sailor-node-plugin-bg)'"
-      :border-color="customBorder || 'var(--sailor-node-plugin-border)'"
+      :color="customIconColor || 'var(--fabric-node-plugin-icon)'"
+      :bg="customBg || 'var(--fabric-node-plugin-bg)'"
+      :border-color="customBorder || 'var(--fabric-node-plugin-border)'"
       :handlers="[CONFIGURATION_SOURCE_HANDLER]"
       rounded="full"
       width="100px"
@@ -81,12 +81,12 @@ watch(() => isDark.value, loadPluginAppearance)
   position: relative;
 }
 
-.agent-config-node :deep(.sailor-base-node__icon-box svg) {
+.agent-config-node :deep(.fabric-base-node__icon-box svg) {
   width: 34px;
   height: 34px;
 }
 
-.agent-config-node :deep(.sailor-base-handle) {
+.agent-config-node :deep(.fabric-base-handle) {
   pointer-events: all;
 }
 </style>

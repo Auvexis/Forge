@@ -8,16 +8,16 @@ import { loadOrCreateAuvexisLocalSecret } from "./auvexis-local-secret.ts";
 
 describe("Auvexis local secret", () => {
   it("creates and reuses a local installation secret", () => {
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-auvexis-home-"));
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-auvexis-home-"));
 
-    const first = loadOrCreateAuvexisLocalSecret({ sailorHome });
-    const second = loadOrCreateAuvexisLocalSecret({ sailorHome });
+    const first = loadOrCreateAuvexisLocalSecret({ fabricHome });
+    const second = loadOrCreateAuvexisLocalSecret({ fabricHome });
 
     assert.equal(first, second);
     assert.equal(Buffer.byteLength(first, "utf8") >= 32, true);
 
     const raw = fs.readFileSync(
-      path.join(sailorHome, "global", "auvexis-account-secret"),
+      path.join(fabricHome, "global", "auvexis-account-secret"),
       "utf8",
     );
     assert.equal(raw.trim(), first);

@@ -439,8 +439,8 @@ function validateNode(workflow: WorkflowItem, nodeId: string, node: WorkflowItem
             ? `AI Memory node "${nodeId}" plugin-memory-store must have pluginId, searchMethodId, and putMethodId`
             : null;
         }
-        return memoryNode.adapter && memoryNode.adapter !== "sailor-internal"
-          ? `AI Memory node "${nodeId}" must have a supported adapter: sailor-internal or plugin-memory-store`
+        return memoryNode.adapter && memoryNode.adapter !== "fabric-internal"
+          ? `AI Memory node "${nodeId}" must have a supported adapter: fabric-internal or plugin-memory-store`
           : null;
       }
     case "ai-tool":

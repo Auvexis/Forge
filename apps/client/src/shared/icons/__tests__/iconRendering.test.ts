@@ -19,7 +19,7 @@ describe('icon rendering', () => {
     ].join('\n')
 
     assert.equal(isIconUrl(ollamaIcon), true)
-    assert.doesNotMatch(iconSources, /isTintableExternalIcon|lucide-icon-mask|--sailor-icon-mask/)
+    assert.doesNotMatch(iconSources, /isTintableExternalIcon|lucide-icon-mask|--fabric-icon-mask/)
   })
 
   it('treats plugin-relative icon assets as images and keeps lucide names as icons', () => {

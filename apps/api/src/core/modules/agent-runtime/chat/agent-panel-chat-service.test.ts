@@ -85,7 +85,7 @@ describe("agent panel chat service", () => {
   });
 
   it("uses the file store for panel sessions when no chat database is injected", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-chat-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-panel-chat-"));
     const store = new AgentChatFileStore({ profilesDir: path.join(root, "profiles") });
     const service = new AgentPanelChatService({ chatFileStore: store });
 
@@ -120,7 +120,7 @@ describe("agent panel chat service", () => {
   });
 
   it("passes uploaded chat attachments as opaque agent file refs and cleans chat cache after success", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-attachments-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-panel-attachments-"));
     const service = serviceFixture({ profilesDir: path.join(root, "profiles") });
     const session = await service.createSession({
       profileId: "profile_a",
@@ -155,7 +155,7 @@ describe("agent panel chat service", () => {
   });
 
   it("cleans uploaded chat attachment cache after failed agent execution", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-panel-attachments-failed-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-panel-attachments-failed-"));
     const service = failingServiceFixture({ profilesDir: path.join(root, "profiles") });
     const session = await service.createSession({
       profileId: "profile_a",
@@ -595,7 +595,7 @@ describe("agent panel chat service", () => {
   });
 
   it("delete session deletes only session scoped memory", async () => {
-    const profilesDir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "sailor-memory-")), "profiles");
+    const profilesDir = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "fabric-memory-")), "profiles");
     const service = serviceFixture({ profilesDir });
     const session = await service.createSession({
       profileId: "profile_a",

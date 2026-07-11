@@ -2,7 +2,7 @@ import { PluginManager } from "../plugins/manager.ts";
 import type { AgentToolSideEffect } from "./agent-types.ts";
 import type { AgentToolSelection } from "./plan/agent-plan-types.ts";
 
-export interface SailorAgentToolDefinition {
+export interface FabricAgentToolDefinition {
   name: string;
   description: string;
   instructions?: string;
@@ -27,8 +27,8 @@ interface AgentToolManifestMetadata {
   selection?: AgentToolSelection;
 }
 
-export function listPluginAgentTools(): SailorAgentToolDefinition[] {
-  const tools: SailorAgentToolDefinition[] = [];
+export function listPluginAgentTools(): FabricAgentToolDefinition[] {
+  const tools: FabricAgentToolDefinition[] = [];
 
   for (const plugin of PluginManager.getPlugins()) {
     for (const methodId of Object.keys(plugin.manifest.methods ?? {})) {
@@ -45,7 +45,7 @@ export function listPluginAgentTools(): SailorAgentToolDefinition[] {
 export function resolvePluginAgentTool(
   pluginId: string,
   methodId: string,
-): SailorAgentToolDefinition {
+): FabricAgentToolDefinition {
   const plugin = PluginManager.getPlugin(pluginId);
   const methodManifest = (plugin.manifest.methods as Record<string, any>)?.[methodId];
 
@@ -68,7 +68,7 @@ function toToolDefinition(
   pluginName: string | undefined,
   methodId: string,
   methodManifest: Record<string, any>,
-): SailorAgentToolDefinition {
+): FabricAgentToolDefinition {
   const metadata = methodManifest.agentTool as AgentToolManifestMetadata;
   return {
     name: normalizeToolName(metadata.name ?? `${pluginId}_${methodId}`),

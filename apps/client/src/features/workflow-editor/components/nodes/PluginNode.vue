@@ -75,8 +75,8 @@ const remainingParams = computed(() => Math.max(0, paramEntries.value.length - 3
     :title="pluginName"
     :subtitle="subtitle"
     :icon="pluginIcon"
-    :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
-    :bg="customBg || 'var(--sailor-node-plugin-bg)'"
-    :border-color="customBorder || 'var(--sailor-node-plugin-border)'"
+    :color="customIconColor || 'var(--fabric-node-plugin-icon)'"
+    :bg="customBg || 'var(--fabric-node-plugin-bg)'"
+    :border-color="customBorder || 'var(--fabric-node-plugin-border)'"
   />
 </template>

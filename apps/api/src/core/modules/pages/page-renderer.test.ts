@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 
 import { renderPageBody, renderPageCss, renderPublishedPage } from "./page-renderer.ts";
 import type { PublishedPage } from "./page-types.ts";
-import type { SailorSite } from "./site-types.ts";
+import type { FabricSite } from "./site-types.ts";
 
 function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
   return {
@@ -29,7 +29,7 @@ function publishedPage(overrides: Partial<PublishedPage> = {}): PublishedPage {
   };
 }
 
-function sailorSite(overrides: Partial<SailorSite> = {}): SailorSite {
+function fabricSite(overrides: Partial<FabricSite> = {}): FabricSite {
   return {
     id: "site_default_profile_a",
     publicId: "public_contact",
@@ -77,7 +77,7 @@ describe("page renderer", () => {
       },
     ]);
 
-    assert.match(html, /class="sailor-page-block sailor-block-link_1 safe-class badscript"/);
+    assert.match(html, /class="fabric-page-block fabric-block-link_1 safe-class badscript"/);
     assert.match(html, /&lt;Click&gt;/);
     assert.match(html, /href="https:\/\/example.com\?a=&lt;bad&gt;"/);
   });
@@ -111,7 +111,7 @@ describe("page renderer", () => {
       }),
     );
 
-    assert.match(css, /\.sailor-block-section_1 \{/);
+    assert.match(css, /\.fabric-block-section_1 \{/);
     assert.match(css, /padding: 24px;/);
     assert.match(css, /font-family: Inter, Arial, sans-serif;/);
     assert.match(css, /position: fixed;/);
@@ -139,7 +139,7 @@ describe("page renderer", () => {
     const css = renderPageCss(page);
 
     assert.match(html, /id="hero"/);
-    assert.match(html, /class="sailor-page-block sailor-block-section_1 hero-section"/);
+    assert.match(html, /class="fabric-page-block fabric-block-section_1 hero-section"/);
     assert.match(html, /data-test-id="hero"/);
     assert.match(html, /aria-live="polite"/);
     assert.match(html, /document\.querySelector/);
@@ -147,7 +147,7 @@ describe("page renderer", () => {
     assert.match(css, /javascript:devOnly/);
   });
 
-  it("renders forms with data-sailor-action-id", () => {
+  it("renders forms with data-fabric-action-id", () => {
     const html = renderPageBody([
       {
         id: "form_1",
@@ -158,7 +158,7 @@ describe("page renderer", () => {
     ]);
 
     assert.match(html, /<form/);
-    assert.match(html, /data-sailor-action-id="action_submit"/);
+    assert.match(html, /data-fabric-action-id="action_submit"/);
   });
 
   it("renders action runtime inside the standalone HTML document", () => {
@@ -184,7 +184,7 @@ describe("page renderer", () => {
     assert.doesNotMatch(html, /eval\(/);
   });
 
-  it("renders buttons with data-sailor-action-id", () => {
+  it("renders buttons with data-fabric-action-id", () => {
     const html = renderPageBody([
       {
         id: "button_1",
@@ -196,7 +196,7 @@ describe("page renderer", () => {
     ]);
 
     assert.match(html, /<button/);
-    assert.match(html, /data-sailor-action-id="action_run"/);
+    assert.match(html, /data-fabric-action-id="action_run"/);
   });
 
   it("never renders script from page content", () => {
@@ -221,7 +221,7 @@ describe("page renderer", () => {
   it("renders safe page-local css and js files with published pages", () => {
     const html = renderPublishedPage(
       publishedPage({ slug: "contact" }),
-      sailorSite({
+      fabricSite({
         files: [
           { path: "pages/contact/site.css", kind: "file", content: "body { margin: 0; }", updatedAt: "now" },
           { path: "pages/contact/bad.css", kind: "file", content: "body { background: url(javascript:alert(1)); }", updatedAt: "now" },
@@ -254,7 +254,7 @@ describe("page renderer", () => {
           },
         ],
       }),
-      sailorSite(),
+      fabricSite(),
     );
 
     assert.match(html, /src="\/sites\/site_default_profile_a\/assets\/logo.png"/);
@@ -305,9 +305,9 @@ describe("page renderer", () => {
     );
 
     assert.match(html, /style="margin: 0; width: 100vw; min-height: 100vh; display: flex; align-items: stretch; overflow: hidden; height: 100vh;"/);
-    assert.match(html, /\.sailor-block-left_panel \{\n  width: 40%;\n  height: 100%;\n  background-color: #42d328;\n}/);
+    assert.match(html, /\.fabric-block-left_panel \{\n  width: 40%;\n  height: 100%;\n  background-color: #42d328;\n}/);
     assert.match(html, /html \{ width: 100%; height: 100%; }/);
-    assert.match(html, /\.sailor-page-block \{ box-sizing: border-box; }/);
+    assert.match(html, /\.fabric-page-block \{ box-sizing: border-box; }/);
   });
 
   it("normalizes common font family names and emits uploaded font faces", () => {
@@ -329,7 +329,7 @@ describe("page renderer", () => {
           },
         ],
       }),
-      sailorSite({
+      fabricSite({
         files: [
           {
             path: "assets/Brand_Inter.woff2",
@@ -345,7 +345,7 @@ describe("page renderer", () => {
     assert.match(html, /@font-face \{ font-family: "Brand Inter"; src: url\("\/sites\/site_default_profile_a\/assets\/Brand_Inter\.woff2"\) format\("woff2"\); font-display: swap; }/);
     assert.match(html, /font-family: "Inter", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;/);
     assert.match(html, /font-family: "Brand Inter";/);
-    assert.match(html, /:where\(input\.sailor-page-block, button\.sailor-page-block, textarea\.sailor-page-block, select\.sailor-page-block\) \{ font: inherit; }/);
-    assert.doesNotMatch(html, /input\.sailor-page-block, button\.sailor-page-block, textarea\.sailor-page-block, select\.sailor-page-block \{ font: inherit; }/);
+    assert.match(html, /:where\(input\.fabric-page-block, button\.fabric-page-block, textarea\.fabric-page-block, select\.fabric-page-block\) \{ font: inherit; }/);
+    assert.doesNotMatch(html, /input\.fabric-page-block, button\.fabric-page-block, textarea\.fabric-page-block, select\.fabric-page-block \{ font: inherit; }/);
   });
 });

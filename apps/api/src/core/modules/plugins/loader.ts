@@ -3,11 +3,11 @@ import path from "path";
 import fs from "fs";
 import AjvModule from "ajv";
 import addFormatsModule from "ajv-formats";
-import { manifestSchema } from "@auvexis/sailor-sdk";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import { manifestSchema } from "@auvexis/fabric-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 import type Database from "better-sqlite3";
 import { PluginManager } from "./manager.ts";
-import { sailorHomePaths } from "../../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../../runtime/fabric-home.ts";
 import {
   isPluginEnabled,
   getPluginRegistryDatabase,
@@ -16,7 +16,7 @@ import {
 } from "./plugin-registry.ts";
 
 interface PluginManagerLike {
-  registerPlugin(plugin: SailorPlugin): void;
+  registerPlugin(plugin: FabricPlugin): void;
 }
 
 interface PluginLoaderLogger {
@@ -25,7 +25,7 @@ interface PluginLoaderLogger {
   error(message: string, error?: unknown): void;
 }
 
-type PluginImporter = (entrypoint: string) => Promise<SailorPlugin>;
+type PluginImporter = (entrypoint: string) => Promise<FabricPlugin>;
 
 const AjvCtor = AjvModule as any;
 const addFormats = addFormatsModule as any;
@@ -39,7 +39,7 @@ const agentToolSideEffects = [
   "filesystem",
 ] as const;
 
-function buildSailorManifestSchema(): any {
+function buildFabricManifestSchema(): any {
   const schema = structuredClone(manifestSchema as any);
   const metadataDefinition = schema.properties.metadata;
   const methodDefinition = schema.$defs.MethodDefinition;
@@ -88,7 +88,7 @@ function buildSailorManifestSchema(): any {
         additionalProperties: false,
         properties: {
           enabled: { type: "boolean" },
-          adapter: { enum: ["sailor-internal", "plugin-memory-store"] },
+          adapter: { enum: ["fabric-internal", "plugin-memory-store"] },
           label: { type: "string", minLength: 2, maxLength: 120 },
           description: { type: "string", minLength: 20, maxLength: 1000 },
           searchMethodId: { type: "string", minLength: 1, maxLength: 120 },
@@ -181,7 +181,7 @@ const ajv = new AjvCtor({
   strict: false,
 });
 addFormats(ajv);
-const validateSailorManifest = ajv.compile(buildSailorManifestSchema());
+const validateFabricManifest = ajv.compile(buildFabricManifestSchema());
 
 function formatPath(error: any): string {
   const instancePath = String(error.instancePath ?? "").replace(/^\//, "").replace(/\//g, ".");
@@ -240,9 +240,9 @@ const defaultLogger: PluginLoaderLogger = {
 };
 
 export function validateManifest(manifest: any): string[] {
-  return validateSailorManifest(manifest)
+  return validateFabricManifest(manifest)
     ? []
-    : (validateSailorManifest.errors ?? []).map(formatValidationError);
+    : (validateFabricManifest.errors ?? []).map(formatValidationError);
 }
 
 function findPluginEntrypoints(dir: string): string[] {
@@ -272,9 +272,9 @@ function findPluginEntrypoints(dir: string): string[] {
   return entrypoints;
 }
 
-async function importPlugin(entrypoint: string): Promise<SailorPlugin> {
+async function importPlugin(entrypoint: string): Promise<FabricPlugin> {
   const module = await import(pathToFileURL(entrypoint).href);
-  const plugin: SailorPlugin = module.default || module[Object.keys(module)[0]];
+  const plugin: FabricPlugin = module.default || module[Object.keys(module)[0]];
 
   if (!plugin.id) throw new Error("Missing plugin id");
   if (!plugin.manifest) throw new Error("Missing manifest");
@@ -312,7 +312,7 @@ async function loadSource(
       if (source === "external" && internalIds.has(runtimePlugin.id)) {
         result.skippedConflicts += 1;
         options.logger.warn(
-          `[SAILOR | PLUGINS]: Skipping external plugin ${runtimePlugin.id}; it conflicts with an internal plugin`,
+          `[FABRIC | PLUGINS]: Skipping external plugin ${runtimePlugin.id}; it conflicts with an internal plugin`,
         );
         continue;
       }
@@ -330,7 +330,7 @@ async function loadSource(
 
       if (!isPluginEnabled(options.registryDb, runtimePlugin.id)) {
         result.skippedDisabled += 1;
-        options.logger.info(`[SAILOR | PLUGINS]: Skipping disabled plugin ${runtimePlugin.id}`);
+        options.logger.info(`[FABRIC | PLUGINS]: Skipping disabled plugin ${runtimePlugin.id}`);
         continue;
       }
 
@@ -341,7 +341,7 @@ async function loadSource(
       }
     } catch (error) {
       result.failed += 1;
-      options.logger.error(`[SAILOR | PLUGINS]: Failed to load plugin from ${entrypoint}`, error);
+      options.logger.error(`[FABRIC | PLUGINS]: Failed to load plugin from ${entrypoint}`, error);
     }
   }
 }
@@ -354,8 +354,8 @@ export async function loadPlugins(options: LoadPluginsOptions = {}): Promise<Loa
     logger: options.logger ?? defaultLogger,
     pluginImporter: options.pluginImporter ?? importPlugin,
   };
-  const internalPluginsDir = options.internalPluginsDir ?? sailorHomePaths.internalPluginsDir;
-  const externalPluginsDir = options.externalPluginsDir ?? sailorHomePaths.globalPluginsDir;
+  const internalPluginsDir = options.internalPluginsDir ?? fabricHomePaths.internalPluginsDir;
+  const externalPluginsDir = options.externalPluginsDir ?? fabricHomePaths.globalPluginsDir;
   const result: LoadPluginsResult = {
     loaded: { internal: 0, external: 0 },
     failed: 0,
@@ -368,7 +368,7 @@ export async function loadPlugins(options: LoadPluginsOptions = {}): Promise<Loa
   await loadSource("external", externalPluginsDir, resolved, result, internalIds);
 
   resolved.logger.info(
-    `[SAILOR | PLUGINS]: Loaded ${result.loaded.internal} internal and ${result.loaded.external} external plugins`,
+    `[FABRIC | PLUGINS]: Loaded ${result.loaded.internal} internal and ${result.loaded.external} external plugins`,
   );
 
   return result;

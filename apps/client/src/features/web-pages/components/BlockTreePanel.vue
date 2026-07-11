@@ -151,7 +151,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 import { ref, watch } from 'vue'
-import type { PageBlock, SailorPageSummary } from '../types/page.types.ts'
+import type { PageBlock, FabricPageSummary } from '../types/page.types.ts'
 import { blockChildCount, blockDisplayName, type InsertPosition } from '../utils/blockTree.ts'
 import { resolveBlockDropIntent } from '../utils/dropIntent.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
@@ -160,7 +160,7 @@ const props = withDefaults(defineProps<{
   blocks: PageBlock[]
   selectedBlockId: string | null
   selectedBlockIds?: string[]
-  pages?: SailorPageSummary[]
+  pages?: FabricPageSummary[]
   activePageId?: string
 }>(), {
   pages: () => [],
@@ -237,7 +237,7 @@ function normalizeDraftBlockId(value: string) {
 }
 
 function onDragStart(event: DragEvent, blockId: string) {
-  event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ blockId }))
+  event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ blockId }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
   setDragPreview(event, blockId)
 }
@@ -249,7 +249,7 @@ function onDragOver(event: DragEvent, block: PageBlock) {
 }
 
 function onDrop(event: DragEvent, block: PageBlock) {
-  const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
+  const raw = event.dataTransfer?.getData('application/x-fabric-page-block')
   if (!raw) return
 
   const parsed = JSON.parse(raw) as { blockId?: string }

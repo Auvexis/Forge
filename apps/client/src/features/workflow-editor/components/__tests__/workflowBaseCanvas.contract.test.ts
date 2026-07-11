@@ -9,7 +9,7 @@ function read(relative: string) {
 
 describe('workflow BaseCanvas shell contract', () => {
   it('uses BaseCanvas as the workflow editor canvas without a migration flag', () => {
-    const source = read('SailorWorkflowCanvas.vue')
+    const source = read('FabricWorkflowCanvas.vue')
 
     assert.match(source, /WorkflowBaseCanvas/)
     assert.doesNotMatch(source, /shouldUseWorkflowBaseCanvas/)
@@ -24,7 +24,7 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(source, /workflowToBaseCanvasItems/)
     assert.match(source, /v-model:viewport="viewport"/)
     assert.match(source, /:items="workflowItems"/)
-    assert.match(source, /pattern-color="var\(--sailor-canvas-grid\)"/)
+    assert.match(source, /pattern-color="var\(--fabric-canvas-grid\)"/)
     assert.match(source, /@items-move="handleItemsMove"/)
     assert.match(source, /#item="\{ item \}"/)
   })

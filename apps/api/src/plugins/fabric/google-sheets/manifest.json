@@ -1,0 +1,745 @@
+{
+  "metadata": {
+    "id": "google-sheets",
+    "name": "Google Sheets",
+    "description": "List, read, append, update, clear, create, delete, find, and upsert rows in Google Sheets.",
+    "icon": "https://cdn.jsdelivr.net/gh/selfhst/icons/svg/google-sheets.svg",
+    "categories": [
+      "Apps",
+      "Data transformation"
+    ],
+    "author": "Fabric",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/fabric"
+  },
+  "methods": {
+    "listSpreadsheets": {
+      "metadata": {
+        "label": "List Spreadsheets",
+        "description": "Lists available spreadsheets."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {}
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_list_spreadsheets",
+        "description": "Lists available spreadsheets.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "listSheets": {
+      "metadata": {
+        "label": "List Sheets",
+        "description": "Lists sheets and metadata in a spreadsheet."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          }
+        },
+        "required": [
+          "spreadsheetId"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_list_sheets",
+        "description": "Lists sheets and metadata in a spreadsheet.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "readRows": {
+      "metadata": {
+        "label": "Read Rows",
+        "description": "Reads rows from a range."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "default": "Sheet1",
+            "x-label": "Range",
+            "x-input-type": "text"
+          },
+          "includeHeader": {
+            "type": "boolean",
+            "default": true,
+            "x-label": "First Row As Header",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "range"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_read_rows",
+        "description": "Reads rows from a range.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "appendRow": {
+      "metadata": {
+        "label": "Append Row",
+        "description": "Appends one row."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "default": "Sheet1",
+            "x-label": "Range",
+            "x-input-type": "text"
+          },
+          "values": {
+            "type": "string",
+            "x-label": "Values JSON Array",
+            "x-input-type": "json"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "range",
+          "values"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_append_row",
+        "description": "Allow an AI Agent to run Appends one row. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "appendRows": {
+      "metadata": {
+        "label": "Append Rows",
+        "description": "Appends multiple rows."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "default": "Sheet1",
+            "x-label": "Range",
+            "x-input-type": "text"
+          },
+          "rows": {
+            "type": "string",
+            "x-label": "Rows JSON Array",
+            "x-input-type": "json"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "range",
+          "rows"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_append_rows",
+        "description": "Appends multiple rows.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "updateRange": {
+      "metadata": {
+        "label": "Update Range",
+        "description": "Updates a range."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "x-label": "Range",
+            "x-input-type": "text"
+          },
+          "values": {
+            "type": "string",
+            "x-label": "Values JSON Array",
+            "x-input-type": "json"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "range",
+          "values"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_update_range",
+        "description": "Allow an AI Agent to run Updates a range. when explicitly enabled.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "clearRange": {
+      "metadata": {
+        "label": "Clear Range",
+        "description": "Clears a range with confirmation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "x-label": "Range",
+            "x-input-type": "text"
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "x-label": "Confirm Clear",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "range",
+          "confirm"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_clear_range",
+        "description": "Clears a range with confirmation.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "createSheet": {
+      "metadata": {
+        "label": "Create Sheet",
+        "description": "Creates a sheet tab."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "sheetName": {
+            "type": "string",
+            "x-label": "Sheet Name",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "sheetName"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_create_sheet",
+        "description": "Creates a sheet tab.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "deleteSheet": {
+      "metadata": {
+        "label": "Delete Sheet",
+        "description": "Deletes a sheet tab with confirmation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "sheetId": {
+            "type": "number",
+            "x-label": "Sheet ID",
+            "x-input-type": "number"
+          },
+          "confirm": {
+            "type": "boolean",
+            "default": false,
+            "x-label": "Confirm Delete",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "sheetId",
+          "confirm"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_delete_sheet",
+        "description": "Deletes a sheet tab with confirmation.",
+        "sideEffect": "delete",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "findRows": {
+      "metadata": {
+        "label": "Find Rows",
+        "description": "Finds rows by header key and value."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "range": {
+            "type": "string",
+            "default": "Sheet1",
+            "x-label": "Range",
+            "x-input-type": "text"
+          },
+          "keyColumn": {
+            "type": "string",
+            "x-label": "Key Column",
+            "x-input-type": "text"
+          },
+          "keyValue": {
+            "type": "string",
+            "x-label": "Key Value",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "range",
+          "keyColumn",
+          "keyValue"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object"
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_find_rows",
+        "description": "Finds rows by header key and value.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "upsertRowByKey": {
+      "metadata": {
+        "label": "Upsert Row By Key",
+        "description": "Updates a matching row or appends a new one."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "x-label": "Spreadsheet",
+            "x-input-type": "select",
+            "x-dynamic-options": {
+              "method": "listSpreadsheets",
+              "labelPath": "name",
+              "valuePath": "id"
+            }
+          },
+          "sheetName": {
+            "type": "string",
+            "default": "Sheet1",
+            "x-label": "Sheet Name",
+            "x-input-type": "text"
+          },
+          "keyColumn": {
+            "type": "string",
+            "x-label": "Key Column",
+            "x-input-type": "text"
+          },
+          "keyValue": {
+            "type": "string",
+            "x-label": "Key Value",
+            "x-input-type": "text"
+          },
+          "row": {
+            "type": "string",
+            "x-label": "Row JSON Object",
+            "x-input-type": "json"
+          }
+        },
+        "required": [
+          "spreadsheetId",
+          "sheetName",
+          "keyColumn",
+          "keyValue",
+          "row"
+        ]
+      },
+      "responseSchema": {
+        "type": "object"
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "google_sheets_upsert_row_by_key",
+        "description": "Updates a matching row or appends a new one.",
+        "sideEffect": "write",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    }
+  },
+  "triggers": {
+    "onRowAdded": {
+      "metadata": {
+        "label": "On Row Added",
+        "description": "Triggers when a row is added to a sheet."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "description": "Google Sheets spreadsheet ID.",
+            "x-label": "Spreadsheet ID",
+            "x-input-type": "text"
+          },
+          "sheetName": {
+            "type": "string",
+            "description": "Worksheet/tab name.",
+            "x-label": "Sheet Name",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "spreadsheetId"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onRowUpdated": {
+      "metadata": {
+        "label": "On Row Updated",
+        "description": "Triggers when a row is updated in a sheet."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "description": "Google Sheets spreadsheet ID.",
+            "x-label": "Spreadsheet ID",
+            "x-input-type": "text"
+          },
+          "sheetName": {
+            "type": "string",
+            "description": "Worksheet/tab name.",
+            "x-label": "Sheet Name",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "spreadsheetId"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onSheetChanged": {
+      "metadata": {
+        "label": "On Sheet Changed",
+        "description": "Triggers when sheet values change."
+      },
+      "delivery": {
+        "mode": "polling",
+        "recommendedPollSeconds": 60
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "spreadsheetId": {
+            "type": "string",
+            "description": "Google Sheets spreadsheet ID.",
+            "x-label": "Spreadsheet ID",
+            "x-input-type": "text"
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Only accept events for this provider resource ID, such as issue, file, row, video, page, or card ID.",
+            "x-label": "Resource ID",
+            "x-input-type": "text"
+          },
+          "eventAction": {
+            "type": "string",
+            "description": "Only accept this event action/operation. Example: created, updated, insert, failure.",
+            "x-label": "Event Action",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "spreadsheetId"
+        ]
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "resourceId": {
+            "type": "string",
+            "description": "Primary provider resource identifier."
+          },
+          "resourceType": {
+            "type": "string",
+            "description": "Provider resource type."
+          },
+          "action": {
+            "type": "string",
+            "description": "Provider event action."
+          },
+          "actorId": {
+            "type": "string",
+            "description": "User or actor identifier when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
+  }
+}

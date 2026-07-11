@@ -2,7 +2,7 @@ import type { AiToolNodeConfig, AgentToolSideEffect } from "./agent-types.ts";
 import {
   listPluginAgentTools,
   resolvePluginAgentTool,
-  type SailorAgentToolDefinition,
+  type FabricAgentToolDefinition,
 } from "./plugin-tool-adapter.ts";
 
 export interface AgentToolRegistryOptions {
@@ -16,11 +16,11 @@ export class AgentToolRegistry {
     this.requireApprovalForSideEffects = new Set(options.requireApprovalForSideEffects ?? []);
   }
 
-  listAvailableTools(): SailorAgentToolDefinition[] {
+  listAvailableTools(): FabricAgentToolDefinition[] {
     return listPluginAgentTools();
   }
 
-  resolveConfiguredTools(configs: AiToolNodeConfig[]): SailorAgentToolDefinition[] {
+  resolveConfiguredTools(configs: AiToolNodeConfig[]): FabricAgentToolDefinition[] {
     return configs.map((config) => {
       const definition = resolvePluginAgentTool(config.pluginId, config.methodId);
       const sideEffect = config.sideEffect ?? definition.sideEffect;

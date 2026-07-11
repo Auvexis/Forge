@@ -3,9 +3,9 @@ import { beforeEach, describe, it } from 'node:test'
 import { createPinia, setActivePinia } from 'pinia'
 
 import { useSitesStore, type SitesApiClient } from '../sites.store.ts'
-import type { SailorSite } from '../../types/page.types.ts'
+import type { FabricSite } from '../../types/page.types.ts'
 
-function site(overrides: Partial<SailorSite> = {}): SailorSite {
+function site(overrides: Partial<FabricSite> = {}): FabricSite {
   return {
     id: 'site_1',
     publicId: 'public_1',

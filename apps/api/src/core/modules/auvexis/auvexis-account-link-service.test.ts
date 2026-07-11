@@ -52,7 +52,7 @@ const oauthError = (code: AuvexisAccountsErrorCode) =>
   new AuvexisAccountsError(code, code);
 
 describe("Auvexis account link service", () => {
-  it("creates an OAuth authorization for the active Sailor profile", async () => {
+  it("creates an OAuth authorization for the active Fabric profile", async () => {
     const calls: unknown[] = [];
     const service = createAuvexisAccountLinkService({
       client: {
@@ -152,7 +152,7 @@ describe("Auvexis account link service", () => {
                 },
                 iconUrl: null,
                 permissions: {
-                  sailor: {
+                  fabric: {
                     grantDonatorTheme: true,
                     createMoreThan6Workflows: true,
                   },
@@ -215,7 +215,7 @@ describe("Auvexis account link service", () => {
                 iconUrl: null,
                 awardedAt: "2026-07-01T00:00:00.000Z",
                 permissions: {
-                  sailor: {
+                  fabric: {
                     grantDonatorTheme: true,
                     createMoreThan6Workflows: true,
                   },
@@ -288,7 +288,7 @@ describe("Auvexis account link service", () => {
           assert.deepEqual(subject, { type: "local_profile", id: "default" });
           return {
             active: false,
-            productId: "sailor",
+            productId: "fabric",
             userId: "account-1",
             subjectType: "local_profile",
             subjectId: "default",
@@ -321,7 +321,7 @@ describe("Auvexis account link service", () => {
           calls.push({ accessToken, event });
           return {
             eventId: event.eventId,
-            productId: "sailor",
+            productId: "fabric",
             status: "accepted",
             outcomes: [],
           };
@@ -335,8 +335,8 @@ describe("Auvexis account link service", () => {
 
     const result = await service.emitProductEvent({
       profileId: "default",
-      eventId: "sailor.workflow.published:workflow-1",
-      type: "sailor.workflow.published",
+      eventId: "fabric.workflow.published:workflow-1",
+      type: "fabric.workflow.published",
       evidence: { workflowId: "workflow-1" },
     });
 
@@ -345,8 +345,8 @@ describe("Auvexis account link service", () => {
       {
         accessToken: "access",
         event: {
-          eventId: "sailor.workflow.published:workflow-1",
-          type: "sailor.workflow.published",
+          eventId: "fabric.workflow.published:workflow-1",
+          type: "fabric.workflow.published",
           userId: "account-1",
           occurredAt: result.eventId
             ? (calls[0] as { event: { occurredAt: string } }).event.occurredAt
@@ -370,7 +370,7 @@ describe("Auvexis account link service", () => {
           }
           return {
             eventId: event.eventId,
-            productId: "sailor",
+            productId: "fabric",
             status: "accepted",
             outcomes: [],
           };
@@ -393,8 +393,8 @@ describe("Auvexis account link service", () => {
 
     const result = await service.emitProductEvent({
       profileId: "default",
-      eventId: "sailor.workflow.published:workflow-1",
-      type: "sailor.workflow.published",
+      eventId: "fabric.workflow.published:workflow-1",
+      type: "fabric.workflow.published",
     });
 
     assert.equal(result.status, "accepted");
@@ -420,9 +420,9 @@ describe("Auvexis account link service", () => {
             {
               id: "campaign-1",
               slug: "bee-event-2026",
-              productId: "seed-sailor-product",
+              productId: "seed-fabric-product",
               status: "active",
-              trigger: { type: "sailor.workflow.published" },
+              trigger: { type: "fabric.workflow.published" },
               startsAt: "2026-07-01T00:00:00.000Z",
               endsAt: "2026-08-01T00:00:00.000Z",
               capacity: 5,
@@ -448,14 +448,14 @@ describe("Auvexis account link service", () => {
 
     const result = await service.emitProductEvent({
       profileId: "default",
-      eventId: "sailor.workflow.published:workflow-1",
-      type: "sailor.workflow.published",
+      eventId: "fabric.workflow.published:workflow-1",
+      type: "fabric.workflow.published",
     });
 
-    assert.deepEqual(calls, ["status:access:sailor.workflow.published"]);
+    assert.deepEqual(calls, ["status:access:fabric.workflow.published"]);
     assert.deepEqual(result, {
-      eventId: "sailor.workflow.published:workflow-1",
-      productId: "seed-sailor-product",
+      eventId: "fabric.workflow.published:workflow-1",
+      productId: "seed-fabric-product",
       status: "accepted",
       outcomes: [
         {
@@ -476,9 +476,9 @@ describe("Auvexis account link service", () => {
           {
             id: "campaign-1",
             slug: "bee-event-2026",
-            productId: "seed-sailor-product",
+            productId: "seed-fabric-product",
             status: "active",
-            trigger: { type: "sailor.workflow.published" },
+            trigger: { type: "fabric.workflow.published" },
             startsAt: "2026-07-01T00:00:00.000Z",
             endsAt: "2026-08-01T00:00:00.000Z",
             capacity: 5,
@@ -503,8 +503,8 @@ describe("Auvexis account link service", () => {
 
     const result = await service.emitProductEvent({
       profileId: "default",
-      eventId: "sailor.workflow.published:workflow-1",
-      type: "sailor.workflow.published",
+      eventId: "fabric.workflow.published:workflow-1",
+      type: "fabric.workflow.published",
     });
 
     assert.deepEqual(calls, []);

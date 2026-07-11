@@ -1,4 +1,4 @@
-import type { SailorPlugin, TriggerRegistrationContext } from "@auvexis/sailor-sdk";
+import type { FabricPlugin, TriggerRegistrationContext } from "@auvexis/fabric-sdk";
 import { PluginManager } from "../plugins/manager.ts";
 
 export interface PluginTriggerRuntimeContext extends TriggerRegistrationContext {
@@ -8,7 +8,7 @@ export interface PluginTriggerRuntimeContext extends TriggerRegistrationContext 
 }
 
 export interface PluginTriggerRuntimePluginRegistry {
-  getPlugin(id: string): SailorPlugin;
+  getPlugin(id: string): FabricPlugin;
 }
 
 export class PluginTriggerRuntimeService {
@@ -33,7 +33,7 @@ export class PluginTriggerRuntimeService {
   private getTriggerHooks(
     context: PluginTriggerRuntimeContext,
     operation: "setup" | "teardown",
-  ): NonNullable<SailorPlugin["triggers"]>[string] | null {
+  ): NonNullable<FabricPlugin["triggers"]>[string] | null {
     const plugin = this.getRegisteredPlugin(context.pluginId, operation);
     const manifestTrigger = plugin.manifest.triggers?.[context.triggerName];
 
@@ -46,7 +46,7 @@ export class PluginTriggerRuntimeService {
     const triggerHooks = plugin.triggers?.[context.triggerName];
     if (!triggerHooks) {
       console.warn(
-        `[SAILOR | PLUGIN-TRIGGERS]: Plugin '${context.pluginId}' declares trigger '${context.triggerName}' without runtime ${operation} hook; treating as no-op.`,
+        `[FABRIC | PLUGIN-TRIGGERS]: Plugin '${context.pluginId}' declares trigger '${context.triggerName}' without runtime ${operation} hook; treating as no-op.`,
       );
       return null;
     }
@@ -54,7 +54,7 @@ export class PluginTriggerRuntimeService {
     return triggerHooks;
   }
 
-  private getRegisteredPlugin(pluginId: string, operation: "setup" | "teardown"): SailorPlugin {
+  private getRegisteredPlugin(pluginId: string, operation: "setup" | "teardown"): FabricPlugin {
     try {
       return this.plugins.getPlugin(pluginId);
     } catch {

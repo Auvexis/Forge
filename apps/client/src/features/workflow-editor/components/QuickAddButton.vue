@@ -105,7 +105,7 @@ const onQuickAdd = (event: MouseEvent) => {
 .qab-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--sailor-node-handle);
+  background-color: var(--fabric-node-handle);
   transition: background-color 0.2s;
 }
 
@@ -115,10 +115,10 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .qab-btn {
-  border-radius: var(--sailor-radius-sm);
-  background-color: var(--sailor-node-border);
-  border: 2px solid var(--sailor-border-strong);
-  color: var(--sailor-text-primary);
+  border-radius: var(--fabric-radius-sm);
+  background-color: var(--fabric-node-border);
+  border: 2px solid var(--fabric-border-strong);
+  color: var(--fabric-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -45,19 +45,19 @@ const NODE_ICON: Record<string, string> = {
 }
 
 const NODE_ICON_COLOR: Record<string, string> = {
-  code: 'var(--sailor-node-codeblock-icon)',
-  http: 'var(--sailor-node-http-icon)',
-  if: 'var(--sailor-node-if-icon)',
-  switch: 'var(--sailor-node-switch-icon)',
-  merge: 'var(--sailor-node-merge-icon)',
-  loop: 'var(--sailor-node-loop-icon)',
-  set: 'var(--sailor-node-set-icon)',
-  'call-workflow': 'var(--sailor-node-call-workflow-icon)',
-  return: 'var(--sailor-node-return-icon)',
-  event: 'var(--sailor-node-event-icon)',
-  'event-listener': 'var(--sailor-node-event-listener-icon)',
-  'split-in-batches': 'var(--sailor-node-split-icon)',
-  'respond-webhook': 'var(--sailor-node-respond-webhook-icon)',
+  code: 'var(--fabric-node-codeblock-icon)',
+  http: 'var(--fabric-node-http-icon)',
+  if: 'var(--fabric-node-if-icon)',
+  switch: 'var(--fabric-node-switch-icon)',
+  merge: 'var(--fabric-node-merge-icon)',
+  loop: 'var(--fabric-node-loop-icon)',
+  set: 'var(--fabric-node-set-icon)',
+  'call-workflow': 'var(--fabric-node-call-workflow-icon)',
+  return: 'var(--fabric-node-return-icon)',
+  event: 'var(--fabric-node-event-icon)',
+  'event-listener': 'var(--fabric-node-event-listener-icon)',
+  'split-in-batches': 'var(--fabric-node-split-icon)',
+  'respond-webhook': 'var(--fabric-node-respond-webhook-icon)',
 }
 
 type ExecutionStep = NonNullable<ExecutionLog['context']['steps']>[string] & { input?: unknown }
@@ -193,7 +193,7 @@ function createTreeNode(
     name: agentName ? `${agentName} - AI Agent` : node?.name || nodeId,
     type,
     icon: presentation?.icon || node?.ui?.icon || NODE_ICON[type] || 'box',
-    iconColor: presentation?.iconColor || NODE_ICON_COLOR[type] || 'var(--sailor-text-secondary)',
+    iconColor: presentation?.iconColor || NODE_ICON_COLOR[type] || 'var(--fabric-text-secondary)',
     avatar: node?.type === 'ai-agent' ? node.agentEmoji?.trim() || '🤖' : undefined,
     status: normalizeNodeStatus(step.status),
     startedAt: step.startedAt,

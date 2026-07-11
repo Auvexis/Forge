@@ -105,7 +105,7 @@ function generateChatSlug(): string {
 function openInChat(): void {
   if (!canOpenInChat.value) return
 
-  window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', {
+  window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', {
     detail: {
       type: 'workflow-chat.open',
       triggerNodeId: props.node.id,
@@ -127,84 +127,84 @@ const SESSION_MODES = [
 
 <style scoped>
 .chat-trigger-editor__warning {
-  margin: var(--sailor-space-2) 0 0;
-  color: var(--sailor-text-warning, var(--sailor-text-secondary));
-  font-size: var(--sailor-text-xs);
+  margin: var(--fabric-space-2) 0 0;
+  color: var(--fabric-text-warning, var(--fabric-text-secondary));
+  font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
 
 .chat-trigger-editor__slug-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   align-items: center;
 }
 
 .chat-trigger-editor__slug-button {
   height: 32px;
-  padding: 0 var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  padding: 0 var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   font-weight: 600;
   cursor: pointer;
 }
 
 .chat-trigger-editor__slug-button:hover {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .chat-trigger-editor__panel-hint {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-1);
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-overlay);
+  gap: var(--fabric-space-1);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-overlay);
 }
 
 .chat-trigger-editor__panel-hint > div {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .chat-trigger-editor__panel-hint strong,
 .chat-trigger-editor__panel-hint span {
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
 
 .chat-trigger-editor__panel-hint strong {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .chat-trigger-editor__panel-hint span {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .chat-trigger-editor__open-chat {
   flex: 0 0 auto;
   height: 32px;
-  padding: 0 var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  padding: 0 var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
   cursor: pointer;
 }
 
 .chat-trigger-editor__open-chat:hover:not(:disabled) {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .chat-trigger-editor__open-chat:disabled {

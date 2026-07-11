@@ -25,9 +25,9 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Conditional')
     :title="stepTitle"
     subtitle="If / Else pathing"
     icon="git-branch"
-    color="var(--sailor-node-if-icon)"
-    bg="var(--sailor-node-if-bg)"
-    border-color="var(--sailor-node-if-border)"
+    color="var(--fabric-node-if-icon)"
+    bg="var(--fabric-node-if-bg)"
+    border-color="var(--fabric-node-if-border)"
   >
     <!-- True handle -->
     <BaseHandle id="then" type="source" :position="Position.Right" style="top: 35%" />

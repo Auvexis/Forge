@@ -35,15 +35,15 @@ function toggleOpen() {
 </script>
 
 <template>
-  <div v-if="pluginStatus && pluginStatus.auth_type !== 'none'" class="inline-auth-manager surface rounded-md mb-4 border border-sailor-border overflow-hidden">
+  <div v-if="pluginStatus && pluginStatus.auth_type !== 'none'" class="inline-auth-manager surface rounded-md mb-4 border border-fabric-border overflow-hidden">
     <!-- Header Summary -->
     <div 
-      class="flex-between p-3 cursor-pointer select-none hover:bg-[var(--sailor-bg-elevated)] transition-colors"
-      style="background: var(--sailor-bg-surface);"
+      class="flex-between p-3 cursor-pointer select-none hover:bg-[var(--fabric-bg-elevated)] transition-colors"
+      style="background: var(--fabric-bg-surface);"
       @click="toggleOpen"
     >
       <div class="flex items-center gap-2">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sailor-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fabric-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
         </svg>
         <span class="text-sm font-medium">Authentication</span>
@@ -61,7 +61,7 @@ function toggleOpen() {
           <span v-else>Not Configured</span>
         </span>
       </div>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--sailor-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fabric-text-muted)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
         :style="{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }"
       >
         <polyline points="6 9 12 15 18 9"></polyline>
@@ -69,7 +69,7 @@ function toggleOpen() {
     </div>
 
     <!-- Expanded Configuration -->
-    <div v-if="isOpen" class="p-3 border-t border-sailor-border" style="background: var(--sailor-bg-elevated);">
+    <div v-if="isOpen" class="p-3 border-t border-fabric-border" style="background: var(--fabric-bg-elevated);">
       <PluginMenuAuth :plugin-id="pluginId" />
     </div>
   </div>

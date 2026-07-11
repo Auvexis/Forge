@@ -100,8 +100,8 @@ test('vector store editor exposes Pinecone and Qdrant provider config sections',
   assert.match(source, /ensureCollectionMethodId/)
   assert.match(source, /upsertMethodId/)
   assert.match(source, /queryMethodId/)
-  assert.match(source, /sailor-pinecone/)
-  assert.match(source, /sailor-qdrant/)
+  assert.match(source, /fabric-pinecone/)
+  assert.match(source, /fabric-qdrant/)
   assert.match(source, /localHost/)
   assert.match(source, /namespace/)
   assert.match(source, /host/)
@@ -147,7 +147,7 @@ test('vector store editor uses mode selectors for local, cloud, and self-hosted 
 
 test('vector store editor writes Qdrant endpoint fields to config.url expected by the plugin', () => {
   const source = read('src/features/workflow-editor/components/settings/editors/VectorStoreEditor.vue')
-  const qdrantSection = source.slice(source.indexOf(`<template v-if="pluginId === 'sailor-qdrant'">`))
+  const qdrantSection = source.slice(source.indexOf(`<template v-if="pluginId === 'fabric-qdrant'">`))
 
   assert.match(qdrantSection, /:model-value="config\.url \|\| ''"/)
   assert.match(qdrantSection, /updateConfig\(\{ url: \$event as string \}\)/)

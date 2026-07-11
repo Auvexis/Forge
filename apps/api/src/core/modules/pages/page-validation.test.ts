@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { validatePageInput } from "./page-validation.ts";
-import type { SailorPage } from "./page-types.ts";
+import type { FabricPage } from "./page-types.ts";
 
-function validPage(overrides: Partial<SailorPage> = {}): SailorPage {
+function validPage(overrides: Partial<FabricPage> = {}): FabricPage {
   return {
     id: "page_contact",
     profileId: "profile_default",

@@ -358,18 +358,18 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__topbar {
   flex: 0 0 auto;
   display: grid;
   grid-template-columns: minmax(170px, 1fr) minmax(150px, 0.8fr) minmax(130px, 0.7fr) minmax(220px, 1.2fr) 32px;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .workflow-git-modal__repo-card,
@@ -378,25 +378,25 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   height: 46px;
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: 0 var(--sailor-space-3);
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
+  gap: var(--fabric-space-2);
+  padding: 0 var(--fabric-space-3);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
 }
 
 .workflow-git-modal__repo-card span,
 .workflow-git-modal__version-select span,
 .workflow-git-modal__commit-box label span {
   display: block;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 11px;
 }
 
 .workflow-git-modal__repo-card strong {
   display: block;
   overflow: hidden;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -417,17 +417,17 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   min-height: 20px;
   justify-content: space-between;
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
   padding: 0;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font-size: 12px;
-  font-weight: var(--sailor-font-semibold);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger:hover) {
   background: transparent;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__version-trigger-copy {
@@ -441,22 +441,22 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   right: 0;
   width: 330px;
   max-height: 360px;
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-elevated);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-elevated);
 }
 
 .workflow-git-modal__version-option {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
   min-width: 0;
 }
 
 .workflow-git-modal__version-option-hash {
-  color: var(--sailor-blue-400);
-  font-family: var(--sailor-font-mono);
+  color: var(--fabric-blue-400);
+  font-family: var(--fabric-font-mono);
   font-size: 11px;
 }
 
@@ -474,12 +474,12 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 }
 
 .workflow-git-modal__version-option-copy strong {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font-size: 12px;
 }
 
 .workflow-git-modal__version-option-copy small {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 10px;
   margin-left: 8px;
 }
@@ -490,16 +490,16 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   align-self: center;
   display: inline-grid;
   place-items: center;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-secondary);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-secondary);
 }
 
 .workflow-git-modal__icon-button:hover {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__body {
@@ -513,10 +513,10 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-3);
+  border-right: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .workflow-git-modal__section-header {
@@ -524,10 +524,10 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   align-items: center;
   justify-content: space-between;
   height: 30px;
-  padding: 0 var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  padding: 0 var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
   font-size: 12px;
 }
 
@@ -537,8 +537,8 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-muted);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-muted);
   font-size: 10px;
 }
 
@@ -546,21 +546,21 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr) 28px;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: 34px;
-  padding: 0 var(--sailor-space-2);
+  padding: 0 var(--fabric-space-2);
   border: 1px solid transparent;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   text-align: left;
 }
 
 .workflow-git-modal__file--active,
 .workflow-git-modal__file:hover {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__file span {
@@ -570,7 +570,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 }
 
 .workflow-git-modal__file small {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   text-align: right;
 }
 
@@ -578,37 +578,37 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .workflow-git-modal__summary-input,
 .workflow-git-modal__description-input {
   width: 100%;
   margin-top: 5px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
   font: inherit;
   font-size: 12px;
 }
 
 .workflow-git-modal__summary-input {
   height: 34px;
-  padding: 0 var(--sailor-space-2);
+  padding: 0 var(--fabric-space-2);
 }
 
 .workflow-git-modal__description-input {
   min-height: 74px;
   resize: vertical;
-  padding: var(--sailor-space-2);
+  padding: var(--fabric-space-2);
 }
 
 .workflow-git-modal__summary-input:focus,
 .workflow-git-modal__description-input:focus {
   outline: 0;
-  border-color: var(--sailor-focus-ring);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--sailor-focus-ring) 28%, transparent);
+  border-color: var(--fabric-focus-ring);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fabric-focus-ring) 28%, transparent);
 }
 
 .workflow-git-modal__commit-button,
@@ -617,30 +617,30 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
+  gap: var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
   font-size: 12px;
-  font-weight: var(--sailor-font-semibold);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .workflow-git-modal__commit-button {
-  background: var(--sailor-button-primary-bg);
-  color: var(--sailor-button-primary-text);
+  background: var(--fabric-button-primary-bg);
+  color: var(--fabric-button-primary-text);
 }
 
 .workflow-git-modal__commit-button:hover:not(:disabled) {
-  background: var(--sailor-button-primary-hover);
+  background: var(--fabric-button-primary-hover);
 }
 
 .workflow-git-modal__restore-button {
-  border: 1px solid var(--sailor-border-subtle);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  border: 1px solid var(--fabric-border-subtle);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__restore-button:hover:not(:disabled) {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-button-ghost-hover);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-button-ghost-hover);
 }
 
 .workflow-git-modal__commit-button:disabled,
@@ -662,21 +662,21 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
-  padding: 0 var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  gap: var(--fabric-space-3);
+  padding: 0 var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .workflow-git-modal__filebar > div,
 .workflow-git-modal__stats {
   display: inline-flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .workflow-git-modal__filebar small {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 11px;
 }
 
@@ -686,27 +686,27 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: inline-grid;
   place-items: center;
   border: 1px solid transparent;
-  border-radius: var(--sailor-radius-sm);
-  font-family: var(--sailor-font-mono);
+  border-radius: var(--fabric-radius-sm);
+  font-family: var(--fabric-font-mono);
   font-size: 11px;
 }
 
 .workflow-git-modal__stat--added {
-  border-color: var(--sailor-status-success-border);
-  background: var(--sailor-status-success-bg);
-  color: var(--sailor-status-success-text);
+  border-color: var(--fabric-status-success-border);
+  background: var(--fabric-status-success-bg);
+  color: var(--fabric-status-success-text);
 }
 
 .workflow-git-modal__stat--removed {
-  border-color: var(--sailor-status-error-border);
-  background: var(--sailor-status-error-bg);
-  color: var(--sailor-status-error-text);
+  border-color: var(--fabric-status-error-border);
+  background: var(--fabric-status-error-bg);
+  color: var(--fabric-status-error-text);
 }
 
 .workflow-git-modal__stat--modified {
-  border-color: var(--sailor-status-running-border);
-  background: var(--sailor-status-running-bg);
-  color: var(--sailor-status-running-text);
+  border-color: var(--fabric-status-running-border);
+  background: var(--fabric-status-running-bg);
+  color: var(--fabric-status-running-text);
 }
 
 .workflow-git-modal__diff {
@@ -714,8 +714,8 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   flex: 1;
   overflow: auto;
   padding: 8px 0;
-  background: var(--sailor-bg-base);
-  font-family: var(--sailor-font-mono);
+  background: var(--fabric-bg-base);
+  font-family: var(--fabric-font-mono);
   font-size: 11px;
   line-height: 1.55;
 }
@@ -724,38 +724,38 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: grid;
   grid-template-columns: 48px 48px 24px minmax(480px, 1fr);
   min-height: 20px;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__line--added {
-  background: color-mix(in srgb, var(--sailor-green-400) 16%, transparent);
-  box-shadow: inset 3px 0 0 var(--sailor-green-400);
+  background: color-mix(in srgb, var(--fabric-green-400) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--fabric-green-400);
 }
 
 .workflow-git-modal__line--removed {
-  background: color-mix(in srgb, var(--sailor-red-400) 16%, transparent);
-  box-shadow: inset 3px 0 0 var(--sailor-red-400);
+  background: color-mix(in srgb, var(--fabric-red-400) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--fabric-red-400);
 }
 
 .workflow-git-modal__line--modified {
-  background: color-mix(in srgb, var(--sailor-amber-400) 16%, transparent);
-  box-shadow: inset 3px 0 0 var(--sailor-amber-400);
+  background: color-mix(in srgb, var(--fabric-amber-400) 16%, transparent);
+  box-shadow: inset 3px 0 0 var(--fabric-amber-400);
 }
 
 .workflow-git-modal__gutter {
-  border-right: 1px solid var(--sailor-border-muted);
-  background: color-mix(in srgb, var(--sailor-bg-surface) 72%, transparent);
+  border-right: 1px solid var(--fabric-border-muted);
+  background: color-mix(in srgb, var(--fabric-bg-surface) 72%, transparent);
 }
 
 .workflow-git-modal__line-number {
   padding: 0 8px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   text-align: right;
   user-select: none;
 }
 
 .workflow-git-modal__line-marker {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   text-align: center;
   user-select: none;
 }
@@ -770,37 +770,37 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   min-height: 180px;
   display: grid;
   place-items: center;
-  color: var(--sailor-text-muted);
-  font-family: var(--sailor-font-sans);
+  color: var(--fabric-text-muted);
+  font-family: var(--fabric-font-sans);
   font-size: 12px;
 }
 
 .workflow-git-modal__state--error {
-  color: var(--sailor-status-error-text);
+  color: var(--fabric-status-error-text);
 }
 
 .json-token--key {
-  color: var(--sailor-blue-400);
+  color: var(--fabric-blue-400);
 }
 
 .json-token--string {
-  color: var(--sailor-green-400);
+  color: var(--fabric-green-400);
 }
 
 .json-token--number {
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 
 .json-token--boolean,
 .json-token--null {
-  color: var(--sailor-color-4);
+  color: var(--fabric-color-4);
 }
 
 .json-token--punctuation {
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 
 .json-token--plain {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 </style>

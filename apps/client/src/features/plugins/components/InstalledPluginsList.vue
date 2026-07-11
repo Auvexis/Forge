@@ -38,8 +38,8 @@ defineEmits<{
 <style scoped>
 .installed-plugins {
   min-width: 280px;
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  border-right: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .installed-plugins__header {
@@ -47,14 +47,14 @@ defineEmits<{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: 0 var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .installed-plugins__header h2 {
   margin: 0;
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .icon-button {
@@ -63,26 +63,26 @@ defineEmits<{
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--sailor-radius-sm);
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-button-ghost-bg);
-  color: var(--sailor-text-secondary);
+  border-radius: var(--fabric-radius-sm);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-button-ghost-bg);
+  color: var(--fabric-text-secondary);
 }
 
 .installed-plugins__list {
   display: grid;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-3);
 }
 
 .installed-plugin {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3);
-  border-radius: var(--sailor-radius-sm);
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-3);
+  border-radius: var(--fabric-radius-sm);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-base);
 }
 
 .installed-plugin__icon {
@@ -90,10 +90,10 @@ defineEmits<{
   height: 34px;
   display: grid;
   place-items: center;
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .installed-plugin__body {
@@ -111,14 +111,14 @@ defineEmits<{
 }
 
 .installed-plugin__body strong {
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
 }
 
 .installed-plugin__body span,
 .installed-plugin__body code,
 .installed-plugins__empty {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 </style>

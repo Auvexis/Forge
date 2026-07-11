@@ -170,7 +170,7 @@ test('plugin auth for agent config nodes lives in the node settings tab', () => 
   assert.match(inspector, /hasAuthSettings/)
   assert.match(inspector, /typeof data\.pluginId === 'string'/)
   assert.match(inspector, /return data\.pluginId/)
-  assert.doesNotMatch(inspector, /provider === 'ollama' \? 'sailor-ollama' : provider/)
+  assert.doesNotMatch(inspector, /provider === 'ollama' \? 'fabric-ollama' : provider/)
   assert.match(inspector, /v-if="hasAuthSettings"/)
   assert.match(inspector, /:plugin-id="settingsAuthPluginId"/)
 })

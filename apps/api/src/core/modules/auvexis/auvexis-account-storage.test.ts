@@ -8,7 +8,7 @@ import { createAuvexisAccountStorage } from "./auvexis-account-storage.ts";
 
 describe("Auvexis account storage", () => {
   it("encrypts tokens and round trips a connected account", () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-auvexis-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-auvexis-"));
     const storage = createAuvexisAccountStorage({
       dataDir,
       tokenEncryptionSecret: "x".repeat(32),
@@ -57,7 +57,7 @@ describe("Auvexis account storage", () => {
   });
 
   it("marks reconnect and clears local state", () => {
-    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-auvexis-"));
+    const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-auvexis-"));
     const storage = createAuvexisAccountStorage({
       dataDir,
       tokenEncryptionSecret: "x".repeat(32),

@@ -14,7 +14,7 @@ const headerSource = readFileSync(
   'utf8',
 )
 const canvasSource = readFileSync(
-  fileURLToPath(new URL('../../../SailorWorkflowCanvas.vue', import.meta.url)),
+  fileURLToPath(new URL('../../../FabricWorkflowCanvas.vue', import.meta.url)),
   'utf8',
 )
 

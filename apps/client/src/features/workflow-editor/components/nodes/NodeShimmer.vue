@@ -29,10 +29,10 @@
     var(--node-shimmer-color, rgba(245, 158, 11, 0.18)) 50%,
     transparent 100%
   );
-  animation: sailor-shimmer 1.5s ease-in-out infinite;
+  animation: fabric-shimmer 1.5s ease-in-out infinite;
 }
 
-@keyframes sailor-shimmer {
+@keyframes fabric-shimmer {
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(250%); }
 }

@@ -9,7 +9,7 @@ import { AgentMemoryStore } from "../modules/agent-runtime/memory/agent-memory-s
 import { AgentApprovalService } from "../modules/agent-runtime/agent-approval-service.ts";
 import { AgentRuntimeError } from "../modules/agent-runtime/agent-errors.ts";
 import { resetWorkflowDatabaseProvider, setWorkflowDatabaseProvider } from "../modules/workflows/repository.ts";
-import type { SailorAgentToolDefinition } from "../modules/agent-runtime/plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "../modules/agent-runtime/plugin-tool-adapter.ts";
 import agentChatRoutes from "./agent-chat.routes.ts";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 
@@ -102,7 +102,7 @@ describe("agent chat routes", () => {
             requiresApproval: false,
             timeoutMs: 30000,
             credentialId: "secret_credential",
-          } as SailorAgentToolDefinition & { credentialId: string },
+          } as FabricAgentToolDefinition & { credentialId: string },
         ],
       },
     });

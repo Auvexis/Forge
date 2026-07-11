@@ -22,21 +22,21 @@ class MemoryStorage implements Storage {
 describe('workflow draft lifecycle', () => {
   it('removes the active workflow draft when navigation is discarded', () => {
     const local = new MemoryStorage()
-    local.setItem('sailor.workflow-draft.workflow-1', 'draft')
+    local.setItem('fabric.workflow-draft.workflow-1', 'draft')
 
     discardWorkflowDraft(local, 'workflow-1')
 
-    assert.equal(local.getItem('sailor.workflow-draft.workflow-1'), null)
+    assert.equal(local.getItem('fabric.workflow-draft.workflow-1'), null)
   })
 
   it('consumes a reload discard marker and removes the marked draft', () => {
     const local = new MemoryStorage()
     const session = new MemoryStorage()
-    local.setItem('sailor.workflow-draft.workflow-1', 'draft')
+    local.setItem('fabric.workflow-draft.workflow-1', 'draft')
     markWorkflowReloadDiscard(session, 'workflow-1')
 
     assert.equal(consumeWorkflowReloadDiscard(local, session), true)
-    assert.equal(local.getItem('sailor.workflow-draft.workflow-1'), null)
+    assert.equal(local.getItem('fabric.workflow-draft.workflow-1'), null)
     assert.equal(consumeWorkflowReloadDiscard(local, session), false)
   })
 

@@ -58,36 +58,36 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 .merge-modes {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
-  margin-top: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
+  margin-top: var(--fabric-space-2);
 }
 
 .merge-mode-btn {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3);
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-3);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
   cursor: pointer;
   font-family: inherit;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   text-align: left;
-  transition: border-color var(--sailor-duration-fast), color var(--sailor-duration-fast);
+  transition: border-color var(--fabric-duration-fast), color var(--fabric-duration-fast);
   width: 100%;
 }
 
 .merge-mode-btn:hover {
-  border-color: var(--sailor-node-merge-icon, #a78bfa);
-  color: var(--sailor-text-primary);
-  background: color-mix(in srgb, var(--sailor-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
+  border-color: var(--fabric-node-merge-icon, #a78bfa);
+  color: var(--fabric-text-primary);
+  background: color-mix(in srgb, var(--fabric-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
 .merge-mode-btn--active {
-  border-color: var(--sailor-node-merge-icon, #a78bfa);
-  color: var(--sailor-text-primary);
-  background: color-mix(in srgb, var(--sailor-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
+  border-color: var(--fabric-node-merge-icon, #a78bfa);
+  color: var(--fabric-text-primary);
+  background: color-mix(in srgb, var(--fabric-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
 .merge-mode-info {
@@ -97,12 +97,12 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 }
 
 .merge-mode-label {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   font-weight: 600;
 }
 
 .merge-mode-desc {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 </style>

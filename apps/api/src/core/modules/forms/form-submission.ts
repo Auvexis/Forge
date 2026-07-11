@@ -160,7 +160,7 @@ export async function processFormSubmission(
     ip: req.ip,
     userAgent: req.headers["user-agent"] ?? "",
   };
-  const executionId = resolveExecutionId(req.headers["x-sailor-execution-id"]);
+  const executionId = resolveExecutionId(req.headers["x-fabric-execution-id"]);
 
   workflowEventBus.emitWorkflowEvent({
     executionId,
@@ -190,7 +190,7 @@ export async function processFormSubmission(
   } else {
     execution.catch((err: Error) => {
       console.error(
-        `[SAILOR | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
+        `[FABRIC | FORM-TRIGGER]: Execution failed for "${workflow.metadata.id}": ${err.message}`,
       );
     });
   }

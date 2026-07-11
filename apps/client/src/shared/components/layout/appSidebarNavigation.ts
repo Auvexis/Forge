@@ -114,7 +114,7 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
   {
     id: 'docs',
     label: 'Guide Book',
-    description: 'Browse and replay Sailor guides for tools, pages, and workflows.',
+    description: 'Browse and replay Fabric guides for tools, pages, and workflows.',
     icon: 'book-open',
     hintId: 'docs',
     intent: { type: 'guide-book.open' },
@@ -156,7 +156,7 @@ export function sidebarWidthForState(
   options: { expandedPx?: number } = {},
 ): string {
   if (!isCollapsed && options.expandedPx) return `${options.expandedPx}px`
-  return isCollapsed ? 'var(--sailor-sidebar-width)' : 'var(--sailor-sidebar-expanded)'
+  return isCollapsed ? 'var(--fabric-sidebar-width)' : 'var(--fabric-sidebar-expanded)'
 }
 
 export function sidebarPageLabelForPath(path: string): string {
@@ -165,12 +165,12 @@ export function sidebarPageLabelForPath(path: string): string {
     .filter((item) => item.route && path.startsWith(item.route))
     .sort((a, b) => (b.route?.length ?? 0) - (a.route?.length ?? 0))[0]
 
-  return activeItem?.pageLabel ?? activeItem?.label ?? 'Sailor'
+  return activeItem?.pageLabel ?? activeItem?.label ?? 'Fabric'
 }
 
 export function dispatchSidebarNavIntent(item: { intent?: SidebarNavIntent }): boolean {
   if (!item.intent) return false
 
-  window.dispatchEvent(new CustomEvent('sailor:command-palette:intent', { detail: item.intent }))
+  window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: item.intent }))
   return true
 }

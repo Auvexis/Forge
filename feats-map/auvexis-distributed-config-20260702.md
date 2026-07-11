@@ -2,5 +2,5 @@
 
 - [x] Add local secret store
 - [x] Default OAuth config for distribution
-- [x] Wire Sailor Home config
+- [x] Wire Fabric Home config
 - [x] Verify backend build

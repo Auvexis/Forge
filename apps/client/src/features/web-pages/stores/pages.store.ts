@@ -5,18 +5,18 @@ import type {
   CreatePagePayload,
   PagePublicationStatus,
   PublishedPageSummary,
-  SailorPage,
-  SailorPageSummary,
+  FabricPage,
+  FabricPageSummary,
   UpdatePagePayload,
 } from '../types/page.types.ts'
 
 export interface PagesApiClient {
-  listPages: () => Promise<SailorPageSummary[]>
-  listSitePages: (siteId: string) => Promise<SailorPage[]>
-  createPage: (payload: CreatePagePayload) => Promise<SailorPage>
-  createSitePage: (siteId: string, payload: CreatePagePayload) => Promise<SailorPage>
-  getPage: (pageId: string) => Promise<SailorPage>
-  updatePage: (pageId: string, payload: UpdatePagePayload) => Promise<SailorPage>
+  listPages: () => Promise<FabricPageSummary[]>
+  listSitePages: (siteId: string) => Promise<FabricPage[]>
+  createPage: (payload: CreatePagePayload) => Promise<FabricPage>
+  createSitePage: (siteId: string, payload: CreatePagePayload) => Promise<FabricPage>
+  getPage: (pageId: string) => Promise<FabricPage>
+  updatePage: (pageId: string, payload: UpdatePagePayload) => Promise<FabricPage>
   deletePage: (pageId: string) => Promise<null>
   publishPage: (pageId: string) => Promise<PublishedPageSummary>
   unpublishPage: (pageId: string) => Promise<PagePublicationStatus>
@@ -35,10 +35,10 @@ const defaultApiClient: PagesApiClient = {
 }
 
 export const usePagesStore = defineStore('web-pages', () => {
-  const pages = ref<SailorPageSummary[]>([])
-  const pageDocuments = ref<Record<string, SailorPage>>({})
+  const pages = ref<FabricPageSummary[]>([])
+  const pageDocuments = ref<Record<string, FabricPage>>({})
   const activeSiteId = ref<string | null>(null)
-  const activePage = ref<SailorPage | null>(null)
+  const activePage = ref<FabricPage | null>(null)
   const savedSnapshot = ref<string | null>(null)
   const pageOrderDirty = ref(false)
   const lastPublished = ref<PublishedPageSummary | null>(null)
@@ -59,7 +59,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     activeSiteId.value = siteId
   }
 
-  function setActivePage(page: SailorPage | null) {
+  function setActivePage(page: FabricPage | null) {
     activePage.value = page ? clone(page) : null
     savedSnapshot.value ??= activePage.value ? snapshot(activePage.value) : null
   }
@@ -233,13 +233,13 @@ export const usePagesStore = defineStore('web-pages', () => {
     return status
   }
 
-  function setSavedPage(page: SailorPage) {
+  function setSavedPage(page: FabricPage) {
     activePage.value = clone(page)
     pageDocuments.value[page.id] = clone(page)
     savedSnapshot.value = snapshot(activePage.value)
   }
 
-  function upsertSummary(page: SailorPage) {
+  function upsertSummary(page: FabricPage) {
     const summary = pageSummary(page, pages.value.find((item) => item.id === page.id)?.publishedAt ?? null)
     const index = pages.value.findIndex((item) => item.id === page.id)
     if (index === -1) pages.value = [summary, ...pages.value]
@@ -262,7 +262,7 @@ export const usePagesStore = defineStore('web-pages', () => {
     if (!rawOrder) return
     const order = JSON.parse(rawOrder) as string[]
     const pageById = new Map(pages.value.map((page) => [page.id, page]))
-    const ordered = order.map((pageId) => pageById.get(pageId)).filter((page): page is SailorPageSummary => !!page)
+    const ordered = order.map((pageId) => pageById.get(pageId)).filter((page): page is FabricPageSummary => !!page)
     const missing = pages.value.filter((page) => !order.includes(page.id))
     pages.value = [...ordered, ...missing]
   }
@@ -312,7 +312,7 @@ function snapshot(value: unknown): string {
   return JSON.stringify(value)
 }
 
-function pageSummary(page: SailorPage | SailorPageSummary, publishedAt?: string | null): SailorPageSummary {
+function pageSummary(page: FabricPage | FabricPageSummary, publishedAt?: string | null): FabricPageSummary {
   return {
     id: page.id,
     title: page.title,
@@ -323,5 +323,5 @@ function pageSummary(page: SailorPage | SailorPageSummary, publishedAt?: string 
 }
 
 function pageOrderStorageKey(siteId: string | null) {
-  return `sailor.pages.order.${siteId ?? 'default'}`
+  return `fabric.pages.order.${siteId ?? 'default'}`
 }

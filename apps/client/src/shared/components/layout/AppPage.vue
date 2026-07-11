@@ -34,7 +34,7 @@ const appUiStore = useAppUiStore()
 .app-page__dock {
   flex-shrink: 0;
   /* You can add padding here, or let the AppDock handle its own height/paddings */
-  padding: var(--sailor-space-3);
+  padding: var(--fabric-space-3);
   padding: 0;
 }
 

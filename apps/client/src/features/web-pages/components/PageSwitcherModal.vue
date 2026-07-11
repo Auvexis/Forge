@@ -30,11 +30,11 @@
 <script setup lang="ts">
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
-import type { SailorPageSummary } from '../types/page.types.ts'
+import type { FabricPageSummary } from '../types/page.types.ts'
 
 defineProps<{
   isOpen: boolean
-  pages: SailorPageSummary[]
+  pages: FabricPageSummary[]
   activePageId?: string | null
 }>()
 

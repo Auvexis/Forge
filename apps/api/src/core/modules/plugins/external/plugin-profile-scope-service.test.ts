@@ -9,7 +9,7 @@ import { readProfilePluginSettings } from "../../../runtime/profile-plugin-setti
 
 describe("applyPluginProfileScope", () => {
   it("enables the install id in the current default profile", () => {
-    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profiles-"));
+    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profiles-"));
     const defaultProfileDir = path.join(profilesDir, "default");
 
     applyPluginProfileScope({
@@ -26,7 +26,7 @@ describe("applyPluginProfileScope", () => {
   });
 
   it("enables the install id in a selected profile", () => {
-    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profiles-"));
+    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profiles-"));
     fs.mkdirSync(path.join(profilesDir, "default"), { recursive: true });
     fs.mkdirSync(path.join(profilesDir, "team"), { recursive: true });
     const reference = { id: "github-tools-aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", source: "external" as const, version: "1.0.0" };
@@ -44,7 +44,7 @@ describe("applyPluginProfileScope", () => {
   });
 
   it("enables the install id in all existing profiles without duplicates", () => {
-    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profiles-"));
+    const profilesDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profiles-"));
     const defaultProfileDir = path.join(profilesDir, "default");
     const teamProfileDir = path.join(profilesDir, "team");
     fs.mkdirSync(defaultProfileDir, { recursive: true });

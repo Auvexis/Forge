@@ -8,7 +8,7 @@ import { saveSiteAsset } from "./site-asset-service.ts";
 
 describe("site asset service", () => {
   it("stores uploaded images under the site assets folder and returns metadata", () => {
-    const storageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-site-assets-"));
+    const storageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-site-assets-"));
 
     const asset = saveSiteAsset({
       storageRoot,
@@ -26,7 +26,7 @@ describe("site asset service", () => {
   });
 
   it("rejects unsafe asset filenames and unsupported extensions", () => {
-    const storageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-site-assets-"));
+    const storageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-site-assets-"));
     const base = {
       storageRoot,
       profileId: "profile_a",

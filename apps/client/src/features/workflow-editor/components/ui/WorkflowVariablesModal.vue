@@ -186,17 +186,17 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-3) var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .wvm-title,
 .wvm-header__actions {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .wvm-create {
@@ -208,23 +208,23 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  z-index: var(--sailor-z-popover);
+  z-index: var(--fabric-z-popover);
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   width: 260px;
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-lg);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .wvm-title h2 {
   margin: 0;
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
+  color: var(--fabric-text-primary);
 }
 
 .wvm-content {
@@ -239,19 +239,19 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   flex-direction: column;
   min-width: 0;
   overflow-y: auto;
-  padding: var(--sailor-space-3);
-  gap: var(--sailor-space-2);
+  padding: var(--fabric-space-3);
+  gap: var(--fabric-space-2);
 }
 
 .wvm-row {
   display: grid;
   grid-template-columns: minmax(150px, 1fr) minmax(180px, 240px) minmax(120px, 1fr) auto;
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
   cursor: grab;
 }
 
@@ -259,7 +259,7 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
 .wvm-row__actions {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
 }
 
@@ -277,31 +277,31 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
 }
 
 .wvm-row__name {
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-primary);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-primary);
 }
 
 .wvm-row__desc,
 .wvm-empty {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 .wvm-row__token,
 .wvm-row__preview {
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--sailor-bg-base);
+  background: var(--fabric-bg-base);
   font-size: 10px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   white-space: pre-wrap;
 }
 
 .wvm-empty {
-  padding: var(--sailor-space-4);
-  border: 1px dashed var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  padding: var(--fabric-space-4);
+  border: 1px dashed var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
   text-align: center;
 }
 

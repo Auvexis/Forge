@@ -391,7 +391,7 @@ function updateCustomCssStyle() {
 
   if (!customCssStyleEl.value) {
     customCssStyleEl.value = document.createElement('style')
-    customCssStyleEl.value.dataset.sailorBlockCss = props.block.id
+    customCssStyleEl.value.dataset.fabricBlockCss = props.block.id
     document.head.appendChild(customCssStyleEl.value)
   }
 
@@ -631,7 +631,7 @@ function stopResizeListeners() {
 
 function onDragStart(event: DragEvent) {
   if (props.readonly) return
-  event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ blockId: props.block.id }))
+  event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ blockId: props.block.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
   setDragPreview(event, props.block.id)
 }
@@ -678,7 +678,7 @@ function onDragLeave(event: DragEvent) {
 }
 
 function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: string; draggedId?: string } | null {
-  const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
+  const raw = event.dataTransfer?.getData('application/x-fabric-page-block')
   if (!raw) return null
   const parsed = JSON.parse(raw) as { tag?: PageBlockTag; preset?: string; blockId?: string }
   return { tag: parsed.tag, preset: parsed.preset, draggedId: parsed.blockId }
@@ -695,7 +695,7 @@ function setDragPreview(event: DragEvent, label: string) {
 }
 
 function blockClass(id: string): string {
-  return `sailor-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`
+  return `fabric-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`
 }
 
 function sanitizeAttributes(attributes: Record<string, string | number | boolean>) {

@@ -7,7 +7,7 @@ import {
 } from "@auvexis/accounts";
 
 import { resolveProfilePaths } from "../../profiles/profile-paths.ts";
-import { sailorHomePaths } from "../../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../../runtime/fabric-home.ts";
 import { loadAuvexisAccountConfig } from "./auvexis-account-config.ts";
 import {
   createAuvexisAccountLinkService,
@@ -46,7 +46,7 @@ export interface AuvexisAccountRouteService {
 export interface AuvexisAccountRoutesOptions {
   getActiveProfileId?: () => string | null;
   createService?: (profileId: string) => AuvexisAccountRouteService;
-  sailorHome?: string;
+  fabricHome?: string;
 }
 
 const TRANSACTIONS_FILE = "auvexis-oauth-transactions.json";
@@ -189,13 +189,13 @@ function createDefaultService(
   profileId: string,
   options: AuvexisAccountRoutesOptions,
 ): AuvexisAccountRouteService {
-  const sailorHome = options.sailorHome ?? sailorHomePaths.home;
+  const fabricHome = options.fabricHome ?? fabricHomePaths.home;
   const config = loadAuvexisAccountConfig(
     process.env,
-    loadOrCreateAuvexisLocalSecret({ sailorHome }),
+    loadOrCreateAuvexisLocalSecret({ fabricHome }),
   );
   const paths = resolveProfilePaths({
-    sailorHome,
+    fabricHome,
     profileId,
   });
 
@@ -389,7 +389,7 @@ function renderCallbackResultPage(username: string): string {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Auvexis connected · Sailor</title>
+    <title>Auvexis connected · Fabric</title>
     <style>
       body {
         margin: 0;
@@ -418,7 +418,7 @@ function renderCallbackResultPage(username: string): string {
     <main>
       <h1>Auvexis account connected</h1>
       <p>Connected as <strong>@${safeUsername}</strong>.</p>
-      <p>You can close this tab and return to Sailor. If Sailor does not update automatically, click Refresh.</p>
+      <p>You can close this tab and return to Fabric. If Fabric does not update automatically, click Refresh.</p>
     </main>
     <script>
       setTimeout(() => window.close(), 700);

@@ -4,10 +4,10 @@ import Database from "better-sqlite3";
 
 import { PageRepository } from "./page-repository.ts";
 import { SiteRepository } from "./site-repository.ts";
-import type { SailorPage } from "./page-types.ts";
-import type { SailorSite } from "./site-types.ts";
+import type { FabricPage } from "./page-types.ts";
+import type { FabricSite } from "./site-types.ts";
 
-function createSite(overrides: Partial<SailorSite> = {}): SailorSite {
+function createSite(overrides: Partial<FabricSite> = {}): FabricSite {
   return {
     id: "site_main",
     publicId: "public_main",
@@ -22,7 +22,7 @@ function createSite(overrides: Partial<SailorSite> = {}): SailorSite {
   };
 }
 
-function createPage(overrides: Partial<SailorPage> = {}): SailorPage {
+function createPage(overrides: Partial<FabricPage> = {}): FabricPage {
   return {
     id: "page_home",
     profileId: "profile_a",

@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
 }>(), {
   gridSize: 16,
   rulerSize: 24,
-  rulersBg: 'var(--sailor-bg-canvas)',
+  rulersBg: 'var(--fabric-bg-canvas)',
   rulersText: 'rgba(255, 255, 255, 0.54)',
   rulersLines: 'rgba(255, 255, 255, 0.2)',
 })

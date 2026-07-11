@@ -8,10 +8,10 @@ import {
 } from "./profile-paths.ts";
 
 describe("profile path resolver", () => {
-  it("resolves profile-owned paths under SAILOR_HOME profiles", () => {
-    const sailorHome = path.join("C:", "Users", "tester", "AppData", "Roaming", "Sailor");
-    const paths = resolveProfilePaths({ sailorHome, profileId: "default" });
-    const root = path.resolve(sailorHome, "profiles");
+  it("resolves profile-owned paths under FABRIC_HOME profiles", () => {
+    const fabricHome = path.join("C:", "Users", "tester", "AppData", "Roaming", "Fabric");
+    const paths = resolveProfilePaths({ fabricHome, profileId: "default" });
+    const root = path.resolve(fabricHome, "profiles");
 
     assert.equal(paths.profilesDir, root);
     assert.equal(paths.profileDir, path.join(root, "default"));
@@ -26,23 +26,23 @@ describe("profile path resolver", () => {
   });
 
   it("resolves profiles root without needing a profile id", () => {
-    const sailorHome = path.join("C:", "SailorHome");
-    assert.equal(resolveProfilesRoot(sailorHome), path.resolve(sailorHome, "profiles"));
+    const fabricHome = path.join("C:", "FabricHome");
+    assert.equal(resolveProfilesRoot(fabricHome), path.resolve(fabricHome, "profiles"));
   });
 
   it("rejects traversal and reserved profile ids before building paths", () => {
-    const sailorHome = path.join("C:", "SailorHome");
+    const fabricHome = path.join("C:", "FabricHome");
 
     for (const profileId of ["..", "../evil", "evil/path", "con"]) {
       assert.throws(
-        () => resolveProfilePaths({ sailorHome, profileId }),
+        () => resolveProfilePaths({ fabricHome, profileId }),
         /Invalid profile id/,
       );
     }
   });
 
   it("rejects resolved paths that escape the profiles root", () => {
-    const profilesDir = path.resolve("C:", "SailorHome", "profiles");
+    const profilesDir = path.resolve("C:", "FabricHome", "profiles");
     assert.throws(
       () => resolveProfilePaths({ profilesDir, profileId: "default", profileDirOverride: path.dirname(profilesDir) }),
       /outside profiles root/,

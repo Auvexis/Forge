@@ -154,7 +154,7 @@ Render a `236x100` `BaseNode` with a custom icon slot and two lower controls:
   has-target
   has-source
   :bg="customBg || 'transparent'"
-  :border-color="customBorder || 'var(--sailor-node-border)'"
+  :border-color="customBorder || 'var(--fabric-node-border)'"
   width="236px"
   height="100px"
 >

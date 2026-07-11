@@ -89,13 +89,13 @@ export const WorkflowLifecycleManager = {
       if (!ctx) continue;
 
       console.log(
-        `[SAILOR | LIFECYCLE]: Calling setup() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
+        `[FABRIC | LIFECYCLE]: Calling setup() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
       );
 
       await PluginTriggerRuntime.setup(ctx);
 
       console.log(
-        `[SAILOR | LIFECYCLE]: setup() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
+        `[FABRIC | LIFECYCLE]: setup() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
       );
     }
   },
@@ -109,17 +109,17 @@ export const WorkflowLifecycleManager = {
       if (!ctx) continue;
 
       console.log(
-        `[SAILOR | LIFECYCLE]: Calling teardown() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
+        `[FABRIC | LIFECYCLE]: Calling teardown() for plugin '${entry.trigger.pluginId}' / trigger '${entry.trigger.triggerName}' (workflow: ${workflow.metadata.id}/${entry.id})`,
       );
 
       try {
         await PluginTriggerRuntime.teardown(ctx);
         console.log(
-          `[SAILOR | LIFECYCLE]: teardown() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
+          `[FABRIC | LIFECYCLE]: teardown() completed for workflow '${workflow.metadata.id}/${entry.id}'`,
         );
       } catch (err: any) {
         console.error(
-          `[SAILOR | LIFECYCLE]: teardown() failed for workflow '${workflow.metadata.id}/${entry.id}': ${err.message}`,
+          `[FABRIC | LIFECYCLE]: teardown() failed for workflow '${workflow.metadata.id}/${entry.id}': ${err.message}`,
         );
       }
     }

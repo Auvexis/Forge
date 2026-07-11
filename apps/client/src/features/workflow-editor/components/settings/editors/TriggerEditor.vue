@@ -32,7 +32,7 @@
               :model-value="String(key)"
               @blur="updateSchemaKey(String(key), ($event.target as HTMLInputElement).value)"
               placeholder="Field name"
-              style="font-family: var(--sailor-font-mono); flex: 1"
+              style="font-family: var(--fabric-font-mono); flex: 1"
             />
             <div style="width: 130px; flex-shrink: 0;">
               <BaseSelect
@@ -54,7 +54,7 @@
               variant="ghost"
               size="icon"
               icon-left="x"
-              class="!text-[var(--sailor-text-muted)] hover:!text-[var(--sailor-text-primary)] !p-2"
+              class="!text-[var(--fabric-text-muted)] hover:!text-[var(--fabric-text-primary)] !p-2"
               @click="removeSchemaField(String(key))"
             />
           </div>
@@ -100,7 +100,7 @@
               <span class="te-url-badge te-url-badge--test">TEST</span>
               <div class="te-url-box">{{ testWebhookUrl }}</div>
               <button class="te-icon-btn" @click="copyUrl(testWebhookUrl, 'test')">
-                <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--sailor-green-400)" />
+                <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--fabric-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
             </div>
@@ -108,7 +108,7 @@
               <span class="te-url-badge te-url-badge--prod">PROD</span>
               <div class="te-url-box">{{ prodWebhookUrl }}</div>
               <button class="te-icon-btn" @click="copyUrl(prodWebhookUrl, 'prod')">
-                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--sailor-green-400)" />
+                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--fabric-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
             </div>
@@ -152,7 +152,7 @@
           </div>
           <p class="te-hint">
             Validate requests using
-            <code class="editor-code-snippet">X-Sailor-Signature: sha256=…</code>
+            <code class="editor-code-snippet">X-Fabric-Signature: sha256=…</code>
           </p>
         </div>
 
@@ -173,7 +173,7 @@
                 :model-value="String(key)"
                 @blur="updateBodySchemaKey(String(key), ($event.target as HTMLInputElement).value)"
                 placeholder="Field name"
-                style="font-family: var(--sailor-font-mono); flex: 1"
+                style="font-family: var(--fabric-font-mono); flex: 1"
               />
               <div style="width: 130px; flex-shrink: 0;">
                 <BaseSelect
@@ -182,7 +182,7 @@
                   @update:model-value="updateBodySchemaField(String(key), { type: $event as any })"
                 />
               </div>
-              <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--sailor-text-secondary)] cursor-pointer whitespace-nowrap px-1">
+              <label class="flex items-center gap-1.5 text-xs font-medium text-[var(--fabric-text-secondary)] cursor-pointer whitespace-nowrap px-1">
                 <BaseInput
                   type="checkbox"
                   class="te-checkbox"
@@ -195,7 +195,7 @@
                 variant="ghost"
                 size="icon"
                 icon-left="x"
-                class="!text-[var(--sailor-text-muted)] hover:!text-[var(--sailor-text-primary)] !p-2"
+                class="!text-[var(--fabric-text-muted)] hover:!text-[var(--fabric-text-primary)] !p-2"
                 @click="removeBodySchemaField(String(key))"
               />
             </div>
@@ -248,7 +248,7 @@
                 :disabled="!formTestUrl"
                 @click="copyUrl(formTestUrl, 'form-test')"
               >
-                <CheckIcon v-if="copied === 'form-test'" :size="14" style="color: var(--sailor-green-400)" />
+                <CheckIcon v-if="copied === 'form-test'" :size="14" style="color: var(--fabric-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
               <a
@@ -271,7 +271,7 @@
                 :disabled="!formProdUrl"
                 @click="copyUrl(formProdUrl, 'form-prod')"
               >
-                <CheckIcon v-if="copied === 'form-prod'" :size="14" style="color: var(--sailor-green-400)" />
+                <CheckIcon v-if="copied === 'form-prod'" :size="14" style="color: var(--fabric-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
               <a
@@ -339,7 +339,7 @@
             :model-value="(node.data as unknown as WorkflowTrigger).cronExpression || ''"
             @update:model-value="updateNodeData({ cronExpression: $event as string })"
             placeholder="* * * * *"
-            style="font-family: var(--sailor-font-mono)"
+            style="font-family: var(--fabric-font-mono)"
           />
           <p v-if="humanCron" class="te-human-cron">↳ {{ humanCron }}</p>
           <div class="te-info-blue">
@@ -415,7 +415,7 @@
               <span class="te-url-badge te-url-badge--test">TEST</span>
               <div class="te-url-box">{{ testWebhookUrl }}</div>
               <button class="te-icon-btn" @click="copyUrl(testWebhookUrl, 'test')">
-                <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--sailor-green-400)" />
+                <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--fabric-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
             </div>
@@ -423,7 +423,7 @@
               <span class="te-url-badge te-url-badge--prod">PROD</span>
               <div class="te-url-box">{{ prodWebhookUrl }}</div>
               <button class="te-icon-btn" @click="copyUrl(prodWebhookUrl, 'prod')">
-                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--sailor-green-400)" />
+                <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--fabric-green-400)" />
                 <CopyIcon v-else :size="14" />
               </button>
             </div>
@@ -479,7 +479,7 @@
           <button
             v-if="listenState === 'idle'"
             class="te-listen-btn"
-            style="padding: 4px 8px; font-size: 11px; width: auto; height: auto; border-radius: var(--sailor-radius-sm);"
+            style="padding: 4px 8px; font-size: 11px; width: auto; height: auto; border-radius: var(--fabric-radius-sm);"
             @click="startListening"
           >
             <RadioIcon :size="12" />
@@ -490,7 +490,7 @@
             v-else-if="listenState === 'listening'"
             variant="secondary"
             size="sm"
-            class="!text-sailor-accent"
+            class="!text-fabric-accent"
             loading
             @click="cancelListening"
           >
@@ -501,7 +501,7 @@
             v-else-if="listenState === 'captured'"
             variant="ghost"
             size="sm"
-            style="color: var(--sailor-green-400)"
+            style="color: var(--fabric-green-400)"
             icon-left="check-circle"
             @click="listenState = 'idle'"
           >
@@ -992,9 +992,9 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
 }
 
 .te-form-field-grid {
@@ -1022,7 +1022,7 @@ onUnmounted(() => {
 }
 
 .te-form-field-required-label {
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   font-size: 12px;
   font-weight: 600;
 }
@@ -1050,7 +1050,7 @@ onUnmounted(() => {
   width: 14px;
   height: 14px;
   padding: 0;
-  accent-color: var(--sailor-accent);
+  accent-color: var(--fabric-accent);
   cursor: pointer;
 }
 
@@ -1081,18 +1081,18 @@ onUnmounted(() => {
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 2px 6px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   flex-shrink: 0;
 }
 
 .te-url-badge--test {
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-secondary);
+  background: var(--fabric-bg-muted);
+  color: var(--fabric-text-secondary);
 }
 
 .te-url-badge--prod {
-  background: color-mix(in srgb, var(--sailor-green-400) 15%, transparent);
-  color: var(--sailor-green-400);
+  background: color-mix(in srgb, var(--fabric-green-400) 15%, transparent);
+  color: var(--fabric-green-400);
 }
 
 /* ── Listen for Event ───────────────────────── */
@@ -1101,17 +1101,17 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   padding: 8px 14px;
-  border-radius: var(--sailor-radius-md);
-  background: color-mix(in srgb, var(--sailor-accent) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sailor-accent) 35%, transparent);
-  color: var(--sailor-accent);
+  border-radius: var(--fabric-radius-md);
+  background: color-mix(in srgb, var(--fabric-accent) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fabric-accent) 35%, transparent);
+  color: var(--fabric-accent);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.18s ease;
 }
 .te-listen-btn:hover {
-  background: color-mix(in srgb, var(--sailor-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--fabric-accent) 22%, transparent);
 }
 
 .te-listen-status {
@@ -1119,34 +1119,34 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
-  border-radius: var(--sailor-radius-md);
+  border-radius: var(--fabric-radius-md);
   font-size: 12px;
   font-weight: 500;
 }
 
 .te-listen-status--listening {
-  background: color-mix(in srgb, var(--sailor-amber-400) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sailor-amber-400) 30%, transparent);
-  color: var(--sailor-amber-400);
+  background: color-mix(in srgb, var(--fabric-amber-400) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fabric-amber-400) 30%, transparent);
+  color: var(--fabric-amber-400);
 }
 
 .te-listen-status--captured {
-  background: color-mix(in srgb, var(--sailor-green-400) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--sailor-green-400) 30%, transparent);
-  color: var(--sailor-green-400);
+  background: color-mix(in srgb, var(--fabric-green-400) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fabric-green-400) 30%, transparent);
+  color: var(--fabric-green-400);
 }
 
 .te-listen-status--timeout {
-  background: color-mix(in srgb, var(--sailor-text-muted) 8%, transparent);
-  border: 1px solid var(--sailor-border-subtle);
-  color: var(--sailor-text-muted);
+  background: color-mix(in srgb, var(--fabric-text-muted) 8%, transparent);
+  border: 1px solid var(--fabric-border-subtle);
+  color: var(--fabric-text-muted);
 }
 
 .te-listen-pulse {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--sailor-amber-400);
+  background: var(--fabric-amber-400);
   flex-shrink: 0;
   animation: te-pulse 1.2s ease-in-out infinite;
 }
@@ -1166,7 +1166,7 @@ onUnmounted(() => {
   border: none;
   cursor: pointer;
   padding: 2px 4px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   transition: opacity 0.15s;
 }
 .te-listen-cancel:hover { opacity: 1; }

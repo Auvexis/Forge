@@ -10,8 +10,8 @@ import { ProfilePasswordService } from "../profiles/profile-password-service.ts"
 import { ProfileStore } from "../profiles/profile-store.ts";
 
 function createStore(): ProfileStore {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-delete-"));
-  const store = new ProfileStore({ sailorHome: home });
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-delete-"));
+  const store = new ProfileStore({ fabricHome: home });
   store.ensureInitialized();
   return store;
 }

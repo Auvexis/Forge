@@ -1,6 +1,6 @@
 import { AgentRunner } from "./agent-runner.ts";
 import type { AgentRunInput, AgentRunResult } from "./agent-types.ts";
-import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 
 const defaultRunner = new AgentRunner();
 
@@ -9,7 +9,7 @@ export const AgentRuntimeService = {
     return defaultRunner.run(input);
   },
 
-  listTools(): SailorAgentToolDefinition[] {
+  listTools(): FabricAgentToolDefinition[] {
     return defaultRunner.listTools();
   },
 };

@@ -15,15 +15,15 @@ describe('workflow editor polish contracts', () => {
     assert.match(source, /resolvePluginIcon/)
     assert.match(source, /pluginTriggerEventLabel/)
     assert.match(source, /On Message/)
-    assert.match(source, /var\(--sailor-node-plugin-bg\)/)
-    assert.match(source, /var\(--sailor-node-plugin-border\)/)
+    assert.match(source, /var\(--fabric-node-plugin-bg\)/)
+    assert.match(source, /var\(--fabric-node-plugin-border\)/)
   })
 
   it('edge labels are edited by double click inline and the toolbar has no label button', () => {
     const source = read('WorkflowEdge.vue')
 
     assert.match(source, /@dblclick\.stop="startEditLabel"/)
-    assert.match(source, /sailor-edge-label-shell/)
+    assert.match(source, /fabric-edge-label-shell/)
     assert.match(source, /itemCountLabel/)
     assert.doesNotMatch(source, /title="Edit label"/)
     assert.doesNotMatch(source, /name="tag"/)

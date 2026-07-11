@@ -12,7 +12,7 @@ describe('page preview and publish contract', () => {
     const source = read('src/app/router.ts')
     assert.doesNotMatch(source, /\/pages\/:pageId\/preview/)
     assert.doesNotMatch(source, /\/p\/:slug/)
-    assert.doesNotMatch(source, /PublicSailorPage/)
+    assert.doesNotMatch(source, /PublicFabricPage/)
   })
 
   it('editor has preview and publish commands', () => {

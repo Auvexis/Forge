@@ -8,8 +8,8 @@ import { ProfilePasswordService } from "./profile-password-service.ts";
 import { ProfileStore } from "./profile-store.ts";
 
 function createStore(): ProfileStore {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-password-"));
-  const store = new ProfileStore({ sailorHome: home });
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-password-"));
+  const store = new ProfileStore({ fabricHome: home });
   store.ensureInitialized();
   store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
   return store;

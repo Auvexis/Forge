@@ -9,7 +9,7 @@ import type {
   ActiveProfileService,
   SwitchProfileInput,
 } from "../profiles/active-profile-service.ts";
-import { sailorHomePaths } from "../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../runtime/fabric-home.ts";
 
 interface SwitchProfileService {
   switchProfile(input: SwitchProfileInput): Promise<unknown>;
@@ -48,7 +48,7 @@ export default async function profilesRoutes(
   options: ProfilesRoutesOptions = {},
 ) {
   const store =
-    options.store ?? new ProfileStore({ sailorHome: sailorHomePaths.home });
+    options.store ?? new ProfileStore({ fabricHome: fabricHomePaths.home });
   const passwordService =
     options.passwordService ?? new ProfilePasswordService({ store });
   const activeProfileService = options.activeProfileService;

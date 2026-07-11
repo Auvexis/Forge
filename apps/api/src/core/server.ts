@@ -19,7 +19,7 @@ import agentPanelRoutes from "./routes/agent-panel.routes.ts";
 import notificationsRoutes from "./routes/notifications.routes.ts";
 import auvexisAccountRoutes from "./modules/auvexis/auvexis-account-routes.ts";
 import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
-import { sailorHomePaths } from "./runtime/sailor-home.ts";
+import { fabricHomePaths } from "./runtime/fabric-home.ts";
 import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
 import { activeProfileRuntime } from "./profiles/active-profile-runtime.ts";
 
@@ -59,7 +59,7 @@ await fastify.register(cors, {
   credentials: true,
 });
 
-for (const line of formatRuntimeDiagnostics(sailorHomePaths)) {
+for (const line of formatRuntimeDiagnostics(fabricHomePaths)) {
   console.log(line);
 }
 
@@ -96,10 +96,10 @@ fastify.addHook("onClose", async () => {
 // Run the server!
 fastify.listen({ port: PORT, host: "0.0.0.0" }, function (err, address) {
   if (err) {
-    console.error("[SAILOR | FATAL ERROR]:", err);
+    console.error("[FABRIC | FATAL ERROR]:", err);
     fastify.log.error(err);
     process.exit(1);
   }
 
-  console.log(`[SAILOR | SERVER]: Server running at ${address}`);
+  console.log(`[FABRIC | SERVER]: Server running at ${address}`);
 });

@@ -268,7 +268,7 @@ function updateChunking(patch: Partial<DatasetChunkingConfig>) {
 .database-dataset-credential-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   align-items: center;
 }
 </style>

@@ -34,7 +34,7 @@ export type WorkflowNodeType =
   | "vector-store-tool";
 
 export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "user";
-export type AgentMemoryAdapter = "sailor-internal" | "plugin-memory-store";
+export type AgentMemoryAdapter = "fabric-internal" | "plugin-memory-store";
 
 export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
 export type AgentExecutionMode = "loop" | "plan";
@@ -617,7 +617,7 @@ export interface WebhookBodyField {
 
 /**
  * Describes a single field rendered on the public Form Trigger page.
- * The Sailor server hosts a minimal HTML page at GET /forms/:workflowId
+ * The Fabric server hosts a minimal HTML page at GET /forms/:workflowId
  * built from this list. Submitting the form posts to /forms/:workflowId/submit
  * and that POST handler kicks off the workflow as the trigger payload.
  */

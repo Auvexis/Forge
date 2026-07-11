@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import type { SailorSite, SiteFile, SiteFileKind } from "./site-types.ts";
+import type { FabricSite, SiteFile, SiteFileKind } from "./site-types.ts";
 
 const allowedRoots = new Set(["pages", "assets", "js", "css"]);
 const allowedFileExtensions = new Set([
@@ -51,7 +51,7 @@ export function validateSiteProjectPath(value: string): string {
   return normalized.replace(/\/+/g, "/").replace(/\/$/, "");
 }
 
-export function createSiteFile(site: SailorSite, input: CreateSiteFileInput): SailorSite {
+export function createSiteFile(site: FabricSite, input: CreateSiteFileInput): FabricSite {
   const file = normalizeSiteFile(input);
   if (site.files.some((item) => item.path === file.path)) {
     throw new Error(`Site file already exists: ${file.path}`);
@@ -64,7 +64,7 @@ export function createSiteFile(site: SailorSite, input: CreateSiteFileInput): Sa
   };
 }
 
-export function updateSiteFile(site: SailorSite, filePath: string, content: string): SailorSite {
+export function updateSiteFile(site: FabricSite, filePath: string, content: string): FabricSite {
   const normalizedPath = validateSiteProjectPath(filePath);
   let found = false;
   const files = site.files.map((file) => {
@@ -76,7 +76,7 @@ export function updateSiteFile(site: SailorSite, filePath: string, content: stri
   return { ...site, files, updatedAt: new Date().toISOString() };
 }
 
-export function deleteSiteFile(site: SailorSite, filePath: string): SailorSite {
+export function deleteSiteFile(site: FabricSite, filePath: string): FabricSite {
   const normalizedPath = validateSiteProjectPath(filePath);
   const files = site.files.filter((file) => file.path !== normalizedPath);
   if (files.length === site.files.length) throw new Error(`Site file not found: ${normalizedPath}`);

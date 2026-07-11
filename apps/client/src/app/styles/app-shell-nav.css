@@ -13,9 +13,9 @@
   justify-content: center;
   width: 40px;
   height: 36px;
-  border-radius: var(--sailor-radius-md);
-  color: var(--sailor-sidebar-text-muted);
-  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  border-radius: var(--fabric-radius-md);
+  color: var(--fabric-sidebar-text-muted);
+  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   text-decoration: none;
   cursor: pointer;
 }
@@ -33,13 +33,13 @@ button.nav-link {
   min-height: 24px;
   gap: 8px;
   padding: 0;
-  color: var(--sailor-sidebar-text-muted);
+  color: var(--fabric-sidebar-text-muted);
 }
 
 .suite-nav-link:hover,
 .suite-nav-link.nav-link--active {
   background: transparent;
-  color: var(--sailor-sidebar-link-text);
+  color: var(--fabric-sidebar-link-text);
 }
 
 .suite-nav-link.nav-link--active::before {
@@ -61,9 +61,9 @@ button.nav-link {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--sailor-sidebar-link-text);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-sidebar-link-text);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
 }
 
 .suite-nav-link__label::after {
@@ -73,14 +73,14 @@ button.nav-link {
   right: 0;
   bottom: -4px;
   height: 1px;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
   background: currentColor;
   opacity: 0;
   transform: scaleX(0.72);
   transform-origin: left;
   transition:
-    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
-    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
+    transform var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .suite-nav-link:hover .suite-nav-link__label::after,
@@ -99,7 +99,7 @@ button.nav-link {
 
 .sidebar-section__label {
   padding: 0;
-  color: var(--sailor-sidebar-text-muted);
+  color: var(--fabric-sidebar-text-muted);
   font-size: 0.7rem;
   font-weight: 600;
 }
@@ -114,7 +114,7 @@ button.nav-link {
 }
 
 .nav-link:hover {
-  color: var(--sailor-sidebar-link-text);
+  color: var(--fabric-sidebar-link-text);
 }
 
 /* ── Sidebar footer links stack ──────────────────────────── */
@@ -124,7 +124,7 @@ button.nav-link {
   flex-direction: row;
   width: 100%;
   justify-content: flex-start;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .sidebar-activity-link {

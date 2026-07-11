@@ -320,7 +320,7 @@ function applyStylePreset(key: string, value: string) {
 }
 
 function setDroppedFontFamily(event: DragEvent) {
-  const path = event.dataTransfer?.getData('application/x-sailor-page-asset')
+  const path = event.dataTransfer?.getData('application/x-fabric-page-asset')
     || event.dataTransfer?.getData('text/plain')
     || ''
   if (path) setStyle('fontFamily', path)

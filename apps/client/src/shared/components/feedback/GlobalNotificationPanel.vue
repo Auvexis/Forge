@@ -191,7 +191,7 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel {
   position: fixed;
   inset: 0;
-  z-index: var(--sailor-z-modal);
+  z-index: var(--fabric-z-modal);
   display: flex;
   justify-content: center;
   pointer-events: none;
@@ -212,18 +212,18 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__shell {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  gap: var(--sailor-space-4);
-  width: min(var(--sailor-panel-width-wide), calc(100vw - var(--sailor-space-8)));
-  min-height: min(420px, calc(100vh - var(--sailor-space-4)));
-  max-height: calc(100vh - var(--sailor-space-4));
+  gap: var(--fabric-space-4);
+  width: min(var(--fabric-panel-width-wide), calc(100vw - var(--fabric-space-8)));
+  min-height: min(420px, calc(100vh - var(--fabric-space-4)));
+  max-height: calc(100vh - var(--fabric-space-4));
   overflow: visible;
-  padding: var(--sailor-space-4);
-  border: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-4);
+  border: 1px solid var(--fabric-border);
   border-top: 0;
-  border-radius: 0 0 var(--sailor-radius-sm) var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-xl);
-  color: var(--sailor-text-primary);
+  border-radius: 0 0 var(--fabric-radius-sm) var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  box-shadow: var(--fabric-shadow-xl);
+  color: var(--fabric-text-primary);
   pointer-events: auto;
   outline: none;
   z-index: 1;
@@ -234,7 +234,7 @@ function labelFromIdentifier(identifier: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .notification-panel__header h2,
@@ -243,25 +243,25 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__header h2 {
-  font-size: var(--sailor-text-lg);
+  font-size: var(--fabric-text-lg);
 }
 
 .notification-panel__header p {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
 }
 
 .notification-panel__body {
   position: relative;
   min-height: 0;
-  max-height: calc(100vh - var(--sailor-space-16));
+  max-height: calc(100vh - var(--fabric-space-16));
   overflow: visible;
 }
 
 .notification-panel__list-view {
   display: grid;
   grid-template-rows: auto auto minmax(0, 1fr);
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
   min-height: 0;
 }
 
@@ -275,32 +275,32 @@ function labelFromIdentifier(identifier: string) {
   z-index: 3;
   overflow: auto;
   min-height: 100%;
-  background: var(--sailor-bg-surface);
+  background: var(--fabric-bg-surface);
 }
 
 .notification-panel__tabs-carousel {
   position: relative;
   overflow: hidden;
-  padding: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-base);
+  padding: var(--fabric-space-1);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-base);
 }
 
 .notification-panel__tabs-carousel::before,
 .notification-panel__tabs-carousel::after {
   position: absolute;
-  top: var(--sailor-space-1);
-  bottom: var(--sailor-space-1);
+  top: var(--fabric-space-1);
+  bottom: var(--fabric-space-1);
   z-index: 1;
-  width: var(--sailor-space-6);
+  width: var(--fabric-space-6);
   pointer-events: none;
   content: '';
 }
 
 .notification-panel__tabs-track {
   display: flex;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   overflow-x: auto;
   scrollbar-width: none;
   scroll-snap-type: x proximity;
@@ -316,26 +316,26 @@ function labelFromIdentifier(identifier: string) {
 
 .notification-panel__tab {
   flex: 0 0 auto;
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
   font: inherit;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   cursor: pointer;
   scroll-snap-align: start;
   transition:
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .notification-panel__tab:hover,
 .notification-panel__tab--active {
-  border-color: var(--sailor-border-strong);
-  color: var(--sailor-text-primary);
-  background: var(--sailor-bg-overlay);
+  border-color: var(--fabric-border-strong);
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-overlay);
 }
 
 .notification-panel__controls {
@@ -348,11 +348,11 @@ function labelFromIdentifier(identifier: string) {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .notification-panel__controls :deep(.notification-panel__controls-menu) {
-  z-index: calc(var(--sailor-z-modal) + 1);
+  z-index: calc(var(--fabric-z-modal) + 1);
   width: 260px;
 }
 </style>

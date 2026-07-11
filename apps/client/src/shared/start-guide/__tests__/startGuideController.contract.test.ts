@@ -90,7 +90,7 @@ describe('start guide controller contract', () => {
 
     assert.match(guide, /width: min\(860px/)
     assert.match(guide, /height: 360px/)
-    assert.match(guide, /padding: var\(--sailor-space-6\)/)
+    assert.match(guide, /padding: var\(--fabric-space-6\)/)
   })
 
   it('renders utility node previews with real icons and explicit colors', () => {

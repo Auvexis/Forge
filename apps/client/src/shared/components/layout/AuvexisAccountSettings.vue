@@ -9,7 +9,7 @@
           <div>
             <h3 class="auvexis-settings__title">Auvexis Account</h3>
             <p class="auvexis-settings__description">
-              Connect this Sailor profile to your Auvexis identity.
+              Connect this Fabric profile to your Auvexis identity.
             </p>
           </div>
         </div>
@@ -55,11 +55,11 @@
 
         <div v-else-if="accountStore.status === 'needs_reconnect'" class="auvexis-settings__notice">
           <LucideIcon name="circle-alert" :size="16" />
-          Auvexis needs you to reconnect before Sailor can trust account badges.
+          Auvexis needs you to reconnect before Fabric can trust account badges.
         </div>
 
         <p v-else class="auvexis-settings__empty">
-          No Auvexis account is connected to this Sailor profile.
+          No Auvexis account is connected to this Fabric profile.
         </p>
 
         <p v-if="accountStore.error" class="auvexis-settings__error">
@@ -143,30 +143,30 @@ onMounted(() => {
 .auvexis-settings {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
 }
 
 .auvexis-settings__card {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-4);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-muted);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-4);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-muted);
 }
 
 .auvexis-settings__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .auvexis-settings__identity {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .auvexis-settings__icon {
@@ -175,16 +175,16 @@ onMounted(() => {
   justify-content: center;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-accent);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-accent);
 }
 
 .auvexis-settings__title {
   margin: 0;
-  font-size: var(--sailor-text-base);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-base);
+  color: var(--fabric-text-primary);
 }
 
 .auvexis-settings__description,
@@ -192,38 +192,38 @@ onMounted(() => {
 .auvexis-settings__muted,
 .auvexis-settings__label {
   margin: 0;
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-muted);
 }
 
 .auvexis-settings__state,
 .auvexis-settings__notice {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-secondary);
+  gap: var(--fabric-space-2);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-secondary);
 }
 
 .auvexis-settings__notice {
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-status-running-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-status-running-bg);
-  color: var(--sailor-status-running-text);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-status-running-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-status-running-bg);
+  color: var(--fabric-status-running-text);
 }
 
 .auvexis-settings__body,
 .auvexis-settings__account {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .auvexis-settings__username {
   display: block;
-  margin-top: var(--sailor-space-1);
-  color: var(--sailor-text-primary);
+  margin-top: var(--fabric-space-1);
+  color: var(--fabric-text-primary);
 }
 
 .auvexis-settings__badges,
@@ -231,18 +231,18 @@ onMounted(() => {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .auvexis-settings__badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   min-height: 24px;
   padding: 2px 9px;
   border: 1px solid;
   border-radius: 999px;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
   line-height: 1;
 }
@@ -256,8 +256,8 @@ onMounted(() => {
 
 .auvexis-settings__error {
   margin: 0;
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-status-error-text);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-status-error-text);
 }
 
 .auvexis-settings__spin {

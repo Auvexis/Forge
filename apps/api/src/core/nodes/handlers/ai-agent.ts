@@ -13,7 +13,7 @@ import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-memory-mode.ts";
 import { CancellationRegistry } from "../../modules/workflows/cancellation-registry.ts";
-import { sailorHomePaths } from "../../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../../runtime/fabric-home.ts";
 import { resolveAgentChatMemoryPath } from "../../modules/agent-runtime/chat/agent-chat-paths.ts";
 import type { AgentToolRef, ChatModelRef, MemoryRef } from "../../modules/ai-services/ai-service-types.ts";
 import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
@@ -58,7 +58,7 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
 
   return AgentRuntimeService.runAgent(runInput);
 }, {
-  description: "Runs a Sailor AI Agent with connected model, memory, and tool configuration nodes.",
+  description: "Runs a Fabric AI Agent with connected model, memory, and tool configuration nodes.",
   execution: "external-io",
   sideEffects: ["network", "workflow-dispatch"],
   inputs: ["trigger", "ai-model", "ai-memory", "ai-tool"],
@@ -77,9 +77,9 @@ function resolveCheckpointerDbPath(
   sessionId: string | undefined,
   memory: AiMemoryNodeConfig | undefined,
 ): string | undefined {
-  if (!sessionId || !usesShortTermMemory(memory) || memory?.adapter !== "sailor-internal") return undefined;
+  if (!sessionId || !usesShortTermMemory(memory) || memory?.adapter !== "fabric-internal") return undefined;
   return resolveAgentChatMemoryPath({
-    profilesDir: sailorHomePaths.profilesDir,
+    profilesDir: fabricHomePaths.profilesDir,
     profileId,
     chatId: sessionId,
   });

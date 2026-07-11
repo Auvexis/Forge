@@ -246,7 +246,7 @@ test('chat session panel renders user and assistant messages', () => {
   assert.match(source, /chat-session-panel__message-copy/)
   assert.doesNotMatch(source, /chat-session-panel__header/)
   assert.doesNotMatch(source, /chat-session-panel__session/)
-  assert.doesNotMatch(source, /var\(--sailor-blue-400\) 10%/)
+  assert.doesNotMatch(source, /var\(--fabric-blue-400\) 10%/)
 })
 
 test('chat session panel preserves session id for follow-up messages', () => {

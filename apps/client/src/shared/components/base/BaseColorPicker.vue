@@ -61,20 +61,20 @@ const safeColorValue = computed(() => {
   gap: 6px;
   height: 32px;
   padding: 3px 8px 3px 3px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  transition: border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-              box-shadow var(--sailor-duration-fast) var(--sailor-ease-standard);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  transition: border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+              box-shadow var(--fabric-duration-fast) var(--fabric-ease-standard);
   position: relative;
 }
 
 .bcp-root:hover {
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
 }
 
 .bcp-root:focus-within {
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
 }
 
 .bcp-root--disabled {
@@ -88,7 +88,7 @@ const safeColorValue = computed(() => {
   width: 22px;
   height: 22px;
   cursor: pointer;
-  border-radius: calc(var(--sailor-radius-sm) - 2px);
+  border-radius: calc(var(--fabric-radius-sm) - 2px);
   overflow: hidden;
 }
 
@@ -130,13 +130,13 @@ const safeColorValue = computed(() => {
   background: transparent;
   border: none;
   font-size: 11px;
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-primary);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-primary);
   outline: none;
   padding: 0;
   letter-spacing: 0.02em;
 }
 .bcp-text-input::placeholder {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 </style>

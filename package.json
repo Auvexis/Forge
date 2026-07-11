@@ -1,5 +1,5 @@
 {
-  "name": "sailor",
+  "name": "fabric",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -19,15 +19,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/euandresimoes/sailor.git"
+    "url": "git+https://github.com/euandresimoes/fabric.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/euandresimoes/sailor/issues"
+    "url": "https://github.com/euandresimoes/fabric/issues"
   },
-  "homepage": "https://github.com/euandresimoes/sailor#readme",
+  "homepage": "https://github.com/euandresimoes/fabric#readme",
   "devDependencies": {
     "concurrently": "^10.0.3"
   },

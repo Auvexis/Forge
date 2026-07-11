@@ -11,7 +11,7 @@ const handlers = computed(() => getAdvancedNodeHandlers('question-answer-chain')
 </script>
 
 <template>
-  <BaseAdvancedNode :id="props.id" :selected="props.selected" :status="props.status" :title="props.data?.name || 'Question and Answer Chain'" description="Retrieval augmented answer" :handlers="handlers" auto-organize has-target has-source :has-outgoing-connection="props.hasOutgoingConnection" bg="transparent" border-color="var(--sailor-node-border)">
+  <BaseAdvancedNode :id="props.id" :selected="props.selected" :status="props.status" :title="props.data?.name || 'Question and Answer Chain'" description="Retrieval augmented answer" :handlers="handlers" auto-organize has-target has-source :has-outgoing-connection="props.hasOutgoingConnection" bg="transparent" border-color="var(--fabric-node-border)">
     <template #icon-left><LucideIcon name="messages-square" :size="30" style="color: #0891b2" /></template>
   </BaseAdvancedNode>
 </template>

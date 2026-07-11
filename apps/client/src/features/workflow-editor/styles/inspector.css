@@ -6,24 +6,24 @@
   /* ── Inspector Specific Variables ──────────────────────── */
   /* Backgrounds */
   --inspector-bg-backdrop: rgba(0, 0, 0, 0.046);
-  --inspector-bg-modal: var(--sailor-bg-surface);
-  --inspector-bg-pane: var(--sailor-bg-surface);
-  --inspector-bg-header: var(--sailor-bg-surface);
+  --inspector-bg-modal: var(--fabric-bg-surface);
+  --inspector-bg-pane: var(--fabric-bg-surface);
+  --inspector-bg-header: var(--fabric-bg-surface);
   
   /* Borders */
-  --inspector-border: var(--sailor-border);
-  --inspector-border-focus: var(--sailor-color-primary);
+  --inspector-border: var(--fabric-border);
+  --inspector-border-focus: var(--fabric-color-primary);
 
   /* JSON Tree View Variables */
-  --json-color-string: var(--sailor-color-success);
-  --json-color-number: var(--sailor-color-warning);
-  --json-color-boolean: var(--sailor-color-danger);
-  --json-color-key: var(--sailor-text-primary);
-  --json-color-punctuation: var(--sailor-text-muted);
+  --json-color-string: var(--fabric-color-success);
+  --json-color-number: var(--fabric-color-warning);
+  --json-color-boolean: var(--fabric-color-danger);
+  --json-color-key: var(--fabric-text-primary);
+  --json-color-punctuation: var(--fabric-text-muted);
 
   /* Drag and Drop */
   --drag-indicator-bg: rgba(99, 102, 241, 0.1); /* Primary color with opacity */
-  --drag-indicator-border: var(--sailor-color-primary);
+  --drag-indicator-border: var(--fabric-color-primary);
 }
 
 /* ── Inspector Layout Utilities ─────────────────────────── */

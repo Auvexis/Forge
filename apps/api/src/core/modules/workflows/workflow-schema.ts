@@ -1,10 +1,10 @@
 import { VALID_NODE_TYPES } from "./workflow-validation.ts";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 import { getUtilityNodeCatalogItem } from "../../utility-nodes/utility-node-catalog.ts";
 import type { WorkflowItem } from "../../../shared/models/workflow-types.ts";
 
 export interface WorkflowSchemaDependencies {
-  getPlugin?: (pluginId: string) => SailorPlugin;
+  getPlugin?: (pluginId: string) => FabricPlugin;
 }
 
 export function buildWorkflowSchema(

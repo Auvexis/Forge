@@ -15,7 +15,7 @@ import type {
 describe("Auvexis account routes", () => {
   it("preserves product subject across the OAuth callback transaction", async () => {
     const dataDir = await fs.promises.mkdtemp(
-      path.join(os.tmpdir(), "sailor-auvexis-transaction-"),
+      path.join(os.tmpdir(), "fabric-auvexis-transaction-"),
     );
     const store = createFileAuvexisOAuthTransactionStore(dataDir);
 
@@ -178,7 +178,7 @@ describe("Auvexis account routes", () => {
     assert.deepEqual(calls, ["logout", "revoke"]);
   });
 
-  it("emits an Auvexis product event for the active Sailor profile", async () => {
+  it("emits an Auvexis product event for the active Fabric profile", async () => {
     const calls: unknown[] = [];
     const app = Fastify();
     await app.register(auvexisAccountRoutes, {
@@ -188,7 +188,7 @@ describe("Auvexis account routes", () => {
           calls.push(input);
           return {
             eventId: input.eventId,
-            productId: "sailor",
+            productId: "fabric",
             status: "accepted",
             outcomes: [],
           };
@@ -200,8 +200,8 @@ describe("Auvexis account routes", () => {
       method: "POST",
       url: "/auvexis/events",
       payload: {
-        eventId: "sailor.workflow.published:workflow-1",
-        type: "sailor.workflow.published",
+        eventId: "fabric.workflow.published:workflow-1",
+        type: "fabric.workflow.published",
         evidence: { workflowId: "workflow-1" },
       },
     });
@@ -212,8 +212,8 @@ describe("Auvexis account routes", () => {
     assert.deepEqual(calls, [
       {
         profileId: "profile-1",
-        eventId: "sailor.workflow.published:workflow-1",
-        type: "sailor.workflow.published",
+        eventId: "fabric.workflow.published:workflow-1",
+        type: "fabric.workflow.published",
         evidence: { workflowId: "workflow-1" },
       },
     ]);
@@ -235,7 +235,7 @@ describe("Auvexis account routes", () => {
       method: "POST",
       url: "/auvexis/events",
       payload: {
-        type: "sailor.workflow.published",
+        type: "fabric.workflow.published",
       },
     });
     const body = response.json();
@@ -244,7 +244,7 @@ describe("Auvexis account routes", () => {
     assert.equal(body.error, "AUVEXIS_ACCOUNT_NOT_CONNECTED");
   });
 
-  it("requires an active Sailor profile", async () => {
+  it("requires an active Fabric profile", async () => {
     const app = Fastify();
     await app.register(auvexisAccountRoutes, {
       getActiveProfileId: () => null,

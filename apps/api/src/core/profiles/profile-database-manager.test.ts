@@ -9,8 +9,8 @@ import { resolveProfilePaths } from "./profile-paths.ts";
 
 describe("ProfileDatabaseManager", () => {
   it("opens all databases inside the active profile data directory", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-db-"));
-    const paths = resolveProfilePaths({ sailorHome: home, profileId: "profile-a" });
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-db-"));
+    const paths = resolveProfilePaths({ fabricHome: home, profileId: "profile-a" });
     const manager = new ProfileDatabaseManager();
 
     manager.open(paths);
@@ -33,9 +33,9 @@ describe("ProfileDatabaseManager", () => {
   });
 
   it("keeps notification database files isolated by profile", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-db-"));
-    const profileA = resolveProfilePaths({ sailorHome: home, profileId: "profile-a" });
-    const profileB = resolveProfilePaths({ sailorHome: home, profileId: "profile-b" });
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-db-"));
+    const profileA = resolveProfilePaths({ fabricHome: home, profileId: "profile-a" });
+    const profileB = resolveProfilePaths({ fabricHome: home, profileId: "profile-b" });
     const manager = new ProfileDatabaseManager();
 
     manager.open(profileA);
@@ -56,9 +56,9 @@ describe("ProfileDatabaseManager", () => {
   });
 
   it("keeps profile database files isolated", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-db-"));
-    const profileA = resolveProfilePaths({ sailorHome: home, profileId: "profile-a" });
-    const profileB = resolveProfilePaths({ sailorHome: home, profileId: "profile-b" });
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-db-"));
+    const profileA = resolveProfilePaths({ fabricHome: home, profileId: "profile-a" });
+    const profileB = resolveProfilePaths({ fabricHome: home, profileId: "profile-b" });
     const manager = new ProfileDatabaseManager();
 
     manager.open(profileA);
@@ -79,9 +79,9 @@ describe("ProfileDatabaseManager", () => {
   });
 
   it("closes old handles before opening another profile", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-db-"));
-    const profileA = resolveProfilePaths({ sailorHome: home, profileId: "profile-a" });
-    const profileB = resolveProfilePaths({ sailorHome: home, profileId: "profile-b" });
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-db-"));
+    const profileA = resolveProfilePaths({ fabricHome: home, profileId: "profile-a" });
+    const profileB = resolveProfilePaths({ fabricHome: home, profileId: "profile-b" });
     const manager = new ProfileDatabaseManager();
 
     manager.open(profileA);

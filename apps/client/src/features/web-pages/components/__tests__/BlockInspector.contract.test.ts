@@ -104,7 +104,7 @@ describe('block inspector contract', () => {
     assert.match(allowlist, /objectFit/)
     assert.match(allowlist, /textTransform/)
     assert.match(allowlist, /backgroundSize/)
-    assert.match(styles, /\.web-page-style-section h5 \{[\s\S]*color: var\(--sailor-text-primary\)/)
+    assert.match(styles, /\.web-page-style-section h5 \{[\s\S]*color: var\(--fabric-text-primary\)/)
   })
 
   it('style panel exposes Adobe-like unit controls and visual presets', () => {
@@ -228,7 +228,7 @@ describe('block inspector contract', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const serverValidation = fs.readFileSync(path.resolve('../server/src/core/modules/pages/page-validation.ts'), 'utf8')
 
-    assert.match(content, /application\/x-sailor-page-asset/)
+    assert.match(content, /application\/x-fabric-page-asset/)
     assert.match(content, /readDroppedAssetPath/)
     assert.match(content, /setDroppedAssetProp/)
     assert.match(style, /setDroppedFontFamily/)

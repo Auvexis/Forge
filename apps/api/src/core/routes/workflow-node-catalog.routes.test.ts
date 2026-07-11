@@ -29,11 +29,11 @@ describe("workflow node catalog routes", () => {
     assert.equal(body.error, null);
     assert.match(body.message, /catalog/i);
     assert.equal(code.label, "Code Block");
-    assert.equal(code.packId, "sailor-core");
+    assert.equal(code.packId, "fabric-core");
     assert.equal(typeof code.description, "string");
     assert.equal(typeof code.category, "string");
     assert.equal(code.style.icon, "code-2");
-    assert.equal(code.style.iconColor, "var(--sailor-node-codeblock-icon)");
+    assert.equal(code.style.iconColor, "var(--fabric-node-codeblock-icon)");
     assert.equal(typeof code.style.bgColor, "string");
     assert.equal(typeof code.style.borderColor, "string");
     assert.equal("execute" in code, false);

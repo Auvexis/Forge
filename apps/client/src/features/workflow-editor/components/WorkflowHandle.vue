@@ -1,14 +1,14 @@
 <template>
   <span
     ref="handleRef"
-    class="sailor-base-handle"
+    class="fabric-base-handle"
     :class="[`is-position-${side}`, `is-variant-${variant}`]"
     :data-workflow-node-id="nodeId"
     :data-workflow-handle-id="handleId"
     :data-workflow-handle-type="props.type"
     @pointerdown.stop.prevent
   >
-    <span class="sailor-base-handle__visual" />
+    <span class="fabric-base-handle__visual" />
   </span>
 </template>
 
@@ -59,7 +59,7 @@ watch(() => [handleId.value, props.type, side.value, props.variant], registerHan
 </script>
 
 <style scoped>
-.sailor-base-handle {
+.fabric-base-handle {
   position: absolute;
   width: 0 !important;
   height: 0 !important;
@@ -71,27 +71,27 @@ watch(() => [handleId.value, props.type, side.value, props.variant], registerHan
   pointer-events: all;
 }
 
-.sailor-base-handle.is-position-top {
+.fabric-base-handle.is-position-top {
   top: 0;
   left: 50%;
 }
 
-.sailor-base-handle.is-position-right {
+.fabric-base-handle.is-position-right {
   top: 50%;
   right: 0;
 }
 
-.sailor-base-handle.is-position-bottom {
+.fabric-base-handle.is-position-bottom {
   bottom: 0;
   left: 50%;
 }
 
-.sailor-base-handle.is-position-left {
+.fabric-base-handle.is-position-left {
   top: 50%;
   left: 0;
 }
 
-.sailor-base-handle::after {
+.fabric-base-handle::after {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -102,33 +102,33 @@ watch(() => [handleId.value, props.type, side.value, props.variant], registerHan
   transform: translate(-50%, -50%);
 }
 
-.sailor-base-handle__visual {
+.fabric-base-handle__visual {
   position: absolute;
   top: 50%;
   left: 50%;
   width: 12px;
   height: 12px;
   box-sizing: border-box;
-  border: 1px solid var(--sailor-border-strong);
+  border: 1px solid var(--fabric-border-strong);
   border-radius: 100%;
-  background-color: var(--sailor-node-handle);
+  background-color: var(--fabric-node-handle);
   pointer-events: none;
   transform: translate(-50%, -50%);
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sailor-base-handle:hover .sailor-base-handle__visual {
-  background-color: var(--sailor-node-handle-hover);
+.fabric-base-handle:hover .fabric-base-handle__visual {
+  background-color: var(--fabric-node-handle-hover);
 }
 
-.sailor-base-handle.is-position-left .sailor-base-handle__visual,
-.sailor-base-handle.is-variant-bar .sailor-base-handle__visual {
+.fabric-base-handle.is-position-left .fabric-base-handle__visual,
+.fabric-base-handle.is-variant-bar .fabric-base-handle__visual {
   width: 8px;
   height: 25px;
   border-radius: 2px;
 }
 
-.sailor-base-handle.is-variant-diamond .sailor-base-handle__visual {
+.fabric-base-handle.is-variant-diamond .fabric-base-handle__visual {
   width: 12px;
   height: 12px;
   border-radius: 2px;

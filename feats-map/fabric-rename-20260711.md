@@ -1,0 +1,4 @@
+- [x] Rename app packages and SDK imports
+- [x] Rename runtime and frontend identifiers
+- [x] Rename Auvexis product/event references
+- [x] Validate Fabric app rename

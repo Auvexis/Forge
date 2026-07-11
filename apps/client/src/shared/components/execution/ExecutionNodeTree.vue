@@ -86,73 +86,73 @@ function activate(node: ExecutionRunTreeNode) {
   display: grid;
   width: max-content;
   min-width: 100%;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .execution-node-tree--nested {
   position: relative;
-  margin-left: calc(var(--sailor-space-4) + 7px);
-  padding-left: var(--sailor-space-3);
+  margin-left: calc(var(--fabric-space-4) + 7px);
+  padding-left: var(--fabric-space-3);
 }
 
 .execution-node-tree__branch {
   position: relative;
   display: grid;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch::before {
   content: '';
   position: absolute;
   top: 18px;
-  left: calc(-1 * var(--sailor-space-3));
-  width: calc(var(--sailor-space-3) + var(--sailor-space-2));
-  border-top: 1px solid var(--sailor-border-strong);
+  left: calc(-1 * var(--fabric-space-3));
+  width: calc(var(--fabric-space-3) + var(--fabric-space-2));
+  border-top: 1px solid var(--fabric-border-strong);
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch::after {
   content: '';
   position: absolute;
   top: 0;
-  left: calc(-1 * var(--sailor-space-3));
+  left: calc(-1 * var(--fabric-space-3));
   height: 18px;
-  border-left: 1px solid var(--sailor-border-strong);
+  border-left: 1px solid var(--fabric-border-strong);
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch--first::after {
-  top: calc(-1 * var(--sailor-space-2));
-  height: calc(18px + var(--sailor-space-2));
+  top: calc(-1 * var(--fabric-space-2));
+  height: calc(18px + var(--fabric-space-2));
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch--has-next::after {
-  bottom: calc(-1 * var(--sailor-space-2));
+  bottom: calc(-1 * var(--fabric-space-2));
   height: auto;
 }
 
 .execution-node-tree__row {
   width: 280px;
   min-height: 36px;
-  margin-left: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
+  margin-left: var(--fabric-space-2);
+  padding: var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
 }
 .execution-node-tree__row :deep(.base-button__label) {
   width: 100%;
   display: grid;
   grid-template-columns: 14px 24px minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   text-align: left;
 }
 .execution-node-tree__row--leaf :deep(.base-button__label) {
   grid-template-columns: 24px minmax(0, 1fr) auto;
 }
 .execution-node-tree__row--active {
-  background-color: var(--sailor-button-ghost-active);
+  background-color: var(--fabric-button-ghost-active);
 }
 .execution-node-tree__chevron {
-  color: var(--sailor-text-muted);
-  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
+  color: var(--fabric-text-muted);
+  transition: transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .execution-node-tree__chevron.is-open {
   transform: rotate(90deg);
@@ -171,26 +171,26 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree__name {
   min-width: 0;
   overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .execution-node-tree__row code {
-  color: var(--sailor-text-muted);
-  font-family: var(--sailor-font-mono);
+  color: var(--fabric-text-muted);
+  font-family: var(--fabric-font-mono);
   font-size: 9px;
 }
 .execution-node-tree-children-enter-active,
 .execution-node-tree-children-leave-active {
   overflow: hidden;
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .execution-node-tree-children-enter-from,
 .execution-node-tree-children-leave-to {
   opacity: 0;
-  transform: translateY(calc(-1 * var(--sailor-space-2)));
+  transform: translateY(calc(-1 * var(--fabric-space-2)));
 }
 </style>

@@ -43,7 +43,7 @@
         <!-- ── Headers (Fade) ──────────────────────────────────────── -->
         <transition name="fade" mode="out-in">
           <div v-if="activeTab === 'variables'" key="head-var" class="gs-section__head">
-            <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
+            <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
               <h2 class="gs-section__title">Environment Variables</h2>
               <p class="gs-section__desc">
                 Use <code class="gs-code" v-pre>{{ env.KEY }}</code> in any workflow to reference
@@ -63,7 +63,7 @@
             "
           >
             <div>
-              <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
+              <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
                 <h2 class="gs-section__title">Credentials</h2>
                 <p class="gs-section__desc">
                   Configure API keys and tokens for your installed plugins.
@@ -75,15 +75,15 @@
             </div>
           </div>
           <div v-else-if="activeTab === 'preferences'" key="head-pref" class="gs-section__head">
-            <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
+            <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
               <h2 class="gs-section__title">Preferences</h2>
-              <p class="gs-section__desc">System preferences for this Sailor instance.</p>
+              <p class="gs-section__desc">System preferences for this Fabric instance.</p>
             </div>
           </div>
           <div v-else-if="activeTab === 'auvexis'" key="head-auvexis" class="gs-section__head">
-            <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
+            <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
               <h2 class="gs-section__title">Auvexis</h2>
-              <p class="gs-section__desc">Connect this Sailor profile to Auvexis Accounts.</p>
+              <p class="gs-section__desc">Connect this Fabric profile to Auvexis Accounts.</p>
             </div>
           </div>
         </transition>
@@ -267,8 +267,8 @@
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: var(--sailor-bg-surface);
-                    border: 1px solid var(--sailor-border);
+                    background: var(--fabric-bg-surface);
+                    border: 1px solid var(--fabric-border);
                     border-radius: 8px;
                     margin-bottom: 0.75rem;
                   "
@@ -280,7 +280,7 @@
                   style="
                     font-size: 0.95em;
                     font-weight: 500;
-                    color: var(--sailor-text-primary);
+                    color: var(--fabric-text-primary);
                     margin-bottom: 0.25rem;
                     text-align: center;
                   "
@@ -298,10 +298,10 @@
                   "
                   :style="
                     plugin.status === 'connected'
-                      ? 'color: var(--sailor-text-success);'
+                      ? 'color: var(--fabric-text-success);'
                       : plugin.status === 'configured'
-                      ? 'color: var(--sailor-text-warning);'
-                      : 'color: var(--sailor-text-danger);'
+                      ? 'color: var(--fabric-text-warning);'
+                      : 'color: var(--fabric-text-danger);'
                   "
                 >
                   <LucideIcon
@@ -332,9 +332,9 @@
                 <!-- OAuth Redirect URL Block -->
                 <div
                   v-if="selectedPluginForMenu.auth_type === 'oauth2' && pluginStatus?.oauth_redirect_uri"
-                  style="display: flex; flex-direction: column; gap: var(--sailor-space-2); padding: var(--sailor-space-3); background: var(--sailor-bg-surface); border-radius: var(--sailor-radius-md); border: 1px solid var(--sailor-border); margin-bottom: var(--sailor-space-2);"
+                  style="display: flex; flex-direction: column; gap: var(--fabric-space-2); padding: var(--fabric-space-3); background: var(--fabric-bg-surface); border-radius: var(--fabric-radius-md); border: 1px solid var(--fabric-border); margin-bottom: var(--fabric-space-2);"
                 >
-                  <span style="font-size: var(--sailor-text-sm); font-weight: 500; color: var(--sailor-text-primary);">OAuth Redirect URL</span>
+                  <span style="font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-text-primary);">OAuth Redirect URL</span>
                   <BaseInput
                     :model-value="pluginStatus.oauth_redirect_uri"
                     readonly
@@ -342,19 +342,19 @@
                   />
                   <p
                     v-if="pluginStatus?.oauth_ui?.oauthCallbackInstructions"
-                    style="margin: 0; font-size: var(--sailor-text-xs); color: var(--sailor-text-muted); margin-top: var(--sailor-space-1);"
+                    style="margin: 0; font-size: var(--fabric-text-xs); color: var(--fabric-text-muted); margin-top: var(--fabric-space-1);"
                   >
                     {{ pluginStatus.oauth_ui.oauthCallbackInstructions }}
                   </p>
                   <div
                     v-if="pluginStatus.oauth_public_url_required"
-                    style="display: flex; align-items: flex-start; gap: var(--sailor-space-2); padding: var(--sailor-space-2); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--sailor-radius-md); background: rgba(234, 179, 8, 0.08); color: rgb(234, 179, 8); font-size: var(--sailor-text-xs); line-height: 1.4;"
+                    style="display: flex; align-items: flex-start; gap: var(--fabric-space-2); padding: var(--fabric-space-2); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--fabric-radius-md); background: rgba(234, 179, 8, 0.08); color: rgb(234, 179, 8); font-size: var(--fabric-text-xs); line-height: 1.4;"
                   >
                     <LucideIcon name="circle-alert" :size="14" style="flex: 0 0 auto; margin-top: 1px;" />
                     <span>
                       {{
                         pluginStatus.oauth_public_url_warning ||
-                        'OAuth needs a public HTTPS URL. Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.'
+                        'OAuth needs a public HTTPS URL. Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.'
                       }}
                     </span>
                   </div>
@@ -363,20 +363,20 @@
                   v-for="(schema, fieldKey) in credentialSchema(selectedPluginForMenu)"
                   :key="fieldKey"
                 >
-                  <div style="display: flex; flex-direction: column; gap: var(--sailor-space-1)">
-                    <label style="display: flex; align-items: center; gap: var(--sailor-space-1); font-size: var(--sailor-text-sm); font-weight: 500; color: var(--sailor-text-primary);">
+                  <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
+                    <label style="display: flex; align-items: center; gap: var(--fabric-space-1); font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-text-primary);">
                       {{ (schema as any).label ?? (schema as any).title ?? String(fieldKey) }}
                       <span v-if="(schema as any).required" style="color: rgb(239, 68, 68);">*</span>
                     </label>
                     <p
                       v-if="(schema as any).description"
-                      style="margin: 0; font-size: var(--sailor-text-xs); color: var(--sailor-text-muted);"
+                      style="margin: 0; font-size: var(--fabric-text-xs); color: var(--fabric-text-muted);"
                     >
                       {{ (schema as any).description }}
                     </p>
 
                     <div
-                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: var(--sailor-space-1)"
+                      style="display: flex; align-items: center; gap: 0.5rem; margin-top: var(--fabric-space-1)"
                     >
                       <BaseInput
                         style="flex: 1"
@@ -420,7 +420,7 @@
               </div>
 
               <template #footer>
-                <div style="display: flex; flex-direction: column; gap: var(--sailor-space-2); width: 100%;">
+                <div style="display: flex; flex-direction: column; gap: var(--fabric-space-2); width: 100%;">
                   <!-- Save Button -->
                   <BaseButton
                     variant="primary"
@@ -872,7 +872,7 @@ async function handlePublicUrlSave() {
   align-items: center;
   justify-content: center;
   padding: 1rem 0.5rem;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   border: 1px solid transparent;
   background: transparent;
   cursor: pointer;
@@ -880,11 +880,11 @@ async function handlePublicUrlSave() {
 }
 
 .gs-cred-grid-item:hover {
-  background: var(--sailor-button-ghost-hover);
-  border-color: var(--sailor-border-muted);
+  background: var(--fabric-button-ghost-hover);
+  border-color: var(--fabric-border-muted);
 }
 .gs-cred-grid-item--active {
-  background: var(--sailor-bg-surface);
-  border-color: var(--sailor-border);
+  background: var(--fabric-bg-surface);
+  border-color: var(--fabric-border);
 }
 </style>

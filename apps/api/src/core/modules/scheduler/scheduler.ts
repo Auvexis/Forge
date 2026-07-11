@@ -60,7 +60,7 @@ export const Scheduler = {
     }
 
     if (count > 0) {
-      console.log(`[SAILOR | SCHEDULER]: Initialized ${count} cron job(s)`);
+      console.log(`[FABRIC | SCHEDULER]: Initialized ${count} cron job(s)`);
     }
   },
 
@@ -72,7 +72,7 @@ export const Scheduler = {
   ): void {
     if (!cron.validate(cronExpression)) {
       console.error(
-        `[SAILOR | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
+        `[FABRIC | SCHEDULER]: Invalid cron expression for workflow ${workflowId}: "${cronExpression}"`,
       );
       return;
     }
@@ -81,14 +81,14 @@ export const Scheduler = {
 
     const task = cron.schedule(cronExpression, async () => {
       console.log(
-        `[SAILOR | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`,
+        `[FABRIC | SCHEDULER]: Triggering workflow ${workflowId}/${triggerNodeId} (cron: ${cronExpression})`,
       );
 
       const run = async () => {
         const workflow = WorkflowRepository.getWorkflowById(workflowId);
         if (!workflow) {
           console.error(
-            `[SAILOR | SCHEDULER]: Workflow ${workflowId} not found - removing job`,
+            `[FABRIC | SCHEDULER]: Workflow ${workflowId} not found - removing job`,
           );
           this.unscheduleWorkflow(workflowId, triggerNodeId, profileId);
           return;
@@ -112,10 +112,10 @@ export const Scheduler = {
             triggerPayload,
             executionId,
           );
-          console.log(`[SAILOR | SCHEDULER]: Workflow ${workflowId} completed`);
+          console.log(`[FABRIC | SCHEDULER]: Workflow ${workflowId} completed`);
         } catch (err: any) {
           console.error(
-            `[SAILOR | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
+            `[FABRIC | SCHEDULER]: Workflow ${workflowId} failed: ${err.message}`,
           );
         }
       };
@@ -126,14 +126,14 @@ export const Scheduler = {
         } catch (err: any) {
           if (err?.message === `Profile '${profileId}' not found`) {
             console.warn(
-              `[SAILOR | SCHEDULER]: Profile '${profileId}' not found - removing scheduled jobs`,
+              `[FABRIC | SCHEDULER]: Profile '${profileId}' not found - removing scheduled jobs`,
             );
             this.unscheduleProfile(profileId);
             return;
           }
 
           console.error(
-            `[SAILOR | SCHEDULER]: Workflow ${workflowId} failed: ${err?.message ?? err}`,
+            `[FABRIC | SCHEDULER]: Workflow ${workflowId} failed: ${err?.message ?? err}`,
           );
         }
         return;
@@ -151,7 +151,7 @@ export const Scheduler = {
       task,
     });
     console.log(
-      `[SAILOR | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
+      `[FABRIC | SCHEDULER]: Scheduled workflow ${workflowId} (${cronExpression})`,
     );
   },
 

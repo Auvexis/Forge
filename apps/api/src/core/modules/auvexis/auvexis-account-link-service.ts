@@ -176,7 +176,7 @@ export function createAuvexisAccountLinkService(
             return {
               status: "needs_reconnect",
               account: current.account,
-              capabilities: deriveSailorCapabilities(current.account),
+              capabilities: deriveFabricCapabilities(current.account),
               lastValidatedAt: current.lastValidatedAt,
             };
           }
@@ -189,7 +189,7 @@ export function createAuvexisAccountLinkService(
         return {
           status: "connected",
           account,
-          capabilities: deriveSailorCapabilities(account),
+          capabilities: deriveFabricCapabilities(account),
           lastValidatedAt: new Date().toISOString(),
         };
       } catch (error) {
@@ -198,7 +198,7 @@ export function createAuvexisAccountLinkService(
           return {
             status: "needs_reconnect",
             account: current.account,
-            capabilities: deriveSailorCapabilities(current.account),
+            capabilities: deriveFabricCapabilities(current.account),
             lastValidatedAt: current.lastValidatedAt,
           };
         }
@@ -324,7 +324,7 @@ function buildProductEvent(
   return {
     eventId:
       input.eventId ??
-      `sailor.event:${input.type}:${crypto.randomUUID()}:${accountId}`,
+      `fabric.event:${input.type}:${crypto.randomUUID()}:${accountId}`,
     type: input.type,
     userId: accountId,
     occurredAt: input.occurredAt ?? new Date().toISOString(),
@@ -374,25 +374,25 @@ function safeStatus(
   return {
     status: connection.status,
     account: connection.account,
-    capabilities: deriveSailorCapabilities(connection.account),
+    capabilities: deriveFabricCapabilities(connection.account),
     lastValidatedAt: connection.lastValidatedAt,
   };
 }
 
-function deriveSailorCapabilities(
+function deriveFabricCapabilities(
   account: StoredAuvexisAccount | null,
 ): StoredAuvexisCapabilities {
-  const sailorPermissions = account?.badges.reduce<Record<string, boolean>>(
+  const fabricPermissions = account?.badges.reduce<Record<string, boolean>>(
     (merged, badge) => ({
       ...merged,
-      ...(badge.permissions?.sailor ?? {}),
+      ...(badge.permissions?.fabric ?? {}),
     }),
     {},
   );
   return {
-    canUseDonatorTheme: sailorPermissions?.grantDonatorTheme === true,
+    canUseDonatorTheme: fabricPermissions?.grantDonatorTheme === true,
     canCreateMoreThan6Workflows:
-      sailorPermissions?.createMoreThan6Workflows === true,
+      fabricPermissions?.createMoreThan6Workflows === true,
   };
 }
 

@@ -6,7 +6,7 @@ import type {
   PageBlockStyles,
   PageBlockTag,
   PageValidationResult,
-  SailorPage,
+  FabricPage,
 } from "./page-types.ts";
 
 const PAGE_TITLE_MAX_LENGTH = 120;
@@ -90,7 +90,7 @@ const ALLOWED_STYLES = new Set([
 
 const DANGEROUS_PATTERN = /<\s*script|javascript:|data:text\/html|on\w+\s*=|expression\s*\(/i;
 
-export function validatePageInput(input: SailorPage): PageValidationResult {
+export function validatePageInput(input: FabricPage): PageValidationResult {
   const title = typeof input.title === "string" ? input.title.trim() : "";
   if (title.length < 1 || title.length > PAGE_TITLE_MAX_LENGTH) {
     return { success: false, error: "Page title must be 1-120 chars." };

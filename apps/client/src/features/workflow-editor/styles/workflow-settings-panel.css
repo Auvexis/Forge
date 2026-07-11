@@ -1,4 +1,4 @@
-/* WorkflowSettingsPanel — Module CSS
+/* WorkflowSettingsPanel ï¿½ Module CSS
 Extracted from WorkflowSettingsPanel.vue <style scoped>.
 ============================================================= */
 
@@ -7,8 +7,8 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 .wsp-body {
   display: flex;
   flex-direction: column;
-  padding: var(--sailor-space-4);
-  gap: var(--sailor-space-6);
+  padding: var(--fabric-space-4);
+  gap: var(--fabric-space-6);
   min-width: 0;
   overflow-x: hidden;
 }
@@ -18,30 +18,30 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 .wsp-section {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .wsp-section-head {
   display: grid;
   grid-template-columns: 120px minmax(0, 1fr);
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .wsp-section--danger {
-  padding: var(--sailor-space-4);
-  border-radius: var(--sailor-radius-sm);
+  padding: var(--fabric-space-4);
+  border-radius: var(--fabric-radius-sm);
   border: 1px solid rgba(239, 68, 68, 0.25);
   background: rgba(239, 68, 68, 0.04);
 }
 
 .wsp-section__title {
   margin: 0;
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-semibold);
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .wsp-section__title--danger {
@@ -53,13 +53,13 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 .wsp-fields {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .wsp-variable-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(110px, 140px);
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   align-items: start;
   min-width: 0;
 }
@@ -80,8 +80,8 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 .wsp-variable-list {
   display: flex;
   flex-direction: column;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
   overflow: hidden;
 }
 
@@ -89,10 +89,10 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   display: grid;
   grid-template-columns: minmax(0, 1fr) 28px 28px;
   align-items: start;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  background: var(--sailor-bg-overlay);
-  border-bottom: 1px solid var(--sailor-border);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  background: var(--fabric-bg-overlay);
+  border-bottom: 1px solid var(--fabric-border);
   cursor: grab;
 }
 
@@ -103,7 +103,7 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 .wsp-variable-main {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
 }
 
@@ -120,32 +120,32 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 }
 
 .wsp-variable-name {
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-primary);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-primary);
 }
 
 .wsp-variable-desc,
 .wsp-variable-empty {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 .wsp-variable-preview {
   grid-column: 1 / -1;
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--sailor-bg-base);
+  background: var(--fabric-bg-base);
   font-size: 10px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   white-space: pre-wrap;
   max-width: 100%;
 }
 
 .wsp-variable-empty {
-  padding: var(--sailor-space-3);
-  border: 1px dashed var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  padding: var(--fabric-space-3);
+  border: 1px dashed var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
 }
 
 /* -- Switch row ------------------------------------------------------------ */
@@ -154,9 +154,9 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-2) 0;
-  border-bottom: 1px solid var(--sailor-border);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-2) 0;
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .wsp-switch-row:last-child {
@@ -170,14 +170,14 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 }
 
 .wsp-switch-row__label {
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
+  color: var(--fabric-text-primary);
 }
 
 .wsp-switch-row__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 /* -- Info grid ------------------------------------------------------------- */
@@ -186,8 +186,8 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   display: flex;
   flex-direction: column;
   gap: 0;
-  border-radius: var(--sailor-radius-sm);
-  border: 1px solid var(--sailor-border);
+  border-radius: var(--fabric-radius-sm);
+  border: 1px solid var(--fabric-border);
   overflow: hidden;
 }
 
@@ -195,10 +195,10 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-overlay);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-overlay);
 }
 
 .wsp-info-item:last-child {
@@ -206,20 +206,20 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 }
 
 .wsp-info-item__key {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   flex-shrink: 0;
 }
 
 .wsp-info-item__value {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-secondary);
   text-align: right;
   word-break: break-all;
 }
 
 .wsp-info-item__value--mono {
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   font-size: 10px;
   letter-spacing: -0.01em;
 }
@@ -230,7 +230,7 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
 }
 
 .wsp-danger-row__info {
@@ -240,14 +240,14 @@ Extracted from WorkflowSettingsPanel.vue <style scoped>.
 }
 
 .wsp-danger-row__label {
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
+  color: var(--fabric-text-primary);
 }
 
 .wsp-danger-row__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   line-height: 1.4;
   max-width: 220px;
 }

@@ -1,7 +1,7 @@
 <template>
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
     <header class="app-sidebar__header">
-      <!-- <img v-if="collapsed && showLogo" :src="logoSrc" alt="Sailor" class="app-sidebar__logo" /> -->
+      <!-- <img v-if="collapsed && showLogo" :src="logoSrc" alt="Fabric" class="app-sidebar__logo" /> -->
       <ProfileSwitcher
         class="app-sidebar__profile-switcher"
         collapsed
@@ -52,18 +52,18 @@ const { logoSrc } = useTheme()
   position: relative;
   display: flex;
   flex-direction: column;
-  width: var(--sailor-active-sidebar-width, var(--sailor-sidebar-expanded));
+  width: var(--fabric-active-sidebar-width, var(--fabric-sidebar-expanded));
   height: 100vh;
   border-right-width: 0;
   border-right-style: none;
   border-top-width: 0;
   border-bottom-width: 0;
   border-left-width: 0;
-  border-right: 1px solid var(--sailor-border);
-  z-index: var(--sailor-z-raised);
+  border-right: 1px solid var(--fabric-border);
+  z-index: var(--fabric-z-raised);
   flex-shrink: 0;
-  background-color: var(--sailor-sidebar-bg);
-  transition: width var(--sailor-duration-base) var(--sailor-ease-standard);
+  background-color: var(--fabric-sidebar-bg);
+  transition: width var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .app-sidebar__header {
@@ -83,8 +83,8 @@ const { logoSrc } = useTheme()
   right: 0;
   bottom: 0;
   height: 1px;
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-sidebar-divider);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-sidebar-divider);
 }
 
 .app-sidebar__logo {
@@ -105,9 +105,9 @@ const { logoSrc } = useTheme()
   flex: 1;
   min-width: 0;
   overflow: hidden;
-  color: var(--sailor-sidebar-text);
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-sidebar-text);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-medium);
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -120,17 +120,17 @@ const { logoSrc } = useTheme()
   height: 30px;
   flex: 0 0 auto;
   border: 0;
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-sidebar-text-muted);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-sidebar-text-muted);
   background: transparent;
   cursor: pointer;
   transition:
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .app-sidebar__collapse:hover {
-  color: var(--sailor-sidebar-text);
+  color: var(--fabric-sidebar-text);
   background: transparent;
 }
 
@@ -150,18 +150,18 @@ const { logoSrc } = useTheme()
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-1);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border-top: 1px solid var(--sailor-sidebar-border);
+  gap: var(--fabric-space-1);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border-top: 1px solid var(--fabric-sidebar-border);
   flex-shrink: 0;
 }
 
 .app-sidebar--collapsed .app-sidebar__header {
   flex-direction: column;
   justify-content: flex-start;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: auto;
-  padding: var(--sailor-space-3) 0;
+  padding: var(--fabric-space-3) 0;
 }
 
 .app-sidebar--collapsed .app-sidebar__profile-switcher {
@@ -173,13 +173,13 @@ const { logoSrc } = useTheme()
 
 .app-sidebar--collapsed .app-sidebar__main {
   align-items: center;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3) 0;
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-3) 0;
 }
 
 .app-sidebar--collapsed .app-sidebar__footer {
   flex-direction: column;
   justify-content: flex-start;
-  padding: var(--sailor-space-2) 0;
+  padding: var(--fabric-space-2) 0;
 }
 </style>

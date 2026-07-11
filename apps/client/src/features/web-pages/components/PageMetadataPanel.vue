@@ -53,14 +53,14 @@
 
 <script setup lang="ts">
 import BaseInput from '@/shared/components/base/BaseInput.vue'
-import type { SailorPage } from '../types/page.types.ts'
+import type { FabricPage } from '../types/page.types.ts'
 
 defineProps<{
-  page: SailorPage
+  page: FabricPage
 }>()
 
 const emit = defineEmits<{
-  patch: [patch: Partial<SailorPage>]
+  patch: [patch: Partial<FabricPage>]
 }>()
 
 function patchField(key: 'title' | 'slug' | 'publicPath' | 'metaTitle' | 'metaDescription' | 'faviconUrl', value: string | boolean) {
@@ -68,7 +68,7 @@ function patchField(key: 'title' | 'slug' | 'publicPath' | 'metaTitle' | 'metaDe
 }
 
 function patchDroppedAsset(event: DragEvent, key: 'faviconUrl') {
-  const path = event.dataTransfer?.getData('application/x-sailor-page-asset')
+  const path = event.dataTransfer?.getData('application/x-fabric-page-asset')
     || event.dataTransfer?.getData('text/plain')
     || ''
   if (path) patchField(key, path)

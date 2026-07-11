@@ -43,7 +43,7 @@ test('add node panel keeps Trigger only inside the Utilities category', () => {
 
 test('add node panel filters contextual quick-add through allowed node selectors', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
 
   assert.match(canvas, /allowedNodes: AllowedNodes/)
   assert.match(panel, /allowedNodes\?: AllowedNodes/)
@@ -86,19 +86,19 @@ test('canvas recognizes vector store handles as configuration edges', () => {
 
 test('vector store picker creates a provider-configured utility node instead of a plugin action', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
 
   assert.match(panel, /buildVectorStoreProviderItems/)
   assert.match(panel, /item\.preset\.nodeType === 'vector-store'/)
   assert.match(panel, /onAddLogicNode\?\.\('vector-store'/)
   assert.match(panel, /ensureCollectionMethodId: 'ensureCollection'/)
-  assert.doesNotMatch(canvas, /defaultData\.pluginId = 'sailor-qdrant'/)
+  assert.doesNotMatch(canvas, /defaultData\.pluginId = 'fabric-qdrant'/)
 })
 
 test('embedding quick-add uses a vector config context separate from agent config', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
   const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
-  const host = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const host = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
   const definitions = read('src/features/workflow-editor/layout/advancedNodeDefinitions.ts')
   const selectors = read('src/features/workflow-editor/components/settings/allowedNodeSelectors.ts')
 
@@ -214,7 +214,7 @@ test('add node panel renders the floating picker and removes the old category/ac
 })
 
 test('workflow canvas opens add node picker as cursor anchored canvas overlay', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
   const baseNode = read('src/features/workflow-editor/components/BaseNode.vue')
   const quickAddButton = read('src/features/workflow-editor/components/QuickAddButton.vue')
   const edgeLayer = read('src/features/workflow-editor/components/WorkflowEdgeLayer.vue')
@@ -295,7 +295,7 @@ test('global add node panel animates section expand and collapse', () => {
 })
 
 test('workflow canvas exposes center and drop coordinate add node actions', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
   const baseCanvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
   assert.match(baseCanvas, /addLogicNodeAtViewportCenter/)

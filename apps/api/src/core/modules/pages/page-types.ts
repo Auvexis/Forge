@@ -51,7 +51,7 @@ export interface PageBlock {
   children?: PageBlock[];
 }
 
-export interface SailorPage {
+export interface FabricPage {
   id: string;
   profileId: string;
   siteId: string;
@@ -109,5 +109,5 @@ export interface PublishedPage {
 }
 
 export type PageValidationResult =
-  | { success: true; page: SailorPage }
+  | { success: true; page: FabricPage }
   | { success: false; error: string };

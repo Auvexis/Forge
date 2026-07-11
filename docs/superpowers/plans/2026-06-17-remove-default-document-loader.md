@@ -14,8 +14,8 @@
 
 - `server/src/shared/models/workflow-types.ts`: remove `DocumentLoaderNode`; add JSON loading fields to `FileDatasetNode`.
 - `client-vue/src/core/types/workflow.types.ts`: mirror shared type changes.
-- `server/src/core/utility-nodes/sailor-core/manifest.ts`: remove document-loader manifest; add document capability to file-dataset.
-- `server/src/core/utility-nodes/sailor-core/index.ts`: unregister document-loader handler.
+- `server/src/core/utility-nodes/fabric-core/manifest.ts`: remove document-loader manifest; add document capability to file-dataset.
+- `server/src/core/utility-nodes/fabric-core/index.ts`: unregister document-loader handler.
 - `server/src/core/nodes/handlers/retrieval.ts`: remove document-loader handler; move JSON document loading into file-dataset.
 - `server/src/core/nodes/dependencies/core-capability-adapters.ts`: resolve file/text/database datasets as document sources.
 - `server/src/core/modules/workflows/workflow-validation.ts`: remove document-loader validation; allow file-dataset on Vector Store Document.
@@ -23,7 +23,7 @@
 - `server/src/core/nodes/handlers/retrieval-handlers.test.ts`: replace document-loader tests with direct dataset tests.
 - `server/src/core/modules/workflows/repository.test.ts`: remove document-loader migration tests.
 - `server/src/core/modules/workflows/workflow-validation.test.ts`: update document handle expectations.
-- `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`: remove document-loader import/slot/defaults; update quick-add lists.
+- `client-vue/src/features/workflow-editor/components/FabricWorkflowCanvas.vue`: remove document-loader import/slot/defaults; update quick-add lists.
 - `client-vue/src/features/workflow-editor/layout/advancedNodeDefinitions.ts`: remove document-loader handlers; update Vector Store allowed document nodes.
 - `client-vue/src/core/constants/node-types.ts`: remove document-loader constants.
 - `client-vue/src/features/workflow-editor/components/nodes/DocumentLoaderNode.vue`: delete.
@@ -43,8 +43,8 @@
 
 **Files:**
 - Modify: `server/src/shared/models/workflow-types.ts`
-- Modify: `server/src/core/utility-nodes/sailor-core/manifest.ts`
-- Modify: `server/src/core/utility-nodes/sailor-core/index.ts`
+- Modify: `server/src/core/utility-nodes/fabric-core/manifest.ts`
+- Modify: `server/src/core/utility-nodes/fabric-core/index.ts`
 - Test: `server/src/shared/models/workflow-retrieval-types.test.ts`
 - Test: `server/src/core/utility-nodes/utility-node-pack.test.ts`
 
@@ -65,7 +65,7 @@ assert.match(source, /capabilities: \["file-data-source", "document-source"\]/);
 Run:
 
 ```powershell
-cd C:\Workspace\Projects\sailor\server
+cd C:\Workspace\Projects\fabric\server
 node --loader ts-node/esm --test src/shared/models/workflow-retrieval-types.test.ts src/core/utility-nodes/utility-node-pack.test.ts
 ```
 
@@ -88,7 +88,7 @@ includeRootFieldsAsContext?: boolean;
 
 - [ ] **Step 4: Update manifest and registry**
 
-In `server/src/core/utility-nodes/sailor-core/manifest.ts`:
+In `server/src/core/utility-nodes/fabric-core/manifest.ts`:
 
 - remove the `"document-loader"` entry
 - change file-dataset capabilities:
@@ -103,7 +103,7 @@ capabilities: ["file-data-source", "document-source"],
 allowedNodes: ["node:file-dataset", "node:text-dataset", "node:database-dataset"]
 ```
 
-In `server/src/core/utility-nodes/sailor-core/index.ts`:
+In `server/src/core/utility-nodes/fabric-core/index.ts`:
 
 - remove `documentLoaderNodeHandler` import
 - remove it from registration list
@@ -122,7 +122,7 @@ Expected: tests pass or only downstream handler errors remain.
 - [ ] **Step 6: Update task file and commit**
 
 ```powershell
-git add server/src/shared/models/workflow-types.ts server/src/core/utility-nodes/sailor-core/manifest.ts server/src/core/utility-nodes/sailor-core/index.ts server/src/shared/models/workflow-retrieval-types.test.ts server/src/core/utility-nodes/utility-node-pack.test.ts feats-map/remove-default-document-loader-20260617.md
+git add server/src/shared/models/workflow-types.ts server/src/core/utility-nodes/fabric-core/manifest.ts server/src/core/utility-nodes/fabric-core/index.ts server/src/shared/models/workflow-retrieval-types.test.ts server/src/core/utility-nodes/utility-node-pack.test.ts feats-map/remove-default-document-loader-20260617.md
 git commit -m "refactor: remove document loader backend contract"
 ```
 
@@ -482,7 +482,7 @@ git commit -m "refactor: remove document loader workflow migration"
 - Delete: `client-vue/src/features/workflow-editor/components/settings/editors/DocumentLoaderEditor.vue`
 - Delete: `client-vue/src/features/workflow-editor/components/settings/editors/documentLoaderTemplateSuggestions.ts`
 - Delete: `client-vue/src/features/workflow-editor/components/settings/editors/__tests__/documentLoaderTemplateSuggestions.test.ts`
-- Modify: `client-vue/src/features/workflow-editor/components/SailorWorkflowCanvas.vue`
+- Modify: `client-vue/src/features/workflow-editor/components/FabricWorkflowCanvas.vue`
 - Modify: `client-vue/src/features/workflow-editor/layout/advancedNodeDefinitions.ts`
 - Modify: `client-vue/src/core/constants/node-types.ts`
 - Modify: `client-vue/src/features/workflow-editor/components/settings/editors/index.ts`
@@ -515,7 +515,7 @@ assert.deepEqual(items.map((item) => item.id), [
 - [ ] **Step 2: Run frontend typecheck to see current failures**
 
 ```powershell
-cd C:\Workspace\Projects\sailor\client-vue
+cd C:\Workspace\Projects\fabric\client-vue
 npm run type-check
 ```
 
@@ -532,7 +532,7 @@ Remove-Item -LiteralPath client-vue/src/features/workflow-editor/components/sett
 Remove-Item -LiteralPath client-vue/src/features/workflow-editor/components/settings/editors/__tests__/documentLoaderTemplateSuggestions.test.ts
 ```
 
-In `SailorWorkflowCanvas.vue`:
+In `FabricWorkflowCanvas.vue`:
 
 - remove `DocumentLoaderNode` import
 - remove document-loader display name
@@ -790,7 +790,7 @@ Expected:
 - [ ] **Step 2: Run server tests**
 
 ```powershell
-cd C:\Workspace\Projects\sailor\server
+cd C:\Workspace\Projects\fabric\server
 node --loader ts-node/esm --test src/core/nodes/handlers/retrieval-handlers.test.ts src/core/modules/workflows/workflow-validation.test.ts src/core/modules/workflows/repository.test.ts src/shared/models/workflow-retrieval-types.test.ts src/core/utility-nodes/utility-node-pack.test.ts
 npx tsc --noEmit
 ```
@@ -800,7 +800,7 @@ Expected: pass.
 - [ ] **Step 3: Run client build**
 
 ```powershell
-cd C:\Workspace\Projects\sailor\client-vue
+cd C:\Workspace\Projects\fabric\client-vue
 npm run build
 ```
 

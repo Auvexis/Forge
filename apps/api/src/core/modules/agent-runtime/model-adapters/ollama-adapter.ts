@@ -26,7 +26,7 @@ export class OllamaAdapter implements AgentModelAdapter {
 
   constructor(options: OllamaAdapterOptions = {}) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
-    this.keepAlive = options.keepAlive ?? process.env.SAILOR_OLLAMA_KEEP_ALIVE;
+    this.keepAlive = options.keepAlive ?? process.env.FABRIC_OLLAMA_KEEP_ALIVE;
   }
 
   async invokeText(input: AgentModelInvokeInput): Promise<string> {

@@ -1,6 +1,6 @@
 import { DatabaseManager } from "../../database/index.ts";
 import type Database from "better-sqlite3";
-import type { PublishedPage, SailorPage } from "./page-types.ts";
+import type { PublishedPage, FabricPage } from "./page-types.ts";
 import { SiteRepository } from "./site-repository.ts";
 
 type PageDatabaseProvider = () => Database.Database;
@@ -57,7 +57,7 @@ export const PageRepository = {
     backfillSiteIds(db);
   },
 
-  listPages(profileId: string, siteId?: string): SailorPage[] {
+  listPages(profileId: string, siteId?: string): FabricPage[] {
     const resolvedSiteId = siteId ?? SiteRepository.ensureDefaultSite(profileId).id;
     const rows = getPageDatabase()
       .prepare(
@@ -65,27 +65,27 @@ export const PageRepository = {
       )
       .all(profileId, resolvedSiteId) as Array<{ definition: string; site_id: string }>;
 
-    return rows.map((row) => withSiteId(JSON.parse(row.definition) as Partial<SailorPage>, row.site_id));
+    return rows.map((row) => withSiteId(JSON.parse(row.definition) as Partial<FabricPage>, row.site_id));
   },
 
-  getPage(profileId: string, id: string): SailorPage | null {
+  getPage(profileId: string, id: string): FabricPage | null {
     const row = getPageDatabase()
       .prepare(`SELECT definition, site_id FROM pages WHERE profile_id = ? AND id = ?`)
       .get(profileId, id) as { definition: string; site_id: string } | undefined;
 
-    return row ? withSiteId(JSON.parse(row.definition) as Partial<SailorPage>, row.site_id) : null;
+    return row ? withSiteId(JSON.parse(row.definition) as Partial<FabricPage>, row.site_id) : null;
   },
 
-  getPageBySlug(profileId: string, slug: string, siteId?: string): SailorPage | null {
+  getPageBySlug(profileId: string, slug: string, siteId?: string): FabricPage | null {
     const resolvedSiteId = siteId ?? SiteRepository.ensureDefaultSite(profileId).id;
     const row = getPageDatabase()
       .prepare(`SELECT definition, site_id FROM pages WHERE profile_id = ? AND site_id = ? AND slug = ?`)
       .get(profileId, resolvedSiteId, slug) as { definition: string; site_id: string } | undefined;
 
-    return row ? withSiteId(JSON.parse(row.definition) as Partial<SailorPage>, row.site_id) : null;
+    return row ? withSiteId(JSON.parse(row.definition) as Partial<FabricPage>, row.site_id) : null;
   },
 
-  savePage(page: SailorPage): SailorPage {
+  savePage(page: FabricPage): FabricPage {
     const siteId = page.siteId ?? SiteRepository.ensureDefaultSite(page.profileId).id;
     const existingBySlug = this.getPageBySlug(page.profileId, page.slug, siteId);
     if (existingBySlug && existingBySlug.id !== page.id) {
@@ -93,7 +93,7 @@ export const PageRepository = {
     }
 
     const existing = this.getPage(page.profileId, page.id);
-    const pageToSave: SailorPage = {
+    const pageToSave: FabricPage = {
       ...page,
       siteId,
       createdAt: existing?.createdAt ?? page.createdAt,
@@ -204,7 +204,7 @@ function backfillSiteIds(db: Database.Database): void {
     db.prepare(`UPDATE pages SET site_id = ? WHERE profile_id = ? AND (site_id IS NULL OR site_id = '')`).run(site.id, row.profile_id);
     const pages = db.prepare(`SELECT id, definition FROM pages WHERE profile_id = ? AND site_id = ?`).all(row.profile_id, site.id) as Array<{ id: string; definition: string }>;
     for (const pageRow of pages) {
-      const page = withSiteId(JSON.parse(pageRow.definition) as Partial<SailorPage>, site.id);
+      const page = withSiteId(JSON.parse(pageRow.definition) as Partial<FabricPage>, site.id);
       db.prepare(`UPDATE pages SET definition = ? WHERE profile_id = ? AND id = ?`).run(JSON.stringify(page), row.profile_id, pageRow.id);
     }
   }
@@ -216,8 +216,8 @@ function backfillSiteIds(db: Database.Database): void {
   }
 }
 
-function withSiteId(page: Partial<SailorPage>, fallbackSiteId: string): SailorPage {
-  return { ...page, siteId: page.siteId ?? fallbackSiteId } as SailorPage;
+function withSiteId(page: Partial<FabricPage>, fallbackSiteId: string): FabricPage {
+  return { ...page, siteId: page.siteId ?? fallbackSiteId } as FabricPage;
 }
 
 function withPublishedSiteId(page: Partial<PublishedPage>, fallbackSiteId: string): PublishedPage {

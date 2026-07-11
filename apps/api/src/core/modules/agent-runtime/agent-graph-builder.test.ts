@@ -134,7 +134,7 @@ describe("agent graph builder", () => {
   });
 
   it("builds a graph that executes requested tools", async () => {
-    const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "sailor" } }];
+    const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "fabric" } }];
     const tool = fakeTool("lookup", async (args) => ({ result: `found ${args.query}` }));
     const model = fakeModel([
       { content: "", toolCalls },
@@ -146,7 +146,7 @@ describe("agent graph builder", () => {
       tools: [tool],
     });
 
-    const result = await graph.invoke({ userMessage: "lookup sailor" });
+    const result = await graph.invoke({ userMessage: "lookup fabric" });
 
     assert.equal(result.status, "success");
     assert.equal(result.output, "tool result applied");
@@ -157,7 +157,7 @@ describe("agent graph builder", () => {
       name: "lookup",
       status: "success",
     }]);
-    assert.deepEqual(tool.calls, [{ query: "sailor" }]);
+    assert.deepEqual(tool.calls, [{ query: "fabric" }]);
     const secondModelCall = model.calls[1] as Array<Record<string, unknown>>;
     const toolMessage = secondModelCall.find((message) => message.role === "tool");
     assert.equal(toolMessage?.tool_call_id, "call_1");
@@ -492,7 +492,7 @@ describe("agent graph builder", () => {
     const graph = buildAgentGraph({
       agent: agentConfig(),
       model: fakeModel([
-        { content: "", toolCalls: [{ id: "call_1", name: "book_lookup", args: { title: "Sailor" } }] },
+        { content: "", toolCalls: [{ id: "call_1", name: "book_lookup", args: { title: "Fabric" } }] },
       ]),
       tools: [tool],
     });
@@ -703,7 +703,7 @@ describe("agent graph builder", () => {
   });
 
   it("yields after tool lifecycle events before invoking and continuing", async () => {
-    const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "sailor" } }];
+    const toolCalls = [{ id: "call_1", name: "lookup", args: { query: "fabric" } }];
     const model = fakeModel([
       { content: "", toolCalls },
       { content: "tool result applied" },
@@ -712,7 +712,7 @@ describe("agent graph builder", () => {
     let endEventFlushed = false;
     const tool = fakeTool("lookup", async () => {
       assert.equal(startEventFlushed, true);
-      return { result: "found sailor" };
+      return { result: "found fabric" };
     });
     const graph = buildAgentGraph({
       agent: agentConfig(),
@@ -735,12 +735,12 @@ describe("agent graph builder", () => {
       },
     });
 
-    await graph.invoke({ userMessage: "lookup sailor" });
+    await graph.invoke({ userMessage: "lookup fabric" });
   });
 
   it("binds tool schemas to models that support function calling", async () => {
     const model = fakeToolBindingModel([
-      { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },
+      { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "fabric" } }] },
       { content: "tool result applied" },
     ]);
     const tool = fakeTool("lookup", async (args) => ({ result: `found ${args.query}` }));
@@ -760,7 +760,7 @@ describe("agent graph builder", () => {
       }],
     });
 
-    const result = await graph.invoke({ userMessage: "lookup sailor" });
+    const result = await graph.invoke({ userMessage: "lookup fabric" });
 
     assert.equal(result.output, "tool result applied");
     assert.deepEqual(model.boundTools, [{
@@ -795,9 +795,9 @@ describe("agent graph builder", () => {
   });
 
   it("keeps streamable models on invoke path while tools are configured", async () => {
-    const tool = fakeTool("lookup", async () => ({ result: "found sailor" }));
+    const tool = fakeTool("lookup", async () => ({ result: "found fabric" }));
     const model = fakeStreamInvokeModel([
-      { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },
+      { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "fabric" } }] },
       { content: "done" },
     ], [
       [{ content: "stream should not run" }],
@@ -808,11 +808,11 @@ describe("agent graph builder", () => {
       tools: [tool],
     });
 
-    const result = await graph.invoke({ userMessage: "lookup sailor" });
+    const result = await graph.invoke({ userMessage: "lookup fabric" });
 
     assert.equal(result.output, "done");
     assert.equal(result.toolCallCount, 1);
-    assert.deepEqual(tool.calls, [{ query: "sailor" }]);
+    assert.deepEqual(tool.calls, [{ query: "fabric" }]);
     assert.equal(model.invokeCalls.length, 2);
     assert.equal(model.streamCalls.length, 0);
   });
@@ -1025,7 +1025,7 @@ describe("agent graph builder", () => {
     const graph = buildAgentGraph({
       agent: agentConfig(),
       model: fakeModel([
-        { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "sailor" } }] },
+        { content: "", toolCalls: [{ id: "call_1", name: "lookup", args: { query: "fabric" } }] },
         { content: "done" },
       ]),
       approvalToken: "approved",
@@ -1038,7 +1038,7 @@ describe("agent graph builder", () => {
       onEvent: (event) => events.push(event),
     });
 
-    await graph.invoke({ userMessage: "lookup sailor" });
+    await graph.invoke({ userMessage: "lookup fabric" });
 
     assert.deepEqual(
       events
@@ -1050,7 +1050,7 @@ describe("agent graph builder", () => {
           {
             name: "lookup",
             callId: "call_1",
-            input: { query: "sailor" },
+            input: { query: "fabric" },
             pluginId: "search-plugin",
             pluginName: "Search Plugin",
             requiresApproval: true,
@@ -1061,7 +1061,7 @@ describe("agent graph builder", () => {
           {
             name: "lookup",
             callId: "call_1",
-            input: { query: "sailor" },
+            input: { query: "fabric" },
             pluginId: "search-plugin",
             pluginName: "Search Plugin",
           },

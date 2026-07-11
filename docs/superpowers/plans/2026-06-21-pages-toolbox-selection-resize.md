@@ -37,7 +37,7 @@
 
 - [ ] Add failing tests for the Page Toolbox item, click event, dedicated drag payload, and indexed store insertion.
 - [ ] Run those tests and verify the expected failures.
-- [ ] Add a Page Toolbox item that emits `add-page` on click and writes `application/x-sailor-page` on drag.
+- [ ] Add a Page Toolbox item that emits `add-page` on click and writes `application/x-fabric-page` on drag.
 - [ ] Add `createPageAt(index)` to the page store, clamping the index and keeping the new summary at that position.
 - [ ] Wire PageEditor to create at the end for clicks and derive the insertion index from the nearest BaseCanvas page shell for drops.
 - [ ] Render and clear a page insertion indicator during dragover/drop.

@@ -1,71 +1,71 @@
 /* =========================================================
-   SAILOR — Typography Utilities
+   FABRIC — Typography Utilities
    ========================================================= */
 
 .text-xs {
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
 .text-sm {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   line-height: 1.45;
 }
 .text-base {
-  font-size: var(--sailor-text-base);
+  font-size: var(--fabric-text-base);
 }
 .text-lg {
-  font-size: var(--sailor-text-lg);
+  font-size: var(--fabric-text-lg);
 }
 .text-xl {
-  font-size: var(--sailor-text-xl);
+  font-size: var(--fabric-text-xl);
 }
 .text-2xl {
-  font-size: var(--sailor-text-2xl);
+  font-size: var(--fabric-text-2xl);
 }
 .text-3xl {
-  font-size: var(--sailor-text-3xl);
+  font-size: var(--fabric-text-3xl);
 }
 
 .font-normal {
-  font-weight: var(--sailor-font-normal);
+  font-weight: var(--fabric-font-normal);
 }
 .font-medium {
-  font-weight: var(--sailor-font-medium);
+  font-weight: var(--fabric-font-medium);
 }
 .font-semibold {
-  font-weight: var(--sailor-font-semibold);
+  font-weight: var(--fabric-font-semibold);
 }
 .font-bold {
-  font-weight: var(--sailor-font-bold);
+  font-weight: var(--fabric-font-bold);
 }
 
 .text-primary {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 .text-secondary {
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 .text-muted {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 .text-brand {
-  color: var(--sailor-text-brand);
+  color: var(--fabric-text-brand);
 }
 .text-success {
-  color: var(--sailor-text-success);
+  color: var(--fabric-text-success);
 }
 .text-warning {
-  color: var(--sailor-text-warning);
+  color: var(--fabric-text-warning);
 }
 .text-error {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .font-mono {
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
 }
 .font-sans {
-  font-family: var(--sailor-font-sans);
+  font-family: var(--fabric-font-sans);
 }
 
 .truncate {
@@ -75,13 +75,13 @@
 }
 
 .leading-tight {
-  line-height: var(--sailor-leading-tight);
+  line-height: var(--fabric-leading-tight);
 }
 .leading-normal {
-  line-height: var(--sailor-leading-normal);
+  line-height: var(--fabric-leading-normal);
 }
 .leading-loose {
-  line-height: var(--sailor-leading-loose);
+  line-height: var(--fabric-leading-loose);
 }
 
 .uppercase {

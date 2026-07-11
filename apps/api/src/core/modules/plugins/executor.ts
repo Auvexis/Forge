@@ -1,8 +1,8 @@
 import type {
-  SailorPlugin,
+  FabricPlugin,
   OAuth2Provider,
   PluginContext,
-} from "@auvexis/sailor-sdk";
+} from "@auvexis/fabric-sdk";
 import { PluginManager } from "./manager.ts";
 import { CredentialStore } from "./credential-store.ts";
 import { Vault } from "./vault.ts";
@@ -10,7 +10,7 @@ import { validateParams, PluginValidationError } from "./validator.ts";
 import { OAuth2Service } from "./auth/oauth2-service.ts";
 import { isDeclarativeOAuth2Auth, isLegacyOAuth2Auth } from "./auth/oauth2-types.ts";
 import type { CustomOAuth2Auth, OAuth2DeclarativeAuth } from "./auth/oauth2-types.ts";
-import type { OAuth2Tokens } from "@auvexis/sailor-sdk";
+import type { OAuth2Tokens } from "@auvexis/fabric-sdk";
 
 export { PluginValidationError };
 
@@ -69,7 +69,7 @@ export const PluginExecutor = {
     methodName: string,
     params: Record<string, any>,
   ) => {
-    const plugin: SailorPlugin = PluginManager.getPlugin(pluginId);
+    const plugin: FabricPlugin = PluginManager.getPlugin(pluginId);
 
     if (!plugin) {
       throw new Error(`Plugin ${pluginId} not found`);

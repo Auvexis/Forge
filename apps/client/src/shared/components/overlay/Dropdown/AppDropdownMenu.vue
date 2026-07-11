@@ -77,15 +77,15 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 }
 
 .app-dropdown-menu__header {
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  margin-bottom: var(--sailor-space-1);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  margin-bottom: var(--fabric-space-1);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .app-dropdown-menu__title {
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-semibold);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-semibold);
+  color: var(--fabric-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

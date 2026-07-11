@@ -3,9 +3,9 @@ import { beforeEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 
 import { PageRepository } from "./page-repository.ts";
-import type { PublishedPage, SailorPage } from "./page-types.ts";
+import type { PublishedPage, FabricPage } from "./page-types.ts";
 
-function createPage(overrides: Partial<SailorPage> = {}): SailorPage {
+function createPage(overrides: Partial<FabricPage> = {}): FabricPage {
   return {
     id: "page_contact",
     profileId: "profile_a",

@@ -368,7 +368,7 @@ function isIconUrl(icon?: string) {
 
 <style scoped>
 :deep(.base-modal-container) {
-  border-radius: var(--sailor-radius-md);
+  border-radius: var(--fabric-radius-md);
 }
 
 .plugin-installer-modal {
@@ -376,24 +376,24 @@ function isIconUrl(icon?: string) {
   grid-template-columns: 340px minmax(0, 1fr);
   height: 100%;
   min-height: 0;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .plugin-installer-modal__aside {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  border-right: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .plugin-installer-modal__aside-header {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   height: 48px;
-  padding: 0 var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: 0 var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
   flex: 0 0 auto;
 }
 
@@ -403,64 +403,64 @@ function isIconUrl(icon?: string) {
   width: 28px;
   height: 28px;
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   cursor: pointer;
 }
 
 .plugin-installer-modal__close:hover {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .plugin-installer-modal__title {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
 }
 
 .plugin-installer-modal__form {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-4);
   overflow-y: auto;
 }
 
 .plugin-installer-modal__block {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .plugin-installer-modal__block-head {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
+  gap: var(--fabric-space-2);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
 }
 
 .plugin-installer-modal__hint {
   margin: 0;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
 
 .plugin-installer-modal__result {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
-  padding: var(--sailor-space-3);
+  padding: var(--fabric-space-3);
   border: 1px solid rgba(34, 197, 94, 0.28);
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: rgba(34, 197, 94, 0.08);
-  color: var(--sailor-text-success);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-success);
+  font-size: var(--fabric-text-xs);
 }
 
 .plugin-installer-modal__result span {
@@ -473,14 +473,14 @@ function isIconUrl(icon?: string) {
 .plugin-installer-modal__install-error {
   display: flex;
   align-items: flex-start;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
-  padding: var(--sailor-space-3);
-  border: 1px solid color-mix(in srgb, var(--sailor-text-error) 30%, transparent);
-  border-radius: var(--sailor-radius-sm);
-  background: color-mix(in srgb, var(--sailor-text-error) 9%, transparent);
-  color: var(--sailor-text-error);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-3);
+  border: 1px solid color-mix(in srgb, var(--fabric-text-error) 30%, transparent);
+  border-radius: var(--fabric-radius-sm);
+  background: color-mix(in srgb, var(--fabric-text-error) 9%, transparent);
+  color: var(--fabric-text-error);
+  font-size: var(--fabric-text-xs);
   line-height: 1.45;
 }
 
@@ -494,16 +494,16 @@ function isIconUrl(icon?: string) {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--sailor-bg-base);
+  background: var(--fabric-bg-base);
 }
 
 .plugin-installer-modal__main-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-5);
-  border-bottom: 1px solid var(--sailor-border);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-5);
+  border-bottom: 1px solid var(--fabric-border);
   flex: 0 0 auto;
 }
 
@@ -514,42 +514,42 @@ function isIconUrl(icon?: string) {
 }
 
 .plugin-installer-modal__main-head h2 {
-  font-size: var(--sailor-text-lg);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-lg);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .plugin-installer-modal__main-head p {
-  margin: var(--sailor-space-1) 0 0;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
+  margin: var(--fabric-space-1) 0 0;
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
 }
 
 .plugin-installer-modal__status {
   flex: 0 0 auto;
-  padding: 3px var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-success);
+  padding: 3px var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-success);
   background: rgba(34, 197, 94, 0.08);
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   text-transform: capitalize;
 }
 
 .plugin-installer-modal__status.is-invalid,
 .plugin-installer-modal__state.is-error {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .plugin-installer-modal__preview {
   display: grid;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-5);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-5);
   overflow-y: auto;
 }
 
 .plugin-installer-modal__plugin {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr);
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   align-items: flex-start;
 }
 
@@ -558,10 +558,10 @@ function isIconUrl(icon?: string) {
   place-items: center;
   width: 48px;
   height: 48px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
 }
 
 .plugin-installer-modal__plugin-icon img {
@@ -571,37 +571,37 @@ function isIconUrl(icon?: string) {
 }
 
 .plugin-installer-modal__plugin h3 {
-  font-size: var(--sailor-text-xl);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-xl);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .plugin-installer-modal__plugin p,
 .plugin-installer-modal__section span,
 .plugin-installer-modal__state p {
-  margin: var(--sailor-space-1) 0 0;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
-  line-height: var(--sailor-leading-normal);
+  margin: var(--fabric-space-1) 0 0;
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
+  line-height: var(--fabric-leading-normal);
 }
 
 .plugin-installer-modal__meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   margin: 0;
 }
 
 .plugin-installer-modal__meta div {
   min-width: 0;
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
 }
 
 .plugin-installer-modal__meta dt {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .plugin-installer-modal__meta dd {
@@ -609,19 +609,19 @@ function isIconUrl(icon?: string) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .plugin-installer-modal__section {
   display: grid;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .plugin-installer-modal__section h4 {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
 }
 
 .plugin-installer-modal__section ul {
@@ -633,31 +633,31 @@ function isIconUrl(icon?: string) {
 }
 
 .plugin-installer-modal__section li {
-  padding: 8px var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  padding: 8px var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
 }
 
 .plugin-installer-modal__section.is-warning li {
-  color: var(--sailor-text-warning);
+  color: var(--fabric-text-warning);
 }
 
 .plugin-installer-modal__section.is-error li {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .plugin-installer-modal__state {
   display: grid;
   place-items: center;
   align-content: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: 0;
   height: 100%;
-  padding: var(--sailor-space-6);
-  color: var(--sailor-text-muted);
+  padding: var(--fabric-space-6);
+  color: var(--fabric-text-muted);
   text-align: center;
 }
 
@@ -679,7 +679,7 @@ function isIconUrl(icon?: string) {
 
   .plugin-installer-modal__aside {
     border-right: 0;
-    border-bottom: 1px solid var(--sailor-border);
+    border-bottom: 1px solid var(--fabric-border);
   }
 
   .plugin-installer-modal__main {

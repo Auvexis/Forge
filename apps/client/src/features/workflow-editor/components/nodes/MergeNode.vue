@@ -27,9 +27,9 @@ const subtitle = computed(() =>
     :title="stepTitle"
     :subtitle="subtitle"
     icon="merge"
-    color="var(--sailor-node-merge-icon)"
-    bg="var(--sailor-node-merge-bg)"
-    border-color="var(--sailor-node-merge-border)"
+    color="var(--fabric-node-merge-icon)"
+    bg="var(--fabric-node-merge-bg)"
+    border-color="var(--fabric-node-merge-border)"
   >
     <BaseHandle id="source" type="source" :position="Position.Right" />
     <QuickAddButton :node-id="props.id" handle-id="source" style="top: 50%" />

@@ -64,8 +64,8 @@ export class WorkflowGitSnapshotService {
       this.git(["init"], repoDir);
     }
 
-    this.git(["config", "user.name", "Sailor Workflow Git"], repoDir);
-    this.git(["config", "user.email", "workflow-git@sailor.local"], repoDir);
+    this.git(["config", "user.name", "Fabric Workflow Git"], repoDir);
+    this.git(["config", "user.email", "workflow-git@fabric.local"], repoDir);
     fs.writeFileSync(path.join(repoDir, "workflow.json"), `${JSON.stringify(workflow, null, 2)}\n`, "utf8");
     this.git(["add", "workflow.json"], repoDir);
 

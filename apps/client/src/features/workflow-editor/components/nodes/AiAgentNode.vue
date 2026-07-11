@@ -30,7 +30,7 @@ const handlers = computed(() => getAdvancedNodeHandlers('ai-agent'))
     has-source
     :has-outgoing-connection="props.hasOutgoingConnection"
     bg="transparent"
-    border-color="var(--sailor-node-border)"
+    border-color="var(--fabric-node-border)"
   >
     <template #icon-left>
       <span class="ai-agent-node__avatar">{{ displayAvatar }}</span>
@@ -40,7 +40,7 @@ const handlers = computed(() => getAdvancedNodeHandlers('ai-agent'))
 
 <style scoped>
 .ai-agent-node__avatar {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 28px;
 }
 </style>

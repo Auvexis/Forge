@@ -73,7 +73,7 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { SailorPageSummary, SailorSite, SiteFile } from '../types/page.types.ts'
+import type { FabricPageSummary, FabricSite, SiteFile } from '../types/page.types.ts'
 
 type CreationKind = 'file' | 'folder'
 
@@ -89,8 +89,8 @@ interface FlatFileNode extends FileNodeModel {
 }
 
 const props = defineProps<{
-  site: SailorSite | null
-  pages: SailorPageSummary[]
+  site: FabricSite | null
+  pages: FabricPageSummary[]
 }>()
 
 const emit = defineEmits<{

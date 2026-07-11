@@ -172,13 +172,13 @@ defineExpose({ open, close, toggle, isOpen })
 
 .app-popover-content {
   position: fixed;
-  z-index: var(--sailor-z-overlay);
+  z-index: var(--fabric-z-overlay);
   min-width: 200px;
-  padding: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  padding: var(--fabric-space-2);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
   margin-top: 1px;
-  background-color: var(--sailor-bg-surface);
+  background-color: var(--fabric-bg-surface);
 }
 
 .app-popover--bottom-start {

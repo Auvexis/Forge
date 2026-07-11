@@ -59,7 +59,7 @@ describe("WorkflowLifecycleManager", () => {
     const credentialsDb = await createDb("credentials");
     setAppDatabaseProvider(() => appDb);
     setCredentialsDatabaseProvider(() => credentialsDb);
-    AppRepository.setSetting("public_url", "https://sailor.example");
+    AppRepository.setSetting("public_url", "https://fabric.example");
     CredentialStore.saveCredentials("telegram", { botToken: "bruno-token" });
 
     let receivedContext: any = null;
@@ -92,7 +92,7 @@ describe("WorkflowLifecycleManager", () => {
 
     assert.equal(
       receivedContext.webhookUrl,
-      "https://sailor.example/p/bruno/plugin-events/wf-plugin/trigger/telegram/onMessage",
+      "https://fabric.example/p/bruno/plugin-events/wf-plugin/trigger/telegram/onMessage",
     );
     assert.deepEqual(receivedContext.credentials, { botToken: "bruno-token" });
 

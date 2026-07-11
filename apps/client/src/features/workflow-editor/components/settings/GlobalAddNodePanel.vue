@@ -567,7 +567,7 @@ const handlePointerDragEnd = (event: PointerEvent) => {
     event.preventDefault()
     suppressClickUntil = Date.now() + 250
     const target = document.elementFromPoint(point.x, point.y)
-    if (target?.closest('.sailor-workflow-canvas')) {
+    if (target?.closest('.fabric-workflow-canvas')) {
       addPayloadAtPoint(payload, { x: point.x - 52, y: point.y - 52 })
     }
     handleDragEnd()
@@ -615,8 +615,8 @@ const closePluginMethodView = () => {
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .global-add-node-panel__browse-view,
@@ -630,14 +630,14 @@ const closePluginMethodView = () => {
 .global-add-node-panel__toolbar,
 .global-add-node-panel__method-header {
   flex: 0 0 auto;
-  padding: var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .global-add-node-panel__method-header {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .global-add-node-panel__method-header :deep(.base-input-wrapper) {
@@ -647,10 +647,10 @@ const closePluginMethodView = () => {
 .global-add-node-panel__method-title {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  font-size: var(--sailor-text-sm);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
+  font-size: var(--fabric-text-sm);
   font-weight: 700;
 }
 
@@ -660,9 +660,9 @@ const closePluginMethodView = () => {
   min-height: 96px;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-2);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-sm);
+  gap: var(--fabric-space-2);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-sm);
 }
 
 .global-add-node-panel__spinner {
@@ -673,11 +673,11 @@ const closePluginMethodView = () => {
 .global-add-node-panel__method-list {
   min-height: 0;
   overflow-y: auto;
-  padding: var(--sailor-space-2) var(--sailor-space-3) var(--sailor-space-4);
+  padding: var(--fabric-space-2) var(--fabric-space-3) var(--fabric-space-4);
 }
 
 .global-add-node-panel__section {
-  border-bottom: 1px solid var(--sailor-border);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .global-add-node-panel__section-header {
@@ -685,12 +685,12 @@ const closePluginMethodView = () => {
   width: 100%;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sailor-space-3) 0;
+  padding: var(--fabric-space-3) 0;
   border: 0;
   background: transparent;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font: inherit;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   font-weight: 700;
   cursor: pointer;
 }
@@ -699,15 +699,15 @@ const closePluginMethodView = () => {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .global-add-node-panel__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   overflow: hidden;
-  padding-bottom: var(--sailor-space-3);
+  padding-bottom: var(--fabric-space-3);
 }
 
 .global-add-node-panel__item,
@@ -715,25 +715,25 @@ const closePluginMethodView = () => {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font: inherit;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   text-align: left;
   cursor: grab;
 }
 
 .global-add-node-panel__item {
   min-height: 38px;
-  padding: var(--sailor-space-1);
+  padding: var(--fabric-space-1);
 }
 
 .global-add-node-panel__item:hover,
 .global-add-node-panel__method-item:hover {
-  background: var(--sailor-button-ghost-hover);
+  background: var(--fabric-button-ghost-hover);
 }
 
 .global-add-node-panel__icon {
@@ -743,10 +743,10 @@ const closePluginMethodView = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--node-icon-border, var(--sailor-border));
-  border-radius: var(--sailor-radius-sm);
-  background: var(--node-icon-bg, var(--sailor-bg-surface));
-  color: var(--node-icon-color, var(--sailor-text-muted));
+  border: 1px solid var(--node-icon-border, var(--fabric-border));
+  border-radius: var(--fabric-radius-sm);
+  background: var(--node-icon-bg, var(--fabric-bg-surface));
+  color: var(--node-icon-color, var(--fabric-text-muted));
 }
 
 .global-add-node-panel__item > span:nth-child(2) {
@@ -764,13 +764,13 @@ const closePluginMethodView = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .global-add-node-panel__method-list {
   display: grid;
   align-content: start;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .global-add-node-panel__method-item {
@@ -778,7 +778,7 @@ const closePluginMethodView = () => {
   min-height: 42px;
   flex-direction: row;
   align-items: center;
-  padding: var(--sailor-space-1);
+  padding: var(--fabric-space-1);
 }
 
 .global-add-node-panel__method-icon {
@@ -788,10 +788,10 @@ const closePluginMethodView = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-muted);
 }
 
 .global-add-node-panel__method-body {
@@ -810,8 +810,8 @@ const closePluginMethodView = () => {
 }
 
 .global-add-node-panel__method-item small {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .global-add-node-section-enter-active,
@@ -876,11 +876,11 @@ const closePluginMethodView = () => {
   height: 104px;
   align-items: center;
   justify-content: center;
-  margin: 0 auto var(--sailor-space-2);
-  border: 2px solid var(--sailor-border);
+  margin: 0 auto var(--fabric-space-2);
+  border: 2px solid var(--fabric-border);
   border-radius: 22px;
-  background: var(--sailor-bg-elevated);
-  box-shadow: var(--sailor-shadow-lg);
+  background: var(--fabric-bg-elevated);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .global-add-node-drag-preview__icon {
@@ -889,13 +889,13 @@ const closePluginMethodView = () => {
   height: 56px;
   align-items: center;
   justify-content: center;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .global-add-node-drag-preview__label {
   overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
   font-weight: 700;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -904,8 +904,8 @@ const closePluginMethodView = () => {
 
 .global-add-node-drag-preview__subtitle {
   overflow: hidden;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;

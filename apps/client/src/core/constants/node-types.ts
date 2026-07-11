@@ -46,77 +46,77 @@ export const NODE_TYPE_META: Record<
 > = {
   trigger: {
     label: 'Trigger',
-    color: 'var(--sailor-node-trigger)',
+    color: 'var(--fabric-node-trigger)',
     category: 'trigger',
   },
   plugin: {
     label: 'Plugin',
-    color: 'var(--sailor-node-plugin)',
+    color: 'var(--fabric-node-plugin)',
     category: 'integration',
   },
   code: {
     label: 'Code',
-    color: 'var(--sailor-node-code)',
+    color: 'var(--fabric-node-code)',
     category: 'data',
   },
   if: {
     label: 'Condition',
-    color: 'var(--sailor-node-logic)',
+    color: 'var(--fabric-node-logic)',
     category: 'logic',
   },
   loop: {
     label: 'Loop',
-    color: 'var(--sailor-node-flow)',
+    color: 'var(--fabric-node-flow)',
     category: 'flow',
   },
   'call-workflow': {
     label: 'Call Workflow',
-    color: 'var(--sailor-node-plugin)',
+    color: 'var(--fabric-node-plugin)',
     category: 'flow',
   },
   return: {
     label: 'Return',
-    color: 'var(--sailor-node-return-icon)',
+    color: 'var(--fabric-node-return-icon)',
     category: 'output',
   },
   http: {
     label: 'HTTP Request',
-    color: 'var(--sailor-node-http)',
+    color: 'var(--fabric-node-http)',
     category: 'integration',
   },
   event: {
     label: 'Emit Event',
-    color: 'var(--sailor-node-integration)',
+    color: 'var(--fabric-node-integration)',
     category: 'flow',
   },
   'event-listener': {
     label: 'Event Listener',
-    color: 'var(--sailor-node-integration)',
+    color: 'var(--fabric-node-integration)',
     category: 'trigger',
   },
   set: {
     label: 'Set Fields',
-    color: 'var(--sailor-node-set-icon)',
+    color: 'var(--fabric-node-set-icon)',
     category: 'data',
   },
   switch: {
     label: 'Switch',
-    color: 'var(--sailor-node-switch-icon)',
+    color: 'var(--fabric-node-switch-icon)',
     category: 'logic',
   },
   merge: {
     label: 'Merge',
-    color: 'var(--sailor-node-merge-icon)',
+    color: 'var(--fabric-node-merge-icon)',
     category: 'flow',
   },
   'split-in-batches': {
     label: 'Split In Batches',
-    color: 'var(--sailor-node-split-icon)',
+    color: 'var(--fabric-node-split-icon)',
     category: 'flow',
   },
   'respond-webhook': {
     label: 'Respond to Webhook',
-    color: 'var(--sailor-node-respond-webhook-icon)',
+    color: 'var(--fabric-node-respond-webhook-icon)',
     category: 'output',
   },
   'wait-form': {
@@ -146,17 +146,17 @@ export const NODE_TYPE_META: Record<
   },
   'text-dataset': {
     label: 'Text Dataset',
-    color: 'var(--sailor-node-set-icon)',
+    color: 'var(--fabric-node-set-icon)',
     category: 'data',
   },
   'file-dataset': {
     label: 'Extract From File',
-    color: 'var(--sailor-node-http-icon)',
+    color: 'var(--fabric-node-http-icon)',
     category: 'data',
   },
   'database-dataset': {
     label: 'Database Dataset',
-    color: 'var(--sailor-node-plugin-icon)',
+    color: 'var(--fabric-node-plugin-icon)',
     category: 'data',
   },
   embeddings: {
@@ -166,12 +166,12 @@ export const NODE_TYPE_META: Record<
   },
   'vector-store': {
     label: 'Vector Store',
-    color: 'var(--sailor-node-merge-icon)',
+    color: 'var(--fabric-node-merge-icon)',
     category: 'ai',
   },
   retriever: {
     label: 'Retriever',
-    color: 'var(--sailor-node-if-icon)',
+    color: 'var(--fabric-node-if-icon)',
     category: 'ai',
   },
   'basic-llm-chain': {

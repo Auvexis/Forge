@@ -72,10 +72,10 @@ onUnmounted(() => {
 }
 
 .base-modal-container {
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  box-shadow: var(--sailor-shadow-xl);
-  border-radius: var(--sailor-radius-sm);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  box-shadow: var(--fabric-shadow-xl);
+  border-radius: var(--fabric-radius-sm);
 }
 
 /* ── Transition: base-modal-slide-up ── */

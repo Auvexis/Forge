@@ -39,7 +39,7 @@ describe('page editor contract', () => {
     assert.match(source, /padding: '0'/)
     assert.match(source, /gap: '0'/)
     assert.match(source, /\.\.\.props\.bodyStyles/)
-    assert.doesNotMatch(bodyRule, /padding:\s*var\(--sailor-space-6\)/)
+    assert.doesNotMatch(bodyRule, /padding:\s*var\(--fabric-space-6\)/)
   })
 
   it('keeps viewport page dimensions real inside the editor canvas frame', () => {
@@ -121,8 +121,8 @@ describe('page editor contract', () => {
     assert.match(source, /const pageCanvasSelection = ref<string\[\]>/)
     assert.match(source, /const pageCanvasItems = computed<BaseCanvasItem\[\]>/)
     assert.match(source, /<BaseCanvas/)
-    assert.match(source, /pattern-color="var\(--sailor-border\)"/)
-    assert.doesNotMatch(source, /pattern-color="var\(--sailor-border-muted\)"/)
+    assert.match(source, /pattern-color="var\(--fabric-border\)"/)
+    assert.doesNotMatch(source, /pattern-color="var\(--fabric-border-muted\)"/)
     assert.match(source, /#item="\{ item \}"/)
     assert.match(source, /@context-menu="openPageCanvasContextMenu"/)
     assert.match(source, /@items-move="handlePageCanvasItemsMove"/)

@@ -42,7 +42,7 @@
           <span>
             {{
               pluginStatus.oauth_public_url_warning ||
-              'OAuth needs a public HTTPS URL. Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.'
+              'OAuth needs a public HTTPS URL. Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.'
             }}
           </span>
         </div>
@@ -205,43 +205,43 @@ function handleOAuthLinkClick(event: MouseEvent) {
 .plugin-auth {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-1);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-1);
 }
 
 .plugin-auth__header {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .plugin-auth__icon-well {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-lg);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-lg);
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
 .plugin-auth__icon {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .plugin-auth__title {
-  font-size: var(--sailor-text-base);
+  font-size: var(--fabric-text-base);
   font-weight: 600;
-  margin: 0 0 var(--sailor-space-1) 0;
-  color: var(--sailor-text-primary);
+  margin: 0 0 var(--fabric-space-1) 0;
+  color: var(--fabric-text-primary);
 }
 
 .plugin-auth__status {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  gap: var(--fabric-space-1);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 .status-icon--success {
@@ -263,22 +263,22 @@ function handleOAuthLinkClick(event: MouseEvent) {
 .plugin-auth__form {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
 }
 
 .auth-field {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .auth-field__label {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
-  font-size: var(--sailor-text-sm);
+  gap: var(--fabric-space-1);
+  font-size: var(--fabric-text-sm);
   font-weight: 500;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .auth-field__asterisk {
@@ -300,21 +300,21 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .auth-field__desc {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
-  margin: 0 0 var(--sailor-space-1) 0;
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
+  margin: 0 0 var(--fabric-space-1) 0;
 }
 
 .auth-field__locked-input {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: 0 var(--sailor-space-3);
+  gap: var(--fabric-space-2);
+  padding: 0 var(--fabric-space-3);
   height: 40px;
-  border-radius: var(--sailor-radius-md);
-  border: 1px solid var(--sailor-border);
-  background-color: var(--sailor-bg-muted);
-  color: var(--sailor-text-muted);
+  border-radius: var(--fabric-radius-md);
+  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-text-muted);
 }
 
 .text-emerald {
@@ -324,13 +324,13 @@ function handleOAuthLinkClick(event: MouseEvent) {
 .auth-field__toggle {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   height: 40px;
 }
 
 .auth-field__toggle-text {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   font-style: italic;
 }
 
@@ -341,17 +341,17 @@ function handleOAuthLinkClick(event: MouseEvent) {
   align-items: center;
   justify-content: center;
   height: 36px;
-  border-radius: var(--sailor-radius-md);
-  font-size: var(--sailor-text-sm);
+  border-radius: var(--fabric-radius-md);
+  font-size: var(--fabric-text-sm);
   font-weight: 500;
   cursor: pointer;
-  transition: background-color var(--sailor-duration-fast);
+  transition: background-color var(--fabric-duration-fast);
   border: none;
 }
 
 .auth-btn--primary {
-  border: 1px solid var(--sailor-border);
-  color: var(--sailor-text-primary);
+  border: 1px solid var(--fabric-border);
+  color: var(--fabric-text-primary);
 }
 
 .auth-btn--primary:hover {
@@ -370,13 +370,13 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .auth-btn--secondary {
-  background-color: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  border: 1px solid var(--sailor-border);
+  background-color: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
+  border: 1px solid var(--fabric-border);
 }
 
 .auth-btn--secondary:hover {
-  background-color: var(--sailor-bg-muted);
+  background-color: var(--fabric-bg-muted);
 }
 
 .auth-btn--destructive {
@@ -389,7 +389,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .auth-btn--mt {
-  margin-top: var(--sailor-space-2);
+  margin-top: var(--fabric-space-2);
 }
 
 .auth-btn--full {
@@ -397,7 +397,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .mr-2 {
-  margin-right: var(--sailor-space-2);
+  margin-right: var(--fabric-space-2);
 }
 .animate-spin {
   animation: spin 1s linear infinite;
@@ -414,27 +414,27 @@ function handleOAuthLinkClick(event: MouseEvent) {
   object-fit: contain;
 }
 .plugin-auth__section--oauth-info {
-  margin-bottom: var(--sailor-space-2);
-  padding: var(--sailor-space-3);
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
+  margin-bottom: var(--fabric-space-2);
+  padding: var(--fabric-space-3);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
 }
 .oauth-redirect-block {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 .oauth-warning {
   display: flex;
   align-items: flex-start;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-2);
   border: 1px solid rgba(234, 179, 8, 0.25);
-  border-radius: var(--sailor-radius-md);
+  border-radius: var(--fabric-radius-md);
   background: rgba(234, 179, 8, 0.08);
   color: rgb(234, 179, 8);
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
 .oauth-warning svg {
@@ -442,6 +442,6 @@ function handleOAuthLinkClick(event: MouseEvent) {
   margin-top: 1px;
 }
 .mt-1 {
-  margin-top: var(--sailor-space-1);
+  margin-top: var(--fabric-space-1);
 }
 </style>

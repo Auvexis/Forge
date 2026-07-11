@@ -3,9 +3,9 @@ import { beforeEach, describe, it } from 'node:test'
 import { createPinia, setActivePinia } from 'pinia'
 
 import { usePagesStore, type PagesApiClient } from '../pages.store.ts'
-import type { SailorPage } from '../../types/page.types.ts'
+import type { FabricPage } from '../../types/page.types.ts'
 
-function page(overrides: Partial<SailorPage> = {}): SailorPage {
+function page(overrides: Partial<FabricPage> = {}): FabricPage {
   return {
     id: 'page_1',
     profileId: 'profile_a',

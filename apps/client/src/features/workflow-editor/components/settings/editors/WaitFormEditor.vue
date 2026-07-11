@@ -57,7 +57,7 @@
             :disabled="!formTestUrlPreview"
             @click="copyUrl(formTestUrlPreview, 'test')"
           >
-            <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--sailor-green-400)" />
+            <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--fabric-green-400)" />
             <CopyIcon v-else :size="14" />
           </button>
           <a
@@ -80,7 +80,7 @@
             :disabled="!runtimeUrlPreview"
             @click="copyUrl(runtimeUrlPreview, 'prod')"
           >
-            <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--sailor-green-400)" />
+            <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--fabric-green-400)" />
             <CopyIcon v-else :size="14" />
           </button>
           <a
@@ -232,17 +232,17 @@ function updateExpiration(value: string | boolean) {
   font-weight: 700;
   letter-spacing: 0.05em;
   padding: 2px 6px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   flex-shrink: 0;
 }
 
 .te-url-badge--test {
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-secondary);
+  background: var(--fabric-bg-muted);
+  color: var(--fabric-text-secondary);
 }
 
 .te-url-badge--prod {
-  background: color-mix(in srgb, var(--sailor-green-400) 15%, transparent);
-  color: var(--sailor-green-400);
+  background: color-mix(in srgb, var(--fabric-green-400) 15%, transparent);
+  color: var(--fabric-green-400);
 }
 </style>

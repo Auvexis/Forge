@@ -6,17 +6,17 @@ import { formatRuntimeDiagnostics } from "./runtime-diagnostics.ts";
 describe("formatRuntimeDiagnostics", () => {
   it("returns safe startup lines without secrets", () => {
     const lines = formatRuntimeDiagnostics({
-      home: "C:/sailor",
-      dataDir: "C:/sailor/data",
-      globalPluginsDir: "C:/sailor/global/plugins",
-      defaultProfileDir: "C:/sailor/profiles/default",
+      home: "C:/fabric",
+      dataDir: "C:/fabric/data",
+      globalPluginsDir: "C:/fabric/global/plugins",
+      defaultProfileDir: "C:/fabric/profiles/default",
     });
 
     assert.deepEqual(lines, [
-      "[SAILOR | RUNTIME]: SAILOR_HOME C:/sailor",
-      "[SAILOR | RUNTIME]: Data directory C:/sailor/data",
-      "[SAILOR | RUNTIME]: External plugins directory C:/sailor/global/plugins",
-      "[SAILOR | RUNTIME]: Default profile directory C:/sailor/profiles/default",
+      "[FABRIC | RUNTIME]: FABRIC_HOME C:/fabric",
+      "[FABRIC | RUNTIME]: Data directory C:/fabric/data",
+      "[FABRIC | RUNTIME]: External plugins directory C:/fabric/global/plugins",
+      "[FABRIC | RUNTIME]: Default profile directory C:/fabric/profiles/default",
     ]);
     assert.equal(lines.join("\n").includes("token"), false);
     assert.equal(lines.join("\n").includes("secret"), false);

@@ -50,42 +50,42 @@ defineEmits<{
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  gap: var(--sailor-space-1);
-  padding: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-base);
+  gap: var(--fabric-space-1);
+  padding: var(--fabric-space-1);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-base);
 }
 
 .base-segmented-select__option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   min-width: 0;
   height: 30px;
-  padding: 0 var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
+  padding: 0 var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
   transition:
-    background 120ms var(--sailor-ease-standard),
-    color 120ms var(--sailor-ease-standard);
+    background 120ms var(--fabric-ease-standard),
+    color 120ms var(--fabric-ease-standard);
 }
 
 .base-segmented-select__option:hover {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .base-segmented-select__option--active {
-  background: var(--sailor-button-ghost-active);
-  box-shadow: inset 0 0 0 1px var(--sailor-border-strong);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-active);
+  box-shadow: inset 0 0 0 1px var(--fabric-border-strong);
+  color: var(--fabric-text-primary);
 }
 
 .base-segmented-select__option--active:hover {
-  background: var(--sailor-button-ghost-active);
+  background: var(--fabric-button-ghost-active);
 }
 
 .base-segmented-select__label {

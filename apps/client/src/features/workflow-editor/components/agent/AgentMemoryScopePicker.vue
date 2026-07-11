@@ -74,17 +74,17 @@ function handleScopeChange(scope: AgentMemoryScope) {
 .agent-memory-scope-picker {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .agent-memory-scope-picker__access {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .agent-memory-scope-picker__write-state {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 </style>

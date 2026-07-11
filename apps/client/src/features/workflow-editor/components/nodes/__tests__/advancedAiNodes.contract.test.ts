@@ -28,7 +28,7 @@ test('workflow types expose all reusable advanced AI nodes', () => {
 })
 
 test('workflow canvas registers renderers and backend-valid defaults', () => {
-  const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+  const canvas = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
 
   for (const [nodeType, componentName] of nodes) {
     assert.match(canvas, new RegExp(`import ${componentName} from './nodes/${componentName}\\.vue'`))
@@ -62,7 +62,7 @@ test('all five node shells and editors are registered', () => {
 })
 
 test('catalog declares generic capability handles for advanced AI nodes', () => {
-  const manifest = read('../server/src/core/utility-nodes/sailor-core/manifest.ts')
+  const manifest = read('../server/src/core/utility-nodes/fabric-core/manifest.ts')
 
   assert.match(manifest, /"basic-llm-chain"[\s\S]*id: "model"[\s\S]*capability: "chat-model"[\s\S]*id: "outputParser"[\s\S]*capability: "output-parser"[\s\S]*quickAddAfterConnected: true/)
   assert.match(manifest, /"structured-json-parser"[\s\S]*capabilities: \["output-parser"\][\s\S]*id: "source"[\s\S]*style: "diamond"/)

@@ -46,7 +46,7 @@ const copy = async () => {
 
 <style scoped>
 .code-block {
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -56,20 +56,20 @@ const copy = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sailor-space-1) var(--sailor-space-3);
-  background-color: var(--sailor-bg-elevated);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-1) var(--fabric-space-3);
+  background-color: var(--fabric-bg-elevated);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .code-block__lang {
-  font-size: var(--sailor-text-xs);
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-secondary);
   text-transform: uppercase;
 }
 
 .code-block__copy {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
@@ -78,21 +78,21 @@ const copy = async () => {
   border-radius: 4px;
 }
 .code-block__copy:hover {
-  color: var(--sailor-text-primary);
-  background-color: var(--sailor-bg-muted);
+  color: var(--fabric-text-primary);
+  background-color: var(--fabric-bg-muted);
 }
 
 .code-block__body {
-  padding: var(--sailor-space-3);
+  padding: var(--fabric-space-3);
   overflow: auto;
-  background-color: var(--sailor-gray-950);
+  background-color: var(--fabric-gray-950);
 }
 
 pre {
   margin: 0;
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-primary);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-primary);
   line-height: 1.5;
 }
 </style>

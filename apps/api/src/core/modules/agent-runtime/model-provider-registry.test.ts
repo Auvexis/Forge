@@ -93,7 +93,7 @@ describe("agent model provider registry", () => {
 
     const model = await registry.createChatModel({
       ...modelConfig(),
-      pluginId: "sailor-ollama",
+      pluginId: "fabric-ollama",
       adapter: "generic",
       model: "llama3.2",
       baseUrl: "http://localhost:11434/v1",
@@ -103,7 +103,7 @@ describe("agent model provider registry", () => {
     await (model as any).invoke([{ role: "user", content: "hello" }]);
 
     assert.equal(requests[0].url, "http://localhost:11434/v1/responses");
-    assert.equal(requests[0].headers.Authorization, "Bearer sailor-local");
+    assert.equal(requests[0].headers.Authorization, "Bearer fabric-local");
   });
 
   it("creates native Ollama local models without stored credentials", async () => {
@@ -114,7 +114,7 @@ describe("agent model provider registry", () => {
 
     const model = await registry.createChatModel({
       ...modelConfig(),
-      pluginId: "sailor-ollama",
+      pluginId: "fabric-ollama",
       adapter: "ollama",
       model: "llama3.2",
       baseUrl: "http://localhost:11434",
@@ -129,15 +129,15 @@ describe("agent model provider registry", () => {
     const requests: Array<{ body: any }> = [];
     PluginManager.clearPlugins();
     PluginManager.registerPlugin({
-      id: "sailor-ollama",
+      id: "fabric-ollama",
       manifest: {
         metadata: {
-          id: "sailor-ollama",
+          id: "fabric-ollama",
           name: "Ollama",
           version: "1.0.0",
           description: "Ollama plugin",
           categories: ["AI"],
-          author: "Sailor",
+          author: "Fabric",
           agentCapabilities: {
             chatModel: {
               enabled: true,
@@ -169,7 +169,7 @@ describe("agent model provider registry", () => {
 
       const model = await registry.createChatModel({
         ...modelConfig(),
-        pluginId: "sailor-ollama",
+        pluginId: "fabric-ollama",
         adapter: "generic",
         model: "qwen3.5:4b",
         baseUrl: "http://localhost:11434/v1",
@@ -190,15 +190,15 @@ describe("agent model provider registry", () => {
     const requests: Array<{ body: any }> = [];
     PluginManager.clearPlugins();
     PluginManager.registerPlugin({
-      id: "sailor-ollama",
+      id: "fabric-ollama",
       manifest: {
         metadata: {
-          id: "sailor-ollama",
+          id: "fabric-ollama",
           name: "Ollama",
           version: "1.0.0",
           description: "Ollama plugin",
           categories: ["AI"],
-          author: "Sailor",
+          author: "Fabric",
           agentCapabilities: {
             chatModel: {
               enabled: true,
@@ -230,7 +230,7 @@ describe("agent model provider registry", () => {
 
       const model = await registry.createChatModel({
         ...modelConfig(),
-        pluginId: "sailor-ollama",
+        pluginId: "fabric-ollama",
         adapter: "generic",
         model: "qwen3.5:4b",
         baseUrl: "http://localhost:11434/v1",
@@ -361,7 +361,7 @@ describe("agent model provider registry", () => {
 
     const model = await provider.createChatModel({
       ...modelConfig(),
-      pluginId: "sailor-ollama",
+      pluginId: "fabric-ollama",
       adapter: "generic",
       model: "qwen3.5:4b",
       baseUrl: "http://localhost:11434/v1",
@@ -391,7 +391,7 @@ describe("agent model provider registry", () => {
 
     const model = await provider.createChatModel({
       ...modelConfig(),
-      pluginId: "sailor-ollama",
+      pluginId: "fabric-ollama",
       adapter: "generic",
       model: "qwen3.5:4b",
       baseUrl: "http://localhost:11434/v1",

@@ -102,7 +102,7 @@ export default async function pluginEventsRoutes(
     }
 
     if (entry.trigger.webhookSecret) {
-      const signature = req.headers["x-sailor-signature"] as string | undefined;
+      const signature = req.headers["x-fabric-signature"] as string | undefined;
       if (!validateSignature(req.body ?? {}, entry.trigger.webhookSecret, signature)) {
         return reply.code(401).send({ error: "Invalid plugin event signature" });
       }

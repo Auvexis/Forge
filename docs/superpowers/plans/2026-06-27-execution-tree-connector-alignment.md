@@ -6,7 +6,7 @@
 
 **Architecture:** Keep the recursive tree and interaction behavior unchanged. Correct only branch-level CSS geometry and protect it with the existing source contract test.
 
-**Tech Stack:** Vue 3, scoped CSS, Sailor design tokens, Node test runner.
+**Tech Stack:** Vue 3, scoped CSS, Fabric design tokens, Node test runner.
 
 ---
 
@@ -18,7 +18,7 @@
 
 - [x] **Step 1: Write the failing contract**
 
-Assert that branches use `--sailor-space-2` spacing, rows use tokenized padding and margin, and the last branch suppresses connector overflow.
+Assert that branches use `--fabric-space-2` spacing, rows use tokenized padding and margin, and the last branch suppresses connector overflow.
 
 - [x] **Step 2: Verify the contract fails**
 
@@ -28,7 +28,7 @@ Expected: FAIL because the current tree lacks the new spacing and last-branch ge
 
 - [x] **Step 3: Implement the minimal CSS correction**
 
-Move connector ownership to each nested branch, align its axis with the 14px chevron column, stop it at the final branch, and apply `var(--sailor-space-2)` for row padding, connector clearance, and inter-item gap.
+Move connector ownership to each nested branch, align its axis with the 14px chevron column, stop it at the final branch, and apply `var(--fabric-space-2)` for row padding, connector clearance, and inter-item gap.
 
 - [x] **Step 4: Verify tests and types**
 
@@ -42,7 +42,7 @@ Commit the test, CSS correction, and completed checklist together.
 
 ### Task 2: Add clearance below expand icons
 
-- [x] Require `--sailor-space-2` between the expand icon axis and the vertical connector.
+- [x] Require `--fabric-space-2` between the expand icon axis and the vertical connector.
 - [x] Preserve the connector endpoint at the center of the final item.
 - [x] Run focused tests and type-check.
 - [x] Commit the follow-up correction.
@@ -50,7 +50,7 @@ Commit the test, CSS correction, and completed checklist together.
 ### Task 3: Remove empty leaf chevrons
 
 - [x] Do not render or reserve the chevron column for nodes without children.
-- [x] Keep only `--sailor-space-2` between the horizontal connector and first visible icon.
+- [x] Keep only `--fabric-space-2` between the horizontal connector and first visible icon.
 - [x] Run focused tests and type-check.
 - [x] Commit the leaf alignment correction.
 
@@ -87,7 +87,7 @@ Commit the test, CSS correction, and completed checklist together.
 ### Task 8: Theme execution JSON previews
 
 - [x] Render Input JSON with `BaseCodeEditor` in readonly JSON mode.
-- [x] Render Output JSON with the same Sailor-themed editor.
+- [x] Render Output JSON with the same Fabric-themed editor.
 - [x] Preserve large-payload guards and plain error display.
 - [x] Run focused tests and type-check.
 - [x] Commit only the execution inspector changes.

@@ -3,7 +3,7 @@ import path from "node:path";
 import { validateProfileId, type ProfileId } from "./profile-types.ts";
 
 export interface ResolveProfilePathsInput {
-  sailorHome?: string;
+  fabricHome?: string;
   profilesDir?: string;
   profileId: ProfileId;
   profileDirOverride?: string;
@@ -22,14 +22,14 @@ export interface ProfilePaths {
   notificationsDbPath: string;
 }
 
-export function resolveProfilesRoot(sailorHome: string): string {
-  return path.resolve(sailorHome, "profiles");
+export function resolveProfilesRoot(fabricHome: string): string {
+  return path.resolve(fabricHome, "profiles");
 }
 
 export function resolveProfilePaths(input: ResolveProfilePathsInput): ProfilePaths {
   const profileId = validateProfileId(input.profileId);
   const profilesDir = path.resolve(
-    input.profilesDir ?? resolveProfilesRoot(requiredSailorHome(input.sailorHome)),
+    input.profilesDir ?? resolveProfilesRoot(requiredFabricHome(input.fabricHome)),
   );
   const profileDir = path.resolve(input.profileDirOverride ?? path.join(profilesDir, profileId));
 
@@ -50,11 +50,11 @@ export function resolveProfilePaths(input: ResolveProfilePathsInput): ProfilePat
   };
 }
 
-function requiredSailorHome(sailorHome: string | undefined): string {
-  if (!sailorHome) {
-    throw new Error("sailorHome or profilesDir is required");
+function requiredFabricHome(fabricHome: string | undefined): string {
+  if (!fabricHome) {
+    throw new Error("fabricHome or profilesDir is required");
   }
-  return sailorHome;
+  return fabricHome;
 }
 
 function assertInsideProfilesRoot(profilesDir: string, targetPath: string): void {

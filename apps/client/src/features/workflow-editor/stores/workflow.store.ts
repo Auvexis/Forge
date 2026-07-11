@@ -85,7 +85,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     () => activeWorkflow.value?.metadata.autosaveEnabled === true && isPersistedWorkflow.value,
   )
   const draftStorageKey = computed(() =>
-    activeWorkflow.value ? `sailor.workflow-draft.${activeWorkflow.value.metadata.id}` : null,
+    activeWorkflow.value ? `fabric.workflow-draft.${activeWorkflow.value.metadata.id}` : null,
   )
 
   function setActiveWorkflow(workflow: WorkflowItem) {
@@ -258,7 +258,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   }
 
   function recoverDraft(workflowId: string): boolean {
-    const raw = localStorage.getItem(`sailor.workflow-draft.${workflowId}`)
+    const raw = localStorage.getItem(`fabric.workflow-draft.${workflowId}`)
     if (!raw) return false
     try {
       const parsed = JSON.parse(raw) as { workflow?: WorkflowItem }

@@ -993,7 +993,7 @@ describe("retrieval utility node handlers", () => {
         metric: "cosine",
         config: {},
         retrievalMode: "query",
-        query: "What is Sailor?",
+        query: "What is Fabric?",
         topK: 3,
         outputMode: "context",
         maxContextChars: 100,
@@ -1015,7 +1015,7 @@ describe("retrieval utility node handlers", () => {
           calls.push(`${pluginId}:${methodId}`);
           if (pluginId === "embedding-provider") return { vectors: [[0.1, 0.2, 0.3]] };
           if (methodId === "querySimilar") {
-            return [{ id: "doc-1", text: "Sailor builds workflows.", score: 0.9, metadata: {} }];
+            return [{ id: "doc-1", text: "Fabric builds workflows.", score: 0.9, metadata: {} }];
           }
           return { ok: true };
         },
@@ -1028,7 +1028,7 @@ describe("retrieval utility node handlers", () => {
       "vector-provider:ensureCollection",
       "vector-provider:querySimilar",
     ]);
-    assert.equal(result.context, "Sailor builds workflows.");
+    assert.equal(result.context, "Fabric builds workflows.");
   });
 });
 

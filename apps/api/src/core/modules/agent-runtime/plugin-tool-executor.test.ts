@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { Readable } from "node:stream";
 import { afterEach, describe, it } from "node:test";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 import Database from "better-sqlite3";
 import {
   resetAppDatabaseProvider,
@@ -16,7 +16,7 @@ import { clearValidatorCache } from "../plugins/validator.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
-import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 
 describe("plugin tool executor", () => {
   afterEach(() => {
@@ -373,7 +373,7 @@ function setupCredentialsDb(): void {
   setAppDatabaseProvider(() => appDb);
 }
 
-function definition(overrides: Partial<SailorAgentToolDefinition> = {}): SailorAgentToolDefinition {
+function definition(overrides: Partial<FabricAgentToolDefinition> = {}): FabricAgentToolDefinition {
   return {
     name: "github_create_issue",
     description: "Create a GitHub issue.",
@@ -413,7 +413,7 @@ function createPlugin(
     owner: { type: "string" },
     title: { type: "string" },
   },
-): SailorPlugin {
+): FabricPlugin {
   setupCredentialsDb();
   return {
     id: "github",
@@ -428,7 +428,7 @@ function createPlugin(
         description: "GitHub integration",
         icon: "icon.svg",
         categories: ["Developer"],
-        author: "Sailor",
+        author: "Fabric",
         version: "1.0.0",
       },
       methods: {

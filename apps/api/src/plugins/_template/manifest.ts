@@ -1,4 +1,4 @@
-﻿import { definePluginManifest } from "@auvexis/sailor-sdk";
+import { definePluginManifest } from "@auvexis/fabric-sdk";
 
 export default definePluginManifest({
   "metadata": {

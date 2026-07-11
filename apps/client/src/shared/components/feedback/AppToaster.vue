@@ -51,12 +51,12 @@ const getIcon = (variant: ToastVariant) => {
 <style scoped>
 .app-toaster {
   position: fixed;
-  bottom: var(--sailor-space-6);
-  right: var(--sailor-space-6);
+  bottom: var(--fabric-space-6);
+  right: var(--fabric-space-6);
   z-index: 99999 !important;
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   pointer-events: none; /* Let clicks pass through empty space */
 }
 
@@ -64,17 +64,17 @@ const getIcon = (variant: ToastVariant) => {
   position: relative;
   display: flex;
   align-items: flex-start;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   width: 380px;
-  max-width: calc(100vw - var(--sailor-space-8));
-  padding: var(--sailor-space-4);
-  border-radius: var(--sailor-radius-lg);
-  border-top-left-radius: var(--sailor-radius-sm);
-  border-bottom-left-radius: var(--sailor-radius-sm);
+  max-width: calc(100vw - var(--fabric-space-8));
+  padding: var(--fabric-space-4);
+  border-radius: var(--fabric-radius-lg);
+  border-top-left-radius: var(--fabric-radius-sm);
+  border-bottom-left-radius: var(--fabric-radius-sm);
   pointer-events: auto; /* Re-enable clicks on the toast */
   overflow: hidden;
-  background-color: var(--sailor-bg-base);
-  border-color: var(--sailor-border);
+  background-color: var(--fabric-bg-base);
+  border-color: var(--fabric-border);
 }
 
 /* Adds a subtle left border matching the variant */
@@ -85,24 +85,24 @@ const getIcon = (variant: ToastVariant) => {
   top: 6px;
   bottom: 6px;
   width: 3px;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
   height: calc(100% - 12px);
 }
 
 .app-toast--default::before {
-  background-color: var(--sailor-blue-500);
+  background-color: var(--fabric-blue-500);
 }
 .app-toast--success::before {
-  background-color: var(--sailor-green-500);
+  background-color: var(--fabric-green-500);
 }
 .app-toast--warning::before {
-  background-color: var(--sailor-amber-500);
+  background-color: var(--fabric-amber-500);
 }
 .app-toast--reward::before {
-  background-color: var(--sailor-amber-500);
+  background-color: var(--fabric-amber-500);
 }
 .app-toast--error::before {
-  background-color: var(--sailor-red-500);
+  background-color: var(--fabric-red-500);
 }
 
 .app-toast__icon {
@@ -110,58 +110,58 @@ const getIcon = (variant: ToastVariant) => {
   margin-top: 2px;
 }
 .app-toast--default .app-toast__icon {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 .app-toast--success .app-toast__icon {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 .app-toast--warning .app-toast__icon {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 .app-toast--reward .app-toast__icon {
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 .app-toast--error .app-toast__icon {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .app-toast__content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .app-toast__title {
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
+  color: var(--fabric-text-primary);
   margin: 0;
 }
 
 .app-toast__message {
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-secondary);
-  line-height: var(--sailor-leading-normal);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-secondary);
+  line-height: var(--fabric-leading-normal);
   margin: 0;
   word-break: break-word;
 }
 
 .app-toast__close {
   flex-shrink: 0;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   margin: -4px -4px 0 0;
-  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .app-toast__close:hover {
-  background-color: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary);
+  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-text-primary);
 }
 </style>

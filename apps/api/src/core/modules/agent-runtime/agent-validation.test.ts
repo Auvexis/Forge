@@ -34,14 +34,14 @@ describe("agent runtime validation", () => {
   it("accepts generic AI model adapter configs", () => {
     const model = validateAiModelConfig({
       ...validModel(),
-      pluginId: "sailor-ollama",
+      pluginId: "fabric-ollama",
       adapter: "generic",
       model: "llama3.2",
       baseUrl: "http://localhost:11434/v1",
       credentialId: undefined,
     });
 
-    assert.equal(model.pluginId, "sailor-ollama");
+    assert.equal(model.pluginId, "fabric-ollama");
     assert.equal(model.adapter, "generic");
     assert.equal(model.baseUrl, "http://localhost:11434/v1");
   });
@@ -49,14 +49,14 @@ describe("agent runtime validation", () => {
   it("accepts native Ollama AI model adapter configs", () => {
     const model = validateAiModelConfig({
       ...validModel(),
-      pluginId: "sailor-ollama",
+      pluginId: "fabric-ollama",
       adapter: "ollama",
       model: "llama3.2",
       baseUrl: "http://localhost:11434",
       credentialId: undefined,
     });
 
-    assert.equal(model.pluginId, "sailor-ollama");
+    assert.equal(model.pluginId, "fabric-ollama");
     assert.equal(model.adapter, "ollama");
     assert.equal(model.baseUrl, "http://localhost:11434");
   });

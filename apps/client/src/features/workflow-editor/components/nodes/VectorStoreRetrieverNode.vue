@@ -11,7 +11,7 @@ const handlers = computed(() => getAdvancedNodeHandlers('vector-store-retriever'
 </script>
 
 <template>
-  <BaseAdvancedNode :id="props.id" width="280px" height="75px" rounded="full" :selected="props.selected" :title="props.data?.name || 'Vector Store Retriever'" :description="`${props.data?.topK ?? 5} results`" :handlers="handlers" auto-organize bg="transparent" border-color="var(--sailor-node-border)">
+  <BaseAdvancedNode :id="props.id" width="280px" height="75px" rounded="full" :selected="props.selected" :title="props.data?.name || 'Vector Store Retriever'" :description="`${props.data?.topK ?? 5} results`" :handlers="handlers" auto-organize bg="transparent" border-color="var(--fabric-node-border)">
     <template #icon-left><LucideIcon name="search" :size="30" style="color: #65a30d" /></template>
   </BaseAdvancedNode>
 </template>

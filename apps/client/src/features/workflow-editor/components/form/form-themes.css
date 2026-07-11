@@ -6,8 +6,8 @@
   flex-direction: column;
   padding: 32px 16px;
   background: var(--form-page-background);
-  color: var(--form-field-color, var(--sailor-text-primary));
-  font-family: var(--form-font-family, var(--sailor-font-sans));
+  color: var(--form-field-color, var(--fabric-text-primary));
+  font-family: var(--form-font-family, var(--fabric-font-sans));
   font-size: var(--form-base-size, 14px);
 }
 
@@ -93,14 +93,14 @@
 
 .form-renderer-header h1 {
   margin: 0;
-  color: var(--form-title-color, var(--sailor-text-primary));
+  color: var(--form-title-color, var(--fabric-text-primary));
   font-family: var(--form-title-font-family, var(--form-font-family));
   font-size: 24px;
 }
 
 .form-renderer-header p {
   margin: 0;
-  color: var(--form-subtitle-color, var(--sailor-text-secondary));
+  color: var(--form-subtitle-color, var(--fabric-text-secondary));
   font-family: var(--form-subtitle-font-family, var(--form-font-family));
   line-height: 1.5;
 }
@@ -144,7 +144,7 @@
 .form-renderer-error {
   border: 1px solid rgba(248, 113, 113, 0.35);
   background: rgba(248, 113, 113, 0.1);
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 
 .form-renderer-success {
@@ -153,7 +153,7 @@
   gap: 4px;
   border: 1px solid rgba(52, 211, 153, 0.35);
   background: rgba(52, 211, 153, 0.1);
-  color: var(--sailor-green-400);
+  color: var(--fabric-green-400);
 }
 
 .form-renderer-watching {
@@ -185,17 +185,17 @@
   gap: 7px;
   font-size: 13px;
   font-weight: var(--form-font-weight, 600);
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 
 .form-renderer-field em {
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
   font-style: normal;
 }
 
 .form-renderer-field-description {
   margin-top: -3px;
-  color: var(--form-subtitle-color, var(--sailor-text-secondary));
+  color: var(--form-subtitle-color, var(--fabric-text-secondary));
   font-family: var(--form-subtitle-font-family, var(--form-font-family));
   font-size: 12px;
   font-weight: 400;

@@ -4,7 +4,7 @@ import {
   useWorkflowActions,
   useWorkflowStore,
   useExecutionStore,
-  SailorWorkflowCanvas,
+  FabricWorkflowCanvas,
 } from '@/features/workflow-editor'
 import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrome/WorkflowEditorChrome.vue'
 import GlobalAddNodePanel from '@/features/workflow-editor/components/settings/GlobalAddNodePanel.vue'
@@ -88,7 +88,7 @@ function handleClose() {
 }
 
 // ── Canvas ref — used to call exposed actions (run, stop, add-node) ───────
-const canvasRef = ref<InstanceType<typeof SailorWorkflowCanvas> | null>(null)
+const canvasRef = ref<InstanceType<typeof FabricWorkflowCanvas> | null>(null)
 
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
 const showSettings = ref(false)
@@ -434,7 +434,7 @@ onMounted(() => {
   initWorkflow()
   window.addEventListener('keydown', handleWorkflowEditorShortcut)
   window.addEventListener('beforeunload', handleBeforeUnload)
-  window.addEventListener('sailor:command-palette:intent', handleUiIntent)
+  window.addEventListener('fabric:command-palette:intent', handleUiIntent)
   window.addEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
 
@@ -443,7 +443,7 @@ onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
   window.removeEventListener('keydown', handleWorkflowEditorShortcut)
   window.removeEventListener('beforeunload', handleBeforeUnload)
-  window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
+  window.removeEventListener('fabric:command-palette:intent', handleUiIntent)
   window.removeEventListener(PROFILE_SWITCH_REFRESH_EVENT, initWorkflow)
 })
 
@@ -557,8 +557,8 @@ async function handlePublishWorkflow() {
 async function emitWorkflowPublishedEvent(workflowId: string) {
   try {
     const result = await triggerAuvexisEvent({
-      type: 'sailor.workflow.published',
-      eventId: `sailor.workflow.published:${workflowId}`,
+      type: 'fabric.workflow.published',
+      eventId: `fabric.workflow.published:${workflowId}`,
       evidence: { workflowId },
     })
     console.info('[Auvexis] Workflow published event accepted', result)
@@ -650,8 +650,8 @@ watch(
       />
     </template>
 
-    <div class="sailor-fill flex-center">
-      <SailorWorkflowCanvas
+    <div class="fabric-fill flex-center">
+      <FabricWorkflowCanvas
         v-if="workflowStore.activeWorkflow"
         ref="canvasRef"
       />
@@ -718,27 +718,27 @@ watch(
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: var(--sailor-z-raised);
+  z-index: var(--fabric-z-raised);
   display: flex;
   align-items: center;
   gap: 1px;
   height: 24px;
   padding: 0;
-  border-top: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-muted);
+  border-top: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-muted);
   font-size: 11px;
 }
 
 .workflow-status-bar__button {
   display: inline-flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   height: 100%;
   min-width: 140px;
-  padding: 0 var(--sailor-space-3);
+  padding: 0 var(--fabric-space-3);
   border: 0;
-  border-right: 1px solid var(--sailor-border-muted);
+  border-right: 1px solid var(--fabric-border-muted);
   background: transparent;
   color: inherit;
   cursor: pointer;
@@ -746,8 +746,8 @@ watch(
 
 .workflow-status-bar__button:hover,
 .workflow-status-bar__button--active {
-  color: var(--sailor-text-primary);
-  background: var(--sailor-bg-surface);
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-surface);
 }
 
 .workflow-status-bar__button:disabled {
@@ -759,17 +759,17 @@ watch(
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--sailor-text-muted);
+  background: var(--fabric-text-muted);
 }
 
 .workflow-status-bar__dot.is-active {
-  background: var(--sailor-green-400);
+  background: var(--fabric-green-400);
 }
 
 .workflow-status-bar__button code {
   margin-left: auto;
   overflow: hidden;
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;

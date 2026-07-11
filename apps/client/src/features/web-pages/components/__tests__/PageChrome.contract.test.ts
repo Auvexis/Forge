@@ -8,7 +8,7 @@ function read(relativePath: string) {
 }
 
 describe('page chrome contract', () => {
-  it('pages editor enters immersive app chrome mode when opening Sailor Pages', () => {
+  it('pages editor enters immersive app chrome mode when opening Fabric Pages', () => {
     const source = read('src/app/pages/PagesEditorPage.vue')
 
     assert.match(source, /useAppUiStore/)
@@ -242,10 +242,10 @@ describe('page chrome contract', () => {
     assert.match(source, /exportActiveProject/)
     assert.match(source, /sitesStore\.exportActiveSiteProject\(\)/)
     assert.match(source, /downloadBlobFile/)
-    assert.match(source, /\.sailor-site\.zip/)
+    assert.match(source, /\.fabric-site\.zip/)
     assert.doesNotMatch(source, /downloadJsonFile/)
     assert.match(source, /Blob/)
-    assert.doesNotMatch(source, /\.sailor\.json/)
+    assert.doesNotMatch(source, /\.fabric\.json/)
   })
 
   it('open project modal previews first project page and exposes project export and delete actions', () => {

@@ -117,11 +117,11 @@ onUnmounted(() => {
   inset: 0;
   background-color: rgba(11, 15, 26, 0.75);
   backdrop-filter: blur(4px);
-  z-index: var(--sailor-z-modal);
+  z-index: var(--fabric-z-modal);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--sailor-space-4);
+  padding: var(--fabric-space-4);
 }
 
 .app-dialog-backdrop--top {
@@ -138,9 +138,9 @@ onUnmounted(() => {
   flex-direction: column;
   width: 100%;
   max-height: 90vh;
-  border-radius: var(--sailor-radius-lg);
+  border-radius: var(--fabric-radius-lg);
   overflow: hidden;
-  box-shadow: var(--sailor-shadow-xl);
+  box-shadow: var(--fabric-shadow-xl);
 }
 
 /* ── Sizes ─────────────────────────────────────── */
@@ -162,27 +162,27 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  padding: var(--sailor-space-5) var(--sailor-space-6);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-5) var(--fabric-space-6);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .app-dialog__title-block {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .app-dialog__title {
-  font-size: var(--sailor-text-lg);
-  font-weight: var(--sailor-font-semibold);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-lg);
+  font-weight: var(--fabric-font-semibold);
+  color: var(--fabric-text-primary);
   margin: 0;
 }
 
 .app-dialog__description {
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-secondary);
-  line-height: var(--sailor-leading-normal);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-secondary);
+  line-height: var(--fabric-leading-normal);
   margin: 0;
 }
 
@@ -192,19 +192,19 @@ onUnmounted(() => {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
-  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-secondary);
+  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   margin: -4px -8px 0 0; /* optical alignment */
 }
 
 .app-dialog__close:hover {
-  background-color: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary);
+  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-text-primary);
 }
 
 .app-dialog__body {
-  padding: var(--sailor-space-6);
+  padding: var(--fabric-space-6);
   overflow-y: auto;
   flex: 1;
 }
@@ -213,9 +213,9 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-4) var(--sailor-space-6);
-  border-top: 1px solid var(--sailor-border);
-  background-color: var(--sailor-bg-surface);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-4) var(--fabric-space-6);
+  border-top: 1px solid var(--fabric-border);
+  background-color: var(--fabric-bg-surface);
 }
 </style>

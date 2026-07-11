@@ -17,7 +17,7 @@ describe("SiteProjectArchiveService", () => {
 
   beforeEach(() => {
     db = new Database(":memory:");
-    assetStorageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-site-archive-"));
+    assetStorageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-site-archive-"));
     SiteRepository.setDatabaseProvider(() => db);
     PageRepository.setDatabaseProvider(() => db);
     PageRepository.ensureSchema();

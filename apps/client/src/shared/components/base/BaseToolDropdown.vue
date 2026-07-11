@@ -202,17 +202,17 @@ onBeforeUnmount(() => {
   left: 50%;
   z-index: 1;
   padding: 4px 7px;
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-text-primary);
-  color: var(--sailor-bg-surface);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-text-primary);
+  color: var(--fabric-bg-surface);
   content: attr(data-tooltip);
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   opacity: 0;
   pointer-events: none;
   transform: translateX(-50%) translateY(4px);
   transition:
-    opacity 120ms var(--sailor-ease-standard),
-    transform 120ms var(--sailor-ease-standard);
+    opacity 120ms var(--fabric-ease-standard),
+    transform 120ms var(--fabric-ease-standard);
   white-space: nowrap;
 }
 
@@ -224,33 +224,33 @@ onBeforeUnmount(() => {
 
 .base-tool-dropdown__menu {
   position: fixed;
-  z-index: calc(var(--sailor-z-modal) + 1);
+  z-index: calc(var(--fabric-z-modal) + 1);
   display: grid;
   min-width: 156px;
   gap: 2px;
-  padding: var(--sailor-space-1);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-lg);
+  padding: var(--fabric-space-1);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .base-tool-dropdown__item {
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr);
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: 30px;
-  padding: 0 var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-primary);
+  padding: 0 var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-primary);
   cursor: grab;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   text-align: left;
 }
 
 .base-tool-dropdown__item:hover {
-  background: var(--sailor-button-ghost-hover);
+  background: var(--fabric-button-ghost-hover);
 }
 
 .base-tool-dropdown__item:active {

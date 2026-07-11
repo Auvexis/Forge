@@ -18,6 +18,6 @@ const handlers = computed(() => getAdvancedNodeHandlers('structured-json-parser'
 </template>
 
 <style scoped>
-.structured-json-parser-node :deep(.sailor-base-advanced-node__content) { justify-content: center; padding: 0; }
-.structured-json-parser-node :deep(.sailor-base-advanced-node__copy) { display: none; }
+.structured-json-parser-node :deep(.fabric-base-advanced-node__content) { justify-content: center; padding: 0; }
+.structured-json-parser-node :deep(.fabric-base-advanced-node__copy) { display: none; }
 </style>

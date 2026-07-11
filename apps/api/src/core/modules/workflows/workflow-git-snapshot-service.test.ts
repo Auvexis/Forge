@@ -28,7 +28,7 @@ function workflow(id: string, name = "Draft Workflow"): WorkflowItem {
 
 describe("WorkflowGitSnapshotService", () => {
   it("writes a profile data git repository snapshot for a workflow", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-"));
     const commands: { args: string[]; cwd: string }[] = [];
     const service = new WorkflowGitSnapshotService({
       dataDir: root,
@@ -54,8 +54,8 @@ describe("WorkflowGitSnapshotService", () => {
     );
     assert.deepEqual(commands.map((command) => command.args), [
       ["init"],
-      ["config", "user.name", "Sailor Workflow Git"],
-      ["config", "user.email", "workflow-git@sailor.local"],
+      ["config", "user.name", "Fabric Workflow Git"],
+      ["config", "user.email", "workflow-git@fabric.local"],
       ["add", "workflow.json"],
       ["diff", "--cached", "--quiet"],
       ["commit", "-m", "Manual checkpoint"],
@@ -67,7 +67,7 @@ describe("WorkflowGitSnapshotService", () => {
   });
 
   it("returns an unchanged commit result when workflow json has no staged diff", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-clean-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-clean-"));
     const service = new WorkflowGitSnapshotService({
       dataDir: root,
       runGit: (args, options) => {
@@ -93,7 +93,7 @@ describe("WorkflowGitSnapshotService", () => {
   });
 
   it("reports workflow git status with branch and latest commit metadata", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-status-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-status-"));
     const repoDir = path.join(root, "workflows-git", "wf-demo");
     fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
     const service = new WorkflowGitSnapshotService({
@@ -128,7 +128,7 @@ describe("WorkflowGitSnapshotService", () => {
   });
 
   it("reports a missing workflow git repository without throwing", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-missing-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-missing-"));
     const service = new WorkflowGitSnapshotService({ dataDir: root });
 
     assert.deepEqual(service.status("wf-missing"), {
@@ -142,7 +142,7 @@ describe("WorkflowGitSnapshotService", () => {
   });
 
   it("removes a workflow git repository folder", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-delete-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-delete-"));
     const repoDir = path.join(root, "workflows-git", "wf-delete");
     fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
     fs.writeFileSync(path.join(repoDir, "workflow.json"), "{}", "utf8");
@@ -154,7 +154,7 @@ describe("WorkflowGitSnapshotService", () => {
   });
 
   it("lists workflow git snapshots from the repository log", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-list-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-list-"));
     const repoDir = path.join(root, "workflows-git", "wf-list");
     fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
     const service = new WorkflowGitSnapshotService({
@@ -191,7 +191,7 @@ describe("WorkflowGitSnapshotService", () => {
   });
 
   it("reads workflow json from a git snapshot", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-workflow-git-read-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-workflow-git-read-"));
     const repoDir = path.join(root, "workflows-git", "wf-read");
     fs.mkdirSync(path.join(repoDir, ".git"), { recursive: true });
     const snapshotWorkflow = workflow("wf-read", "Snapshot Version");

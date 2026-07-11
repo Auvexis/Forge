@@ -5,9 +5,9 @@ import { readSiteAsset, saveSiteAsset } from "../modules/pages/site-asset-servic
 import { PageService } from "../modules/pages/page-service.ts";
 import { SiteProjectArchiveService, type SiteProjectArchive } from "../modules/pages/site-project-archive-service.ts";
 import { SiteService } from "../modules/pages/site-service.ts";
-import type { CreatePageInput, SailorPage, UpdatePageInput } from "../modules/pages/page-types.ts";
+import type { CreatePageInput, FabricPage, UpdatePageInput } from "../modules/pages/page-types.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
-import { sailorHomePaths } from "../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../runtime/fabric-home.ts";
 
 interface PageActionServiceLike {
   submitAction: PageActionService["submitAction"];
@@ -31,7 +31,7 @@ export default async function pagesRoutes(
     options.getActiveProfileId ??
     (() => activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default");
   const actionService = options.actionService ?? new PageActionService();
-  const assetStorageRoot = options.assetStorageRoot ?? `${sailorHomePaths.dataDir}/site-assets`;
+  const assetStorageRoot = options.assetStorageRoot ?? `${fabricHomePaths.dataDir}/site-assets`;
   const getService = () => new PageService({ profileId: getProfileId() });
   const getSiteService = () => new SiteService({ profileId: getProfileId() });
 
@@ -126,7 +126,7 @@ export default async function pagesRoutes(
         bodyStyles: body.bodyStyles,
         blocks: body.blocks,
       });
-      return sendResponse<SailorPage>(reply, {
+      return sendResponse<FabricPage>(reply, {
         status_code: 201,
         message: "Site page created successfully",
         error: null,
@@ -266,7 +266,7 @@ export default async function pagesRoutes(
       return reply
         .code(200)
         .type("application/zip")
-        .header("content-disposition", `attachment; filename="${archive.manifest.site.slug}.sailor-site.zip"`)
+        .header("content-disposition", `attachment; filename="${archive.manifest.site.slug}.fabric-site.zip"`)
         .send(zip);
     } catch (error) {
       return sendResponse(reply, routeError(error, "Site not found", "Failed to export site"));
@@ -327,7 +327,7 @@ export default async function pagesRoutes(
         bodyStyles: body.bodyStyles,
         blocks: body.blocks,
       });
-      return sendResponse<SailorPage>(reply, {
+      return sendResponse<FabricPage>(reply, {
         status_code: 201,
         message: "Page created successfully",
         error: null,

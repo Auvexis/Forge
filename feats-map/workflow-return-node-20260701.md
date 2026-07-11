@@ -45,7 +45,7 @@ Without `Return`, the workflow result falls back to the executed steps tree.
 - [x] Commit.
 
 ## Batch 5 - Catalog And Canvas
-- [x] Register `Return` in Sailor Core utility manifest.
+- [x] Register `Return` in Fabric Core utility manifest.
 - [x] Add `Return` style tokens.
 - [x] Add canvas node presentation.
 - [x] Add add-node catalog entry.

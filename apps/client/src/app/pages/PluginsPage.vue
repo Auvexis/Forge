@@ -45,8 +45,8 @@ onBeforeUnmount(() => {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr) 360px;
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-primary);
 }
 
 .plugins-page__workspace {
@@ -71,7 +71,7 @@ onBeforeUnmount(() => {
   .plugins-page :deep(.installed-plugins) {
     min-width: 0;
     border-right: 0;
-    border-bottom: 1px solid var(--sailor-border);
+    border-bottom: 1px solid var(--fabric-border);
   }
 }
 </style>

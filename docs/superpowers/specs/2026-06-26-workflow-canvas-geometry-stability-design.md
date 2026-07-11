@@ -2,7 +2,7 @@
 
 ## Context
 
-The Vue Flow migration exposed timing and layer-order regressions in Quick Add and edge rendering. The shared `BaseCanvas.vue` already powers Sailor Pages and must remain unchanged.
+The Vue Flow migration exposed timing and layer-order regressions in Quick Add and edge rendering. The shared `BaseCanvas.vue` already powers Fabric Pages and must remain unchanged.
 
 ## Design
 

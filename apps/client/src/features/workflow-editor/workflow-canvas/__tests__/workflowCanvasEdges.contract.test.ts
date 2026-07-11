@@ -62,9 +62,9 @@ describe('workflow canvas edges contract', () => {
     const edge = readComponent('WorkflowEdge.vue')
 
     assert.match(edge, /marker-end/)
-    assert.match(edge, /sailor-edge-toolbar/)
-    assert.match(edge, /sailor-edge-item-count/)
-    assert.match(edge, /sailor-edge-label-input/)
+    assert.match(edge, /fabric-edge-toolbar/)
+    assert.match(edge, /fabric-edge-item-count/)
+    assert.match(edge, /fabric-edge-label-input/)
     assert.match(edge, /commitLabel/)
     assert.match(edge, /onDelete/)
     assert.match(edge, /onQuickAdd/)

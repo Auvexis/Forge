@@ -139,11 +139,11 @@ onBeforeUnmount(() => {
   width: 260px;
   min-height: 210px;
   max-height: 230px;
-  padding: var(--sailor-space-2);
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-lg);
-  box-shadow: var(--sailor-shadow-lg);
+  padding: var(--fabric-space-2);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-lg);
+  box-shadow: var(--fabric-shadow-lg);
   pointer-events: none;
 }
 
@@ -153,9 +153,9 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background: var(--sailor-bg-base);
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-md);
+  background: var(--fabric-bg-base);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-md);
 }
 
 .app-hint__image {
@@ -165,34 +165,34 @@ onBeforeUnmount(() => {
 }
 
 .app-hint__placeholder {
-  padding: var(--sailor-space-3);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-3);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   text-align: center;
 }
 
 .app-hint__content {
-  padding: var(--sailor-space-3) var(--sailor-space-1) var(--sailor-space-1);
+  padding: var(--fabric-space-3) var(--fabric-space-1) var(--fabric-space-1);
 }
 
 .app-hint__content h4 {
-  margin: 0 0 var(--sailor-space-2);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  margin: 0 0 var(--fabric-space-2);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .app-hint__content p {
   margin: 0;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   line-height: 1.5;
 }
 
 .app-hint-fade-enter-active,
 .app-hint-fade-leave-active {
   transition:
-    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
-    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
+    transform var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .app-hint-fade-enter-from,

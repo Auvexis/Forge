@@ -27,13 +27,13 @@ const startGuide = useStartGuide()
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--sailor-space-4);
-  background: color-mix(in srgb, var(--sailor-bg-base) 68%, transparent);
+  padding: var(--fabric-space-4);
+  background: color-mix(in srgb, var(--fabric-bg-base) 68%, transparent);
 }
 
 .guide-book-fade-enter-active,
 .guide-book-fade-leave-active {
-  transition: opacity var(--sailor-duration-fast) var(--sailor-ease-standard);
+  transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .guide-book-fade-enter-from,

@@ -175,10 +175,10 @@ function hideAgentHint() {
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  gap: var(--sailor-space-5);
-  border-right: 1px solid var(--sailor-border);
-  background: color-mix(in srgb, var(--sailor-bg-surface) 82%, var(--sailor-bg-base));
-  padding: var(--sailor-space-4) var(--sailor-space-3);
+  gap: var(--fabric-space-5);
+  border-right: 1px solid var(--fabric-border);
+  background: color-mix(in srgb, var(--fabric-bg-surface) 82%, var(--fabric-bg-base));
+  padding: var(--fabric-space-4) var(--fabric-space-3);
 }
 
 .agent-directory-list__profile-wrap {
@@ -190,7 +190,7 @@ function hideAgentHint() {
   width: 30px;
   height: 30px;
   padding: 0;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
 }
 
 :deep(.agent-directory-list__profile-menu) {
@@ -203,7 +203,7 @@ function hideAgentHint() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
   flex: 1;
   min-height: 0;
@@ -215,7 +215,7 @@ function hideAgentHint() {
   position: relative;
   width: 42px;
   height: 42px;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
 }
 
 .agent-directory-list__item :deep(.base-button__label) {
@@ -236,18 +236,18 @@ function hideAgentHint() {
 }
 
 .agent-directory-list__item {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .agent-directory-list__item:hover,
 .agent-directory-list__item:active {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .agent-directory-list__item--active {
-  background: var(--sailor-button-ghost-active);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-active);
+  color: var(--fabric-text-primary);
 }
 
 .agent-directory-list__emoji {
@@ -261,7 +261,7 @@ function hideAgentHint() {
 
 .agent-directory-list__item--active .agent-directory-list__emoji,
 .agent-directory-list__item:hover .agent-directory-list__emoji {
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
 }
 
 .agent-directory-list__state {
@@ -269,24 +269,24 @@ function hideAgentHint() {
   width: 34px;
   height: 34px;
   place-items: center;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .agent-directory-list__hint {
   position: fixed;
-  z-index: calc(9999 + var(--sailor-z-tooltip));
+  z-index: calc(9999 + var(--fabric-z-tooltip));
   display: grid;
   width: 210px;
   min-height: 126px;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   justify-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-lg);
-  background: var(--sailor-bg-surface);
-  padding: var(--sailor-space-3);
-  color: var(--sailor-text-primary);
-  box-shadow: var(--sailor-shadow-lg);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-lg);
+  background: var(--fabric-bg-surface);
+  padding: var(--fabric-space-3);
+  color: var(--fabric-text-primary);
+  box-shadow: var(--fabric-shadow-lg);
   pointer-events: none;
   transform: translate(0, -50%);
 }
@@ -294,8 +294,8 @@ function hideAgentHint() {
 .agent-directory-hint-enter-active,
 .agent-directory-hint-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .agent-directory-hint-enter-from,
@@ -309,21 +309,21 @@ function hideAgentHint() {
   width: 52px;
   height: 52px;
   place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-base);
-  font-size: var(--sailor-text-2xl);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-bg-base);
+  font-size: var(--fabric-text-2xl);
 }
 
 .agent-directory-list__hint strong {
-  margin-top: var(--sailor-space-1);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  margin-top: var(--fabric-space-1);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .agent-directory-list__hint span:last-child {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   text-align: center;
 }
 
@@ -331,7 +331,7 @@ function hideAgentHint() {
   display: grid;
   place-items: center;
   width: 100%;
-  padding-top: var(--sailor-space-2);
+  padding-top: var(--fabric-space-2);
 }
 
 </style>

@@ -5,16 +5,16 @@ import type { ProfileId } from "./profile-types.ts";
 import type { ProfileStore } from "./profile-store.ts";
 
 export interface ProfileScopeRunnerOptions {
-  sailorHome: string;
+  fabricHome: string;
   store: ProfileStore;
 }
 
 export class ProfileScopeRunner {
-  private readonly sailorHome: string;
+  private readonly fabricHome: string;
   private readonly store: ProfileStore;
 
   constructor(options: ProfileScopeRunnerOptions) {
-    this.sailorHome = options.sailorHome;
+    this.fabricHome = options.fabricHome;
     this.store = options.store;
   }
 
@@ -29,7 +29,7 @@ export class ProfileScopeRunner {
 
     const manager = new ProfileDatabaseManager();
     manager.open(resolveProfilePaths({
-      sailorHome: this.sailorHome,
+      fabricHome: this.fabricHome,
       profileId,
     }));
 

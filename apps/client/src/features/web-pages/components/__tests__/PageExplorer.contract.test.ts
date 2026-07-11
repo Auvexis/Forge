@@ -39,13 +39,13 @@ describe('page explorer contract', () => {
     assert.doesNotMatch(toolbox, /Calendar/)
     assert.doesNotMatch(toolbox, /Diagram/)
     assert.doesNotMatch(toolbox, /List Items/)
-    assert.match(toolbox, /application\/x-sailor-page-block/)
+    assert.match(toolbox, /application\/x-fabric-page-block/)
     assert.match(toolbox, /preset: item\.id/)
     assert.match(toolbox, /setDragImage/)
     assert.match(css, /web-page-toolbox/)
     assert.match(css, /web-page-toolbox__item-icon/)
-    assert.match(css, /var\(--sailor-bg-surface\)/)
-    assert.match(css, /var\(--sailor-border\)/)
+    assert.match(css, /var\(--fabric-bg-surface\)/)
+    assert.match(css, /var\(--fabric-border\)/)
   })
 
   it('toolbox presets are preserved when blocks are dropped into the editor', () => {
@@ -95,7 +95,7 @@ describe('page explorer contract', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 
     assert.match(toolbox, /label: 'Page'/)
-    assert.match(toolbox, /application\/x-sailor-page/)
+    assert.match(toolbox, /application\/x-fabric-page/)
     assert.match(toolbox, /emit\('add-page'\)/)
     assert.match(explorer, /@add-page="\$emit\('add-page'\)"/)
     assert.match(editor, /@add-page="addPageAtEnd"/)
@@ -199,7 +199,7 @@ describe('page explorer contract', () => {
     const css = read('src/features/web-pages/pages.css')
 
     assert.match(assets, /draggable="true"/)
-    assert.match(assets, /application\/x-sailor-page-asset/)
+    assert.match(assets, /application\/x-fabric-page-asset/)
     assert.match(assets, /text\/plain/)
     assert.match(assets, /dragPreview/)
     assert.match(assets, /web-page-asset-drag-preview/)

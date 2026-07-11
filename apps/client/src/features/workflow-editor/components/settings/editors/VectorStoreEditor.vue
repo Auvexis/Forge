@@ -136,7 +136,7 @@
       />
     </EditorField>
 
-    <EditorField v-if="pluginId === 'sailor-pinecone'" label="Pinecone Mode">
+    <EditorField v-if="pluginId === 'fabric-pinecone'" label="Pinecone Mode">
       <BaseSelect
         :model-value="config.mode || 'cloud'"
         :options="PINECONE_MODES"
@@ -144,7 +144,7 @@
       />
     </EditorField>
 
-    <template v-if="pluginId === 'sailor-pinecone'">
+    <template v-if="pluginId === 'fabric-pinecone'">
       <EditorField v-if="isRemoteMode" label="Credential">
         <div class="vector-store-credential-row">
           <BaseSelect
@@ -187,7 +187,7 @@
       </EditorField>
     </template>
 
-    <EditorField v-if="pluginId === 'sailor-qdrant'" label="Qdrant Mode">
+    <EditorField v-if="pluginId === 'fabric-qdrant'" label="Qdrant Mode">
       <BaseSelect
         :model-value="config.mode || 'cloud'"
         :options="QDRANT_MODES"
@@ -195,7 +195,7 @@
       />
     </EditorField>
 
-    <template v-if="pluginId === 'sailor-qdrant'">
+    <template v-if="pluginId === 'fabric-qdrant'">
       <EditorField v-if="isRemoteMode" label="Credential">
         <div class="vector-store-credential-row">
           <BaseSelect
@@ -270,7 +270,7 @@ import { useSettingsStore } from '@/shared/stores/settings.store'
 const props = defineProps<NodeEditorProps>()
 const settingsStore = useSettingsStore()
 
-const pluginId = computed(() => (props.node.data.pluginId as string) || 'sailor-qdrant')
+const pluginId = computed(() => (props.node.data.pluginId as string) || 'fabric-qdrant')
 const config = computed<Record<string, any>>(() => ((props.node.data.config as Record<string, any> | undefined) ?? {}))
 const filterJson = computed(() => JSON.stringify((props.node.data.filter as Record<string, any> | undefined) ?? {}))
 const isRemoteMode = computed(() => ['cloud', 'self-hosted'].includes((config.value.mode as string) || 'cloud'))
@@ -348,7 +348,7 @@ function updateFilter(value: string) {
 .vector-store-credential-row {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   align-items: center;
 }
 </style>

@@ -26,7 +26,7 @@ withDefaults(
 .loading-spinner-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .loading-spinner-wrapper--center {
@@ -39,12 +39,12 @@ withDefaults(
 
 .loading-spinner {
   animation: spin 1s linear infinite;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .loading-spinner__text {
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-secondary);
 }
 
 @keyframes spin {

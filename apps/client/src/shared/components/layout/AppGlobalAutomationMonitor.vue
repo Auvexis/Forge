@@ -439,9 +439,9 @@ watch(triggerTabs, (next) => {
 
 <style scoped>
 :deep(.base-modal-container) {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
 }
 
 .gam-shell {
@@ -450,10 +450,10 @@ watch(triggerTabs, (next) => {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
+  transition: grid-template-columns var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .gam-shell--sidebar-collapsed {
@@ -465,9 +465,9 @@ watch(triggerTabs, (next) => {
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  border-right: 1px solid var(--sailor-border);
-  background: color-mix(in srgb, var(--sailor-bg-surface) 82%, var(--sailor-bg-base));
-  transition: background var(--sailor-duration-base) var(--sailor-ease-standard);
+  border-right: 1px solid var(--fabric-border);
+  background: color-mix(in srgb, var(--fabric-bg-surface) 82%, var(--fabric-bg-base));
+  transition: background var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .gam-sidebar--collapsed {
@@ -479,16 +479,16 @@ watch(triggerTabs, (next) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   min-height: 72px;
-  padding: 0 var(--sailor-space-5);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: 0 var(--fabric-space-5);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .gam-title {
   display: grid;
   grid-template-columns: 34px minmax(0, 1fr);
-  gap: 1px var(--sailor-space-3);
+  gap: 1px var(--fabric-space-3);
   align-items: center;
   min-width: 0;
 }
@@ -500,13 +500,13 @@ watch(triggerTabs, (next) => {
   grid-row: 1 / span 2;
   place-items: center;
   border: 0;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .gam-header-actions {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .gam-header strong,
@@ -521,14 +521,14 @@ watch(triggerTabs, (next) => {
 .gam-header strong,
 .gam-main-header h2 {
   display: block;
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-semibold);
   line-height: 1.15;
 }
 
 .gam-eyebrow {
   display: block;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 10px;
   line-height: 1.2;
   text-transform: uppercase;
@@ -537,15 +537,15 @@ watch(triggerTabs, (next) => {
 .gam-icon-btn {
   width: 38px;
   height: 38px;
-  border-radius: var(--sailor-radius-md);
-  color: var(--sailor-text-muted);
+  border-radius: var(--fabric-radius-md);
+  color: var(--fabric-text-muted);
 }
 
 .gam-profile-trigger {
   width: 150px;
   height: 34px;
   justify-content: flex-start;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
 }
 
 .gam-profile-trigger :deep(.base-button__label) {
@@ -556,19 +556,19 @@ watch(triggerTabs, (next) => {
 
 .gam-main-meta,
 .gam-workflow small {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .gam-workflow-list {
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: var(--sailor-space-2);
+  padding: var(--fabric-space-2);
 }
 
 .gam-workflow {
@@ -578,20 +578,20 @@ watch(triggerTabs, (next) => {
   height: auto;
   min-height: 64px;
   justify-content: stretch;
-  border-radius: var(--sailor-radius-md);
+  border-radius: var(--fabric-radius-md);
   background: transparent;
   padding: 0;
 }
 
 .gam-workflow:hover,
 .gam-workflow:active {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-button-ghost-hover-text);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-button-ghost-hover-text);
 }
 
 .gam-workflow--active {
-  background: var(--sailor-button-ghost-active);
-  color: var(--sailor-button-ghost-active-text);
+  background: var(--fabric-button-ghost-active);
+  color: var(--fabric-button-ghost-active-text);
 }
 
 .gam-workflow :deep(.base-button__label) {
@@ -600,41 +600,41 @@ watch(triggerTabs, (next) => {
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-2);
   text-align: left;
 }
 
 .gam-workflow__copy {
   display: grid;
   min-width: 0;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .gam-workflow__title {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
 }
 
 .gam-workflow__title :deep(.base-badge) {
   flex: 0 0 auto;
   height: 18px;
-  padding-inline: var(--sailor-space-2);
+  padding-inline: var(--fabric-space-2);
   font-size: 10px;
 }
 
 .gam-workflow__copy strong {
   min-width: 0;
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .gam-workflow__copy small {
   display: flex;
   min-width: 0;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .gam-workflow__copy small span {
@@ -645,16 +645,16 @@ watch(triggerTabs, (next) => {
 
 .gam-workflow__copy small span + span::before {
   content: "/";
-  margin-right: var(--sailor-space-2);
-  color: var(--sailor-border-strong);
+  margin-right: var(--fabric-space-2);
+  color: var(--fabric-border-strong);
 }
 
 .gam-run-result {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: var(--sailor-space-1);
-  color: var(--sailor-text-muted);
+  gap: var(--fabric-space-1);
+  color: var(--fabric-text-muted);
   font-size: 10px;
 }
 
@@ -669,7 +669,7 @@ watch(triggerTabs, (next) => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--sailor-bg-surface);
+  background: var(--fabric-bg-surface);
 }
 
 .gam-main-title {
@@ -681,7 +681,7 @@ watch(triggerTabs, (next) => {
 .gam-main-eyebrow-row {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
 }
 
@@ -693,7 +693,7 @@ watch(triggerTabs, (next) => {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .gam-main-meta span {
@@ -702,20 +702,20 @@ watch(triggerTabs, (next) => {
   gap: 1px;
   padding: 4px 10px;
   border: 0;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
 }
 
 .gam-main-meta small {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 10px;
   line-height: 1;
 }
 
 .gam-main-meta strong {
-  color: var(--sailor-text-primary);
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-text-primary);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-medium);
   line-height: 1.1;
 }
 
@@ -724,29 +724,29 @@ watch(triggerTabs, (next) => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   height: 100%;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-sm);
 }
 
 .gam-tabs {
   display: flex;
   min-height: 36px;
-  border-bottom: 1px solid var(--sailor-border);
+  border-bottom: 1px solid var(--fabric-border);
   overflow-x: auto;
-  padding: var(--sailor-space-1);
+  padding: var(--fabric-space-1);
 }
 
 .gam-run-result-panel {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   min-height: 44px;
-  padding: var(--sailor-space-2) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
-  color: var(--sailor-text-muted);
+  padding: var(--fabric-space-2) var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
+  color: var(--fabric-text-muted);
 }
 
 .gam-run-result-panel span {
@@ -756,15 +756,15 @@ watch(triggerTabs, (next) => {
 }
 
 .gam-run-result-panel small {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 10px;
 }
 
 .gam-run-result-panel strong {
   overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -774,27 +774,27 @@ watch(triggerTabs, (next) => {
   z-index: 1;
   min-width: 50px;
   height: 100%;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .gam-tab:hover,
 .gam-tab:active {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-button-ghost-hover-text);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-button-ghost-hover-text);
 }
 
 .gam-tab :deep(.base-button__label) {
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .gam-tab--active {
-  color: var(--sailor-text-primary);
-  background: var(--sailor-button-ghost-active);
+  color: var(--fabric-text-primary);
+  background: var(--fabric-button-ghost-active);
 }
 
 .gam-tab span {
@@ -825,7 +825,7 @@ watch(triggerTabs, (next) => {
   min-height: 100%;
   flex-direction: column;
   justify-content: flex-start;
-  padding: var(--sailor-space-4) var(--sailor-space-3);
+  padding: var(--fabric-space-4) var(--fabric-space-3);
 }
 
 .gam-sidebar--collapsed .gam-title {
@@ -859,7 +859,7 @@ watch(triggerTabs, (next) => {
   .gam-main-header {
     align-items: flex-start;
     flex-direction: column;
-    padding-block: var(--sailor-space-3);
+    padding-block: var(--fabric-space-3);
   }
 
   .gam-main-meta {

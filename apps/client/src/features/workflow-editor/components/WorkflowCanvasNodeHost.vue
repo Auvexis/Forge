@@ -1,6 +1,6 @@
 <template>
   <div
-    class="sailor-workflow-base-canvas__node"
+    class="fabric-workflow-base-canvas__node"
     :data-workflow-node-id="item.id"
     :data-workflow-node-type="nodeType"
     @dblclick.stop="$emit('open-inspector', item)"
@@ -44,7 +44,7 @@ const nodeType = computed(() => {
 </script>
 
 <style scoped>
-.sailor-workflow-base-canvas__node {
+.fabric-workflow-base-canvas__node {
   position: relative;
 }
 </style>

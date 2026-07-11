@@ -133,27 +133,27 @@ function formatDate(value: string) {
 <style scoped>
 .notification-list {
   display: grid;
-  gap: var(--sailor-space-2);
-  max-height: min(420px, calc(100vh - var(--sailor-space-16) - var(--sailor-space-12)));
+  gap: var(--fabric-space-2);
+  max-height: min(420px, calc(100vh - var(--fabric-space-16) - var(--fabric-space-12)));
   min-height: 0;
   overflow-y: auto;
 }
 
 .notification-list__state {
   margin: 0;
-  padding: var(--sailor-space-8) var(--sailor-space-4);
-  color: var(--sailor-text-secondary);
+  padding: var(--fabric-space-8) var(--fabric-space-4);
+  color: var(--fabric-text-secondary);
   text-align: center;
 }
 
 .notification-list__state--error {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .notification-list__items {
   position: relative;
   display: grid;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .notification-list__item {
@@ -162,46 +162,46 @@ function formatDate(value: string) {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   width: 100%;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
   transition:
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
-    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
+    transform var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .notification-list__item:hover,
 .notification-list__item:focus-within {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-elevated);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-elevated);
 }
 
 .notification-list__item--unread {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .notification-list__item--read {
-  border-color: var(--sailor-border-muted);
-  color: var(--sailor-text-muted);
+  border-color: var(--fabric-border-muted);
+  color: var(--fabric-text-muted);
 }
 
 .notification-list__item--deleting {
   opacity: 0;
   pointer-events: none;
-  transform: translateX(var(--sailor-space-8));
+  transform: translateX(var(--fabric-space-8));
 }
 
 .notification-list__open {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   width: 100%;
   min-width: 0;
-  padding: var(--sailor-space-3);
+  padding: var(--fabric-space-3);
   border: 0;
   background: transparent;
   color: inherit;
@@ -215,32 +215,32 @@ function formatDate(value: string) {
   align-self: start;
   display: inline-flex;
   align-items: center;
-  gap: var(--sailor-space-1);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-semibold);
+  gap: var(--fabric-space-1);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .notification-list__item--error .notification-list__level {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .notification-list__item--warning .notification-list__level {
-  color: var(--sailor-text-warning);
+  color: var(--fabric-text-warning);
 }
 
 .notification-list__item--reward .notification-list__level {
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 
 .notification-list__item--info .notification-list__level {
-  color: var(--sailor-blue-400);
+  color: var(--fabric-blue-400);
 }
 
 .notification-list__content {
   display: grid;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   min-width: 0;
 }
 
@@ -254,17 +254,17 @@ function formatDate(value: string) {
 
 .notification-list__content span,
 .notification-list__content small {
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 
 .notification-list__delete {
-  margin-right: var(--sailor-space-2);
+  margin-right: var(--fabric-space-2);
   opacity: 0;
   pointer-events: none;
-  transform: translateX(var(--sailor-space-1));
+  transform: translateX(var(--fabric-space-1));
   transition:
-    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
-    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
+    transform var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .notification-list__item:hover .notification-list__delete,
@@ -278,8 +278,8 @@ function formatDate(value: string) {
 .notification-list-enter-active,
 .notification-list-leave-active {
   transition:
-    opacity var(--sailor-duration-normal) var(--sailor-ease-standard),
-    transform var(--sailor-duration-normal) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-normal) var(--fabric-ease-standard),
+    transform var(--fabric-duration-normal) var(--fabric-ease-standard);
 }
 
 .notification-list-leave-active {
@@ -290,11 +290,11 @@ function formatDate(value: string) {
 
 .notification-list-enter-from {
   opacity: 0;
-  transform: translateY(var(--sailor-space-2));
+  transform: translateY(var(--fabric-space-2));
 }
 
 .notification-list-leave-to {
   opacity: 0;
-  transform: translateX(var(--sailor-space-8));
+  transform: translateX(var(--fabric-space-8));
 }
 </style>

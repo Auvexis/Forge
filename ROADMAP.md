@@ -1,6 +1,6 @@
 Futuras Features:
 
-1. Melhorar/Testar todas as features do Sailor Pages, verificar se está ativando Workflow Corretamente.
+1. Melhorar/Testar todas as features do Fabric Pages, verificar se está ativando Workflow Corretamente.
 
 <!-- IMPORTANTE -->
 5. ADICIONAR NOVOS NODES (Dataset, Embeddings, Vector Stores, Retriever)
@@ -11,4 +11,4 @@ DEPOIS DE TUDO:
 
 2. Criar gifs para os buttons hints/guides
 
-3. Criar website sailor.auvexis.com
+3. Criar website fabric.auvexis.com

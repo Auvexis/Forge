@@ -7,7 +7,7 @@ Corrigir desalinhamento, flick e sobreposicao de edges apos a migracao do Workfl
 ## Regras
 
 - Nao modificar `BaseCanvas.vue`.
-- Manter compatibilidade com Sailor Pages.
+- Manter compatibilidade com Fabric Pages.
 - Usar TDD nas correcoes geometricas.
 
 ## Tasks

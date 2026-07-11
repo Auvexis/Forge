@@ -14,8 +14,8 @@ describe("agent memory mode", () => {
     assert.equal(usesLongTermMemory(undefined), false);
   });
 
-  it("treats explicit and legacy Sailor internal memory as SQLite short-term memory", () => {
-    assert.equal(resolveAgentMemoryMode(memoryConfig({ adapter: "sailor-internal" })), "short-term");
+  it("treats explicit and legacy Fabric internal memory as SQLite short-term memory", () => {
+    assert.equal(resolveAgentMemoryMode(memoryConfig({ adapter: "fabric-internal" })), "short-term");
     assert.equal(resolveAgentMemoryMode(memoryConfig({ adapter: undefined })), "short-term");
     assert.equal(usesShortTermMemory(memoryConfig()), true);
   });
@@ -23,7 +23,7 @@ describe("agent memory mode", () => {
   it("treats plugin memory stores as long-term memory", () => {
     const memory = memoryConfig({
       adapter: "plugin-memory-store",
-      pluginId: "sailor-postgresql",
+      pluginId: "fabric-postgresql",
       searchMethodId: "searchAgentMemory",
       putMethodId: "putAgentMemory",
     });

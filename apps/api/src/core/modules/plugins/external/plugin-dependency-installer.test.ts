@@ -8,9 +8,9 @@ import { installPluginDependencies } from "./plugin-dependency-installer.ts";
 
 describe("installPluginDependencies", () => {
   it("runs npm ci in the plugin folder with dev deps omitted and scripts ignored", () => {
-    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-plugin-deps-"));
+    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-plugin-deps-"));
     fs.writeFileSync(path.join(pluginDir, "package-lock.json"), "{}");
-    const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-plugin-logs-"));
+    const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-plugin-logs-"));
     const calls: any[] = [];
 
     installPluginDependencies(pluginDir, "install-id", logDir, {
@@ -34,9 +34,9 @@ describe("installPluginDependencies", () => {
   });
 
   it("uses npm.cmd on Windows", () => {
-    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-plugin-deps-"));
+    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-plugin-deps-"));
     fs.writeFileSync(path.join(pluginDir, "package-lock.json"), "{}");
-    const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-plugin-logs-"));
+    const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-plugin-logs-"));
     const calls: any[] = [];
 
     installPluginDependencies(pluginDir, "install-id", logDir, {
@@ -52,8 +52,8 @@ describe("installPluginDependencies", () => {
   });
 
   it("requires package-lock.json before installing dependencies", () => {
-    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-plugin-deps-"));
-    const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-plugin-logs-"));
+    const pluginDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-plugin-deps-"));
+    const logDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-plugin-logs-"));
 
     assert.throws(() => installPluginDependencies(pluginDir, "install-id", logDir), /package-lock\.json/);
   });

@@ -247,9 +247,9 @@ function isFiniteNumber(value: unknown): value is number {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid var(--sailor-border-subtle);
+  border: 1px solid var(--fabric-border-subtle);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--sailor-bg-surface) 94%, transparent);
+  background: color-mix(in srgb, var(--fabric-bg-surface) 94%, transparent);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
   padding: 10px;
 }
@@ -276,13 +276,13 @@ function isFiniteNumber(value: unknown): value is number {
 }
 
 .base-floating-window__title :deep(strong) {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font-size: 12px;
 }
 
 .base-floating-window__title :deep(small) {
   overflow: hidden;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -298,10 +298,10 @@ function isFiniteNumber(value: unknown): value is number {
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
-  border: 1px solid var(--sailor-border-subtle);
+  border: 1px solid var(--fabric-border-subtle);
   border-radius: 6px;
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
   cursor: pointer;
   font-size: 15px;
   line-height: 1;
@@ -321,8 +321,8 @@ function isFiniteNumber(value: unknown): value is number {
   width: 18px;
   height: 18px;
   border: 0;
-  border-right: 2px solid var(--sailor-border-strong);
-  border-bottom: 2px solid var(--sailor-border-strong);
+  border-right: 2px solid var(--fabric-border-strong);
+  border-bottom: 2px solid var(--fabric-border-strong);
   background: transparent;
   cursor: nwse-resize;
   opacity: 0.7;

@@ -402,7 +402,7 @@ describe("authorization", () => {
       revocation_endpoint: "https://accounts.auvexis.com/api/auth/oauth2/revoke",
     }), { status: 200, headers: { "content-type": "application/json" } }));
     const client = createAuvexisAccountsClient({
-      clientId: "sailor",
+      clientId: "fabric",
       redirectUri: "http://127.0.0.1:23801/oauth/callback",
       fetch,
     });
@@ -682,7 +682,7 @@ describe("Accounts profile", () => {
       }],
     } }), { status: 200, headers: { "content-type": "application/json" } }));
     const client = createAuvexisAccountsClient({
-      clientId: "sailor",
+      clientId: "fabric",
       redirectUri: "http://127.0.0.1:23801/oauth/callback",
       fetch,
     });
@@ -709,7 +709,7 @@ it.each([
   [500, "unavailable"],
 ] as const)("maps HTTP %s to %s", async (status, code) => {
   const client = createAuvexisAccountsClient({
-    clientId: "sailor",
+    clientId: "fabric",
     redirectUri: "http://127.0.0.1:23801/oauth/callback",
     fetch: async () => new Response("{}", { status }),
   });
@@ -718,7 +718,7 @@ it.each([
 
 it("maps transport and payload failures without exposing the token", async () => {
   const offline = createAuvexisAccountsClient({
-    clientId: "sailor",
+    clientId: "fabric",
     redirectUri: "http://127.0.0.1:23801/oauth/callback",
     fetch: async () => { throw new TypeError("secret-token"); },
   });
@@ -728,7 +728,7 @@ it("maps transport and payload failures without exposing the token", async () =>
 
   for (const body of ["not-json", JSON.stringify({ data: { badges: [{ slug: 42 }] } })]) {
     const invalid = createAuvexisAccountsClient({
-      clientId: "sailor",
+      clientId: "fabric",
       redirectUri: "http://127.0.0.1:23801/oauth/callback",
       fetch: async () => new Response(body, { status: 200 }),
     });

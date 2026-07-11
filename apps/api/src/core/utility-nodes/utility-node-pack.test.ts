@@ -4,8 +4,8 @@ import path from "node:path";
 import { describe, it } from "node:test";
 import { fileURLToPath } from "node:url";
 import { createUtilityNodeRegistry } from "../nodes/registry.ts";
-import { sailorCoreUtilityNodePack } from "./sailor-core/manifest.ts";
-import { sailorCoreUtilityNodes } from "./sailor-core/index.ts";
+import { fabricCoreUtilityNodePack } from "./fabric-core/manifest.ts";
+import { fabricCoreUtilityNodes } from "./fabric-core/index.ts";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 
@@ -37,8 +37,8 @@ describe("Utility node pack contract", () => {
     assert.match(helper, /export function defineUtilityNodePack/);
   });
 
-  it("defines metadata and style for every Sailor Core utility node", () => {
-    assert.equal(sailorCoreUtilityNodePack.id, "sailor-core");
+  it("defines metadata and style for every Fabric Core utility node", () => {
+    assert.equal(fabricCoreUtilityNodePack.id, "fabric-core");
 
     for (const type of [
       "trigger",
@@ -67,7 +67,7 @@ describe("Utility node pack contract", () => {
       "vector-store",
       "retriever",
     ] as const) {
-      const node = sailorCoreUtilityNodePack.nodes[type];
+      const node = fabricCoreUtilityNodePack.nodes[type];
       assert.ok(node, `${type} manifest`);
       assert.equal(node.type, type);
       assert.ok(node.label.length > 0, `${type} label`);
@@ -102,20 +102,20 @@ describe("Utility node pack contract", () => {
     } as const;
 
     for (const [type, token] of Object.entries(canvasStyleTokens)) {
-      const style = sailorCoreUtilityNodePack.nodes[type as keyof typeof canvasStyleTokens]?.style;
+      const style = fabricCoreUtilityNodePack.nodes[type as keyof typeof canvasStyleTokens]?.style;
 
-      assert.equal(style?.iconColor, `var(--sailor-node-${token}-icon)`, `${type} icon color`);
-      assert.equal(style?.bgColor, `var(--sailor-node-${token}-bg)`, `${type} background`);
-      assert.equal(style?.borderColor, `var(--sailor-node-${token}-border)`, `${type} border`);
+      assert.equal(style?.iconColor, `var(--fabric-node-${token}-icon)`, `${type} icon color`);
+      assert.equal(style?.bgColor, `var(--fabric-node-${token}-bg)`, `${type} background`);
+      assert.equal(style?.borderColor, `var(--fabric-node-${token}-border)`, `${type} border`);
     }
   });
 
   it("publishes canvas-matched styles for advanced, trigger, and wait form nodes", () => {
     const expected = {
       trigger: {
-        iconColor: "var(--sailor-text-primary)",
-        bgColor: "var(--sailor-node-body)",
-        borderColor: "var(--sailor-node-border)",
+        iconColor: "var(--fabric-text-primary)",
+        bgColor: "var(--fabric-node-body)",
+        borderColor: "var(--fabric-node-border)",
       },
       "wait-form": {
         iconColor: "#22c55e",
@@ -123,29 +123,29 @@ describe("Utility node pack contract", () => {
         borderColor: "rgba(34, 197, 94, 0.35)",
       },
       "ai-agent": {
-        iconColor: "var(--sailor-text-muted)",
+        iconColor: "var(--fabric-text-muted)",
         bgColor: "transparent",
-        borderColor: "var(--sailor-node-border)",
+        borderColor: "var(--fabric-node-border)",
       },
       "basic-llm-chain": {
         iconColor: "#2563eb",
         bgColor: "transparent",
-        borderColor: "var(--sailor-node-border)",
+        borderColor: "var(--fabric-node-border)",
       },
       "question-answer-chain": {
         iconColor: "#0891b2",
         bgColor: "transparent",
-        borderColor: "var(--sailor-node-border)",
+        borderColor: "var(--fabric-node-border)",
       },
       "vector-store": {
-        iconColor: "var(--sailor-node-plugin-icon)",
+        iconColor: "var(--fabric-node-plugin-icon)",
         bgColor: "transparent",
-        borderColor: "var(--sailor-node-border)",
+        borderColor: "var(--fabric-node-border)",
       },
     } as const;
 
     for (const [type, style] of Object.entries(expected)) {
-      const actual = sailorCoreUtilityNodePack.nodes[type as keyof typeof sailorCoreUtilityNodePack.nodes]?.style;
+      const actual = fabricCoreUtilityNodePack.nodes[type as keyof typeof fabricCoreUtilityNodePack.nodes]?.style;
       assert.equal(actual?.iconColor, style.iconColor, `${type} icon`);
       assert.equal(actual?.bgColor, style.bgColor, `${type} background`);
       assert.equal(actual?.borderColor, style.borderColor, `${type} border`);
@@ -153,7 +153,7 @@ describe("Utility node pack contract", () => {
   });
 
   it("declares reusable capability handles for AI Agent and Vector Store", () => {
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes["ai-agent"]?.handles, [
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes["ai-agent"]?.handles, [
       {
         id: "chatModel", label: "Chat Model", type: "target", position: "bottom", style: "diamond",
         required: true, accepts: [{ capability: "chat-model" }], cardinality: "one",
@@ -170,26 +170,26 @@ describe("Utility node pack contract", () => {
         connectionPolicy: "append", quickAdd: "capability", quickAddAfterConnected: true,
       },
     ]);
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes["vector-store"]?.capabilities, ["vector-store"]);
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes["file-dataset"]?.capabilities, ["file-data-source", "document-source"]);
-    assert.equal((sailorCoreUtilityNodePack.nodes as Record<string, unknown>)["document-loader"], undefined);
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes["call-workflow"]?.capabilities, ["agent-tool"]);
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes.return?.handles, [
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes["vector-store"]?.capabilities, ["vector-store"]);
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes["file-dataset"]?.capabilities, ["file-data-source", "document-source"]);
+    assert.equal((fabricCoreUtilityNodePack.nodes as Record<string, unknown>)["document-loader"], undefined);
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes.embeddings?.capabilities, ["embedding-model"]);
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes["call-workflow"]?.capabilities, ["agent-tool"]);
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes.return?.handles, [
       { id: "target", label: "", type: "target", position: "left" },
     ]);
-    assert.deepEqual(sailorCoreUtilityNodePack.nodes.return?.capabilities, []);
+    assert.deepEqual(fabricCoreUtilityNodePack.nodes.return?.capabilities, []);
   });
 
   it("keeps executable handlers aligned while planned advanced shells remain explicit", () => {
-    const manifestTypes = Object.keys(sailorCoreUtilityNodePack.nodes).sort();
-    const handlerTypes = sailorCoreUtilityNodes.map((node) => node.handler.type).sort();
+    const manifestTypes = Object.keys(fabricCoreUtilityNodePack.nodes).sort();
+    const handlerTypes = fabricCoreUtilityNodes.map((node) => node.handler.type).sort();
     const pendingHandlerTypes: string[] = [];
 
     assert.deepEqual(handlerTypes, manifestTypes.filter((type) => !pendingHandlerTypes.includes(type)));
 
     const registry = createUtilityNodeRegistry();
-    for (const utilityNode of sailorCoreUtilityNodes) {
+    for (const utilityNode of fabricCoreUtilityNodes) {
       const handler = registry.get(utilityNode.handler.type);
       assert.equal(handler.execute, utilityNode.handler.execute);
       assert.equal(handler.metadata.description, utilityNode.manifest.description);

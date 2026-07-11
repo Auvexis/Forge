@@ -63,7 +63,7 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     if (pluginStatus.value?.oauth_public_url_required) {
       toast.error(
         'Public URL required',
-        'Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.',
+        'Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.',
       )
       return
     }
@@ -79,7 +79,7 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     if (pluginStatus.value?.oauth_public_url_required) {
       toast.error(
         'Public URL required',
-        'Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.',
+        'Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.',
       )
       return false
     }

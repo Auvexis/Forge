@@ -5,8 +5,8 @@ import { randomInt } from "node:crypto";
 import { PageRepository } from "./page-repository.ts";
 import { validateSiteProjectPath } from "./site-file-service.ts";
 import { SiteRepository } from "./site-repository.ts";
-import type { PageBlockStyles, SailorPage } from "./page-types.ts";
-import type { SailorSite, SiteFile } from "./site-types.ts";
+import type { PageBlockStyles, FabricPage } from "./page-types.ts";
+import type { FabricSite, SiteFile } from "./site-types.ts";
 
 export interface SiteProjectArchive {
   manifest: {
@@ -22,7 +22,7 @@ export interface SiteProjectArchive {
     title: string;
     slug: string;
     bodyStyles?: PageBlockStyles;
-    blocks: SailorPage["blocks"];
+    blocks: FabricPage["blocks"];
   }>;
   files: SiteFile[];
   assets: Array<{
@@ -75,7 +75,7 @@ export class SiteProjectArchiveService {
     const archive = this.exportSite(profileId, siteId);
     const files = [
       {
-        path: "sailor-project.json",
+        path: "fabric-project.json",
         content: Buffer.from(JSON.stringify(archive, null, 2), "utf8"),
       },
       ...archive.assets.map((asset) => ({
@@ -92,16 +92,16 @@ export class SiteProjectArchiveService {
       return JSON.parse(buffer.toString("utf8")) as SiteProjectArchive;
     }
     if (!normalizedName.endsWith(".zip")) throw new Error("Site project import must be a .zip or .json file.");
-    const projectJson = readZipFile(buffer, "sailor-project.json");
-    if (!projectJson) throw new Error("Missing sailor-project.json in site project zip.");
+    const projectJson = readZipFile(buffer, "fabric-project.json");
+    if (!projectJson) throw new Error("Missing fabric-project.json in site project zip.");
     return JSON.parse(projectJson.toString("utf8")) as SiteProjectArchive;
   }
 
-  importSite(profileId: string, archive: SiteProjectArchive): SailorSite {
+  importSite(profileId: string, archive: SiteProjectArchive): FabricSite {
     this.validateArchive(archive);
     const now = new Date().toISOString();
     const siteId = createSiteId();
-    const site: SailorSite = {
+    const site: FabricSite = {
       id: siteId,
       publicId: createProjectPublicId(),
       profileId,

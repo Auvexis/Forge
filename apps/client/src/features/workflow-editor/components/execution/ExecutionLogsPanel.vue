@@ -193,7 +193,7 @@
                 </div>
                 <div v-if="step?.error" class="elp-error-panel">
                   <div class="elp-section-title-row" style="margin-top: 8px;">
-                    <span style="font-size: 10px; font-weight: 600; color: var(--sailor-text-muted); text-transform: uppercase;">Error Trace</span>
+                    <span style="font-size: 10px; font-weight: 600; color: var(--fabric-text-muted); text-transform: uppercase;">Error Trace</span>
                     <button
                       class="elp-copy-btn"
                       :title="copiedStepId === nodeId ? 'Copied!' : 'Copy error'"
@@ -206,7 +206,7 @@
                 </div>
                 <div v-if="step?.output" class="elp-step-output-wrap">
                   <div class="elp-section-title-row" style="margin-top: 8px;">
-                    <span style="font-size: 10px; font-weight: 600; color: var(--sailor-text-muted); text-transform: uppercase;">Payload Preview</span>
+                    <span style="font-size: 10px; font-weight: 600; color: var(--fabric-text-muted); text-transform: uppercase;">Payload Preview</span>
                     <button
                       class="elp-copy-btn"
                       :title="copiedStepId === nodeId ? 'Copied!' : 'Copy output'"
@@ -224,9 +224,9 @@
         </div>
 
         <!-- No context at all (e.g. failed before engine started) -->
-        <div v-if="!detailExecution.context?.trigger && !detailExecution.context?.steps" class="elp-empty" style="padding: var(--sailor-space-6) var(--sailor-space-4)">
-          <LucideIcon name="alert-circle" :size="20" class="elp-empty-icon" style="color: var(--sailor-red-400); opacity: 1" />
-          <p style="font-size: var(--sailor-text-sm); color: var(--sailor-text-muted); margin: 0">No execution context available</p>
+        <div v-if="!detailExecution.context?.trigger && !detailExecution.context?.steps" class="elp-empty" style="padding: var(--fabric-space-6) var(--fabric-space-4)">
+          <LucideIcon name="alert-circle" :size="20" class="elp-empty-icon" style="color: var(--fabric-red-400); opacity: 1" />
+          <p style="font-size: var(--fabric-text-sm); color: var(--fabric-text-muted); margin: 0">No execution context available</p>
           <p class="elp-empty-sub">The workflow failed before generating any output.</p>
         </div>
       </div>
@@ -472,8 +472,8 @@ onBeforeUnmount(() => {
 .elp-panel {
   width: 440px;
   max-height: 580px;
-  background-color: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
+  background-color: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -489,8 +489,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-3) var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
   flex-shrink: 0;
 }
 
@@ -506,7 +506,7 @@ onBeforeUnmount(() => {
 .elp-header-left {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .elp-header-text {
@@ -516,20 +516,20 @@ onBeforeUnmount(() => {
 }
 
 .elp-title {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   font-weight: 600;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
 }
 
 .elp-subtitle {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 .elp-header-actions {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .elp-back-btn,
@@ -539,18 +539,18 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
   border: none;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
-  transition: all var(--sailor-duration-fast);
+  transition: all var(--fabric-duration-fast);
 }
 
 .elp-back-btn:hover,
 .elp-icon-btn:hover {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .elp-icon-btn:disabled {
@@ -564,10 +564,10 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-8);
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-muted);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-8);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-muted);
 }
 
 /* ── Empty state ──────────────────────────────────────────────── */
@@ -576,9 +576,9 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-10) var(--sailor-space-4);
-  color: var(--sailor-text-muted);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-10) var(--fabric-space-4);
+  color: var(--fabric-text-muted);
   text-align: center;
 }
 
@@ -587,12 +587,12 @@ onBeforeUnmount(() => {
 }
 
 .elp-empty p {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   margin: 0;
 }
 
 .elp-empty-sub {
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   opacity: 0.6;
 }
 
@@ -608,23 +608,23 @@ onBeforeUnmount(() => {
 .elp-live-timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-3) var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-base);
 }
 
 .elp-timeline {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .elp-timeline-item {
   display: grid;
   grid-template-columns: 10px minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
 }
 
@@ -632,23 +632,23 @@ onBeforeUnmount(() => {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: var(--sailor-text-muted);
+  background: var(--fabric-text-muted);
 }
 
 .elp-timeline-item--running .elp-timeline-dot {
-  background: var(--sailor-amber-400);
+  background: var(--fabric-amber-400);
 }
 .elp-timeline-item--success .elp-timeline-dot {
-  background: var(--sailor-green-400);
+  background: var(--fabric-green-400);
 }
 .elp-timeline-item--failed .elp-timeline-dot {
-  background: var(--sailor-red-400);
+  background: var(--fabric-red-400);
 }
 .elp-timeline-item--retrying .elp-timeline-dot {
-  background: var(--sailor-accent);
+  background: var(--fabric-accent);
 }
 .elp-timeline-item--cancelled .elp-timeline-dot {
-  background: var(--sailor-text-muted);
+  background: var(--fabric-text-muted);
 }
 
 .elp-timeline-copy {
@@ -665,22 +665,22 @@ onBeforeUnmount(() => {
 }
 
 .elp-timeline-copy span {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-secondary);
 }
 
 .elp-timeline-copy small,
 .elp-step-duration,
 .elp-step-retries {
   font-size: 10px;
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-muted);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-muted);
 }
 
 .elp-timeline-error {
   max-width: 120px;
   font-size: 10px;
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 
 .elp-timeline-delay {
@@ -688,28 +688,28 @@ onBeforeUnmount(() => {
   border-radius: 4px;
   background: rgba(139, 92, 246, 0.12);
   border: 1px solid rgba(139, 92, 246, 0.22);
-  color: var(--sailor-accent);
+  color: var(--fabric-accent);
   font-size: 10px;
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   white-space: nowrap;
 }
 
 .elp-row {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-3);
-  padding: var(--sailor-space-3) var(--sailor-space-4);
+  gap: var(--fabric-space-3);
+  padding: var(--fabric-space-3) var(--fabric-space-4);
   background: transparent;
   border: none;
-  border-bottom: 1px solid var(--sailor-border-muted);
+  border-bottom: 1px solid var(--fabric-border-muted);
   cursor: pointer;
   text-align: left;
-  transition: background-color var(--sailor-duration-fast);
+  transition: background-color var(--fabric-duration-fast);
   width: 100%;
 }
 
 .elp-row:hover {
-  background-color: var(--sailor-bg-elevated);
+  background-color: var(--fabric-bg-elevated);
 }
 
 .elp-row-icon {
@@ -724,19 +724,19 @@ onBeforeUnmount(() => {
 
 .elp-row-icon--success {
   background: rgba(52, 211, 153, 0.12);
-  color: var(--sailor-green-400);
+  color: var(--fabric-green-400);
 }
 .elp-row-icon--failed {
   background: rgba(248, 113, 113, 0.12);
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 .elp-row-icon--running {
   background: rgba(245, 158, 11, 0.12);
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 .elp-row-icon--cancelled {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .elp-row-info {
@@ -748,14 +748,14 @@ onBeforeUnmount(() => {
 }
 
 .elp-row-date {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-primary);
 }
 
 .elp-row-id {
   font-size: 10px;
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-muted);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-muted);
 }
 
 .elp-row-right {
@@ -768,12 +768,12 @@ onBeforeUnmount(() => {
 
 .elp-row-duration {
   font-size: 10px;
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-muted);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-muted);
 }
 
 .elp-row-arrow {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   flex-shrink: 0;
 }
 
@@ -789,19 +789,19 @@ onBeforeUnmount(() => {
 
 .elp-badge--success {
   background: rgba(52, 211, 153, 0.12);
-  color: var(--sailor-green-400);
+  color: var(--fabric-green-400);
 }
 .elp-badge--failed {
   background: rgba(248, 113, 113, 0.12);
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 .elp-badge--running {
   background: rgba(245, 158, 11, 0.12);
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 .elp-badge--cancelled {
   background: rgba(255, 255, 255, 0.05);
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 /* ── Detail view ──────────────────────────────────────────────── */
@@ -809,41 +809,41 @@ onBeforeUnmount(() => {
 .elp-detail {
   flex: 1;
   overflow-y: auto;
-  padding: var(--sailor-space-4);
+  padding: var(--fabric-space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
 }
 
 .elp-detail-banner {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border-radius: var(--sailor-radius-sm);
-  font-size: var(--sailor-text-xs);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border-radius: var(--fabric-radius-sm);
+  font-size: var(--fabric-text-xs);
   font-weight: 600;
 }
 
 .elp-detail-banner--success {
   background: rgba(52, 211, 153, 0.08);
   border: 1px solid rgba(52, 211, 153, 0.2);
-  color: var(--sailor-green-400);
+  color: var(--fabric-green-400);
 }
 .elp-detail-banner--failed {
   background: rgba(248, 113, 113, 0.08);
   border: 1px solid rgba(248, 113, 113, 0.2);
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 .elp-detail-banner--running {
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.2);
-  color: var(--sailor-amber-400);
+  color: var(--fabric-amber-400);
 }
 .elp-detail-banner--cancelled {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--sailor-border);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  color: var(--fabric-text-muted);
 }
 
 .elp-detail-duration,
@@ -862,7 +862,7 @@ onBeforeUnmount(() => {
 .elp-section {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .elp-section-title-row {
@@ -872,11 +872,11 @@ onBeforeUnmount(() => {
 }
 
 .elp-section-title {
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   margin: 0;
 }
 
@@ -886,29 +886,29 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 22px;
   height: 22px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
   border: none;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
-  transition: all var(--sailor-duration-fast);
+  transition: all var(--fabric-duration-fast);
   flex-shrink: 0;
 }
 
 .elp-copy-btn:hover {
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .elp-code {
   margin: 0;
-  padding: var(--sailor-space-3);
-  background: var(--sailor-bg-base);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-secondary);
+  padding: var(--fabric-space-3);
+  background: var(--fabric-bg-base);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-secondary);
   overflow: auto;
   max-height: 150px;
   white-space: pre-wrap;
@@ -921,33 +921,33 @@ onBeforeUnmount(() => {
 .elp-steps {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .elp-step {
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border-radius: var(--sailor-radius-sm);
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-base);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border-radius: var(--fabric-radius-sm);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-base);
 }
 
 .elp-step--failed {
-  border-color: var(--sailor-border);
+  border-color: var(--fabric-border);
 }
 .elp-step--success {
-  border-color: var(--sailor-border);
+  border-color: var(--fabric-border);
 }
 
 .elp-step-header {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .elp-step-id {
-  font-size: var(--sailor-text-xs);
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-xs);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-primary);
   flex: 1;
 }
 
@@ -955,30 +955,30 @@ onBeforeUnmount(() => {
   font-size: 10px;
   font-weight: 600;
   text-transform: uppercase;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .elp-step-retries {
-  color: var(--sailor-accent);
+  color: var(--fabric-accent);
 }
 
 .elp-retry-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  margin-top: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-overlay);
+  margin-top: var(--fabric-space-2);
+  padding: var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-overlay);
 }
 
 .elp-retry-row {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
   font-size: 10px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .elp-error-panel {
@@ -987,17 +987,17 @@ onBeforeUnmount(() => {
 }
 
 .elp-step--failed .elp-step-status {
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
 }
 .elp-step--success .elp-step-status {
-  color: var(--sailor-green-400);
+  color: var(--fabric-green-400);
 }
 
 .elp-step-error {
-  margin: var(--sailor-space-2) 0 0;
-  font-family: var(--sailor-font-mono);
+  margin: var(--fabric-space-2) 0 0;
+  font-family: var(--fabric-font-mono);
   font-size: 12px;
-  color: var(--sailor-red-400);
+  color: var(--fabric-red-400);
   white-space: pre-wrap;
   word-break: break-word;
   line-height: 1.4;

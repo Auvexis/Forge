@@ -3,7 +3,7 @@ export interface ProfileAvatarPickerGroup {
   options: string[]
 }
 
-export const PROFILE_AVATAR_RECENT_STORAGE_KEY = 'sailor.profile.recentAvatars'
+export const PROFILE_AVATAR_RECENT_STORAGE_KEY = 'fabric.profile.recentAvatars'
 
 export const PROFILE_AVATAR_GROUPS: ProfileAvatarPickerGroup[] = [
   {

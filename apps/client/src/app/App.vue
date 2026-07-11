@@ -12,7 +12,7 @@
       <div
         class="app-sidebar-area"
         :class="{ 'app-sidebar-area--collapsed': isSidebarCollapsed }"
-        :style="{ '--sailor-active-sidebar-width': activeSidebarWidth }"
+        :style="{ '--fabric-active-sidebar-width': activeSidebarWidth }"
       >
         <Transition name="app-sidebar-universe">
           <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
@@ -257,18 +257,18 @@ function handleProfileIntent() {
 }
 
 onMounted(() => {
-  window.addEventListener('sailor:command-palette:intent', handleUiIntent)
-  window.addEventListener('sailor:profiles:intent', handleProfileIntent)
+  window.addEventListener('fabric:command-palette:intent', handleUiIntent)
+  window.addEventListener('fabric:profiles:intent', handleProfileIntent)
 })
 onUnmounted(() => {
-  window.removeEventListener('sailor:command-palette:intent', handleUiIntent)
-  window.removeEventListener('sailor:profiles:intent', handleProfileIntent)
+  window.removeEventListener('fabric:command-palette:intent', handleUiIntent)
+  window.removeEventListener('fabric:profiles:intent', handleProfileIntent)
 })
 </script>
 
 <style scoped>
 .app-sidebar-area {
-  --sailor-active-sidebar-width: var(--sailor-sidebar-expanded);
+  --fabric-active-sidebar-width: var(--fabric-sidebar-expanded);
   position: relative;
   display: flex;
   height: 100vh;
@@ -292,6 +292,6 @@ onUnmounted(() => {
 .app-sidebar-universe-enter-from,
 .app-sidebar-universe-leave-to {
   opacity: 0;
-  transform: translateX(calc(-1 * var(--sailor-active-sidebar-width)));
+  transform: translateX(calc(-1 * var(--fabric-active-sidebar-width)));
 }
 </style>

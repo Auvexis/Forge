@@ -57,7 +57,7 @@ function openGuide(guide: StartGuideDefinition) {
   <section class="guide-book surface" role="dialog" aria-modal="true" aria-labelledby="guide-book-title">
     <header class="guide-book__header">
       <div>
-        <p class="guide-book__eyebrow">Sailor Guides</p>
+        <p class="guide-book__eyebrow">Fabric Guides</p>
         <h2 id="guide-book-title">Guide Book</h2>
       </div>
       <BaseButton type="button" variant="ghost" size="icon" icon-left="x" @click="emit('close')" />
@@ -88,19 +88,19 @@ function openGuide(guide: StartGuideDefinition) {
   max-height: min(720px, calc(100vh - 32px));
   display: flex;
   flex-direction: column;
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-lg);
-  box-shadow: var(--sailor-shadow-lg);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-lg);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .guide-book__header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-5);
-  border-bottom: 1px solid var(--sailor-border);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-5);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .guide-book__eyebrow,
@@ -112,56 +112,56 @@ function openGuide(guide: StartGuideDefinition) {
 }
 
 .guide-book__eyebrow {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .guide-book__header h2 {
-  margin-top: var(--sailor-space-1);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xl);
+  margin-top: var(--fabric-space-1);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xl);
 }
 
 .guide-book__body {
   overflow-y: auto;
-  padding: var(--sailor-space-5);
+  padding: var(--fabric-space-5);
 }
 
 .guide-book__group + .guide-book__group {
-  margin-top: var(--sailor-space-6);
+  margin-top: var(--fabric-space-6);
 }
 
 .guide-book__group h3 {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
 }
 
 .guide-book__items {
   display: grid;
-  gap: var(--sailor-space-3);
-  margin-top: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
+  margin-top: var(--fabric-space-3);
 }
 
 .guide-book__item {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-4);
-  padding: var(--sailor-space-4);
-  background: var(--sailor-bg-base);
-  border: 1px solid var(--sailor-border-subtle);
-  border-radius: var(--sailor-radius-md);
+  gap: var(--fabric-space-4);
+  padding: var(--fabric-space-4);
+  background: var(--fabric-bg-base);
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: var(--fabric-radius-md);
 }
 
 .guide-book__item h4 {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .guide-book__item p {
-  margin-top: var(--sailor-space-1);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  margin-top: var(--fabric-space-1);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   line-height: 1.5;
 }
 </style>

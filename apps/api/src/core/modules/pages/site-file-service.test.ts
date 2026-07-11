@@ -7,9 +7,9 @@ import {
   updateSiteFile,
   validateSiteProjectPath,
 } from "./site-file-service.ts";
-import type { SailorSite } from "./site-types.ts";
+import type { FabricSite } from "./site-types.ts";
 
-function site(): SailorSite {
+function site(): FabricSite {
   return {
     id: "site_1",
     publicId: "public_1",

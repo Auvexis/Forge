@@ -90,13 +90,13 @@
           :items="pageCanvasItems"
           :rulers="true"
           :snap-to-grid="false"
-          background-color="var(--sailor-bg-canvas)"
-          pattern-color="var(--sailor-border)"
+          background-color="var(--fabric-bg-canvas)"
+          pattern-color="var(--fabric-border)"
           pattern-style="dot"
           :pattern-size="30"
-          rulers-bg="var(--sailor-bg-canvas)"
-          rulers-text="var(--sailor-text-muted)"
-          rulers-lines="var(--sailor-border)"
+          rulers-bg="var(--fabric-bg-canvas)"
+          rulers-text="var(--fabric-text-muted)"
+          rulers-lines="var(--fabric-border)"
           @canvas-click="closePageCanvasContextMenu"
           @item-click="closePageCanvasContextMenu"
           @items-move="handlePageCanvasItemsMove"
@@ -284,13 +284,13 @@
         <header class="web-page-project-modal__header">
           <div>
             <h2>New project</h2>
-            <p>Create a clean Sailor Pages project.</p>
+            <p>Create a clean Fabric Pages project.</p>
           </div>
           <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
         </header>
         <div class="web-page-project-modal__body">
           <BaseInput v-model="newProjectName" label="Project name" placeholder="Marketing site" required />
-          <BaseInput v-model="newProjectSlug" label="Slug" placeholder="marketing-site" hint="Optional. Sailor can generate it." />
+          <BaseInput v-model="newProjectSlug" label="Slug" placeholder="marketing-site" hint="Optional. Fabric can generate it." />
           <p v-if="projectModalError" class="web-page-project-modal__error">{{ projectModalError }}</p>
         </div>
         <footer class="web-page-project-modal__footer">
@@ -364,7 +364,7 @@
         <header class="web-page-project-modal__header">
           <div>
             <h2>Import project</h2>
-            <p>Drop a Sailor project zip to add it to your projects.</p>
+            <p>Drop a Fabric project zip to add it to your projects.</p>
           </div>
           <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
         </header>
@@ -374,7 +374,7 @@
             accept=".zip,.json,application/zip,application/json"
             icon="folder-up"
             title="Drop project zip here"
-            description="Choose a .sailor-site.zip file"
+            description="Choose a .fabric-site.zip file"
             :disabled="isProjectActionRunning"
           />
           <p v-if="projectModalError" class="web-page-project-modal__error">{{ projectModalError }}</p>
@@ -393,7 +393,7 @@
         <header class="web-page-project-modal__header">
           <div>
             <h2>Project settings</h2>
-            <p>Configure the active Sailor Pages project.</p>
+            <p>Configure the active Fabric Pages project.</p>
           </div>
           <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="isProjectSettingsModalOpen = false" />
         </header>
@@ -439,7 +439,7 @@ import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.t
 import { useSitesStore } from '../stores/sites.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
-import type { PageBlock, PageBlockStyles, PageBlockTag, SailorPage, SiteFile } from '../types/page.types.ts'
+import type { PageBlock, PageBlockStyles, PageBlockTag, FabricPage, SiteFile } from '../types/page.types.ts'
 import PageCanvas from './PageCanvas.vue'
 import PageExplorerPanel from './PageExplorerPanel.vue'
 import SiteCodeCanvas from './SiteCodeCanvas.vue'
@@ -475,7 +475,7 @@ const newProjectSlug = ref('')
 const projectSettingsName = ref('')
 const projectSettingsSlug = ref('')
 const projectSearch = ref('')
-const projectPreviews = ref<Record<string, SailorPage | null>>({})
+const projectPreviews = ref<Record<string, FabricPage | null>>({})
 const projectModalError = ref('')
 const importProjectFile = ref<File | null>(null)
 const isProjectActionRunning = ref(false)
@@ -699,7 +699,7 @@ function escapeHtml(value: string) {
 
 function renderGeneratedBlockHtml(block: PageBlock): string {
   const tag = block.tag === 'text' ? 'span' : block.tag === 'image' ? 'img' : block.tag === 'youtube' ? 'iframe' : block.tag
-  const className = ['sailor-page-block', blockClass(block.id), block.className].filter(Boolean).join(' ')
+  const className = ['fabric-page-block', blockClass(block.id), block.className].filter(Boolean).join(' ')
   const attrs = [
     `class="${escapeHtml(className)}"`,
     block.elementId ? `id="${escapeHtml(block.elementId)}"` : '',
@@ -752,7 +752,7 @@ function renderGeneratedPageJs(blocks: PageBlock[]): string {
 }
 
 function blockClass(id: string) {
-  return `sailor-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`
+  return `fabric-block-${String(id).replace(/[^a-zA-Z0-9_-]/g, '_')}`
 }
 
 function closeLeftPanel() {
@@ -981,7 +981,7 @@ async function handlePageDrop(event: DragEvent) {
 }
 
 function isPageDrag(event: DragEvent) {
-  return Array.from(event.dataTransfer?.types ?? []).includes('application/x-sailor-page')
+  return Array.from(event.dataTransfer?.types ?? []).includes('application/x-fabric-page')
 }
 
 function closestPageDropIndex(event: DragEvent) {
@@ -1071,7 +1071,7 @@ function patchBodyStyles(patch: Partial<PageBlock>) {
   })
 }
 
-function patchPageMetadata(patch: Partial<SailorPage>) {
+function patchPageMetadata(patch: Partial<FabricPage>) {
   if (!pagesStore.activePage) return
   pagesStore.setActivePage({ ...pagesStore.activePage, ...patch })
 }
@@ -1186,7 +1186,7 @@ async function addPageAtEnd() {
   await activateCreatedPage(page)
 }
 
-async function activateCreatedPage(page: SailorPage) {
+async function activateCreatedPage(page: FabricPage) {
   editorPageId.value = page.id
   editorStore.setBlocks(page.blocks)
   editorStore.selectPage()
@@ -1241,7 +1241,7 @@ function schedulePagesAutosave() {
 }
 
 function pagesAutosaveStorageKey(siteId: string) {
-  return `sailor.pages.autosave.${siteId}`
+  return `fabric.pages.autosave.${siteId}`
 }
 
 function openProjectSettingsModal() {
@@ -1387,7 +1387,7 @@ async function exportProject(projectId: string) {
   const site = sitesStore.sites.find((item) => item.id === projectId)
   await runProjectAction(async () => {
     const zip = await sitesStore.exportSiteProject(projectId)
-    downloadBlobFile(`${site?.slug ?? 'site'}.sailor-site.zip`, zip)
+    downloadBlobFile(`${site?.slug ?? 'site'}.fabric-site.zip`, zip)
   })
 }
 
@@ -1541,7 +1541,7 @@ async function exportActiveProject() {
   await saveProjectBeforeExport()
   const zip = await sitesStore.exportActiveSiteProject()
   if (!zip) return
-  downloadBlobFile(`${sitesStore.activeSite?.slug ?? 'site'}.sailor-site.zip`, zip)
+  downloadBlobFile(`${sitesStore.activeSite?.slug ?? 'site'}.fabric-site.zip`, zip)
 }
 
 async function saveProjectBeforeExport() {

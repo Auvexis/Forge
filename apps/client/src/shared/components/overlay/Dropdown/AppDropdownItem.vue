@@ -79,20 +79,20 @@ const handleClick = (e: MouseEvent) => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border-radius: var(--sailor-radius-sm);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border-radius: var(--fabric-radius-sm);
   background-color: transparent;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   text-align: left;
   border: none;
   cursor: pointer;
   transition:
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
   user-select: none;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   font-family: inherit;
 }
 
@@ -102,17 +102,17 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item--danger {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .app-dropdown-item:hover:not(:disabled) {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-button-ghost-hover-text);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-button-ghost-hover-text);
 }
 
 .app-dropdown-item--danger:hover:not(:disabled) {
-  background: var(--sailor-status-error-bg);
-  color: var(--sailor-text-error);
+  background: var(--fabric-status-error-bg);
+  color: var(--fabric-text-error);
 }
 
 .app-dropdown-item__icon {
@@ -132,22 +132,22 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item__label {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .app-dropdown-item__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 .app-dropdown-item__shortcut {
   flex-shrink: 0;
-  font-size: var(--sailor-text-xs);
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-muted);
   letter-spacing: 0.05em;
   opacity: 0.7;
 }

@@ -53,15 +53,15 @@
 import { ref } from 'vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import type { InsertPosition } from '../utils/blockTree.ts'
-import type { PageBlock, SailorPageSummary, SailorSite, SiteFile } from '../types/page.types.ts'
+import type { PageBlock, FabricPageSummary, FabricSite, SiteFile } from '../types/page.types.ts'
 import BlockTreePanel from './BlockTreePanel.vue'
 import PageToolboxPanel from './PageToolboxPanel.vue'
 import SiteAssetsPanel from './SiteAssetsPanel.vue'
 import SiteFilesPanel from './SiteFilesPanel.vue'
 
 defineProps<{
-  site: SailorSite | null
-  pages: SailorPageSummary[]
+  site: FabricSite | null
+  pages: FabricPageSummary[]
   activePageId?: string
   blocks: PageBlock[]
   selectedBlockId: string | null

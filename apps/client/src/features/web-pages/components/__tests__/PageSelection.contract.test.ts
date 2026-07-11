@@ -122,7 +122,7 @@ describe('page selection contract', () => {
     assert.match(css, /\.web-page-block-selection\s*\{[\s\S]*position:\s*fixed/)
     assert.match(selectionRule, /--web-page-selected-color:\s*#3b82f6/)
     assert.match(selectionRule, /--web-page-motion-medium:\s*180ms/)
-    assert.match(selectionRule, /--sailor-bg-surface:\s*#ffffff/)
+    assert.match(selectionRule, /--fabric-bg-surface:\s*#ffffff/)
     assert.match(css, /\.web-page-block-leave-active \.web-page-block-selection\s*\{[\s\S]*display:\s*none/)
   })
 

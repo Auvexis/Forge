@@ -82,7 +82,7 @@ const aiMemorySchema = z
     writeEnabled: z.boolean(),
     maxRetrievedMemories: z.number().int().min(0).max(AGENT_LIMITS.maxRetrievedMemories),
     maxMemoryChars: z.number().int().min(1).max(AGENT_LIMITS.maxMemoryChars),
-    adapter: z.enum(["sailor-internal", "plugin-memory-store"]).optional(),
+    adapter: z.enum(["fabric-internal", "plugin-memory-store"]).optional(),
     pluginId: z.string().trim().min(1).max(120).optional(),
     searchMethodId: z.string().trim().min(1).max(120).optional(),
     putMethodId: z.string().trim().min(1).max(120).optional(),

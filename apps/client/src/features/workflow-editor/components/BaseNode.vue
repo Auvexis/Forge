@@ -189,7 +189,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 <template>
   <div 
-    class="sailor-base-node sailor-node-pop-in"
+    class="fabric-base-node fabric-node-pop-in"
     :class="[
       { 'is-selected': selected, 'is-disabled': isDisabled },
       statusClasses,
@@ -207,11 +207,11 @@ const onQuickAdd = (event: MouseEvent) => {
     <NodeShimmer v-if="effectiveStatus === 'running' || effectiveStatus === 'retrying' || effectiveStatus === 'waiting'" />
 
     <!-- Icon area (center of card) -->
-    <div class="sailor-base-node__icon-wrap">
+    <div class="fabric-base-node__icon-wrap">
       <slot name="icon">
         <div
           v-if="props.iconLeft || props.icon"
-          class="sailor-base-node__icon-box"
+          class="fabric-base-node__icon-box"
           :style="{ color: props.color }"
         >
           <LucideIcon :name="props.iconLeft || props.icon || 'box'" :size="48" />
@@ -220,7 +220,7 @@ const onQuickAdd = (event: MouseEvent) => {
     </div>
 
     <!-- Custom slot content (if any) -->
-    <div v-if="$slots.default" class="sailor-base-node__body">
+    <div v-if="$slots.default" class="fabric-base-node__body">
       <slot />
     </div>
 
@@ -231,14 +231,14 @@ const onQuickAdd = (event: MouseEvent) => {
     <div
       v-for="side in handlerSides"
       :key="side.position"
-      class="sailor-base-node__handlers"
+      class="fabric-base-node__handlers"
       :class="`is-position-${side.position}`"
       :style="{ '--handler-count': side.handlers.length }"
     >
       <div
         v-for="handler in side.handlers"
         :key="handler.id"
-        class="sailor-base-node__handler"
+        class="fabric-base-node__handler"
       >
         <BaseHandle
           :id="handler.id"
@@ -248,11 +248,11 @@ const onQuickAdd = (event: MouseEvent) => {
         />
         <BaseBadge
           v-if="handler.label"
-          class="sailor-base-node__handler-label"
+          class="fabric-base-node__handler-label"
           variant="default"
           size="sm"
         >
-          {{ handler.label }}<span v-if="handler.required" class="sailor-base-node__handler-required">*</span>
+          {{ handler.label }}<span v-if="handler.required" class="fabric-base-node__handler-required">*</span>
         </BaseBadge>
         <QuickAddButton
           v-if="props.id && handlerAllowsQuickAdd(handler)"
@@ -270,14 +270,14 @@ const onQuickAdd = (event: MouseEvent) => {
     <!-- Quick Add Cable (n8n style) -->
     <div
       v-if="props.hasSource && !isConnectedAsAdvancedSubnode && !hasOutgoingConnection && props.id"
-      class="sailor-base-node__quick-add"
+      class="fabric-base-node__quick-add"
       title="Add connected node"
       @click.stop="onQuickAdd"
       @dblclick.stop.prevent
       @pointerdown.stop
     >
-      <div class="sailor-base-node__quick-add-cable"></div>
-      <button class="sailor-base-node__quick-add-btn" type="button">
+      <div class="fabric-base-node__quick-add-cable"></div>
+      <button class="fabric-base-node__quick-add-btn" type="button">
         <LucideIcon name="plus" :size="11" />
       </button>
     </div>
@@ -292,29 +292,29 @@ const onQuickAdd = (event: MouseEvent) => {
     <!-- Gap bridge for CSS hover -->
     <div
       v-if="props.id && props.id !== 'trigger'"
-      class="sailor-base-node__toolbar-bridge"
+      class="fabric-base-node__toolbar-bridge"
       aria-hidden="true"
     />
   </div>
 
   <!-- Label area — outside the card, below it, like n8n -->
-  <div class="sailor-base-node__label-area" @dblclick.stop="startEditingId">
+  <div class="fabric-base-node__label-area" @dblclick.stop="startEditingId">
     <slot name="label">
-      <div v-if="props.title || props.description || props.subtitle" class="sailor-base-node__label">
+      <div v-if="props.title || props.description || props.subtitle" class="fabric-base-node__label">
         <BaseInput
           v-if="isEditingId"
           ref="idInputRef"
           v-model="editedId"
-          class="sailor-base-node__label-input"
+          class="fabric-base-node__label-input"
           @blur="commitIdChange"
           @keydown.enter="commitIdChange"
           @keydown.esc="cancelIdChange"
           @click.stop
         />
-        <span v-else class="sailor-base-node__label-title" :title="props.title">
+        <span v-else class="fabric-base-node__label-title" :title="props.title">
           {{ props.title }}
         </span>
-        <span v-if="props.description || props.subtitle" class="sailor-base-node__label-subtitle">
+        <span v-if="props.description || props.subtitle" class="fabric-base-node__label-subtitle">
           {{ props.description || props.subtitle }}
         </span>
       </div>
@@ -324,13 +324,13 @@ const onQuickAdd = (event: MouseEvent) => {
 
 <style scoped>
 /* ─── Shell ──────────────────────────────────────────────────── */
-.sailor-base-node {
+.fabric-base-node {
   position: relative;
   width: 100px;
   height: 100px;
-  background-color: var(--sailor-node-body);
+  background-color: var(--fabric-node-body);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
-  border: 2px solid var(--node-custom-border, var(--sailor-node-border));
+  border: 2px solid var(--node-custom-border, var(--fabric-node-border));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -345,80 +345,80 @@ const onQuickAdd = (event: MouseEvent) => {
   -webkit-user-drag: none;
 }
 
-.sailor-base-node :deep(img),
-.sailor-base-node :deep(svg) {
+.fabric-base-node :deep(img),
+.fabric-base-node :deep(svg) {
   -webkit-user-drag: none;
 }
 
-.sailor-base-node.is-rounded-sm {
+.fabric-base-node.is-rounded-sm {
   border-radius: 4px;
 }
 
-.sailor-base-node.is-rounded-md {
+.fabric-base-node.is-rounded-md {
   border-radius: 8px;
 }
 
-.sailor-base-node.is-rounded-lg {
+.fabric-base-node.is-rounded-lg {
   border-radius: 16px;
 }
 
-.sailor-base-node.is-rounded-full {
+.fabric-base-node.is-rounded-full {
   border-radius: 9999px;
 }
 
-.sailor-base-node.is-border-dashed {
+.fabric-base-node.is-border-dashed {
   border-style: dashed;
 }
 
-.sailor-base-node:hover {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--sailor-node-selected)) 80%, var(--sailor-text-primary) 20%);
+.fabric-base-node:hover {
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--fabric-node-selected)) 80%, var(--fabric-text-primary) 20%);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
 }
 
 /* ─── Selection & execution status borders ──────────────────── */
-.sailor-base-node.is-selected {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 80%, var(--sailor-text-primary) 20%);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 4px color-mix(in srgb, var(--node-custom-border, var(--sailor-node-border)) 50%, transparent);
+.fabric-base-node.is-selected {
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--fabric-node-border)) 80%, var(--fabric-text-primary) 20%);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 4px color-mix(in srgb, var(--node-custom-border, var(--fabric-node-border)) 50%, transparent);
 }
 
-.sailor-base-node.is-running {
-  border-color: var(--sailor-amber-400);
+.fabric-base-node.is-running {
+  border-color: var(--fabric-amber-400);
 }
 
-.sailor-base-node.is-waiting {
-  border-color: var(--sailor-purple-400, #8b5cf6);
+.fabric-base-node.is-waiting {
+  border-color: var(--fabric-purple-400, #8b5cf6);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(139, 92, 246, 0.2);
   --node-shimmer-color: rgba(139, 92, 246, 0.18);
 }
 
-.sailor-base-node.is-retrying {
-  border-color: var(--sailor-purple-400, #8b5cf6);
+.fabric-base-node.is-retrying {
+  border-color: var(--fabric-purple-400, #8b5cf6);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 3px rgba(139, 92, 246, 0.22);
   --node-shimmer-color: rgba(139, 92, 246, 0.24);
 }
 
-.sailor-base-node.is-success {
-  border-color: var(--sailor-green-400);
+.fabric-base-node.is-success {
+  border-color: var(--fabric-green-400);
 }
 
-.sailor-base-node.is-failed {
-  border-color: var(--sailor-red-400);
+.fabric-base-node.is-failed {
+  border-color: var(--fabric-red-400);
 }
 
-.sailor-base-node.is-disabled {
+.fabric-base-node.is-disabled {
   opacity: 0.45;
   filter: grayscale(0.8) brightness(0.65);
 }
 
 /* ─── Icon area ─────────────────────────────────────────────── */
-.sailor-base-node__icon-wrap {
+.fabric-base-node__icon-wrap {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.sailor-base-node__icon-box {
+.fabric-base-node__icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -436,11 +436,11 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 /* ─── Extra body slot (e.g. trigger details) ─────────────────── */
-.sailor-base-node__body {
+.fabric-base-node__body {
   width: 100%;
 }
 
-.sailor-base-node__handlers {
+.fabric-base-node__handlers {
   position: absolute;
   display: grid;
   align-items: start;
@@ -448,39 +448,39 @@ const onQuickAdd = (event: MouseEvent) => {
   pointer-events: all;
 }
 
-.sailor-base-node__handlers.is-position-top,
-.sailor-base-node__handlers.is-position-bottom {
+.fabric-base-node__handlers.is-position-top,
+.fabric-base-node__handlers.is-position-bottom {
   left: 0;
   width: 100%;
   height: 0;
   grid-template-columns: repeat(var(--handler-count), minmax(0, 1fr));
 }
 
-.sailor-base-node__handlers.is-position-top {
+.fabric-base-node__handlers.is-position-top {
   top: 0;
 }
 
-.sailor-base-node__handlers.is-position-bottom {
+.fabric-base-node__handlers.is-position-bottom {
   bottom: 0;
 }
 
-.sailor-base-node__handlers.is-position-left,
-.sailor-base-node__handlers.is-position-right {
+.fabric-base-node__handlers.is-position-left,
+.fabric-base-node__handlers.is-position-right {
   top: 0;
   width: 0;
   height: 100%;
   grid-template-rows: repeat(var(--handler-count), minmax(0, 1fr));
 }
 
-.sailor-base-node__handlers.is-position-left {
+.fabric-base-node__handlers.is-position-left {
   left: 0;
 }
 
-.sailor-base-node__handlers.is-position-right {
+.fabric-base-node__handlers.is-position-right {
   right: 0;
 }
 
-.sailor-base-node__handler {
+.fabric-base-node__handler {
   position: relative;
   display: flex;
   width: 100%;
@@ -488,14 +488,14 @@ const onQuickAdd = (event: MouseEvent) => {
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
   text-align: center;
 }
 
-.sailor-base-node__handler-label {
+.fabric-base-node__handler-label {
   position: absolute;
   top: 18px;
   left: 50%;
@@ -508,33 +508,33 @@ const onQuickAdd = (event: MouseEvent) => {
   z-index: 6000;
 }
 
-.sailor-base-node__handler-required {
-  color: var(--sailor-red-400);
+.fabric-base-node__handler-required {
+  color: var(--fabric-red-400);
 }
 
-.sailor-base-node__handler :deep(.sailor-base-handle) {
+.fabric-base-node__handler :deep(.fabric-base-handle) {
   position: absolute !important;
   margin: 0;
   pointer-events: all;
 }
 
-.sailor-base-node__handlers.is-position-top .sailor-base-node__handler :deep(.sailor-base-handle),
-.sailor-base-node__handlers.is-position-bottom .sailor-base-node__handler :deep(.sailor-base-handle) {
+.fabric-base-node__handlers.is-position-top .fabric-base-node__handler :deep(.fabric-base-handle),
+.fabric-base-node__handlers.is-position-bottom .fabric-base-node__handler :deep(.fabric-base-handle) {
   top: 0 !important;
   right: auto !important;
   bottom: auto !important;
   left: 50% !important;
 }
 
-.sailor-base-node__handlers.is-position-left .sailor-base-node__handler :deep(.sailor-base-handle),
-.sailor-base-node__handlers.is-position-right .sailor-base-node__handler :deep(.sailor-base-handle) {
+.fabric-base-node__handlers.is-position-left .fabric-base-node__handler :deep(.fabric-base-handle),
+.fabric-base-node__handlers.is-position-right .fabric-base-node__handler :deep(.fabric-base-handle) {
   top: 50% !important;
   right: auto !important;
   bottom: auto !important;
   left: 0 !important;
 }
 
-.sailor-base-node__handler :deep(.qab-wrap--down) {
+.fabric-base-node__handler :deep(.qab-wrap--down) {
   position: absolute;
   top: 8px;
   left: 50%;
@@ -543,7 +543,7 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 /* ─── Label (below card, outside the node box) ──────────────── */
-.sailor-base-node__label-area {
+.fabric-base-node__label-area {
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
@@ -558,17 +558,17 @@ const onQuickAdd = (event: MouseEvent) => {
   user-select: none;
 }
 
-.sailor-base-node__label {
+.fabric-base-node__label {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
 }
 
-.sailor-base-node__label-title {
+.fabric-base-node__label-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   line-height: 1.3;
   word-break: break-word;
   white-space: normal;
@@ -576,22 +576,22 @@ const onQuickAdd = (event: MouseEvent) => {
   max-width: 140px;
 }
 
-.sailor-base-node__label-subtitle {
+.fabric-base-node__label-subtitle {
   font-size: 11px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   text-align: center;
 }
 
-.sailor-base-node__label-input {
+.fabric-base-node__label-input {
   width: 120px;
 }
 
-.sailor-base-node__label-input :deep(.base-input-container) {
-  background: var(--sailor-node-body);
-  border-color: var(--sailor-node-selected);
+.fabric-base-node__label-input :deep(.base-input-container) {
+  background: var(--fabric-node-body);
+  border-color: var(--fabric-node-selected);
 }
 
-.sailor-base-node__label-input :deep(.base-input) {
+.fabric-base-node__label-input :deep(.base-input) {
   height: 24px;
   font-size: 13px;
   font-weight: 500;
@@ -600,13 +600,13 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 /* ─── Toolbar hover via CSS ──────────────────────────────────── */
-.sailor-base-node:hover :deep(.nt-toolbar) {
+.fabric-base-node:hover :deep(.nt-toolbar) {
   opacity: 1;
   pointer-events: auto;
 }
 
 /* ─── Toolbar gap bridge ─────────────────────────────────────── */
-.sailor-base-node__toolbar-bridge {
+.fabric-base-node__toolbar-bridge {
   position: absolute;
   top: -40px;
   left: 0;
@@ -615,7 +615,7 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 /* ─── Quick Add Node (n8n style) ─────────────────────────────── */
-.sailor-base-node__quick-add {
+.fabric-base-node__quick-add {
   position: absolute;
   top: 50%;
   right: -82px;
@@ -626,18 +626,18 @@ const onQuickAdd = (event: MouseEvent) => {
   pointer-events: all;
 }
 
-.sailor-base-node__quick-add-cable {
+.fabric-base-node__quick-add-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--sailor-node-handle);
+  background-color: var(--fabric-node-handle);
   transition: background-color 0.2s;
 }
 
-.sailor-base-node__quick-add-btn {
-  border-radius: var(--sailor-radius-sm);
-  background-color: var(--sailor-node-border);
-  border: 2px solid var(--sailor-border-strong);
-  color: var(--sailor-text-primary);
+.fabric-base-node__quick-add-btn {
+  border-radius: var(--fabric-radius-sm);
+  background-color: var(--fabric-node-border);
+  border: 2px solid var(--fabric-border-strong);
+  color: var(--fabric-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -45,9 +45,9 @@ function webhookWorkflow(id: string, name: string): WorkflowItem {
   };
 }
 
-async function migrateProfile(sailorHome: string, profileId: string): Promise<void> {
+async function migrateProfile(fabricHome: string, profileId: string): Promise<void> {
   const manager = new ProfileDatabaseManager();
-  manager.open(resolveProfilePaths({ sailorHome, profileId }));
+  manager.open(resolveProfilePaths({ fabricHome, profileId }));
   await initializeProfileDatabases(manager);
   manager.close();
 }
@@ -59,11 +59,11 @@ describe("profile scoped webhooks", () => {
   });
 
   it("resolves duplicate webhook slugs through the explicit profile id", async () => {
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-scoped-webhook-"));
-    const store = new ProfileStore({ sailorHome });
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-scoped-webhook-"));
+    const store = new ProfileStore({ fabricHome });
     store.ensureInitialized();
     store.createProfile({ id: "bruno", name: "Bruno", avatarEmoji: "🧭" });
-    const runner = new ProfileScopeRunner({ sailorHome, store });
+    const runner = new ProfileScopeRunner({ fabricHome, store });
     setAppDatabaseProvider(() => {
       const context = getProfileDatabaseContext();
       if (!context) throw new Error("Missing profile database context");
@@ -75,8 +75,8 @@ describe("profile scoped webhooks", () => {
       return context.workflows;
     });
 
-    await migrateProfile(sailorHome, "default");
-    await migrateProfile(sailorHome, "bruno");
+    await migrateProfile(fabricHome, "default");
+    await migrateProfile(fabricHome, "bruno");
 
     runner.runWithProfile("default", () => {
       WorkflowRepository.saveWorkflow(webhookWorkflow("wf-default", "Default Orders"));

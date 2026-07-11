@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 
-import type { CreateSitePayload, SailorSite, SiteFile, UpdateSitePayload } from '../types/page.types.ts'
+import type { CreateSitePayload, FabricSite, SiteFile, UpdateSitePayload } from '../types/page.types.ts'
 import type {
   CreateSiteFilePayload,
   DeleteSiteFilePayload,
@@ -11,17 +11,17 @@ import type {
 } from '../types/page.types.ts'
 
 export interface SitesApiClient {
-  listSites: () => Promise<SailorSite[]>
-  createSite: (payload: CreateSitePayload) => Promise<SailorSite>
-  getSite: (siteId: string) => Promise<SailorSite>
-  updateSite: (siteId: string, payload: UpdateSitePayload) => Promise<SailorSite>
+  listSites: () => Promise<FabricSite[]>
+  createSite: (payload: CreateSitePayload) => Promise<FabricSite>
+  getSite: (siteId: string) => Promise<FabricSite>
+  updateSite: (siteId: string, payload: UpdateSitePayload) => Promise<FabricSite>
   deleteSite: (siteId: string) => Promise<null>
-  createSiteFile: (siteId: string, payload: CreateSiteFilePayload) => Promise<SailorSite>
-  updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) => Promise<SailorSite>
-  deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) => Promise<SailorSite>
+  createSiteFile: (siteId: string, payload: CreateSiteFilePayload) => Promise<FabricSite>
+  updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) => Promise<FabricSite>
+  deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) => Promise<FabricSite>
   uploadSiteAsset: (siteId: string, file: File) => Promise<SiteAssetUploadResponse>
   exportSiteProject: (siteId: string) => Promise<Blob>
-  importSiteProject: (archive: SiteProjectArchive | File) => Promise<SailorSite>
+  importSiteProject: (archive: SiteProjectArchive | File) => Promise<FabricSite>
 }
 
 const defaultApiClient: SitesApiClient = {
@@ -39,8 +39,8 @@ const defaultApiClient: SitesApiClient = {
 }
 
 export const useSitesStore = defineStore('web-sites', () => {
-  const sites = ref<SailorSite[]>([])
-  const activeSite = ref<SailorSite | null>(null)
+  const sites = ref<FabricSite[]>([])
+  const activeSite = ref<FabricSite | null>(null)
   const savedSnapshot = ref<string | null>(null)
   const isLoading = ref(false)
   const isSaving = ref(false)
@@ -55,7 +55,7 @@ export const useSitesStore = defineStore('web-sites', () => {
     apiClient.value = client
   }
 
-  function setActiveSite(site: SailorSite | null) {
+  function setActiveSite(site: FabricSite | null) {
     activeSite.value = site ? clone(site) : null
     savedSnapshot.value = activeSite.value ? snapshot(activeSite.value) : null
   }
@@ -182,12 +182,12 @@ export const useSitesStore = defineStore('web-sites', () => {
     return true
   }
 
-  function setSavedSite(site: SailorSite) {
+  function setSavedSite(site: FabricSite) {
     activeSite.value = clone(site)
     savedSnapshot.value = snapshot(activeSite.value)
   }
 
-  function upsertSite(site: SailorSite) {
+  function upsertSite(site: FabricSite) {
     const index = sites.value.findIndex((item) => item.id === site.id)
     if (index === -1) sites.value = [site, ...sites.value]
     else sites.value[index] = site

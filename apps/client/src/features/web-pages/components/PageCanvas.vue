@@ -136,7 +136,7 @@ function onRootDragOver(event: DragEvent) {
 }
 
 function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: string; draggedId?: string } | null {
-  const raw = event.dataTransfer?.getData('application/x-sailor-page-block')
+  const raw = event.dataTransfer?.getData('application/x-fabric-page-block')
   if (!raw) return null
   const parsed = JSON.parse(raw) as { tag?: PageBlockTag; preset?: string; blockId?: string }
   return { tag: parsed.tag, preset: parsed.preset, draggedId: parsed.blockId }

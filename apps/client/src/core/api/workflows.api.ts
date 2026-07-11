@@ -300,7 +300,7 @@ export const workflowsApi = {
   execute: (id: string, payload?: Record<string, unknown>, clientExecId?: string, triggerNodeId?: string) => {
     const headers: Record<string, string> = {}
     if (clientExecId) {
-      headers['x-sailor-execution-id'] = clientExecId
+      headers['x-fabric-execution-id'] = clientExecId
     }
 
     const body = buildTriggerPayloadBody(payload)
@@ -406,7 +406,7 @@ export const workflowsApi = {
     profileId?: string,
   ) => {
     const headers: Record<string, string> = {}
-    if (clientExecId) headers['x-sailor-execution-id'] = clientExecId
+    if (clientExecId) headers['x-fabric-execution-id'] = clientExecId
 
     const body = buildTriggerPayloadBody(payload)
 

@@ -213,6 +213,6 @@ function updateChunking(patch: Partial<DatasetChunkingConfig>) {
 .template-actions {
   display: flex;
   justify-content: flex-end;
-  margin-top: var(--sailor-space-2);
+  margin-top: var(--fabric-space-2);
 }
 </style>

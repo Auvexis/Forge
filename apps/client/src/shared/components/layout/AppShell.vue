@@ -25,8 +25,8 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--sailor-bg-base);
-  color: var(--sailor-text-primary);
+  background-color: var(--fabric-bg-base);
+  color: var(--fabric-text-primary);
 }
 
 .app-shell__main {

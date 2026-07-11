@@ -28,7 +28,7 @@
 
     <EditorField label="Provider Plugin">
       <BaseInput
-        :model-value="(node.data.pluginId as string) || 'sailor-internal'"
+        :model-value="(node.data.pluginId as string) || 'fabric-internal'"
         disabled
         placeholder="Selected memory plugin"
       />
@@ -36,9 +36,9 @@
 
     <EditorField label="Adapter">
       <BaseInput
-        :model-value="(node.data.adapter as string) || 'sailor-internal'"
+        :model-value="(node.data.adapter as string) || 'fabric-internal'"
         disabled
-        placeholder="sailor-internal"
+        placeholder="fabric-internal"
       />
     </EditorField>
 
@@ -93,7 +93,7 @@ const isLongTermMemory = computed(() => props.node.data.adapter === 'plugin-memo
 .editor-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 </style>

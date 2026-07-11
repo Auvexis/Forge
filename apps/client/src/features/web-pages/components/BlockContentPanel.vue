@@ -334,7 +334,7 @@ function setDroppedAssetProp(event: DragEvent, key: string, kind: 'link' | 'medi
 }
 
 function readDroppedAssetPath(event: DragEvent): string {
-  return event.dataTransfer?.getData('application/x-sailor-page-asset')
+  return event.dataTransfer?.getData('application/x-fabric-page-asset')
     || event.dataTransfer?.getData('text/plain')
     || ''
 }

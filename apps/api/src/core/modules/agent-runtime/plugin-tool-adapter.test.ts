@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 import { PluginManager } from "../plugins/manager.ts";
 import { AgentToolRegistry } from "./agent-tool-registry.ts";
 import {
@@ -63,7 +63,7 @@ describe("plugin tool adapter", () => {
     delete legacyManifest.metadata;
     PluginManager.registerPlugin(createPlugin({
       manifest: legacyManifest,
-    } as Partial<SailorPlugin>));
+    } as Partial<FabricPlugin>));
 
     const [listed] = listPluginAgentTools();
     const resolved = resolvePluginAgentTool("github", "createIssue");
@@ -105,7 +105,7 @@ describe("plugin tool adapter", () => {
           mode: "single",
         },
       }),
-    } as Partial<SailorPlugin>));
+    } as Partial<FabricPlugin>));
 
     const [listed] = listPluginAgentTools();
     const registry = new AgentToolRegistry();
@@ -135,7 +135,7 @@ describe("plugin tool adapter", () => {
       manifest: createManifest({
         requiresApproval: false,
       }),
-    } as Partial<SailorPlugin>));
+    } as Partial<FabricPlugin>));
 
     const registry = new AgentToolRegistry({
       requireApprovalForSideEffects: ["write", "delete"],
@@ -159,7 +159,7 @@ describe("plugin tool adapter", () => {
   });
 });
 
-function createPlugin(overrides: Partial<SailorPlugin> = {}): SailorPlugin {
+function createPlugin(overrides: Partial<FabricPlugin> = {}): FabricPlugin {
   return {
     id: "github",
     auth: { type: "none" } as any,
@@ -180,7 +180,7 @@ function createManifest(agentToolOverrides: Record<string, unknown> = {}) {
         description: "GitHub integration",
         icon: "icon.svg",
         categories: ["Developer"],
-        author: "Sailor",
+        author: "Fabric",
         version: "1.0.0",
       },
       methods: {

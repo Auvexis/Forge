@@ -55,7 +55,7 @@ async function ensureCheckpointerSetup(checkpointer: AgentCheckpointer): Promise
 function assertChatSessionId(sessionId: string): void {
   if (!CHAT_SESSION_ID_PATTERN.test(sessionId)) {
     throw new AgentRuntimeError(
-      "LangGraph thread id must be a Sailor chat session id",
+      "LangGraph thread id must be a Fabric chat session id",
       "AGENT_CHECKPOINT_THREAD_INVALID",
       "Invalid chat session id",
     );

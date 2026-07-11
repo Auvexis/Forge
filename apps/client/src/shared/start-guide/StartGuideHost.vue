@@ -23,13 +23,13 @@ const startGuide = useStartGuide()
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--sailor-space-4);
-  background: color-mix(in srgb, var(--sailor-bg-base) 68%, transparent);
+  padding: var(--fabric-space-4);
+  background: color-mix(in srgb, var(--fabric-bg-base) 68%, transparent);
 }
 
 .start-guide-fade-enter-active,
 .start-guide-fade-leave-active {
-  transition: opacity var(--sailor-duration-fast) var(--sailor-ease-standard);
+  transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .start-guide-fade-enter-from,

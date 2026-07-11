@@ -20,7 +20,7 @@ Replace flat execution timelines with a two-level Runs and Run Detail experience
 - Tree rows and detail headers use each node's actual name, icon, and icon color.
 - Icons are larger, borderless, and have no background container.
 - UI icons use `LucideIcon`; actions use `BaseButton`.
-- Colors, spacing, typography, durations, and easing use existing Sailor tokens.
+- Colors, spacing, typography, durations, and easing use existing Fabric tokens.
 - Dark and light themes require no component-specific hardcoded surface colors.
 
 ## Architecture

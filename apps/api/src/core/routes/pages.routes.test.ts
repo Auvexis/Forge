@@ -10,12 +10,12 @@ import multipart from "@fastify/multipart";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageRepository } from "../modules/pages/page-repository.ts";
 import { SiteRepository } from "../modules/pages/site-repository.ts";
-import type { SailorPage } from "../modules/pages/page-types.ts";
+import type { FabricPage } from "../modules/pages/page-types.ts";
 import pagesRoutes from "./pages.routes.ts";
 
 async function buildApp() {
   const db = new Database(":memory:");
-  const assetStorageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-page-assets-route-"));
+  const assetStorageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-page-assets-route-"));
   PageRepository.setDatabaseProvider(() => db);
   SiteRepository.setDatabaseProvider(() => db);
   PageRepository.ensureSchema();
@@ -45,7 +45,7 @@ describe("pages routes", () => {
       url: "/pages",
       payload: { title: "Landing Page" },
     });
-    const created = createResponse.json() as ApiResponse<SailorPage>;
+    const created = createResponse.json() as ApiResponse<FabricPage>;
 
     assert.equal(createResponse.statusCode, 201);
     assert.equal(created.error, null);
@@ -65,7 +65,7 @@ describe("pages routes", () => {
       payload: { title: "Home", slug: "home" },
     });
     assert.equal(updateResponse.statusCode, 200);
-    assert.equal((updateResponse.json() as ApiResponse<SailorPage>).data?.slug, "home");
+    assert.equal((updateResponse.json() as ApiResponse<FabricPage>).data?.slug, "home");
 
     const deleteResponse = await app.inject({ method: "DELETE", url: `/pages/${created.data?.id}` });
     assert.equal(deleteResponse.statusCode, 200);
@@ -74,7 +74,7 @@ describe("pages routes", () => {
   it("preview returns HTML with text/html", async () => {
     const app = await buildApp();
     const createResponse = await app.inject({ method: "POST", url: "/pages", payload: { title: "Landing Page" } });
-    const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
+    const page = (createResponse.json() as ApiResponse<FabricPage>).data!;
 
     const response = await app.inject({ method: "GET", url: `/pages/${page.id}/preview` });
 
@@ -86,7 +86,7 @@ describe("pages routes", () => {
   it("published page returns HTML with text/html", async () => {
     const app = await buildApp();
     const createResponse = await app.inject({ method: "POST", url: "/pages", payload: { title: "Landing Page" } });
-    const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
+    const page = (createResponse.json() as ApiResponse<FabricPage>).data!;
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const response = await app.inject({ method: "GET", url: `/p/${page.siteId}/landing-page` });
@@ -100,7 +100,7 @@ describe("pages routes", () => {
   it("published page supports nested public paths scoped by site id", async () => {
     const app = await buildApp();
     const createResponse = await app.inject({ method: "POST", url: "/pages", payload: { title: "Signup", publicPath: "/meusite/signup" } });
-    const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
+    const page = (createResponse.json() as ApiResponse<FabricPage>).data!;
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const response = await app.inject({ method: "GET", url: `/p/${page.siteId}/meusite/signup` });
@@ -112,7 +112,7 @@ describe("pages routes", () => {
   it("unpublish removes live page and clears list status", async () => {
     const app = await buildApp();
     const createResponse = await app.inject({ method: "POST", url: "/pages", payload: { title: "Landing Page" } });
-    const page = (createResponse.json() as ApiResponse<SailorPage>).data!;
+    const page = (createResponse.json() as ApiResponse<FabricPage>).data!;
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const unpublishResponse = await app.inject({ method: "POST", url: `/pages/${page.id}/unpublish` });
@@ -213,7 +213,7 @@ describe("pages routes", () => {
       url: `/sites/${site.id}/pages`,
       payload: { title: "Home" },
     });
-    const page = (createPageResponse.json() as ApiResponse<SailorPage>).data!;
+    const page = (createPageResponse.json() as ApiResponse<FabricPage>).data!;
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const response = await app.inject({ method: "GET", url: `/p/${site.publicId}/home` });
@@ -229,12 +229,12 @@ describe("pages routes", () => {
       method: "POST",
       url: `/sites/${site.id}/pages`,
       payload: { title: "Login" },
-    })).json().data as SailorPage;
+    })).json().data as FabricPage;
     const register = (await app.inject({
       method: "POST",
       url: `/sites/${site.id}/pages`,
       payload: { title: "Register" },
-    })).json().data as SailorPage;
+    })).json().data as FabricPage;
     await app.inject({ method: "PUT", url: `/pages/${login.id}`, payload: { publicPath: "/login" } });
     await app.inject({ method: "PUT", url: `/pages/${register.id}`, payload: { publicPath: "/register" } });
     await app.inject({ method: "POST", url: `/pages/${login.id}/publish` });
@@ -311,7 +311,7 @@ describe("pages routes", () => {
     const importResponse = await app.inject({
       method: "POST",
       url: "/sites/import",
-      ...multipartPayload("exportable.sailor-site.zip", exportResponse.rawPayload, "application/zip"),
+      ...multipartPayload("exportable.fabric-site.zip", exportResponse.rawPayload, "application/zip"),
     });
     assert.equal(importResponse.statusCode, 201);
     assert.equal(importResponse.json().data.profileId, "profile_a");
@@ -320,7 +320,7 @@ describe("pages routes", () => {
 });
 
 function multipartPayload(filename: string, content: string | Buffer, contentType = "image/png") {
-  const boundary = "----sailor-page-asset-test-boundary";
+  const boundary = "----fabric-page-asset-test-boundary";
   const header = Buffer.from(
     [
       `--${boundary}`,

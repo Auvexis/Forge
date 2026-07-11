@@ -1,6 +1,6 @@
 <template>
   <header class="app-topbar">
-    <img :src="logoSrc" alt="Sailor" class="app-topbar__logo" />
+    <img :src="logoSrc" alt="Fabric" class="app-topbar__logo" />
     <button class="app-topbar__search" type="button" @click="$emit('open-command-palette')">
       <LucideIcon name="search" :size="16" />
       <span>Search workflows, commands, plugins...</span>
@@ -31,15 +31,15 @@ const { logoSrc } = useTheme()
   align-items: center;
   justify-content: center;
   min-height: 50px;
-  padding: 0 var(--sailor-space-5);
-  border-bottom: 1px solid var(--sailor-topbar-border);
-  background: var(--sailor-topbar-bg);
+  padding: 0 var(--fabric-space-5);
+  border-bottom: 1px solid var(--fabric-topbar-border);
+  background: var(--fabric-topbar-bg);
   flex-shrink: 0;
 }
 
 .app-topbar__logo {
   position: absolute;
-  left: var(--sailor-space-5);
+  left: var(--fabric-space-5);
   height: 22px;
   width: auto;
   object-fit: contain;
@@ -50,25 +50,25 @@ const { logoSrc } = useTheme()
 .app-topbar__search {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   width: min(620px, 100%);
   height: 34px;
-  padding: 0 var(--sailor-space-3);
-  border: 1px solid var(--sailor-topbar-search-border);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-topbar-search-text);
-  background: var(--sailor-topbar-search-bg);
+  padding: 0 var(--fabric-space-3);
+  border: 1px solid var(--fabric-topbar-search-border);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-topbar-search-text);
+  background: var(--fabric-topbar-search-bg);
   cursor: pointer;
   transition:
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .app-topbar__search:hover {
-  color: var(--sailor-topbar-search-hover-text);
-  border-color: var(--sailor-topbar-search-border);
-  background: var(--sailor-topbar-search-hover-bg);
+  color: var(--fabric-topbar-search-hover-text);
+  border-color: var(--fabric-topbar-search-border);
+  background: var(--fabric-topbar-search-hover-bg);
 }
 
 .app-topbar__search span {
@@ -78,39 +78,39 @@ const { logoSrc } = useTheme()
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: center;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
 }
 
 .app-topbar__search kbd {
   flex: 0 0 auto;
   padding: 2px 6px;
-  border: 1px solid var(--sailor-topbar-search-border);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-topbar-search-text);
-  background: var(--sailor-topbar-kbd-bg);
-  font-family: var(--sailor-font-mono);
+  border: 1px solid var(--fabric-topbar-search-border);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-topbar-search-text);
+  background: var(--fabric-topbar-kbd-bg);
+  font-family: var(--fabric-font-mono);
   font-size: 10px;
 }
 
 .app-topbar__actions {
   position: absolute;
-  right: var(--sailor-space-5);
+  right: var(--fabric-space-5);
   display: inline-flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 @media (max-width: 640px) {
   .app-topbar {
-    padding: 0 var(--sailor-space-3);
+    padding: 0 var(--fabric-space-3);
   }
 
   .app-topbar__logo {
-    left: var(--sailor-space-3);
+    left: var(--fabric-space-3);
   }
 
   .app-topbar__actions {
-    right: var(--sailor-space-3);
+    right: var(--fabric-space-3);
   }
 
   .app-topbar__search kbd {

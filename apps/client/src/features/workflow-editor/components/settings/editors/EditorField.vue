@@ -28,21 +28,21 @@ const iconComponent = computed(() =>
 .editor-field {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .editor-field__label {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   font-size: 10px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .editor-field__icon {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 </style>

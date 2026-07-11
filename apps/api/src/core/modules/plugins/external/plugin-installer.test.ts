@@ -37,7 +37,7 @@ function writeRelease(root: string): string {
       description: "Tools",
       icon: "plug",
       categories: ["Developer"],
-      author: "SAILOR",
+      author: "FABRIC",
       version: "1.0.0",
       repository: "https://github.com/acme/github-tools",
     },
@@ -59,7 +59,7 @@ function writeRelease(root: string): string {
 
 describe("installExternalPlugin", () => {
   it("installs release into an installId folder, registers it and enables profile scope", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-install-"));
     const sourceRoot = path.join(home, "source");
     const releaseDir = writeRelease(sourceRoot);
     const db = createDb();
@@ -104,7 +104,7 @@ describe("installExternalPlugin", () => {
   });
 
   it("enables a selected profile without enabling the current profile", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-install-"));
     const sourceRoot = path.join(home, "source");
     const releaseDir = writeRelease(sourceRoot);
     const db = createDb();
@@ -140,7 +140,7 @@ describe("installExternalPlugin", () => {
   });
 
   it("cleans staging when dependency installation fails", () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-install-"));
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-install-"));
     const sourceRoot = path.join(home, "source");
     const releaseDir = writeRelease(sourceRoot);
     const db = createDb();

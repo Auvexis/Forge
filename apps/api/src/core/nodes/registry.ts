@@ -1,5 +1,5 @@
 import type { WorkflowNodeType } from "../../shared/models/workflow-types.ts";
-import { sailorCoreUtilityNodes } from "../utility-nodes/sailor-core/index.ts";
+import { fabricCoreUtilityNodes } from "../utility-nodes/fabric-core/index.ts";
 export { createNodeHandler } from "./handler.ts";
 import type { NodeHandler, UtilityNodeType } from "./types.ts";
 
@@ -36,8 +36,8 @@ export class NodeHandlerRegistry {
   }
 }
 
-const utilityNodeTypes = sailorCoreUtilityNodes.map((node) => node.manifest.type);
-const defaultUtilityHandlers: NodeHandler[] = sailorCoreUtilityNodes.map((node) => node.handler);
+const utilityNodeTypes = fabricCoreUtilityNodes.map((node) => node.manifest.type);
+const defaultUtilityHandlers: NodeHandler[] = fabricCoreUtilityNodes.map((node) => node.handler);
 
 export function createUtilityNodeRegistry(
   handlers: NodeHandler[] = defaultUtilityHandlers,

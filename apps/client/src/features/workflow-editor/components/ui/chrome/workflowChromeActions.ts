@@ -82,7 +82,7 @@ export const workflowChromeMenus: WorkflowChromeMenu[] = [
       },
       {
         id: 'help.docs',
-        label: 'SAILOR Docs',
+        label: 'FABRIC Docs',
         icon: 'book-open',
         disabledReason: 'Docs route is not available yet',
       },

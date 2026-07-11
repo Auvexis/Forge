@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from "node:crypto";
-import type { OAuth2Tokens } from "@auvexis/sailor-sdk";
+import type { OAuth2Tokens } from "@auvexis/fabric-sdk";
 import type { OAuth2DeclarativeAuth, OAuth2TokenConfig } from "./oauth2-types.ts";
 
 interface OAuth2ServiceDependencies {

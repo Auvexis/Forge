@@ -86,45 +86,45 @@ defineOptions({ inheritAttrs: false })
 .base-textarea-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   width: 100%;
 }
 
 .base-input-wrapper__label {
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
+  color: var(--fabric-text-secondary);
 }
 
 .required {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .base-textarea-container {
   display: flex;
   position: relative;
-  background-color: var(--sailor-bg-overlay);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  background-color: var(--fabric-bg-overlay);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   width: 100%;
 }
 
 .base-textarea-container:focus-within {
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
 }
 
 .base-textarea-container--error {
-  border-color: var(--sailor-red-500);
+  border-color: var(--fabric-red-500);
 }
 .base-textarea-container--error:focus-within {
-  box-shadow: 0 0 0 1px var(--sailor-red-500);
+  box-shadow: 0 0 0 1px var(--fabric-red-500);
 }
 
 .base-textarea-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--sailor-bg-muted);
+  background-color: var(--fabric-bg-muted);
 }
 
 .base-textarea {
@@ -134,27 +134,27 @@ defineOptions({ inheritAttrs: false })
   background: transparent;
   border: none;
   outline: none;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
   resize: vertical;
   line-height: 1.5;
   font-family: inherit;
 }
 
 .base-textarea::placeholder {
-  color: var(--sailor-text-disabled);
+  color: var(--fabric-text-disabled);
 }
 
 .base-input-wrapper__error {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-error);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-error);
   margin-top: 2px;
 }
 
 .base-input-wrapper__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   margin-top: 2px;
 }
 </style>

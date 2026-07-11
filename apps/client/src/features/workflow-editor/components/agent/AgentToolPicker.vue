@@ -172,13 +172,13 @@ onMounted(loadTools)
 .agent-tool-picker {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .agent-tool-picker__list {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   max-height: 360px;
   overflow: auto;
 }
@@ -186,26 +186,26 @@ onMounted(loadTools)
 .agent-tool-picker__option {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-overlay);
-  color: var(--sailor-text-primary);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-overlay);
+  color: var(--fabric-text-primary);
   text-align: left;
 }
 
 .agent-tool-picker__option:hover,
 .agent-tool-picker__option--selected {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-elevated);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-elevated);
 }
 
 .agent-tool-picker__select {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
   padding: 0;
   border: 0;
@@ -229,48 +229,48 @@ onMounted(loadTools)
 
 .agent-tool-picker__meta {
   flex-wrap: wrap;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .agent-tool-picker__name {
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .agent-tool-picker__ids,
 .agent-tool-picker__description,
 .agent-tool-picker__status {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
 }
 
 .agent-tool-picker__status {
-  padding: var(--sailor-space-2) 0;
+  padding: var(--fabric-space-2) 0;
 }
 
 .agent-tool-picker__status--error {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .agent-tool-picker__badge {
   display: inline-flex;
   align-items: center;
   min-height: 22px;
-  padding: 0 var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  border: 1px solid var(--sailor-border);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  padding: 0 var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  border: 1px solid var(--fabric-border);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
 }
 
 .agent-tool-picker__badge--approval {
-  border-color: var(--sailor-warning-border, var(--sailor-border-strong));
-  color: var(--sailor-text-warning, var(--sailor-text-primary));
+  border-color: var(--fabric-warning-border, var(--fabric-border-strong));
+  color: var(--fabric-text-warning, var(--fabric-text-primary));
 }
 
 .agent-tool-picker__badge--danger {
-  border-color: var(--sailor-red-400);
-  color: var(--sailor-red-400);
+  border-color: var(--fabric-red-400);
+  color: var(--fabric-red-400);
 }
 
 .agent-tool-picker__schema-toggle {
@@ -278,9 +278,9 @@ onMounted(loadTools)
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   text-align: left;
 }
 
@@ -288,11 +288,11 @@ onMounted(loadTools)
   max-height: 96px;
   overflow: auto;
   margin: 0;
-  padding: var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-muted);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   white-space: pre-wrap;
   word-break: break-word;
 }

@@ -7,7 +7,7 @@ export async function up(db: Database.Database): Promise<void> {
    *
    * Example rows:
    *   ('theme', '"dark"')
-   *   ('server_name', '"My Sailor"')
+   *   ('server_name', '"My Fabric"')
    *   ('telemetry_enabled', 'false')
    */
   db.prepare(

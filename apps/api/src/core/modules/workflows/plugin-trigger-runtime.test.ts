@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 
 import {
   PluginTriggerRuntimeService,
   type PluginTriggerRuntimeContext,
 } from "./plugin-trigger-runtime.ts";
 
-function plugin(id: string, triggerName: string, calls: string[]): SailorPlugin {
+function plugin(id: string, triggerName: string, calls: string[]): FabricPlugin {
   return {
     id,
     manifest: {
@@ -16,7 +16,7 @@ function plugin(id: string, triggerName: string, calls: string[]): SailorPlugin 
         name: id,
         description: id,
         categories: ["Core"],
-        author: "SAILOR",
+        author: "FABRIC",
         version: "1.0.0",
       },
       methods: {

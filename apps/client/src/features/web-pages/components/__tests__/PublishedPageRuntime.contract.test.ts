@@ -7,7 +7,7 @@ describe('published page runtime contract', () => {
   it('form submit collects inputs by name and submits action', () => {
     const source = fs.readFileSync(path.resolve('../server/src/core/modules/pages/page-renderer.ts'), 'utf8')
     assert.match(source, /FormData/)
-    assert.match(source, /data-sailor-action-id/)
+    assert.match(source, /data-fabric-action-id/)
     assert.match(source, /fetch/)
     assert.match(source, /encodeURIComponent\(slug\).*\/actions\/.*encodeURIComponent\(actionId\)/s)
   })

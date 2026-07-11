@@ -26,9 +26,9 @@ const stepTitle = computed(() => (props.data as any)?.name || 'Loop / ForEach')
     :title="stepTitle"
     subtitle="Iterate Array"
     icon="repeat"
-    color="var(--sailor-node-loop-icon)"
-    bg="var(--sailor-node-loop-bg)"
-    border-color="var(--sailor-node-loop-border)"
+    color="var(--fabric-node-loop-icon)"
+    bg="var(--fabric-node-loop-bg)"
+    border-color="var(--fabric-node-loop-border)"
   >
     <!-- Body handle — fires for each iteration -->
     <BaseHandle id="loop-body" type="source" :position="Position.Right" style="top: 35%" />

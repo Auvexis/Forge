@@ -61,7 +61,7 @@ describe("plugin event routes", () => {
       url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
       payload: body,
       headers: {
-        "x-sailor-signature": sign(body, "secret"),
+        "x-fabric-signature": sign(body, "secret"),
       },
     });
 
@@ -111,7 +111,7 @@ describe("plugin event routes", () => {
       url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
       payload: { update_id: "evt-1" },
       headers: {
-        "x-sailor-signature": "sha256=bad",
+        "x-fabric-signature": "sha256=bad",
       },
     });
 
@@ -144,7 +144,7 @@ describe("plugin event routes", () => {
         url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
         payload: body,
         headers: {
-          "x-sailor-signature": sign(body, "secret"),
+          "x-fabric-signature": sign(body, "secret"),
         },
       });
     }
@@ -184,7 +184,7 @@ describe("plugin event routes", () => {
       url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
       payload: body,
       headers: {
-        "x-sailor-signature": sign(body, "secret"),
+        "x-fabric-signature": sign(body, "secret"),
       },
     });
 
@@ -226,7 +226,7 @@ describe("plugin event routes", () => {
       url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
       payload: { update_id: "evt-1" },
       headers: {
-        "x-sailor-signature": sign({ update_id: "evt-1" }, "secret"),
+        "x-fabric-signature": sign({ update_id: "evt-1" }, "secret"),
       },
     });
 
@@ -276,7 +276,7 @@ describe("plugin event routes", () => {
       url: "/plugin-events/wf-1/triggerA/telegram/onMessage",
       payload: body,
       headers: {
-        "x-sailor-signature": sign(body, "secret"),
+        "x-fabric-signature": sign(body, "secret"),
       },
     });
 

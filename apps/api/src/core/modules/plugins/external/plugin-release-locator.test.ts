@@ -9,7 +9,7 @@ import { locatePluginRelease } from "./plugin-release-locator.ts";
 const requiredFiles = ["manifest.json", "index.js", "methods.js", "package.json", "package-lock.json"];
 
 function makeTempRoot(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "sailor-release-locator-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "fabric-release-locator-"));
 }
 
 function writeRelease(root: string, files = requiredFiles): string {

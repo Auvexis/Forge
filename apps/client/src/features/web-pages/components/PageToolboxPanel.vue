@@ -96,7 +96,7 @@ let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
 let lastDragPoint = { x: 0, y: 0, t: 0 }
 let windAnimationFrame: number | null = null
 const RECENT_ITEMS_LIMIT = 6
-const RECENT_ITEMS_STORAGE_KEY = 'sailor.pages.toolbox.recent-items'
+const RECENT_ITEMS_STORAGE_KEY = 'fabric.pages.toolbox.recent-items'
 
 const emit = defineEmits<{
   'add-page': []
@@ -215,8 +215,8 @@ function toggleSection(sectionId: string) {
 
 function onDragStart(event: DragEvent, item: ToolboxItem) {
   rememberItem(item)
-  if (item.kind === 'page') event.dataTransfer?.setData('application/x-sailor-page', JSON.stringify({ type: 'page' }))
-  else event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag: item.tag, preset: item.id }))
+  if (item.kind === 'page') event.dataTransfer?.setData('application/x-fabric-page', JSON.stringify({ type: 'page' }))
+  else event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ tag: item.tag, preset: item.id }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
   setTransparentDragImage(event)
   startDragPreview({ x: event.clientX, y: event.clientY }, {

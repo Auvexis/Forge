@@ -1,6 +1,6 @@
 import { DatabaseManager } from "../../database/index.ts";
 import type Database from "better-sqlite3";
-import type { SailorSite } from "./site-types.ts";
+import type { FabricSite } from "./site-types.ts";
 
 type SiteDatabaseProvider = () => Database.Database;
 
@@ -38,44 +38,44 @@ export const SiteRepository = {
       .run();
   },
 
-  listSites(profileId: string): SailorSite[] {
+  listSites(profileId: string): FabricSite[] {
     const rows = getSiteDatabase()
       .prepare(`SELECT definition FROM sites WHERE profile_id = ? ORDER BY updated_at DESC`)
       .all(profileId) as Array<{ definition: string }>;
 
-    return rows.map((row) => withPublicId(JSON.parse(row.definition) as Partial<SailorSite>));
+    return rows.map((row) => withPublicId(JSON.parse(row.definition) as Partial<FabricSite>));
   },
 
-  getSite(profileId: string, id: string): SailorSite | null {
+  getSite(profileId: string, id: string): FabricSite | null {
     const row = getSiteDatabase()
       .prepare(`SELECT definition FROM sites WHERE profile_id = ? AND id = ?`)
       .get(profileId, id) as { definition: string } | undefined;
 
-    return row ? withPublicId(JSON.parse(row.definition) as Partial<SailorSite>) : null;
+    return row ? withPublicId(JSON.parse(row.definition) as Partial<FabricSite>) : null;
   },
 
-  getSiteBySlug(profileId: string, slug: string): SailorSite | null {
+  getSiteBySlug(profileId: string, slug: string): FabricSite | null {
     const row = getSiteDatabase()
       .prepare(`SELECT definition FROM sites WHERE profile_id = ? AND slug = ?`)
       .get(profileId, slug) as { definition: string } | undefined;
 
-    return row ? withPublicId(JSON.parse(row.definition) as Partial<SailorSite>) : null;
+    return row ? withPublicId(JSON.parse(row.definition) as Partial<FabricSite>) : null;
   },
 
-  getSiteByPublicId(profileId: string, publicId: string): SailorSite | null {
+  getSiteByPublicId(profileId: string, publicId: string): FabricSite | null {
     const rows = getSiteDatabase()
       .prepare(`SELECT definition FROM sites WHERE profile_id = ?`)
       .all(profileId) as Array<{ definition: string }>;
 
     for (const row of rows) {
-      const site = withPublicId(JSON.parse(row.definition) as Partial<SailorSite>);
+      const site = withPublicId(JSON.parse(row.definition) as Partial<FabricSite>);
       if (site.publicId === publicId) return site;
     }
 
     return null;
   },
 
-  ensureDefaultSite(profileId: string): SailorSite {
+  ensureDefaultSite(profileId: string): FabricSite {
     this.ensureSchema();
     const existing = this.getSite(profileId, defaultSiteId(profileId));
     if (existing) return existing;
@@ -94,7 +94,7 @@ export const SiteRepository = {
     });
   },
 
-  saveSite(site: SailorSite): SailorSite {
+  saveSite(site: FabricSite): FabricSite {
     this.ensureSchema();
     const siteWithPublicId = withPublicId(site);
     const existingBySlug = this.getSiteBySlug(siteWithPublicId.profileId, siteWithPublicId.slug);
@@ -103,7 +103,7 @@ export const SiteRepository = {
     }
 
     const existing = this.getSite(siteWithPublicId.profileId, siteWithPublicId.id);
-    const siteToSave: SailorSite = {
+    const siteToSave: FabricSite = {
       ...siteWithPublicId,
       publicId: existing?.publicId ?? siteWithPublicId.publicId,
       createdAt: existing?.createdAt ?? siteWithPublicId.createdAt,
@@ -150,11 +150,11 @@ function defaultSitePublicId(profileId: string): string {
   return defaultSiteId(profileId);
 }
 
-function withPublicId(site: Partial<SailorSite>): SailorSite {
+function withPublicId(site: Partial<FabricSite>): FabricSite {
   return {
     ...site,
     publicId: site.publicId ?? site.id ?? "",
-  } as SailorSite;
+  } as FabricSite;
 }
 
 function defaultSiteFiles(now: string) {

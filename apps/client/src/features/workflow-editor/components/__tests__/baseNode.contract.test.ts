@@ -34,20 +34,20 @@ test('BaseNode exposes configurable positions, rounding, border, and handlers', 
 test('vertical handler quick add does not change the handle edge alignment', () => {
   const source = read('BaseNode.vue')
 
-  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*position: absolute;[\s\S]*top: 8px;/)
+  assert.match(source, /\.fabric-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*position: absolute;[\s\S]*top: 8px;/)
 })
 
 test('selected nodes and vertical handler quick add use polished geometry', () => {
   const source = read('BaseNode.vue')
   const quickAdd = read('QuickAddButton.vue')
 
-  assert.match(source, /\.sailor-base-node\.is-selected\s*\{[\s\S]*0 0 0 4px/)
+  assert.match(source, /\.fabric-base-node\.is-selected\s*\{[\s\S]*0 0 0 4px/)
   assert.match(source, /import BaseBadge from '@\/shared\/components\/base\/BaseBadge\.vue'/)
-  assert.match(source, /<BaseBadge[\s\S]*class="sailor-base-node__handler-label"[\s\S]*variant="default"[\s\S]*size="sm"/)
-  assert.match(source, /\.sailor-base-node__handler-label\s*\{[\s\S]*z-index: 6000;/)
-  assert.match(source, /class="sailor-base-node__handler-required"/)
-  assert.match(source, /\.sailor-base-node__handler-required\s*\{[\s\S]*color: var\(--sailor-red-400\);/)
-  assert.match(source, /\.sailor-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*top: 8px;[\s\S]*left: 50%;[\s\S]*margin-top: 0;[\s\S]*transform: translateX\(-50%\);/)
+  assert.match(source, /<BaseBadge[\s\S]*class="fabric-base-node__handler-label"[\s\S]*variant="default"[\s\S]*size="sm"/)
+  assert.match(source, /\.fabric-base-node__handler-label\s*\{[\s\S]*z-index: 6000;/)
+  assert.match(source, /class="fabric-base-node__handler-required"/)
+  assert.match(source, /\.fabric-base-node__handler-required\s*\{[\s\S]*color: var\(--fabric-red-400\);/)
+  assert.match(source, /\.fabric-base-node__handler :deep\(\.qab-wrap--down\)\s*\{[\s\S]*top: 8px;[\s\S]*left: 50%;[\s\S]*margin-top: 0;[\s\S]*transform: translateX\(-50%\);/)
   assert.match(quickAdd, /\.qab-wrap--down \.qab-cable\s*\{[\s\S]*height: var\(--qab-cable-length, 40px\);/)
   assert.doesNotMatch(quickAdd, /\.qab-wrap--down \.qab-btn/)
   assert.match(quickAdd, /width: var\(--qab-size, 19px\);[\s\S]*height: var\(--qab-size, 19px\);/)
@@ -74,11 +74,11 @@ test('BaseHandle delegates to the workflow-native handle', () => {
 test('configured handles anchor their measured center on each node border', () => {
   const source = read('BaseNode.vue')
 
-  assert.doesNotMatch(source, /\.sailor-base-node__handler :deep\(\.sailor-base-handle\)\s*\{[\s\S]*position: relative !important;[\s\S]*inset: auto !important;/)
-  assert.match(source, /\.is-position-bottom \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
-  assert.match(source, /\.is-position-top \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
-  assert.match(source, /\.is-position-left \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
-  assert.match(source, /\.is-position-right \.sailor-base-node__handler :deep\(\.sailor-base-handle\)/)
+  assert.doesNotMatch(source, /\.fabric-base-node__handler :deep\(\.fabric-base-handle\)\s*\{[\s\S]*position: relative !important;[\s\S]*inset: auto !important;/)
+  assert.match(source, /\.is-position-bottom \.fabric-base-node__handler :deep\(\.fabric-base-handle\)/)
+  assert.match(source, /\.is-position-top \.fabric-base-node__handler :deep\(\.fabric-base-handle\)/)
+  assert.match(source, /\.is-position-left \.fabric-base-node__handler :deep\(\.fabric-base-handle\)/)
+  assert.match(source, /\.is-position-right \.fabric-base-node__handler :deep\(\.fabric-base-handle\)/)
 })
 
 test('BaseNode refreshes only later changes to its handle geometry', () => {
@@ -100,7 +100,7 @@ test('QuickAddButton emits generic handler metadata', () => {
 })
 
 test('workflow canvas carries generic handler quick add metadata', () => {
-  const source = read('SailorWorkflowCanvas.vue')
+  const source = read('FabricWorkflowCanvas.vue')
 
   assert.match(source, /node:quick-add/)
   assert.match(source, /handlerId/)

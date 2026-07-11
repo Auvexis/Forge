@@ -110,7 +110,7 @@ export function renderFormPage(
   ${errorBlock}
   ${fieldsHtml}
   <button type="submit">Submit</button>
-  <div class="footer">Powered by Sailor</div>
+  <div class="footer">Powered by Fabric</div>
 </form>
 </body></html>`;
 }

@@ -9,29 +9,29 @@ import type {
   PageActionResponse,
   PagePublicationStatus,
   PublishedPageSummary,
-  SailorPage,
-  SailorPageSummary,
+  FabricPage,
+  FabricPageSummary,
   UpdatePagePayload,
   SiteAssetUploadResponse,
   SiteProjectArchive,
-  SailorSite,
+  FabricSite,
   UpdateSiteFilePayload,
   UpdateSitePayload,
 } from '../../features/web-pages/types/page.types.ts'
 
 export const pagesApi = {
-  listSites: () => apiRequest<SailorSite[]>(ENDPOINTS.SITES),
+  listSites: () => apiRequest<FabricSite[]>(ENDPOINTS.SITES),
 
   createSite: (payload: CreateSitePayload) =>
-    apiRequest<SailorSite>(ENDPOINTS.SITES, {
+    apiRequest<FabricSite>(ENDPOINTS.SITES, {
       method: 'POST',
       body: payload,
     }),
 
-  getSite: (siteId: string) => apiRequest<SailorSite>(ENDPOINTS.SITE_BY_ID(siteId)),
+  getSite: (siteId: string) => apiRequest<FabricSite>(ENDPOINTS.SITE_BY_ID(siteId)),
 
   updateSite: (siteId: string, payload: UpdateSitePayload) =>
-    apiRequest<SailorSite>(ENDPOINTS.SITE_BY_ID(siteId), {
+    apiRequest<FabricSite>(ENDPOINTS.SITE_BY_ID(siteId), {
       method: 'PUT',
       body: payload,
     }),
@@ -41,28 +41,28 @@ export const pagesApi = {
       method: 'DELETE',
     }),
 
-  listSitePages: (siteId: string) => apiRequest<SailorPage[]>(ENDPOINTS.SITE_PAGES(siteId)),
+  listSitePages: (siteId: string) => apiRequest<FabricPage[]>(ENDPOINTS.SITE_PAGES(siteId)),
 
   createSitePage: (siteId: string, payload: CreatePagePayload) =>
-    apiRequest<SailorPage>(ENDPOINTS.SITE_PAGES(siteId), {
+    apiRequest<FabricPage>(ENDPOINTS.SITE_PAGES(siteId), {
       method: 'POST',
       body: payload,
     }),
 
   createSiteFile: (siteId: string, payload: CreateSiteFilePayload) =>
-    apiRequest<SailorSite>(ENDPOINTS.SITE_FILES(siteId), {
+    apiRequest<FabricSite>(ENDPOINTS.SITE_FILES(siteId), {
       method: 'POST',
       body: payload,
     }),
 
   updateSiteFile: (siteId: string, payload: UpdateSiteFilePayload) =>
-    apiRequest<SailorSite>(ENDPOINTS.SITE_FILES(siteId), {
+    apiRequest<FabricSite>(ENDPOINTS.SITE_FILES(siteId), {
       method: 'PUT',
       body: payload,
     }),
 
   deleteSiteFile: (siteId: string, payload: DeleteSiteFilePayload) =>
-    apiRequest<SailorSite>(ENDPOINTS.SITE_FILES(siteId), {
+    apiRequest<FabricSite>(ENDPOINTS.SITE_FILES(siteId), {
       method: 'DELETE',
       body: payload,
     }),
@@ -86,29 +86,29 @@ export const pagesApi = {
     if (typeof File !== 'undefined' && archive instanceof File) {
       const body = new FormData()
       body.append('file', archive)
-      return apiRequest<SailorSite>(ENDPOINTS.SITE_IMPORT, {
+      return apiRequest<FabricSite>(ENDPOINTS.SITE_IMPORT, {
         method: 'POST',
         body,
       })
     }
-    return apiRequest<SailorSite>(ENDPOINTS.SITE_IMPORT, {
+    return apiRequest<FabricSite>(ENDPOINTS.SITE_IMPORT, {
       method: 'POST',
       body: archive,
     })
   },
 
-  listPages: () => apiRequest<SailorPageSummary[]>(ENDPOINTS.PAGES),
+  listPages: () => apiRequest<FabricPageSummary[]>(ENDPOINTS.PAGES),
 
   createPage: (payload: CreatePagePayload) =>
-    apiRequest<SailorPage>(ENDPOINTS.PAGES, {
+    apiRequest<FabricPage>(ENDPOINTS.PAGES, {
       method: 'POST',
       body: payload,
     }),
 
-  getPage: (pageId: string) => apiRequest<SailorPage>(ENDPOINTS.PAGE_BY_ID(pageId)),
+  getPage: (pageId: string) => apiRequest<FabricPage>(ENDPOINTS.PAGE_BY_ID(pageId)),
 
   updatePage: (pageId: string, payload: UpdatePagePayload) =>
-    apiRequest<SailorPage>(ENDPOINTS.PAGE_BY_ID(pageId), {
+    apiRequest<FabricPage>(ENDPOINTS.PAGE_BY_ID(pageId), {
       method: 'PUT',
       body: payload,
     }),

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" id="app-favicon" href="/LOGO_LIGHT.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sailor</title>
+    <title>Fabric</title>
     <!--
       Anti-FOUC script: runs synchronously before ANYTHING renders.
       Reads the stored theme preference and applies .dark or .light
@@ -13,7 +13,7 @@
     -->
     <script>
       ;(function () {
-        var stored = localStorage.getItem('sailor:theme')
+        var stored = localStorage.getItem('fabric:theme')
         var resolved = stored === 'light' ? 'light' : 'dark' // default: dark
         if (stored === 'system') {
           resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'

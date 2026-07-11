@@ -3,7 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 export interface AuvexisLocalSecretOptions {
-  sailorHome: string;
+  fabricHome: string;
 }
 
 const SECRET_FILE = "auvexis-account-secret";
@@ -11,7 +11,7 @@ const SECRET_FILE = "auvexis-account-secret";
 export function loadOrCreateAuvexisLocalSecret(
   options: AuvexisLocalSecretOptions,
 ): string {
-  const globalDir = path.join(options.sailorHome, "global");
+  const globalDir = path.join(options.fabricHome, "global");
   const secretPath = path.join(globalDir, SECRET_FILE);
 
   if (fs.existsSync(secretPath)) {

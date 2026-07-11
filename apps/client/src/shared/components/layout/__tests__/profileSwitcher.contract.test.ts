@@ -12,7 +12,7 @@ const activeProfile: ProfileSwitcherSummary = {
   id: 'captain',
   name: 'Captain',
   avatarEmoji: '⛵',
-  email: 'captain@sailor.dev',
+  email: 'captain@fabric.dev',
   passwordProtected: true,
 }
 

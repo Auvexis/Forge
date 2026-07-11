@@ -13,7 +13,7 @@
         :model-value="(node.data.eventName as string) || ''"
         @update:model-value="updateNodeData({ eventName: $event as string })"
         placeholder="user.created"
-        style="font-family: var(--sailor-font-mono)"
+        style="font-family: var(--fabric-font-mono)"
       />
     </EditorField>
 

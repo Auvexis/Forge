@@ -19,10 +19,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: var(--sailor-dock-height);
-  padding: 0 var(--sailor-space-3);
-  background-color: var(--sailor-bg-surface);
-  border-bottom: 1px solid var(--sailor-border);
+  height: var(--fabric-dock-height);
+  padding: 0 var(--fabric-space-3);
+  background-color: var(--fabric-bg-surface);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .app-dock__left,
@@ -30,7 +30,7 @@
 .app-dock__center {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .app-dock__center {

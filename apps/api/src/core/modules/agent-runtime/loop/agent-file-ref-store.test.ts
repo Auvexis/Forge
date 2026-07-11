@@ -7,7 +7,7 @@ import { AgentFileRefStore, resolveAgentFileRefsInToolArgs, storeAgentFileRefsIn
 
 describe("agent file ref store", () => {
   it("resolves nested content file refs into readable attachment content", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-agent-file-ref-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-agent-file-ref-"));
     const store = new AgentFileRefStore({ rootDir: root });
     const ref = await store.put({
       toolCallId: "tool_call_1",
@@ -42,7 +42,7 @@ describe("agent file ref store", () => {
   });
 
   it("stores large text results as text refs and resolves them into text fields", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-agent-text-ref-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-agent-text-ref-"));
     const store = new AgentFileRefStore({ rootDir: root });
     const recipe = `Receita de bolo de milho\n\n${"Misture milho e asse. ".repeat(80)}`;
 

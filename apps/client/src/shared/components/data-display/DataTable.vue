@@ -71,38 +71,38 @@ const formatValue = (val: any) => {
 
 <style scoped>
 .data-table-wrapper {
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   overflow-x: auto;
 }
 
 .data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
 }
 
 .data-table th,
 .data-table td {
-  padding: var(--sailor-space-3) var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-3) var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .data-table th {
-  background-color: var(--sailor-bg-elevated);
-  color: var(--sailor-text-secondary);
-  font-weight: var(--sailor-font-medium);
+  background-color: var(--fabric-bg-elevated);
+  color: var(--fabric-text-secondary);
+  font-weight: var(--fabric-font-medium);
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   text-align: left;
 }
 
 .data-table tbody tr {
-  transition: background-color var(--sailor-duration-fast);
+  transition: background-color var(--fabric-duration-fast);
 }
 
 .data-table tbody tr:hover {
-  background-color: var(--sailor-bg-overlay);
+  background-color: var(--fabric-bg-overlay);
   cursor: pointer;
 }
 
@@ -112,7 +112,7 @@ const formatValue = (val: any) => {
 
 .data-table__empty {
   text-align: center;
-  padding: var(--sailor-space-10) !important;
-  color: var(--sailor-text-muted);
+  padding: var(--fabric-space-10) !important;
+  color: var(--fabric-text-muted);
 }
 </style>

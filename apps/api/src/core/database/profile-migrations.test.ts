@@ -10,9 +10,9 @@ import { resolveProfilePaths } from "../profiles/profile-paths.ts";
 
 describe("profile database migrations", () => {
   it("runs migrations independently for each active profile", async () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-migrations-"));
-    const profileA = resolveProfilePaths({ sailorHome: home, profileId: "profile-a" });
-    const profileB = resolveProfilePaths({ sailorHome: home, profileId: "profile-b" });
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-migrations-"));
+    const profileA = resolveProfilePaths({ fabricHome: home, profileId: "profile-a" });
+    const profileB = resolveProfilePaths({ fabricHome: home, profileId: "profile-b" });
     const manager = new ProfileDatabaseManager();
 
     manager.open(profileA);
@@ -54,8 +54,8 @@ describe("profile database migrations", () => {
   });
 
   it("creates notification constraints and lookup indexes", async () => {
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-migrations-"));
-    const paths = resolveProfilePaths({ sailorHome: home, profileId: "profile-a" });
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-migrations-"));
+    const paths = resolveProfilePaths({ fabricHome: home, profileId: "profile-a" });
     const manager = new ProfileDatabaseManager();
 
     manager.open(paths);

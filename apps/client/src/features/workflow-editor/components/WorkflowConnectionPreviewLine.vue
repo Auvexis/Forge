@@ -1,6 +1,6 @@
 <template>
   <path
-    class="sailor-connection-preview-line"
+    class="fabric-connection-preview-line"
     :class="status"
     :d="path"
     fill="none"
@@ -15,18 +15,18 @@ defineProps<{
 </script>
 
 <style scoped>
-.sailor-connection-preview-line {
-  stroke: var(--sailor-rf-edge-stroke);
+.fabric-connection-preview-line {
+  stroke: var(--fabric-rf-edge-stroke);
   stroke-width: 2;
   stroke-linecap: round;
   pointer-events: none;
 }
 
-.sailor-connection-preview-line.valid {
-  stroke: var(--sailor-rf-edge-stroke-selected);
+.fabric-connection-preview-line.valid {
+  stroke: var(--fabric-rf-edge-stroke-selected);
 }
 
-.sailor-connection-preview-line.invalid {
-  stroke: var(--sailor-rf-edge-stroke-selected);
+.fabric-connection-preview-line.invalid {
+  stroke: var(--fabric-rf-edge-stroke-selected);
 }
 </style>

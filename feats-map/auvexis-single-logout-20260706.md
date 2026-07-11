@@ -1,5 +1,5 @@
 - [x] Atualizar contratos da UI/store
-- [x] Implementar Logout único
-- [x] Verificar Sailor
+- [x] Implementar Logout ï¿½nico
+- [x] Verificar Fabric
 - [x] Commitar ajuste
 

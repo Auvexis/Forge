@@ -13,7 +13,7 @@ const validManifest = {
     description: "Preview only",
     icon: "plug",
     categories: ["Core"],
-    author: "SAILOR",
+    author: "FABRIC",
     version: "1.0.0",
     repository: "",
   },
@@ -28,7 +28,7 @@ const validManifest = {
 
 describe("readPluginManifestPreview", () => {
   it("reads and validates manifest metadata without executing plugin code", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-"));
     const marker = path.join(dir, "executed.txt");
     fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify(validManifest));
     fs.writeFileSync(path.join(dir, "index.js"), `import fs from "node:fs"; fs.writeFileSync(${JSON.stringify(marker)}, "ran");`);
@@ -42,7 +42,7 @@ describe("readPluginManifestPreview", () => {
   });
 
   it("returns validation errors for invalid manifests", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-"));
     fs.writeFileSync(path.join(dir, "manifest.json"), JSON.stringify({ metadata: { id: "Bad ID" } }));
 
     const preview = readPluginManifestPreview(path.join(dir, "manifest.json"));
@@ -54,7 +54,7 @@ describe("readPluginManifestPreview", () => {
   });
 
   it("returns structured preview metadata, methods, triggers and missing-auth warning", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-"));
     const manifest = {
       ...validManifest,
       triggers: {
@@ -98,7 +98,7 @@ describe("readPluginManifestPreview", () => {
   });
 
   it("accepts plugin triggers that declare delivery and payload schema", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-"));
     const manifest = {
       ...validManifest,
       triggers: {
@@ -126,7 +126,7 @@ describe("readPluginManifestPreview", () => {
   });
 
   it("rejects plugin triggers that omit delivery or payload schema", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-"));
     const manifest = {
       ...validManifest,
       triggers: {
@@ -146,7 +146,7 @@ describe("readPluginManifestPreview", () => {
   });
 
   it("rejects plugin triggers with invalid delivery modes", () => {
-    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-"));
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-"));
     const manifest = {
       ...validManifest,
       triggers: {

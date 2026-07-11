@@ -24,7 +24,7 @@ interface ProfileIndex {
 }
 
 export interface ProfileStoreOptions {
-  sailorHome: string;
+  fabricHome: string;
   clock?: () => Date;
 }
 
@@ -37,15 +37,15 @@ const defaultPasswordMetadata: ProfilePasswordMetadata = {
 };
 
 export class ProfileStore {
-  private readonly sailorHome: string;
+  private readonly fabricHome: string;
   private readonly profilesDir: string;
   private readonly indexPath: string;
   private readonly clock: () => Date;
 
   constructor(options: ProfileStoreOptions) {
-    this.sailorHome = path.resolve(options.sailorHome);
-    this.profilesDir = resolveProfilesRoot(this.sailorHome);
-    this.indexPath = path.join(this.sailorHome, "profiles.json");
+    this.fabricHome = path.resolve(options.fabricHome);
+    this.profilesDir = resolveProfilesRoot(this.fabricHome);
+    this.indexPath = path.join(this.fabricHome, "profiles.json");
     this.clock = options.clock ?? (() => new Date());
   }
 
@@ -226,7 +226,7 @@ export class ProfileStore {
   }
 
   private writeIndex(index: ProfileIndex): void {
-    fs.mkdirSync(this.sailorHome, { recursive: true });
+    fs.mkdirSync(this.fabricHome, { recursive: true });
     fs.writeFileSync(
       this.indexPath,
       `${JSON.stringify(index, null, 2)}\n`,

@@ -43,7 +43,7 @@ export const sidebarHintById = {
   },
   docs: {
     title: 'Guide Book',
-    description: 'Browse and replay Sailor guides for tools, pages, and workflows.',
+    description: 'Browse and replay Fabric guides for tools, pages, and workflows.',
     position: 'right',
   },
   settings: {

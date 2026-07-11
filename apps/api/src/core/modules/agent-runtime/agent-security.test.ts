@@ -7,7 +7,7 @@ import { AgentRunner } from "./agent-runner.ts";
 import { sanitizeAgentEventPayload } from "./agent-event-sanitizer.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
-import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { assertMemoryWriteAllowed } from "./memory/agent-memory-policy.ts";
 import { ChatTriggerService } from "./chat/chat-trigger-service.ts";
 import agentChatRoutes from "../../routes/agent-chat.routes.ts";
@@ -247,7 +247,7 @@ function workflow(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
   };
 }
 
-function toolDefinition(overrides: Partial<SailorAgentToolDefinition> = {}): SailorAgentToolDefinition {
+function toolDefinition(overrides: Partial<FabricAgentToolDefinition> = {}): FabricAgentToolDefinition {
   return {
     name: "delete_record",
     description: "Delete a record.",

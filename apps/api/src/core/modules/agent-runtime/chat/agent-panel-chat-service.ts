@@ -22,7 +22,7 @@ import { WorkflowEngine } from "../../workflows/executor.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
 import { AgentApprovalService } from "../agent-approval-service.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
-import { sailorHomePaths } from "../../../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../../../runtime/fabric-home.ts";
 
 export interface CreateAgentPanelSessionInput {
   profileId: string;
@@ -86,7 +86,7 @@ export class AgentPanelChatService {
   constructor(options: AgentPanelChatServiceOptions = {}) {
     this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
     this.db = options.db ?? resolveWorkflowDatabase(this.workflowRepository);
-    this.profilesDir = options.profilesDir ?? sailorHomePaths.profilesDir;
+    this.profilesDir = options.profilesDir ?? fabricHomePaths.profilesDir;
     if (options.db) {
       this.sessions = new ChatSessionRepository(this.db);
       this.messages = new ChatMessageRepository(this.db);

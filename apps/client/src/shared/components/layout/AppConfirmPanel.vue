@@ -76,7 +76,7 @@ const iconName = computed(() => {
   justify-content: center;
   background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(3px);
-  padding: var(--sailor-space-4);
+  padding: var(--fabric-space-4);
 }
 
 /* ── Dialog card ─────────────────────────────────────────────────────────────── */
@@ -85,13 +85,13 @@ const iconName = computed(() => {
   display: grid;
   grid-template-columns: auto 1fr auto;
   grid-template-rows: auto auto auto;
-  gap: var(--sailor-space-3) var(--sailor-space-3);
+  gap: var(--fabric-space-3) var(--fabric-space-3);
   width: 100%;
   max-width: 420px;
-  background: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  padding: var(--sailor-space-5);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  padding: var(--fabric-space-5);
   box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.4),
     0 4px 12px rgba(0, 0, 0, 0.2);
@@ -107,7 +107,7 @@ const iconName = computed(() => {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   flex-shrink: 0;
 }
 
@@ -125,7 +125,7 @@ const iconName = computed(() => {
 
 .acp-icon--primary {
   background: rgba(99, 102, 241, 0.12);
-  color: var(--sailor-accent);
+  color: var(--fabric-accent);
   border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
@@ -137,15 +137,15 @@ const iconName = computed(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
 }
 
 .acp-title {
   margin: 0;
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-semibold);
-  color: var(--sailor-text-primary);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-semibold);
+  color: var(--fabric-text-primary);
 }
 
 .acp-close {
@@ -154,20 +154,20 @@ const iconName = computed(() => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   border: none;
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   flex-shrink: 0;
   transition:
-    background var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    background var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .acp-close:hover {
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-muted);
+  color: var(--fabric-text-primary);
 }
 
 /* ── Message ─────────────────────────────────────────────────────────────────── */
@@ -176,10 +176,10 @@ const iconName = computed(() => {
   grid-column: 1 / 4;
   grid-row: 2;
   margin: 0;
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-secondary);
   line-height: 1.55;
-  padding-left: calc(36px + var(--sailor-space-3));
+  padding-left: calc(36px + var(--fabric-space-3));
 }
 
 /* ── Actions ─────────────────────────────────────────────────────────────────── */
@@ -189,15 +189,15 @@ const iconName = computed(() => {
   grid-row: 3;
   display: flex;
   justify-content: flex-end;
-  gap: var(--sailor-space-2);
-  padding-top: var(--sailor-space-1);
+  gap: var(--fabric-space-2);
+  padding-top: var(--fabric-space-1);
 }
 
 /* ── Transitions ─────────────────────────────────────────────────────────────── */
 
 .acp-fade-enter-active,
 .acp-fade-leave-active {
-  transition: opacity var(--sailor-duration-fast) var(--sailor-ease-standard);
+  transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 .acp-fade-enter-from,
 .acp-fade-leave-to {
@@ -206,13 +206,13 @@ const iconName = computed(() => {
 
 .acp-pop-enter-active {
   transition:
-    opacity 150ms var(--sailor-ease-standard),
-    transform 150ms var(--sailor-ease-standard);
+    opacity 150ms var(--fabric-ease-standard),
+    transform 150ms var(--fabric-ease-standard);
 }
 .acp-pop-leave-active {
   transition:
-    opacity 100ms var(--sailor-ease-standard),
-    transform 100ms var(--sailor-ease-standard);
+    opacity 100ms var(--fabric-ease-standard),
+    transform 100ms var(--fabric-ease-standard);
 }
 .acp-pop-enter-from,
 .acp-pop-leave-to {

@@ -5,10 +5,10 @@ import path from "node:path";
 import { describe, it } from "node:test";
 
 describe("DatabaseManager", () => {
-  it("opens SQLite files under SAILOR_HOME/data", async () => {
-    const previousSailorHome = process.env.SAILOR_HOME;
-    const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-db-home-"));
-    process.env.SAILOR_HOME = home;
+  it("opens SQLite files under FABRIC_HOME/data", async () => {
+    const previousFabricHome = process.env.FABRIC_HOME;
+    const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-db-home-"));
+    process.env.FABRIC_HOME = home;
 
     try {
       const mod = await import(`./manager.ts?home=${Date.now()}`);
@@ -21,10 +21,10 @@ describe("DatabaseManager", () => {
 
       mod.closeDatabases();
     } finally {
-      if (previousSailorHome === undefined) {
-        delete process.env.SAILOR_HOME;
+      if (previousFabricHome === undefined) {
+        delete process.env.FABRIC_HOME;
       } else {
-        process.env.SAILOR_HOME = previousSailorHome;
+        process.env.FABRIC_HOME = previousFabricHome;
       }
     }
   });

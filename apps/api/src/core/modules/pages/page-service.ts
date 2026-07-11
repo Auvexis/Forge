@@ -2,9 +2,9 @@ import { PageRepository } from "./page-repository.ts";
 import { renderPublishedPage } from "./page-renderer.ts";
 import { validatePageInput } from "./page-validation.ts";
 import { SiteRepository } from "./site-repository.ts";
-import type { CreatePageInput, PublishedPage, SailorPage, UpdatePageInput } from "./page-types.ts";
+import type { CreatePageInput, PublishedPage, FabricPage, UpdatePageInput } from "./page-types.ts";
 
-export interface SailorPageSummary {
+export interface FabricPageSummary {
   id: string;
   title: string;
   slug: string;
@@ -25,7 +25,7 @@ export class PageService {
     PageRepository.ensureSchema();
   }
 
-  listPages(): SailorPageSummary[] {
+  listPages(): FabricPageSummary[] {
     return PageRepository.listPages(this.profileId).map((page) => ({
       id: page.id,
       title: page.title,
@@ -35,10 +35,10 @@ export class PageService {
     }));
   }
 
-  createPage(input: CreatePageInput): SailorPage {
+  createPage(input: CreatePageInput): FabricPage {
     const now = new Date().toISOString();
     const siteId = input.siteId ?? SiteRepository.ensureDefaultSite(this.profileId).id;
-    const page: SailorPage = {
+    const page: FabricPage = {
       id: createPageId(),
       profileId: this.profileId,
       siteId,
@@ -57,17 +57,17 @@ export class PageService {
     return this.validateAndSave(page);
   }
 
-  getPage(id: string): SailorPage | null {
+  getPage(id: string): FabricPage | null {
     return PageRepository.getPage(this.profileId, id);
   }
 
-  updatePage(id: string, input: UpdatePageInput): SailorPage {
+  updatePage(id: string, input: UpdatePageInput): FabricPage {
     const existing = this.getPage(id);
     if (!existing) {
       throw new Error("Page not found.");
     }
 
-    const page: SailorPage = {
+    const page: FabricPage = {
       ...existing,
       title: input.title ?? existing.title,
       slug: input.slug ?? existing.slug,
@@ -165,7 +165,7 @@ export class PageService {
     return page ? renderPublishedPage(page, SiteRepository.getSite(this.profileId, page.siteId)) : null;
   }
 
-  private validateAndSave(page: SailorPage): SailorPage {
+  private validateAndSave(page: FabricPage): FabricPage {
     const validation = validatePageInput(page);
     if (!validation.success) {
       throw new Error(validation.error);

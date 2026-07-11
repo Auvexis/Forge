@@ -116,18 +116,18 @@ function itemScopeLabel(scope: ExpressionScope) {
 .variable-picker {
   width: min(420px, calc(100vw - 32px));
   overflow: hidden;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
-  box-shadow: var(--sailor-shadow-xl);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
+  box-shadow: var(--fabric-shadow-xl);
 }
 
 .variable-picker__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .variable-picker__title,
@@ -139,39 +139,39 @@ function itemScopeLabel(scope: ExpressionScope) {
 }
 
 .variable-picker__title {
-  gap: var(--sailor-space-2);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
-  color: var(--sailor-text-primary);
+  gap: var(--fabric-space-2);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
+  color: var(--fabric-text-primary);
 }
 
 .variable-picker__tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 2px;
-  padding: var(--sailor-space-2);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-2);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .variable-picker__tab {
   justify-content: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   height: 28px;
   border: 1px solid transparent;
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .variable-picker__tab--active {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-overlay);
-  color: var(--sailor-text-primary);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-overlay);
+  color: var(--fabric-text-primary);
 }
 
 .variable-picker__search {
-  padding: var(--sailor-space-2);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-2);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .variable-picker__list {
@@ -179,28 +179,28 @@ function itemScopeLabel(scope: ExpressionScope) {
   flex-direction: column;
   max-height: 280px;
   overflow-y: auto;
-  padding: var(--sailor-space-2);
+  padding: var(--fabric-space-2);
   gap: 2px;
 }
 
 .variable-picker__item {
   width: 100%;
   min-width: 0;
-  gap: var(--sailor-space-2);
-  padding: var(--sailor-space-2);
-  border-radius: var(--sailor-radius-sm);
+  gap: var(--fabric-space-2);
+  padding: var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
   text-align: left;
 }
 
 .variable-picker__item:hover,
 .variable-picker__item:focus-visible {
-  background: var(--sailor-bg-overlay);
+  background: var(--fabric-bg-overlay);
   outline: none;
 }
 
 .variable-picker__item-icon {
   flex-shrink: 0;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .variable-picker__item-main {
@@ -213,16 +213,16 @@ function itemScopeLabel(scope: ExpressionScope) {
 
 .variable-picker__item-name {
   overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-primary);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .variable-picker__item-preview {
   overflow: hidden;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -237,9 +237,9 @@ function itemScopeLabel(scope: ExpressionScope) {
   max-width: 88px;
   overflow: hidden;
   padding: 2px 6px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-full);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-full);
+  color: var(--fabric-text-muted);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -258,13 +258,13 @@ function itemScopeLabel(scope: ExpressionScope) {
 }
 
 .variable-picker__badge--type {
-  background: var(--sailor-bg-base);
+  background: var(--fabric-bg-base);
 }
 
 .variable-picker__empty {
-  padding: var(--sailor-space-4);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-4);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   text-align: center;
 }
 </style>

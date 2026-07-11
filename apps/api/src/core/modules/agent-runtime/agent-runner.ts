@@ -12,10 +12,10 @@ import {
   type AgentModelProvider,
 } from "./model-provider-registry.ts";
 import { AgentToolRegistry } from "./agent-tool-registry.ts";
-import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import { PluginExecutor } from "../plugins/executor.ts";
-import { sailorHomePaths } from "../../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../../runtime/fabric-home.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
@@ -80,11 +80,11 @@ interface GraphTool {
   pluginId?: string;
   pluginName?: string;
   methodId?: string;
-  sideEffect?: SailorAgentToolDefinition["sideEffect"];
+  sideEffect?: FabricAgentToolDefinition["sideEffect"];
   requiresApproval: boolean;
   inputSchema: Record<string, any>;
   timeoutMs: number;
-  selection?: SailorAgentToolDefinition["selection"];
+  selection?: FabricAgentToolDefinition["selection"];
   invoke(args: unknown): Promise<unknown>;
 }
 
@@ -196,7 +196,7 @@ export class AgentRunner {
     }
   }
 
-  listTools(): SailorAgentToolDefinition[] {
+  listTools(): FabricAgentToolDefinition[] {
     return this.toolRegistry.listAvailableTools();
   }
 
@@ -259,7 +259,7 @@ export class AgentRunner {
   private createGraphTools(
     input: AgentRunInput,
     configs: AgentToolConfig[],
-    definitions: SailorAgentToolDefinition[],
+    definitions: FabricAgentToolDefinition[],
   ): GraphTool[] {
     let pluginIndex = 0;
     return configs.map((config) => {
@@ -587,13 +587,13 @@ function formatConfiguredToolsAnswer(tools: Array<Pick<GraphTool, "name" | "desc
 function resolveAgentFileCacheDir(input: AgentRunInput): string {
   if (input.sessionId) {
     return resolveAgentChatFileCacheDir({
-      profilesDir: sailorHomePaths.profilesDir,
+      profilesDir: fabricHomePaths.profilesDir,
       profileId: input.profileId,
       chatId: input.sessionId,
     });
   }
   return resolveAgentExecutionFileCacheDir({
-    profilesDir: sailorHomePaths.profilesDir,
+    profilesDir: fabricHomePaths.profilesDir,
     profileId: input.profileId,
     executionId: input.executionId,
   });

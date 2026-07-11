@@ -40,7 +40,7 @@ describe('workflow canvas handles contract', () => {
     assert.match(source, /@pointerdown\.stop\.prevent/)
     assert.match(source, /data-workflow-handle-id/)
     assert.match(source, /data-workflow-node-id/)
-    assert.match(source, /sailor-base-handle__visual/)
+    assert.match(source, /fabric-base-handle__visual/)
     assert.match(source, /is-variant-bar/)
     assert.match(source, /is-variant-diamond/)
     assert.doesNotMatch(source, /@vue-flow\/core/)

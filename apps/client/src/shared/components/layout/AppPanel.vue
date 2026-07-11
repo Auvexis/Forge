@@ -156,10 +156,10 @@ onBeforeUnmount(() => {
 <style scoped>
 .app-panel {
   position: absolute;
-  z-index: var(--sailor-z-raised);
+  z-index: var(--fabric-z-raised);
   display: flex;
   flex-direction: column;
-  background-color: var(--sailor-bg-surface);
+  background-color: var(--fabric-bg-surface);
 }
 
 .app-panel--resizing,
@@ -175,7 +175,7 @@ onBeforeUnmount(() => {
 
 .app-panel__resize-handle:hover,
 .app-panel--resizing .app-panel__resize-handle {
-  background: color-mix(in srgb, var(--sailor-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--fabric-accent) 28%, transparent);
 }
 
 .app-panel__resize-handle--top,
@@ -216,7 +216,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   border-top: 0;
-  border-left: 1px solid var(--sailor-border);
+  border-left: 1px solid var(--fabric-border);
   border-right: 0;
   border-bottom: 0;
 }
@@ -225,7 +225,7 @@ onBeforeUnmount(() => {
   top: 0;
   left: 0;
   bottom: 0;
-  border-right: 1px solid var(--sailor-border);
+  border-right: 1px solid var(--fabric-border);
   border-top: 0;
   border-left: 0;
   border-bottom: 0;
@@ -236,7 +236,7 @@ onBeforeUnmount(() => {
   right: 0;
   bottom: 0;
   height: var(--app-panel-resized-height, 300px);
-  border-top: 1px solid var(--sailor-border);
+  border-top: 1px solid var(--fabric-border);
   border-left: 0;
   border-right: 0;
   border-bottom: 0;
@@ -245,11 +245,11 @@ onBeforeUnmount(() => {
 /* ── Widths (for left/right) ───────────────────── */
 .app-panel--right.app-panel--md,
 .app-panel--left.app-panel--md {
-  width: var(--app-panel-resized-width, var(--sailor-panel-width));
+  width: var(--app-panel-resized-width, var(--fabric-panel-width));
 }
 .app-panel--right.app-panel--lg,
 .app-panel--left.app-panel--lg {
-  width: var(--app-panel-resized-width, var(--sailor-panel-width-wide));
+  width: var(--app-panel-resized-width, var(--fabric-panel-width-wide));
 }
 .app-panel--right.app-panel--xl,
 .app-panel--left.app-panel--xl {
@@ -262,21 +262,21 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   height: 56px;
-  padding: 0 var(--sailor-space-4);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: 0 var(--fabric-space-4);
+  border-bottom: 1px solid var(--fabric-border);
   flex-shrink: 0;
 }
 
 .app-panel__title {
-  font-size: var(--sailor-text-base);
-  font-weight: var(--sailor-font-semibold);
+  font-size: var(--fabric-text-base);
+  font-weight: var(--fabric-font-semibold);
   margin: 0;
 }
 
 .app-panel__actions {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .app-panel__close {
@@ -285,14 +285,14 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
-  transition: background-color var(--sailor-duration-fast);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-secondary);
+  transition: background-color var(--fabric-duration-fast);
 }
 
 .app-panel__close:hover {
-  background-color: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary);
+  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-text-primary);
 }
 
 .app-panel__body {
@@ -302,9 +302,9 @@ onBeforeUnmount(() => {
 }
 
 .app-panel__footer {
-  padding: var(--sailor-space-4);
-  border-top: 1px solid var(--sailor-border);
-  background-color: var(--sailor-bg-elevated);
+  padding: var(--fabric-space-4);
+  border-top: 1px solid var(--fabric-border);
+  background-color: var(--fabric-bg-elevated);
   flex-shrink: 0;
 }
 </style>

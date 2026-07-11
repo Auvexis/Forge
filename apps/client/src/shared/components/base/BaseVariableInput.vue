@@ -176,47 +176,47 @@ defineOptions({ inheritAttrs: false })
 .base-variable-input-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   width: 100%;
 }
 
 .base-variable-input-wrapper__label {
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
+  color: var(--fabric-text-secondary);
 }
 
 .required {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .base-variable-input-container {
   display: flex;
   align-items: center;
   position: relative;
-  background-color: var(--sailor-input-bg);
-  border: 1px solid var(--sailor-input-border);
-  border-radius: var(--sailor-radius-sm, 6px);
-  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  background-color: var(--fabric-input-bg);
+  border: 1px solid var(--fabric-input-border);
+  border-radius: var(--fabric-radius-sm, 6px);
+  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   width: 100%;
 }
 
 .base-variable-input-container:focus-within {
-  border-color: var(--sailor-input-border-focus);
+  border-color: var(--fabric-input-border-focus);
 }
 
 .base-variable-input-container--error {
-  border-color: var(--sailor-input-error-border);
+  border-color: var(--fabric-input-error-border);
 }
 
 .base-variable-input-container--error:focus-within {
-  box-shadow: 0 0 0 1px var(--sailor-input-error-border);
+  box-shadow: 0 0 0 1px var(--fabric-input-error-border);
 }
 
 .base-variable-input-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--sailor-input-disabled-bg);
+  background-color: var(--fabric-input-disabled-bg);
 }
 
 .base-variable-input {
@@ -227,14 +227,14 @@ defineOptions({ inheritAttrs: false })
   background: transparent;
   border: none;
   outline: none;
-  color: var(--sailor-input-text);
-  font-size: var(--sailor-text-sm);
-  padding: 0 var(--sailor-space-3);
+  color: var(--fabric-input-text);
+  font-size: var(--fabric-text-sm);
+  padding: 0 var(--fabric-space-3);
   font-family: inherit;
 }
 
 .base-variable-input::placeholder {
-  color: var(--sailor-input-placeholder);
+  color: var(--fabric-input-placeholder);
 }
 
 .base-variable-input.has-left-icon {
@@ -252,8 +252,8 @@ defineOptions({ inheritAttrs: false })
 .base-variable-input--textarea {
   min-height: 80px;
   height: auto;
-  padding-top: var(--sailor-space-2);
-  padding-bottom: var(--sailor-space-2);
+  padding-top: var(--fabric-space-2);
+  padding-bottom: var(--fabric-space-2);
   line-height: 1.5;
   resize: vertical;
 }
@@ -263,7 +263,7 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   width: 36px;
   height: 100%;
   pointer-events: none;
@@ -290,14 +290,14 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-variable-input-wrapper__error {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-error);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-error);
   margin-top: 2px;
 }
 
 .base-variable-input-wrapper__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   margin-top: 2px;
 }
 </style>

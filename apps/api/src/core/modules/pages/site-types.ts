@@ -10,7 +10,7 @@ export interface SiteFile {
   updatedAt: string;
 }
 
-export interface SailorSite {
+export interface FabricSite {
   id: string;
   publicId: string;
   profileId: string;

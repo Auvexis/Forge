@@ -120,14 +120,14 @@ function uploadFile(index: number, event: Event) {
 .file-dataset-files {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .file-dataset-files__row,
 .file-dataset-files__input {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .file-dataset-files__input {
@@ -145,7 +145,7 @@ function uploadFile(index: number, event: Event) {
   flex: 1;
   min-width: 0;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .file-dataset-files__uploaded span {
@@ -159,10 +159,10 @@ function uploadFile(index: number, event: Event) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-muted);
-  background: var(--sailor-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-muted);
+  background: var(--fabric-bg-surface);
   cursor: pointer;
 }
 
@@ -174,8 +174,8 @@ function uploadFile(index: number, event: Event) {
 
 .file-dataset-files__button:hover,
 .file-dataset-files__add:hover {
-  color: var(--sailor-text-primary);
-  background: var(--sailor-bg-surface-hover);
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-surface-hover);
 }
 
 .file-dataset-files__button--remove:hover {

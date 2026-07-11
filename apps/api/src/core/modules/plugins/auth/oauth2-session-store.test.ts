@@ -38,7 +38,7 @@ describe("OAuth2SessionStore", () => {
     store.save({
       state: "state-123",
       pluginId: "demo",
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
       codeVerifier: "verifier",
       ttlMs: 60_000,
     });
@@ -46,7 +46,7 @@ describe("OAuth2SessionStore", () => {
     assert.deepEqual(store.consume("state-123"), {
       state: "state-123",
       pluginId: "demo",
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
       codeVerifier: "verifier",
       createdAt: 1_000,
       expiresAt: 61_000,
@@ -61,7 +61,7 @@ describe("OAuth2SessionStore", () => {
     store.save({
       state: "state-123",
       pluginId: "demo",
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
       ttlMs: 60_000,
     });
 
@@ -77,7 +77,7 @@ describe("OAuth2SessionStore", () => {
     store.save({
       state: "state-123",
       pluginId: "demo",
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
       ttlMs: -1,
     });
 
@@ -93,7 +93,7 @@ describe("OAuth2SessionStore", () => {
     oauth2SessionStore.save({
       state: "state-a",
       pluginId: "github",
-      redirectUri: "https://sailor.example/a",
+      redirectUri: "https://fabric.example/a",
       ttlMs: 60_000,
     });
 
@@ -102,15 +102,15 @@ describe("OAuth2SessionStore", () => {
     oauth2SessionStore.save({
       state: "state-b",
       pluginId: "github",
-      redirectUri: "https://sailor.example/b",
+      redirectUri: "https://fabric.example/b",
       ttlMs: 60_000,
     });
 
     setOAuth2SessionDatabaseProvider(() => profileA);
-    assert.equal(oauth2SessionStore.consume("state-a")?.redirectUri, "https://sailor.example/a");
+    assert.equal(oauth2SessionStore.consume("state-a")?.redirectUri, "https://fabric.example/a");
 
     setOAuth2SessionDatabaseProvider(() => profileB);
-    assert.equal(oauth2SessionStore.consume("state-b")?.redirectUri, "https://sailor.example/b");
+    assert.equal(oauth2SessionStore.consume("state-b")?.redirectUri, "https://fabric.example/b");
 
     profileA.close();
     profileB.close();

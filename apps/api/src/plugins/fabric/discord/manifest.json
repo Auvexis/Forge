@@ -1,0 +1,801 @@
+{
+  "metadata": {
+    "id": "discord",
+    "name": "Discord",
+    "description": "Send, edit, delete, fetch, and react to Discord messages with a bot token.",
+    "icon": "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/discord.svg",
+    "categories": [
+      "Apps"
+    ],
+    "author": "Fabric",
+    "version": "1.0.0",
+    "repository": "https://github.com/Auvexis/fabric"
+  },
+  "methods": {
+    "sendMessage": {
+      "metadata": {
+        "label": "Send Message",
+        "description": "Sends a message to a Discord channel."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "content": {
+            "type": "string",
+            "description": "Message content.",
+            "x-label": "Message",
+            "x-input-type": "textarea"
+          },
+          "tts": {
+            "type": "boolean",
+            "description": "Send as text-to-speech.",
+            "default": false,
+            "x-label": "Text To Speech",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "channelId",
+          "content"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "channel_id": {
+            "type": "string",
+            "x-label": "Channel ID"
+          },
+          "content": {
+            "type": "string",
+            "x-label": "Content"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_send_message",
+        "description": "Sends a message to a Discord channel.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "editMessage": {
+      "metadata": {
+        "label": "Edit Message",
+        "description": "Edits an existing Discord message sent by the bot."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Discord message ID.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "content": {
+            "type": "string",
+            "description": "New message content.",
+            "x-label": "Message",
+            "x-input-type": "textarea"
+          }
+        },
+        "required": [
+          "channelId",
+          "messageId",
+          "content"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "content": {
+            "type": "string",
+            "x-label": "Content"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_edit_message",
+        "description": "Edits an existing Discord message sent by the bot.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "deleteMessage": {
+      "metadata": {
+        "label": "Delete Message",
+        "description": "Deletes a Discord message. Requires explicit confirmation."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Discord message ID.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "confirm": {
+            "type": "boolean",
+            "description": "Must be enabled to delete the message.",
+            "default": false,
+            "x-label": "Confirm Delete",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "channelId",
+          "messageId",
+          "confirm"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "Deleted"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_delete_message",
+        "description": "Deletes a Discord message. Requires explicit confirmation.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "getMessage": {
+      "metadata": {
+        "label": "Get Message",
+        "description": "Fetches a Discord message by channel and message ID."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Discord message ID.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channelId",
+          "messageId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Message ID"
+          },
+          "content": {
+            "type": "string",
+            "x-label": "Content"
+          },
+          "author": {
+            "type": "object",
+            "x-label": "Author"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_get_message",
+        "description": "Fetches a Discord message by channel and message ID.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "listChannelMessages": {
+      "metadata": {
+        "label": "List Channel Messages",
+        "description": "Lists recent Discord messages in a channel."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Maximum number of messages, capped at 100.",
+            "default": 50,
+            "minimum": 1,
+            "maximum": 100,
+            "x-label": "Limit",
+            "x-input-type": "number"
+          },
+          "before": {
+            "type": "string",
+            "description": "Return messages before this message ID.",
+            "x-label": "Before Message ID",
+            "x-input-type": "text"
+          },
+          "after": {
+            "type": "string",
+            "description": "Return messages after this message ID.",
+            "x-label": "After Message ID",
+            "x-input-type": "text"
+          },
+          "around": {
+            "type": "string",
+            "description": "Return messages around this message ID.",
+            "x-label": "Around Message ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channelId"
+        ]
+      },
+      "responseSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "x-label": "Message ID"
+            },
+            "content": {
+              "type": "string",
+              "x-label": "Content"
+            }
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_list_channel_messages",
+        "description": "Lists recent Discord messages in a channel.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    },
+    "createThread": {
+      "metadata": {
+        "label": "Create Thread",
+        "description": "Creates a Discord thread from a channel or existing message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Optional message ID to start a thread from.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "name": {
+            "type": "string",
+            "description": "Thread name.",
+            "x-label": "Thread Name",
+            "x-input-type": "text"
+          },
+          "autoArchiveDuration": {
+            "type": "number",
+            "description": "Auto archive duration in minutes.",
+            "default": 1440,
+            "x-label": "Auto Archive Minutes",
+            "x-input-type": "number"
+          },
+          "type": {
+            "type": "number",
+            "description": "Discord channel type for channel-based thread creation.",
+            "x-label": "Thread Type",
+            "x-input-type": "number"
+          },
+          "invitable": {
+            "type": "boolean",
+            "description": "Whether non-moderators can invite others to a private thread.",
+            "default": true,
+            "x-label": "Invitable",
+            "x-input-type": "toggle"
+          }
+        },
+        "required": [
+          "channelId",
+          "name"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "x-label": "Thread ID"
+          },
+          "name": {
+            "type": "string",
+            "x-label": "Name"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_create_thread",
+        "description": "Creates a Discord thread from a channel or existing message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "addReaction": {
+      "metadata": {
+        "label": "Add Reaction",
+        "description": "Adds a reaction emoji to a Discord message."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string",
+            "description": "Discord channel ID.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Discord message ID.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Emoji name or encoded custom emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "channelId",
+          "messageId",
+          "emoji"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "x-label": "Added"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_add_reaction",
+        "description": "Adds a reaction emoji to a Discord message.",
+        "sideEffect": "external-message",
+        "requiresApproval": true,
+        "timeoutMs": 30000
+      }
+    },
+    "getGuildMember": {
+      "metadata": {
+        "label": "Get Guild Member",
+        "description": "Fetches a Discord guild member by guild and user ID."
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Discord guild/server ID.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Discord user ID.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          }
+        },
+        "required": [
+          "guildId",
+          "userId"
+        ]
+      },
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "user": {
+            "type": "object",
+            "x-label": "User"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "x-label": "Roles"
+          }
+        }
+      },
+      "agentTool": {
+        "enabled": true,
+        "name": "discord_get_guild_member",
+        "description": "Fetches a Discord guild member by guild and user ID.",
+        "sideEffect": "read",
+        "requiresApproval": false,
+        "timeoutMs": 30000
+      }
+    }
+  },
+  "triggers": {
+    "onMessage": {
+      "metadata": {
+        "label": "On Message",
+        "description": "Triggers when Discord sends a message event to this workflow."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Only accept events from this Discord guild/server ID. Leave empty for any guild.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Only accept events related to this message ID. Leave empty for any message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Only accept this emoji/reaction value. Leave empty for any emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onSlashCommand": {
+      "metadata": {
+        "label": "On Slash Command",
+        "description": "Triggers when Discord sends a slash command interaction."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Only accept events from this Discord guild/server ID. Leave empty for any guild.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Only accept events related to this message ID. Leave empty for any message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Only accept this emoji/reaction value. Leave empty for any emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    },
+    "onReaction": {
+      "metadata": {
+        "label": "On Reaction",
+        "description": "Triggers when Discord sends a message reaction event."
+      },
+      "delivery": {
+        "mode": "webhook",
+        "requiresPublicUrl": true
+      },
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "guildId": {
+            "type": "string",
+            "description": "Only accept events from this Discord guild/server ID. Leave empty for any guild.",
+            "x-label": "Guild ID",
+            "x-input-type": "text"
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Only accept events from this channel/chat/conversation ID. Leave empty for any channel.",
+            "x-label": "Channel ID",
+            "x-input-type": "text"
+          },
+          "userId": {
+            "type": "string",
+            "description": "Only accept events created by this user ID. Leave empty for any user.",
+            "x-label": "User ID",
+            "x-input-type": "text"
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Only accept events related to this message ID. Leave empty for any message.",
+            "x-label": "Message ID",
+            "x-input-type": "text"
+          },
+          "messageContains": {
+            "type": "string",
+            "description": "Only accept events whose text contains this value, case-insensitive.",
+            "x-label": "Message Contains",
+            "x-input-type": "text"
+          },
+          "messageRegex": {
+            "type": "string",
+            "description": "Only accept events whose text matches this regular expression. Invalid regex ignores the event.",
+            "x-label": "Message Regex",
+            "x-input-type": "text"
+          },
+          "commandName": {
+            "type": "string",
+            "description": "Only accept this command name. Example: /deploy or deploy.",
+            "x-label": "Command Name",
+            "x-input-type": "text"
+          },
+          "emoji": {
+            "type": "string",
+            "description": "Only accept this emoji/reaction value. Leave empty for any emoji.",
+            "x-label": "Emoji",
+            "x-input-type": "text"
+          },
+          "ignoreBots": {
+            "type": "boolean",
+            "description": "Ignore events created by bots when the provider exposes bot metadata.",
+            "default": true,
+            "x-label": "Ignore Bots",
+            "x-input-type": "toggle"
+          }
+        }
+      },
+      "payloadSchema": {
+        "type": "object",
+        "properties": {
+          "eventId": {
+            "type": "string",
+            "description": "Provider event identifier."
+          },
+          "messageId": {
+            "type": "string",
+            "description": "Provider message identifier."
+          },
+          "channelId": {
+            "type": "string",
+            "description": "Conversation, chat, or channel identifier."
+          },
+          "userId": {
+            "type": "string",
+            "description": "User identifier that caused the event."
+          },
+          "text": {
+            "type": "string",
+            "description": "Text content when available."
+          },
+          "command": {
+            "type": "string",
+            "description": "Command name when available."
+          },
+          "raw": {
+            "type": "object",
+            "description": "Original provider payload."
+          }
+        },
+        "required": [
+          "eventId"
+        ]
+      }
+    }
+  }
+}

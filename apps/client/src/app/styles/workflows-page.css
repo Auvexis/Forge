@@ -11,10 +11,10 @@
   align-items: center;
   gap: 6px;
   padding: 4px 8px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   border: 1px solid transparent;
   background: transparent;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   cursor: pointer;
 }
 
@@ -24,18 +24,18 @@
 }
 
 .brand-badge__title {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   font-weight: 500;
 }
 
 .brand-badge__count {
   font-size: 10px;
   font-weight: 600;
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   padding: 1px 5px;
   border-radius: 99px;
-  background: var(--sailor-bg-muted);
-  color: var(--sailor-text-muted);
+  background: var(--fabric-bg-muted);
+  color: var(--fabric-text-muted);
   line-height: 1.4;
 }
 
@@ -52,17 +52,17 @@
   gap: 6px;
   padding: 6px 10px;
   margin: 4px 6px;
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-muted);
-  border: 1px solid var(--sailor-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-muted);
+  border: 1px solid var(--fabric-border);
 }
 
 /* ── Empty state ───────────────────────────────────────────────────────────── */
 
 .dock-empty {
   padding: 8px 12px;
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   font-style: italic;
 }
 
@@ -71,7 +71,7 @@
 .dock-divider {
   width: 1px;
   height: 16px;
-  background: var(--sailor-border);
+  background: var(--fabric-border);
   flex-shrink: 0;
 }
 
@@ -82,28 +82,28 @@
   align-items: center;
   gap: 5px;
   padding: 3px 8px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   border: 1px solid;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   font-weight: 500;
 }
 
 .last-run--success {
-  background: var(--sailor-status-success-bg);
-  border-color: var(--sailor-status-success-border);
-  color: var(--sailor-status-success-text);
+  background: var(--fabric-status-success-bg);
+  border-color: var(--fabric-status-success-border);
+  color: var(--fabric-status-success-text);
 }
 
 .last-run--running {
-  background: var(--sailor-status-running-bg);
-  border-color: var(--sailor-status-running-border);
-  color: var(--sailor-status-running-text);
+  background: var(--fabric-status-running-bg);
+  border-color: var(--fabric-status-running-border);
+  color: var(--fabric-status-running-text);
 }
 
 .last-run--error {
-  background: var(--sailor-status-error-bg);
-  border-color: var(--sailor-status-error-border);
-  color: var(--sailor-status-error-text);
+  background: var(--fabric-status-error-bg);
+  border-color: var(--fabric-status-error-border);
+  color: var(--fabric-status-error-text);
 }
 
 /* ── View mode toggle ──────────────────────────────────────────────────────── */
@@ -113,9 +113,9 @@
   align-items: center;
   gap: 2px;
   padding: 2px;
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-muted);
-  border: 1px solid var(--sailor-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-muted);
+  border: 1px solid var(--fabric-border);
 }
 
 .view-toggle__btn {
@@ -124,24 +124,24 @@
   justify-content: center;
   width: 26px;
   height: 22px;
-  border-radius: calc(var(--sailor-radius-sm) - 2px);
+  border-radius: calc(var(--fabric-radius-sm) - 2px);
   border: none;
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   transition:
-    background var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    background var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .view-toggle__btn:hover {
-  color: var(--sailor-text-primary);
-  background: var(--sailor-bg-surface);
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-surface);
 }
 
 .view-toggle__btn--active {
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
@@ -186,21 +186,21 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 2px 6px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   line-height: 1;
 }
 
 .workflow-badge--draft {
-  background: var(--sailor-status-draft-bg);
-  color: var(--sailor-status-draft-text);
+  background: var(--fabric-status-draft-bg);
+  color: var(--fabric-status-draft-text);
 }
 
 .workflow-badge--published {
-  background: var(--sailor-status-success-bg);
-  color: var(--sailor-status-success-text);
+  background: var(--fabric-status-success-bg);
+  color: var(--fabric-status-success-text);
 }
 
 .workflow-badge--inactive {
-  background: var(--sailor-status-inactive-bg);
-  color: var(--sailor-status-inactive-text);
+  background: var(--fabric-status-inactive-bg);
+  color: var(--fabric-status-inactive-text);
 }

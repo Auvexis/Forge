@@ -30,7 +30,7 @@ const selectedDetail = computed(() => selectedRun.value ? buildExecutionRunDetai
 }) : null)
 
 const TRIGGER_PRESENTATION: Record<string, ExecutionNodePresentation> = {
-  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--sailor-text-primary)' },
+  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--fabric-text-primary)' },
   webhook: { icon: 'webhook', iconColor: 'rgb(16, 185, 129)' },
   cron: { icon: 'clock', iconColor: 'rgb(138, 82, 255)' },
   form: { icon: 'clipboard-list', iconColor: 'rgb(236, 72, 153)' },
@@ -55,7 +55,7 @@ function presentationFor(
     const metadata = plugin.manifest.metadata
     return {
       icon: resolvePluginIcon(metadata, { isDark: isDark.value, fallback: node.ui?.icon ?? 'box' }),
-      iconColor: metadata.style?.iconColor ?? 'var(--sailor-node-plugin-icon)',
+      iconColor: metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)',
     }
   }
 
@@ -108,8 +108,8 @@ watch([() => props.workflow, isDark], loadNodePresentations, { immediate: true }
 
 <style scoped>
 .execution-run-explorer { position: relative; height: 100%; min-height: 0; overflow: hidden; }
-.execution-run-explorer__detail { position: absolute; inset: 0; z-index: 1; box-shadow: -12px 0 28px color-mix(in srgb, var(--sailor-bg-base) 55%, transparent); }
-.execution-run-slide-enter-active { transition: transform var(--sailor-duration-slow) var(--sailor-ease-decelerate), opacity var(--sailor-duration-base) var(--sailor-ease-standard); }
-.execution-run-slide-leave-active { transition: transform var(--sailor-duration-base) var(--sailor-ease-accelerate), opacity var(--sailor-duration-fast) var(--sailor-ease-standard); }
+.execution-run-explorer__detail { position: absolute; inset: 0; z-index: 1; box-shadow: -12px 0 28px color-mix(in srgb, var(--fabric-bg-base) 55%, transparent); }
+.execution-run-slide-enter-active { transition: transform var(--fabric-duration-slow) var(--fabric-ease-decelerate), opacity var(--fabric-duration-base) var(--fabric-ease-standard); }
+.execution-run-slide-leave-active { transition: transform var(--fabric-duration-base) var(--fabric-ease-accelerate), opacity var(--fabric-duration-fast) var(--fabric-ease-standard); }
 .execution-run-slide-enter-from, .execution-run-slide-leave-to { opacity: 0; transform: translateX(100%); }
 </style>

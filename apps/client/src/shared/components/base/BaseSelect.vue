@@ -50,7 +50,7 @@
             <LucideIcon v-if="option.icon" :name="option.icon" :size="16" class="option-icon text-muted" />
             <img v-else-if="option.image" :src="option.image" class="option-image" />
             <span class="truncate">{{ option.label }}</span>
-            <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-sailor-accent" />
+            <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-fabric-accent" />
           </div>
           <div v-if="!options.length" class="base-select-empty" style="position: relative; z-index: 1;">
             No options available
@@ -186,29 +186,29 @@ defineOptions({ inheritAttrs: false })
 .base-select-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   width: 100%;
   position: relative;
 }
 
 .base-input-wrapper__label {
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
+  color: var(--fabric-text-secondary);
 }
 
 .required {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .base-select-container {
   display: flex;
   align-items: center;
   position: relative;
-  background-color: var(--sailor-bg-overlay);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  transition: all var(--sailor-duration-fast) var(--sailor-ease-standard);
+  background-color: var(--fabric-bg-overlay);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   width: 100%;
   min-height: 36px;
   cursor: pointer;
@@ -216,31 +216,31 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-select-container--error {
-  border-color: var(--sailor-red-500);
+  border-color: var(--fabric-red-500);
 }
 .base-select-container--error.base-select-container--open {
-  box-shadow: 0 0 0 1px var(--sailor-red-500);
+  box-shadow: 0 0 0 1px var(--fabric-red-500);
 }
 
 .base-select-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--sailor-bg-muted);
+  background-color: var(--fabric-bg-muted);
 }
 
 .base-select-trigger {
   flex: 1;
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
-  padding: 0 var(--sailor-space-8) 0 var(--sailor-space-3);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  padding: 0 var(--fabric-space-8) 0 var(--fabric-space-3);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .placeholder {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .base-select__icon {
@@ -249,7 +249,7 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   width: 36px;
   height: 100%;
   pointer-events: none;
@@ -264,11 +264,11 @@ defineOptions({ inheritAttrs: false })
 .base-select-dropdown {
   max-height: 240px;
   overflow-y: auto;
-  background-color: var(--sailor-bg-elevated);
-  border: 1px solid var(--sailor-border-strong);
-  border-radius: var(--sailor-radius-sm);
-  box-shadow: var(--sailor-shadow-lg);
-  gap: var(--sailor-space-1);
+  background-color: var(--fabric-bg-elevated);
+  border: 1px solid var(--fabric-border-strong);
+  border-radius: var(--fabric-radius-sm);
+  box-shadow: var(--fabric-shadow-lg);
+  gap: var(--fabric-space-1);
   z-index: 50;
   display: flex;
   flex-direction: column;
@@ -280,33 +280,33 @@ defineOptions({ inheritAttrs: false })
   z-index: 1;
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   padding: 8px 12px;
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-primary);
-  border-radius: var(--sailor-radius-sm);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-primary);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
   cursor: pointer;
   transition:
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .base-select-option:hover {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-button-ghost-hover-text);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-button-ghost-hover-text);
 }
 
 .base-select-option--selected {
-  background: var(--sailor-button-ghost-active);
-  color: var(--sailor-button-ghost-active-text);
+  background: var(--fabric-button-ghost-active);
+  color: var(--fabric-button-ghost-active-text);
 }
 
 .base-select-empty {
   padding: 12px;
   text-align: center;
-  font-size: var(--sailor-text-sm);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-sm);
+  color: var(--fabric-text-muted);
 }
 
 /* Icons & Images */
@@ -333,14 +333,14 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-input-wrapper__error {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-error);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-error);
   margin-top: 2px;
 }
 
 .base-input-wrapper__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   margin-top: 2px;
 }
 </style>

@@ -105,12 +105,12 @@ async function confirm() {
 <style scoped>
 .profile-password-dialog__form {
   display: grid;
-  gap: var(--sailor-space-5);
+  gap: var(--fabric-space-5);
 }
 
 .profile-password-dialog__actions {
   display: flex;
   justify-content: flex-end;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 </style>

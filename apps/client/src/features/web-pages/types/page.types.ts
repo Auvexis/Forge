@@ -51,7 +51,7 @@ export interface PageBlock {
   children?: PageBlock[]
 }
 
-export interface SailorPage {
+export interface FabricPage {
   id: string
   profileId: string
   siteId: string
@@ -67,7 +67,7 @@ export interface SailorPage {
   updatedAt: string
 }
 
-export interface SailorPageSummary {
+export interface FabricPageSummary {
   id: string
   title: string
   slug: string
@@ -116,7 +116,7 @@ export interface SiteFile {
   updatedAt: string
 }
 
-export interface SailorSite {
+export interface FabricSite {
   id: string
   publicId: string
   profileId: string
@@ -156,7 +156,7 @@ export interface DeleteSiteFilePayload {
 }
 
 export interface SiteAssetUploadResponse {
-  site: SailorSite
+  site: FabricSite
   asset: SiteFile
 }
 

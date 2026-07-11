@@ -91,7 +91,7 @@ export class PageActionService {
     );
     execution.catch((err: Error) => {
       console.error(
-        `[SAILOR | PAGES]: Workflow action failed for "${workflow.metadata.id}": ${err.message}`,
+        `[FABRIC | PAGES]: Workflow action failed for "${workflow.metadata.id}": ${err.message}`,
       );
     });
 

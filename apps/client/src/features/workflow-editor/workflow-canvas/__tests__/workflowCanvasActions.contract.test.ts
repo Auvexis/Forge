@@ -39,8 +39,8 @@ describe('workflow canvas editor actions contract', () => {
     assert.doesNotMatch(helpers, /@vue-flow\/core/)
   })
 
-  it('delegates public SailorWorkflowCanvas actions directly to WorkflowBaseCanvas', () => {
-    const canvas = readComponent('SailorWorkflowCanvas.vue')
+  it('delegates public FabricWorkflowCanvas actions directly to WorkflowBaseCanvas', () => {
+    const canvas = readComponent('FabricWorkflowCanvas.vue')
 
     assert.match(canvas, /workflowBaseCanvasRef/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.addLogicNodeAtViewportCenter/)
@@ -52,7 +52,7 @@ describe('workflow canvas editor actions contract', () => {
   })
 
   it('opens the floating node picker at an empty canvas context-menu point', () => {
-    const canvas = readComponent('SailorWorkflowCanvas.vue')
+    const canvas = readComponent('FabricWorkflowCanvas.vue')
 
     assert.match(canvas, /@contextmenu="handleCanvasContextMenu"/)
     assert.match(canvas, /function handleCanvasContextMenu\(event: MouseEvent\)/)
@@ -63,7 +63,7 @@ describe('workflow canvas editor actions contract', () => {
   })
 
   it('keeps run, stop, quick-add, and edge quick-add buses available in the BaseCanvas path', () => {
-    const canvas = readComponent('SailorWorkflowCanvas.vue')
+    const canvas = readComponent('FabricWorkflowCanvas.vue')
     const base = readComponent('WorkflowBaseCanvas.vue')
 
     assert.match(canvas, /quickAddAnchorPoint/)
@@ -84,7 +84,7 @@ describe('workflow canvas editor actions contract', () => {
     const base = readComponent('WorkflowBaseCanvas.vue')
     const connectionLayer = readComponent('WorkflowConnectionLayer.vue')
     const preview = readComponent('WorkflowConnectionPreviewLine.vue')
-    const shell = readComponent('SailorWorkflowCanvas.vue')
+    const shell = readComponent('FabricWorkflowCanvas.vue')
 
     assert.match(connectionLayer, /connectionDrop/)
     assert.match(connectionLayer, /!hoveredHandle\.value/)
@@ -96,8 +96,8 @@ describe('workflow canvas editor actions contract', () => {
     assert.match(base, /horizontalGap: -QUICK_ADD_HORIZONTAL_GAP/)
     assert.match(base, /cancelPendingAddNode/)
     assert.match(shell, /cancelPendingAddNode/)
-    assert.match(preview, /stroke: var\(--sailor-rf-edge-stroke-selected\)/)
-    assert.doesNotMatch(preview, /sailor-red/)
+    assert.match(preview, /stroke: var\(--fabric-rf-edge-stroke-selected\)/)
+    assert.doesNotMatch(preview, /fabric-red/)
   })
 
   it('keeps the shared BaseCanvas implementation untouched by workflow editor actions', () => {

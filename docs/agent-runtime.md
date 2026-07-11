@@ -1,6 +1,6 @@
 # Agent Runtime
 
-Sailor Agent Runtime is the core boundary for Chat Trigger, AI Agent nodes, model providers, memory, plugin-backed tools, approvals, and execution traces. The runtime lives under `server/src/core/modules/agent-runtime/` and is the only backend area that should know about LangGraph or LangChain internals.
+Fabric Agent Runtime is the core boundary for Chat Trigger, AI Agent nodes, model providers, memory, plugin-backed tools, approvals, and execution traces. The runtime lives under `server/src/core/modules/agent-runtime/` and is the only backend area that should know about LangGraph or LangChain internals.
 
 ## Architecture Overview
 
@@ -23,7 +23,7 @@ Key backend modules:
 
 - `agent-runner.ts`: validates run input, resolves model/tools/memory, builds the graph, emits events, and handles approval pauses.
 - `agent-graph-builder.ts`: owns the model/tool loop and iteration/tool-call limits.
-- `plugin-tool-adapter.ts`: converts explicit plugin agent metadata into Sailor tool definitions.
+- `plugin-tool-adapter.ts`: converts explicit plugin agent metadata into Fabric tool definitions.
 - `plugin-tool-executor.ts`: validates payload size/depth/key count, enforces approval, timeout, and executes via `PluginExecutor`.
 - `agent-event-bus.ts` and `agent-event-sanitizer.ts`: publish redacted `agent:*` workflow timeline events.
 - `chat/chat-trigger-service.ts`: creates/resumes chat sessions and triggers workflows from chat messages.
@@ -33,7 +33,7 @@ Key backend modules:
 Memory is intentionally split into separate responsibilities:
 
 - Chat message log: user-visible session transcript.
-- LangGraph checkpointer: short-term thread state keyed by Sailor chat session id.
+- LangGraph checkpointer: short-term thread state keyed by Fabric chat session id.
 - Long-term memory store: profile/workflow/user facts saved through policy.
 - Knowledge/RAG store: future extension, not part of this foundation.
 
@@ -92,11 +92,11 @@ The runtime applies defense in depth:
 - Destructive/external/filesystem/payment tools pause for approval.
 - Chat sessions are profile-scoped and must match workflow and trigger ownership.
 - Public chat can enforce origin allowlists and rate limits.
-- Raw LangGraph `thread_id` is not accepted from request bodies; the runtime derives thread identity from the Sailor session id.
+- Raw LangGraph `thread_id` is not accepted from request bodies; the runtime derives thread identity from the Fabric session id.
 
 ## Chat Trigger Sessions
 
-A Chat Trigger is resolved by `chatSlug` from active workflows. On first message, Sailor creates a chat session with profile, workflow, and trigger ownership. Follow-up messages can resume only when the supplied session id belongs to the same profile, workflow, and trigger.
+A Chat Trigger is resolved by `chatSlug` from active workflows. On first message, Fabric creates a chat session with profile, workflow, and trigger ownership. Follow-up messages can resume only when the supplied session id belongs to the same profile, workflow, and trigger.
 
 The trigger payload sent into workflow execution includes:
 
@@ -109,7 +109,7 @@ The trigger payload sent into workflow execution includes:
 - `message`
 - `metadata`
 
-The agent checkpointer uses the validated Sailor `sessionId` as the LangGraph thread id.
+The agent checkpointer uses the validated Fabric `sessionId` as the LangGraph thread id.
 
 ## Published Agent Directory
 
@@ -145,4 +145,4 @@ Trace payloads are capped, collapsible, and redacted. If an agent pauses for app
 - Do not accept raw `thread_id` from clients.
 - Do not log model API keys, credential values, tool secrets, or full oversized payloads.
 - Do not bypass `PluginExecutor` for plugin-backed agent tools.
-- Do not add direct LangGraph concepts to Vue components; frontend should render Sailor contracts only.
+- Do not add direct LangGraph concepts to Vue components; frontend should render Fabric contracts only.

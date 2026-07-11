@@ -10,7 +10,7 @@
  * - All CSS theme switching is done ONLY by toggling the class on <html>.
  *   No Vue component should ever check `isDark` to conditionally apply colors.
  *   Colors are handled 100% by CSS variables in tokens.css.
- * - Preference is persisted in localStorage under 'sailor:theme'.
+ * - Preference is persisted in localStorage under 'fabric:theme'.
  * - A system OS listener auto-updates when mode is 'system'.
  */
 
@@ -18,7 +18,7 @@ import { ref, computed, watchEffect, onUnmounted } from 'vue'
 
 export type ThemeMode = 'dark' | 'light' | 'system'
 
-const STORAGE_KEY = 'sailor:theme'
+const STORAGE_KEY = 'fabric:theme'
 const HTML_EL = typeof document !== 'undefined' ? document.documentElement : null
 
 // ─── Module-level singleton state ─────────────────────────────────────────────

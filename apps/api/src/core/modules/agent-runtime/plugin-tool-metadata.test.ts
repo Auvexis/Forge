@@ -39,7 +39,7 @@ function manifestWithAgentTool(agentToolOverrides: Record<string, unknown> = {})
       description: "GitHub integration.",
       icon: "icon.svg",
       categories: ["Developer"],
-      author: "Sailor",
+      author: "Fabric",
       version: "1.0.0",
     },
     methods: {

@@ -99,24 +99,24 @@ function updateValue(i: number, value: string) {
 .set-assignments {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
-  margin-top: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
+  margin-top: var(--fabric-space-2);
 }
 
 .set-assignment-row {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .set-assignment-key {
   flex: 0 0 38%;
-  font-family: var(--sailor-font-mono, monospace);
-  font-size: var(--sailor-text-xs);
+  font-family: var(--fabric-font-mono, monospace);
+  font-size: var(--fabric-text-xs);
 }
 
 .set-assignment-sep {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -130,46 +130,46 @@ function updateValue(i: number, value: string) {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   padding: 4px;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  transition: color var(--sailor-duration-fast);
+  transition: color var(--fabric-duration-fast);
 }
 
 .set-assignment-remove:hover {
-  color: var(--sailor-danger, #ef4444);
+  color: var(--fabric-danger, #ef4444);
 }
 
 .set-empty-hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   font-style: italic;
-  padding: var(--sailor-space-2) 0;
+  padding: var(--fabric-space-2) 0;
 }
 
 .set-add-btn {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   background: transparent;
-  border: 1px dashed var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  font-size: var(--sailor-text-xs);
+  border: 1px dashed var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  font-size: var(--fabric-text-xs);
   font-family: inherit;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   width: 100%;
   justify-content: center;
-  transition: border-color var(--sailor-duration-fast), color var(--sailor-duration-fast);
+  transition: border-color var(--fabric-duration-fast), color var(--fabric-duration-fast);
 }
 
 .set-add-btn:hover {
-  border-color: var(--sailor-accent);
-  color: var(--sailor-accent);
+  border-color: var(--fabric-accent);
+  color: var(--fabric-accent);
 }
 </style>

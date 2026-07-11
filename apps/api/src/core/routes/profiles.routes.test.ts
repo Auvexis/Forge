@@ -11,8 +11,8 @@ import { ProfileStore } from "../profiles/profile-store.ts";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 
 function createStore(): ProfileStore {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-routes-"));
-  const store = new ProfileStore({ sailorHome: home });
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-routes-"));
+  const store = new ProfileStore({ fabricHome: home });
   store.ensureInitialized();
   return store;
 }

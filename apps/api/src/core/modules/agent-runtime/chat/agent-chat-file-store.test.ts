@@ -7,7 +7,7 @@ import { AgentChatFileStore } from "./agent-chat-file-store.ts";
 
 describe("AgentChatFileStore", () => {
   it("creates, lists, reads, appends and deletes chat files", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-chat-store-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-chat-store-"));
     const store = new AgentChatFileStore({ profilesDir: path.join(root, "profiles") });
 
     const session = store.createSession({
@@ -44,7 +44,7 @@ describe("AgentChatFileStore", () => {
   });
 
   it("orders sessions by updatedAt descending", () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-chat-store-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-chat-store-"));
     const store = new AgentChatFileStore({ profilesDir: path.join(root, "profiles") });
 
     store.createSession(baseSession("chat_old"));

@@ -1,8 +1,8 @@
-FROM node:22-alpine
+﻿FROM node:22-alpine
 
 WORKDIR /app
 
-ENV SAILOR_HOME=/app/.sailor
+ENV FABRIC_HOME=/app/.fabric
 
 COPY package*.json ./
 

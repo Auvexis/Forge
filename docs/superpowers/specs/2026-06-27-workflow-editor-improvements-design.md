@@ -2,7 +2,7 @@
 
 ## Context
 
-Polish the migrated Workflow Editor without regressing Sailor Pages or reintroducing Vue Flow dependencies.
+Polish the migrated Workflow Editor without regressing Fabric Pages or reintroducing Vue Flow dependencies.
 
 ## Batch 1: Catalog And Colors
 
@@ -38,7 +38,7 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 
 ## Safety
 
-- Keep shared BaseCanvas changes generic and covered by Sailor Pages regression tests.
+- Keep shared BaseCanvas changes generic and covered by Fabric Pages regression tests.
 - Make programmatic viewport animation opt-in for Workflow Editor.
 - Use focused TDD and rendered validation for canvas and geometry changes.
 
@@ -64,7 +64,7 @@ Polish the migrated Workflow Editor without regressing Sailor Pages or reintrodu
 - [x] Fix canvas focus and selection gestures.
 - [x] Add pan cursor states.
 - [x] Add opt-in programmatic viewport transitions.
-- [x] Validate Workflow Editor and Sailor Pages.
+- [x] Validate Workflow Editor and Fabric Pages.
 
 ### Batch 4
 

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Add a profile-scoped global notification center for errors, warnings, and informational messages. Toasts remain temporary feedback; relevant toast events are also persisted and available from any Sailor shell.
+Add a profile-scoped global notification center for errors, warnings, and informational messages. Toasts remain temporary feedback; relevant toast events are also persisted and available from any Fabric shell.
 
 Success notifications are not persisted.
 
@@ -44,7 +44,7 @@ The `notifications` table contains:
 - `message`: required description.
 - `source`: optional producer or route identifier.
 - `context_json`: optional structured diagnostic data serialized as JSON.
-- `action_url`: optional internal Sailor route.
+- `action_url`: optional internal Fabric route.
 - `action_label`: optional action text.
 - `is_read`: boolean stored as an integer.
 - `occurrence_count`: number of coalesced occurrences.
@@ -131,7 +131,7 @@ Initial placements are:
 
 - The main Sidebar footer.
 - `AppTopbar`.
-- The Pages editor topbar through `PageChromeToolbar` when the main Sailor shell is hidden.
+- The Pages editor topbar through `PageChromeToolbar` when the main Fabric shell is hidden.
 
 All triggers control one `GlobalNotificationPanel.vue` instance mounted in the global overlay host.
 
@@ -158,7 +158,7 @@ The detail subview enters smoothly from the right and reverses when returning to
 
 ## Styling and Accessibility
 
-The implementation uses Sailor theme variables from `client-vue/src/assets/styles/tokens.css` for colors, spacing, borders, shadows, typography, motion timing, and z-index. It does not introduce hardcoded visual values where an appropriate token exists.
+The implementation uses Fabric theme variables from `client-vue/src/assets/styles/tokens.css` for colors, spacing, borders, shadows, typography, motion timing, and z-index. It does not introduce hardcoded visual values where an appropriate token exists.
 
 The panel supports:
 

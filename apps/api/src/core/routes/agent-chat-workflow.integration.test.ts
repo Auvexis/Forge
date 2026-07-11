@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it } from "node:test";
 import Database from "better-sqlite3";
 import Fastify from "fastify";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 import { createMigrationEngine } from "../database/migration-engine.ts";
 import { resetAppDatabaseProvider, setAppDatabaseProvider } from "../modules/app/app-repository.ts";
 import {
@@ -133,7 +133,7 @@ function createFakeModel() {
   };
 }
 
-function fakeNotesPlugin(): SailorPlugin {
+function fakeNotesPlugin(): FabricPlugin {
   return {
     id: "notes",
     manifest: {
@@ -164,7 +164,7 @@ function fakeNotesPlugin(): SailorPlugin {
     methods: {
       create: async (params: Record<string, any>) => ({ id: "note_1", text: params.text }),
     },
-  } as unknown as SailorPlugin;
+  } as unknown as FabricPlugin;
 }
 
 function agentWorkflow(): WorkflowItem {

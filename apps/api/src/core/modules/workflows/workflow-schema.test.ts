@@ -66,7 +66,7 @@ describe("workflow schema builder", () => {
             description: "Demo",
             icon: "plug",
             categories: ["Core"],
-            author: "Sailor",
+            author: "Fabric",
             version: "1.0.0",
             repository: "",
           },
@@ -86,7 +86,7 @@ describe("workflow schema builder", () => {
 
     assert.equal(schema.nodes.script.nodeLabel, "Code Block");
     assert.equal(schema.nodes.script.nodeIcon, "code-2");
-    assert.equal(schema.nodes.script.nodeStyle.iconColor, "var(--sailor-node-codeblock-icon)");
+    assert.equal(schema.nodes.script.nodeStyle.iconColor, "var(--fabric-node-codeblock-icon)");
     assert.equal(schema.nodes.pluginStep.pluginName, "Demo Plugin");
     assert.equal(schema.nodes.pluginStep.pluginIcon, "plug");
     assert.equal(schema.nodes.pluginStep.nodeStyle, undefined);

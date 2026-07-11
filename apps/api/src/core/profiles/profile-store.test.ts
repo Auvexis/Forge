@@ -7,13 +7,13 @@ import { describe, it } from "node:test";
 import { ProfileStore } from "./profile-store.ts";
 
 function createHome(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-store-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-store-"));
 }
 
 describe("ProfileStore", () => {
   it("bootstraps the default profile on first run", () => {
     const home = createHome();
-    const store = new ProfileStore({ sailorHome: home });
+    const store = new ProfileStore({ fabricHome: home });
 
     store.ensureInitialized();
 
@@ -36,7 +36,7 @@ describe("ProfileStore", () => {
 
   it("persists created profiles and current profile selection", () => {
     const home = createHome();
-    const store = new ProfileStore({ sailorHome: home });
+    const store = new ProfileStore({ fabricHome: home });
     store.ensureInitialized();
 
     const created = store.createProfile({
@@ -47,7 +47,7 @@ describe("ProfileStore", () => {
     });
     store.setCurrentProfile("work");
 
-    const reloaded = new ProfileStore({ sailorHome: home });
+    const reloaded = new ProfileStore({ fabricHome: home });
     assert.equal(created.id, "work");
     assert.equal(reloaded.getCurrentProfile()?.id, "work");
     assert.deepEqual(reloaded.getProfile("work"), {
@@ -60,7 +60,7 @@ describe("ProfileStore", () => {
   });
 
   it("generates opaque hex ids for profiles created without an explicit id", () => {
-    const store = new ProfileStore({ sailorHome: createHome() });
+    const store = new ProfileStore({ fabricHome: createHome() });
     store.ensureInitialized();
 
     const created = store.createProfile({
@@ -74,7 +74,7 @@ describe("ProfileStore", () => {
   });
 
   it("rejects duplicate ids and duplicate display names", () => {
-    const store = new ProfileStore({ sailorHome: createHome() });
+    const store = new ProfileStore({ fabricHome: createHome() });
     store.ensureInitialized();
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
 
@@ -91,7 +91,7 @@ describe("ProfileStore", () => {
   });
 
   it("updates metadata and password metadata without exposing hashes", () => {
-    const store = new ProfileStore({ sailorHome: createHome() });
+    const store = new ProfileStore({ fabricHome: createHome() });
     store.ensureInitialized();
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
 
@@ -126,7 +126,7 @@ describe("ProfileStore", () => {
   });
 
   it("guards switching and deleting profiles", () => {
-    const store = new ProfileStore({ sailorHome: createHome() });
+    const store = new ProfileStore({ fabricHome: createHome() });
     store.ensureInitialized();
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
 

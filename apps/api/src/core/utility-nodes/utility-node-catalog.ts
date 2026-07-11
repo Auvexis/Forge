@@ -1,12 +1,12 @@
 import type { UtilityNodeCatalogItem, UtilityNodeType } from "./utility-node-pack.types.ts";
-import { sailorCoreUtilityNodePack } from "./sailor-core/manifest.ts";
+import { fabricCoreUtilityNodePack } from "./fabric-core/manifest.ts";
 
 export function listUtilityNodeCatalogItems(): UtilityNodeCatalogItem[] {
-  return Object.values(sailorCoreUtilityNodePack.nodes)
+  return Object.values(fabricCoreUtilityNodePack.nodes)
     .map((node) => ({
       ...node,
-      packId: sailorCoreUtilityNodePack.id,
-      packName: sailorCoreUtilityNodePack.name,
+      packId: fabricCoreUtilityNodePack.id,
+      packName: fabricCoreUtilityNodePack.name,
     }))
     .sort((left, right) => {
       const category = left.category.localeCompare(right.category);

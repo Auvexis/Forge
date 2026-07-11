@@ -54,7 +54,7 @@ export const InternalEventBus = {
         executionId,
       ).catch((err: Error) =>
         console.error(
-          `[SAILOR | EVENTS]: Workflow ${workflow.metadata.id}/${triggerNodeId} triggered by "${event.name}" failed: ${err.message}`,
+          `[FABRIC | EVENTS]: Workflow ${workflow.metadata.id}/${triggerNodeId} triggered by "${event.name}" failed: ${err.message}`,
         ),
       );
 
@@ -63,7 +63,7 @@ export const InternalEventBus = {
 
     if (triggered.length > 0) {
       console.log(
-        `[SAILOR | EVENTS]: Event "${event.name}" triggered ${triggered.length} workflow(s): ${triggered.join(", ")}`,
+        `[FABRIC | EVENTS]: Event "${event.name}" triggered ${triggered.length} workflow(s): ${triggered.join(", ")}`,
       );
     }
 

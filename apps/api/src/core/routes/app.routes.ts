@@ -2,7 +2,7 @@ import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { AppRepository } from "../modules/app/app-repository.ts";
 import { ProfileStore } from "../profiles/profile-store.ts";
-import { sailorHomePaths } from "../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../runtime/fabric-home.ts";
 import { z } from "zod";
 
 export interface AppRoutesOptions {
@@ -10,7 +10,7 @@ export interface AppRoutesOptions {
 }
 
 export default async function appRoutes(fastify: FastifyInstance, options: AppRoutesOptions = {}) {
-  const profileStore = options.profileStore ?? new ProfileStore({ sailorHome: sailorHomePaths.home });
+  const profileStore = options.profileStore ?? new ProfileStore({ fabricHome: fabricHomePaths.home });
   /**
    * Helper to send standardized responses with proper HTTP status codes
    */

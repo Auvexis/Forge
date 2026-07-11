@@ -37,7 +37,7 @@ describe('workflow canvas Vue Flow removal contract', () => {
   })
 
   it('uses WorkflowBaseCanvas directly without the migration feature flag', () => {
-    const canvas = read('src/features/workflow-editor/components/SailorWorkflowCanvas.vue')
+    const canvas = read('src/features/workflow-editor/components/FabricWorkflowCanvas.vue')
 
     assert.match(canvas, /<WorkflowBaseCanvas/)
     assert.doesNotMatch(canvas, /shouldUseWorkflowBaseCanvas/)

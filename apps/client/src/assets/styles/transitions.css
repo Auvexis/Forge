@@ -1,12 +1,12 @@
 /* =========================================================
-   SAILOR — Shared Transition Classes
+   FABRIC — Shared Transition Classes
    Used with Vue's <Transition> component.
    ========================================================= */
 
 /* ── Fade ──────────────────────────────────────────────── */
 .fade-enter-active,
 .fade-leave-active {
-  transition: opacity var(--sailor-duration-base) var(--sailor-ease-standard);
+  transition: opacity var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .fade-enter-from,
 .fade-leave-to {
@@ -17,8 +17,8 @@
 .slide-up-enter-active,
 .slide-up-leave-active {
   transition:
-    opacity var(--sailor-duration-slow) var(--sailor-ease-decelerate),
-    transform var(--sailor-duration-slow) var(--sailor-ease-decelerate);
+    opacity var(--fabric-duration-slow) var(--fabric-ease-decelerate),
+    transform var(--fabric-duration-slow) var(--fabric-ease-decelerate);
 }
 .slide-up-enter-from,
 .slide-up-leave-to {
@@ -30,8 +30,8 @@
 .slide-right-enter-active,
 .slide-right-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .slide-right-enter-from,
 .slide-right-leave-to {
@@ -43,8 +43,8 @@
 .slide-left-enter-active,
 .slide-left-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .slide-left-enter-from,
 .slide-left-leave-to {
@@ -56,8 +56,8 @@
 .notification-detail-slide-enter-active,
 .notification-detail-slide-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .notification-detail-slide-enter-from {
   opacity: 0;
@@ -72,8 +72,8 @@
 .notification-panel-top-enter-active,
 .notification-panel-top-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-slow) var(--sailor-ease-decelerate);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-slow) var(--fabric-ease-decelerate);
 }
 .notification-panel-top-enter-from,
 .notification-panel-top-leave-to {
@@ -85,8 +85,8 @@
 .scale-enter-active,
 .scale-leave-active {
   transition:
-    opacity var(--sailor-duration-fast) var(--sailor-ease-standard),
-    transform var(--sailor-duration-fast) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
+    transform var(--fabric-duration-fast) var(--fabric-ease-standard);
   transform-origin: top left;
 }
 .scale-enter-from,
@@ -96,12 +96,12 @@
 }
 
 /* ── Workflow Node Pop In ─────────────────────────────────── */
-.sailor-node-pop-in {
-  animation: sailor-node-pop-in var(--sailor-duration-slow) var(--sailor-ease-standard) both;
+.fabric-node-pop-in {
+  animation: fabric-node-pop-in var(--fabric-duration-slow) var(--fabric-ease-standard) both;
   transform-origin: center center;
 }
 
-@keyframes sailor-node-pop-in {
+@keyframes fabric-node-pop-in {
   0% {
     opacity: 0;
     transform: scale(0.72);
@@ -121,13 +121,13 @@
 /* ── Toast ───────────────────────────────────────────────── */
 .toast-enter-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-decelerate),
-    transform var(--sailor-duration-base) var(--sailor-ease-decelerate);
+    opacity var(--fabric-duration-base) var(--fabric-ease-decelerate),
+    transform var(--fabric-duration-base) var(--fabric-ease-decelerate);
 }
 .toast-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-accelerate),
-    transform var(--sailor-duration-base) var(--sailor-ease-accelerate);
+    opacity var(--fabric-duration-base) var(--fabric-ease-accelerate),
+    transform var(--fabric-duration-base) var(--fabric-ease-accelerate);
 }
 .toast-enter-from {
   opacity: 0;
@@ -138,12 +138,12 @@
   transform: translateY(-8px);
 }
 .toast-move {
-  transition: transform var(--sailor-duration-slow) var(--sailor-ease-standard);
+  transition: transform var(--fabric-duration-slow) var(--fabric-ease-standard);
 }
 
 /* ── Page exit (full-screen fade-out before navigation) ─── */
 .page-exit {
-  animation: page-exit-anim var(--sailor-duration-slow) var(--sailor-ease-accelerate) forwards;
+  animation: page-exit-anim var(--fabric-duration-slow) var(--fabric-ease-accelerate) forwards;
 }
 
 @keyframes page-exit-anim {
@@ -156,7 +156,7 @@
   .notification-detail-slide-leave-active,
   .notification-panel-top-enter-active,
   .notification-panel-top-leave-active {
-    transition: opacity var(--sailor-duration-fast) var(--sailor-ease-standard);
+    transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
   }
 
   .notification-detail-slide-enter-from,

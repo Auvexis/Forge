@@ -3,8 +3,8 @@
 ## Motivo
 - O Workflow Editor ainda depende do Vue Flow para canvas, handles, edges e nodes.
 - O Vue Flow causou bugs de alinhamento entre `BaseEdge`, `BaseHandle`, `BaseNode` e `BaseAdvancedNode`.
-- O `BaseCanvas` criado para Sailor Pages já validou pan, zoom, drag, seleção e grid sem depender do Vue Flow.
-- A migração reduz risco de estagnação da lib externa e centraliza o canvas em código próprio do Sailor.
+- O `BaseCanvas` criado para Fabric Pages já validou pan, zoom, drag, seleção e grid sem depender do Vue Flow.
+- A migração reduz risco de estagnação da lib externa e centraliza o canvas em código próprio do Fabric.
 
 ## Estratégia
 - Usar migração paralela com feature flag.
@@ -13,15 +13,15 @@
 - Remover Vue Flow só depois da paridade visual e funcional.
 - Não modificar comportamento existente do `BaseCanvas`.
 - No máximo adicionar props opcionais ou métodos novos ao `BaseCanvas`.
-- Preferir adapters/wrappers no Workflow Editor para proteger Sailor Pages.
+- Preferir adapters/wrappers no Workflow Editor para proteger Fabric Pages.
 
 ## Batch 1 - Base paralela
 - [x] Criar feature flag para Vue Flow vs BaseCanvas.
-- [x] Criar `WorkflowBaseCanvas` sem remover `SailorWorkflowCanvas`.
+- [x] Criar `WorkflowBaseCanvas` sem remover `FabricWorkflowCanvas`.
 - [x] Criar adapter de workflow para `BaseCanvasItem`.
 - [x] Renderizar canvas vazio, grid, pan e zoom.
 - [x] Manter add node panel e inspector fora da troca.
-- [x] Confirmar que Sailor Pages não mudou após qualquer ajuste opcional no `BaseCanvas`.
+- [x] Confirmar que Fabric Pages não mudou após qualquer ajuste opcional no `BaseCanvas`.
 
 ## Batch 2 - Nodes
 - [x] Renderizar trigger node legado quando necessário.
@@ -114,7 +114,7 @@
 - [x] Adicionar testes e executar type-check.
 
 ## Batch 11 - Node Picker no canvas vazio
-- [x] Reutilizar o Node Picker flutuante do `SailorWorkflowCanvas`.
+- [x] Reutilizar o Node Picker flutuante do `FabricWorkflowCanvas`.
 - [x] Abrir o picker com botão direito apenas no canvas vazio.
 - [x] Posicionar o picker no cursor e o novo node no world point correspondente.
 - [x] Fechar e limpar o contexto ao cancelar ou selecionar.

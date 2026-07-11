@@ -40,7 +40,7 @@ describe("agent checkpointer", () => {
     }
   });
 
-  it("uses the Sailor chat session id as the LangGraph thread id", () => {
+  it("uses the Fabric chat session id as the LangGraph thread id", () => {
     assert.deepEqual(toLangGraphThreadConfig("chat_profile-1_run_2"), {
       configurable: { thread_id: "chat_profile-1_run_2" },
     });
@@ -85,7 +85,7 @@ describe("agent checkpointer", () => {
 });
 
 function createTempWorkspace(): string {
-  return mkdtempSync(path.join(tmpdir(), "sailor-agent-checkpointer-"));
+  return mkdtempSync(path.join(tmpdir(), "fabric-agent-checkpointer-"));
 }
 
 function checkpoint(id: string): any {

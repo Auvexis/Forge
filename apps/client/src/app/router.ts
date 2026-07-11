@@ -79,7 +79,7 @@ const router = createRouter({
 })
 
 router.afterEach((to) => {
-  const defaultTitle = 'Sailor'
+  const defaultTitle = 'Fabric'
   document.title = to.meta.title ? `${to.meta.title} — ${defaultTitle}` : defaultTitle
 })
 

@@ -8,7 +8,7 @@ import { PluginExecutor, PluginValidationError } from "../modules/plugins/execut
 import { CredentialStore, isMaskedCredentialValue } from "../modules/plugins/credential-store.ts";
 import { Vault } from "../modules/plugins/vault.ts";
 import { getPluginRegistryDatabase } from "../modules/plugins/plugin-registry.ts";
-import { sailorHomePaths } from "../runtime/sailor-home.ts";
+import { fabricHomePaths } from "../runtime/fabric-home.ts";
 import { ProfileStore } from "../profiles/profile-store.ts";
 import { locatePluginRelease } from "../modules/plugins/external/plugin-release-locator.ts";
 import {
@@ -26,7 +26,7 @@ import type {
   CredentialSchema,
   OAuth2Provider,
   ApiKeyProvider,
-} from "@auvexis/sailor-sdk";
+} from "@auvexis/fabric-sdk";
 
 const OAUTH2_AUTH_SESSION_TTL_MS = 10 * 60 * 1000;
 
@@ -63,7 +63,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
   }
 
   function createUploadPreviewFolder(): string {
-    const destination = path.join(sailorHomePaths.pluginCacheDir, "uploads", randomUUID());
+    const destination = path.join(fabricHomePaths.pluginCacheDir, "uploads", randomUUID());
     fs.mkdirSync(destination, { recursive: true });
     return destination;
   }
@@ -91,7 +91,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
 
     const redirectUri = PluginManager.getRedirectUri(pluginId);
     if (PluginManager.isLocalRedirectUri(redirectUri)) {
-      throw new Error("Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.");
+      throw new Error("Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.");
     }
 
     if (isDeclarativeOAuth2Auth(provider)) {
@@ -162,7 +162,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const source = resolveRepositoryUrlToCache(validation.data.repositoryUrl, sailorHomePaths.pluginCacheDir);
+      const source = resolveRepositoryUrlToCache(validation.data.repositoryUrl, fabricHomePaths.pluginCacheDir);
       const preview = createExternalPreview(source.localPath, source.metadata);
       return sendResponse(reply, {
         status_code: preview.status === "ready" ? 200 : 400,
@@ -197,7 +197,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const source = copyExtractedFolderToCache(validation.data.folderPath, sailorHomePaths.pluginCacheDir, {
+      const source = copyExtractedFolderToCache(validation.data.folderPath, fabricHomePaths.pluginCacheDir, {
         allowedRelativePaths: validation.data.files,
       });
       const preview = createExternalPreview(source.localPath, source.metadata);
@@ -312,7 +312,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     try {
-      const profileStore = new ProfileStore({ sailorHome: sailorHomePaths.home });
+      const profileStore = new ProfileStore({ fabricHome: fabricHomePaths.home });
       const currentProfile = profileStore.getCurrentProfile();
       const selectedProfileId = validation.data.profileId;
       if (validation.data.scope === "selected_profile") {
@@ -445,7 +445,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         oauth_public_url_required = PluginManager.isLocalRedirectUri(oauth_redirect_uri);
         if (oauth_public_url_required) {
           oauth_public_url_warning =
-            "OAuth providers usually require a public HTTPS callback URL. Set Public URL in Settings or PUBLIC_URL on the Sailor server before connecting.";
+            "OAuth providers usually require a public HTTPS callback URL. Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.";
         }
       }
 
@@ -884,7 +884,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
             buildOAuthCallbackHtml(
               "error",
               "OAuth connection failed",
-              "Credentials are missing. Return to Sailor, save credentials, and try again.",
+              "Credentials are missing. Return to Fabric, save credentials, and try again.",
             ),
           );
       }
@@ -901,7 +901,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
               buildOAuthCallbackHtml(
                 "error",
                 "OAuth connection failed",
-                "The authorization session expired or is invalid. Return to Sailor and start the connection again.",
+                "The authorization session expired or is invalid. Return to Fabric and start the connection again.",
               ),
             );
         }
@@ -942,7 +942,7 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
           buildOAuthCallbackHtml(
             "success",
             "OAuth connection complete",
-            "Tokens were saved. Return to Sailor and check the plugin connection status.",
+            "Tokens were saved. Return to Fabric and check the plugin connection status.",
           ),
         );
     } catch (err: any) {

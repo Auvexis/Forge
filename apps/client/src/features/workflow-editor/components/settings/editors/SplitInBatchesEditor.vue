@@ -75,22 +75,22 @@ defineProps<NodeEditorProps>()
 
 <style scoped>
 .split-handles-info {
-  padding: var(--sailor-space-3);
-  border-radius: var(--sailor-radius-lg);
-  background-color: var(--sailor-bg-surface);
-  border: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-3);
+  border-radius: var(--fabric-radius-lg);
+  background-color: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
 }
 
 .split-handles {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .split-handle-item {
   display: flex;
   align-items: flex-start;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .split-dot {
@@ -101,8 +101,8 @@ defineProps<NodeEditorProps>()
   flex-shrink: 0;
 }
 
-.split-dot--batch { background-color: var(--sailor-node-split-icon, #f59e0b); }
-.split-dot--done  { background-color: var(--sailor-green-400, #34d399); }
+.split-dot--batch { background-color: var(--fabric-node-split-icon, #f59e0b); }
+.split-dot--done  { background-color: var(--fabric-green-400, #34d399); }
 
 .split-handle-text {
   display: flex;
@@ -111,21 +111,21 @@ defineProps<NodeEditorProps>()
 }
 
 .split-handle-name {
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   font-weight: 500;
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-accent);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-accent);
 }
 
 .split-handle-desc {
   font-size: 11px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 code {
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   font-size: 10px;
   font-weight: 500;
-  color: var(--sailor-accent);
+  color: var(--fabric-accent);
 }
 </style>

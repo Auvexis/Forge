@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
 
 <template>
   <div
-    class="sailor-base-advanced-node sailor-node-pop-in"
+    class="fabric-base-advanced-node fabric-node-pop-in"
     :data-auto-organize="props.autoOrganize ? 'true' : undefined"
   >
     <BaseNode
@@ -52,15 +52,15 @@ const props = withDefaults(defineProps<{
       :height="props.height"
     >
       <template #icon>
-        <div class="sailor-base-advanced-node__content">
-          <div class="sailor-base-advanced-node__icon">
+        <div class="fabric-base-advanced-node__content">
+          <div class="fabric-base-advanced-node__icon">
             <slot name="icon-left" />
           </div>
-          <div class="sailor-base-advanced-node__copy">
-            <span class="sailor-base-advanced-node__title" :title="props.title">
+          <div class="fabric-base-advanced-node__copy">
+            <span class="fabric-base-advanced-node__title" :title="props.title">
               {{ props.title }}
             </span>
-            <span v-if="props.description" class="sailor-base-advanced-node__description">
+            <span v-if="props.description" class="fabric-base-advanced-node__description">
               {{ props.description }}
             </span>
           </div>
@@ -77,16 +77,16 @@ const props = withDefaults(defineProps<{
 </template>
 
 <style scoped>
-.sailor-base-advanced-node {
+.fabric-base-advanced-node {
   position: relative;
   user-select: none;
 }
 
-.sailor-base-advanced-node :deep(.sailor-base-node.sailor-node-pop-in) {
+.fabric-base-advanced-node :deep(.fabric-base-node.fabric-node-pop-in) {
   animation: none;
 }
 
-.sailor-base-advanced-node__content {
+.fabric-base-advanced-node__content {
   display: flex;
   width: 100%;
   align-items: center;
@@ -96,7 +96,7 @@ const props = withDefaults(defineProps<{
   padding: 0 28px;
 }
 
-.sailor-base-advanced-node__icon {
+.fabric-base-advanced-node__icon {
   display: grid;
   width: 36px;
   height: 36px;
@@ -104,7 +104,7 @@ const props = withDefaults(defineProps<{
   flex: 0 0 auto;
 }
 
-.sailor-base-advanced-node__copy {
+.fabric-base-advanced-node__copy {
   display: flex;
   min-width: 0;
   flex-direction: column;
@@ -112,8 +112,8 @@ const props = withDefaults(defineProps<{
   gap: 3px;
 }
 
-.sailor-base-advanced-node__title,
-.sailor-base-advanced-node__description {
+.fabric-base-advanced-node__title,
+.fabric-base-advanced-node__description {
   max-width: 160px;
   overflow: hidden;
   line-height: 1.2;
@@ -121,14 +121,14 @@ const props = withDefaults(defineProps<{
   white-space: nowrap;
 }
 
-.sailor-base-advanced-node__title {
-  color: var(--sailor-text-primary);
+.fabric-base-advanced-node__title {
+  color: var(--fabric-text-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
-.sailor-base-advanced-node__description {
-  color: var(--sailor-text-muted);
+.fabric-base-advanced-node__description {
+  color: var(--fabric-text-muted);
   font-size: 11px;
 }
 </style>

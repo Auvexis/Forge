@@ -76,9 +76,9 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { API_BASE_URL } from '@/core/constants/app.ts'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { SailorSite, SiteFile } from '../types/page.types.ts'
+import type { FabricSite, SiteFile } from '../types/page.types.ts'
 
-const props = defineProps<{ site: SailorSite | null }>()
+const props = defineProps<{ site: FabricSite | null }>()
 
 const emit = defineEmits<{
   'upload-asset': [file: File]
@@ -139,7 +139,7 @@ function uploadFiles(files: FileList | null | undefined) {
 
 function startAssetDrag(event: DragEvent, asset: SiteFile) {
   const path = asset.url ?? asset.path
-  event.dataTransfer?.setData('application/x-sailor-page-asset', path)
+  event.dataTransfer?.setData('application/x-fabric-page-asset', path)
   event.dataTransfer?.setData('text/plain', path)
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = 'copy'

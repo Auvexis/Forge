@@ -49,7 +49,7 @@ const copy = async () => {
 
 <style scoped>
 .json-viewer {
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -59,19 +59,19 @@ const copy = async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  background-color: var(--sailor-bg-elevated);
-  border-bottom: 1px solid var(--sailor-border);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  background-color: var(--fabric-bg-elevated);
+  border-bottom: 1px solid var(--fabric-border);
 }
 
 .json-viewer__title {
-  font-size: var(--sailor-text-xs);
-  font-family: var(--sailor-font-mono);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-family: var(--fabric-font-mono);
+  color: var(--fabric-text-secondary);
 }
 
 .json-viewer__copy {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
@@ -80,21 +80,21 @@ const copy = async () => {
   border-radius: 4px;
 }
 .json-viewer__copy:hover {
-  color: var(--sailor-text-primary);
-  background-color: var(--sailor-bg-muted);
+  color: var(--fabric-text-primary);
+  background-color: var(--fabric-bg-muted);
 }
 
 .json-viewer__body {
-  padding: var(--sailor-space-3);
+  padding: var(--fabric-space-3);
   overflow: auto;
   max-height: 400px;
 }
 
 pre {
   margin: 0;
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-green-400); /* gives it a hacker term feel */
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-green-400); /* gives it a hacker term feel */
   line-height: 1.5;
 }
 </style>

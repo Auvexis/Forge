@@ -62,9 +62,9 @@ watch(
 
 <style scoped>
 :deep(.base-modal-container) {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
 }
 
 .global-agent-panel {
@@ -73,10 +73,10 @@ watch(
   min-height: 0;
   height: 100%;
   overflow: hidden;
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
-  transition: grid-template-columns var(--sailor-duration-base) var(--sailor-ease-standard);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
+  transition: grid-template-columns var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .global-agent-panel--history-collapsed {

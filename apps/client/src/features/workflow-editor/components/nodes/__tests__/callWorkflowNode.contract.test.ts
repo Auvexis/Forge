@@ -72,7 +72,7 @@ test('call workflow editor names the callable target instead of sub-workflow cop
 })
 
 test('utility catalog exposes Call Workflow without Sub-Workflow catalog copy', () => {
-  const manifest = read('../server/src/core/utility-nodes/sailor-core/manifest.ts')
+  const manifest = read('../server/src/core/utility-nodes/fabric-core/manifest.ts')
 
   assert.match(manifest, /"call-workflow"[\s\S]*label: "Call Workflow"/)
   assert.match(manifest, /"call-workflow"[\s\S]*icon: "workflow"/)
@@ -81,16 +81,16 @@ test('utility catalog exposes Call Workflow without Sub-Workflow catalog copy', 
 })
 
 test('call workflow presentation uses call-workflow visual tokens', () => {
-  const manifest = read('../server/src/core/utility-nodes/sailor-core/manifest.ts')
+  const manifest = read('../server/src/core/utility-nodes/fabric-core/manifest.ts')
   const node = read('src/features/workflow-editor/components/nodes/CallWorkflowNode.vue')
   const tokens = read('src/assets/styles/tokens.css')
   const executionTree = read('src/shared/components/execution/executionRunTreeModel.ts')
 
   for (const source of [manifest, node, tokens, executionTree]) {
-    assert.doesNotMatch(source, /sailor-node-subworkflow/)
+    assert.doesNotMatch(source, /fabric-node-subworkflow/)
   }
-  assert.match(manifest, /var\(--sailor-node-call-workflow-icon\)/)
-  assert.match(node, /var\(--sailor-node-call-workflow-icon\)/)
-  assert.match(tokens, /--sailor-node-call-workflow-icon/)
+  assert.match(manifest, /var\(--fabric-node-call-workflow-icon\)/)
+  assert.match(node, /var\(--fabric-node-call-workflow-icon\)/)
+  assert.match(tokens, /--fabric-node-call-workflow-icon/)
   assert.match(executionTree, /'call-workflow': 'workflow'/)
 })

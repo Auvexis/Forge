@@ -106,7 +106,7 @@ const props = withDefaults(defineProps<{
   patternStyle: 'dot',
   patternSize: 16,
   rulers: false,
-  rulersBg: 'var(--sailor-bg-canvas)',
+  rulersBg: 'var(--fabric-bg-canvas)',
   rulersText: 'rgba(255, 255, 255, 0.54)',
   rulersLines: 'rgba(255, 255, 255, 0.2)',
   contextMenu: true,

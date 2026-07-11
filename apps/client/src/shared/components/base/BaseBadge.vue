@@ -39,10 +39,10 @@ defineOptions({ inheritAttrs: false })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-1);
-  font-family: var(--sailor-font-sans);
-  font-weight: var(--sailor-font-medium);
-  border-radius: var(--sailor-radius-full);
+  gap: var(--fabric-space-1);
+  font-family: var(--fabric-font-sans);
+  font-weight: var(--fabric-font-medium);
+  border-radius: var(--fabric-radius-full);
   white-space: nowrap;
   user-select: none;
 }
@@ -50,13 +50,13 @@ defineOptions({ inheritAttrs: false })
 /* ── Sizes ─────────────────────────────────────── */
 .base-badge--sm {
   height: 20px;
-  padding: 0 var(--sailor-space-2);
+  padding: 0 var(--fabric-space-2);
   font-size: 11px;
 }
 
 .base-badge--md {
   height: 24px;
-  padding: 0 var(--sailor-space-3);
+  padding: 0 var(--fabric-space-3);
   font-size: 12px;
 }
 
@@ -68,43 +68,43 @@ defineOptions({ inheritAttrs: false })
 
 /* Default (Muted) */
 .base-badge--default {
-  background-color: var(--sailor-bg-muted);
-  color: var(--sailor-text-primary);
-  border: 1px solid var(--sailor-border-strong);
+  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-text-primary);
+  border: 1px solid var(--fabric-border-strong);
 }
 
 /* Brand */
 .base-badge--brand {
-  background-color: var(--sailor-accent-subtle);
-  color: var(--sailor-brand-300);
-  border: 1px solid var(--sailor-border-brand);
+  background-color: var(--fabric-accent-subtle);
+  color: var(--fabric-brand-300);
+  border: 1px solid var(--fabric-border-brand);
 }
 
 /* Success */
 .base-badge--success {
-  background-color: var(--sailor-status-success-bg);
-  color: var(--sailor-status-success-text);
-  border: 1px solid var(--sailor-status-success-border);
+  background-color: var(--fabric-status-success-bg);
+  color: var(--fabric-status-success-text);
+  border: 1px solid var(--fabric-status-success-border);
 }
 
 /* Warning */
 .base-badge--warning {
-  background-color: var(--sailor-status-running-bg);
-  color: var(--sailor-status-running-text);
-  border: 1px solid var(--sailor-status-running-border);
+  background-color: var(--fabric-status-running-bg);
+  color: var(--fabric-status-running-text);
+  border: 1px solid var(--fabric-status-running-border);
 }
 
 /* Error */
 .base-badge--error {
-  background-color: var(--sailor-status-error-bg);
-  color: var(--sailor-status-error-text);
-  border: 1px solid var(--sailor-status-error-border);
+  background-color: var(--fabric-status-error-bg);
+  color: var(--fabric-status-error-text);
+  border: 1px solid var(--fabric-status-error-border);
 }
 
 /* Outline */
 .base-badge--outline {
   background-color: transparent;
-  color: var(--sailor-text-secondary);
-  border: 1px solid var(--sailor-border-strong);
+  color: var(--fabric-text-secondary);
+  border: 1px solid var(--fabric-border-strong);
 }
 </style>

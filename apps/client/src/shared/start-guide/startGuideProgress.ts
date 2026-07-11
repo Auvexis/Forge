@@ -1,6 +1,6 @@
 import type { StartGuideDefinition, StartGuideProgress } from './startGuide.types'
 
-const STORAGE_PREFIX = 'sailor:start-guide:v1'
+const STORAGE_PREFIX = 'fabric:start-guide:v1'
 
 function canUseLocalStorage() {
   return typeof localStorage !== 'undefined'

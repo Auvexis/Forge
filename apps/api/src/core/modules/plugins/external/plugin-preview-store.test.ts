@@ -8,7 +8,7 @@ import { PluginPreviewStore } from "./plugin-preview-store.ts";
 
 describe("PluginPreviewStore", () => {
   it("stores previews, expires old entries and cleans cached folders", () => {
-    const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-store-"));
+    const cacheDir = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-store-"));
     const previewPath = path.join(cacheDir, "preview");
     fs.mkdirSync(previewPath);
     const store = new PluginPreviewStore({ ttlMs: 10, now: () => new Date("2026-05-15T10:00:00Z") });
@@ -40,7 +40,7 @@ describe("PluginPreviewStore", () => {
   });
 
   it("removes a cancelled preview without installing anything", () => {
-    const previewPath = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-preview-store-"));
+    const previewPath = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-preview-store-"));
     const store = new PluginPreviewStore();
     const preview = store.create({
       localPath: previewPath,

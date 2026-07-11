@@ -59,9 +59,9 @@ watch(() => isDark.value, () => loadPluginAppearance(pluginId.value))
       :title="stepTitle"
       :subtitle="subtitle"
       :icon="pluginIcon"
-      :color="customIconColor || 'var(--sailor-node-plugin-icon)'"
-      :bg="customBg || 'var(--sailor-node-plugin-bg)'"
-      :border-color="customBorder || 'var(--sailor-node-plugin-border)'"
+      :color="customIconColor || 'var(--fabric-node-plugin-icon)'"
+      :bg="customBg || 'var(--fabric-node-plugin-bg)'"
+      :border-color="customBorder || 'var(--fabric-node-plugin-border)'"
       :handlers="[CONFIGURATION_SOURCE_HANDLER]"
       rounded="full"
       width="100px"
@@ -75,12 +75,12 @@ watch(() => isDark.value, () => loadPluginAppearance(pluginId.value))
   position: relative;
 }
 
-.agent-config-node :deep(.sailor-base-node__icon-box svg) {
+.agent-config-node :deep(.fabric-base-node__icon-box svg) {
   width: 34px;
   height: 34px;
 }
 
-.agent-config-node :deep(.sailor-base-handle) {
+.agent-config-node :deep(.fabric-base-handle) {
   pointer-events: all;
 }
 

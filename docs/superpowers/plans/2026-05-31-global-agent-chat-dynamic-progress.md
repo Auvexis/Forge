@@ -460,13 +460,13 @@ Add CSS:
   display: inline-flex;
   width: fit-content;
   align-items: center;
-  gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
+  gap: var(--fabric-space-2);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
   padding: 8px 10px;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
 }
 
 .agent-chat-view__progress--running svg {
@@ -474,11 +474,11 @@ Add CSS:
 }
 
 .agent-chat-view__progress--success {
-  color: var(--sailor-success);
+  color: var(--fabric-success);
 }
 
 .agent-chat-view__progress--failed {
-  color: var(--sailor-danger);
+  color: var(--fabric-danger);
 }
 
 .agent-chat-view__plugin-icon {
@@ -488,7 +488,7 @@ Add CSS:
   flex: 0 0 auto;
   place-items: center;
   border-radius: 5px;
-  background: var(--sailor-bg-surface);
+  background: var(--fabric-bg-surface);
 }
 
 @keyframes agent-progress-spin {
@@ -653,19 +653,19 @@ Add CSS:
   grid-column: 2;
   display: grid;
   width: min(100%, 520px);
-  gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
+  gap: var(--fabric-space-2);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
   padding: 10px 12px;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
 }
 
 .agent-chat-view__summary-tools {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -675,12 +675,12 @@ Add CSS:
   display: inline-flex;
   min-width: 0;
   align-items: center;
-  gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-xs);
+  gap: var(--fabric-space-2);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-xs);
   padding: 4px 7px;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
 }
 ```
 

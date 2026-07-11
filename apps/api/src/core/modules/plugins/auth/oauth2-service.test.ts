@@ -44,14 +44,14 @@ describe("OAuth2Service", () => {
     const result = await OAuth2Service.createAuthorizationUrl({
       auth: declarativeAuth(),
       credentials: { clientId: "abc", clientSecret: "secret" },
-      redirectUri: "https://sailor.example/plugins/demo/auth/callback",
+      redirectUri: "https://fabric.example/plugins/demo/auth/callback",
       state: "state-123",
     });
 
     const url = new URL(result.url);
     assert.equal(url.origin + url.pathname, "https://provider.example/oauth/authorize");
     assert.equal(url.searchParams.get("client_id"), "abc");
-    assert.equal(url.searchParams.get("redirect_uri"), "https://sailor.example/plugins/demo/auth/callback");
+    assert.equal(url.searchParams.get("redirect_uri"), "https://fabric.example/plugins/demo/auth/callback");
     assert.equal(url.searchParams.get("response_type"), "code");
     assert.equal(url.searchParams.get("scope"), "read:user write:user");
     assert.equal(url.searchParams.get("audience"), "https://api.example");
@@ -75,7 +75,7 @@ describe("OAuth2Service", () => {
       auth: declarativeAuth(),
       code: "code-123",
       credentials: { clientId: "abc", clientSecret: "secret" },
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
     });
 
     assert.equal(request?.url, "https://provider.example/oauth/token");
@@ -104,7 +104,7 @@ describe("OAuth2Service", () => {
       auth,
       code: "code-123",
       credentials: { clientId: "abc", clientSecret: "secret" },
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
     });
 
     assert.equal(body?.get("client_id"), "abc");
@@ -128,7 +128,7 @@ describe("OAuth2Service", () => {
       auth,
       code: "code-123",
       credentials: { clientId: "abc", clientSecret: "secret" },
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
     });
 
     assert.equal(headers?.get("authorization"), null);
@@ -142,7 +142,7 @@ describe("OAuth2Service", () => {
     const result = await OAuth2Service.createAuthorizationUrl({
       auth,
       credentials: { clientId: "abc", clientSecret: "secret" },
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
       state: "state-123",
       codeVerifier: "known-verifier",
     });
@@ -174,7 +174,7 @@ describe("OAuth2Service", () => {
       auth: declarativeAuth(),
       code: "code-123",
       credentials: { clientId: "abc", clientSecret: "secret" },
-      redirectUri: "https://sailor.example/callback",
+      redirectUri: "https://fabric.example/callback",
     });
 
     assert.deepEqual(tokens, {

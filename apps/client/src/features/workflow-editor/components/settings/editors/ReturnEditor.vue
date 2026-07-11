@@ -130,39 +130,39 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
 <style scoped>
 .return-info-box {
   display: flex;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   align-items: flex-start;
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background-color: var(--sailor-bg-base);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background-color: var(--fabric-bg-base);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   line-height: 1.5;
 }
 
 .return-fields {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-2);
-  margin-top: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
+  margin-top: var(--fabric-space-2);
 }
 
 .return-field-row {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .return-field-key {
   flex: 0 0 38%;
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
 }
 
 .return-field-sep {
   flex-shrink: 0;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-weight: 700;
 }
 
@@ -178,20 +178,20 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
   justify-content: center;
   padding: 4px;
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
 }
 
 .return-field-remove:hover {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .return-empty-hint {
-  padding: var(--sailor-space-2) 0;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-2) 0;
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   font-style: italic;
 }
 
@@ -199,20 +199,20 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   width: 100%;
-  padding: var(--sailor-space-2) var(--sailor-space-3);
-  border: 1px dashed var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
+  border: 1px dashed var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-family: inherit;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   cursor: pointer;
 }
 
 .return-add-btn:hover {
-  border-color: var(--sailor-accent);
-  color: var(--sailor-accent);
+  border-color: var(--fabric-accent);
+  color: var(--fabric-accent);
 }
 </style>

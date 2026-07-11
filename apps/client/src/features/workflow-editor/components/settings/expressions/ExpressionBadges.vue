@@ -38,10 +38,10 @@ const tokens = computed(() => findExpressionTokens(String(props.value ?? '')))
   min-width: 0;
   max-width: 100%;
   overflow: hidden;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
   border: 1px solid transparent;
   font-size: 10px;
-  font-weight: var(--sailor-font-medium);
+  font-weight: var(--fabric-font-medium);
   line-height: 18px;
 }
 
@@ -68,7 +68,7 @@ const tokens = computed(() => findExpressionTokens(String(props.value ?? '')))
   min-width: 0;
   overflow: hidden;
   padding: 0 7px;
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

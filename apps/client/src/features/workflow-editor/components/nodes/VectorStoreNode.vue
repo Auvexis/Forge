@@ -37,13 +37,13 @@ const { pluginIcon, customBg, customBorder, customIconColor } = usePluginNodePre
     has-target
     has-source
     :bg="customBg || 'transparent'"
-    :border-color="customBorder || 'var(--sailor-node-border)'"
+    :border-color="customBorder || 'var(--fabric-node-border)'"
   >
     <template #icon-left>
       <LucideIcon
         :name="pluginIcon"
         :size="30"
-        :style="{ color: customIconColor || 'var(--sailor-node-plugin-icon)' }"
+        :style="{ color: customIconColor || 'var(--fabric-node-plugin-icon)' }"
       />
     </template>
   </BaseAdvancedNode>

@@ -1,7 +1,7 @@
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 import { AppRepository } from "../app/app-repository.ts";
 
-const plugins = new Map<string, SailorPlugin>();
+const plugins = new Map<string, FabricPlugin>();
 
 const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 
@@ -30,11 +30,11 @@ const isLocalPublicUrl = (url: string): boolean => {
 };
 
 export const PluginManager = {
-  getPlugins: (): SailorPlugin[] => {
+  getPlugins: (): FabricPlugin[] => {
     return Array.from(plugins.values());
   },
 
-  getPlugin: (id: string): SailorPlugin => {
+  getPlugin: (id: string): FabricPlugin => {
     const plugin = plugins.get(id);
 
     if (!plugin) {
@@ -44,9 +44,9 @@ export const PluginManager = {
     return plugin;
   },
 
-  registerPlugin: (plugin: SailorPlugin) => {
+  registerPlugin: (plugin: FabricPlugin) => {
     plugins.set(plugin.id, plugin);
-    console.log(`[SAILOR | PLUGINS]: Registered plugin ${plugin.id}`);
+    console.log(`[FABRIC | PLUGINS]: Registered plugin ${plugin.id}`);
   },
 
   clearPlugins: () => {

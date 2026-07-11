@@ -41,7 +41,7 @@ export interface PluginStatusResponse {
 // ── Plugin Metadata ──────────────────────────────────────────
 
 export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
-export type AgentMemoryAdapter = 'sailor-internal' | 'plugin-memory-store'
+export type AgentMemoryAdapter = 'fabric-internal' | 'plugin-memory-store'
 
 export const PLUGIN_CATEGORIES = [
   'AI',
@@ -143,7 +143,7 @@ export interface JSONSchemaProperty {
   items?: JSONSchemaProperty
   minItems?: number
   maxItems?: number
-  // ── Sailor UI extensions ──────────────────────────────────────
+  // ── Fabric UI extensions ──────────────────────────────────────
   'x-input-type'?:
     | 'text'
     | 'password'
@@ -160,8 +160,8 @@ export interface JSONSchemaProperty {
     | 'code'
     | 'json'
   'x-label'?: string
-  'x-sailor-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
-  'x-sailor-icon'?: string
+  'x-fabric-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
+  'x-fabric-icon'?: string
   'x-dynamic-options'?: DynamicOptionsConfig
   'x-visible-if'?: VisibleIfConfig
 }
@@ -175,7 +175,7 @@ export interface JSONSchemaObject {
 
 export interface JSONSchemaResponse {
   type: 'object' | 'array'
-  'x-sailor-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
+  'x-fabric-display'?: 'file' | 'folder' | 'media' | 'text' | 'generic'
   properties?: Record<string, JSONSchemaProperty>
   required?: string[]
   items?: JSONSchemaProperty & {

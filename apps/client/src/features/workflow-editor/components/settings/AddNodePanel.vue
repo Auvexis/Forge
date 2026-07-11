@@ -235,7 +235,7 @@ const AGENT_MEMORY_PRESETS: AddNodePickerPreset[] = [
     description: 'Store short-term agent memory in SQLite',
     icon: 'database',
     categories: ['Utilities'],
-    defaults: { name: 'SQLite Memory', adapter: 'sailor-internal', scope: 'session' },
+    defaults: { name: 'SQLite Memory', adapter: 'fabric-internal', scope: 'session' },
   },
 ]
 
@@ -624,10 +624,10 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   width: var(--anp-column-width);
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-elevated);
-  box-shadow: var(--sailor-shadow-lg);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-elevated);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .add-node-cascade__primary {
@@ -639,11 +639,11 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 .add-node-cascade__secondary {
   position: absolute;
   top: 0;
-  left: calc(100% + var(--sailor-space-2));
+  left: calc(100% + var(--fabric-space-2));
 }
 
 .add-node-panel--secondary-left .add-node-cascade__secondary {
-  right: calc(100% + var(--sailor-space-2));
+  right: calc(100% + var(--fabric-space-2));
   left: auto;
 }
 
@@ -657,13 +657,13 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 .add-node-cascade__header {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
   height: 48px;
   flex: 0 0 auto;
-  padding: 0 var(--sailor-space-3);
-  border-bottom: 1px solid var(--sailor-border);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  padding: 0 var(--fabric-space-3);
+  border-bottom: 1px solid var(--fabric-border);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
   font-weight: 600;
 }
 
@@ -687,7 +687,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 .add-node-cascade__search :deep(.base-input) {
   height: 26px;
   min-height: 26px;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
 }
 
 .add-node-cascade__back {
@@ -698,15 +698,15 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   height: 36px;
   padding: 0;
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
 }
 
 .add-node-cascade__back:hover {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .add-node-cascade__scroller {
@@ -715,13 +715,13 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: contain;
-  padding: var(--sailor-space-2);
+  padding: var(--fabric-space-2);
 }
 
 .add-node-cascade__section-label {
-  padding: var(--sailor-space-1) var(--sailor-space-2) var(--sailor-space-2);
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-1) var(--fabric-space-2) var(--fabric-space-2);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
   line-height: 1.2;
   text-transform: uppercase;
@@ -732,21 +732,21 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   min-height: 120px;
   align-items: center;
   justify-content: center;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-sm);
 }
 
 :deep(.add-node-picker-item) {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   width: 100%;
   min-height: 58px;
-  padding: var(--sailor-space-2);
+  padding: var(--fabric-space-2);
   border: 0;
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -754,7 +754,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 :deep(.add-node-picker-item:hover),
 :deep(.add-node-picker-item--active) {
-  background: var(--sailor-button-ghost-hover);
+  background: var(--fabric-button-ghost-hover);
 }
 
 :deep(.add-node-picker-item__icon) {
@@ -764,11 +764,11 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   width: 32px;
   height: 32px;
   flex: 0 0 auto;
-  border: 1px solid var(--sailor-border);
-  border-color: var(--node-icon-border, var(--sailor-border));
-  border-radius: var(--sailor-radius-sm);
-  background: var(--node-icon-bg, var(--sailor-bg-surface));
-  color: var(--node-icon-color, var(--sailor-text-muted));
+  border: 1px solid var(--fabric-border);
+  border-color: var(--node-icon-border, var(--fabric-border));
+  border-radius: var(--fabric-radius-sm);
+  background: var(--node-icon-bg, var(--fabric-bg-surface));
+  color: var(--node-icon-color, var(--fabric-text-muted));
 }
 
 :deep(.add-node-picker-item__body) {
@@ -781,8 +781,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 :deep(.add-node-picker-item__label) {
   overflow: hidden;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
   font-weight: 600;
   line-height: 1.25;
   text-overflow: ellipsis;
@@ -792,8 +792,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 :deep(.add-node-picker-item__description) {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   line-height: 1.25;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -802,8 +802,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 :deep(.add-node-picker-item__count),
 :deep(.add-node-picker-item__chevron) {
   flex: 0 0 auto;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-sm);
 }
 
 .add-node-loading {
@@ -812,13 +812,13 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   height: var(--anp-panel-height);
   align-items: center;
   justify-content: center;
-  gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-sm);
-  box-shadow: var(--sailor-shadow-lg);
+  gap: var(--fabric-space-2);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-sm);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .add-node-spinner {
@@ -873,7 +873,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
   .add-node-cascade__secondary {
     left: 0;
-    top: calc(100% + var(--sailor-space-2));
+    top: calc(100% + var(--fabric-space-2));
   }
 }
 </style>

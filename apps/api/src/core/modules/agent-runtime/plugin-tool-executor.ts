@@ -4,13 +4,13 @@ import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-error
 import { sanitizeAgentEventPayload } from "./agent-event-sanitizer.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
 import type { AiToolNodeConfig } from "./agent-types.ts";
-import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 
 const completedSideEffectToolResults = new Map<string, unknown>();
 const MAX_COMPLETED_SIDE_EFFECT_TOOL_RESULTS = 1000;
 
 export async function executePluginAgentTool(input: {
-  definition: SailorAgentToolDefinition;
+  definition: FabricAgentToolDefinition;
   configuredTool: AiToolNodeConfig;
   args: Record<string, any>;
   approvalToken?: string;
@@ -64,7 +64,7 @@ function isPluginValidationError(message: string): boolean {
 }
 
 function completedSideEffectReplayKey(
-  definition: SailorAgentToolDefinition,
+  definition: FabricAgentToolDefinition,
   configuredTool: AiToolNodeConfig,
   executionId: string,
   params: Record<string, unknown>,
@@ -89,7 +89,7 @@ function rememberCompletedSideEffectToolResult(key: string, result: unknown): vo
 }
 
 function assertToolApproval(
-  definition: SailorAgentToolDefinition,
+  definition: FabricAgentToolDefinition,
   configuredTool: AiToolNodeConfig,
   args: Record<string, unknown>,
   approvalToken?: string,

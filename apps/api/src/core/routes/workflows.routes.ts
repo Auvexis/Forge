@@ -285,7 +285,7 @@ async function handleProductionWebhook(
   options: { awaitBackgroundExecution?: boolean } = {},
 ) {
   console.log(
-    `[SAILOR | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} - ` +
+    `[FABRIC | WEBHOOK-IN]: ${req.method} /webhook/${webhookPath} - ` +
       `listen-active=${TriggerListenerRegistry.has(webhookPath)} ` +
       `body-keys=${Object.keys((req.body as any) ?? {}).join(",")}`,
   );
@@ -325,11 +325,11 @@ async function handleProductionWebhook(
   }
 
   if (entry.trigger.webhookSecret) {
-    const signature = req.headers["x-sailor-signature"] as string | undefined;
+    const signature = req.headers["x-fabric-signature"] as string | undefined;
     if (!signature) {
       return reply
         .code(401)
-        .send({ error: "Missing X-Sailor-Signature header" });
+        .send({ error: "Missing X-Fabric-Signature header" });
     }
     const rawBody = JSON.stringify(req.body ?? {});
     if (
@@ -343,7 +343,7 @@ async function handleProductionWebhook(
     }
   } else {
     console.warn(
-      `[SAILOR | WEBHOOK]: Webhook "${webhookPath}" has no secret configured - consider adding one`,
+      `[FABRIC | WEBHOOK]: Webhook "${webhookPath}" has no secret configured - consider adding one`,
     );
   }
 
@@ -360,7 +360,7 @@ async function handleProductionWebhook(
     (req.headers["content-type"] ?? "").split(";")[0].trim() ||
     "application/json";
   console.log(
-    `[SAILOR | WEBHOOKS]: Webhook received - identifier: '${webhookPath}', content-type: ${contentType}`,
+    `[FABRIC | WEBHOOKS]: Webhook received - identifier: '${webhookPath}', content-type: ${contentType}`,
   );
 
   const executionId = `exec_wh_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -382,7 +382,7 @@ async function handleProductionWebhook(
       executionId,
     ).catch((err: Error) =>
       console.error(
-        `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+        `[FABRIC | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
       ),
     );
 
@@ -423,7 +423,7 @@ async function handleProductionWebhook(
   } else {
     execution.catch((err: Error) =>
       console.error(
-        `[SAILOR | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
+        `[FABRIC | WEBHOOK]: Execution failed for "${webhookPath}": ${err.message}`,
       ),
     );
   }
@@ -1324,7 +1324,7 @@ export default async function workflowsRoutes(
 
       let triggerPayload: Record<string, any> = {};
 
-      const headerExecRaw = req.headers["x-sailor-execution-id"];
+      const headerExecRaw = req.headers["x-fabric-execution-id"];
       const headerExecutionId =
         typeof headerExecRaw === "string" &&
         headerExecRaw.length < 96 &&
@@ -1387,7 +1387,7 @@ export default async function workflowsRoutes(
           executionId,
         ).catch((err: Error) =>
           console.error(
-            `[SAILOR | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
+            `[FABRIC | WORKFLOW]: Background execution ${executionId} failed: ${err.message}`,
           ),
         );
       });
@@ -1728,7 +1728,7 @@ export default async function workflowsRoutes(
         });
       } catch (err: any) {
         console.error(
-          `[SAILOR | LISTEN]: Failed to temporarily activate plugin trigger:`,
+          `[FABRIC | LISTEN]: Failed to temporarily activate plugin trigger:`,
           err.message,
         );
         reply.raw.write(
@@ -1831,7 +1831,7 @@ export default async function workflowsRoutes(
       }
 
       console.log(
-        `[SAILOR | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`,
+        `[FABRIC | WORKFLOWS]: Published workflow "${workflow.metadata.name}" (${workflowId})`,
       );
       return sendResponse(reply, {
         status_code: 200,
@@ -1877,7 +1877,7 @@ export default async function workflowsRoutes(
       }
 
       console.log(
-        `[SAILOR | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`,
+        `[FABRIC | WORKFLOWS]: Unpublished workflow "${workflow.metadata.name}" (${workflowId})`,
       );
       return sendResponse(reply, {
         status_code: 200,

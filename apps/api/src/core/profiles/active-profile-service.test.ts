@@ -40,8 +40,8 @@ class FakeDatabaseManager {
 }
 
 function createStore(): ProfileStore {
-  const home = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-profile-"));
-  const store = new ProfileStore({ sailorHome: home });
+  const home = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-profile-"));
+  const store = new ProfileStore({ fabricHome: home });
   store.ensureInitialized();
   store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
   return store;
@@ -62,7 +62,7 @@ describe("ActiveProfileService", () => {
     const db = new FakeDatabaseManager();
     const calls: string[] = [];
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
@@ -87,11 +87,11 @@ describe("ActiveProfileService", () => {
 
   it("loads profile plugin settings with resolved active profile paths before plugins", async () => {
     const store = createStore();
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-"));
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-"));
     const calls: string[] = [];
     let settingsProfileDir: string | null = null;
     const service = new ActiveProfileService({
-      sailorHome,
+      fabricHome,
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: new FakeDatabaseManager(),
@@ -110,7 +110,7 @@ describe("ActiveProfileService", () => {
 
     await service.start();
 
-    assert.equal(settingsProfileDir, path.join(sailorHome, "profiles", "default"));
+    assert.equal(settingsProfileDir, path.join(fabricHome, "profiles", "default"));
     assert.deepEqual(calls, ["migrate", "loadProfilePluginSettings", "loadPlugins", "resync"]);
   });
 
@@ -119,7 +119,7 @@ describe("ActiveProfileService", () => {
     const db = new FakeDatabaseManager();
     const configured: string[] = [];
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
@@ -160,7 +160,7 @@ describe("ActiveProfileService", () => {
       close: () => {},
     };
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
@@ -200,7 +200,7 @@ describe("ActiveProfileService", () => {
       close: () => {},
     };
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
@@ -231,7 +231,7 @@ describe("ActiveProfileService", () => {
     const store = createStore();
     const db = new FakeDatabaseManager();
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
@@ -258,7 +258,7 @@ describe("ActiveProfileService", () => {
       db.opened.push(path.basename(paths.profileDir));
     };
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,
@@ -294,7 +294,7 @@ describe("ActiveProfileService", () => {
     passwordService.setPassword("work", "secret");
     const db = new FakeDatabaseManager();
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService,
       databaseManager: db,
@@ -322,7 +322,7 @@ describe("ActiveProfileService", () => {
     const store = createStore();
     const db = new FakeDatabaseManager();
     const service = new ActiveProfileService({
-      sailorHome: fs.mkdtempSync(path.join(os.tmpdir(), "sailor-active-home-")),
+      fabricHome: fs.mkdtempSync(path.join(os.tmpdir(), "fabric-active-home-")),
       store,
       passwordService: new ProfilePasswordService({ store }),
       databaseManager: db,

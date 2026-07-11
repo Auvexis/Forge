@@ -4,8 +4,8 @@ import { PageRepository } from "./page-repository.ts";
 import { PageService } from "./page-service.ts";
 import { createSiteFile, deleteSiteFile, updateSiteFile } from "./site-file-service.ts";
 import { SiteRepository } from "./site-repository.ts";
-import type { CreatePageInput, SailorPage } from "./page-types.ts";
-import type { SailorSite, SiteFile } from "./site-types.ts";
+import type { CreatePageInput, FabricPage } from "./page-types.ts";
+import type { FabricSite, SiteFile } from "./site-types.ts";
 
 export interface CreateSiteInput {
   name: string;
@@ -27,11 +27,11 @@ export class SiteService {
     PageRepository.ensureSchema();
   }
 
-  listSites(): SailorSite[] {
+  listSites(): FabricSite[] {
     return SiteRepository.listSites(this.profileId);
   }
 
-  createSite(input: CreateSiteInput): SailorSite {
+  createSite(input: CreateSiteInput): FabricSite {
     const name = input.name.trim();
     if (!name) throw new Error("Site name is required.");
 
@@ -49,11 +49,11 @@ export class SiteService {
     });
   }
 
-  getSite(siteId: string): SailorSite | null {
+  getSite(siteId: string): FabricSite | null {
     return SiteRepository.getSite(this.profileId, siteId);
   }
 
-  updateSite(siteId: string, input: UpdateSiteInput): SailorSite {
+  updateSite(siteId: string, input: UpdateSiteInput): FabricSite {
     const existing = this.getSite(siteId);
     if (!existing) throw new Error("Site not found.");
 
@@ -72,11 +72,11 @@ export class SiteService {
     return SiteRepository.deleteSite(this.profileId, siteId);
   }
 
-  listPages(siteId: string): SailorPage[] {
+  listPages(siteId: string): FabricPage[] {
     return PageRepository.listPages(this.profileId, siteId);
   }
 
-  createPage(siteId: string, input: Omit<CreatePageInput, "profileId" | "siteId">): SailorPage {
+  createPage(siteId: string, input: Omit<CreatePageInput, "profileId" | "siteId">): FabricPage {
     const site = this.getSite(siteId);
     if (!site) throw new Error("Site not found.");
 
@@ -95,22 +95,22 @@ export class SiteService {
     return page;
   }
 
-  createProjectFile(siteId: string, input: { path: string; kind: SiteFile["kind"]; content?: string; mimeType?: string; size?: number; url?: string }): SailorSite {
+  createProjectFile(siteId: string, input: { path: string; kind: SiteFile["kind"]; content?: string; mimeType?: string; size?: number; url?: string }): FabricSite {
     const site = this.requireSite(siteId);
     return SiteRepository.saveSite(createSiteFile(site, input));
   }
 
-  updateProjectFile(siteId: string, filePath: string, content: string): SailorSite {
+  updateProjectFile(siteId: string, filePath: string, content: string): FabricSite {
     const site = this.requireSite(siteId);
     return SiteRepository.saveSite(updateSiteFile(site, filePath, content));
   }
 
-  deleteProjectFile(siteId: string, filePath: string): SailorSite {
+  deleteProjectFile(siteId: string, filePath: string): FabricSite {
     const site = this.requireSite(siteId);
     return SiteRepository.saveSite(deleteSiteFile(site, filePath));
   }
 
-  private requireSite(siteId: string): SailorSite {
+  private requireSite(siteId: string): FabricSite {
     const site = this.getSite(siteId);
     if (!site) throw new Error("Site not found.");
     return site;

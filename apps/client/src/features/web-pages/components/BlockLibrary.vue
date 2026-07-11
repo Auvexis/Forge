@@ -40,7 +40,7 @@ defineEmits<{
 }>()
 
 function onDragStart(event: DragEvent, tag: PageBlockTag) {
-  event.dataTransfer?.setData('application/x-sailor-page-block', JSON.stringify({ tag }))
+  event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ tag }))
   if (event.dataTransfer) event.dataTransfer.effectAllowed = 'copy'
 }
 </script>

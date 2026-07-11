@@ -29,14 +29,14 @@ describe("profile switch route integration", () => {
   });
 
   it("routes app settings through the active profile database after switching", async () => {
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-switch-"));
-    const store = new ProfileStore({ sailorHome });
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-switch-"));
+    const store = new ProfileStore({ fabricHome });
     store.ensureInitialized();
     store.createProfile({ id: "work", name: "Work", avatarEmoji: "💼" });
     const passwordService = new ProfilePasswordService({ store });
     const databaseManager = new ProfileDatabaseManager();
     const activeProfileService = new ActiveProfileService({
-      sailorHome,
+      fabricHome,
       store,
       passwordService,
       databaseManager,

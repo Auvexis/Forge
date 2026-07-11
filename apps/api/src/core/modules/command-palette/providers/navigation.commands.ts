@@ -100,7 +100,7 @@ function openGuideBookCommand(): CommandHandler {
       id: "guide-book.open",
       group: "navigation",
       label: "Open Guide Book",
-      description: "Browse and replay Sailor guides for tools, pages, and workflows",
+      description: "Browse and replay Fabric guides for tools, pages, and workflows",
       keywords: ["guide", "tutorial", "docs", "help", "start guide"],
       icon: "book-open",
       availability: { enabled: true },

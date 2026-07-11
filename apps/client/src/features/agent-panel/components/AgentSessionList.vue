@@ -206,26 +206,26 @@ onBeforeUnmount(() => {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  gap: var(--sailor-space-3);
-  border-right: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
-  padding: var(--sailor-space-5) var(--sailor-space-4);
+  gap: var(--fabric-space-3);
+  border-right: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
+  padding: var(--fabric-space-5) var(--fabric-space-4);
 }
 
 .agent-session-list__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-width: 0;
   overflow: visible;
 }
 
 .agent-session-list__header h2 {
   margin: 0;
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-semibold);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
 }
 
 .agent-session-list__search-control {
@@ -240,27 +240,27 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   min-width: 0;
-  border: 1px solid var(--sailor-input-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-input-bg);
-  padding: 0 30px 0 var(--sailor-space-3);
-  color: var(--sailor-input-text);
+  border: 1px solid var(--fabric-input-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-input-bg);
+  padding: 0 30px 0 var(--fabric-space-3);
+  color: var(--fabric-input-text);
   font: inherit;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   transition:
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    width var(--sailor-duration-base) var(--sailor-ease-standard);
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    width var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .agent-session-list__search-control input:focus {
-  border-color: var(--sailor-input-border-focus);
+  border-color: var(--fabric-input-border-focus);
   outline: none;
 }
 
 .agent-session-list__search-control svg {
   position: absolute;
-  right: var(--sailor-space-2);
-  color: var(--sailor-text-muted);
+  right: var(--fabric-space-2);
+  color: var(--fabric-text-muted);
   pointer-events: none;
 }
 
@@ -270,18 +270,18 @@ onBeforeUnmount(() => {
   min-width: 0;
   height: 36px;
   justify-content: center;
-  border-color: var(--sailor-button-primary-border);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-button-primary-bg);
-  color: var(--sailor-button-primary-text);
-  font-size: var(--sailor-text-xs);
+  border-color: var(--fabric-button-primary-border);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-button-primary-bg);
+  color: var(--fabric-button-primary-text);
+  font-size: var(--fabric-text-xs);
   white-space: nowrap;
-  box-shadow: var(--sailor-shadow-sm);
+  box-shadow: var(--fabric-shadow-sm);
 }
 
 .agent-session-list__state {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
 
@@ -290,31 +290,31 @@ onBeforeUnmount(() => {
   min-height: 0;
   flex: 1;
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   overflow: auto;
 }
 
 .agent-session-list__group {
   display: grid;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .agent-session-list__group-toggle {
   width: 100%;
   justify-content: flex-start;
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .agent-session-list__group-rows {
   display: grid;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .agent-session-list__row {
   position: relative;
   z-index: 1;
-  border-radius: var(--sailor-radius-md);
+  border-radius: var(--fabric-radius-md);
   background: transparent;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -325,11 +325,11 @@ onBeforeUnmount(() => {
 
 .agent-session-list__row:hover,
 .agent-session-list__row--active {
-  background: var(--sailor-button-ghost-hover);
+  background: var(--fabric-button-ghost-hover);
 }
 
 .agent-session-list__row--active {
-  background: var(--sailor-button-ghost-active);
+  background: var(--fabric-button-ghost-active);
 }
 
 .agent-session-list__select {
@@ -352,9 +352,9 @@ onBeforeUnmount(() => {
 
 .agent-session-list__title {
   overflow: hidden;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font-size: 12px;
-  font-weight: var(--sailor-font-medium);
+  font-weight: var(--fabric-font-medium);
   text-overflow: ellipsis;
   white-space: nowrap;
   width: 100%;
@@ -366,25 +366,25 @@ onBeforeUnmount(() => {
   right: 6px;
   width: 24px;
   height: 24px;
-  border-radius: var(--sailor-radius-full);
-  color: var(--sailor-text-muted);
+  border-radius: var(--fabric-radius-full);
+  color: var(--fabric-text-muted);
   transform: translateY(-50%);
 }
 
 .agent-session-list__more:hover {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .agent-session-list__menu {
   position: fixed;
   z-index: 2147483647;
   width: 136px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
-  padding: var(--sailor-space-1);
-  box-shadow: var(--sailor-shadow-lg);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
+  padding: var(--fabric-space-1);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .agent-session-group-enter-active,
@@ -394,8 +394,8 @@ onBeforeUnmount(() => {
 .agent-session-row-enter-active,
 .agent-session-row-leave-active {
   transition:
-    opacity var(--sailor-duration-base) var(--sailor-ease-standard),
-    transform var(--sailor-duration-base) var(--sailor-ease-standard);
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
 .agent-session-group-enter-from,
@@ -409,6 +409,6 @@ onBeforeUnmount(() => {
 }
 
 .agent-session-row-move {
-  transition: transform var(--sailor-duration-base) var(--sailor-ease-standard);
+  transition: transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 </style>

@@ -18,13 +18,13 @@ import {
 test('utility catalog nodes belong only to Utilities with Trigger first', () => {
   const presets = catalogItemsToPickerPresets([
     {
-      type: 'code', label: 'Code', description: '', category: 'Developer', packId: 'sailor-core',
-      packName: 'Sailor Core', style: { icon: 'code', iconColor: '#fff', bgColor: 'transparent', borderColor: '#333' },
+      type: 'code', label: 'Code', description: '', category: 'Developer', packId: 'fabric-core',
+      packName: 'Fabric Core', style: { icon: 'code', iconColor: '#fff', bgColor: 'transparent', borderColor: '#333' },
       role: 'flow', capabilities: [], handles: [], presentation: { base: 'standard' },
     },
     {
-      type: 'trigger', label: 'Trigger', description: '', category: 'Core', packId: 'sailor-core',
-      packName: 'Sailor Core', style: { icon: 'zap', iconColor: '#fff', bgColor: 'transparent', borderColor: '#333' },
+      type: 'trigger', label: 'Trigger', description: '', category: 'Core', packId: 'fabric-core',
+      packName: 'Fabric Core', style: { icon: 'zap', iconColor: '#fff', bgColor: 'transparent', borderColor: '#333' },
       role: 'flow', capabilities: [], handles: [], presentation: { base: 'standard' },
     },
   ])
@@ -143,10 +143,10 @@ test('vector store preset lists only plugins implementing the generic provider c
 
 test('embedding picker exposes provider models first and their embedding methods second', () => {
   const openai = plugin({
-    id: 'sailor-openai',
+    id: 'fabric-openai',
     manifest: {
       metadata: {
-        id: 'sailor-openai',
+        id: 'fabric-openai',
         name: 'OpenAI',
         description: 'OpenAI models',
         icon: 'openai',
@@ -295,8 +295,8 @@ test('catalog items map to utility picker presets with style metadata', () => {
       label: 'Code Block',
       description: 'Run code',
       category: 'Developer',
-      packId: 'sailor-core',
-      packName: 'Sailor Core',
+      packId: 'fabric-core',
+      packName: 'Fabric Core',
       role: 'configuration',
       capabilities: ['output-parser'],
       handles: [],
@@ -337,8 +337,8 @@ test('catalog retrieval nodes appear together in Utilities', () => {
       label: 'Text Dataset',
       description: 'Load text items',
       category: 'Data transformation',
-      packId: 'sailor-core',
-      packName: 'Sailor Core',
+      packId: 'fabric-core',
+      packName: 'Fabric Core',
       style: {
         icon: 'text',
         iconColor: '#0ea5e9',
@@ -351,8 +351,8 @@ test('catalog retrieval nodes appear together in Utilities', () => {
       label: 'Vector Store',
       description: 'Upsert and query vectors',
       category: 'AI',
-      packId: 'sailor-core',
-      packName: 'Sailor Core',
+      packId: 'fabric-core',
+      packName: 'Fabric Core',
       style: {
         icon: 'database-zap',
         iconColor: '#8b5cf6',
@@ -365,8 +365,8 @@ test('catalog retrieval nodes appear together in Utilities', () => {
       label: 'Retriever',
       description: 'Fetch relevant vector matches',
       category: 'AI',
-      packId: 'sailor-core',
-      packName: 'Sailor Core',
+      packId: 'fabric-core',
+      packName: 'Fabric Core',
       style: {
         icon: 'search',
         iconColor: '#f97316',

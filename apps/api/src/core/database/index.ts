@@ -11,11 +11,11 @@ import { createMigrationEngine } from "./migration-engine.ts";
 import type { ActiveProfileDatabases, ProfileDatabaseManager } from "../profiles/profile-database-manager.ts";
 
 export async function initializeDatabases(): Promise<void> {
-  console.log("[SAILOR | DB]: Initializing databases...");
+  console.log("[FABRIC | DB]: Initializing databases...");
 
   await runMigrations(DatabaseManager);
 
-  console.log("[SAILOR | DB]: All databases are up to date.");
+  console.log("[FABRIC | DB]: All databases are up to date.");
 }
 
 export async function initializeProfileDatabases(

@@ -56,7 +56,7 @@ describe('workflow canvas connections contract', () => {
 
   it('keeps the shared BaseCanvas implementation clean and removes the legacy connection path', () => {
     const baseCanvas = readFileSync(fileURLToPath(new URL('../../../../shared/base-canvas/BaseCanvas.vue', import.meta.url)), 'utf8')
-    const workflowCanvas = readComponent('SailorWorkflowCanvas.vue')
+    const workflowCanvas = readComponent('FabricWorkflowCanvas.vue')
     const layer = readComponent('WorkflowConnectionLayer.vue')
 
     assert.doesNotMatch(baseCanvas, /WorkflowConnectionLayer/)

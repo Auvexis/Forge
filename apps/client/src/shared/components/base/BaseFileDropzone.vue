@@ -148,27 +148,27 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
 .base-file-dropzone {
   display: grid;
   place-items: center;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   min-height: 108px;
   width: 100%;
-  padding: var(--sailor-space-4);
-  border: 1px dashed var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-secondary);
+  padding: var(--fabric-space-4);
+  border: 1px dashed var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-secondary);
   font: inherit;
   cursor: pointer;
   transition:
-    border-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    background-color var(--sailor-duration-fast) var(--sailor-ease-standard),
-    color var(--sailor-duration-fast) var(--sailor-ease-standard);
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .base-file-dropzone:hover,
 .base-file-dropzone--dragging {
-  border-color: var(--sailor-input-border-focus);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-primary);
+  border-color: var(--fabric-input-border-focus);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
 }
 
 .base-file-dropzone:disabled {
@@ -181,13 +181,13 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: var(--sailor-text-sm);
-  font-weight: var(--sailor-font-medium);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
 }
 
 .base-file-dropzone small {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .base-file-dropzone__input {

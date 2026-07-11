@@ -10,11 +10,11 @@ import { ProfileStore } from "./profile-store.ts";
 
 describe("ProfileScopeRunner", () => {
   it("runs callbacks inside the requested profile database context", () => {
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-scope-"));
-    const store = new ProfileStore({ sailorHome });
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-scope-"));
+    const store = new ProfileStore({ fabricHome });
     store.ensureInitialized();
     store.createProfile({ id: "andre", name: "Andre", avatarEmoji: "🧭" });
-    const runner = new ProfileScopeRunner({ sailorHome, store });
+    const runner = new ProfileScopeRunner({ fabricHome, store });
 
     const dbPath = runner.runWithProfile("andre", () => {
       const context = getProfileDatabaseContext();
@@ -29,10 +29,10 @@ describe("ProfileScopeRunner", () => {
   });
 
   it("closes temporary profile handles after async callbacks fail", async () => {
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-scope-"));
-    const store = new ProfileStore({ sailorHome });
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-scope-"));
+    const store = new ProfileStore({ fabricHome });
     store.ensureInitialized();
-    const runner = new ProfileScopeRunner({ sailorHome, store });
+    const runner = new ProfileScopeRunner({ fabricHome, store });
     let openDuringCallback = false;
 
     await assert.rejects(
@@ -50,10 +50,10 @@ describe("ProfileScopeRunner", () => {
   });
 
   it("rejects unknown profile ids before opening databases", () => {
-    const sailorHome = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-profile-scope-"));
-    const store = new ProfileStore({ sailorHome });
+    const fabricHome = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-profile-scope-"));
+    const store = new ProfileStore({ fabricHome });
     store.ensureInitialized();
-    const runner = new ProfileScopeRunner({ sailorHome, store });
+    const runner = new ProfileScopeRunner({ fabricHome, store });
 
     assert.throws(
       () => runner.runWithProfile("missing", () => "never"),

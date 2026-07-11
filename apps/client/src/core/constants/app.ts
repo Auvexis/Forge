@@ -2,7 +2,7 @@
 //  App-wide constants
 // ─────────────────────────────────────────────────────────────
 
-export const APP_NAME = 'Sailor'
+export const APP_NAME = 'Fabric'
 export const APP_VERSION = '1.0.0'
 
 /** Backend API base URL — override with VITE_API_URL env var */

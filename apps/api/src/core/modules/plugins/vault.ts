@@ -1,16 +1,16 @@
-import type { CredentialSchema } from "@auvexis/sailor-sdk";
+import type { CredentialSchema } from "@auvexis/fabric-sdk";
 import { AppRepository } from "../app/app-repository.ts";
 
 /**
- * ENV-based credential vault for Sailor plugins.
+ * ENV-based credential vault for Fabric plugins.
  *
  * Convention:
- *   SAILOR_PLUGIN_{PLUGIN_ID}_{FIELD_KEY}
+ *   FABRIC_PLUGIN_{PLUGIN_ID}_{FIELD_KEY}
  *
  * Examples:
- *   SAILOR_PLUGIN_GOOGLE_DRIVE_CLIENT_ID=xxx
- *   SAILOR_PLUGIN_GOOGLE_DRIVE_CLIENT_SECRET=yyy
- *   SAILOR_PLUGIN_GOOGLE_YOUTUBE_CLIENT_ID=xxx
+ *   FABRIC_PLUGIN_GOOGLE_DRIVE_CLIENT_ID=xxx
+ *   FABRIC_PLUGIN_GOOGLE_DRIVE_CLIENT_SECRET=yyy
+ *   FABRIC_PLUGIN_GOOGLE_YOUTUBE_CLIENT_ID=xxx
  *
  * Plugin IDs with hyphens are converted to underscores.
  * Keys are uppercased.
@@ -26,7 +26,7 @@ export const Vault = {
   envKey(pluginId: string, fieldKey: string): string {
     const normalizedId = pluginId.toUpperCase().replace(/-/g, "_");
     const normalizedKey = fieldKey.toUpperCase().replace(/-/g, "_");
-    return `SAILOR_PLUGIN_${normalizedId}_${normalizedKey}`;
+    return `FABRIC_PLUGIN_${normalizedId}_${normalizedKey}`;
   },
 
   /**

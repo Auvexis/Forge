@@ -70,7 +70,7 @@ const configureMonaco = () => {
     },
   }
 
-  monaco.editor.defineTheme('sailor-dark', {
+  monaco.editor.defineTheme('fabric-dark', {
     base: 'vs-dark',
     inherit: true,
     rules: [
@@ -117,7 +117,7 @@ const configureMonaco = () => {
     },
   })
 
-  monaco.editor.defineTheme('sailor-light', {
+  monaco.editor.defineTheme('fabric-light', {
     base: 'vs',
     inherit: true,
 
@@ -218,7 +218,7 @@ const configureMonaco = () => {
   }
 }
 
-const monacoTheme = () => `sailor-${resolvedTheme.value}`
+const monacoTheme = () => `fabric-${resolvedTheme.value}`
 
 onMounted(() => {
   if (!editorEl.value) return
@@ -232,7 +232,7 @@ onMounted(() => {
     automaticLayout: true,
     fixedOverflowWidgets: true,
     minimap: { enabled: false },
-    fontFamily: 'var(--sailor-font-mono)',
+    fontFamily: 'var(--fabric-font-mono)',
     fontSize: 13,
     lineHeight: 20,
     tabSize: 2,
@@ -288,26 +288,26 @@ onBeforeUnmount(() => {
 .base-code-editor {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   width: 100%;
 }
 
 .base-code-editor__label {
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
-  color: var(--sailor-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
+  color: var(--fabric-text-secondary);
 }
 
 .required {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .base-code-editor__surface {
   width: 100%;
   min-height: 160px;
   overflow: hidden;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
   background: #111112;
 }
 
@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
 }
 
 .base-code-editor__surface:focus-within {
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
 }
 
 .base-code-editor--disabled {
@@ -324,14 +324,14 @@ onBeforeUnmount(() => {
 }
 
 .base-code-editor__error {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-error);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-error);
   margin-top: 2px;
 }
 
 .base-code-editor__hint {
-  font-size: var(--sailor-text-xs);
-  color: var(--sailor-text-muted);
+  font-size: var(--fabric-text-xs);
+  color: var(--fabric-text-muted);
   margin-top: 2px;
 }
 </style>

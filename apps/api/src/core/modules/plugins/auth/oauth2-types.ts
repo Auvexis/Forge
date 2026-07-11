@@ -1,4 +1,4 @@
-import type { CredentialSchema, OAuth2Tokens } from "@auvexis/sailor-sdk";
+import type { CredentialSchema, OAuth2Tokens } from "@auvexis/fabric-sdk";
 
 export type OAuth2ClientAuthMethod = "basic" | "body" | "none";
 export type OAuth2TokenContentType = "form" | "json";

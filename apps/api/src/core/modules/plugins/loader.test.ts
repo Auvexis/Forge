@@ -6,7 +6,7 @@ import { describe, it } from "node:test";
 import Database from "better-sqlite3";
 
 import { loadPlugins, validateManifest } from "./loader.ts";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 
 function createRegistryDb(): Database.Database {
   const db = new Database(":memory:");
@@ -40,7 +40,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
         description: "Test plugin",
         icon: "plug",
         categories: ["Core"],
-        author: "SAILOR",
+        author: "FABRIC",
         version,
         repository: "",
       },
@@ -65,7 +65,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
             description: "Test plugin",
             icon: "plug",
             categories: ["Core"],
-            author: "SAILOR",
+            author: "FABRIC",
             version: ${JSON.stringify(version)},
             repository: ""
           },
@@ -85,7 +85,7 @@ function writePlugin(root: string, id: string, version = "1.0.0"): string {
   return pluginDir;
 }
 
-function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.dirname(entrypoint))): SailorPlugin {
+function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.dirname(entrypoint))): FabricPlugin {
   const id = pluginId;
   return {
     id,
@@ -96,7 +96,7 @@ function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.
         description: "Test plugin",
         icon: "plug",
         categories: ["Core"],
-        author: "SAILOR",
+        author: "FABRIC",
         version: "1.0.0",
         repository: "",
       },
@@ -114,11 +114,11 @@ function pluginFromEntrypoint(entrypoint: string, pluginId = path.basename(path.
 }
 
 function createManager() {
-  const registered: SailorPlugin[] = [];
+  const registered: FabricPlugin[] = [];
   return {
     registered,
     manager: {
-      registerPlugin(plugin: SailorPlugin) {
+      registerPlugin(plugin: FabricPlugin) {
         registered.push(plugin);
       },
     },
@@ -133,7 +133,7 @@ function createValidManifest(overrides: Record<string, unknown> = {}) {
       description: "Checks SDK validation",
       icon: "plug",
       categories: ["Core"],
-      author: "SAILOR",
+      author: "FABRIC",
       version: "1.0.0",
       repository: "",
       ...overrides,
@@ -149,11 +149,11 @@ function createValidManifest(overrides: Record<string, unknown> = {}) {
 }
 
 function readInternalManifest(pluginId: string) {
-  return JSON.parse(fs.readFileSync(path.resolve("src/plugins/sailor", pluginId, "manifest.json"), "utf8")) as any;
+  return JSON.parse(fs.readFileSync(path.resolve("src/plugins/fabric", pluginId, "manifest.json"), "utf8")) as any;
 }
 
 describe("loadPlugins", () => {
-  it("validates manifests using the public Sailor SDK contract", () => {
+  it("validates manifests using the public Fabric SDK contract", () => {
     const errors = validateManifest(createValidManifest());
 
     assert.deepEqual(errors, []);
@@ -190,7 +190,7 @@ describe("loadPlugins", () => {
             description: "Provides chat completions through a configurable compatible API endpoint.",
             defaultModel: "llama3.2",
             defaultBaseUrl: "http://localhost:11434/v1",
-            credentialPluginId: "sailor-ollama",
+            credentialPluginId: "fabric-ollama",
           },
         },
       }),
@@ -210,7 +210,7 @@ describe("loadPlugins", () => {
             description: "Provides chat completions through the native Ollama API endpoint.",
             defaultModel: "llama3.2",
             defaultBaseUrl: "http://localhost:11434",
-            credentialPluginId: "sailor-ollama",
+            credentialPluginId: "fabric-ollama",
           },
         },
       }),
@@ -371,7 +371,7 @@ describe("loadPlugins", () => {
   });
 
   it("declares agent-enabled tools for internal plugin manifests", () => {
-    const internalPluginsDir = path.resolve(import.meta.dirname, "../../../plugins/sailor");
+    const internalPluginsDir = path.resolve(import.meta.dirname, "../../../plugins/fabric");
     const manifests = fs
       .readdirSync(internalPluginsDir, { withFileTypes: true })
       .filter((entry) => entry.isDirectory())
@@ -391,7 +391,7 @@ describe("loadPlugins", () => {
     }
   });
 
-  it("accepts light and dark plugin metadata icons through the public Sailor SDK contract", () => {
+  it("accepts light and dark plugin metadata icons through the public Fabric SDK contract", () => {
     const errors = validateManifest({
       metadata: {
         id: "sdk-contract-plugin",
@@ -401,7 +401,7 @@ describe("loadPlugins", () => {
         iconLight: "https://cdn.example.com/icon-light.svg",
         iconDark: "https://cdn.example.com/icon-dark.svg",
         categories: ["Core"],
-        author: "SAILOR",
+        author: "FABRIC",
         version: "1.0.0",
         repository: "",
       },
@@ -417,7 +417,7 @@ describe("loadPlugins", () => {
     assert.deepEqual(errors, []);
   });
 
-  it("rejects legacy method ui metadata through the public Sailor SDK contract", () => {
+  it("rejects legacy method ui metadata through the public Fabric SDK contract", () => {
     const errors = validateManifest({
       metadata: {
         id: "sdk-contract-plugin",
@@ -425,7 +425,7 @@ describe("loadPlugins", () => {
         description: "Checks SDK validation",
         icon: "plug",
         categories: ["Core"],
-        author: "SAILOR",
+        author: "FABRIC",
         version: "1.0.0",
         repository: "",
       },
@@ -443,7 +443,7 @@ describe("loadPlugins", () => {
   });
 
   it("loads internal and external plugin sources into the registry", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "external");
     writePlugin(internalDir, "internal-one");
@@ -472,9 +472,9 @@ describe("loadPlugins", () => {
     db.close();
   });
 
-  it("loads default database canary plugins from internal sailor plugins", async () => {
-    const internalDir = path.resolve("src/plugins/sailor");
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+  it("loads default database canary plugins from internal fabric plugins", async () => {
+    const internalDir = path.resolve("src/plugins/fabric");
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loader-"));
     const externalDir = path.join(temp, "external");
     const db = createRegistryDb();
     const { manager, registered } = createManager();
@@ -489,14 +489,14 @@ describe("loadPlugins", () => {
 
     const pluginIds = registered.map((plugin) => plugin.id);
 
-    assert.ok(pluginIds.includes("sailor-postgresql"));
-    assert.ok(pluginIds.includes("sailor-supabase"));
+    assert.ok(pluginIds.includes("fabric-postgresql"));
+    assert.ok(pluginIds.includes("fabric-supabase"));
     db.close();
   });
 
-  it("loads expanded default plugin catalog from internal sailor plugins", async () => {
-    const internalDir = path.resolve("src/plugins/sailor");
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+  it("loads expanded default plugin catalog from internal fabric plugins", async () => {
+    const internalDir = path.resolve("src/plugins/fabric");
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loader-"));
     const externalDir = path.join(temp, "external");
     const db = createRegistryDb();
     const { manager, registered } = createManager();
@@ -530,7 +530,7 @@ describe("loadPlugins", () => {
   });
 
   it("loads external plugins under install id when manifest id conflicts with internal plugin ids", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "external");
     writePlugin(internalDir, "same-plugin");
@@ -571,7 +571,7 @@ describe("loadPlugins", () => {
   });
 
   it("does not try to load package entrypoints inside plugin node_modules", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "external");
     const pluginDir = writePlugin(externalDir, "external-with-deps");
@@ -602,7 +602,7 @@ describe("loadPlugins", () => {
   });
 
   it("does not throw when external plugin directory is missing or invalid", async () => {
-    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loader-"));
+    const temp = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loader-"));
     const internalDir = path.join(temp, "internal");
     const externalDir = path.join(temp, "missing-external");
     const invalidDir = path.join(temp, "invalid");

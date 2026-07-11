@@ -33,7 +33,7 @@ Git rules:
   * Update the task file
   * Commit the changes
 
-SAILOR architecture rules:
+FABRIC architecture rules:
 
 * Plugins must not know anything outside their own folder
 * Plugins must not import or call anything from `core/engines`

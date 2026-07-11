@@ -42,8 +42,8 @@ describe('workflow canvas selection contract', () => {
   it('renders a workflow-owned group selection box with duplicate and delete actions', () => {
     const selectionBox = readComponent('WorkflowSelectionBox.vue')
 
-    assert.match(selectionBox, /sailor-group-box-outer/)
-    assert.match(selectionBox, /sailor-group-toolbar/)
+    assert.match(selectionBox, /fabric-group-box-outer/)
+    assert.match(selectionBox, /fabric-group-toolbar/)
     assert.match(selectionBox, /selectedItems/)
     assert.match(selectionBox, /duplicateSelection/)
     assert.match(selectionBox, /deleteSelection/)

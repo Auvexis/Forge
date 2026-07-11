@@ -62,7 +62,7 @@ describe('start guide progress storage', () => {
   it('uses a profile scoped localStorage key', () => {
     assert.equal(
       startGuideStorageKey('profile_a', 'plugin-external-installer'),
-      'sailor:start-guide:v1:profile_a:plugin-external-installer',
+      'fabric:start-guide:v1:profile_a:plugin-external-installer',
     )
   })
 

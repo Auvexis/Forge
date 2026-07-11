@@ -527,7 +527,7 @@ async function scrollMessagesToBottom() {
 function formatSendError(error: unknown) {
   if (error instanceof ApiError) {
     if (error.statusCode === 0) {
-      return 'Chat request failed because Sailor could not reach the server. Check that the app is running and try again.'
+      return 'Chat request failed because Fabric could not reach the server. Check that the app is running and try again.'
     }
 
     if (error.statusCode === 404) {
@@ -737,14 +737,14 @@ function formatMessageTime(message: AgentChatMessage) {
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .chat-session-panel__composer-actions {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
 }
 
 .chat-session-panel__target-bar {
@@ -752,14 +752,14 @@ function formatMessageTime(message: AgentChatMessage) {
   display: flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: 18px;
 }
 
 .chat-session-panel__target-kind {
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-muted);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -771,11 +771,11 @@ function formatMessageTime(message: AgentChatMessage) {
   display: inline-flex;
   max-width: min(420px, 100%);
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   overflow: hidden;
   border: 0;
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   font-size: 11px;
   line-height: 1.2;
@@ -788,14 +788,14 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__target-select span,
 .chat-session-panel__target-option span {
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font-weight: 700;
 }
 
 .chat-session-panel__target-select code,
 .chat-session-panel__target-option code {
   overflow: hidden;
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   font-size: 10px;
   font-weight: 500;
   text-overflow: ellipsis;
@@ -805,25 +805,25 @@ function formatMessageTime(message: AgentChatMessage) {
 .chat-session-panel__target-menu {
   position: absolute;
   left: 0;
-  bottom: calc(100% + var(--sailor-space-2));
-  z-index: var(--sailor-z-raised);
+  bottom: calc(100% + var(--fabric-space-2));
+  z-index: var(--fabric-z-raised);
   display: flex;
   min-width: 240px;
   flex-direction: column;
   gap: 1px;
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-elevated);
-  box-shadow: var(--sailor-shadow-lg);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-elevated);
+  box-shadow: var(--fabric-shadow-lg);
 }
 
 .chat-session-panel__target-option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   border: 0;
   background: transparent;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   padding: 7px 9px;
   text-align: left;
@@ -831,17 +831,17 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__target-option:hover,
 .chat-session-panel__target-option--active {
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
 }
 
 .chat-session-panel__empty,
 .chat-session-panel__error {
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
 }
 
 .chat-session-panel__empty {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .chat-session-panel__published-boundary {
@@ -849,24 +849,24 @@ function formatMessageTime(message: AgentChatMessage) {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-2);
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  gap: var(--fabric-space-2);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
   padding: 8px 10px;
 }
 
 .chat-session-panel__published-boundary span {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .chat-session-panel__published-boundary button {
-  border: 1px solid var(--sailor-border-strong);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-inverse);
-  color: var(--sailor-text-inverse);
+  border: 1px solid var(--fabric-border-strong);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-inverse);
+  color: var(--fabric-text-inverse);
   cursor: pointer;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
   padding: 7px 10px;
 }
@@ -877,19 +877,19 @@ function formatMessageTime(message: AgentChatMessage) {
   min-height: 0;
   flex-direction: column;
   overflow-y: auto;
-  padding-right: var(--sailor-space-1);
+  padding-right: var(--fabric-space-1);
 }
 
 .chat-session-panel__message-list {
   display: flex;
   flex-direction: column;
-  gap: var(--sailor-space-4);
+  gap: var(--fabric-space-4);
 }
 
 .chat-session-panel__message {
   display: flex;
   align-items: flex-start;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   width: 100%;
   max-width: min(760px, 96%);
   padding: 2px 0;
@@ -911,19 +911,19 @@ function formatMessageTime(message: AgentChatMessage) {
   flex: 0 0 30px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--sailor-border);
+  border: 1px solid var(--fabric-border);
   border-radius: 999px;
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-secondary);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-secondary);
 }
 
 .chat-session-panel__message[data-role='assistant'] .chat-session-panel__avatar {
-  border-color: color-mix(in srgb, var(--sailor-green-400) 28%, var(--sailor-border));
-  color: var(--sailor-green-400);
+  border-color: color-mix(in srgb, var(--fabric-green-400) 28%, var(--fabric-border));
+  color: var(--fabric-green-400);
 }
 
 .chat-session-panel__message[data-role='user'] .chat-session-panel__avatar {
-  border-color: color-mix(in srgb, var(--sailor-text-muted) 35%, var(--sailor-border));
+  border-color: color-mix(in srgb, var(--fabric-text-muted) 35%, var(--fabric-border));
 }
 
 .chat-session-panel__message-copy {
@@ -947,29 +947,29 @@ function formatMessageTime(message: AgentChatMessage) {
 .chat-session-panel__message-copy strong {
   display: inline-flex;
   align-items: baseline;
-  gap: var(--sailor-space-2);
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-sm);
+  gap: var(--fabric-space-2);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
   font-weight: 700;
 }
 
 .chat-session-panel__message-copy time {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-medium);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-medium);
 }
 
 .chat-session-panel__message-copy p {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .chat-session-panel__thinking {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
@@ -981,18 +981,18 @@ function formatMessageTime(message: AgentChatMessage) {
   width: min(420px, 100%);
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   overflow: hidden;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-surface);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-surface);
   padding: 8px 10px;
 }
 
 .chat-session-panel__tool-status--pending,
 .chat-session-panel__tool-status--running,
 .chat-session-panel__tool-status--retrying {
-  border-color: color-mix(in srgb, var(--sailor-amber-400) 34%, var(--sailor-border));
+  border-color: color-mix(in srgb, var(--fabric-amber-400) 34%, var(--fabric-border));
 }
 
 .chat-session-panel__tool-status--pending::before,
@@ -1003,7 +1003,7 @@ function formatMessageTime(message: AgentChatMessage) {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--sailor-amber-400) 12%, transparent) 46%,
+    color-mix(in srgb, var(--fabric-amber-400) 12%, transparent) 46%,
     transparent 100%
   );
   animation: chat-tool-shimmer 1.6s ease-in-out infinite;
@@ -1012,11 +1012,11 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__tool-status--success {
-  border-color: color-mix(in srgb, var(--sailor-green-400) 34%, var(--sailor-border));
+  border-color: color-mix(in srgb, var(--fabric-green-400) 34%, var(--fabric-border));
 }
 
 .chat-session-panel__tool-status--failed {
-  border-color: color-mix(in srgb, var(--sailor-red-400, #ef4444) 38%, var(--sailor-border));
+  border-color: color-mix(in srgb, var(--fabric-red-400, #ef4444) 38%, var(--fabric-border));
 }
 
 .chat-session-panel__tool-status-copy {
@@ -1028,22 +1028,22 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__tool-status-copy span {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
 }
 
 .chat-session-panel__tool-status-copy p {
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
   line-height: 1.35;
 }
 
 .chat-session-panel__tool-final-reply {
   width: min(420px, 100%);
-  border-left: 1px solid color-mix(in srgb, var(--sailor-green-400) 34%, var(--sailor-border));
-  margin-top: var(--sailor-space-2);
-  padding-left: var(--sailor-space-3);
+  border-left: 1px solid color-mix(in srgb, var(--fabric-green-400) 34%, var(--fabric-border));
+  margin-top: var(--fabric-space-2);
+  padding-left: var(--fabric-space-3);
 }
 
 .chat-session-panel__tool-dots {
@@ -1058,7 +1058,7 @@ function formatMessageTime(message: AgentChatMessage) {
   width: 5px;
   height: 5px;
   border-radius: 999px;
-  background: var(--sailor-amber-400);
+  background: var(--fabric-amber-400);
   animation: chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -1081,7 +1081,7 @@ function formatMessageTime(message: AgentChatMessage) {
   width: 5px;
   height: 5px;
   border-radius: 999px;
-  background: var(--sailor-text-muted);
+  background: var(--fabric-text-muted);
   animation: chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -1096,27 +1096,27 @@ function formatMessageTime(message: AgentChatMessage) {
 .chat-session-panel__approval-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sailor-space-2);
-  margin-top: var(--sailor-space-1);
+  gap: var(--fabric-space-2);
+  margin-top: var(--fabric-space-1);
 }
 
 .chat-session-panel__approval-button {
   min-width: 72px;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-elevated);
-  color: var(--sailor-text-secondary);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-secondary);
   cursor: pointer;
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   font-weight: 700;
   line-height: 1;
   padding: 7px 10px;
 }
 
 .chat-session-panel__approval-button--primary {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-inverse);
-  color: var(--sailor-text-inverse);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-inverse);
+  color: var(--fabric-text-inverse);
 }
 
 .chat-session-panel__approval-button:disabled {
@@ -1128,21 +1128,21 @@ function formatMessageTime(message: AgentChatMessage) {
   display: flex;
   flex: 0 0 auto;
   flex-direction: column;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .chat-session-panel__composer-shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   padding: 7px;
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-surface);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-surface);
 }
 
 .chat-session-panel__composer-shell:focus-within {
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
 }
 
 .chat-session-panel__input {
@@ -1153,14 +1153,14 @@ function formatMessageTime(message: AgentChatMessage) {
   outline: none;
   padding: 5px 6px;
   background: transparent;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   font: inherit;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   line-height: 1.5;
 }
 
 .chat-session-panel__input::placeholder {
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .chat-session-panel__input:disabled {
@@ -1170,7 +1170,7 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__composer-actions {
   justify-content: flex-end;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
 }
 
 .chat-session-panel__icon-button,
@@ -1180,9 +1180,9 @@ function formatMessageTime(message: AgentChatMessage) {
   height: 30px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  color: var(--sailor-text-secondary);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-text-secondary);
   cursor: pointer;
   transition:
     background 120ms ease,
@@ -1194,7 +1194,7 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__icon-button {
   position: relative;
-  background: var(--sailor-bg-elevated);
+  background: var(--fabric-bg-elevated);
 }
 
 .chat-session-panel__icon-button:hover:not(:disabled),
@@ -1203,23 +1203,23 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__icon-button--listening {
-  border-color: var(--sailor-amber-400);
-  color: var(--sailor-amber-400);
+  border-color: var(--fabric-amber-400);
+  color: var(--fabric-amber-400);
 }
 
 .chat-session-panel__icon-button--listening::after {
   position: absolute;
   inset: -5px;
   border: 1px solid rgba(245, 158, 11, 0.45);
-  border-radius: var(--sailor-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   animation: chat-listening-pulse 1.2s ease-out infinite;
   content: '';
 }
 
 .chat-session-panel__send {
-  border-color: var(--sailor-border-strong);
-  background: var(--sailor-bg-inverse);
-  color: var(--sailor-text-inverse);
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-inverse);
+  color: var(--fabric-text-inverse);
 }
 
 .chat-session-panel__icon-button:disabled,
@@ -1233,7 +1233,7 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__error {
-  color: var(--sailor-text-error);
+  color: var(--fabric-text-error);
 }
 
 .chat-message-enter-active,

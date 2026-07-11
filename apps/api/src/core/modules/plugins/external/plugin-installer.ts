@@ -3,7 +3,7 @@ import path from "node:path";
 import type Database from "better-sqlite3";
 import { readPluginManifestPreview } from "../plugin-manifest-preview.ts";
 import { syncPluginRegistry } from "../plugin-registry.ts";
-import { sailorHomePaths, type SailorHomePaths } from "../../../runtime/sailor-home.ts";
+import { fabricHomePaths, type FabricHomePaths } from "../../../runtime/fabric-home.ts";
 import { applyPluginProfileScope } from "./plugin-profile-scope-service.ts";
 import { installPluginDependencies } from "./plugin-dependency-installer.ts";
 import { generatePluginInstallId } from "./plugin-install-id-generator.ts";
@@ -33,7 +33,7 @@ export interface InstallExternalPluginInput {
   runtimeReload?: (pluginDir: string, installId: string) => RuntimeReloadResult | Promise<RuntimeReloadResult>;
 }
 
-function installerPaths(paths: SailorHomePaths): ExternalPluginInstallerPaths {
+function installerPaths(paths: FabricHomePaths): ExternalPluginInstallerPaths {
   return {
     globalPluginsDir: paths.globalPluginsDir,
     pluginCacheDir: paths.pluginCacheDir,
@@ -56,7 +56,7 @@ function ensureDestinationFree(destination: string): void {
 }
 
 export function installExternalPlugin(input: InstallExternalPluginInput): PluginInstallResult {
-  const paths = input.paths ?? installerPaths(sailorHomePaths);
+  const paths = input.paths ?? installerPaths(fabricHomePaths);
   const release = {
     releaseDir: input.releaseDir,
     manifestPath: path.join(input.releaseDir, "manifest.json"),

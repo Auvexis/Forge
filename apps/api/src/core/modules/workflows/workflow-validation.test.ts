@@ -218,7 +218,7 @@ describe("workflow validation", () => {
         model: {
           type: "ai-model",
           name: "Ollama Model",
-          pluginId: "sailor-ollama",
+          pluginId: "fabric-ollama",
           adapter: "ollama",
           model: "llama3.2",
           temperature: 0,
@@ -501,7 +501,7 @@ describe("workflow validation", () => {
           maxRetrievedMemories: 4,
           maxMemoryChars: 4000,
           adapter: "plugin-memory-store",
-          pluginId: "sailor-postgresql",
+          pluginId: "fabric-postgresql",
           searchMethodId: "searchAgentMemory",
           putMethodId: "putAgentMemory",
         },
@@ -523,7 +523,7 @@ describe("workflow validation", () => {
           maxRetrievedMemories: 4,
           maxMemoryChars: 4000,
           adapter: "plugin-memory-store",
-          pluginId: "sailor-postgresql",
+          pluginId: "fabric-postgresql",
         } as any,
       },
     }));

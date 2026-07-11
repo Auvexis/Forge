@@ -102,7 +102,7 @@ function formatDate(value: string) {
 .notification-detail {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   height: 100%;
   min-height: 0;
 }
@@ -112,22 +112,22 @@ function formatDate(value: string) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .notification-detail__body {
   display: grid;
   align-content: start;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
   min-height: 0;
   overflow-y: auto;
 }
 
 .notification-detail__level {
   width: max-content;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-semibold);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-semibold);
   text-transform: uppercase;
 }
 
@@ -138,20 +138,20 @@ function formatDate(value: string) {
 }
 
 .notification-detail h2 {
-  color: var(--sailor-text-primary);
-  font-size: var(--sailor-text-lg);
-  line-height: var(--sailor-leading-tight);
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-lg);
+  line-height: var(--fabric-leading-tight);
 }
 
 .notification-detail p,
 .notification-detail dd {
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 
 .notification-detail__meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .notification-detail__meta div {
@@ -159,24 +159,24 @@ function formatDate(value: string) {
 }
 
 .notification-detail dt {
-  color: var(--sailor-text-muted);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
 }
 
 .notification-detail dd {
-  margin: var(--sailor-space-1) 0 0;
+  margin: var(--fabric-space-1) 0 0;
   overflow-wrap: anywhere;
 }
 
 .notification-detail__context {
   max-height: 220px;
   overflow: auto;
-  padding: var(--sailor-space-3);
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-sm);
-  background: var(--sailor-bg-base);
-  color: var(--sailor-text-secondary);
-  font-family: var(--sailor-font-mono);
-  font-size: var(--sailor-text-xs);
+  padding: var(--fabric-space-3);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-secondary);
+  font-family: var(--fabric-font-mono);
+  font-size: var(--fabric-text-xs);
 }
 </style>

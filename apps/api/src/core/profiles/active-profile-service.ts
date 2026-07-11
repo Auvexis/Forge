@@ -45,7 +45,7 @@ type ProfileActivationHook = (
 ) => Promise<void> | void;
 
 export interface ActiveProfileServiceOptions {
-  sailorHome: string;
+  fabricHome: string;
   store: ProfileStore;
   passwordService: ProfilePasswordService;
   databaseManager: ProfileDatabaseManager | ProfileDatabaseManagerLike;
@@ -59,7 +59,7 @@ export interface ActiveProfileServiceOptions {
 }
 
 export class ActiveProfileService {
-  private readonly sailorHome: string;
+  private readonly fabricHome: string;
   private readonly store: ProfileStore;
   private readonly passwordService: ProfilePasswordService;
   private readonly databaseManager: ProfileDatabaseManager | ProfileDatabaseManagerLike;
@@ -73,7 +73,7 @@ export class ActiveProfileService {
   private activeProfile: ProfileSummary | null = null;
 
   constructor(options: ActiveProfileServiceOptions) {
-    this.sailorHome = options.sailorHome;
+    this.fabricHome = options.fabricHome;
     this.store = options.store;
     this.passwordService = options.passwordService;
     this.databaseManager = options.databaseManager;
@@ -138,7 +138,7 @@ export class ActiveProfileService {
 
   private async activateProfile(profile: ProfileSummary): Promise<void> {
     const profilePaths = resolveProfilePaths({
-      sailorHome: this.sailorHome,
+      fabricHome: this.fabricHome,
       profileId: profile.id,
     });
     this.databaseManager.open(profilePaths);
@@ -152,7 +152,7 @@ export class ActiveProfileService {
 
   private async restorePreviousProfile(profile: ProfileSummary): Promise<void> {
     const profilePaths = resolveProfilePaths({
-      sailorHome: this.sailorHome,
+      fabricHome: this.fabricHome,
       profileId: profile.id,
     });
     this.databaseManager.open(profilePaths);

@@ -5,9 +5,9 @@ import { pluginsCommandProvider } from "./plugins.commands.ts";
 import { CommandExecutor } from "../command-executor.ts";
 import { CommandRegistry } from "../command-registry.ts";
 import type { CommandExecutionContext } from "../command-types.ts";
-import type { SailorPlugin } from "@auvexis/sailor-sdk";
+import type { FabricPlugin } from "@auvexis/fabric-sdk";
 
-function oauthPlugin(id = "generic-oauth"): SailorPlugin {
+function oauthPlugin(id = "generic-oauth"): FabricPlugin {
   return {
     id,
     manifest: {
@@ -51,7 +51,7 @@ function oauthPlugin(id = "generic-oauth"): SailorPlugin {
   };
 }
 
-function apiKeyPlugin(id = "generic-api-key"): SailorPlugin {
+function apiKeyPlugin(id = "generic-api-key"): FabricPlugin {
   return {
     ...oauthPlugin(id),
     manifest: {

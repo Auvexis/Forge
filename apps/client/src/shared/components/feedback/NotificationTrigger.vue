@@ -48,18 +48,18 @@ const ariaLabel = computed(() =>
 
 .notification-trigger__badge {
   position: absolute;
-  top: calc(-1 * var(--sailor-space-1));
-  right: calc(-1 * var(--sailor-space-1));
-  min-width: var(--sailor-space-4);
-  height: var(--sailor-space-4);
-  padding: 0 var(--sailor-space-1);
-  border: 1px solid var(--sailor-bg-surface);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-inverse);
-  color: var(--sailor-text-inverse);
-  font-size: var(--sailor-text-xs);
-  font-weight: var(--sailor-font-bold);
-  line-height: var(--sailor-space-4);
+  top: calc(-1 * var(--fabric-space-1));
+  right: calc(-1 * var(--fabric-space-1));
+  min-width: var(--fabric-space-4);
+  height: var(--fabric-space-4);
+  padding: 0 var(--fabric-space-1);
+  border: 1px solid var(--fabric-bg-surface);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-bg-inverse);
+  color: var(--fabric-text-inverse);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-bold);
+  line-height: var(--fabric-space-4);
   text-align: center;
 }
 </style>

@@ -79,8 +79,8 @@ describe('app sidebar navigation', () => {
   })
 
   it('returns the active sidebar width token for expanded and collapsed states', () => {
-    assert.equal(sidebarWidthForState(false), 'var(--sailor-sidebar-expanded)')
-    assert.equal(sidebarWidthForState(true), 'var(--sailor-sidebar-width)')
+    assert.equal(sidebarWidthForState(false), 'var(--fabric-sidebar-expanded)')
+    assert.equal(sidebarWidthForState(true), 'var(--fabric-sidebar-width)')
   })
 
   it('uses a wider expanded sidebar token for the suite layout', () => {

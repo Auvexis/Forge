@@ -5,7 +5,7 @@ import Fastify from "fastify";
 
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageRepository } from "../modules/pages/page-repository.ts";
-import type { SailorPage } from "../modules/pages/page-types.ts";
+import type { FabricPage } from "../modules/pages/page-types.ts";
 import pagesRoutes from "./pages.routes.ts";
 
 describe("pages form workflow smoke", () => {
@@ -36,7 +36,7 @@ describe("pages form workflow smoke", () => {
         ],
       },
     });
-    const page = (createdResponse.json() as ApiResponse<SailorPage>).data!;
+    const page = (createdResponse.json() as ApiResponse<FabricPage>).data!;
     await app.inject({ method: "POST", url: `/pages/${page.id}/publish` });
 
     const submitResponse = await app.inject({

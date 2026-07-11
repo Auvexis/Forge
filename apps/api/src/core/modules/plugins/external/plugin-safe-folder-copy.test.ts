@@ -7,7 +7,7 @@ import { describe, it } from "node:test";
 import { copyExtractedFolderToCache } from "./plugin-install-source-resolver.ts";
 
 function makeTempRoot(): string {
-  return fs.mkdtempSync(path.join(os.tmpdir(), "sailor-folder-source-"));
+  return fs.mkdtempSync(path.join(os.tmpdir(), "fabric-folder-source-"));
 }
 
 function writeValidRelease(root: string): void {

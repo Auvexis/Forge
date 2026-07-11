@@ -149,7 +149,7 @@ const pendingAttachments = ref<AgentPanelPendingAttachment[]>([])
 const draggingFiles = ref(false)
 const isListening = ref(false)
 const speechSupported = computed(() => getSpeechRecognitionCtor() !== null)
-const speechLanguage = useLocalStorage('sailor:agent-chat:speech-language', 'en-US')
+const speechLanguage = useLocalStorage('fabric:agent-chat:speech-language', 'en-US')
 let activeRecognition: BrowserSpeechRecognition | null = null
 let keepRecognitionAlive = false
 let speechBaseDraft = ''
@@ -377,25 +377,25 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .agent-chat-composer {
-  --agent-chat-composer-surface: var(--sailor-bg-base);
-  --agent-chat-composer-text: var(--sailor-text-primary);
-  --agent-chat-composer-border: var(--sailor-border-strong);
-  --agent-chat-composer-shadow: color-mix(in srgb, var(--sailor-bg-inverse) 8%, transparent);
+  --agent-chat-composer-surface: var(--fabric-bg-base);
+  --agent-chat-composer-text: var(--fabric-text-primary);
+  --agent-chat-composer-border: var(--fabric-border-strong);
+  --agent-chat-composer-shadow: color-mix(in srgb, var(--fabric-bg-inverse) 8%, transparent);
 
   display: flex;
   width: min(100%, 724px);
   flex-direction: column;
-  gap: var(--sailor-space-3);
+  gap: var(--fabric-space-3);
   border: 1px solid var(--agent-chat-composer-border);
-  border-radius: var(--sailor-radius-xl);
+  border-radius: var(--fabric-radius-xl);
   background: var(--agent-chat-composer-surface);
-  padding: var(--sailor-space-4);
-  box-shadow: var(--sailor-shadow-sm);
+  padding: var(--fabric-space-4);
+  box-shadow: var(--fabric-shadow-sm);
 }
 
 .agent-chat-composer--dock {
-  width: min(100% - var(--sailor-space-12), 760px);
-  margin: 0 auto var(--sailor-space-5);
+  width: min(100% - var(--fabric-space-12), 760px);
+  margin: 0 auto var(--fabric-space-5);
 }
 
 .agent-chat-composer--hero {
@@ -403,23 +403,23 @@ onBeforeUnmount(() => {
 }
 
 .agent-chat-composer--dragging {
-  border-color: var(--sailor-border-focus);
+  border-color: var(--fabric-border-focus);
 }
 
 .agent-chat-composer__attachments {
   display: flex;
   min-width: 0;
   flex-wrap: wrap;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .agent-chat-composer__attachment {
   position: relative;
   display: grid;
   width: 72px;
-  gap: var(--sailor-space-1);
+  gap: var(--fabric-space-1);
   justify-items: center;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
   font-size: 10px;
 }
 
@@ -429,10 +429,10 @@ onBeforeUnmount(() => {
   width: 44px;
   height: 44px;
   place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-md);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-muted);
 }
 
 .agent-chat-composer__attachment-preview {
@@ -455,17 +455,17 @@ onBeforeUnmount(() => {
   width: 18px;
   height: 18px;
   place-items: center;
-  border: 1px solid var(--sailor-border);
-  border-radius: var(--sailor-radius-full);
-  background: var(--sailor-bg-surface);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-muted);
   cursor: pointer;
   padding: 0;
 }
 
 .agent-chat-composer__attachment-remove:hover {
-  background: var(--sailor-button-ghost-hover);
-  color: var(--sailor-text-primary);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .agent-chat-composer__input {
@@ -493,7 +493,7 @@ onBeforeUnmount(() => {
 .agent-chat-composer__toolbar {
   display: flex;
   align-items: center;
-  gap: var(--sailor-space-2);
+  gap: var(--fabric-space-2);
 }
 
 .agent-chat-composer__spacer {
@@ -507,7 +507,7 @@ onBeforeUnmount(() => {
 .agent-chat-composer__utility {
   position: relative;
   height: 26px;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
   font-size: 12px;
 }
 
@@ -522,14 +522,14 @@ onBeforeUnmount(() => {
 }
 
 .agent-chat-composer__utility--listening {
-  color: var(--sailor-text-warning);
+  color: var(--fabric-text-warning);
 }
 
 .agent-chat-composer__utility--listening::after {
   position: absolute;
   inset: -5px;
-  border: 1px solid color-mix(in srgb, var(--sailor-amber-400) 45%, transparent);
-  border-radius: var(--sailor-radius-full);
+  border: 1px solid color-mix(in srgb, var(--fabric-amber-400) 45%, transparent);
+  border-radius: var(--fabric-radius-full);
   animation: agent-chat-listening-pulse 1.2s ease-out infinite;
   content: '';
 }
@@ -537,7 +537,7 @@ onBeforeUnmount(() => {
 .agent-chat-composer__send {
   height: 28px;
   align-self: end;
-  border-radius: var(--sailor-radius-full);
+  border-radius: var(--fabric-radius-full);
   font-size: 12px;
 }
 

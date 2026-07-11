@@ -57,7 +57,7 @@ describe('block tree panel contract', () => {
     const source = read('src/features/web-pages/pages.css')
 
     assert.match(source, /web-page-tree__action-menu/)
-    assert.match(source, /margin-right:\s*var\(--sailor-space-1\)/)
+    assert.match(source, /margin-right:\s*var\(--fabric-space-1\)/)
   })
 
   it('tree can list pages above the active page elements', () => {

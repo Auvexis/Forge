@@ -86,7 +86,7 @@ Ambiente recomendado:
 Configuracao sugerida para Qdrant local:
 
 - URL: `http://localhost:6333`
-- Collection: `sailor_e2e_kb`
+- Collection: `fabric_e2e_kb`
 - Metric: `cosine`
 - Dimension: igual ao embedding model usado
 
@@ -153,7 +153,7 @@ Payload do `Manual Trigger`:
 
 ```json
 {
-  "query": "What does Sailor do?"
+  "query": "What does Fabric do?"
 }
 ```
 
@@ -167,15 +167,15 @@ Configuracao do `Text Dataset`:
 Texto exemplo:
 
 ```text
-Sailor is a workflow automation platform with AI agents, tools, vector stores, datasets and plugin-based execution.
+Fabric is a workflow automation platform with AI agents, tools, vector stores, datasets and plugin-based execution.
 
-Sailor can connect agents to retrieval systems so they can answer questions using indexed documents.
+Fabric can connect agents to retrieval systems so they can answer questions using indexed documents.
 ```
 
 Configuracao do `Vector Store`:
 
 - Provider: `Qdrant` ou `Pinecone`
-- Collection: `sailor_e2e_kb`
+- Collection: `fabric_e2e_kb`
 - Metric: `cosine`
 - Dimension: igual ao embedding
 - Retrieval mode: `index`
@@ -241,7 +241,7 @@ Payload do `Manual Trigger`:
 
 ```json
 {
-  "query": "What can Sailor agents use to answer with documents?"
+  "query": "What can Fabric agents use to answer with documents?"
 }
 ```
 
@@ -384,7 +384,7 @@ Payload do `Manual Trigger`:
 
 ```json
 {
-  "query": "How does Sailor use vector stores?"
+  "query": "How does Fabric use vector stores?"
 }
 ```
 
@@ -424,7 +424,7 @@ Payload do `Manual Trigger`:
 
 ```json
 {
-  "question": "What does Sailor use vector stores for?"
+  "question": "What does Fabric use vector stores for?"
 }
 ```
 
@@ -474,7 +474,7 @@ Payload do `Manual Trigger`:
 
 ```json
 {
-  "message": "Search the knowledge base and explain what Sailor can do with vector stores."
+  "message": "Search the knowledge base and explain what Fabric can do with vector stores."
 }
 ```
 
@@ -539,7 +539,7 @@ Embedding Model -> Vector Store / Embedding
 Mensagem no chat:
 
 ```text
-Use the knowledge base and tell me what Sailor vector stores are for.
+Use the knowledge base and tell me what Fabric vector stores are for.
 ```
 
 Resultado esperado:

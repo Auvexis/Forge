@@ -189,7 +189,7 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /formatMessageTime/)
     assert.match(chat, /messageDisplayName/)
     assert.match(chat, /messageAvatar/)
-    assert.match(chat, /sailor-text-secondary/)
+    assert.match(chat, /fabric-text-secondary/)
   })
 
   it('keeps chat execution errors out of the agents list and avoids nested buttons', () => {
@@ -362,7 +362,7 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-view__status-text/)
     assert.match(chat, /agent-chat-status-shimmer/)
     assert.match(chat, /isShimmeringProgress/)
-    assert.match(chat, /var\(--sailor-text-secondary\)/)
+    assert.match(chat, /var\(--fabric-text-secondary\)/)
     assert.match(store, /isAgentProgressContent/)
     assert.match(api, /agent:thinking/)
     assert.match(api, /agent:plan-end/)
@@ -695,8 +695,8 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /agent-chat-view__message--grouped/)
     assert.match(chat, /v-if="!isGroupedWithPrevious\(message, index\)"/)
     assert.match(chat, /\.agent-chat-view__message--grouped/)
-    assert.doesNotMatch(chat, /margin-top:\s*calc\(var\(--sailor-space-3\) \* -1\)/)
-    assert.match(chat, /\.agent-chat-view__progress \{[\s\S]*font-size: var\(--sailor-text-sm\)/)
+    assert.doesNotMatch(chat, /margin-top:\s*calc\(var\(--fabric-space-3\) \* -1\)/)
+    assert.match(chat, /\.agent-chat-view__progress \{[\s\S]*font-size: var\(--fabric-text-sm\)/)
   })
 
   it('keeps chat messages and tool status rows visually plain', () => {

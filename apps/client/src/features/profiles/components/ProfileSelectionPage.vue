@@ -4,7 +4,7 @@
       <!-- ══ LIST VIEW — full screen ══════════════════════ -->
       <div v-if="mode === 'list'" class="pe__full" key="list">
         <header class="pe__top-bar">
-          <img class="pe__logo" :src="logoSrc" alt="Sailor" />
+          <img class="pe__logo" :src="logoSrc" alt="Fabric" />
         </header>
 
         <div class="pe__stage">
@@ -54,7 +54,7 @@
         </div>
 
         <footer class="pe__footer">
-          <span>Sailor Automation Platform</span>
+          <span>Fabric Automation Platform</span>
           <span class="pe__footer-dot">·</span>
           <span>v1.0</span>
           <span class="pe__footer-dot">·</span>
@@ -72,7 +72,7 @@
         <!-- Left pane -->
         <div class="pe__pane-left">
           <header class="pe__top-bar pe__top-bar--pane">
-            <img class="pe__logo" :src="logoSrc" alt="Sailor" />
+            <img class="pe__logo" :src="logoSrc" alt="Fabric" />
           </header>
 
           <!-- PASSWORD -->
@@ -128,7 +128,7 @@
             <ProfileAvatarPicker v-model="draft.avatarEmoji" />
             <div class="pe__form-titles">
               <h2>Create profile</h2>
-              <p class="pe__hint">Personalize your Sailor space</p>
+              <p class="pe__hint">Personalize your Fabric space</p>
             </div>
             <form class="pe__form" @submit.prevent="createProfile">
               <div class="pe__field">
@@ -239,7 +239,7 @@
         <!-- Right pane — preview panel -->
         <div v-if="mode !== 'password'" class="pe__pane-right" aria-hidden="true">
           <div class="pe__preview-copy">
-            <span class="pe__preview-eyebrow">Sailor workspace</span>
+            <span class="pe__preview-eyebrow">Fabric workspace</span>
             <h2 class="pe__preview-title">Your profile, your workflows, your rhythm.</h2>
           </div>
 
@@ -408,8 +408,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 /* ── Shell ─────────────────────────────────────────────── */
 .pe {
   min-height: 100vh;
-  color: var(--sailor-text-primary);
-  background-color: var(--sailor-bg-base);
+  color: var(--fabric-text-primary);
+  background-color: var(--fabric-bg-base);
 }
 
 /* ── Full-screen list view ────────────────────────────── */
@@ -456,7 +456,7 @@ function canDeleteProfile(profile: ProfileSummary) {
   padding: 72px 64px;
   border-bottom-left-radius: 35px;
   border-top-left-radius: 35px;
-  background: var(--sailor-bg-inverse);
+  background: var(--fabric-bg-inverse);
   overflow: hidden;
   position: relative;
 }
@@ -505,8 +505,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__hint {
   margin: 0;
-  color: var(--sailor-text-secondary);
-  font-size: var(--sailor-text-sm);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
 }
 
 /* ── Avatar row ────────────────────────────────────────── */
@@ -531,24 +531,24 @@ function canDeleteProfile(profile: ProfileSummary) {
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  border: 2px solid var(--sailor-border);
-  background: var(--sailor-bg-elevated);
+  border: 2px solid var(--fabric-border);
+  background: var(--fabric-bg-elevated);
   display: grid;
   place-items: center;
   cursor: pointer;
   position: relative;
   transition:
-    transform 220ms var(--sailor-ease-standard),
+    transform 220ms var(--fabric-ease-standard),
     border-color 220ms ease,
     box-shadow 220ms ease;
 }
 
 .pe__circle:hover {
   transform: scale(1.06) translateY(-3px);
-  border-color: var(--sailor-border-strong);
+  border-color: var(--fabric-border-strong);
   box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.35),
-    0 0 0 4px color-mix(in srgb, var(--sailor-brand-500) 12%, transparent);
+    0 0 0 4px color-mix(in srgb, var(--fabric-brand-500) 12%, transparent);
 }
 
 .pe__circle:active {
@@ -563,11 +563,11 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__circle--add {
   border-style: dashed;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 .pe__circle--add:hover {
-  color: var(--sailor-text-primary);
-  border-color: var(--sailor-border-strong);
+  color: var(--fabric-text-primary);
+  border-color: var(--fabric-border-strong);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
 }
 
@@ -582,8 +582,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__circle--danger {
-  border-color: color-mix(in srgb, var(--sailor-red-400) 35%, transparent);
-  background: color-mix(in srgb, var(--sailor-red-400) 6%, var(--sailor-bg-surface));
+  border-color: color-mix(in srgb, var(--fabric-red-400) 35%, transparent);
+  background: color-mix(in srgb, var(--fabric-red-400) 6%, var(--fabric-bg-surface));
 }
 
 .pe__circle-lock {
@@ -593,9 +593,9 @@ function canDeleteProfile(profile: ProfileSummary) {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--sailor-amber-400) 15%, var(--sailor-bg-base));
-  border: 1px solid color-mix(in srgb, var(--sailor-amber-400) 30%, transparent);
-  color: var(--sailor-amber-400);
+  background: color-mix(in srgb, var(--fabric-amber-400) 15%, var(--fabric-bg-base));
+  border: 1px solid color-mix(in srgb, var(--fabric-amber-400) 30%, transparent);
+  color: var(--fabric-amber-400);
   display: grid;
   place-items: center;
 }
@@ -603,7 +603,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 .pe__avatar-name {
   font-size: 15px;
   font-weight: 500;
-  color: var(--sailor-text-primary);
+  color: var(--fabric-text-primary);
   text-align: center;
   max-width: 120px;
   overflow-wrap: anywhere;
@@ -616,9 +616,9 @@ function canDeleteProfile(profile: ProfileSummary) {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid var(--sailor-border);
-  background: var(--sailor-bg-overlay);
-  color: var(--sailor-text-muted);
+  border: 1px solid var(--fabric-border);
+  background: var(--fabric-bg-overlay);
+  color: var(--fabric-text-muted);
   display: grid;
   place-items: center;
   opacity: 0;
@@ -633,8 +633,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__circle-delete:hover {
-  color: var(--sailor-red-400);
-  border-color: color-mix(in srgb, var(--sailor-red-400) 30%, transparent);
+  color: var(--fabric-red-400);
+  border-color: color-mix(in srgb, var(--fabric-red-400) 30%, transparent);
 }
 
 /* ── Form wrap (left pane) ─────────────────────────────── */
@@ -677,7 +677,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__preview-eyebrow {
-  color: color-mix(in srgb, var(--sailor-text-inverse) 58%, transparent);
+  color: color-mix(in srgb, var(--fabric-text-inverse) 58%, transparent);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -687,7 +687,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 .pe__preview-title {
   max-width: 540px;
   margin: 0;
-  color: var(--sailor-text-inverse);
+  color: var(--fabric-text-inverse);
   font-size: clamp(34px, 4.5vw, 62px);
   font-weight: 650;
   letter-spacing: -0.03em;
@@ -699,21 +699,21 @@ function canDeleteProfile(profile: ProfileSummary) {
   place-items: center;
   width: min(100%, 680px);
   aspect-ratio: 16 / 9;
-  border: 1px dashed color-mix(in srgb, var(--sailor-text-inverse) 26%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--fabric-text-inverse) 26%, transparent);
   border-radius: 18px;
-  color: color-mix(in srgb, var(--sailor-text-inverse) 48%, transparent);
-  background: color-mix(in srgb, var(--sailor-text-inverse) 5%, transparent);
+  color: color-mix(in srgb, var(--fabric-text-inverse) 48%, transparent);
+  background: color-mix(in srgb, var(--fabric-text-inverse) 5%, transparent);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
 }
 
 .pe__preview-gif-slot span {
   display: block;
   padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--sailor-text-inverse) 18%, transparent);
-  border-radius: var(--sailor-radius-full);
-  color: color-mix(in srgb, var(--sailor-text-inverse) 70%, transparent);
-  background: color-mix(in srgb, var(--sailor-bg-inverse) 86%, var(--sailor-text-inverse));
-  font-size: var(--sailor-text-xs);
+  border: 1px solid color-mix(in srgb, var(--fabric-text-inverse) 18%, transparent);
+  border-radius: var(--fabric-radius-full);
+  color: color-mix(in srgb, var(--fabric-text-inverse) 70%, transparent);
+  background: color-mix(in srgb, var(--fabric-bg-inverse) 86%, var(--fabric-text-inverse));
+  font-size: var(--fabric-text-xs);
   font-weight: 600;
 }
 
@@ -725,9 +725,9 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__preview-desc {
   margin: 0;
-  color: color-mix(in srgb, var(--sailor-text-inverse) 68%, transparent);
-  font-size: var(--sailor-text-base);
-  line-height: var(--sailor-leading-loose);
+  color: color-mix(in srgb, var(--fabric-text-inverse) 68%, transparent);
+  font-size: var(--fabric-text-base);
+  line-height: var(--fabric-leading-loose);
 }
 
 /* ── Card (keep for delete/password fallback, no background) ── */
@@ -753,7 +753,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 .pe__card-titles h2 {
   margin: 0;
-  font-size: var(--sailor-text-2xl);
+  font-size: var(--fabric-text-2xl);
   font-weight: 600;
   letter-spacing: -0.01em;
 }
@@ -773,14 +773,14 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__label {
-  font-size: var(--sailor-text-xs);
+  font-size: var(--fabric-text-xs);
   font-weight: 600;
-  color: var(--sailor-text-secondary);
+  color: var(--fabric-text-secondary);
 }
 
 .pe__opt {
   font-weight: 400;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
 }
 
 .pe__input {
@@ -788,32 +788,32 @@ function canDeleteProfile(profile: ProfileSummary) {
   height: 42px;
   padding: 0 13px;
   border-radius: 8px;
-  border: 1px solid var(--sailor-input-border);
-  background: var(--sailor-input-bg);
-  color: var(--sailor-input-text);
+  border: 1px solid var(--fabric-input-border);
+  background: var(--fabric-input-bg);
+  color: var(--fabric-input-text);
   font: inherit;
-  font-size: var(--sailor-text-sm);
+  font-size: var(--fabric-text-sm);
   transition: border-color 160ms ease;
 }
 .pe__input::placeholder {
-  color: var(--sailor-input-placeholder);
+  color: var(--fabric-input-placeholder);
 }
 .pe__input:focus {
   outline: none;
-  border-color: var(--sailor-input-border-focus);
+  border-color: var(--fabric-input-border-focus);
 }
 
 .pe__input--mono {
-  font-family: var(--sailor-font-mono);
+  font-family: var(--fabric-font-mono);
   letter-spacing: 0.1em;
   text-align: center;
-  font-size: var(--sailor-text-base);
+  font-size: var(--fabric-text-base);
 }
 
 .pe__error {
   margin: 0;
-  color: var(--sailor-text-error);
-  font-size: var(--sailor-text-xs);
+  color: var(--fabric-text-error);
+  font-size: var(--fabric-text-xs);
   text-align: center;
 }
 
@@ -826,7 +826,7 @@ function canDeleteProfile(profile: ProfileSummary) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--sailor-text-muted);
+  color: var(--fabric-text-muted);
   font-size: 11px;
   white-space: nowrap;
   z-index: 10;
@@ -840,7 +840,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 .pe-fade-leave-active {
   transition:
     opacity 180ms ease,
-    transform 180ms var(--sailor-ease-standard);
+    transform 180ms var(--fabric-ease-standard);
 }
 .pe-fade-enter-from {
   opacity: 0;

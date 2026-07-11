@@ -98,8 +98,8 @@ test('embedding models reuse plugin presentation instead of hardcoded catalog co
   assert.match(source, /customBg/)
   assert.doesNotMatch(source, /icon="scan-text"/)
   assert.match(source, /customBg \|\| 'transparent'/)
-  assert.match(source, /customBorder \|\| 'var\(--sailor-node-border\)'/)
-  assert.match(source, /customIconColor \|\| 'var\(--sailor-node-plugin-icon\)'/)
+  assert.match(source, /customBorder \|\| 'var\(--fabric-node-border\)'/)
+  assert.match(source, /customIconColor \|\| 'var\(--fabric-node-plugin-icon\)'/)
 })
 
 test('retrieval node components use their catalog colors instead of generic node tokens', () => {
@@ -113,7 +113,7 @@ test('retrieval node components use their catalog colors instead of generic node
 
   for (const [componentName, colors] of Object.entries(expectedColors)) {
     const source = read(`src/features/workflow-editor/components/nodes/${componentName}.vue`)
-    assert.doesNotMatch(source, /--sailor-node-(?:ai|if|merge)-/)
+    assert.doesNotMatch(source, /--fabric-node-(?:ai|if|merge)-/)
     for (const color of colors) assert.match(source, new RegExp(color))
   }
 })

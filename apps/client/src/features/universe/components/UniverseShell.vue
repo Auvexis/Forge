@@ -1,5 +1,5 @@
 <template>
-  <section class="universe-shell" aria-label="SAILOR Universe">
+  <section class="universe-shell" aria-label="FABRIC Universe">
     <UniverseScene
       ref="sceneRef"
       :nodes="plugins.nodes"
@@ -38,7 +38,7 @@
               :class="{ 'universe-shell__brand--ready': sceneReady }"
             >
               <img src="/favicon.svg" alt="" class="universe-shell__logo" />
-              <span class="universe-shell__wordmark">Sailor</span>
+              <span class="universe-shell__wordmark">Fabric</span>
             </div>
 
             <div class="universe-shell__hints">
@@ -135,7 +135,7 @@ const heroTitle = computed(() => {
   return `${plugins.value.totalPlugins} plugins in orbit`
 })
 const heroSubtitle = computed(() => {
-  if (isLoading.value) return 'A cinematic map for exploring SAILOR integrations is coming online.'
+  if (isLoading.value) return 'A cinematic map for exploring FABRIC integrations is coming online.'
   if (!hasPlugins.value)
     return 'When plugins are available, they will appear here as a calm galaxy of integrations.'
   return `${plugins.value.categories.length} categories · ${plugins.value.connectedPlugins} connected`
@@ -177,7 +177,7 @@ function onIntent(e: Event) {
 
 onMounted(() => {
   window.addEventListener('keydown', onKey)
-  window.addEventListener('sailor:command-palette:intent', onIntent)
+  window.addEventListener('fabric:command-palette:intent', onIntent)
   loadingStepInterval = window.setInterval(() => {
     loadingStepIndex.value = (loadingStepIndex.value + 1) % loadingSteps.length
   }, 820)
@@ -188,7 +188,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', onKey)
-  window.removeEventListener('sailor:command-palette:intent', onIntent)
+  window.removeEventListener('fabric:command-palette:intent', onIntent)
   if (loadingStepInterval) window.clearInterval(loadingStepInterval)
   if (loadingMinimumTimer) window.clearTimeout(loadingMinimumTimer)
 })

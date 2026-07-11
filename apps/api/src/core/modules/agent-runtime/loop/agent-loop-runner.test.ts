@@ -341,7 +341,7 @@ describe("agent loop runner", () => {
   });
 
   it("falls back to sending large text workflow output as an email body after invalid JSON", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-text-ref-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loop-text-ref-"));
     const recipe = `Bolo de milho\n\n${"Misture milho, ovos e leite. ".repeat(80)}`;
     const emailArgs: any[] = [];
     let decisionCalls = 0;
@@ -409,7 +409,7 @@ describe("agent loop runner", () => {
   });
 
   it("rejects message tool params that summarize a produced text ref instead of using it", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-text-ref-guard-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loop-text-ref-guard-"));
     const recipe = `Bolo de milho\n\n${"Misture milho, ovos e leite. ".repeat(80)}`;
     const prompts: string[] = [];
     const emailArgs: any[] = [];
@@ -495,7 +495,7 @@ describe("agent loop runner", () => {
   });
 
   it("repairs ignored text ref params and finalizes when final decision JSON is invalid", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-text-ref-invalid-json-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loop-text-ref-invalid-json-"));
     const recipe = `Bolo de milho\n\n${"Misture milho, ovos e leite. ".repeat(80)}`;
     const emailArgs: any[] = [];
     let decisionCalls = 0;
@@ -1422,7 +1422,7 @@ describe("agent loop runner", () => {
   });
 
   it("passes cached file refs from one tool result into the next tool args", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-files-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loop-files-"));
     let ref = "";
     let sent = false;
     const sendArgs: any[] = [];
@@ -1472,7 +1472,7 @@ describe("agent loop runner", () => {
   });
 
   it("keeps file refs unresolved in approval requests and resolves them after approval", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-approval-files-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loop-approval-files-"));
     const store = new AgentFileRefStore({ rootDir: root });
     const ref = await store.put({
       toolCallId: "tool_call_download",
@@ -1542,7 +1542,7 @@ describe("agent loop runner", () => {
   });
 
   it("rejects approval params that ignore an available file ref before requesting approval", async () => {
-    const root = fs.mkdtempSync(path.join(os.tmpdir(), "sailor-loop-approval-ref-guard-"));
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-loop-approval-ref-guard-"));
     const prompts: string[] = [];
     let ref = "";
     let approvalArgs: any;

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 import { AgentRuntimeError } from "./agent-errors.ts";
-import type { SailorAgentToolDefinition } from "./plugin-tool-adapter.ts";
+import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
@@ -190,11 +190,11 @@ describe("agent runner", () => {
       },
     });
 
-    await runner.run({ ...runInput(), memory: memoryConfig({ adapter: "sailor-internal", scope: "session" }) });
+    await runner.run({ ...runInput(), memory: memoryConfig({ adapter: "fabric-internal", scope: "session" }) });
     await runner.run({
       ...runInput(),
       sessionId: "chat_session_1",
-      memory: memoryConfig({ adapter: "sailor-internal", scope: "session" }),
+      memory: memoryConfig({ adapter: "fabric-internal", scope: "session" }),
     });
 
     assert.deepEqual(createdFor, ["chat_session_1"]);
@@ -233,7 +233,7 @@ describe("agent runner", () => {
       ...runInput(),
       sessionId: "chat_session_1",
       memory: memoryConfig({
-        adapter: "sailor-internal",
+        adapter: "fabric-internal",
         scope: "profile",
         readEnabled: true,
         writeEnabled: true,
@@ -269,14 +269,14 @@ describe("agent runner", () => {
     });
 
     assert.equal(contextMessages[0], "Memory tone: friendly");
-    assert.equal(calls[0].pluginId, "sailor-postgresql");
+    assert.equal(calls[0].pluginId, "fabric-postgresql");
     assert.equal(calls[0].methodId, "searchAgentMemory");
     assert.deepEqual(calls[0].params, {
       profileId: "profile_1",
       namespace: "profile:profile_1",
       limit: 4,
     });
-    assert.equal(calls[1].pluginId, "sailor-postgresql");
+    assert.equal(calls[1].pluginId, "fabric-postgresql");
     assert.equal(calls[1].methodId, "putAgentMemory");
     assert.equal(calls[1].params.profileId, "profile_1");
     assert.equal(calls[1].params.namespace, "profile:profile_1");
@@ -321,7 +321,7 @@ describe("agent runner", () => {
           description: "Plugin",
           icon: "plug",
           categories: ["Core"],
-          author: "Sailor",
+          author: "Fabric",
           version: "1.0.0",
         },
         methods: {
@@ -787,7 +787,7 @@ describe("agent runner", () => {
             },
             async generateFinalResponse() {
               modelCalls.push("final");
-              return "Sou o Allen, seu agente aqui no Sailor.";
+              return "Sou o Allen, seu agente aqui no Fabric.";
             },
           };
         },
@@ -807,7 +807,7 @@ describe("agent runner", () => {
     });
 
     assert.equal(result.status, "success");
-    assert.equal(result.output, "Sou o Allen, seu agente aqui no Sailor.");
+    assert.equal(result.output, "Sou o Allen, seu agente aqui no Fabric.");
     assert.equal(result.toolCallCount, 0);
     assert.deepEqual(modelCalls, ["intent", "final"]);
     assert.doesNotMatch(String(result.output), /I can help with that/i);
@@ -1212,7 +1212,7 @@ function memoryConfig(overrides: Partial<AiMemoryNodeConfig> = {}): AiMemoryNode
 function pluginMemoryConfig(overrides: Partial<AiMemoryNodeConfig> = {}): AiMemoryNodeConfig {
   return memoryConfig({
     adapter: "plugin-memory-store",
-    pluginId: "sailor-postgresql",
+    pluginId: "fabric-postgresql",
     searchMethodId: "searchAgentMemory",
     putMethodId: "putAgentMemory",
     ...overrides,
@@ -1234,8 +1234,8 @@ function toolConfig(overrides: Partial<AiToolNodeConfig> = {}): AiToolNodeConfig
 
 function toolDefinition(
   name: string,
-  overrides: Partial<SailorAgentToolDefinition> = {},
-): SailorAgentToolDefinition {
+  overrides: Partial<FabricAgentToolDefinition> = {},
+): FabricAgentToolDefinition {
   return {
     name,
     description: name,

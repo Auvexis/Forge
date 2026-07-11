@@ -5,7 +5,7 @@ export interface AuvexisAccountConfig {
   tokenEncryptionSecret: string;
 }
 
-const DEFAULT_CLIENT_ID = "sailor-desktop";
+const DEFAULT_CLIENT_ID = "fabric-desktop";
 const DEFAULT_BASE_URL = "https://accounts.auvexis.com";
 const DEFAULT_REDIRECT_URI =
   "http://127.0.0.1:23801/auvexis/account/connect/callback";

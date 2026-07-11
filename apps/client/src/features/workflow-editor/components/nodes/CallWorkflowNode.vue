@@ -28,8 +28,8 @@ const nodeDescription = computed(() => {
     :title="stepTitle"
     :subtitle="nodeDescription"
     icon="workflow"
-    color="var(--sailor-node-call-workflow-icon)"
-    bg="var(--sailor-node-call-workflow-bg)"
-    border-color="var(--sailor-node-call-workflow-border)"
+    color="var(--fabric-node-call-workflow-icon)"
+    bg="var(--fabric-node-call-workflow-bg)"
+    border-color="var(--fabric-node-call-workflow-border)"
   />
 </template>

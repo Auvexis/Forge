@@ -34,7 +34,7 @@ export class OpenAiModelProvider implements AgentModelProvider {
     const effectiveCredentials = apiKey
       ? credentials
       : this.allowLocalNoAuth && isLocalBaseUrl(config.baseUrl)
-        ? { api_key: "sailor-local" }
+        ? { api_key: "fabric-local" }
         : undefined;
 
     if (!effectiveCredentials) {

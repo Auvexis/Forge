@@ -89,13 +89,13 @@ const canvasTransform = computed(
 const svgViewBox = computed(() => `0 0 ${layerSize.value.width} ${layerSize.value.height}`)
 
 const edgeMarkers = computed(() => [
-  { id: 'sailor-workflow-arrow-idle', color: workflowEdgeStrokeFor('idle', false) },
-  { id: 'sailor-workflow-arrow-success', color: workflowEdgeStrokeFor('success', false) },
-  { id: 'sailor-workflow-arrow-failed', color: workflowEdgeStrokeFor('failed', false) },
-  { id: 'sailor-workflow-arrow-running', color: workflowEdgeStrokeFor('running', false) },
-  { id: 'sailor-workflow-arrow-waiting', color: workflowEdgeStrokeFor('waiting', false) },
-  { id: 'sailor-workflow-arrow-retrying', color: workflowEdgeStrokeFor('retrying', false) },
-  { id: 'sailor-workflow-arrow-selected', color: workflowEdgeStrokeFor('idle', true) },
+  { id: 'fabric-workflow-arrow-idle', color: workflowEdgeStrokeFor('idle', false) },
+  { id: 'fabric-workflow-arrow-success', color: workflowEdgeStrokeFor('success', false) },
+  { id: 'fabric-workflow-arrow-failed', color: workflowEdgeStrokeFor('failed', false) },
+  { id: 'fabric-workflow-arrow-running', color: workflowEdgeStrokeFor('running', false) },
+  { id: 'fabric-workflow-arrow-waiting', color: workflowEdgeStrokeFor('waiting', false) },
+  { id: 'fabric-workflow-arrow-retrying', color: workflowEdgeStrokeFor('retrying', false) },
+  { id: 'fabric-workflow-arrow-selected', color: workflowEdgeStrokeFor('idle', true) },
 ])
 
 const edgeViews = computed(() => {

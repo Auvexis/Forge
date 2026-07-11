@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import type { OAuth2Tokens } from "@auvexis/sailor-sdk";
+import type { OAuth2Tokens } from "@auvexis/fabric-sdk";
 
 import { refreshOAuth2TokensIfNeeded } from "./executor.ts";
 import type { OAuth2DeclarativeAuth, CustomOAuth2Auth } from "./auth/oauth2-types.ts";
