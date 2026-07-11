@@ -563,8 +563,8 @@ async function emitWorkflowPublishedEvent(workflowId: string) {
     })
     console.info('[Auvexis] Workflow published event accepted', result)
     showWorkflowPublishedEventFeedback(result.outcomes)
-  } catch {
-    toast.warning('Workflow published, but Auvexis campaign rewards could not be checked.')
+  } catch (error) {
+    console.warn('[Auvexis] Workflow published event failed', error)
   }
 }
 
@@ -572,21 +572,15 @@ function showWorkflowPublishedEventFeedback(
   outcomes: Array<{ outcome: string; reason: string | null }>,
 ) {
   if (outcomes.some((outcome) => outcome.outcome === 'claimed')) {
-    toast.success('Auvexis campaign reward claimed.')
+    toast.reward('Auvexis campaign reward claimed.', {
+      title: 'Reward claimed',
+      category: 'rewards',
+      source: 'auvexis',
+      context: { outcomes },
+    })
     return
   }
-  if (outcomes.some((outcome) => outcome.outcome === 'already_claimed')) {
-    toast.info('Auvexis campaign reward was already claimed for this event.')
-    return
-  }
-  if (outcomes.some((outcome) => outcome.outcome === 'ineligible')) {
-    const reason = outcomes.find((outcome) => outcome.outcome === 'ineligible')?.reason
-    toast.info(reason ? `Auvexis campaign skipped: ${reason}` : 'Auvexis campaign skipped.')
-    return
-  }
-  if (outcomes.length === 0) {
-    toast.info('Auvexis event sent, but no active campaign matched it.')
-  }
+  console.info('[Auvexis] Workflow published event had no reward claim', { outcomes })
 }
 
 watch(
