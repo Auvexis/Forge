@@ -19,15 +19,15 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/euandresimoes/fabric.git"
+    "url": "git+https://github.com/Auvexis/fabric.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/euandresimoes/fabric/issues"
+    "url": "https://github.com/Auvexis/fabric/issues"
   },
-  "homepage": "https://github.com/euandresimoes/fabric#readme",
+  "homepage": "https://github.com/Auvexis/fabric#readme",
   "devDependencies": {
     "concurrently": "^10.0.3"
   },
