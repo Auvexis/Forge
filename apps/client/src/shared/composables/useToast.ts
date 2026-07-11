@@ -8,7 +8,7 @@ import {
   type ToastNotificationPersister,
 } from './toastNotificationPolicy.ts'
 
-export type ToastVariant = 'default' | 'success' | 'warning' | 'error'
+export type ToastVariant = 'default' | 'success' | 'warning' | 'error' | 'reward'
 
 export interface Toast {
   id: string
@@ -97,6 +97,12 @@ export function useToast() {
     duration?: number,
   ) => addToast({ message, variant: 'default', ...normalizeToastOptions(titleOrOptions, duration) })
 
+  const reward = (
+    message: string,
+    titleOrOptions?: string | ToastOptions,
+    duration?: number,
+  ) => addToast({ message, variant: 'reward', ...normalizeToastOptions(titleOrOptions, duration) })
+
   return {
     toasts: readonly(toasts),
     addToast,
@@ -105,6 +111,7 @@ export function useToast() {
     error,
     warning,
     info,
+    reward,
   }
 }
 

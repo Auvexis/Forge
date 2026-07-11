@@ -1,6 +1,6 @@
 import type { CreateNotificationPayload } from '../../core/types/notification.types.ts'
 
-export type ToastNotificationVariant = 'default' | 'success' | 'warning' | 'error'
+export type ToastNotificationVariant = 'default' | 'success' | 'warning' | 'error' | 'reward'
 
 export interface ToastNotificationMetadata {
   category?: string
@@ -28,8 +28,8 @@ export function createToastNotificationPayload(
   if (toast.variant === 'success' || metadata.persist === false) return null
 
   return {
-    level: toast.variant === 'default' ? 'info' : toast.variant,
-    category: metadata.category,
+    level: toast.variant === 'default' || toast.variant === 'reward' ? 'info' : toast.variant,
+    category: toast.variant === 'reward' ? (metadata.category ?? 'rewards') : metadata.category,
     title: toast.title,
     message: toast.message,
     source: metadata.source,

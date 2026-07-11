@@ -42,6 +42,26 @@ describe('toast notification policy', () => {
     )
   })
 
+  it('persists reward toasts as reward notifications', () => {
+    assert.deepEqual(
+      createToastNotificationPayload({
+        message: 'Bee badge unlocked',
+        title: 'Reward claimed',
+        variant: 'reward',
+      }),
+      {
+        level: 'info',
+        category: 'rewards',
+        title: 'Reward claimed',
+        message: 'Bee badge unlocked',
+        source: undefined,
+        context: undefined,
+        actionUrl: undefined,
+        actionLabel: undefined,
+      },
+    )
+  })
+
   it('never persists success or explicitly suppressed toasts', () => {
     assert.equal(
       createToastNotificationPayload({ message: 'Saved', variant: 'success' }),
@@ -82,6 +102,7 @@ describe('useToast notification integration', () => {
     assert.match(source, /titleOrOptions\?: string \| ToastOptions/)
     assert.match(source, /normalizeToastOptions\(titleOrOptions, duration\)/)
     assert.match(source, /ToastOptions extends ToastNotificationMetadata/)
+    assert.match(source, /const reward = /)
     assert.match(policy, /category\?: string/)
     assert.match(policy, /actionUrl\?: string/)
   })
@@ -95,6 +116,20 @@ describe('useToast notification integration', () => {
     assert.ok(duplicate >= 0)
     assert.ok(duplicate < persistence)
     assert.match(source, /if \(duplicate\) return duplicate\.id/)
+  })
+})
+
+describe('reward notification panel integration', () => {
+  it('keeps reward notifications visually distinct and sorted first', () => {
+    const source = fs.readFileSync(
+      path.resolve('src/shared/components/feedback/NotificationList.vue'),
+      'utf8',
+    )
+
+    assert.match(source, /isRewardNotification/)
+    assert.match(source, /return leftReward \? -1 : 1/)
+    assert.match(source, /return 'gift'/)
+    assert.match(source, /notification-list__item--reward/)
   })
 })
 

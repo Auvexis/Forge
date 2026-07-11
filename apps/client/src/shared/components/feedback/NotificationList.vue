@@ -4,17 +4,17 @@
     <p v-else-if="notificationStore.error" class="notification-list__state notification-list__state--error">
       {{ notificationStore.error }}
     </p>
-    <p v-else-if="notificationStore.filteredNotifications.length === 0" class="notification-list__state">
+    <p v-else-if="visibleNotifications.length === 0" class="notification-list__state">
       No notifications
     </p>
 
     <TransitionGroup v-else name="notification-list" tag="div" class="notification-list__items">
       <article
-        v-for="notification in notificationStore.filteredNotifications"
+        v-for="notification in visibleNotifications"
         :key="notification.id"
         class="notification-list__item"
         :class="[
-          `notification-list__item--${notification.level}`,
+          `notification-list__item--${notificationKind(notification)}`,
           {
             'notification-list__item--unread': !notification.isRead,
             'notification-list__item--read': notification.isRead,
@@ -23,7 +23,10 @@
         ]"
       >
         <button type="button" class="notification-list__open" @click="select(notification.id)">
-          <span class="notification-list__level">{{ levelLabel(notification.level) }}</span>
+          <span class="notification-list__level">
+            <LucideIcon :name="notificationIcon(notification)" :size="14" />
+            <span>{{ levelLabel(notification) }}</span>
+          </span>
           <span class="notification-list__content">
             <strong>{{ notification.title ?? notification.message }}</strong>
             <span v-if="notification.title">{{ notification.message }}</span>
@@ -49,16 +52,25 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
-import type { NotificationLevel } from '@/core/types/notification.types'
+import { computed, onBeforeUnmount, ref } from 'vue'
+import type { AppNotification } from '@/core/types/notification.types'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import { useNotificationStore } from '@/shared/stores/notification.store'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const emit = defineEmits<{ select: [notificationId: string] }>()
 const notificationStore = useNotificationStore()
 const deletingNotificationIds = ref(new Set<string>())
 const deleteTimers = new Map<string, number>()
 const deleteAnimationMs = 220
+const visibleNotifications = computed(() =>
+  [...notificationStore.filteredNotifications].sort((left, right) => {
+    const leftReward = isRewardNotification(left)
+    const rightReward = isRewardNotification(right)
+    if (leftReward !== rightReward) return leftReward ? -1 : 1
+    return new Date(right.lastOccurredAt).getTime() - new Date(left.lastOccurredAt).getTime()
+  }),
+)
 
 function select(notificationId: string) {
   if (deletingNotificationIds.value.has(notificationId)) return
@@ -80,10 +92,26 @@ onBeforeUnmount(() => {
   deleteTimers.clear()
 })
 
-function levelLabel(level: NotificationLevel) {
-  if (level === 'error') return 'Error'
-  if (level === 'warning') return 'Warning'
+function levelLabel(notification: AppNotification) {
+  if (isRewardNotification(notification)) return 'Reward'
+  if (notification.level === 'error') return 'Error'
+  if (notification.level === 'warning') return 'Warning'
   return 'Info'
+}
+
+function notificationKind(notification: AppNotification) {
+  return isRewardNotification(notification) ? 'reward' : notification.level
+}
+
+function notificationIcon(notification: AppNotification) {
+  if (isRewardNotification(notification)) return 'gift'
+  if (notification.level === 'error') return 'circle-alert'
+  if (notification.level === 'warning') return 'triangle-alert'
+  return 'info'
+}
+
+function isRewardNotification(notification: AppNotification) {
+  return notification.category === 'rewards'
 }
 
 function categoryLabel(category: string) {
@@ -185,6 +213,9 @@ function formatDate(value: string) {
 .notification-list__level,
 .notification-list__count {
   align-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sailor-space-1);
   border-radius: var(--sailor-radius-sm);
   color: var(--sailor-text-secondary);
   font-size: var(--sailor-text-xs);
@@ -197,6 +228,10 @@ function formatDate(value: string) {
 
 .notification-list__item--warning .notification-list__level {
   color: var(--sailor-text-warning);
+}
+
+.notification-list__item--reward .notification-list__level {
+  color: var(--sailor-amber-400);
 }
 
 .notification-list__item--info .notification-list__level {

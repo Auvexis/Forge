@@ -34,6 +34,8 @@ const { toasts, removeToast } = useToast()
 
 const getIcon = (variant: ToastVariant) => {
   switch (variant) {
+    case 'reward':
+      return 'gift'
     case 'success':
       return 'bell-ring'
     case 'error':
@@ -96,6 +98,9 @@ const getIcon = (variant: ToastVariant) => {
 .app-toast--warning::before {
   background-color: var(--sailor-amber-500);
 }
+.app-toast--reward::before {
+  background-color: var(--sailor-amber-500);
+}
 .app-toast--error::before {
   background-color: var(--sailor-red-500);
 }
@@ -112,6 +117,9 @@ const getIcon = (variant: ToastVariant) => {
 }
 .app-toast--warning .app-toast__icon {
   color: var(--sailor-text-primary);
+}
+.app-toast--reward .app-toast__icon {
+  color: var(--sailor-amber-400);
 }
 .app-toast--error .app-toast__icon {
   color: var(--sailor-text-primary);
