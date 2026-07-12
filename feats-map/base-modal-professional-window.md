@@ -1,0 +1,5 @@
+- [x] Mapear BaseModal atual
+- [x] Recriar linguagem visual do BaseModal
+- [x] Aplicar tokens nos temas
+- [x] Validar contratos e type-check
+- [x] Commitar mudancas

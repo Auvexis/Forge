@@ -513,7 +513,9 @@
   --fabric-base-modal-bg: var(--fabric-bg-overlay);
   --fabric-base-modal-text: var(--fabric-text-primary);
   --fabric-base-modal-border: var(--fabric-border);
-  --fabric-base-modal-backdrop: rgba(0, 0, 0, 0.44);
+  --fabric-base-modal-backdrop: rgba(0, 0, 0, 0.55);
+  --fabric-base-modal-inner-border: rgba(255, 255, 255, 0.04);
+  --fabric-base-modal-highlight: rgba(255, 255, 255, 0.12);
   --fabric-base-modal-header-bg: var(--fabric-bg-overlay);
   --fabric-base-modal-footer-bg: var(--fabric-bg-elevated);
   --fabric-base-floating-window-bg: var(--fabric-bg-overlay);

@@ -50,6 +50,8 @@ describe('theme runtime contract', () => {
       'appShell.bg',
       'appPage.bg',
       'baseModal.bg',
+      'baseModal.inner.border',
+      'baseModal.highlight',
       'appPanel.bg',
       'appDock.bg',
       'appHint.bg',

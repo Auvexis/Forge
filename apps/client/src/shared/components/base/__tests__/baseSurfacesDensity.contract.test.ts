@@ -14,9 +14,14 @@ const baseMiniMenuSource = readFileSync(
 
 describe('base surface density', () => {
   it('keeps BaseModal flat and tool-like instead of card-heavy', () => {
-    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border: 1px solid var\(--fabric-border\);/)
+    assert.match(baseModalSource, /<Transition name="base-modal-window">/)
+    assert.match(baseModalSource, /\.base-modal-backdrop\s*\{[\s\S]*background: var\(--fabric-base-modal-backdrop\);/)
+    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*background: var\(--fabric-base-modal-bg\);/)
+    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border: 1px solid var\(--fabric-base-modal-border\);/)
     assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*box-shadow: none;/)
-    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border-radius: var\(--fabric-radius-md\);/)
+    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border-radius: 2px;/)
+    assert.match(baseModalSource, /\.base-modal-window-enter-from \.base-modal-container\s*\{[\s\S]*translateY\(6px\) scale\(0\.992\)/)
+    assert.doesNotMatch(baseModalSource, /translateY\(100vh\)/)
   })
 
   it('keeps BaseMiniMenu compact for command-style overlays', () => {

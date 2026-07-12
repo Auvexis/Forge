@@ -35,7 +35,7 @@ onUnmounted(() => {
 
 <template>
   <Teleport to="body">
-    <Transition name="base-modal-slide-up">
+    <Transition name="base-modal-window">
       <div
         v-if="isOpen"
         class="base-modal-backdrop"
@@ -56,16 +56,13 @@ onUnmounted(() => {
 <style scoped>
 .base-modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   z-index: 2147483000;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.64);
-  backdrop-filter: blur(1px);
+  padding: 24px;
+  background: var(--fabric-base-modal-backdrop);
 }
 
 .base-modal-backdrop--clear {
@@ -73,33 +70,57 @@ onUnmounted(() => {
 }
 
 .base-modal-container {
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  position: relative;
+  background: var(--fabric-base-modal-bg);
+  color: var(--fabric-base-modal-text);
+  border: 1px solid var(--fabric-base-modal-border);
   box-shadow: none;
-  border-radius: var(--fabric-radius-md);
+  border-radius: 2px;
+  outline: 1px solid var(--fabric-base-modal-inner-border);
+  outline-offset: -2px;
 }
 
-/* ── Transition: base-modal-slide-up ── */
-.base-modal-slide-up-enter-active,
-.base-modal-slide-up-leave-active {
-  transition: opacity 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+.base-modal-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: var(--fabric-base-modal-highlight);
+  pointer-events: none;
 }
 
-.base-modal-slide-up-enter-from,
-.base-modal-slide-up-leave-to {
+/* Window-style overlay transition */
+.base-modal-window-enter-active,
+.base-modal-window-leave-active {
+  transition: opacity 120ms linear;
+}
+
+.base-modal-window-enter-from,
+.base-modal-window-leave-to {
   opacity: 0;
 }
 
-.base-modal-slide-up-enter-active .base-modal-container {
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+.base-modal-window-enter-active .base-modal-container {
+  transition:
+    transform 140ms cubic-bezier(0.2, 0, 0, 1),
+    opacity 120ms linear;
 }
 
-.base-modal-slide-up-leave-active .base-modal-container {
-  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+.base-modal-window-leave-active .base-modal-container {
+  transition:
+    transform 90ms cubic-bezier(0.4, 0, 1, 1),
+    opacity 90ms linear;
 }
 
-.base-modal-slide-up-enter-from .base-modal-container,
-.base-modal-slide-up-leave-to .base-modal-container {
-  transform: translateY(100vh);
+.base-modal-window-enter-from .base-modal-container {
+  opacity: 0;
+  transform: translateY(6px) scale(0.992);
+}
+
+.base-modal-window-leave-to .base-modal-container {
+  opacity: 0;
+  transform: translateY(2px) scale(0.996);
 }
 </style>

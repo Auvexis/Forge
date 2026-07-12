@@ -52,6 +52,6 @@ describe('profile password confirmation dialog contract', () => {
     assert.match(source, /backdrop="modal"/)
     assert.match(appDialog, /app-dialog-backdrop--modal/)
     assert.match(appDialog, /background-color: rgba\(0, 0, 0, 0\.55\)/)
-    assert.match(baseModal, /background: rgba\(0, 0, 0, 0\.55\)/)
+    assert.match(baseModal, /background: var\(--fabric-base-modal-backdrop\)/)
   })
 })
