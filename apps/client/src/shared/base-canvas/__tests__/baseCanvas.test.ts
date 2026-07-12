@@ -180,6 +180,14 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /if \(suppressNextCanvasClick\.value\)/)
   })
 
+  it('does not suppress the next real canvas click after middle mouse pan', () => {
+    const source = readBaseCanvas()
+
+    assert.match(source, /button: number/)
+    assert.match(source, /button: event\.button/)
+    assert.match(source, /pan\?\.moved && pan\.button === 0/)
+  })
+
   it('clears selection from any empty viewport area', () => {
     const source = readBaseCanvas()
 

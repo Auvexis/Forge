@@ -138,6 +138,7 @@ const activePan = ref<{
   start: BaseCanvasPoint
   viewport: BaseCanvasViewport
   pointerId: number
+  button: number
   moved: boolean
 } | null>(null)
 const activeMarquee = ref<{
@@ -297,6 +298,7 @@ function startViewportPan(event: PointerEvent) {
     start: { x: event.clientX, y: event.clientY },
     viewport: { ...props.viewport },
     pointerId: event.pointerId,
+    button: event.button,
     moved: false,
   }
   window.addEventListener('pointermove', moveViewport)
@@ -316,7 +318,8 @@ function moveViewport(event: PointerEvent) {
 }
 
 function stopViewportPan(event?: PointerEvent) {
-  if (event?.type === 'pointerup' && activePan.value?.moved) suppressNextCanvasClick.value = true
+  const pan = activePan.value
+  if (event?.type === 'pointerup' && pan?.moved && pan.button === 0) suppressNextCanvasClick.value = true
   activePan.value = null
   window.removeEventListener('pointermove', moveViewport)
   window.removeEventListener('pointercancel', stopViewportPan)
