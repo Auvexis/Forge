@@ -1,0 +1,4 @@
+- [x] Refatorar layout Auvexis
+- [x] Ajustar estilo flat
+- [x] Validar frontend
+- [x] Commitar mudancas
