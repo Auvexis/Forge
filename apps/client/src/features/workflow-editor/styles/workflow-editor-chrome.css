@@ -271,21 +271,28 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 30px;
+  height: 40px;
+  min-width: 0;
   padding: 0 10px;
-  border-radius: 7px;
+  border: 1px solid transparent;
+  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-chrome-text);
+  background: transparent;
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
   line-height: 1;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
+  user-select: none;
 }
 
 #fabric-topbar-left .wec-menu-trigger {
-  color: var(--fabric-topbar-button-text);
+  color: var(--fabric-topbar-search-text);
 }
 
 .wec-menu-bar .app-popover-wrapper {
-  height: 30px;
+  height: 40px;
   width: auto;
 }
 
@@ -293,24 +300,24 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 30px;
+  height: 40px;
   width: auto;
   padding: 0;
-  border-radius: 7px;
+  border-radius: var(--fabric-radius-sm);
 }
 
 .wec-menu-bar .app-popover-trigger:hover {
-  background: var(--fabric-chrome-bg-hover);
+  background: transparent;
 }
 
 .wec-menu-bar .app-popover-trigger:has(.wec-menu-trigger--active) {
-  background: var(--fabric-chrome-bg-hover);
+  background: transparent;
 }
 
 .wec-menu-trigger:hover,
 .wec-menu-trigger--active {
-  background: transparent;
-  color: var(--fabric-chrome-text);
+  background: var(--fabric-topbar-search-hover-bg);
+  color: var(--fabric-topbar-search-hover-text);
 }
 
 .wec-workflow-search {

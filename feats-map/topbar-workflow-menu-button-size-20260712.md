@@ -1,0 +1,4 @@
+- [x] Alinhar tamanho dos menus da topbar
+- [x] Alinhar hover dos menus da topbar
+- [x] Validar frontend
+- [x] Commitar mudanças
