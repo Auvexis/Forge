@@ -1,0 +1,5 @@
+- [x] Mapear toggle atual do Inspector
+- [x] Mover toggle para rail
+- [x] Limpar status bar
+- [x] Validar contratos
+- [x] Commitar mudancas

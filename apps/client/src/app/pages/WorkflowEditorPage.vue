@@ -834,6 +834,15 @@ watch(
             >
               <LucideIcon name="settings" :size="18" />
             </button>
+            <button
+              class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--active': showInspector }"
+              type="button"
+              title="Inspector"
+              @click="showInspector = !showInspector"
+            >
+              <LucideIcon name="panel-right" :size="18" />
+            </button>
           </section>
 
           <section class="workflow-tool-rail__group" aria-label="Execution">
@@ -1078,17 +1087,6 @@ watch(
               <code>{{
                 canOpenDevChat ? selectedChatSlug || 'dev session' : 'dev session only'
               }}</code>
-            </button>
-
-            <button
-              class="workflow-status-bar__button"
-              :class="{ 'workflow-status-bar__button--active': showInspector }"
-              type="button"
-              @click="showInspector = !showInspector"
-            >
-              <LucideIcon name="panel-right" :size="13" />
-              <span>Inspector</span>
-              <code>{{ showInspector ? 'open' : 'closed' }}</code>
             </button>
 
             <button

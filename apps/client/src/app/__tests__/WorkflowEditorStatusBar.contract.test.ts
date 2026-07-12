@@ -18,10 +18,10 @@ test('workflow editor status bar opens global dev chat and central workflow bott
   assert.match(source, /WorkflowWorkbenchBottomPanel/)
   assert.match(source, /workflow-status-bar__button/)
   assert.match(source, />\s*Chat\s*</)
-  assert.match(source, />\s*Inspector\s*</)
   assert.match(source, />\s*Tree\s*</)
   assert.match(source, />\s*Variables\s*</)
   assert.match(source, />\s*Execution\s*</)
+  assert.doesNotMatch(source, /<span>Inspector<\/span>/)
   assert.match(source, /openDevSessionChat/)
   assert.match(source, /openExecutionPanel/)
   assert.match(source, /openBottomPanel\('execution'\)/)
@@ -29,6 +29,13 @@ test('workflow editor status bar opens global dev chat and central workflow bott
   assert.match(source, /toggleBottomPanel\('variables'\)/)
   assert.match(source, /showInspector = !showInspector/)
   assert.match(source, /workflow-workbench__bottom-panel/)
+})
+
+test('workflow editor opens the inspector from the rail instead of the status bar', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /workflow-tool-rail__button[\s\S]*title="Inspector"[\s\S]*showInspector = !showInspector/)
+  assert.match(source, /<LucideIcon name="panel-right" :size="18" \/>/)
 })
 
 test('workflow editor status bar tracks active panel state from the local bottom panel', () => {
