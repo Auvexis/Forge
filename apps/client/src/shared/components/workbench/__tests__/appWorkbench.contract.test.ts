@@ -15,8 +15,12 @@ test('workflow editor renders inside the shared workbench shell', () => {
   assert.match(source, /AppWorkbench/)
   assert.match(source, /WorkbenchStatusBar/)
   assert.match(source, /#toolstrip/)
+  assert.match(source, /#left/)
   assert.match(source, /#status/)
   assert.match(source, /workflow-workbench__canvas/)
+  assert.match(source, /workflow-tool-rail/)
+  assert.match(source, /openGlobalAddNodePanel/)
+  assert.match(source, /canvasRef\?\.handleRun/)
 })
 
 test('workbench components expose toolstrip body and status slots', () => {

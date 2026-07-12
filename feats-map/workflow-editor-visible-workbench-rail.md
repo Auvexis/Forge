@@ -1,0 +1,5 @@
+- [x] Adicionar rail visual do workbench
+- [x] Conectar acoes reais do editor
+- [x] Ajustar densidade e estados
+- [x] Validar frontend
+- [x] Commitar mudancas
