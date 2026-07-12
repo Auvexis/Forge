@@ -8,19 +8,13 @@ function read(relativePath: string) {
 }
 
 describe('global notification shell integration', () => {
-  it('adds a reusable notification trigger to the main sidebar footer', () => {
+  it('keeps the main sidebar dedicated to feature navigation', () => {
     const source = read('src/app/App.vue')
-    const footerStart = source.indexOf('<template #footer>')
-    const footerEnd = source.indexOf('</template>', footerStart)
-    const footer = source.slice(footerStart, footerEnd)
-
-    assert.match(source, /import NotificationTrigger/)
-    assert.match(footer, /<NotificationTrigger/)
-    assert.match(footer, /sidebar-activity-link/)
-    assert.ok(footer.indexOf('<NotificationTrigger') < footer.indexOf('activityById.settings'))
-
     const styles = read('src/app/styles/app-shell-nav.css')
-    assert.match(styles, /\.sidebar-activity-link\.notification-trigger/)
+
+    assert.doesNotMatch(source, /<template #footer>/)
+    assert.doesNotMatch(source, /sidebar-activity-link/)
+    assert.doesNotMatch(styles, /\.sidebar-activity-link/)
   })
 
   it('adds a reusable notification trigger to AppTopbar', () => {
@@ -28,8 +22,8 @@ describe('global notification shell integration', () => {
 
     assert.match(source, /import NotificationTrigger/)
     assert.match(source, /<NotificationTrigger/)
-    assert.match(source, /app-topbar__actions/)
-    assert.ok(source.indexOf('app-topbar__search') < source.indexOf('app-topbar__actions'))
+    assert.match(source, /app-topbar__section--right/)
+    assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('<NotificationTrigger'))
   })
 
   it('adds a reusable notification trigger to Pages chrome when the Fabric shell is hidden', () => {

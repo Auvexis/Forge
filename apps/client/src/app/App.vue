@@ -18,10 +18,6 @@
           <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
             <AppSidebar
               :collapsed="isSidebarCollapsed"
-              :show-logo="isSidebarCollapsed"
-              :page-label="activeSidebarPageLabel"
-              @sign-out="hasEnteredProfile = false"
-              @toggle-collapsed="isSidebarCollapsed = !isSidebarCollapsed"
             >
               <section
                 v-for="section in sidebarSections"
@@ -60,44 +56,6 @@
                   </AppHint>
                 </div>
               </section>
-
-              <template #footer>
-                <div class="sidebar-footer-links">
-                  <AppHint :hint="hintFor(activityById.search.hintId ?? activityById.search.id)">
-                    <button
-                      class="nav-link sidebar-activity-link"
-                      @click="openGlobalCommandPalette"
-                    >
-                      <LucideIcon :name="activityById.search.icon" :size="16" />
-                    </button>
-                  </AppHint>
-
-                  <AppHint :hint="hintFor(activityById.docs.hintId ?? activityById.docs.id)">
-                    <button
-                      type="button"
-                      class="nav-link sidebar-activity-link"
-                      :class="{ 'nav-link--active': startGuide.controller.isGuideBookOpen }"
-                      @click="handleSidebarActivityClick(activityById.docs)"
-                    >
-                      <LucideIcon :name="activityById.docs.icon" :size="16" />
-                    </button>
-                  </AppHint>
-
-                  <NotificationTrigger class="sidebar-activity-link" />
-
-                  <AppHint
-                    :hint="hintFor(activityById.settings.hintId ?? activityById.settings.id)"
-                  >
-                    <button
-                      class="nav-link sidebar-activity-link"
-                      :class="{ 'nav-link--active': settingsStore.isOpen }"
-                      @click="handleSidebarActivityClick(activityById.settings)"
-                    >
-                      <LucideIcon :name="activityById.settings.icon" :size="16" />
-                    </button>
-                  </AppHint>
-                </div>
-              </template>
             </AppSidebar>
           </div>
         </Transition>
@@ -155,7 +113,6 @@ import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
 import AppHint from '@/shared/components/hints/AppHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import GlobalNotificationPanel from '@/shared/components/feedback/GlobalNotificationPanel.vue'
-import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
@@ -176,7 +133,6 @@ import ProfileSettingsPanel from '@/features/profiles/components/ProfileSettings
 import {
   dispatchSidebarNavIntent,
   sidebarPageLabelForPath,
-  sidebarActivityItems,
   sidebarSections,
   sidebarWidthForState,
   type SidebarNavIntent,
@@ -204,12 +160,6 @@ const activeSidebarWidth = computed(() =>
   sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
 )
 const activeSidebarPageLabel = computed(() => sidebarPageLabelForPath(route.path))
-const activityById = Object.fromEntries(sidebarActivityItems.map((item) => [item.id, item])) as {
-  search: (typeof sidebarActivityItems)[number]
-  monitor: (typeof sidebarActivityItems)[number]
-  docs: (typeof sidebarActivityItems)[number]
-  settings: (typeof sidebarActivityItems)[number]
-}
 
 function openGlobalCommandPalette() {
   void commandPaletteStore.open({ routePath: route.path })
@@ -217,18 +167,6 @@ function openGlobalCommandPalette() {
 
 function handleSidebarNavClick(item: SidebarNavItem) {
   if (item.id === 'universe') appUiStore.enterUniverseMode()
-  dispatchSidebarNavIntent(item)
-}
-
-function handleSidebarActivityClick(item: (typeof sidebarActivityItems)[number]) {
-  if (item.id === 'search') {
-    openGlobalCommandPalette()
-    return
-  }
-  if (item.id === 'settings') {
-    settingsStore.toggle()
-    return
-  }
   dispatchSidebarNavIntent(item)
 }
 

@@ -1,50 +1,15 @@
 <template>
   <aside class="app-sidebar surface" :class="{ 'app-sidebar--collapsed': collapsed }">
-    <header class="app-sidebar__header">
-      <!-- <img v-if="collapsed && showLogo" :src="logoSrc" alt="Fabric" class="app-sidebar__logo" /> -->
-      <ProfileSwitcher
-        class="app-sidebar__profile-switcher"
-        collapsed
-        @sign-out="$emit('sign-out')"
-      />
-      <span v-if="!collapsed" class="app-sidebar__page-label">{{ pageLabel }}</span>
-      <button
-        class="app-sidebar__collapse"
-        type="button"
-        :title="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
-        @click="$emit('toggle-collapsed')"
-      >
-        <LucideIcon :name="collapsed ? 'panel-right' : 'panel-left'" :size="21" stroke-width="2" />
-      </button>
-    </header>
-
     <nav class="app-sidebar__main">
       <slot />
     </nav>
-
-    <div class="app-sidebar__footer">
-      <slot name="footer"></slot>
-    </div>
   </aside>
 </template>
 
 <script setup lang="ts">
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useTheme } from '@/shared/composables/useTheme'
-import ProfileSwitcher from './ProfileSwitcher.vue'
-
 defineProps<{
   collapsed?: boolean
-  showLogo?: boolean
-  pageLabel?: string
 }>()
-
-defineEmits<{
-  (e: 'toggle-collapsed'): void
-  (e: 'sign-out'): void
-}>()
-
-const { logoSrc } = useTheme()
 </script>
 
 <style scoped>
@@ -53,7 +18,8 @@ const { logoSrc } = useTheme()
   display: flex;
   flex-direction: column;
   width: var(--fabric-active-sidebar-width, var(--fabric-sidebar-expanded));
-  height: 100vh;
+  height: 100%;
+  min-height: 0;
   border-right-width: 0;
   border-right-style: none;
   border-top-width: 0;
@@ -64,74 +30,6 @@ const { logoSrc } = useTheme()
   flex-shrink: 0;
   background-color: var(--fabric-sidebar-bg);
   transition: width var(--fabric-duration-base) var(--fabric-ease-standard);
-}
-
-.app-sidebar__header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 50px;
-  padding: 0 18px;
-  flex-shrink: 0;
-}
-
-.app-sidebar__header::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 1px;
-  border-radius: var(--fabric-radius-full);
-  background: var(--fabric-sidebar-divider);
-}
-
-.app-sidebar__logo {
-  width: 26px;
-  height: auto;
-  object-fit: contain;
-  flex-shrink: 0;
-  pointer-events: none;
-  user-select: none;
-}
-
-.app-sidebar__profile-switcher {
-  flex: 0 0 auto;
-  min-width: 0;
-}
-
-.app-sidebar__page-label {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  color: var(--fabric-sidebar-text);
-  font-size: var(--fabric-text-base);
-  font-weight: var(--fabric-font-medium);
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.app-sidebar__collapse {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-sidebar-text-muted);
-  background: transparent;
-  cursor: pointer;
-  transition:
-    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard);
-}
-
-.app-sidebar__collapse:hover {
-  color: var(--fabric-sidebar-text);
-  background: transparent;
 }
 
 .app-sidebar__main {
@@ -145,41 +43,9 @@ const { logoSrc } = useTheme()
   min-height: 0;
 }
 
-.app-sidebar__footer {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fabric-space-1);
-  padding: var(--fabric-space-2) var(--fabric-space-3);
-  border-top: 1px solid var(--fabric-sidebar-border);
-  flex-shrink: 0;
-}
-
-.app-sidebar--collapsed .app-sidebar__header {
-  flex-direction: column;
-  justify-content: flex-start;
-  gap: var(--fabric-space-2);
-  min-height: auto;
-  padding: var(--fabric-space-3) 0;
-}
-
-.app-sidebar--collapsed .app-sidebar__profile-switcher {
-  flex: 0 0 auto;
-  margin-top: 5px;
-  width: 30px;
-  height: 30px;
-}
-
 .app-sidebar--collapsed .app-sidebar__main {
   align-items: center;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-3) 0;
-}
-
-.app-sidebar--collapsed .app-sidebar__footer {
-  flex-direction: column;
-  justify-content: flex-start;
-  padding: var(--fabric-space-2) 0;
 }
 </style>

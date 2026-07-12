@@ -4,14 +4,12 @@ import { describe, it } from 'node:test'
 
 const source = readFileSync(new URL('../AppSidebar.vue', import.meta.url), 'utf8')
 
-describe('collapsed app sidebar layout', () => {
-  it('keeps the profile switcher compact instead of reserving a tall header block', () => {
-    assert.match(source, /\.app-sidebar--collapsed \.app-sidebar__header/)
-    assert.match(source, /min-height: auto/)
-    assert.doesNotMatch(source, /min-height: 122px/)
-    assert.match(
-      source,
-      /\.app-sidebar--collapsed \.app-sidebar__profile-switcher[\s\S]*height: 30px/,
-    )
+describe('app sidebar layout', () => {
+  it('renders only the feature navigation area inside the shell row', () => {
+    assert.match(source, /<nav class="app-sidebar__main">/)
+    assert.match(source, /height: 100%/)
+    assert.match(source, /min-height: 0/)
+    assert.doesNotMatch(source, /app-sidebar__header/)
+    assert.doesNotMatch(source, /app-sidebar__footer/)
   })
 })

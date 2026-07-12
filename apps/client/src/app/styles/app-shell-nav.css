@@ -46,8 +46,7 @@ button.nav-link {
   display: none;
 }
 
-.suite-nav-link svg,
-.sidebar-activity-link svg {
+.suite-nav-link svg {
   flex: 0 0 auto;
 }
 
@@ -117,32 +116,6 @@ button.nav-link {
   color: var(--fabric-sidebar-link-text);
 }
 
-/* ── Sidebar footer links stack ──────────────────────────── */
-
-.sidebar-footer-links {
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  justify-content: flex-start;
-  gap: var(--fabric-space-1);
-}
-
-.sidebar-activity-link {
-  width: 36px;
-  height: 34px;
-}
-
-.sidebar-activity-link.notification-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-activity-link.notification-trigger .base-button {
-  width: 36px;
-  height: 34px;
-}
-
 .app-sidebar-area--collapsed .sidebar-section {
   align-items: center;
 }
@@ -163,10 +136,4 @@ button.nav-link {
   width: 40px;
   height: 40px;
   padding: 0;
-}
-
-.app-sidebar-area--collapsed .sidebar-footer-links {
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
 }
