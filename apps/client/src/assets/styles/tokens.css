@@ -97,9 +97,9 @@
   --fabric-bg-muted: #211d1a;
   --fabric-bg-subtle: #3a332e;
   --fabric-bg-inverse: #faf9f7;
-  --fabric-bg-chrome: #f4f1ed;
-  --fabric-bg-chrome-elevated: #ffffff;
-  --fabric-bg-chrome-hover: rgba(46, 35, 32, 0.08);
+  --fabric-bg-chrome: #3a302c;
+  --fabric-bg-chrome-elevated: #4a3e39;
+  --fabric-bg-chrome-hover: rgba(255, 250, 244, 0.08);
 
   /* Accents */
   --fabric-accent: var(--fabric-brand-500);
@@ -109,7 +109,7 @@
   --fabric-border: rgba(255, 250, 244, 0.1);
   --fabric-border-muted: rgba(255, 250, 244, 0.06);
   --fabric-border-strong: rgba(255, 250, 244, 0.18);
-  --fabric-border-chrome: rgba(46, 35, 32, 0.14);
+  --fabric-border-chrome: rgba(255, 250, 244, 0.12);
   --fabric-border-brand: rgba(237, 144, 58, 0.6);
 
   /* Text */
@@ -118,8 +118,8 @@
   --fabric-text-muted: #9d8f88;
   --fabric-text-disabled: #6d625d;
   --fabric-text-inverse: #1f1a18;
-  --fabric-text-chrome: #1f1a18;
-  --fabric-text-chrome-muted: #6a5d58;
+  --fabric-text-chrome: #fff7ee;
+  --fabric-text-chrome-muted: #cdbfb7;
   --fabric-text-brand: var(--fabric-brand-300);
   --fabric-text-success: var(--fabric-green-400);
   --fabric-text-warning: var(--fabric-amber-400);
@@ -135,14 +135,14 @@
 
   --fabric-topbar-bg: var(--fabric-bg-chrome);
   --fabric-topbar-border: var(--fabric-border-chrome);
-  --fabric-topbar-search-bg: rgba(46, 35, 32, 0.06);
+  --fabric-topbar-search-bg: rgba(255, 250, 244, 0.06);
   --fabric-topbar-search-border: var(--fabric-border-chrome);
   --fabric-topbar-search-text: var(--fabric-text-chrome-muted);
   --fabric-topbar-search-hover-text: var(--fabric-text-chrome);
   --fabric-topbar-search-hover-bg: var(--fabric-bg-chrome-hover);
   --fabric-topbar-kbd-bg: transparent;
   
-  --fabric-topbar-button-bg: rgba(46, 35, 32, 0.08);
+  --fabric-topbar-button-bg: rgba(255, 250, 244, 0.08);
   --fabric-topbar-button-text: var(--fabric-text-chrome);
 
   /* ── Buttons ─────────────────────────────────────────────── */
