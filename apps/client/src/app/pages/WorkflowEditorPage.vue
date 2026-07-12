@@ -1134,8 +1134,8 @@ watch(
   min-height: 0;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
-  padding: 6px 4px;
+  gap: 0;
+  padding: 0;
   background: var(--fabric-workbench-rail-bg);
 }
 
@@ -1144,11 +1144,11 @@ watch(
   width: 100%;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 3px 0;
-  border: 1px solid color-mix(in srgb, var(--fabric-workbench-border) 72%, transparent);
-  border-radius: 5px;
-  background: color-mix(in srgb, var(--fabric-bg-base) 28%, transparent);
+  gap: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .workflow-tool-rail__button {
@@ -1156,10 +1156,10 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 28px;
+  width: 43px;
+  height: 30px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 0;
   background: transparent;
   color: var(--fabric-text-muted);
   cursor: pointer;
@@ -1171,17 +1171,17 @@ watch(
 
 .workflow-tool-rail__button:hover:not(:disabled),
 .workflow-tool-rail__button--active {
-  border-color: color-mix(in srgb, var(--fabric-workbench-border) 78%, transparent);
+  border-color: transparent;
   background: var(--fabric-button-ghost-hover);
   color: var(--fabric-text-primary);
 }
 
 .workflow-tool-rail__button--active::before {
   position: absolute;
-  left: -5px;
+  left: 0;
   width: 2px;
-  height: 16px;
-  border-radius: 999px;
+  height: 18px;
+  border-radius: 0 999px 999px 0;
   background: var(--fabric-accent);
   content: '';
 }

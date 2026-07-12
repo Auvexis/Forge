@@ -60,7 +60,11 @@ withDefaults(
 }
 
 .app-workbench__status {
+  height: var(--fabric-workbench-status-height, 24px);
+  min-height: var(--fabric-workbench-status-height, 24px);
+  max-height: var(--fabric-workbench-status-height, 24px);
   border-top: 1px solid var(--fabric-workbench-border, var(--fabric-border));
+  overflow: hidden;
 }
 
 .app-workbench__body {

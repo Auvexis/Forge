@@ -1,0 +1,4 @@
+- [x] Mapear altura da statusbar
+- [x] Deixar rail flat
+- [x] Validar frontend
+- [x] Commitar mudancas
