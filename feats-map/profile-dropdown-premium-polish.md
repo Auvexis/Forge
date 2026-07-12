@@ -1,0 +1,4 @@
+- [x] Revisar composicao atual
+- [x] Refinar densidade e hierarquia
+- [x] Validar frontend
+- [x] Commitar mudancas

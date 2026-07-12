@@ -12,12 +12,16 @@
       <slot name="trigger" :open="isOpen" />
     </template>
 
-    <section class="base-profile-dropdown__identity">
+    <section class="base-profile-dropdown__identity" aria-label="Current profile">
       <span class="base-profile-dropdown__avatar" aria-hidden="true">{{ avatar }}</span>
-      <span class="base-profile-dropdown__name">{{ profileName }}</span>
+      <span class="base-profile-dropdown__identity-copy">
+        <span class="base-profile-dropdown__eyebrow">Fabric profile</span>
+        <span class="base-profile-dropdown__name">{{ profileName }}</span>
+      </span>
     </section>
 
     <section class="base-profile-dropdown__section" aria-label="Profile actions">
+      <span class="base-profile-dropdown__section-label">Profile</span>
       <button
         class="base-profile-dropdown__item"
         type="button"
@@ -33,6 +37,7 @@
     </section>
 
     <section class="base-profile-dropdown__section" aria-label="Auvexis account">
+      <span class="base-profile-dropdown__section-label">Auvexis</span>
       <button
         v-if="auvexisAccount"
         class="base-profile-dropdown__auvexis-account"
@@ -68,6 +73,7 @@
     </section>
 
     <section class="base-profile-dropdown__section" aria-label="Session actions">
+      <span class="base-profile-dropdown__section-label">Session</span>
       <button
         class="base-profile-dropdown__item"
         type="button"
@@ -162,7 +168,7 @@ function handleAction(action: ProfileDropdownAction) {
 }
 
 .base-profile-dropdown :deep(.app-dropdown-menu) {
-  width: 300px;
+  width: 292px;
   overflow: hidden;
   border: 1px solid var(--fabric-base-profile-dropdown-border);
   border-radius: var(--fabric-radius-sm);
@@ -174,32 +180,52 @@ function handleAction(action: ProfileDropdownAction) {
 .base-profile-dropdown__identity,
 .base-profile-dropdown__section {
   display: flex;
-  flex-direction: column;
 }
 
 .base-profile-dropdown__identity {
+  flex-direction: row;
   align-items: center;
-  gap: var(--fabric-space-2);
-  padding: var(--fabric-space-4) var(--fabric-space-4) var(--fabric-space-3);
+  gap: var(--fabric-space-3);
+  min-height: 66px;
+  padding: var(--fabric-space-3);
   border-bottom: 1px solid var(--fabric-base-profile-dropdown-divider);
+  background: var(--fabric-base-profile-dropdown-header-bg);
 }
 
 .base-profile-dropdown__avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 54px;
-  height: 54px;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
   border: 1px solid var(--fabric-base-profile-dropdown-avatar-border);
   border-radius: var(--fabric-radius-full);
   background: var(--fabric-base-profile-dropdown-avatar-bg);
   color: var(--fabric-base-profile-dropdown-avatar-text);
-  font-size: 27px;
+  font-size: 21px;
   line-height: 1;
 }
 
+.base-profile-dropdown__identity-copy {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.base-profile-dropdown__eyebrow,
+.base-profile-dropdown__section-label {
+  color: var(--fabric-base-profile-dropdown-muted-text);
+  font-size: 10px;
+  font-weight: var(--fabric-font-semibold);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
 .base-profile-dropdown__name {
-  max-width: 240px;
+  max-width: 210px;
   overflow: hidden;
   color: var(--fabric-base-profile-dropdown-text);
   font-size: var(--fabric-text-sm);
@@ -209,8 +235,9 @@ function handleAction(action: ProfileDropdownAction) {
 }
 
 .base-profile-dropdown__section {
-  gap: 2px;
-  padding: var(--fabric-space-2);
+  flex-direction: column;
+  gap: 1px;
+  padding: var(--fabric-space-2) var(--fabric-space-2);
   border-bottom: 1px solid var(--fabric-base-profile-dropdown-divider);
 }
 
@@ -237,12 +264,16 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__item {
   align-items: center;
-  gap: var(--fabric-space-2);
-  min-height: 34px;
+  gap: var(--fabric-space-3);
+  min-height: 32px;
   padding: 0 var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
+}
+
+.base-profile-dropdown__item svg {
+  color: var(--fabric-base-profile-dropdown-muted-text);
 }
 
 .base-profile-dropdown__item:hover,
@@ -263,8 +294,9 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__auvexis-account {
   align-items: center;
-  gap: var(--fabric-space-3);
-  padding: var(--fabric-space-2);
+  gap: var(--fabric-space-2);
+  min-height: 42px;
+  padding: var(--fabric-space-1) var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
 }
 
@@ -280,8 +312,8 @@ function handleAction(action: ProfileDropdownAction) {
 }
 
 .base-profile-dropdown__auvexis-avatar {
-  width: 38px;
-  height: 38px;
+  width: 30px;
+  height: 30px;
   overflow: hidden;
 }
 
@@ -317,16 +349,17 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__connect {
   align-items: center;
-  gap: var(--fabric-space-3);
-  padding: var(--fabric-space-3);
+  gap: var(--fabric-space-2);
+  min-height: 44px;
+  padding: var(--fabric-space-2);
   border: 1px solid var(--fabric-base-profile-dropdown-connect-border);
   border-radius: var(--fabric-radius-sm);
   background: var(--fabric-base-profile-dropdown-connect-bg);
 }
 
 .base-profile-dropdown__connect-icon {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
 }
 
 .base-profile-dropdown__connect-copy span {

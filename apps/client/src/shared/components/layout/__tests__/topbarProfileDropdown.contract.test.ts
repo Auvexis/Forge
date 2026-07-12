@@ -34,6 +34,7 @@ test('fabric themes define profile dropdown customization tokens', () => {
 
   for (const theme of [light, dark]) {
     assert.equal(typeof theme.tokens['baseProfileDropdown.bg'], 'string')
+    assert.equal(typeof theme.tokens['baseProfileDropdown.header.bg'], 'string')
     assert.equal(typeof theme.tokens['baseProfileDropdown.item.hover.bg'], 'string')
     assert.equal(typeof theme.tokens['baseProfileDropdown.connect.border'], 'string')
   }
