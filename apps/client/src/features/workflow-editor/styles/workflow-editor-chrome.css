@@ -1,9 +1,9 @@
 :root {
   --fabric-chrome-height-header: 38px;
   --fabric-chrome-height-menu: 30px;
-  --fabric-chrome-height-toolbar: 38px;
-  --fabric-chrome-bg: var(--fabric-bg-surface);
-  --fabric-chrome-bg-muted: var(--fabric-bg-surface);
+  --fabric-chrome-height-toolbar: 34px;
+  --fabric-chrome-bg: var(--fabric-bg-elevated);
+  --fabric-chrome-bg-muted: var(--fabric-bg-elevated);
   --fabric-chrome-bg-hover: var(--fabric-button-ghost-hover);
   --fabric-chrome-border: var(--fabric-border);
   --fabric-chrome-text: var(--fabric-text-primary);
@@ -12,15 +12,15 @@
   --fabric-chrome-run: var(--fabric-green-500);
   --fabric-chrome-danger: var(--fabric-red-500);
   --fabric-chrome-save: var(--fabric-amber-500);
-  --fabric-chrome-radius: 8px;
-  --fabric-chrome-control-h: 28px;
+  --fabric-chrome-radius: 4px;
+  --fabric-chrome-control-h: 26px;
   --fabric-chrome-icon: 15px;
   --fabric-chrome-gap: 6px;
 }
 
 .wec-shell {
   display: grid;
-  grid-template-columns: 3px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   grid-template-rows: var(--fabric-chrome-height-toolbar);
   min-width: 0;
   background: var(--fabric-chrome-bg);
@@ -53,6 +53,7 @@
   background: var(--fabric-chrome-bg-muted);
   overflow-x: auto;
   scrollbar-width: none;
+  min-height: var(--fabric-chrome-height-toolbar);
 }
 
 .wec-toolbar::-webkit-scrollbar {
@@ -81,7 +82,7 @@
   gap: 6px;
   height: var(--fabric-chrome-control-h);
   min-width: var(--fabric-chrome-control-h);
-  padding: 0 8px;
+  padding: 0 7px;
   border: 1px solid transparent;
   border-radius: var(--fabric-chrome-radius);
   color: var(--fabric-chrome-text-muted);
@@ -94,6 +95,11 @@
 .wec-control--active {
   background: var(--fabric-chrome-bg-hover);
   color: var(--fabric-chrome-text);
+}
+
+.wec-control:focus-visible {
+  outline: 1px solid var(--fabric-accent);
+  outline-offset: -1px;
 }
 
 .wec-control:disabled {
@@ -415,8 +421,8 @@
 }
 
 .wec-toolbar-row {
-  grid-column: 1 / -1;
-  gap: 8px;
+  grid-column: 1;
+  gap: 6px;
   background: var(--fabric-chrome-bg-muted);
   overflow-x: auto;
   overflow-y: hidden;

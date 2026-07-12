@@ -13,6 +13,8 @@ import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/Work
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
+import AppWorkbench from '@/shared/components/workbench/AppWorkbench.vue'
+import WorkbenchStatusBar from '@/shared/components/workbench/WorkbenchStatusBar.vue'
 import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
@@ -105,7 +107,9 @@ const activeChatTriggers = computed(() => {
   return workflow ? listWorkflowChatTriggers(workflow) : []
 })
 const selectedChatTriggerEntry = computed(() => {
-  const selected = activeChatTriggers.value.find((trigger) => trigger.triggerNodeId === selectedChatTriggerNodeId.value)
+  const selected = activeChatTriggers.value.find(
+    (trigger) => trigger.triggerNodeId === selectedChatTriggerNodeId.value,
+  )
   if (selected) {
     return { nodeId: selected.triggerNodeId, trigger: selected.trigger }
   }
@@ -128,7 +132,9 @@ const activeChatTriggerNodeId = computed(() => selectedChatTriggerEntry.value.no
 const activeWorkflowId = computed(() => workflowStore.activeWorkflow?.metadata.id)
 const activeDevSessionId = computed(() => executionStore.activeSessionId ?? undefined)
 const activeDevSessionStatus = computed(() => executionStore.sessionStatus)
-const canOpenDevChat = computed(() => activeDevSessionStatus.value === 'running' && !!activeWorkflowId.value)
+const canOpenDevChat = computed(
+  () => activeDevSessionStatus.value === 'running' && !!activeWorkflowId.value,
+)
 const activeChatSlug = computed(() => {
   const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
   if (trigger?.type !== 'chat') return ''
@@ -139,7 +145,9 @@ const activeChatTitle = computed(() => {
   const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
   return typeof trigger?.chatTitle === 'string' ? trigger.chatTitle.trim() : ''
 })
-const isDevChatOpen = computed(() => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session')
+const isDevChatOpen = computed(
+  () => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session',
+)
 const isExecutionPanelOpen = computed(
   () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
 )
@@ -273,7 +281,8 @@ async function handleRestoreGitSnapshot(hash: string) {
 
   const confirmed = await confirm({
     title: 'Restore workflow version',
-    message: 'This will replace the current workflow with the selected committed version. Continue?',
+    message:
+      'This will replace the current workflow with the selected committed version. Continue?',
     confirmText: 'Restore',
     cancelText: 'Cancel',
     variant: 'warning',
@@ -330,10 +339,8 @@ function openGlobalAddNodePanel(toggle = false) {
     position: 'right',
     width: 'md',
     props: {
-      onAddLogicNodeAtCenter: (
-        type: WorkflowNodeType,
-        defaults?: Record<string, unknown>,
-      ) => canvasRef.value?.addLogicNodeAtViewportCenter(type, defaults),
+      onAddLogicNodeAtCenter: (type: WorkflowNodeType, defaults?: Record<string, unknown>) =>
+        canvasRef.value?.addLogicNodeAtViewportCenter(type, defaults),
       onAddPluginNodeAtCenter: (pluginId: string, action: string, actionName: string) =>
         canvasRef.value?.addPluginNodeAtViewportCenter(pluginId, action, actionName),
       onAddLogicNodeAtPoint: (
@@ -424,7 +431,8 @@ function openCommandPalette() {
 watch(
   activeChatTriggers,
   (nextTriggers) => {
-    if (nextTriggers.some((trigger) => trigger.triggerNodeId === selectedChatTriggerNodeId.value)) return
+    if (nextTriggers.some((trigger) => trigger.triggerNodeId === selectedChatTriggerNodeId.value))
+      return
     selectedChatTriggerNodeId.value = nextTriggers[0]?.triggerNodeId ?? ''
   },
   { immediate: true },
@@ -449,9 +457,12 @@ onBeforeUnmount(() => {
 
 onBeforeRouteLeave(async () => confirmUnsavedWorkflowLeave())
 
-watch(() => route.params.id, () => {
-  initWorkflow()
-})
+watch(
+  () => route.params.id,
+  () => {
+    initWorkflow()
+  },
+)
 
 watch(
   () => route.query.panel,
@@ -601,99 +612,108 @@ watch(
 
 <template>
   <AppPage>
-    <template #dock>
-      <WorkflowEditorChrome
-        :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
-        :workflow-id="workflowStore.activeWorkflow?.metadata.id ?? ''"
-        :workflow="workflowStore.activeWorkflow ?? undefined"
-        :is-saving="workflowStore.isSaving"
-        :is-executing="executionStore.isExecuting"
-        :is-streaming="executionStore.isStreaming"
-        :is-logs-open="isExecutionPanelOpen"
-        :is-dirty="workflowStore.isDirty"
-        :autosave-status="workflowStore.autosaveStatus"
-        :last-autosaved-at="workflowStore.lastAutosavedAt"
-        :is-autosave-enabled="workflowStore.isAutosaveEnabled"
-        :can-undo="workflowStore.canUndo"
-        :can-redo="workflowStore.canRedo"
-        :has-execution-state="hasExecutionState"
-        :git-repo-path="gitStatus?.repoPath"
-        @save="handleSaveWorkflow()"
-        @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
-        @undo="workflowStore.undo()"
-        @redo="workflowStore.redo()"
-        @duplicate-selection="canvasRef?.duplicateSelection()"
-        @delete-selection="canvasRef?.deleteSelection()"
-        @select-all="canvasRef?.selectAllNodes()"
-        @clear-selection="canvasRef?.clearSelection()"
-        @add-node="openGlobalAddNodePanel()"
-        @run="canvasRef?.handleRun()"
-        @stop="canvasRef?.handleStop()"
-        @clean-execution="executionStore.resetNodeStatuses()"
-        @export-workflow="exportWorkflow()"
-        @import-workflow="handleImportWorkflow()"
-        @create-workflow="handleCreateWorkflow()"
-        @toggle-logs="openExecutionPanel()"
-        @variables="showVariables = !showVariables"
-        @settings="showSettings = !showSettings"
-        @close="handleClose()"
-        @workflow-updated="workflowStore.setActiveWorkflow($event)"
-        @zoom-in="canvasRef?.zoomIn()"
-        @zoom-out="canvasRef?.zoomOut()"
-        @zoom-reset="canvasRef?.zoomReset()"
-        @fit-view="canvasRef?.fitWorkflowView()"
-        @command-palette="openCommandPalette()"
-        @publish="handlePublishWorkflow()"
-        @git-create-snapshot="handleCreateGitSnapshot()"
-        @git-refresh-status="loadWorkflowGitStatus()"
-        @git-copy-repo-path="handleCopyGitRepoPath()"
-      />
-    </template>
+    <AppWorkbench class="workflow-workbench">
+      <template #toolstrip>
+        <WorkflowEditorChrome
+          :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
+          :workflow-id="workflowStore.activeWorkflow?.metadata.id ?? ''"
+          :workflow="workflowStore.activeWorkflow ?? undefined"
+          :is-saving="workflowStore.isSaving"
+          :is-executing="executionStore.isExecuting"
+          :is-streaming="executionStore.isStreaming"
+          :is-logs-open="isExecutionPanelOpen"
+          :is-dirty="workflowStore.isDirty"
+          :autosave-status="workflowStore.autosaveStatus"
+          :last-autosaved-at="workflowStore.lastAutosavedAt"
+          :is-autosave-enabled="workflowStore.isAutosaveEnabled"
+          :can-undo="workflowStore.canUndo"
+          :can-redo="workflowStore.canRedo"
+          :has-execution-state="hasExecutionState"
+          :git-repo-path="gitStatus?.repoPath"
+          @save="handleSaveWorkflow()"
+          @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
+          @undo="workflowStore.undo()"
+          @redo="workflowStore.redo()"
+          @duplicate-selection="canvasRef?.duplicateSelection()"
+          @delete-selection="canvasRef?.deleteSelection()"
+          @select-all="canvasRef?.selectAllNodes()"
+          @clear-selection="canvasRef?.clearSelection()"
+          @add-node="openGlobalAddNodePanel()"
+          @run="canvasRef?.handleRun()"
+          @stop="canvasRef?.handleStop()"
+          @clean-execution="executionStore.resetNodeStatuses()"
+          @export-workflow="exportWorkflow()"
+          @import-workflow="handleImportWorkflow()"
+          @create-workflow="handleCreateWorkflow()"
+          @toggle-logs="openExecutionPanel()"
+          @variables="showVariables = !showVariables"
+          @settings="showSettings = !showSettings"
+          @close="handleClose()"
+          @workflow-updated="workflowStore.setActiveWorkflow($event)"
+          @zoom-in="canvasRef?.zoomIn()"
+          @zoom-out="canvasRef?.zoomOut()"
+          @zoom-reset="canvasRef?.zoomReset()"
+          @fit-view="canvasRef?.fitWorkflowView()"
+          @command-palette="openCommandPalette()"
+          @publish="handlePublishWorkflow()"
+          @git-create-snapshot="handleCreateGitSnapshot()"
+          @git-refresh-status="loadWorkflowGitStatus()"
+          @git-copy-repo-path="handleCopyGitRepoPath()"
+        />
+      </template>
 
-    <div class="fabric-fill flex-center">
-      <FabricWorkflowCanvas
-        v-if="workflowStore.activeWorkflow"
-        ref="canvasRef"
-      />
-    </div>
+      <div class="workflow-workbench__canvas">
+        <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
+      </div>
 
-    <div class="workflow-status-bar" role="toolbar" aria-label="Workflow panels">
-      <button
-        class="workflow-status-bar__button"
-        :class="{ 'workflow-status-bar__button--active': isDevChatOpen }"
-        type="button"
-        :disabled="!canOpenDevChat"
-        @click="toggleChatPanel"
-      >
-        <span class="workflow-status-bar__dot" :class="{ 'is-active': canOpenDevChat }" />
-        <span>Chat</span>
-        <code>{{ canOpenDevChat ? (selectedChatSlug || 'dev session') : 'dev session only' }}</code>
-      </button>
+      <template #status>
+        <WorkbenchStatusBar aria-label="Workflow workbench status">
+          <template #left>
+            <button
+              class="workflow-status-bar__button"
+              :class="{ 'workflow-status-bar__button--active': isDevChatOpen }"
+              type="button"
+              :disabled="!canOpenDevChat"
+              @click="toggleChatPanel"
+            >
+              <span class="workflow-status-bar__dot" :class="{ 'is-active': canOpenDevChat }" />
+              <span>Chat</span>
+              <code>{{
+                canOpenDevChat ? selectedChatSlug || 'dev session' : 'dev session only'
+              }}</code>
+            </button>
 
-      <button
-        class="workflow-status-bar__button"
-        :class="{ 'workflow-status-bar__button--active': isExecutionPanelOpen }"
-        type="button"
-        @click="toggleExecutionPanel"
-      >
-        <span class="workflow-status-bar__dot" :class="{ 'is-active': executionStore.hasActiveExecution }" />
-        <span>Execution</span>
-        <code>{{ executionStore.timeline.length }} events</code>
-      </button>
+            <button
+              class="workflow-status-bar__button"
+              :class="{ 'workflow-status-bar__button--active': isExecutionPanelOpen }"
+              type="button"
+              @click="toggleExecutionPanel"
+            >
+              <span
+                class="workflow-status-bar__dot"
+                :class="{ 'is-active': executionStore.hasActiveExecution }"
+              />
+              <span>Execution</span>
+              <code>{{ executionStore.timeline.length }} events</code>
+            </button>
+          </template>
 
-      <button
-        class="workflow-status-bar__button workflow-status-bar__button--git"
-        :class="{ 'workflow-status-bar__button--active': gitStatus?.state === 'ready' }"
-        type="button"
-        :title="gitStatusTitle"
-        @click="openGitModal"
-      >
-        <LucideIcon name="git-branch" :size="13" />
-        <span>Git</span>
-        <code>{{ gitStatusLabel }}</code>
-      </button>
-
-    </div>
+          <template #right>
+            <button
+              class="workflow-status-bar__button workflow-status-bar__button--git"
+              :class="{ 'workflow-status-bar__button--active': gitStatus?.state === 'ready' }"
+              type="button"
+              :title="gitStatusTitle"
+              @click="openGitModal"
+            >
+              <LucideIcon name="git-branch" :size="13" />
+              <span>Git</span>
+              <code>{{ gitStatusLabel }}</code>
+            </button>
+          </template>
+        </WorkbenchStatusBar>
+      </template>
+    </AppWorkbench>
 
     <WorkflowGitModal
       v-if="workflowStore.activeWorkflow"
@@ -713,21 +733,16 @@ watch(
 </template>
 
 <style scoped>
-.workflow-status-bar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: var(--fabric-z-raised);
-  display: flex;
-  align-items: center;
-  gap: 1px;
-  height: 24px;
-  padding: 0;
-  border-top: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-topbar);
-  color: var(--fabric-text-muted);
-  font-size: 11px;
+.workflow-workbench {
+  --fabric-workbench-status-height: 24px;
+}
+
+.workflow-workbench__canvas {
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .workflow-status-bar__button {
