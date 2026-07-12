@@ -52,6 +52,12 @@ describe('global app panel resize', () => {
     assert.match(appPanelSource, /\.app-panel__body\s*\{[\s\S]*flex: 1;[\s\S]*min-height: 0;[\s\S]*overflow-y: auto;/)
   })
 
+  it('keeps AppPanel chrome compact for dense workspaces', () => {
+    assert.match(appPanelSource, /\.app-panel__header\s*\{[\s\S]*height: 36px;/)
+    assert.match(appPanelSource, /\.app-panel__title\s*\{[\s\S]*font-size: var\(--fabric-text-xs\);/)
+    assert.match(appPanelSource, /\.app-panel__footer\s*\{[\s\S]*padding: var\(--fabric-space-2\) var\(--fabric-space-3\);/)
+  })
+
   it('opens the workflow execution panel as top-resizable', () => {
     assert.match(workflowPageSource, /id: 'workflow-execution-bottom-panel'/)
     assert.match(workflowPageSource, /resizable: true/)

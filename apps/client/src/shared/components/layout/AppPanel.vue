@@ -284,15 +284,16 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 56px;
-  padding: 0 var(--fabric-space-4);
+  height: 36px;
+  padding: 0 var(--fabric-space-2) 0 var(--fabric-space-3);
   border-bottom: 1px solid var(--fabric-border);
   flex-shrink: 0;
 }
 
 .app-panel__title {
-  font-size: var(--fabric-text-base);
+  font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
+  line-height: 1;
   margin: 0;
 }
 
@@ -306,8 +307,8 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: var(--fabric-radius-sm);
   color: var(--fabric-text-secondary);
   transition: background-color var(--fabric-duration-fast);
@@ -325,9 +326,9 @@ onBeforeUnmount(() => {
 }
 
 .app-panel__footer {
-  padding: var(--fabric-space-4);
+  padding: var(--fabric-space-2) var(--fabric-space-3);
   border-top: 1px solid var(--fabric-border);
-  background-color: var(--fabric-bg-elevated);
+  background-color: var(--fabric-bg-surface);
   flex-shrink: 0;
 }
 </style>

@@ -64,8 +64,8 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.717);
-  backdrop-filter: blur(2px);
+  background: rgba(0, 0, 0, 0.64);
+  backdrop-filter: blur(1px);
 }
 
 .base-modal-backdrop--clear {
@@ -74,9 +74,9 @@ onUnmounted(() => {
 
 .base-modal-container {
   background: var(--fabric-bg-surface);
-  border: 2px solid var(--fabric-border);
-  box-shadow: var(--fabric-shadow-xl);
-  border-radius: var(--fabric-radius-xl);
+  border: 1px solid var(--fabric-border);
+  box-shadow: none;
+  border-radius: var(--fabric-radius-md);
 }
 
 /* ── Transition: base-modal-slide-up ── */
