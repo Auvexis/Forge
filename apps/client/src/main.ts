@@ -4,6 +4,7 @@ import { createPinia } from 'pinia'
 import App from './app/App.vue'
 import router from './app/router'
 import { installGlobalErrorToasts } from './shared/composables/globalErrorToasts'
+import './shared/composables/useTheme'
 
 // Global CSS Import
 import './assets/styles/main.css'

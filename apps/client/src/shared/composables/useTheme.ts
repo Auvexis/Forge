@@ -15,6 +15,7 @@
  */
 
 import { ref, computed, watchEffect, onUnmounted } from 'vue'
+import { applyFabricThemeByType } from '@/themes/runtime/theme.loader'
 
 export type ThemeMode = 'dark' | 'light' | 'system'
 
@@ -45,6 +46,7 @@ function applyTheme(resolved: 'dark' | 'light') {
   if (!HTML_EL) return
   HTML_EL.classList.remove('dark', 'light')
   HTML_EL.classList.add(resolved)
+  applyFabricThemeByType(resolved)
 }
 
 // ─── OS preference listener ────────────────────────────────────────────────────
