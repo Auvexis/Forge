@@ -14,6 +14,7 @@ import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/Wor
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
+import GlobalAppPanel from '@/shared/components/layout/GlobalAppPanel.vue'
 import AppWorkbench from '@/shared/components/workbench/AppWorkbench.vue'
 import WorkbenchStatusBar from '@/shared/components/workbench/WorkbenchStatusBar.vue'
 import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
@@ -632,7 +633,7 @@ watch(
 </script>
 
 <template>
-  <AppPage>
+  <AppPage :show-global-panel="false">
     <AppWorkbench class="workflow-workbench">
       <template #toolstrip>
         <WorkflowEditorChrome
@@ -866,6 +867,9 @@ watch(
             </section>
           </div>
         </AppPanel>
+
+        <GlobalAppPanel />
+        <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
       </div>
 
       <template #status>
@@ -928,8 +932,6 @@ watch(
       @commit="handleCommitGitSnapshot"
       @restore="handleRestoreGitSnapshot"
     />
-
-    <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
     <WorkflowVariablesModal :is-open="showVariables" @close="showVariables = false" />
   </AppPage>
 </template>

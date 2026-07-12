@@ -13,6 +13,8 @@ test('workflow editor renders inside the shared workbench shell', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /AppWorkbench/)
+  assert.match(source, /:show-global-panel="false"/)
+  assert.match(source, /GlobalAppPanel/)
   assert.match(source, /WorkbenchStatusBar/)
   assert.match(source, /#toolstrip/)
   assert.match(source, /#left/)

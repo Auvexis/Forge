@@ -10,7 +10,7 @@
       <slot></slot>
 
       <!-- Global Page Panel anchors to the relative content boundaries -->
-      <GlobalAppPanel v-if="!appUiStore.isUniverseMode" />
+      <GlobalAppPanel v-if="showGlobalPanel && !appUiStore.isUniverseMode" />
     </div>
   </div>
 </template>
@@ -20,6 +20,15 @@ import GlobalAppPanel from './GlobalAppPanel.vue'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
 
 const appUiStore = useAppUiStore()
+
+withDefaults(
+  defineProps<{
+    showGlobalPanel?: boolean
+  }>(),
+  {
+    showGlobalPanel: true,
+  },
+)
 </script>
 
 <style scoped>

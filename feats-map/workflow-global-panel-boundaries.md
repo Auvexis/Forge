@@ -1,0 +1,5 @@
+- [x] Mapear ancoragem dos paineis
+- [x] Permitir controlar GlobalAppPanel no AppPage
+- [x] Montar paineis no canvas do workflow
+- [x] Validar frontend
+- [x] Commitar mudancas
