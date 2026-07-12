@@ -1,17 +1,31 @@
 <template>
   <section class="auvexis-settings">
-    <div class="auvexis-settings__cover" aria-hidden="true"></div>
-
     <div class="auvexis-settings__hero">
-      <div class="auvexis-settings__avatar">
-        <img
-          v-if="accountAvatarUrl"
-          class="auvexis-settings__avatar-image"
-          :src="accountAvatarUrl"
-          alt=""
-          aria-hidden="true"
-        />
-        <LucideIcon v-else name="user-round" :size="30" />
+      <div class="auvexis-settings__profile">
+        <div class="auvexis-settings__avatar">
+          <img
+            v-if="accountAvatarUrl"
+            class="auvexis-settings__avatar-image"
+            :src="accountAvatarUrl"
+            alt=""
+            aria-hidden="true"
+          />
+          <LucideIcon v-else name="user-round" :size="30" />
+        </div>
+
+        <div class="auvexis-settings__identity">
+          <div class="auvexis-settings__title-row">
+            <h3 class="auvexis-settings__title">
+              {{ accountDisplayName }}
+            </h3>
+            <BaseBadge :variant="statusBadgeVariant" size="sm" :icon="statusBadgeIcon">
+              {{ statusLabel }}
+            </BaseBadge>
+          </div>
+          <p class="auvexis-settings__description">
+            {{ accountUsernameLabel }}
+          </p>
+        </div>
       </div>
 
       <div class="auvexis-settings__hero-actions">
@@ -32,20 +46,6 @@
           Logout
         </BaseButton>
       </div>
-    </div>
-
-    <div class="auvexis-settings__identity">
-      <div class="auvexis-settings__title-row">
-        <h3 class="auvexis-settings__title">
-          {{ accountDisplayName }}
-        </h3>
-        <BaseBadge :variant="statusBadgeVariant" size="sm" :icon="statusBadgeIcon">
-          {{ statusLabel }}
-        </BaseBadge>
-      </div>
-      <p class="auvexis-settings__description">
-        {{ accountEmailLabel }}
-      </p>
     </div>
 
     <div v-if="accountStore.isLoading" class="auvexis-settings__state">
@@ -76,20 +76,6 @@
             <div class="auvexis-settings__row-controls auvexis-settings__row-controls--split">
               <div class="auvexis-settings__control">{{ accountNameParts.firstName }}</div>
               <div class="auvexis-settings__control">{{ accountNameParts.lastName }}</div>
-            </div>
-          </div>
-
-          <div class="auvexis-settings__row">
-            <span class="auvexis-settings__label">Email address</span>
-            <div class="auvexis-settings__row-controls">
-              <div class="auvexis-settings__control auvexis-settings__control--with-icon">
-                <LucideIcon name="mail" :size="16" />
-                <span>{{ accountEmailLabel }}</span>
-              </div>
-              <div class="auvexis-settings__verified">
-                <LucideIcon name="badge-check" :size="14" />
-                Verified by Auvexis
-              </div>
             </div>
           </div>
 
@@ -207,7 +193,10 @@ const accountAvatarUrl = computed(() => {
   return account?.avatarUrl || account?.profileImageUrl || account?.pictureUrl || account?.photoUrl || null
 })
 
-const accountEmailLabel = computed(() => accountStore.account?.email || 'No email provided')
+const accountUsernameLabel = computed(() => {
+  const username = accountStore.account?.username
+  return username ? `@${username}` : 'Not connected'
+})
 
 const accountNameParts = computed(() => {
   const parts = accountDisplayName.value.trim().split(/\s+/).filter(Boolean)
@@ -259,23 +248,19 @@ onMounted(() => {
   gap: 0;
 }
 
-.auvexis-settings__cover {
-  height: 96px;
-  margin: 0 18px;
-  border: 1px solid var(--fabric-border-muted);
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--fabric-accent) 18%, transparent), transparent 42%),
-    linear-gradient(160deg, var(--fabric-bg-muted), var(--fabric-bg-surface) 48%, color-mix(in srgb, var(--fabric-accent) 12%, var(--fabric-bg-surface)));
-}
-
 .auvexis-settings__hero {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
-  margin-top: -36px;
-  padding: 0 34px 12px;
+  padding: 8px 34px 18px;
+}
+
+.auvexis-settings__profile {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 14px;
 }
 
 .auvexis-settings__avatar {
@@ -313,7 +298,6 @@ onMounted(() => {
   min-width: 0;
   flex-direction: column;
   gap: 4px;
-  padding: 0 34px 14px;
 }
 
 .auvexis-settings__title-row {
@@ -455,27 +439,6 @@ onMounted(() => {
   white-space: nowrap;
 }
 
-.auvexis-settings__control--with-icon {
-  gap: 8px;
-}
-
-.auvexis-settings__control--with-icon svg {
-  color: var(--fabric-text-muted);
-  flex: 0 0 auto;
-}
-
-.auvexis-settings__verified {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-  color: var(--fabric-accent);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: uppercase;
-}
-
 .auvexis-settings__username-control {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -590,12 +553,7 @@ onMounted(() => {
 }
 
 @media (max-width: 720px) {
-  .auvexis-settings__cover {
-    margin: 0 14px;
-  }
-
   .auvexis-settings__hero,
-  .auvexis-settings__identity,
   .auvexis-settings__metrics,
   .auvexis-settings__rows,
   .auvexis-settings__state,
