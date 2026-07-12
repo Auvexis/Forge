@@ -1,59 +1,189 @@
 <template>
   <header class="app-topbar">
-    <img :src="logoSrc" alt="Fabric" class="app-topbar__logo" />
-    <button class="app-topbar__search" type="button" @click="$emit('open-command-palette')">
-      <LucideIcon name="search" :size="16" />
-      <span>Search workflows, commands, plugins...</span>
-      <kbd>Ctrl K</kbd>
-    </button>
-    <div class="app-topbar__actions">
+    <section class="app-topbar__section app-topbar__section--left" aria-label="Page controls">
+      <button
+        class="app-topbar__icon-button"
+        type="button"
+        :aria-label="sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'"
+        @click="$emit('toggle-sidebar')"
+      >
+        <LucideIcon :name="sidebarCollapsed ? 'panel-left-open' : 'panel-left-close'" :size="16" />
+      </button>
+      <div class="app-topbar__route-slot">
+        <slot name="left"></slot>
+      </div>
+    </section>
+
+    <section class="app-topbar__section app-topbar__section--center" aria-label="Active profile">
+      <span class="app-topbar__avatar" aria-hidden="true">{{ activeAvatar }}</span>
+      <span class="app-topbar__profile-name">{{ activeName }}</span>
+      <span class="app-topbar__separator" aria-hidden="true">/</span>
+      <div class="app-topbar__context">
+        <slot name="context">{{ pageLabel }}</slot>
+      </div>
+    </section>
+
+    <div class="app-topbar__section app-topbar__section--right" aria-label="Global actions">
       <NotificationTrigger />
+      <button
+        class="app-topbar__icon-button"
+        type="button"
+        aria-label="Open settings"
+        @click="$emit('open-settings')"
+      >
+        <LucideIcon name="settings" :size="16" />
+      </button>
+      <button
+        class="app-topbar__icon-button"
+        type="button"
+        aria-label="Open guide book"
+        @click="$emit('open-docs')"
+      >
+        <LucideIcon name="book-open" :size="16" />
+      </button>
+      <button
+        class="app-topbar__command"
+        type="button"
+        aria-label="Open command palette"
+        @click="$emit('open-command-palette')"
+      >
+        <LucideIcon name="search" :size="15" />
+        <span>Command</span>
+        <kbd>Ctrl K</kbd>
+      </button>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
+import { computed, onMounted } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useTheme } from '@/shared/composables/useTheme'
 import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
+import { useProfileStore } from '@/shared/stores/profile.store'
+
+withDefaults(
+  defineProps<{
+    sidebarCollapsed?: boolean
+    pageLabel?: string
+  }>(),
+  {
+    sidebarCollapsed: false,
+    pageLabel: 'Fabric',
+  },
+)
 
 defineEmits<{
+  (e: 'toggle-sidebar'): void
   (e: 'open-command-palette'): void
+  (e: 'open-settings'): void
+  (e: 'open-docs'): void
 }>()
 
-const { logoSrc } = useTheme()
+const profileStore = useProfileStore()
+
+const activeName = computed(() => profileStore.currentProfile?.name ?? 'Profile')
+const activeAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? 'F')
+
+onMounted(() => {
+  if (!profileStore.currentProfile && !profileStore.isLoading) {
+    void profileStore.loadProfiles()
+  }
+})
 </script>
 
 <style scoped>
 .app-topbar {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  justify-content: center;
-  min-height: 50px;
-  padding: 0 var(--fabric-space-5);
+  gap: var(--fabric-space-3);
+  min-height: 52px;
+  padding: 0 var(--fabric-space-4);
   border-bottom: 1px solid var(--fabric-topbar-border);
   background: var(--fabric-topbar-bg);
   flex-shrink: 0;
 }
 
-.app-topbar__logo {
-  position: absolute;
-  left: var(--fabric-space-5);
-  height: 22px;
-  width: auto;
-  object-fit: contain;
-  pointer-events: none;
-  user-select: none;
-}
-
-.app-topbar__search {
+.app-topbar__section {
   display: flex;
   align-items: center;
-  gap: var(--fabric-space-3);
-  width: min(620px, 100%);
-  height: 34px;
-  padding: 0 var(--fabric-space-3);
+  min-width: 0;
+}
+
+.app-topbar__section--left {
+  justify-content: flex-start;
+  gap: var(--fabric-space-2);
+}
+
+.app-topbar__section--center {
+  justify-content: center;
+  gap: var(--fabric-space-2);
+  min-width: 220px;
+  max-width: min(46vw, 620px);
+}
+
+.app-topbar__section--right {
+  justify-content: flex-end;
+  gap: var(--fabric-space-1);
+}
+
+.app-topbar__route-slot,
+.app-topbar__context {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.app-topbar__route-slot {
+  max-width: min(34vw, 420px);
+}
+
+.app-topbar__context {
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-topbar__avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-primary);
+  font-size: 15px;
+  line-height: 1;
+}
+
+.app-topbar__profile-name {
+  max-width: 160px;
+  overflow: hidden;
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-sm);
+  font-weight: var(--fabric-font-semibold);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-topbar__separator {
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-sm);
+}
+
+.app-topbar__icon-button,
+.app-topbar__command {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 32px;
   border: 1px solid var(--fabric-topbar-search-border);
   border-radius: var(--fabric-radius-sm);
   color: var(--fabric-topbar-search-text);
@@ -65,23 +195,29 @@ const { logoSrc } = useTheme()
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
-.app-topbar__search:hover {
+.app-topbar__icon-button {
+  width: 32px;
+  padding: 0;
+}
+
+.app-topbar__command {
+  gap: var(--fabric-space-2);
+  width: auto;
+  padding: 0 var(--fabric-space-2);
+}
+
+.app-topbar__icon-button:hover,
+.app-topbar__command:hover {
   color: var(--fabric-topbar-search-hover-text);
   border-color: var(--fabric-topbar-search-border);
   background: var(--fabric-topbar-search-hover-bg);
 }
 
-.app-topbar__search span {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  text-align: center;
+.app-topbar__command span {
   font-size: var(--fabric-text-sm);
 }
 
-.app-topbar__search kbd {
+.app-topbar__command kbd {
   flex: 0 0 auto;
   padding: 2px 6px;
   border: 1px solid var(--fabric-topbar-search-border);
@@ -92,28 +228,24 @@ const { logoSrc } = useTheme()
   font-size: 10px;
 }
 
-.app-topbar__actions {
-  position: absolute;
-  right: var(--fabric-space-5);
-  display: inline-flex;
-  align-items: center;
-  gap: var(--fabric-space-2);
-}
-
 @media (max-width: 640px) {
   .app-topbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
     padding: 0 var(--fabric-space-3);
   }
 
-  .app-topbar__logo {
-    left: var(--fabric-space-3);
+  .app-topbar__section--center {
+    min-width: 0;
+    max-width: none;
   }
 
-  .app-topbar__actions {
-    right: var(--fabric-space-3);
+  .app-topbar__profile-name,
+  .app-topbar__route-slot,
+  .app-topbar__command span {
+    display: none;
   }
 
-  .app-topbar__search kbd {
+  .app-topbar__command kbd {
     display: none;
   }
 }

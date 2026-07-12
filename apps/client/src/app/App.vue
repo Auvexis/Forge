@@ -105,8 +105,15 @@
       </div>
     </template>
 
-    <template v-if="!appUiStore.isUniverseMode && !isSidebarCollapsed" #topbar>
-      <AppTopbar @open-command-palette="openGlobalCommandPalette" />
+    <template v-if="!appUiStore.isUniverseMode" #topbar>
+      <AppTopbar
+        :sidebar-collapsed="isSidebarCollapsed"
+        :page-label="activeSidebarPageLabel"
+        @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed"
+        @open-command-palette="openGlobalCommandPalette"
+        @open-settings="settingsStore.toggle()"
+        @open-docs="startGuide.openGuideBook()"
+      />
     </template>
 
     <!-- Main Content Area -->
