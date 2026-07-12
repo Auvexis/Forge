@@ -1,0 +1,5 @@
+- [x] Expor slots dinamicos na AppTopbar
+- [x] Mover menus do workflow para esquerda
+- [x] Mover workflow/status para centro
+- [x] Validar frontend
+- [x] Commitar mudanças

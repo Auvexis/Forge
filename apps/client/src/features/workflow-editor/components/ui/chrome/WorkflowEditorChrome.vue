@@ -123,25 +123,29 @@ function handleCommand(id: WorkflowChromeCommandId) {
 
 <template>
   <section class="wec-shell" aria-label="Workflow editor toolbar">
-    <WorkflowChromeHeader
-      ref="headerRef"
-      :workflow-name="workflowName"
-      :workflow-id="workflowId"
-      :workflow="workflow"
-      :autosave-status="autosaveStatus"
-      :last-autosaved-at="lastAutosavedAt"
-      :is-dirty="isDirty"
-      :is-busy="isBusy"
-      :is-saving="isSaving"
-    />
-
-    <div class="wec-row wec-menu-row">
+    <Teleport to="#fabric-topbar-left">
       <WorkflowChromeMenuBar
         :disabled-reasons="disabledMenuReasons"
         :action-overrides="dynamicMenuOverrides"
         @command="handleCommand"
       />
-    </div>
+    </Teleport>
+
+    <Teleport to="#fabric-topbar-context">
+      <WorkflowChromeHeader
+        ref="headerRef"
+        variant="topbar"
+        :show-meta="false"
+        :workflow-name="workflowName"
+        :workflow-id="workflowId"
+        :workflow="workflow"
+        :autosave-status="autosaveStatus"
+        :last-autosaved-at="lastAutosavedAt"
+        :is-dirty="isDirty"
+        :is-busy="isBusy"
+        :is-saving="isSaving"
+      />
+    </Teleport>
 
     <div class="wec-row wec-toolbar-row">
       <WorkflowChromeToolbar

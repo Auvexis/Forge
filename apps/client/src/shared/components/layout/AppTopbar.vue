@@ -14,6 +14,7 @@
         </template>
       </BaseTopbarButton>
       <div class="app-topbar__route-slot">
+        <div id="fabric-topbar-left" class="app-topbar__portal" />
         <slot name="left"></slot>
       </div>
     </section>
@@ -39,7 +40,10 @@
       </BaseTopbarButton>
       <span class="app-topbar__separator" aria-hidden="true">/</span>
       <div class="app-topbar__context">
-        <slot name="context">{{ pageLabel }}</slot>
+        <div id="fabric-topbar-context" class="app-topbar__portal" />
+        <span class="app-topbar__fallback">
+          <slot name="context">{{ pageLabel }}</slot>
+        </span>
       </div>
     </section>
 
@@ -201,17 +205,34 @@ onMounted(() => {
   min-width: 0;
 }
 
+.app-topbar__portal {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+}
+
 .app-topbar__route-slot {
-  max-width: min(34vw, 420px);
+  max-width: min(40vw, 560px);
 }
 
 .app-topbar__context {
+  gap: var(--fabric-space-2);
   color: var(--fabric-topbar-search-text);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.app-topbar__portal:not(:empty) + .app-topbar__fallback {
+  display: none;
+}
+
+.app-topbar__fallback {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .app-topbar__avatar {

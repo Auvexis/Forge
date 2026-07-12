@@ -19,6 +19,8 @@ const props = defineProps<{
   isDirty?: boolean
   isBusy?: boolean
   isSaving?: boolean
+  showMeta?: boolean
+  variant?: 'chrome' | 'topbar'
 }>()
 
 const workflowMenuRef = ref<InstanceType<typeof AppDropdownMenu> | null>(null)
@@ -106,7 +108,7 @@ defineExpose({ openWorkflowMenu })
 </script>
 
 <template>
-  <div class="wec-row wec-header">
+  <div class="wec-row wec-header" :class="`wec-header--${variant ?? 'chrome'}`">
     <div class="wec-doc">
       <AppDropdownMenu
         ref="workflowMenuRef"
@@ -171,7 +173,7 @@ defineExpose({ openWorkflowMenu })
       </span>
     </div>
 
-    <div class="wec-header-meta" aria-label="Workflow metadata">
+    <div v-if="showMeta !== false" class="wec-header-meta" aria-label="Workflow metadata">
       <span class="wec-meta-pill wec-meta-pill--version">{{ versionLabel }}</span>
       <span class="wec-meta-pill wec-meta-pill--nodes">{{ nodeCountLabel }}</span>
       <span class="wec-meta-pill" :class="{ 'wec-meta-pill--live': publishLabel === 'Live' }">
