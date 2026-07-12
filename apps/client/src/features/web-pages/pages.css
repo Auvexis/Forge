@@ -244,7 +244,6 @@
 .web-page-project-topbar {
   display: inline-flex;
   align-items: center;
-  height: 40px;
   min-width: 0;
 }
 
@@ -252,26 +251,11 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  height: 40px;
-  max-width: min(22vw, 220px);
   min-width: 0;
-  padding: 0 8px;
-  border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
+  max-width: min(22vw, 220px);
   color: var(--fabric-topbar-button-text);
-  background: transparent;
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
-  line-height: 1;
-  transition:
-    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard);
-}
-
-.web-page-project-topbar__trigger:hover,
-.web-page-project-topbar__trigger--open {
-  background: var(--fabric-topbar-search-hover-bg);
-  color: var(--fabric-topbar-search-hover-text);
 }
 
 .web-page-project-topbar__trigger span {

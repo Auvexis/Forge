@@ -12,6 +12,7 @@
         <button
           class="web-page-project-topbar__trigger"
           :class="{ 'web-page-project-topbar__trigger--open': isProjectMenuOpen }"
+          style="padding: 5px 8px"
           type="button"
         >
           <span>{{ activeProject?.name ?? 'Pages' }}</span>

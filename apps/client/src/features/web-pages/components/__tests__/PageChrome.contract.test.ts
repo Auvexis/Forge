@@ -54,6 +54,7 @@ describe('page chrome contract', () => {
     assert.match(dropdown, /AppDropdownMenu/)
     assert.match(dropdown, /Search projects/)
     assert.match(dropdown, /activeProject\?\.name/)
+    assert.match(dropdown, /style="padding: 5px 8px"/)
     assert.match(css, /\.web-page-project-topbar__trigger/)
   })
 
