@@ -15,6 +15,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'close'): void
+  (e: 'resize', size: { width: number | null; height: number | null }): void
+  (e: 'resizeReset'): void
 }>()
 
 const workflowStore = useWorkflowStore()
@@ -94,6 +96,8 @@ async function handleDeleteClick() {
     resizable
     resize-side="left"
     @close="$emit('close')"
+    @resize="emit('resize', $event)"
+    @resize-reset="emit('resizeReset')"
   >
     <template #actions>
       <BaseButton

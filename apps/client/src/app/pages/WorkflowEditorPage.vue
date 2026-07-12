@@ -106,6 +106,7 @@ const isGitModalOpen = ref(false)
 const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
 const workflowInspectorWidth = ref(280)
+const workflowSettingsWidth = ref(360)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -176,6 +177,10 @@ const isExecutionPanelOpen = computed(
 )
 const workflowWorkbenchStyle = computed(() => ({
   '--workflow-inspector-width': `${workflowInspectorWidth.value}px`,
+  '--workflow-side-panel-width': showSettings.value ? `${workflowSettingsWidth.value}px` : '0px',
+  '--workflow-bottom-panel-right': showSettings.value
+    ? `${workflowInspectorWidth.value + workflowSettingsWidth.value}px`
+    : `${workflowInspectorWidth.value}px`,
 }))
 const gitStatusLabel = computed(() => {
   if (isGitStatusLoading.value) return 'loading'
@@ -449,6 +454,10 @@ function toggleExecutionPanel() {
 
 function handleInspectorPanelResize(size: { width: number | null }) {
   workflowInspectorWidth.value = size.width ?? 280
+}
+
+function handleSettingsPanelResize(size: { width: number | null }) {
+  workflowSettingsWidth.value = size.width ?? 360
 }
 
 function openWorkflowSettings() {
@@ -898,6 +907,8 @@ watch(
         <WorkflowSettingsPanel
           :is-open="showSettings"
           @close="showSettings = false"
+          @resize="handleSettingsPanelResize"
+          @resize-reset="handleSettingsPanelResize({ width: null })"
         />
       </div>
 
@@ -969,6 +980,8 @@ watch(
 .workflow-workbench {
   --fabric-workbench-status-height: 24px;
   --workflow-inspector-width: 280px;
+  --workflow-side-panel-width: 0px;
+  --workflow-bottom-panel-right: var(--workflow-inspector-width);
 }
 
 .workflow-workbench__canvas {
@@ -984,7 +997,7 @@ watch(
 }
 
 .workflow-workbench__canvas :deep(.app-panel--bottom) {
-  right: var(--workflow-inspector-width);
+  right: var(--workflow-bottom-panel-right);
 }
 
 .workflow-tool-rail {
