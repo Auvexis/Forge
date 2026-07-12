@@ -13,6 +13,6 @@ test('BaseSelect dropdown renders above modal overlays when teleported to body',
   const selectSource = read('src/shared/components/base/BaseSelect.vue')
   const modalSource = read('src/shared/components/base/BaseModal.vue')
 
-  assert.match(modalSource, /z-index:\s*2147483647/)
-  assert.match(selectSource, /zIndex:\s*'2147483647'/)
+  assert.match(modalSource, /z-index:\s*2147483000/)
+  assert.match(selectSource, /zIndex:\s*'2147483400'/)
 })

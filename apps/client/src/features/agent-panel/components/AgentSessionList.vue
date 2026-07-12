@@ -378,7 +378,7 @@ onBeforeUnmount(() => {
 
 .agent-session-list__menu {
   position: fixed;
-  z-index: 2147483647;
+  z-index: 2147483400;
   width: 136px;
   border: 1px solid var(--fabric-border);
   border-radius: var(--fabric-radius-md);

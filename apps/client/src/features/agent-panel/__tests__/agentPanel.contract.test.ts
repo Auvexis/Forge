@@ -57,7 +57,7 @@ describe('agent panel modal contract', () => {
     assert.match(sessions, /Teleport to="body"/)
     assert.match(sessions, /agent-session-list__menu/)
     assert.match(sessions, /Delete chat/)
-    assert.match(sessions, /z-index:\s*2147483647/)
+    assert.match(sessions, /z-index:\s*2147483400/)
     assert.doesNotMatch(sessions, /z-index:\s*99999/)
   })
 
@@ -173,8 +173,8 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /session/)
     assert.match(chat, /all-agent-memory/)
     assert.match(chat, /dangerousMemoryMode/)
-    assert.match(modal, /z-index:\s*2147483647/)
-    assert.match(confirmPanel, /z-index:\s*2147483647/)
+    assert.match(modal, /z-index:\s*2147483000/)
+    assert.match(confirmPanel, /z-index:\s*2147483500/)
   })
 
   it('uses theme tokens and renders message identity with timestamps', () => {

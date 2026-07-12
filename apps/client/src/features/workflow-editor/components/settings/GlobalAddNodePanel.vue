@@ -854,7 +854,7 @@ const closePluginMethodView = () => {
   position: fixed;
   top: 0;
   left: 0;
-  z-index: 2147483647;
+  z-index: 2147483400;
   width: 144px;
   pointer-events: none;
   text-align: center;

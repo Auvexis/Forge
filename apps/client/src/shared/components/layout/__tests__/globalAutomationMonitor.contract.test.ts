@@ -106,7 +106,7 @@ describe('global automation monitor wiring', () => {
     assert.match(appSource, /<template #overlay>/)
     assert.doesNotMatch(appSource, /<template v-if="!appUiStore\.isUniverseMode" #overlay>/)
     assert.match(baseModalSource, /<Teleport to="body">/)
-    assert.match(baseModalSource, /z-index:\s*2147483647/)
+    assert.match(baseModalSource, /z-index:\s*2147483000/)
   })
 
   it('lets transparent BaseModal backdrops receive outside clicks', () => {
