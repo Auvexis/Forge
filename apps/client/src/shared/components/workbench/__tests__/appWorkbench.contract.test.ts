@@ -26,6 +26,8 @@ test('workflow editor renders inside the shared workbench shell', () => {
   assert.match(source, /workflow-inspector-width/)
   assert.match(source, /workflowWorkbenchStyle/)
   assert.match(source, /handleInspectorPanelResize/)
+  assert.match(source, /closeGlobalSidePanel/)
+  assert.match(source, /appPanelStore\.position === 'bottom'/)
   assert.match(source, /app-panel--right:not\(\.workflow-inspector-panel\)/)
   assert.match(source, /app-panel--bottom/)
   assert.match(source, /useNodeInspectorStore/)

@@ -346,7 +346,6 @@ function handleUiIntent(e: Event) {
 }
 
 function openExecutionPanel() {
-  showSettings.value = false
   appPanelStore.openPanel({
     id: 'workflow-execution-bottom-panel',
     title: 'Execution',
@@ -453,8 +452,13 @@ function handleInspectorPanelResize(size: { width: number | null }) {
 }
 
 function openWorkflowSettings() {
-  appPanelStore.closePanel()
+  closeGlobalSidePanel()
   showSettings.value = true
+}
+
+function closeGlobalSidePanel() {
+  if (!appPanelStore.isOpen || appPanelStore.position === 'bottom') return
+  appPanelStore.closePanel()
 }
 
 function openCommandPalette() {
@@ -520,7 +524,7 @@ watch(
 
 watch(showSettings, (isOpen) => {
   if (!isOpen) return
-  appPanelStore.closePanel()
+  closeGlobalSidePanel()
 })
 
 async function handleSaveWorkflow() {
