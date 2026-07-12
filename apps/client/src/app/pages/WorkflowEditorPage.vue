@@ -107,6 +107,7 @@ const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
 const workflowInspectorWidth = ref(280)
 const workflowSettingsWidth = ref(360)
+const workflowBottomPanelHeight = ref(300)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -181,6 +182,12 @@ const workflowWorkbenchStyle = computed(() => ({
   '--workflow-bottom-panel-right': showSettings.value
     ? `${workflowInspectorWidth.value + workflowSettingsWidth.value}px`
     : `${workflowInspectorWidth.value}px`,
+  '--workflow-canvas-right': showSettings.value
+    ? `${workflowInspectorWidth.value + workflowSettingsWidth.value}px`
+    : `${workflowInspectorWidth.value}px`,
+  '--workflow-canvas-bottom': isExecutionPanelOpen.value
+    ? `${workflowBottomPanelHeight.value}px`
+    : '0px',
 }))
 const gitStatusLabel = computed(() => {
   if (isGitStatusLoading.value) return 'loading'
@@ -458,6 +465,15 @@ function handleInspectorPanelResize(size: { width: number | null }) {
 
 function handleSettingsPanelResize(size: { width: number | null }) {
   workflowSettingsWidth.value = size.width ?? 360
+}
+
+function handleGlobalPanelResize(payload: {
+  panelId: string
+  width?: number | null
+  height?: number | null
+}) {
+  if (payload.panelId !== 'workflow-execution-bottom-panel') return
+  workflowBottomPanelHeight.value = payload.height ?? 300
 }
 
 function openWorkflowSettings() {
@@ -802,7 +818,9 @@ watch(
       </template>
 
       <div class="workflow-workbench__canvas">
-        <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
+        <div class="workflow-workbench__canvas-viewport">
+          <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
+        </div>
 
         <AppPanel
           class="workflow-inspector-panel"
@@ -903,7 +921,7 @@ watch(
           </div>
         </AppPanel>
 
-        <GlobalAppPanel />
+        <GlobalAppPanel @resize="handleGlobalPanelResize" @resize-reset="handleGlobalPanelResize" />
         <WorkflowSettingsPanel
           :is-open="showSettings"
           @close="showSettings = false"
@@ -982,11 +1000,22 @@ watch(
   --workflow-inspector-width: 280px;
   --workflow-side-panel-width: 0px;
   --workflow-bottom-panel-right: var(--workflow-inspector-width);
+  --workflow-canvas-right: var(--workflow-inspector-width);
+  --workflow-canvas-bottom: 0px;
 }
 
 .workflow-workbench__canvas {
+  position: relative;
   width: 100%;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.workflow-workbench__canvas-viewport {
+  position: absolute;
+  inset: 0 var(--workflow-canvas-right) var(--workflow-canvas-bottom) 0;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
