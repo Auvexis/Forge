@@ -17,13 +17,18 @@ describe('global notification shell integration', () => {
     assert.doesNotMatch(styles, /\.sidebar-activity-link/)
   })
 
-  it('adds a reusable notification trigger to AppTopbar', () => {
+  it('wires AppTopbar notifications through a local BaseButton', () => {
     const source = read('src/shared/components/layout/AppTopbar.vue')
 
-    assert.match(source, /import NotificationTrigger/)
-    assert.match(source, /<NotificationTrigger/)
+    assert.match(source, /import BaseButton/)
+    assert.match(source, /useNotificationStore/)
+    assert.match(source, /useNotificationUiStore/)
+    assert.match(source, /notificationUi\.toggle\(\)/)
+    assert.match(source, /icon-left="bell"/)
+    assert.doesNotMatch(source, /import NotificationTrigger/)
+    assert.doesNotMatch(source, /<NotificationTrigger/)
     assert.match(source, /app-topbar__section--right/)
-    assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('<NotificationTrigger'))
+    assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('icon-left="bell"'))
   })
 
   it('adds a reusable notification trigger to Pages chrome when the Fabric shell is hidden', () => {

@@ -15,8 +15,25 @@
     </section>
 
     <section class="app-topbar__section app-topbar__section--center" aria-label="Active profile">
-      <span class="app-topbar__avatar" aria-hidden="true">{{ activeAvatar }}</span>
-      <span class="app-topbar__profile-name">{{ activeName }}</span>
+      <BaseButton
+        class="app-topbar__profile-button"
+        type="button"
+        variant="ghost"
+        size="sm"
+        aria-label="Profile menu"
+        aria-expanded="false"
+      >
+        <template #left>
+          <span class="app-topbar__avatar" aria-hidden="true">{{ activeAvatar }}</span>
+        </template>
+        <span class="app-topbar__profile-name">{{ activeName }}</span>
+        <template #right>
+          <span class="app-topbar__profile-chevrons" aria-hidden="true">
+            <LucideIcon name="chevron-up" :size="12" />
+            <LucideIcon name="chevron-down" :size="12" />
+          </span>
+        </template>
+      </BaseButton>
       <span class="app-topbar__separator" aria-hidden="true">/</span>
       <div class="app-topbar__context">
         <slot name="context">{{ pageLabel }}</slot>
@@ -24,7 +41,27 @@
     </section>
 
     <div class="app-topbar__section app-topbar__section--right" aria-label="Global actions">
-      <NotificationTrigger />
+      <span class="app-topbar__notification">
+        <BaseButton
+          class="app-topbar__icon-button"
+          type="button"
+          variant="ghost"
+          size="icon"
+          icon-left="bell"
+          :aria-label="notificationAriaLabel"
+          :aria-expanded="notificationUi.isOpen"
+          aria-controls="global-notification-panel"
+          @click="notificationUi.toggle()"
+        />
+        <span
+          v-if="notificationStore.unreadCount > 0"
+          class="app-topbar__notification-badge"
+          aria-live="polite"
+          :aria-label="`${notificationStore.unreadCount} unread notifications`"
+        >
+          {{ notificationBadgeText }}
+        </span>
+      </span>
       <button
         class="app-topbar__icon-button"
         type="button"
@@ -57,8 +94,10 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
+import { useNotificationStore } from '@/shared/stores/notification.store'
+import { useNotificationUiStore } from '@/shared/stores/notification-ui.store'
 import { useProfileStore } from '@/shared/stores/profile.store'
 
 withDefaults(
@@ -80,9 +119,19 @@ defineEmits<{
 }>()
 
 const profileStore = useProfileStore()
+const notificationStore = useNotificationStore()
+const notificationUi = useNotificationUiStore()
 
 const activeName = computed(() => profileStore.currentProfile?.name ?? 'Profile')
 const activeAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? 'F')
+const notificationBadgeText = computed(() =>
+  notificationStore.unreadCount > 99 ? '99+' : String(notificationStore.unreadCount),
+)
+const notificationAriaLabel = computed(() =>
+  notificationStore.unreadCount > 0
+    ? `Open notifications, ${notificationStore.unreadCount} unread`
+    : 'Open notifications',
+)
 
 onMounted(() => {
   if (!profileStore.currentProfile && !profileStore.isLoading) {
@@ -163,6 +212,11 @@ onMounted(() => {
   line-height: 1;
 }
 
+.app-topbar__profile-button {
+  min-width: 0;
+  max-width: 230px;
+}
+
 .app-topbar__profile-name {
   max-width: 160px;
   overflow: hidden;
@@ -173,9 +227,41 @@ onMounted(() => {
   white-space: nowrap;
 }
 
+.app-topbar__profile-chevrons {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  color: var(--fabric-text-muted);
+  line-height: 0;
+}
+
 .app-topbar__separator {
   color: var(--fabric-text-muted);
   font-size: var(--fabric-text-sm);
+}
+
+.app-topbar__notification {
+  position: relative;
+  display: inline-flex;
+}
+
+.app-topbar__notification-badge {
+  position: absolute;
+  top: calc(-1 * var(--fabric-space-1));
+  right: calc(-1 * var(--fabric-space-1));
+  min-width: var(--fabric-space-4);
+  height: var(--fabric-space-4);
+  padding: 0 var(--fabric-space-1);
+  border: 1px solid var(--fabric-bg-surface);
+  border-radius: var(--fabric-radius-full);
+  background: var(--fabric-bg-inverse);
+  color: var(--fabric-text-inverse);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-bold);
+  line-height: var(--fabric-space-4);
+  text-align: center;
 }
 
 .app-topbar__icon-button,

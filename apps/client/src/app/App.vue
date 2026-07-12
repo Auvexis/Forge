@@ -16,9 +16,7 @@
       >
         <Transition name="app-sidebar-universe">
           <div v-if="!appUiStore.isUniverseMode" class="app-sidebar-transition-frame">
-            <AppSidebar
-              :collapsed="isSidebarCollapsed"
-            >
+            <AppSidebar :collapsed="false">
               <section
                 v-for="section in sidebarSections"
                 :key="section.label"
@@ -157,7 +155,7 @@ const isPluginInstallerOpen = ref(false)
 const isProfileSettingsOpen = ref(false)
 const hasEnteredProfile = ref(false)
 const activeSidebarWidth = computed(() =>
-  sidebarWidthForState(isSidebarCollapsed.value, { expandedPx: 288 }),
+  sidebarWidthForState(false, { expandedPx: 288 }),
 )
 const activeSidebarPageLabel = computed(() => sidebarPageLabelForPath(route.path))
 
@@ -216,15 +214,29 @@ onUnmounted(() => {
   --fabric-active-sidebar-width: var(--fabric-sidebar-expanded);
   position: relative;
   display: flex;
+  width: var(--fabric-active-sidebar-width);
   height: 100%;
   flex-shrink: 0;
+  overflow: visible;
+  transition: width var(--fabric-duration-base) var(--fabric-ease-standard);
+}
+
+.app-sidebar-area--collapsed {
+  width: 0;
 }
 
 .app-sidebar-transition-frame {
   display: flex;
+  width: var(--fabric-active-sidebar-width);
   height: 100%;
   flex-shrink: 0;
+  transform: translateX(0);
+  transition: transform var(--fabric-duration-base) var(--fabric-ease-standard);
   will-change: transform, opacity;
+}
+
+.app-sidebar-area--collapsed .app-sidebar-transition-frame {
+  transform: translateX(-100%);
 }
 
 .app-sidebar-universe-enter-active,
