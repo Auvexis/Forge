@@ -1,23 +1,14 @@
 <template>
-  <BaseModal :is-open="store.isOpen" max-width="960px" height="76vh" @close="store.close">
+  <BaseModal :is-open="store.isOpen" max-width="1000px" height="85vh" @close="store.close">
     <div class="gs-shell">
       <!-- ── Left Aside ──────────────────────────────────────────── -->
       <aside class="gs-aside">
-        <!-- Logo / title -->
-        <div class="gs-aside__header">
-          <button class="gs-aside__close" @click="store.close" title="Close">
-            <LucideIcon name="arrow-left" :size="15" />
-          </button>
-          <span class="gs-aside__title">Settings</span>
-        </div>
-
-        <!-- Vertical nav -->
         <nav
           class="gs-nav"
           style="position: relative"
         >
           <BaseButton
-            v-for="(tab, index) in tabs"
+            v-for="tab in tabs"
             :key="tab.id"
             variant="ghost"
             class="gs-nav__item"
@@ -39,7 +30,14 @@
       </aside>
 
       <!-- ── Right Content ───────────────────────────────────────── -->
-      <main class="gs-main gs-section">
+      <main class="gs-main">
+        <div class="gs-header">
+          <h2 class="gs-header__title">{{ activeTabTitle }}</h2>
+          <button class="gs-header__close" type="button" title="Close" @click="store.close">
+            <LucideIcon name="x" :size="18" />
+          </button>
+        </div>
+        <section class="gs-scroll-area gs-section">
         <!-- ── Headers (Fade) ──────────────────────────────────────── -->
         <transition name="fade" mode="out-in">
           <div v-if="activeTab === 'variables'" key="head-var" class="gs-section__head">
@@ -99,7 +97,7 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 1rem;
-                border-bottom: 1px solid var(--border-color);
+                border-bottom: 1px solid var(--fabric-border);
                 padding-bottom: 1.5rem;
                 margin-bottom: 0.5rem;
               "
@@ -551,6 +549,7 @@
             <AuvexisAccountSettings />
           </div>
         </transition>
+        </section>
       </main>
     </div>
   </BaseModal>
@@ -591,6 +590,7 @@ const activeTab = computed({
   get: () => store.activeTab as TabId,
   set: (val) => { store.activeTab = val }
 })
+const activeTabTitle = computed(() => tabs.find((tab) => tab.id === activeTab.value)?.label ?? 'Settings')
 
 // ─── Load data when opened ────────────────────────────────────────────────────
 
@@ -864,27 +864,3 @@ async function handlePublicUrlSave() {
   }
 }
 </script>
-
-<style scoped>
-.gs-cred-grid-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem 0.5rem;
-  border-radius: var(--fabric-radius-sm);
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.gs-cred-grid-item:hover {
-  background: var(--fabric-button-ghost-hover);
-  border-color: var(--fabric-border-muted);
-}
-.gs-cred-grid-item--active {
-  background: var(--fabric-bg-surface);
-  border-color: var(--fabric-border);
-}
-</style>

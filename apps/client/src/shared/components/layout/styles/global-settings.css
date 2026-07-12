@@ -1,108 +1,64 @@
-/* =============================================================
-   AppGlobalSettings — Module CSS
-   Windows 11-style layout: fixed aside (left) + scrollable main (right).
-   All values reference tokens from tokens.css — no magic numbers.
-   ============================================================= */
+/* AppGlobalSettings - Agent-style settings shell */
 
-/* ─── Shell: two-column layout ──────────────────────────────────────────── */
 .gs-shell {
   display: flex;
   width: 100%;
   height: 100%;
+  min-height: 0;
   overflow: hidden;
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-bg-base);
 }
 
-/* ─── Left Aside ─────────────────────────────────────────────────────────── */
 .gs-aside {
-  width: 220px;
-  flex-shrink: 0;
+  width: 200px;
+  flex: 0 0 200px;
   display: flex;
   flex-direction: column;
-  background: var(--fabric-bg-base);
+  gap: 5px;
+  padding: 14px 12px;
+  background: var(--fabric-bg-surface);
   border-right: 1px solid var(--fabric-border);
   overflow: hidden;
 }
 
-/* Aside header: back button + title */
-.gs-aside__header {
-  display: flex;
-  align-items: center;
-  gap: var(--fabric-space-2);
-  padding: var(--fabric-space-4) var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border);
-  flex-shrink: 0;
-}
-
-.gs-aside__close {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-muted);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  transition: background-color var(--fabric-duration-fast), color var(--fabric-duration-fast);
-  flex-shrink: 0;
-}
-
-.gs-aside__close:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
-}
-
-.gs-aside__title {
-  font-size: var(--fabric-text-sm);
-  font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
-  letter-spacing: -0.01em;
-}
-
-/* ─── Vertical Nav ───────────────────────────────────────────────────────── */
 .gs-nav {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: var(--fabric-space-3) var(--fabric-space-2);
   flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: 5px;
+  padding: 0;
 }
 
-.gs-nav__item {
-  display: flex;
-  align-items: center;
-  gap: var(--fabric-space-3);
+.gs-nav__item.base-button {
   width: 100%;
-  padding: 8px var(--fabric-space-3);
-  border-radius: var(--fabric-radius-sm);
-  font-size: var(--fabric-text-sm);
-  font-weight: var(--fabric-font-medium);
-  color: var(--fabric-text-secondary);
-  cursor: pointer;
+  min-height: 30px;
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 7px 8px;
+  border: 0;
+  border-radius: 5px;
   background: transparent;
-  border: none;
+  color: var(--fabric-text-muted);
+  font-size: 12px;
+  font-weight: 400;
   text-align: left;
-  transition:
-    background var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
-.gs-nav__item:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
+.gs-nav__item.base-button:hover {
+  background: transparent;
+  color: var(--fabric-text-primary);
 }
 
 .gs-nav .base-button.gs-nav__item--active,
 .gs-nav .base-button.gs-nav__item--active:hover {
   background: var(--fabric-button-ghost-active);
-  color: var(--fabric-button-ghost-active-text);
+  color: var(--fabric-text-primary);
 }
 
 .gs-nav__icon {
-  flex-shrink: 0;
-  opacity: 0.8;
+  flex: 0 0 auto;
+  opacity: 0.82;
 }
 
 .gs-nav__item--active .gs-nav__icon {
@@ -111,99 +67,189 @@
 
 .gs-nav__label {
   flex: 1;
-  white-space: nowrap;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ─── Right Main ─────────────────────────────────────────────────────────── */
 .gs-main {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--fabric-bg-base);
 }
 
-.gs-main::-webkit-scrollbar { width: var(--fabric-scrollbar-width); }
-.gs-main::-webkit-scrollbar-track { background: var(--fabric-scrollbar-track); }
-.gs-main::-webkit-scrollbar-thumb {
+.gs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 0 0 auto;
+  gap: 16px;
+  padding: 20px 24px 8px;
+}
+
+.gs-header__title {
+  margin: 0;
+  color: var(--fabric-text-primary);
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.gs-header__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--fabric-button-ghost-text);
+  cursor: pointer;
+  transition:
+    background var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.gs-header__close:hover {
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-button-ghost-active-text);
+}
+
+.gs-scroll-area {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px 24px 24px;
+}
+
+.gs-scroll-area::-webkit-scrollbar {
+  width: var(--fabric-scrollbar-width);
+}
+
+.gs-scroll-area::-webkit-scrollbar-track {
+  background: var(--fabric-scrollbar-track);
+}
+
+.gs-scroll-area::-webkit-scrollbar-thumb {
   background: var(--fabric-scrollbar-thumb);
   border-radius: var(--fabric-radius-sm);
 }
-.gs-main::-webkit-scrollbar-thumb:hover {
+
+.gs-scroll-area::-webkit-scrollbar-thumb:hover {
   background: var(--fabric-scrollbar-thumb-hover);
 }
 
-/* ─── Section ────────────────────────────────────────────────────────────── */
 .gs-section {
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-6);
-  padding: var(--fabric-space-8) var(--fabric-space-8);
-  width: 100%;
+  gap: 24px;
 }
 
-/* Section heading group (title + desc) */
 .gs-section__head {
   display: flex;
-  flex-direction: row;
-  gap: var(--fabric-space-1);
-  padding-bottom: var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 0;
+  border: 0;
 }
 
 .gs-section__title {
-  font-size: var(--fabric-text-base);
-  font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
   margin: 0;
-  letter-spacing: -0.01em;
+  color: var(--fabric-text-primary);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.3;
 }
 
 .gs-section__desc {
-  font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
-  line-height: 1.6;
+  max-width: 560px;
   margin: 0;
+  color: var(--fabric-text-muted);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .gs-code {
+  padding: 2px 5px;
+  border: 1px solid var(--fabric-border);
+  border-radius: 4px;
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
   font-family: var(--fabric-font-mono);
   font-size: 11px;
-  background: var(--fabric-button-ghost-hover);
-  border: 1px solid var(--fabric-border);
-  border-radius: 3px;
-  padding: 2px 4px;
-  color: var(--fabric-text-secondary);
 }
 
-/* ─── Add variable card ──────────────────────────────────────────────────── */
-.gs-card {
+.gs-pref-list {
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-3);
-  padding: var(--fabric-space-4);
-  background: var(--fabric-bg-muted);
-  border-radius: var(--fabric-radius-md);
-  border: 1px solid var(--fabric-border);
+  gap: 0;
 }
 
-/* Two-column grid for key/value inputs */
-.gs-card__grid {
+.gs-pref-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--fabric-space-3);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 0;
+  border-top: 1px solid var(--fabric-border);
+  border-radius: 0;
 }
 
-/* ─── State (loading / empty) ────────────────────────────────────────────── */
+.gs-pref-row:first-child {
+  border-top: 0;
+}
+
+.gs-pref-row__label {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+  color: var(--fabric-text-muted);
+}
+
+.gs-pref-row__label > svg,
+.gs-pref-row__label .lucide-icon {
+  flex: 0 0 auto;
+}
+
+.gs-pref-row__name {
+  display: block;
+  color: var(--fabric-text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.gs-pref-row__hint {
+  display: block;
+  max-width: 350px;
+  margin-top: 4px;
+  color: var(--fabric-text-muted);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.gs-pref-row .base-select-wrapper {
+  width: 180px;
+  flex-shrink: 0;
+}
+
 .gs-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: var(--fabric-space-2);
-  padding: var(--fabric-space-8) 0;
+  gap: 8px;
+  padding: 32px 0;
   color: var(--fabric-text-muted);
-  font-size: var(--fabric-text-xs);
+  font-size: 12px;
 }
 
 .gs-spin {
@@ -211,178 +257,135 @@
 }
 
 @keyframes gs-spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
-/* ─── Variable list ──────────────────────────────────────────────────────── */
-.gs-var-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+.gs-card,
+.gs-cred-card {
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-1);
+  gap: 14px;
+  padding: 14px 0;
+  border-top: 1px solid var(--fabric-border);
+  border-radius: 0;
+  background: transparent;
+}
+
+.gs-card:first-child,
+.gs-cred-card:first-child {
+  border-top: 0;
+}
+
+.gs-card__grid,
+.gs-cred-card__fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.gs-var-list,
+.gs-cred-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 0;
+  margin: 0;
+  list-style: none;
 }
 
 .gs-var-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--fabric-space-2);
-  padding: var(--fabric-space-2) var(--fabric-space-3);
-  background: var(--fabric-bg-muted);
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
-  transition: border-color var(--fabric-duration-fast);
+  gap: 18px;
+  padding: 14px 0;
+  border-top: 1px solid var(--fabric-border);
+  background: transparent;
 }
 
-.gs-var-item:hover {
-  border-color: var(--fabric-border-strong);
+.gs-var-item:first-child {
+  border-top: 0;
 }
 
 .gs-var-item__info {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
   min-width: 0;
-  flex: 1;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .gs-var-item__key {
-  font-family: var(--fabric-font-mono);
-  font-size: 11px;
-  font-weight: var(--fabric-font-semibold);
+  overflow: hidden;
   color: var(--fabric-accent);
-  white-space: nowrap;
-  overflow: hidden;
+  font-family: var(--fabric-font-mono);
+  font-size: 12px;
+  font-weight: 600;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.gs-var-item__value {
-  font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+.gs-var-item__value,
 .gs-var-item__desc {
-  font-size: 11px;
-  color: var(--fabric-text-muted);
-  white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ─── Preferences ────────────────────────────────────────────────────────── */
-.gs-pref-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fabric-space-2);
-}
-
-.gs-pref-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fabric-space-4);
-  padding: var(--fabric-space-2) var(--fabric-space-4);
-  border-radius: var(--fabric-radius-sm);
-}
-
-.gs-pref-row__label {
-  display: flex;
-  align-items: center;
-  gap: var(--fabric-space-3);
-  flex-shrink: 0;
-  color: var(--fabric-text-secondary);
-  min-width: 0;
-}
-
-.gs-pref-row__name {
-  display: block;
-  font-size: var(--fabric-text-sm);
-  font-weight: var(--fabric-font-medium);
-  color: var(--fabric-text-primary);
-  line-height: 1.2;
-}
-
-.gs-pref-row__hint {
-  display: block;
-  font-size: var(--fabric-text-xs);
   color: var(--fabric-text-muted);
-  margin-top: 1px;
-}
-
-/* Constrain the select width on pref rows */
-.gs-pref-row .base-select-wrapper {
-  width: 160px;
-  flex-shrink: 0;
-}
-
-/* ─── Credentials ────────────────────────────────────────────────────────── */
-.gs-cred-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fabric-space-4);
-}
-
-.gs-cred-card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--fabric-space-3);
-  padding: var(--fabric-space-4);
-  background: var(--fabric-bg-muted);
-  border-radius: var(--fabric-radius-md);
-  border: 1px solid var(--fabric-border);
-}
-
-.gs-cred-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fabric-space-2);
-}
-
-.gs-cred-card__title {
-  display: flex;
-  align-items: center;
-  gap: var(--fabric-space-2);
-  min-width: 0;
-}
-
-.gs-cred-card__name {
-  font-size: var(--fabric-text-sm);
-  font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
+  font-size: 12px;
   text-overflow: ellipsis;
-}
-
-.gs-cred-card__badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  font-weight: var(--fabric-font-semibold);
-  padding: 2px 6px;
-  border-radius: var(--fabric-radius-full);
   white-space: nowrap;
 }
 
-.gs-cred-card__badge--ok {
-  background: var(--fabric-status-success-bg);
-  color: var(--fabric-status-success-text);
-}
-
-.gs-cred-card__badge--missing {
-  background: var(--fabric-status-draft-bg);
-  color: var(--fabric-text-muted);
-}
-
-.gs-cred-card__fields {
+.gs-cred-grid-item {
   display: flex;
+  min-height: 118px;
   flex-direction: column;
-  gap: var(--fabric-space-2);
+  align-items: center;
+  justify-content: center;
+  padding: 14px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  transition:
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    background var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.gs-cred-grid-item:hover {
+  border-color: var(--fabric-border);
+  background: var(--fabric-bg-surface);
+}
+
+.gs-cred-grid-item--active {
+  border-color: var(--fabric-border-strong);
+  background: var(--fabric-bg-surface);
+}
+
+@media (max-width: 900px) {
+  .gs-shell {
+    flex-direction: column;
+  }
+
+  .gs-aside {
+    width: 100%;
+    flex: 0 0 auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--fabric-border);
+  }
+
+  .gs-nav {
+    flex-direction: row;
+    overflow-x: auto;
+  }
+
+  .gs-nav__item.base-button {
+    width: auto;
+    flex: 0 0 auto;
+  }
+
+  .gs-pref-row,
+  .gs-var-item {
+    grid-template-columns: 1fr;
+  }
 }

@@ -1,0 +1,4 @@
+- [x] Comparar estilos do agent
+- [x] Adaptar settings do Fabric
+- [x] Validar frontend
+- [x] Commitar mudancas
