@@ -21,17 +21,20 @@ const props = withDefaults(
   defineProps<{
     disabled?: boolean
     width?: string
+    height?: string
     gap?: string
   }>(),
   {
     disabled: false,
     width: 'auto',
+    height: '100%',
     gap: 'var(--fabric-space-2)',
   },
 )
 
 const buttonStyle = computed(() => ({
   '--base-topbar-button-width': props.width,
+  '--base-topbar-button-height': props.height,
   '--base-topbar-button-gap': props.gap,
 }))
 
@@ -45,7 +48,7 @@ defineOptions({ inheritAttrs: false })
   justify-content: center;
   gap: var(--base-topbar-button-gap);
   width: var(--base-topbar-button-width);
-  height: 100%;
+  height: var(--base-topbar-button-height);
   min-width: 0;
   padding: 0;
   border: 1px solid transparent;

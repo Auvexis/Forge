@@ -1,0 +1,4 @@
+- [x] Adicionar parametro de altura
+- [x] Mover tamanhos para props
+- [x] Validar frontend
+- [x] Commitar mudanças

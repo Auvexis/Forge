@@ -5,6 +5,7 @@
         class="app-topbar__icon-button"
         type="button"
         width="40px"
+        height="40px"
         :aria-label="sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'"
         @click="$emit('toggle-sidebar')"
       >
@@ -21,6 +22,7 @@
       <BaseTopbarButton
         class="app-topbar__profile-button"
         type="button"
+        height="40px"
         aria-label="Profile menu"
         aria-expanded="false"
       >
@@ -47,6 +49,7 @@
           class="app-topbar__icon-button"
           type="button"
           width="40px"
+          height="40px"
           :aria-label="notificationAriaLabel"
           :aria-expanded="notificationUi.isOpen"
           aria-controls="global-notification-panel"
@@ -69,6 +72,7 @@
         class="app-topbar__icon-button"
         type="button"
         width="40px"
+        height="40px"
         aria-label="Open settings"
         @click="$emit('open-settings')"
       >
@@ -80,6 +84,7 @@
         class="app-topbar__icon-button"
         type="button"
         width="40px"
+        height="40px"
         aria-label="Open guide book"
         @click="$emit('open-docs')"
       >
@@ -90,6 +95,7 @@
       <BaseTopbarButton
         class="app-topbar__command"
         type="button"
+        height="40px"
         aria-label="Open command palette"
         @click="$emit('open-command-palette')"
       >
@@ -224,7 +230,6 @@ onMounted(() => {
 }
 
 .app-topbar__profile-button {
-  height: 40px;
   min-width: 0;
   max-width: 230px;
   padding: 0 var(--fabric-space-2);
@@ -283,12 +288,10 @@ onMounted(() => {
 }
 
 .app-topbar__icon-button {
-  width: 40px;
-  height: 40px;
+  width: auto;
 }
 
 .app-topbar__command {
-  height: 40px;
   min-width: 0;
   padding: 0 var(--fabric-space-2);
 }
