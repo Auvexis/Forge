@@ -2,10 +2,8 @@
 import { computed, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
-import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import WorkflowChromeHeader from './WorkflowChromeHeader.vue'
 import WorkflowChromeMenuBar from './WorkflowChromeMenuBar.vue'
-import WorkflowChromeToolbar from './WorkflowChromeToolbar.vue'
 import type { WorkflowChromeActionOverrides, WorkflowChromeCommandId } from './workflowChrome.types'
 
 const props = defineProps<{
@@ -65,7 +63,6 @@ const isUnsavedDraft = computed(() => !route.params.id)
 const isWorkflowPublished = computed(
   () => props.workflow?.metadata.isActive === true && props.workflow.metadata.isDraft === false,
 )
-const publishToolbarLabel = computed(() => (isWorkflowPublished.value ? 'Unpublish' : 'Publish'))
 const dynamicMenuOverrides = computed<WorkflowChromeActionOverrides>(() => ({
   'run.publish': {
     label: isWorkflowPublished.value ? 'Unpublish Workflow' : 'Publish Workflow',
@@ -122,7 +119,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
 </script>
 
 <template>
-  <section class="wec-shell" aria-label="Workflow editor toolbar">
+  <section class="wec-shell wec-shell--teleport-only" aria-label="Workflow editor chrome">
     <Teleport defer to="#fabric-topbar-left">
       <WorkflowChromeMenuBar
         :disabled-reasons="disabledMenuReasons"
@@ -146,36 +143,5 @@ function handleCommand(id: WorkflowChromeCommandId) {
         :is-saving="isSaving"
       />
     </Teleport>
-
-    <div class="wec-row wec-toolbar-row">
-      <WorkflowChromeToolbar
-        :can-undo="canUndo"
-        :can-redo="canRedo"
-        :is-executing="isExecuting"
-        :is-streaming="isStreaming"
-        :is-saving="isSaving"
-        :is-dirty="isDirty"
-        :is-logs-open="isLogsOpen"
-        :has-execution-state="hasExecutionState"
-        :action-overrides="{
-          ...dynamicMenuOverrides,
-          'run.publish': {
-            ...dynamicMenuOverrides['run.publish'],
-            label: publishToolbarLabel,
-          },
-        }"
-        @command="handleCommand"
-      />
-      <div class="wec-divider" />
-      <BaseSwitch
-        class="wec-autosave"
-        :model-value="!!isAutosaveEnabled"
-        :disabled="isBusy || isSaving"
-        title="Toggle autosave for this workflow"
-        @update:model-value="emit('toggle-autosave', $event)"
-      >
-        Autosave
-      </BaseSwitch>
-    </div>
   </section>
 </template>

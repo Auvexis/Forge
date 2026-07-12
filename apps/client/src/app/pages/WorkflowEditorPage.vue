@@ -685,53 +685,245 @@ watch(
 <template>
   <AppPage :show-global-panel="false">
     <AppWorkbench class="workflow-workbench" :style="workflowWorkbenchStyle">
-      <template #toolstrip>
-        <WorkflowEditorChrome
-          :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
-          :workflow-id="workflowStore.activeWorkflow?.metadata.id ?? ''"
-          :workflow="workflowStore.activeWorkflow ?? undefined"
-          :is-saving="workflowStore.isSaving"
-          :is-executing="executionStore.isExecuting"
-          :is-streaming="executionStore.isStreaming"
-          :is-logs-open="isExecutionPanelOpen"
-          :is-dirty="workflowStore.isDirty"
-          :autosave-status="workflowStore.autosaveStatus"
-          :last-autosaved-at="workflowStore.lastAutosavedAt"
-          :is-autosave-enabled="workflowStore.isAutosaveEnabled"
-          :can-undo="workflowStore.canUndo"
-          :can-redo="workflowStore.canRedo"
-          :has-execution-state="hasExecutionState"
-          :git-repo-path="gitStatus?.repoPath"
-          @save="handleSaveWorkflow()"
-          @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
-          @undo="workflowStore.undo()"
-          @redo="workflowStore.redo()"
-          @duplicate-selection="canvasRef?.duplicateSelection()"
-          @delete-selection="canvasRef?.deleteSelection()"
-          @select-all="canvasRef?.selectAllNodes()"
-          @clear-selection="canvasRef?.clearSelection()"
-          @add-node="openGlobalAddNodePanel()"
-          @run="canvasRef?.handleRun()"
-          @stop="canvasRef?.handleStop()"
-          @clean-execution="executionStore.resetNodeStatuses()"
-          @export-workflow="exportWorkflow()"
-          @import-workflow="handleImportWorkflow()"
-          @create-workflow="handleCreateWorkflow()"
-          @toggle-logs="openExecutionPanel()"
-          @variables="showVariables = !showVariables"
-          @settings="showSettings ? (showSettings = false) : openWorkflowSettings()"
-          @close="handleClose()"
-          @workflow-updated="workflowStore.setActiveWorkflow($event)"
-          @zoom-in="canvasRef?.zoomIn()"
-          @zoom-out="canvasRef?.zoomOut()"
-          @zoom-reset="canvasRef?.zoomReset()"
-          @fit-view="canvasRef?.fitWorkflowView()"
-          @command-palette="openCommandPalette()"
-          @publish="handlePublishWorkflow()"
-          @git-create-snapshot="handleCreateGitSnapshot()"
-          @git-refresh-status="loadWorkflowGitStatus()"
-          @git-copy-repo-path="handleCopyGitRepoPath()"
-        />
+      <WorkflowEditorChrome
+        :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
+        :workflow-id="workflowStore.activeWorkflow?.metadata.id ?? ''"
+        :workflow="workflowStore.activeWorkflow ?? undefined"
+        :is-saving="workflowStore.isSaving"
+        :is-executing="executionStore.isExecuting"
+        :is-streaming="executionStore.isStreaming"
+        :is-logs-open="isExecutionPanelOpen"
+        :is-dirty="workflowStore.isDirty"
+        :autosave-status="workflowStore.autosaveStatus"
+        :last-autosaved-at="workflowStore.lastAutosavedAt"
+        :is-autosave-enabled="workflowStore.isAutosaveEnabled"
+        :can-undo="workflowStore.canUndo"
+        :can-redo="workflowStore.canRedo"
+        :has-execution-state="hasExecutionState"
+        :git-repo-path="gitStatus?.repoPath"
+        @save="handleSaveWorkflow()"
+        @toggle-autosave="workflowStore.setAutosaveEnabled($event)"
+        @undo="workflowStore.undo()"
+        @redo="workflowStore.redo()"
+        @duplicate-selection="canvasRef?.duplicateSelection()"
+        @delete-selection="canvasRef?.deleteSelection()"
+        @select-all="canvasRef?.selectAllNodes()"
+        @clear-selection="canvasRef?.clearSelection()"
+        @add-node="openGlobalAddNodePanel()"
+        @run="canvasRef?.handleRun()"
+        @stop="canvasRef?.handleStop()"
+        @clean-execution="executionStore.resetNodeStatuses()"
+        @export-workflow="exportWorkflow()"
+        @import-workflow="handleImportWorkflow()"
+        @create-workflow="handleCreateWorkflow()"
+        @toggle-logs="openExecutionPanel()"
+        @variables="showVariables = !showVariables"
+        @settings="showSettings ? (showSettings = false) : openWorkflowSettings()"
+        @close="handleClose()"
+        @workflow-updated="workflowStore.setActiveWorkflow($event)"
+        @zoom-in="canvasRef?.zoomIn()"
+        @zoom-out="canvasRef?.zoomOut()"
+        @zoom-reset="canvasRef?.zoomReset()"
+        @fit-view="canvasRef?.fitWorkflowView()"
+        @command-palette="openCommandPalette()"
+        @publish="handlePublishWorkflow()"
+        @git-create-snapshot="handleCreateGitSnapshot()"
+        @git-refresh-status="loadWorkflowGitStatus()"
+        @git-copy-repo-path="handleCopyGitRepoPath()"
+      />
+
+      <template #left>
+        <nav class="workflow-tool-rail" aria-label="Workflow editor tools">
+          <section class="workflow-tool-rail__group" aria-label="Edit">
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Undo"
+              :disabled="!workflowStore.canUndo || executionStore.isExecuting || executionStore.isStreaming"
+              @click="workflowStore.undo()"
+            >
+              <LucideIcon name="undo-2" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Redo"
+              :disabled="!workflowStore.canRedo || executionStore.isExecuting || executionStore.isStreaming"
+              @click="workflowStore.redo()"
+            >
+              <LucideIcon name="redo-2" :size="15" />
+            </button>
+          </section>
+
+          <section class="workflow-tool-rail__group" aria-label="Canvas">
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Zoom out"
+              @click="canvasRef?.zoomOut()"
+            >
+              <LucideIcon name="zoom-out" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Reset zoom"
+              @click="canvasRef?.zoomReset()"
+            >
+              <LucideIcon name="rotate-ccw" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Zoom in"
+              @click="canvasRef?.zoomIn()"
+            >
+              <LucideIcon name="zoom-in" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Fit view"
+              @click="canvasRef?.fitWorkflowView()"
+            >
+              <LucideIcon name="maximize" :size="15" />
+            </button>
+          </section>
+
+          <section class="workflow-tool-rail__group" aria-label="Build">
+            <button
+              class="workflow-tool-rail__button workflow-tool-rail__button--primary"
+              type="button"
+              title="Add node"
+              @click="openGlobalAddNodePanel()"
+            >
+              <LucideIcon name="plus" :size="16" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Variables"
+              @click="showVariables = true"
+            >
+              <LucideIcon name="tags" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--active': showSettings }"
+              type="button"
+              title="Workflow settings"
+              @click="showSettings ? (showSettings = false) : openWorkflowSettings()"
+            >
+              <LucideIcon name="settings" :size="15" />
+            </button>
+          </section>
+
+          <section class="workflow-tool-rail__group" aria-label="Execution">
+            <button
+              v-if="!executionStore.isStreaming"
+              class="workflow-tool-rail__button workflow-tool-rail__button--run"
+              type="button"
+              title="Run workflow"
+              :disabled="executionStore.isExecuting"
+              @click="canvasRef?.handleRun()"
+            >
+              <LucideIcon name="play" :size="15" />
+            </button>
+            <button
+              v-else
+              class="workflow-tool-rail__button workflow-tool-rail__button--danger"
+              type="button"
+              title="Stop run"
+              @click="canvasRef?.handleStop()"
+            >
+              <LucideIcon name="square" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--active': isExecutionPanelOpen }"
+              type="button"
+              title="Execution logs"
+              @click="toggleExecutionPanel"
+            >
+              <LucideIcon name="scroll-text" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Clean execution"
+              :disabled="executionStore.isExecuting || executionStore.isStreaming || !hasExecutionState"
+              @click="executionStore.resetNodeStatuses()"
+            >
+              <LucideIcon name="eraser" :size="15" />
+            </button>
+          </section>
+
+          <section class="workflow-tool-rail__group" aria-label="Save and publish">
+            <button
+              class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--dirty': workflowStore.isDirty }"
+              type="button"
+              title="Save workflow"
+              :disabled="workflowStore.isSaving || !workflowStore.isDirty || executionStore.isExecuting || executionStore.isStreaming"
+              @click="handleSaveWorkflow()"
+            >
+              <LucideIcon name="save" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              :title="workflowStore.activeWorkflow?.metadata.isActive && !workflowStore.activeWorkflow?.metadata.isDraft ? 'Unpublish workflow' : 'Publish workflow'"
+              :disabled="workflowStore.isSaving || executionStore.isExecuting || executionStore.isStreaming || !route.params.id"
+              @click="handlePublishWorkflow()"
+            >
+              <LucideIcon
+                :name="workflowStore.activeWorkflow?.metadata.isActive && !workflowStore.activeWorkflow?.metadata.isDraft ? 'pause' : 'radio'"
+                :size="15"
+              />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--active': workflowStore.isAutosaveEnabled }"
+              type="button"
+              title="Toggle autosave"
+              :disabled="executionStore.isExecuting || executionStore.isStreaming || workflowStore.isSaving"
+              @click="workflowStore.setAutosaveEnabled(!workflowStore.isAutosaveEnabled)"
+            >
+              <LucideIcon name="refresh-cw" :size="15" />
+            </button>
+          </section>
+
+          <span class="workflow-tool-rail__spacer" aria-hidden="true" />
+
+          <section class="workflow-tool-rail__group" aria-label="Utilities">
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Command palette"
+              @click="openCommandPalette"
+            >
+              <LucideIcon name="command" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--active': gitStatus?.state === 'ready' }"
+              type="button"
+              title="Create git snapshot"
+              :disabled="!route.params.id"
+              @click="handleCreateGitSnapshot()"
+            >
+              <LucideIcon name="git-commit-horizontal" :size="15" />
+            </button>
+            <button
+              class="workflow-tool-rail__button"
+              type="button"
+              title="Git snapshot details"
+              @click="openGitModal"
+            >
+              <LucideIcon name="git-branch" :size="15" />
+            </button>
+          </section>
+        </nav>
       </template>
 
       <div class="workflow-workbench__canvas">
@@ -933,6 +1125,97 @@ watch(
 
 .workflow-workbench__canvas :deep(.app-panel--bottom) {
   right: var(--workflow-bottom-panel-right);
+}
+
+.workflow-tool-rail {
+  display: flex;
+  width: 44px;
+  height: 100%;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 4px;
+  background: var(--fabric-workbench-rail-bg);
+}
+
+.workflow-tool-rail__group {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 3px 0;
+  border: 1px solid color-mix(in srgb, var(--fabric-workbench-border) 72%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--fabric-bg-base) 28%, transparent);
+}
+
+.workflow-tool-rail__button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 28px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--fabric-text-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.workflow-tool-rail__button:hover:not(:disabled),
+.workflow-tool-rail__button--active {
+  border-color: color-mix(in srgb, var(--fabric-workbench-border) 78%, transparent);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
+}
+
+.workflow-tool-rail__button--active::before {
+  position: absolute;
+  left: -5px;
+  width: 2px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--fabric-accent);
+  content: '';
+}
+
+.workflow-tool-rail__button:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.workflow-tool-rail__button--primary {
+  color: var(--fabric-accent);
+}
+
+.workflow-tool-rail__button--run {
+  color: var(--fabric-green-500);
+}
+
+.workflow-tool-rail__button--danger {
+  color: var(--fabric-red-500);
+}
+
+.workflow-tool-rail__button--dirty::after {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--fabric-amber-500);
+  content: '';
+}
+
+.workflow-tool-rail__spacer {
+  flex: 1;
 }
 
 .workflow-inspector-panel {

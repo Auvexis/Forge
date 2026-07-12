@@ -58,7 +58,7 @@ describe('workflow chrome actions', () => {
     assert.match(chromeSource, /dynamicMenuOverrides/)
     assert.match(chromeSource, /Unpublish Workflow/)
     assert.match(chromeSource, /Publish Workflow/)
-    assert.match(chromeSource, /publishToolbarLabel/)
+    assert.doesNotMatch(chromeSource, /publishToolbarLabel/)
   })
 
   it('exposes clean execution from the toolbar execution group', () => {
@@ -99,9 +99,9 @@ describe('workflow chrome actions', () => {
     assert.match(chromeSource, /<Teleport defer to="#fabric-topbar-context">/)
   })
 
-  it('styles the toolbar as the single compact workflow tool strip', () => {
-    assert.match(chromeStylesSource, /--fabric-chrome-height-toolbar: 32px/)
-    assert.match(chromeStylesSource, /\.wec-group\s*\{[\s\S]*height: 26px;[\s\S]*border:/)
-    assert.match(chromeStylesSource, /\.wec-toolbar-row\s*\{[\s\S]*border-bottom:/)
+  it('keeps workflow chrome as teleport-only when tools live in the rail', () => {
+    assert.match(chromeSource, /wec-shell--teleport-only/)
+    assert.doesNotMatch(chromeSource, /WorkflowChromeToolbar/)
+    assert.match(chromeStylesSource, /\.wec-shell--teleport-only\s*\{[\s\S]*display: contents;/)
   })
 })

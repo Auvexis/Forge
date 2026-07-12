@@ -27,6 +27,10 @@
   border-bottom: 1px solid var(--fabric-chrome-border);
 }
 
+.wec-shell--teleport-only {
+  display: contents;
+}
+
 .wec-row {
   display: flex;
   align-items: center;
