@@ -939,6 +939,7 @@ watch(
 <style scoped>
 .workflow-workbench {
   --fabric-workbench-status-height: 24px;
+  --workflow-inspector-width: 280px;
 }
 
 .workflow-workbench__canvas {
@@ -947,6 +948,14 @@ watch(
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+.workflow-workbench__canvas :deep(.app-panel--right:not(.workflow-inspector-panel)) {
+  right: var(--workflow-inspector-width);
+}
+
+.workflow-workbench__canvas :deep(.app-panel--bottom) {
+  right: var(--workflow-inspector-width);
 }
 
 .workflow-tool-rail {
@@ -1024,7 +1033,7 @@ watch(
 }
 
 .workflow-inspector-panel {
-  --app-panel-resized-width: 280px;
+  --app-panel-resized-width: var(--workflow-inspector-width);
 }
 
 .workflow-inspector-panel :deep(.app-panel__header) {

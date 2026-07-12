@@ -1,0 +1,4 @@
+- [x] Mapear sobreposicao dos paineis
+- [x] Adicionar offset do inspector
+- [x] Validar frontend
+- [x] Commitar mudancas
