@@ -31,3 +31,29 @@ describe('layout color tokens', () => {
     }
   })
 })
+
+describe('component semantic color tokens', () => {
+  const tokenNames = [
+    '--fabric-base-button-primary-bg',
+    '--fabric-base-button-ghost-hover-bg',
+    '--fabric-base-input-bg',
+    '--fabric-base-select-menu-bg',
+    '--fabric-base-modal-bg',
+    '--fabric-base-topbar-button-hover-bg',
+    '--fabric-app-popover-bg',
+    '--fabric-app-dropdown-item-hover-bg',
+    '--fabric-notification-panel-bg',
+    '--fabric-data-table-bg',
+    '--fabric-code-block-bg',
+    '--fabric-app-shell-bg',
+    '--fabric-app-panel-bg',
+    '--fabric-start-guide-bg',
+    '--fabric-base-canvas-bg',
+  ]
+
+  it('defines component-specific aliases as CSS fallbacks for JSON themes', () => {
+    for (const tokenName of tokenNames) {
+      assert.match(tokensCss, new RegExp(`${tokenName}:`))
+    }
+  })
+})
