@@ -82,4 +82,16 @@ describe('theme runtime contract', () => {
     assert.match(useTheme, /applyFabricThemeByType\(resolved\)/)
     assert.match(main, /import '\.\/shared\/composables\/useTheme'/)
   })
+
+  it('builds settings preview cards from JSON theme tokens', () => {
+    const preview = read('src/themes/runtime/theme.preview.ts')
+    const settings = read('src/shared/components/layout/AppGlobalSettings.vue')
+
+    assert.match(preview, /getFabricThemePreviewCards/)
+    assert.match(preview, /getFabricTheme\(themeIdForType\('dark'\)\)/)
+    assert.match(preview, /getFabricTheme\(themeIdForType\('light'\)\)/)
+    assert.match(preview, /resolveThemeToken/)
+    assert.match(settings, /getFabricThemePreviewCards\(\)/)
+    assert.doesNotMatch(settings, /accentColor: '#/)
+  })
 })

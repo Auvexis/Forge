@@ -610,6 +610,7 @@ import AuvexisAccountSettings from '@/shared/components/layout/AuvexisAccountSet
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
+import { getFabricThemePreviewCards } from '@/themes/runtime/theme.preview'
 
 const toast = useToast()
 
@@ -861,38 +862,7 @@ async function handleTestConnection(pluginId: string) {
 
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
-const themeCards = [
-  {
-    value: 'dark',
-    label: 'Dark',
-    bgColor: '#14110f',
-    surfaceColor: '#1c1815',
-    componentColor: '#3a332e',
-    borderColor: 'rgba(255, 250, 244, 0.14)',
-    accentColor: '#b9a7ff',
-    mutedColor: '#9d8f88',
-  },
-  {
-    value: 'light',
-    label: 'Light',
-    bgColor: '#f4f1eb',
-    surfaceColor: '#ffffff',
-    componentColor: '#e8e2dc',
-    borderColor: '#ddd7cf',
-    accentColor: '#6f4bd8',
-    mutedColor: '#9f9690',
-  },
-  {
-    value: 'system',
-    label: 'System',
-    bgColor: '#23201d',
-    surfaceColor: '#f8f7f4',
-    componentColor: '#4a3e39',
-    borderColor: '#cfc7bd',
-    accentColor: '#8f6cff',
-    mutedColor: '#8b817a',
-  },
-] as const
+const themeCards = getFabricThemePreviewCards()
 
 const logRetentionOptions = [
   { value: '7', label: '7 days' },
