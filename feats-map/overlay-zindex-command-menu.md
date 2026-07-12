@@ -1,0 +1,4 @@
+- [x] Mapear z-index dos overlays
+- [x] Ajustar command palette e mini menu
+- [x] Validar frontend
+- [x] Commitar mudancas

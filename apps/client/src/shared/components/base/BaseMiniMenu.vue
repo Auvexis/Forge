@@ -64,7 +64,7 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 .bmm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
+  z-index: 2147483647;
   display: flex;
   align-items: center;
   justify-content: center;
