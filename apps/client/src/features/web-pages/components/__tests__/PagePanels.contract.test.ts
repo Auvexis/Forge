@@ -50,7 +50,7 @@ describe('page editor panels contract', () => {
     assert.match(menu, /File/)
     assert.match(menu, /Edit/)
     assert.match(menu, /View/)
-    assert.match(menu, /Teleport to="#fabric-topbar-left"/)
+    assert.match(menu, /Teleport defer to="#fabric-topbar-left"/)
     assert.match(editor, /PageChromeToolbar/)
     assert.doesNotMatch(editor, /web-page-editor__actions/)
   })

@@ -22,7 +22,7 @@ describe('page chrome contract', () => {
   it('page chrome exposes topbar File Edit View menus', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
 
-    assert.match(source, /Teleport to="#fabric-topbar-left"/)
+    assert.match(source, /Teleport defer to="#fabric-topbar-left"/)
     assert.match(source, /go\.home/)
     assert.doesNotMatch(source, /Back to Home/)
     assert.match(source, /File/)
@@ -46,7 +46,7 @@ describe('page chrome contract', () => {
     const dropdown = read('src/features/web-pages/components/PageProjectTopbarDropdown.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    assert.match(editor, /Teleport to="#fabric-topbar-context"/)
+    assert.match(editor, /Teleport defer to="#fabric-topbar-context"/)
     assert.match(editor, /PageProjectTopbarDropdown/)
     assert.match(editor, /:active-project="sitesStore\.activeSite"/)
     assert.match(editor, /:projects="sitesStore\.sites"/)

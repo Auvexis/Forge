@@ -6,7 +6,7 @@
       'web-page-editor--right-collapsed': !isRightPanelOpen,
     }"
   >
-    <Teleport to="#fabric-topbar-context">
+    <Teleport defer to="#fabric-topbar-context">
       <PageProjectTopbarDropdown
         :active-project="sitesStore.activeSite"
         :projects="sitesStore.sites"

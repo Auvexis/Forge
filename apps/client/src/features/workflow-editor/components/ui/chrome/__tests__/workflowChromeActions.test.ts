@@ -89,4 +89,9 @@ describe('workflow chrome actions', () => {
     assert.match(headerSource, /fetchWorkflows\(\)\.catch\(console\.error\)/)
     assert.match(headerSource, /@open="handleWorkflowMenuOpen"/)
   })
+
+  it('defers topbar teleports until the app shell topbar targets exist', () => {
+    assert.match(chromeSource, /<Teleport defer to="#fabric-topbar-left">/)
+    assert.match(chromeSource, /<Teleport defer to="#fabric-topbar-context">/)
+  })
 })

@@ -123,7 +123,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
 
 <template>
   <section class="wec-shell" aria-label="Workflow editor toolbar">
-    <Teleport to="#fabric-topbar-left">
+    <Teleport defer to="#fabric-topbar-left">
       <WorkflowChromeMenuBar
         :disabled-reasons="disabledMenuReasons"
         :action-overrides="dynamicMenuOverrides"
@@ -131,7 +131,7 @@ function handleCommand(id: WorkflowChromeCommandId) {
       />
     </Teleport>
 
-    <Teleport to="#fabric-topbar-context">
+    <Teleport defer to="#fabric-topbar-context">
       <WorkflowChromeHeader
         ref="headerRef"
         variant="topbar"

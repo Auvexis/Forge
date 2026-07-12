@@ -1,0 +1,4 @@
+- [x] Mapear teleports da topbar
+- [x] Evitar alvo nulo
+- [x] Validar frontend
+- [x] Commitar mudanças

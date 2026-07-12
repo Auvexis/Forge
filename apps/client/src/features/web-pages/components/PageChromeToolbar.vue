@@ -1,6 +1,6 @@
 <template>
   <div class="web-page-chrome">
-    <Teleport to="#fabric-topbar-left">
+    <Teleport defer to="#fabric-topbar-left">
       <div class="web-page-chrome__topbar-menu">
         <AppDropdownMenu
           v-for="menu in resolvedMenus"
