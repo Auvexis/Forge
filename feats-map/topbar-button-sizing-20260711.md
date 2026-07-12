@@ -1,0 +1,4 @@
+- [x] Ajustar botoes ghost
+- [x] Aumentar icones
+- [x] Validar frontend
+- [x] Commitar mudanças

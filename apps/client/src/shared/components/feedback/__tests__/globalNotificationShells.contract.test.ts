@@ -24,11 +24,11 @@ describe('global notification shell integration', () => {
     assert.match(source, /useNotificationStore/)
     assert.match(source, /useNotificationUiStore/)
     assert.match(source, /notificationUi\.toggle\(\)/)
-    assert.match(source, /icon-left="bell"/)
+    assert.match(source, /<LucideIcon name="bell" :size="20" \/>/)
     assert.doesNotMatch(source, /import NotificationTrigger/)
     assert.doesNotMatch(source, /<NotificationTrigger/)
     assert.match(source, /app-topbar__section--right/)
-    assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('icon-left="bell"'))
+    assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('name="bell"'))
   })
 
   it('adds a reusable notification trigger to Pages chrome when the Fabric shell is hidden', () => {

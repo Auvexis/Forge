@@ -1,14 +1,18 @@
 <template>
   <header class="app-topbar">
     <section class="app-topbar__section app-topbar__section--left" aria-label="Page controls">
-      <button
+      <BaseButton
         class="app-topbar__icon-button"
         type="button"
+        variant="ghost"
+        size="icon"
         :aria-label="sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'"
         @click="$emit('toggle-sidebar')"
       >
-        <LucideIcon :name="sidebarCollapsed ? 'panel-left-open' : 'panel-left-close'" :size="16" />
-      </button>
+        <template #left>
+          <LucideIcon name="grip" :size="20" />
+        </template>
+      </BaseButton>
       <div class="app-topbar__route-slot">
         <slot name="left"></slot>
       </div>
@@ -47,12 +51,15 @@
           type="button"
           variant="ghost"
           size="icon"
-          icon-left="bell"
           :aria-label="notificationAriaLabel"
           :aria-expanded="notificationUi.isOpen"
           aria-controls="global-notification-panel"
           @click="notificationUi.toggle()"
-        />
+        >
+          <template #left>
+            <LucideIcon name="bell" :size="20" />
+          </template>
+        </BaseButton>
         <span
           v-if="notificationStore.unreadCount > 0"
           class="app-topbar__notification-badge"
@@ -62,32 +69,44 @@
           {{ notificationBadgeText }}
         </span>
       </span>
-      <button
+      <BaseButton
         class="app-topbar__icon-button"
         type="button"
+        variant="ghost"
+        size="icon"
         aria-label="Open settings"
         @click="$emit('open-settings')"
       >
-        <LucideIcon name="settings" :size="16" />
-      </button>
-      <button
+        <template #left>
+          <LucideIcon name="settings" :size="20" />
+        </template>
+      </BaseButton>
+      <BaseButton
         class="app-topbar__icon-button"
         type="button"
+        variant="ghost"
+        size="icon"
         aria-label="Open guide book"
         @click="$emit('open-docs')"
       >
-        <LucideIcon name="book-open" :size="16" />
-      </button>
-      <button
+        <template #left>
+          <LucideIcon name="book-open" :size="20" />
+        </template>
+      </BaseButton>
+      <BaseButton
         class="app-topbar__command"
         type="button"
+        variant="ghost"
+        size="md"
         aria-label="Open command palette"
         @click="$emit('open-command-palette')"
       >
-        <LucideIcon name="search" :size="15" />
+        <template #left>
+          <LucideIcon name="search" :size="20" />
+        </template>
         <span>Command</span>
         <kbd>Ctrl K</kbd>
-      </button>
+      </BaseButton>
     </div>
   </header>
 </template>
@@ -266,37 +285,26 @@ onMounted(() => {
 
 .app-topbar__icon-button,
 .app-topbar__command {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  height: 32px;
-  border: 1px solid var(--fabric-topbar-search-border);
-  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-topbar-search-text);
-  background: var(--fabric-topbar-search-bg);
-  cursor: pointer;
-  transition:
-    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    background-color var(--fabric-duration-fast) var(--fabric-ease-standard);
+  background: transparent;
 }
 
 .app-topbar__icon-button {
-  width: 32px;
+  width: 40px;
+  height: 40px;
   padding: 0;
 }
 
 .app-topbar__command {
   gap: var(--fabric-space-2);
-  width: auto;
+  height: 40px;
   padding: 0 var(--fabric-space-2);
 }
 
 .app-topbar__icon-button:hover,
 .app-topbar__command:hover {
   color: var(--fabric-topbar-search-hover-text);
-  border-color: var(--fabric-topbar-search-border);
-  background: var(--fabric-topbar-search-hover-bg);
+  background: var(--fabric-button-ghost-hover);
 }
 
 .app-topbar__command span {
