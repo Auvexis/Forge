@@ -13,6 +13,7 @@ export interface AuvexisAccountBadge {
     textColor: string
   }
   iconUrl: string | null
+  description?: string | null
   permissions?: Record<string, Record<string, boolean>>
   awardedAt: string
 }
@@ -20,6 +21,7 @@ export interface AuvexisAccountBadge {
 export interface AuvexisAccountProfile {
   id: string
   username: string
+  displayName?: string | null
   email?: string
   badges: AuvexisAccountBadge[]
 }
