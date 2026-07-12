@@ -1,0 +1,4 @@
+- [x] Adicionar largura configuravel
+- [x] Ajustar gap interno
+- [x] Validar frontend
+- [x] Commitar mudanças

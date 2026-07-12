@@ -1,5 +1,5 @@
 <template>
-  <button class="base-topbar-button" :disabled="disabled" v-bind="$attrs">
+  <button class="base-topbar-button" :disabled="disabled" :style="buttonStyle" v-bind="$attrs">
     <span v-if="$slots.left" class="base-topbar-button__side">
       <slot name="left" />
     </span>
@@ -15,14 +15,25 @@
 </template>
 
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     disabled?: boolean
+    width?: string
+    gap?: string
   }>(),
   {
     disabled: false,
+    width: 'auto',
+    gap: 'var(--fabric-space-2)',
   },
 )
+
+const buttonStyle = computed(() => ({
+  '--base-topbar-button-width': props.width,
+  '--base-topbar-button-gap': props.gap,
+}))
 
 defineOptions({ inheritAttrs: false })
 </script>
@@ -32,8 +43,8 @@ defineOptions({ inheritAttrs: false })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--fabric-space-2);
-  width: 100%;
+  gap: var(--base-topbar-button-gap);
+  width: var(--base-topbar-button-width);
   height: 100%;
   min-width: 0;
   padding: 0;
