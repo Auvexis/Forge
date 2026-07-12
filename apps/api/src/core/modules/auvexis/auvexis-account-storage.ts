@@ -11,6 +11,7 @@ export interface StoredAuvexisBadge {
   id: string;
   slug: string;
   name: string;
+  description?: string | null;
   style: {
     backgroundColor: string;
     borderColor: string;
@@ -24,6 +25,8 @@ export interface StoredAuvexisBadge {
 export interface StoredAuvexisAccount {
   id: string;
   username: string;
+  displayName?: string | null;
+  avatarUrl?: string | null;
   email?: string;
   badges: StoredAuvexisBadge[];
 }

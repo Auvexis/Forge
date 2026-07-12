@@ -35,6 +35,8 @@ const connectedState = {
   account: {
     id: "account-1",
     username: "andre",
+    displayName: "Andre Simoes",
+    avatarUrl: "data:image/webp;base64,AAAA",
     badges: [],
   },
   tokens: {
@@ -138,6 +140,8 @@ describe("Auvexis account link service", () => {
           return {
             id: "account-1",
             username: "andre",
+            displayName: "Andre Simoes",
+            avatarUrl: "data:image/webp;base64,AAAA",
             joinedAt: "2026-07-01T00:00:00.000Z",
             linkedProviders: ["github"],
             badges: [
@@ -145,6 +149,7 @@ describe("Auvexis account link service", () => {
                 id: "badge-1",
                 slug: "donator",
                 name: "Donator",
+                description: "Fabric supporter",
                 style: {
                   backgroundColor: "#171A23",
                   borderColor: "#8067FF",
@@ -200,6 +205,8 @@ describe("Auvexis account link service", () => {
           return {
             id: "account-1",
             username: "andre-live",
+            displayName: "Andre Live",
+            avatarUrl: "data:image/webp;base64,BBBB",
             joinedAt: "2026-07-01T00:00:00.000Z",
             linkedProviders: ["github"],
             badges: [
@@ -207,6 +214,7 @@ describe("Auvexis account link service", () => {
                 id: "badge-donator",
                 slug: "donator",
                 name: "Donator",
+                description: "Fabric supporter",
                 style: {
                   backgroundColor: "#171A23",
                   borderColor: "#8067FF",
@@ -279,6 +287,8 @@ describe("Auvexis account link service", () => {
         getProfile: async () => ({
           id: "account-1",
           username: "andre-live",
+          displayName: "Andre Live",
+          avatarUrl: "data:image/webp;base64,BBBB",
           joinedAt: "2026-07-01T00:00:00.000Z",
           linkedProviders: ["github"],
           badges: [],

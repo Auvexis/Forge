@@ -350,6 +350,8 @@ function mapProfileToStoredAccount(
   return {
     id: profile.id,
     username: profile.username,
+    displayName: profile.displayName,
+    avatarUrl: profile.avatarUrl,
     ...(profile.email ? { email: profile.email } : {}),
     badges: profile.badges,
   };
