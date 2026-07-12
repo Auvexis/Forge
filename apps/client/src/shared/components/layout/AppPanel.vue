@@ -70,6 +70,9 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   close: []
+  resize: [size: { width: number | null; height: number | null }]
+  resizeEnd: [size: { width: number | null; height: number | null }]
+  resizeReset: []
 }>()
 
 const close = () => {
@@ -88,6 +91,13 @@ const panelStyle = computed(() => ({
   ...(resizedWidth.value === null ? {} : { '--app-panel-resized-width': `${resizedWidth.value}px` }),
   ...(resizedHeight.value === null ? {} : { '--app-panel-resized-height': `${resizedHeight.value}px` }),
 }))
+
+function emitResize() {
+  emit('resize', {
+    width: resizedWidth.value,
+    height: resizedHeight.value,
+  })
+}
 
 const transitionName = computed(() => {
   if (props.position === 'right') return 'slide-right'
@@ -136,16 +146,24 @@ function resizePanel(event: MouseEvent) {
     const nextWidth = resizeStart.value.width + event.clientX - resizeStart.value.x
     resizedWidth.value = Math.min(window.innerWidth - 120, Math.max(260, Math.round(nextWidth)))
   }
+
+  emitResize()
 }
 
 function stopResize() {
   isResizing.value = false
   window.removeEventListener('mousemove', resizePanel)
+  emit('resizeEnd', {
+    width: resizedWidth.value,
+    height: resizedHeight.value,
+  })
 }
 
 function resetResize() {
   resizedWidth.value = null
   resizedHeight.value = null
+  emit('resizeReset')
+  emitResize()
 }
 
 onBeforeUnmount(() => {
@@ -160,6 +178,11 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   background-color: var(--fabric-bg-surface);
+  box-shadow: none;
+}
+
+.app-panel.surface-elevated {
+  box-shadow: none;
 }
 
 .app-panel--resizing,

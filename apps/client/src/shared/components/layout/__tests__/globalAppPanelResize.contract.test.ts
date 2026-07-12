@@ -31,6 +31,8 @@ describe('global app panel resize', () => {
   it('passes resize props from GlobalAppPanel to AppPanel', () => {
     assert.match(globalPanelSource, /resizable: panelStore\.resizable/)
     assert.match(globalPanelSource, /resizeSide: panelStore\.resizeSide/)
+    assert.match(globalPanelSource, /@resize="emitPanelResize"/)
+    assert.match(globalPanelSource, /@resize-reset="emitPanelResizeReset"/)
   })
 
   it('implements directional resize handles in AppPanel', () => {
@@ -41,6 +43,9 @@ describe('global app panel resize', () => {
     assert.match(appPanelSource, /resizePanel/)
     assert.match(appPanelSource, /--app-panel-resized-height/)
     assert.match(appPanelSource, /--app-panel-resized-width/)
+    assert.match(appPanelSource, /resize: \[size: \{ width: number \| null; height: number \| null \}\]/)
+    assert.match(appPanelSource, /resizeReset: \[\]/)
+    assert.match(appPanelSource, /\.app-panel\.surface-elevated\s*\{[\s\S]*box-shadow: none;/)
   })
 
   it('lets panel body children own their internal scroll regions', () => {

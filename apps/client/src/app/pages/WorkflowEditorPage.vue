@@ -105,6 +105,8 @@ const isGitStatusLoading = ref(false)
 const isGitModalOpen = ref(false)
 const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
+const workflowInspectorWidth = ref(280)
+const workflowBottomPanelHeight = ref(300)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -173,6 +175,12 @@ const isDevChatOpen = computed(
 const isExecutionPanelOpen = computed(
   () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
 )
+const workflowWorkbenchStyle = computed(() => ({
+  '--workflow-inspector-width': `${workflowInspectorWidth.value}px`,
+  '--workflow-bottom-panel-height': isExecutionPanelOpen.value
+    ? `${workflowBottomPanelHeight.value}px`
+    : '0px',
+}))
 const gitStatusLabel = computed(() => {
   if (isGitStatusLoading.value) return 'loading'
   if (!gitStatus.value) return 'not loaded'
@@ -335,13 +343,14 @@ async function handleCopyGitRepoPath() {
 
 function handleUiIntent(e: Event) {
   const intent = (e as CustomEvent).detail
-  if (intent?.type === 'workflow-settings.open') showSettings.value = true
+  if (intent?.type === 'workflow-settings.open') openWorkflowSettings()
   if (intent?.type === 'workflow-variables.open') showVariables.value = true
   if (intent?.type === 'workflow-logs.open') openExecutionPanel()
   if (intent?.type === 'workflow-chat.open') openDevSessionChat(intent.triggerNodeId)
 }
 
 function openExecutionPanel() {
+  showSettings.value = false
   appPanelStore.openPanel({
     id: 'workflow-execution-bottom-panel',
     title: 'Execution',
@@ -354,6 +363,7 @@ function openExecutionPanel() {
 }
 
 function openGlobalAddNodePanel(toggle = false) {
+  showSettings.value = false
   const panel: AppPanelConfig = {
     id: 'workflow-global-add-node-panel',
     title: 'Add Node',
@@ -442,6 +452,24 @@ function toggleExecutionPanel() {
   openExecutionPanel()
 }
 
+function handleInspectorPanelResize(size: { width: number | null }) {
+  workflowInspectorWidth.value = size.width ?? 280
+}
+
+function handleGlobalPanelResize(payload: {
+  panelId: string
+  width?: number | null
+  height?: number | null
+}) {
+  if (payload.panelId !== 'workflow-execution-bottom-panel') return
+  workflowBottomPanelHeight.value = payload.height ?? 300
+}
+
+function openWorkflowSettings() {
+  appPanelStore.closePanel()
+  showSettings.value = true
+}
+
 function openCommandPalette() {
   void commandPaletteStore.open({
     routePath: route.path,
@@ -493,7 +521,7 @@ watch(
       openExecutionPanel()
       void router.replace({ query: { ...route.query, panel: undefined } })
     } else if (panel === 'settings') {
-      showSettings.value = true
+      openWorkflowSettings()
       void router.replace({ query: { ...route.query, panel: undefined } })
     } else if (panel === 'variables') {
       showVariables.value = true
@@ -502,6 +530,11 @@ watch(
   },
   { immediate: true },
 )
+
+watch(showSettings, (isOpen) => {
+  if (!isOpen) return
+  appPanelStore.closePanel()
+})
 
 async function handleSaveWorkflow() {
   const saved = await workflowStore.saveActiveWorkflow()
@@ -634,7 +667,7 @@ watch(
 
 <template>
   <AppPage :show-global-panel="false">
-    <AppWorkbench class="workflow-workbench">
+    <AppWorkbench class="workflow-workbench" :style="workflowWorkbenchStyle">
       <template #toolstrip>
         <WorkflowEditorChrome
           :workflow-name="workflowStore.activeWorkflow?.metadata.name ?? 'Workflow'"
@@ -669,7 +702,7 @@ watch(
           @create-workflow="handleCreateWorkflow()"
           @toggle-logs="openExecutionPanel()"
           @variables="showVariables = !showVariables"
-          @settings="showSettings = !showSettings"
+          @settings="showSettings ? (showSettings = false) : openWorkflowSettings()"
           @close="handleClose()"
           @workflow-updated="workflowStore.setActiveWorkflow($event)"
           @zoom-in="canvasRef?.zoomIn()"
@@ -740,7 +773,7 @@ watch(
             class="workflow-tool-rail__button"
             type="button"
             title="Workflow settings"
-            @click="showSettings = true"
+            @click="openWorkflowSettings"
           >
             <LucideIcon name="settings" :size="16" />
           </button>
@@ -780,13 +813,15 @@ watch(
           :show-close="false"
           resizable
           resize-side="left"
+          @resize="handleInspectorPanelResize"
+          @resize-reset="handleInspectorPanelResize({ width: null })"
         >
           <template #actions>
             <button
               class="workflow-inspector-panel__icon-button"
               type="button"
               title="Open workflow settings"
-              @click="showSettings = true"
+              @click="openWorkflowSettings"
             >
               <LucideIcon name="panel-right" :size="15" />
             </button>
@@ -868,8 +903,11 @@ watch(
           </div>
         </AppPanel>
 
-        <GlobalAppPanel />
-        <WorkflowSettingsPanel :is-open="showSettings" @close="showSettings = false" />
+        <GlobalAppPanel @resize="handleGlobalPanelResize" @resize-reset="handleGlobalPanelResize" />
+        <WorkflowSettingsPanel
+          :is-open="showSettings"
+          @close="showSettings = false"
+        />
       </div>
 
       <template #status>
@@ -940,6 +978,7 @@ watch(
 .workflow-workbench {
   --fabric-workbench-status-height: 24px;
   --workflow-inspector-width: 280px;
+  --workflow-bottom-panel-height: 0px;
 }
 
 .workflow-workbench__canvas {
@@ -952,6 +991,11 @@ watch(
 
 .workflow-workbench__canvas :deep(.app-panel--right:not(.workflow-inspector-panel)) {
   right: var(--workflow-inspector-width);
+  bottom: var(--workflow-bottom-panel-height);
+}
+
+.workflow-workbench__canvas :deep(.app-panel--right.workflow-inspector-panel) {
+  bottom: var(--workflow-bottom-panel-height);
 }
 
 .workflow-workbench__canvas :deep(.app-panel--bottom) {

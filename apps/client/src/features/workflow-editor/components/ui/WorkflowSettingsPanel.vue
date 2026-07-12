@@ -88,7 +88,13 @@ async function handleDeleteClick() {
 </script>
 
 <template>
-  <AppPanel :is-open="isOpen" title="Workflow Settings" @close="$emit('close')">
+  <AppPanel
+    :is-open="isOpen"
+    title="Workflow Settings"
+    resizable
+    resize-side="left"
+    @close="$emit('close')"
+  >
     <template #actions>
       <BaseButton
         size="sm"
