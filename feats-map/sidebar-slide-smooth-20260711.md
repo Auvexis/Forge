@@ -1,0 +1,4 @@
+- [x] Remover CSS colapsado interno
+- [x] Suavizar animação da sidebar
+- [x] Validar frontend
+- [x] Commitar mudanças

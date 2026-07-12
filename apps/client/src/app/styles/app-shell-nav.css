@@ -115,25 +115,3 @@ button.nav-link {
 .nav-link:hover {
   color: var(--fabric-sidebar-link-text);
 }
-
-.app-sidebar-area--collapsed .sidebar-section {
-  align-items: center;
-}
-
-.app-sidebar-area--collapsed .sidebar-section__label,
-.app-sidebar-area--collapsed .suite-nav-link__label {
-  display: none;
-}
-
-.app-sidebar-area--collapsed .sidebar-section__items {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.app-sidebar-area--collapsed .suite-nav-link {
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-}

@@ -212,13 +212,15 @@ onUnmounted(() => {
 <style scoped>
 .app-sidebar-area {
   --fabric-active-sidebar-width: var(--fabric-sidebar-expanded);
+  --app-sidebar-slide-duration: 460ms;
+  --app-sidebar-slide-ease: cubic-bezier(0.22, 1, 0.36, 1);
   position: relative;
   display: flex;
   width: var(--fabric-active-sidebar-width);
   height: 100%;
   flex-shrink: 0;
   overflow: visible;
-  transition: width var(--fabric-duration-base) var(--fabric-ease-standard);
+  transition: width var(--app-sidebar-slide-duration) var(--app-sidebar-slide-ease);
 }
 
 .app-sidebar-area--collapsed {
@@ -230,12 +232,16 @@ onUnmounted(() => {
   width: var(--fabric-active-sidebar-width);
   height: 100%;
   flex-shrink: 0;
+  opacity: 1;
   transform: translateX(0);
-  transition: transform var(--fabric-duration-base) var(--fabric-ease-standard);
+  transition:
+    transform var(--app-sidebar-slide-duration) var(--app-sidebar-slide-ease),
+    opacity 320ms var(--fabric-ease-standard);
   will-change: transform, opacity;
 }
 
 .app-sidebar-area--collapsed .app-sidebar-transition-frame {
+  opacity: 0;
   transform: translateX(-100%);
 }
 
