@@ -1,12 +1,15 @@
 <template>
   <div class="app-shell">
-    <!-- Sidebar navigation -->
-    <slot name="sidebar"></slot>
+    <slot name="topbar"></slot>
 
-    <!-- Main content area -->
+    <!-- Main layout row -->
     <main class="app-shell__main">
-      <slot name="topbar"></slot>
-      <slot></slot>
+      <slot name="sidebar"></slot>
+
+      <!-- Main content area -->
+      <div class="app-shell__content">
+        <slot></slot>
+      </div>
     </main>
 
     <!-- Global modals/toasts -->
@@ -21,6 +24,7 @@
 <style scoped>
 .app-shell {
   display: flex;
+  flex-direction: column;
   position: relative;
   height: 100vh;
   width: 100vw;
@@ -30,6 +34,16 @@
 }
 
 .app-shell__main {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-shell__content {
   flex: 1;
   position: relative;
   display: flex;

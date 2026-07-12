@@ -271,13 +271,13 @@ onUnmounted(() => {
   --fabric-active-sidebar-width: var(--fabric-sidebar-expanded);
   position: relative;
   display: flex;
-  height: 100vh;
+  height: 100%;
   flex-shrink: 0;
 }
 
 .app-sidebar-transition-frame {
   display: flex;
-  height: 100vh;
+  height: 100%;
   flex-shrink: 0;
   will-change: transform, opacity;
 }
