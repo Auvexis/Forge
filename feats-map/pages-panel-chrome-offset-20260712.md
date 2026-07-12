@@ -1,0 +1,4 @@
+- [x] Mapear offset dos painéis
+- [x] Ajustar altura abaixo do chrome
+- [x] Validar frontend
+- [x] Commitar mudanças

@@ -55,7 +55,7 @@ describe('page editor panels contract', () => {
     assert.doesNotMatch(editor, /web-page-editor__actions/)
   })
 
-  it('toolbar participates in the editor layout while side panels stay fixed below it', () => {
+  it('toolbar participates in the editor layout while side panels stay anchored below it', () => {
     const styles = read('src/features/web-pages/pages.css')
     const editorRule = styles.match(/\.web-page-editor\s*{[\s\S]*?}/)?.[0] ?? ''
     const chromeRule = styles.match(/\.web-page-chrome\s*{[\s\S]*?}/)?.[0] ?? ''
@@ -65,7 +65,7 @@ describe('page editor panels contract', () => {
     assert.match(editorRule, /grid-template-rows:\s*40px minmax\(0,\s*1fr\)/)
     assert.doesNotMatch(chromeRule, /position:\s*fixed/)
     assert.match(chromeRule, /position:\s*relative/)
-    assert.match(panelRule, /position:\s*fixed/)
+    assert.match(panelRule, /position:\s*absolute/)
     assert.match(panelRule, /top:\s*40px/)
   })
 

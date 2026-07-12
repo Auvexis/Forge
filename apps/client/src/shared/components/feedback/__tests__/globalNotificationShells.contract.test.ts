@@ -31,13 +31,12 @@ describe('global notification shell integration', () => {
     assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('name="bell"'))
   })
 
-  it('adds a reusable notification trigger to Pages chrome when the Fabric shell is hidden', () => {
+  it('keeps Pages chrome free of duplicate notification triggers', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
 
-    assert.match(source, /import NotificationTrigger/)
-    assert.match(source, /<NotificationTrigger/)
-    assert.match(source, /web-page-chrome__global-actions/)
-    assert.ok(source.indexOf('web-page-chrome__status') < source.indexOf('web-page-chrome__global-actions'))
+    assert.doesNotMatch(source, /import NotificationTrigger/)
+    assert.doesNotMatch(source, /<NotificationTrigger/)
+    assert.doesNotMatch(source, /web-page-chrome__global-actions/)
   })
 
   it('keeps every trigger wired to the shared stores and one global panel', () => {
