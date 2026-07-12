@@ -1,0 +1,5 @@
+- [x] Mapear conflito vertical/horizontal
+- [x] Manter paineis verticais full height
+- [x] Ajustar painel horizontal
+- [x] Validar frontend
+- [x] Commitar mudancas

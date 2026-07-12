@@ -106,7 +106,6 @@ const isGitModalOpen = ref(false)
 const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
 const workflowInspectorWidth = ref(280)
-const workflowBottomPanelHeight = ref(300)
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -177,9 +176,6 @@ const isExecutionPanelOpen = computed(
 )
 const workflowWorkbenchStyle = computed(() => ({
   '--workflow-inspector-width': `${workflowInspectorWidth.value}px`,
-  '--workflow-bottom-panel-height': isExecutionPanelOpen.value
-    ? `${workflowBottomPanelHeight.value}px`
-    : '0px',
 }))
 const gitStatusLabel = computed(() => {
   if (isGitStatusLoading.value) return 'loading'
@@ -454,15 +450,6 @@ function toggleExecutionPanel() {
 
 function handleInspectorPanelResize(size: { width: number | null }) {
   workflowInspectorWidth.value = size.width ?? 280
-}
-
-function handleGlobalPanelResize(payload: {
-  panelId: string
-  width?: number | null
-  height?: number | null
-}) {
-  if (payload.panelId !== 'workflow-execution-bottom-panel') return
-  workflowBottomPanelHeight.value = payload.height ?? 300
 }
 
 function openWorkflowSettings() {
@@ -903,7 +890,7 @@ watch(
           </div>
         </AppPanel>
 
-        <GlobalAppPanel @resize="handleGlobalPanelResize" @resize-reset="handleGlobalPanelResize" />
+        <GlobalAppPanel />
         <WorkflowSettingsPanel
           :is-open="showSettings"
           @close="showSettings = false"
@@ -978,7 +965,6 @@ watch(
 .workflow-workbench {
   --fabric-workbench-status-height: 24px;
   --workflow-inspector-width: 280px;
-  --workflow-bottom-panel-height: 0px;
 }
 
 .workflow-workbench__canvas {
@@ -991,11 +977,6 @@ watch(
 
 .workflow-workbench__canvas :deep(.app-panel--right:not(.workflow-inspector-panel)) {
   right: var(--workflow-inspector-width);
-  bottom: var(--workflow-bottom-panel-height);
-}
-
-.workflow-workbench__canvas :deep(.app-panel--right.workflow-inspector-panel) {
-  bottom: var(--workflow-bottom-panel-height);
 }
 
 .workflow-workbench__canvas :deep(.app-panel--bottom) {
