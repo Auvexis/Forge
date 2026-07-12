@@ -274,6 +274,17 @@ describe('BaseCanvas component contract', () => {
     assert.match(ruler, /themeObserver\.value\?\.disconnect\(\)/)
   })
 
+  it('redraws rulers when the canvas container is resized by panels', () => {
+    const ruler = readBaseCanvasRulers()
+
+    assert.match(ruler, /ResizeObserver/)
+    assert.match(ruler, /resizeObserver/)
+    assert.match(ruler, /observeRulerResize/)
+    assert.match(ruler, /resizeObserver\.value\.observe\(topParent\)/)
+    assert.match(ruler, /resizeObserver\.value\?\.disconnect\(\)/)
+    assert.match(ruler, /--base-canvas-ruler-size/)
+  })
+
   it('zooms with the mouse wheel around the cursor and keeps the pattern attached to the viewport', () => {
     const source = readBaseCanvas()
 

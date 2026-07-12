@@ -36,7 +36,9 @@ const props = withDefaults(defineProps<{
 const topCanvasRef = ref<HTMLCanvasElement | null>(null)
 const leftCanvasRef = ref<HTMLCanvasElement | null>(null)
 const themeObserver = ref<MutationObserver | null>(null)
+const resizeObserver = ref<ResizeObserver | null>(null)
 const rulersStyle = computed(() => ({
+  '--base-canvas-ruler-size': `${props.rulerSize}px`,
   '--base-canvas-rulers-text': props.rulersText,
   '--base-canvas-rulers-lines': props.rulersLines,
 }))
@@ -44,12 +46,14 @@ const rulersStyle = computed(() => ({
 onMounted(() => {
   window.addEventListener('resize', drawRulers)
   observeThemeChanges()
+  observeRulerResize()
   void nextTick(drawRulers)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', drawRulers)
   themeObserver.value?.disconnect()
+  resizeObserver.value?.disconnect()
 })
 
 watch(
@@ -78,6 +82,14 @@ function observeThemeChanges() {
     attributes: true,
     attributeFilter: ['class', 'style', 'data-theme'],
   })
+}
+
+function observeRulerResize() {
+  resizeObserver.value?.disconnect()
+  const topParent = topCanvasRef.value?.parentElement
+  if (!topParent) return
+  resizeObserver.value = new ResizeObserver(() => drawRulers())
+  resizeObserver.value.observe(topParent)
 }
 
 function drawAxis(canvas: HTMLCanvasElement | null, axis: 'x' | 'y') {
@@ -140,13 +152,13 @@ function resolveCanvasColor(canvas: HTMLCanvasElement, color: string) {
   top: 0;
   left: 0;
   width: 100%;
-  height: 24px;
+  height: var(--base-canvas-ruler-size);
 }
 
 .base-canvas-rulers__left {
   top: 0;
   left: 0;
-  width: 24px;
+  width: var(--base-canvas-ruler-size);
   height: 100%;
 }
 </style>
