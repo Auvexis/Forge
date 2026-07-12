@@ -9,28 +9,30 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('workflow editor status bar opens global dev chat and execution bottom panel', () => {
+test('workflow editor status bar opens global dev chat and central workflow bottom panel', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.doesNotMatch(source, /WorkflowChatBottomPanel/)
   assert.match(source, /useAgentPanelUiStore/)
   assert.match(source, /useAgentPanelStore/)
-  assert.match(source, /ExecutionBottomPanel/)
+  assert.match(source, /WorkflowWorkbenchBottomPanel/)
   assert.match(source, /workflow-status-bar__button/)
   assert.match(source, />\s*Chat\s*</)
   assert.match(source, />\s*Execution\s*</)
   assert.match(source, /openDevSessionChat/)
   assert.match(source, /openExecutionPanel/)
-  assert.match(source, /id: 'workflow-execution-bottom-panel'/)
+  assert.match(source, /openBottomPanel\('execution'\)/)
+  assert.match(source, /workflow-workbench__bottom-panel/)
 })
 
-test('workflow editor status bar tracks active panel state from app panel id', () => {
+test('workflow editor status bar tracks active panel state from the local bottom panel', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /isDevChatOpen/)
   assert.match(source, /isExecutionPanelOpen/)
   assert.match(source, /agentPanelUi\.isOpen/)
-  assert.match(source, /appPanelStore\.panelId === 'workflow-execution-bottom-panel'/)
+  assert.match(source, /isBottomPanelOpen = ref\(true\)/)
+  assert.match(source, /activeBottomPanelView = ref<WorkflowBottomPanelView>\('tree'\)/)
   assert.match(source, /toggleChatPanel/)
   assert.match(source, /toggleExecutionPanel/)
   assert.match(source, /agentPanelUi\.close\(\)/)

@@ -12,6 +12,10 @@
       pattern-color="var(--fabric-canvas-grid)"
       pattern-style="dot"
       :pattern-size="30"
+      rulers
+      rulers-bg="var(--fabric-workbench-status-bg)"
+      rulers-text="var(--fabric-text-muted)"
+      rulers-lines="var(--fabric-workbench-border)"
       class="fabric-workflow-base-canvas"
       data-workflow-base-canvas
       :data-workflow-items-count="workflowItems.length"

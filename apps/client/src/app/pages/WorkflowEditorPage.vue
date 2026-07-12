@@ -10,8 +10,9 @@ import WorkflowEditorChrome from '@/features/workflow-editor/components/ui/chrom
 import GlobalAddNodePanel from '@/features/workflow-editor/components/settings/GlobalAddNodePanel.vue'
 import WorkflowGitModal from '@/features/workflow-editor/components/ui/WorkflowGitModal.vue'
 import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/WorkflowSettingsPanel.vue'
-import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
-import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
+import WorkflowWorkbenchBottomPanel, {
+  type WorkflowBottomPanelView,
+} from '@/features/workflow-editor/components/ui/WorkflowWorkbenchBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import GlobalAppPanel from '@/shared/components/layout/GlobalAppPanel.vue'
@@ -98,7 +99,6 @@ const canvasRef = ref<InstanceType<typeof FabricWorkflowCanvas> | null>(null)
 
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
 const showSettings = ref(false)
-const showVariables = ref(false)
 const selectedChatTriggerNodeId = ref('')
 const gitStatus = ref<WorkflowGitSnapshotStatus | null>(null)
 const isGitStatusLoading = ref(false)
@@ -106,9 +106,12 @@ const isGitModalOpen = ref(false)
 const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
 const showInspector = ref(true)
+const isBottomPanelOpen = ref(true)
+const activeBottomPanelView = ref<WorkflowBottomPanelView>('tree')
 const workflowInspectorWidth = ref(280)
 const workflowSettingsWidth = ref(360)
 const workflowBottomPanelHeight = ref(300)
+const bottomPanelResizeStart = ref({ y: 0, height: 0 })
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -175,7 +178,9 @@ const isDevChatOpen = computed(
   () => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session',
 )
 const isExecutionPanelOpen = computed(
-  () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
+  () =>
+    isBottomPanelOpen.value &&
+    (activeBottomPanelView.value === 'execution' || activeBottomPanelView.value === 'logs'),
 )
 const workflowWorkbenchStyle = computed(() => ({
   '--workflow-inspector-width': showInspector.value ? `${workflowInspectorWidth.value}px` : '0px',
@@ -186,7 +191,7 @@ const workflowWorkbenchStyle = computed(() => ({
   '--workflow-canvas-right': showSettings.value
     ? `${(showInspector.value ? workflowInspectorWidth.value : 0) + workflowSettingsWidth.value}px`
     : `${showInspector.value ? workflowInspectorWidth.value : 0}px`,
-  '--workflow-canvas-bottom': isExecutionPanelOpen.value
+  '--workflow-canvas-bottom': isBottomPanelOpen.value
     ? `${workflowBottomPanelHeight.value}px`
     : '0px',
 }))
@@ -353,21 +358,18 @@ async function handleCopyGitRepoPath() {
 function handleUiIntent(e: Event) {
   const intent = (e as CustomEvent).detail
   if (intent?.type === 'workflow-settings.open') openWorkflowSettings()
-  if (intent?.type === 'workflow-variables.open') showVariables.value = true
+  if (intent?.type === 'workflow-variables.open') openBottomPanel('variables')
   if (intent?.type === 'workflow-logs.open') openExecutionPanel()
   if (intent?.type === 'workflow-chat.open') openDevSessionChat(intent.triggerNodeId)
 }
 
+function openBottomPanel(view: WorkflowBottomPanelView) {
+  activeBottomPanelView.value = view
+  isBottomPanelOpen.value = true
+}
+
 function openExecutionPanel() {
-  appPanelStore.openPanel({
-    id: 'workflow-execution-bottom-panel',
-    title: 'Execution',
-    component: markRaw(ExecutionBottomPanel),
-    position: 'bottom',
-    width: 'xl',
-    resizable: true,
-    resizeSide: 'top',
-  })
+  openBottomPanel('execution')
 }
 
 function openGlobalAddNodePanel(toggle = false) {
@@ -453,7 +455,7 @@ function toggleChatPanel() {
 
 function toggleExecutionPanel() {
   if (isExecutionPanelOpen.value) {
-    appPanelStore.closePanel()
+    isBottomPanelOpen.value = false
     return
   }
 
@@ -468,13 +470,26 @@ function handleSettingsPanelResize(size: { width: number | null }) {
   workflowSettingsWidth.value = size.width ?? 360
 }
 
-function handleGlobalPanelResize(payload: {
-  panelId: string
-  width?: number | null
-  height?: number | null
-}) {
-  if (payload.panelId !== 'workflow-execution-bottom-panel') return
-  workflowBottomPanelHeight.value = payload.height ?? 300
+function startBottomPanelResize(event: MouseEvent) {
+  event.preventDefault()
+  bottomPanelResizeStart.value = {
+    y: event.clientY,
+    height: workflowBottomPanelHeight.value,
+  }
+  window.addEventListener('mousemove', resizeBottomPanel)
+  window.addEventListener('mouseup', stopBottomPanelResize, { once: true })
+}
+
+function resizeBottomPanel(event: MouseEvent) {
+  const nextHeight = bottomPanelResizeStart.value.height + bottomPanelResizeStart.value.y - event.clientY
+  workflowBottomPanelHeight.value = Math.min(
+    window.innerHeight - 120,
+    Math.max(180, Math.round(nextHeight)),
+  )
+}
+
+function stopBottomPanelResize() {
+  window.removeEventListener('mousemove', resizeBottomPanel)
 }
 
 function openWorkflowSettings() {
@@ -516,6 +531,7 @@ onMounted(() => {
 // Limpa o store ao sair da página para que o canvas arranque sem dados obsoletos
 onBeforeUnmount(() => {
   workflowStore.clearWorkflow()
+  window.removeEventListener('mousemove', resizeBottomPanel)
   window.removeEventListener('keydown', handleWorkflowEditorShortcut)
   window.removeEventListener('beforeunload', handleBeforeUnload)
   window.removeEventListener('fabric:command-palette:intent', handleUiIntent)
@@ -541,7 +557,7 @@ watch(
       openWorkflowSettings()
       void router.replace({ query: { ...route.query, panel: undefined } })
     } else if (panel === 'variables') {
-      showVariables.value = true
+      openBottomPanel('variables')
       void router.replace({ query: { ...route.query, panel: undefined } })
     }
   },
@@ -717,7 +733,7 @@ watch(
         @import-workflow="handleImportWorkflow()"
         @create-workflow="handleCreateWorkflow()"
         @toggle-logs="openExecutionPanel()"
-        @variables="showVariables = !showVariables"
+        @variables="openBottomPanel('variables')"
         @settings="showSettings ? (showSettings = false) : openWorkflowSettings()"
         @close="handleClose()"
         @workflow-updated="workflowStore.setActiveWorkflow($event)"
@@ -803,7 +819,7 @@ watch(
               class="workflow-tool-rail__button"
               type="button"
               title="Variables"
-              @click="showVariables = true"
+              @click="openBottomPanel('variables')"
             >
               <LucideIcon name="tags" :size="18" />
             </button>
@@ -1009,7 +1025,7 @@ watch(
             <section
               class="workflow-inspector-panel__section workflow-inspector-panel__section--actions"
             >
-              <button type="button" @click="showVariables = true">
+              <button type="button" @click="openBottomPanel('variables')">
                 <LucideIcon name="tags" :size="14" />
                 Variables
               </button>
@@ -1021,7 +1037,22 @@ watch(
           </div>
         </AppPanel>
 
-        <GlobalAppPanel @resize="handleGlobalPanelResize" @resize-reset="handleGlobalPanelResize" />
+        <section
+          v-if="isBottomPanelOpen"
+          class="workflow-workbench__bottom-panel"
+          :style="{ height: `${workflowBottomPanelHeight}px` }"
+        >
+          <div
+            class="workflow-workbench__bottom-panel-resize"
+            role="separator"
+            aria-orientation="horizontal"
+            title="Resize bottom panel"
+            @mousedown="startBottomPanelResize"
+          />
+          <WorkflowWorkbenchBottomPanel v-model:active-view="activeBottomPanelView" />
+        </section>
+
+        <GlobalAppPanel />
         <WorkflowSettingsPanel
           :is-open="showSettings"
           @close="showSettings = false"
@@ -1089,7 +1120,6 @@ watch(
       @commit="handleCommitGitSnapshot"
       @restore="handleRestoreGitSnapshot"
     />
-    <WorkflowVariablesModal :is-open="showVariables" @close="showVariables = false" />
   </AppPage>
 </template>
 
@@ -1118,6 +1148,32 @@ watch(
   min-width: 0;
   min-height: 0;
   overflow: hidden;
+}
+
+.workflow-workbench__bottom-panel {
+  position: absolute;
+  right: var(--workflow-bottom-panel-right);
+  bottom: 0;
+  left: 0;
+  z-index: var(--fabric-z-raised);
+  min-height: 180px;
+  max-height: calc(100% - 120px);
+  border-top: 1px solid var(--fabric-workbench-border);
+  background: var(--fabric-workbench-panel-bg);
+}
+
+.workflow-workbench__bottom-panel-resize {
+  position: absolute;
+  top: -3px;
+  right: 0;
+  left: 0;
+  z-index: 2;
+  height: 6px;
+  cursor: ns-resize;
+}
+
+.workflow-workbench__bottom-panel-resize:hover {
+  background: color-mix(in srgb, var(--fabric-accent) 28%, transparent);
 }
 
 .workflow-workbench__canvas :deep(.app-panel--right:not(.workflow-inspector-panel)) {
