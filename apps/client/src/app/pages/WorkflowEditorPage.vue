@@ -178,9 +178,7 @@ const isDevChatOpen = computed(
   () => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session',
 )
 const isExecutionPanelOpen = computed(
-  () =>
-    isBottomPanelOpen.value &&
-    (activeBottomPanelView.value === 'execution' || activeBottomPanelView.value === 'logs'),
+  () => isBottomPanelOpen.value && activeBottomPanelView.value === 'execution',
 )
 const workflowWorkbenchStyle = computed(() => ({
   '--workflow-inspector-width': showInspector.value ? `${workflowInspectorWidth.value}px` : '0px',
@@ -368,6 +366,15 @@ function openBottomPanel(view: WorkflowBottomPanelView) {
   isBottomPanelOpen.value = true
 }
 
+function toggleBottomPanel(view: WorkflowBottomPanelView) {
+  if (isBottomPanelOpen.value && activeBottomPanelView.value === view) {
+    isBottomPanelOpen.value = false
+    return
+  }
+
+  openBottomPanel(view)
+}
+
 function openExecutionPanel() {
   openBottomPanel('execution')
 }
@@ -454,12 +461,7 @@ function toggleChatPanel() {
 }
 
 function toggleExecutionPanel() {
-  if (isExecutionPanelOpen.value) {
-    isBottomPanelOpen.value = false
-    return
-  }
-
-  openExecutionPanel()
+  toggleBottomPanel('execution')
 }
 
 function handleInspectorPanelResize(size: { width: number | null }) {
@@ -1076,6 +1078,34 @@ watch(
               <code>{{
                 canOpenDevChat ? selectedChatSlug || 'dev session' : 'dev session only'
               }}</code>
+            </button>
+
+            <button
+              class="workflow-status-bar__button"
+              :class="{
+                'workflow-status-bar__button--active':
+                  isBottomPanelOpen && activeBottomPanelView === 'tree',
+              }"
+              type="button"
+              @click="toggleBottomPanel('tree')"
+            >
+              <LucideIcon name="list-tree" :size="13" />
+              <span>Tree</span>
+              <code>{{ workflowNodeCount }} nodes</code>
+            </button>
+
+            <button
+              class="workflow-status-bar__button"
+              :class="{
+                'workflow-status-bar__button--active':
+                  isBottomPanelOpen && activeBottomPanelView === 'variables',
+              }"
+              type="button"
+              @click="toggleBottomPanel('variables')"
+            >
+              <LucideIcon name="tags" :size="13" />
+              <span>Variables</span>
+              <code>{{ workflowStore.activeWorkflow?.variables?.length ?? 0 }} local</code>
             </button>
 
             <button

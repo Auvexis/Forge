@@ -1,0 +1,5 @@
+- [x] Mapear abas internas
+- [x] Remover tabs do bottom panel
+- [x] Mover troca para status bar
+- [x] Validar contratos
+- [x] Commitar mudancas
