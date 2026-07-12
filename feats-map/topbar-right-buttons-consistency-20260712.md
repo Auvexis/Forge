@@ -1,0 +1,4 @@
+- [x] Mapear botões da topbar
+- [x] Padronizar botões da direita
+- [x] Validar frontend
+- [x] Commitar mudanças

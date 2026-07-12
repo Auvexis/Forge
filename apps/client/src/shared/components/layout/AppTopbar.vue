@@ -100,6 +100,7 @@
         class="app-topbar__command"
         type="button"
         height="40px"
+        gap="var(--fabric-space-2)"
         aria-label="Open command palette"
         @click="$emit('open-command-palette')"
       >
@@ -107,7 +108,9 @@
           <LucideIcon name="search" :size="20" />
         </template>
         <span>Command</span>
-        <kbd>Ctrl K</kbd>
+        <template #right>
+          <kbd>Ctrl K</kbd>
+        </template>
       </BaseTopbarButton>
     </div>
   </header>
@@ -169,7 +172,7 @@ onMounted(() => {
   align-items: center;
   gap: var(--fabric-space-3);
   min-height: 30px;
-  padding: 0 var(--fabric-space-4);
+  /* padding: 0 var(--fabric-space-4); */
   border-bottom: 1px solid var(--fabric-topbar-border);
   background: var(--fabric-topbar-bg);
   flex-shrink: 0;
@@ -183,7 +186,6 @@ onMounted(() => {
 
 .app-topbar__section--left {
   justify-content: flex-start;
-  gap: var(--fabric-space-2);
 }
 
 .app-topbar__section--center {
@@ -306,10 +308,6 @@ onMounted(() => {
 .app-topbar__icon-button,
 .app-topbar__command {
   flex: 0 0 auto;
-}
-
-.app-topbar__icon-button {
-  width: auto;
 }
 
 .app-topbar__command {
