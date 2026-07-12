@@ -883,9 +883,12 @@ watch(
             </button>
             <button
               class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--active': workflowStore.isAutosaveEnabled }"
+              :class="{
+                'workflow-tool-rail__button--toggle-on': workflowStore.isAutosaveEnabled,
+                'workflow-tool-rail__button--toggle-off': !workflowStore.isAutosaveEnabled,
+              }"
               type="button"
-              title="Toggle autosave"
+              :title="workflowStore.isAutosaveEnabled ? 'Autosave on' : 'Autosave off'"
               :disabled="executionStore.isExecuting || executionStore.isStreaming || workflowStore.isSaving"
               @click="workflowStore.setAutosaveEnabled(!workflowStore.isAutosaveEnabled)"
             >
@@ -906,7 +909,6 @@ watch(
             </button>
             <button
               class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--active': gitStatus?.state === 'ready' }"
               type="button"
               title="Create git snapshot"
               :disabled="!route.params.id"
@@ -1063,7 +1065,6 @@ watch(
           <template #right>
             <button
               class="workflow-status-bar__button workflow-status-bar__button--git"
-              :class="{ 'workflow-status-bar__button--active': gitStatus?.state === 'ready' }"
               type="button"
               :title="gitStatusTitle"
               @click="openGitModal"
@@ -1212,6 +1213,37 @@ watch(
   border-radius: 999px;
   background: var(--fabric-amber-500);
   content: '';
+}
+
+.workflow-tool-rail__button--toggle-on {
+  color: var(--fabric-accent);
+}
+
+.workflow-tool-rail__button--toggle-on::after,
+.workflow-tool-rail__button--toggle-off::after {
+  position: absolute;
+  right: 5px;
+  bottom: 5px;
+  width: 10px;
+  height: 5px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  content: '';
+}
+
+.workflow-tool-rail__button--toggle-on::before {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  content: '';
+}
+
+.workflow-tool-rail__button--toggle-off::after {
+  opacity: 0.42;
 }
 
 .workflow-tool-rail__spacer {
@@ -1421,7 +1453,7 @@ watch(
   align-items: center;
   gap: var(--fabric-space-2);
   height: 100%;
-  min-width: 140px;
+  min-width: 0;
   padding: 0 var(--fabric-space-3);
   border: 0;
   border-right: 1px solid var(--fabric-border-muted);
@@ -1434,6 +1466,10 @@ watch(
 .workflow-status-bar__button--active {
   color: var(--fabric-text-primary);
   background: var(--fabric-bg-surface);
+}
+
+.workflow-status-bar__button--git {
+  border-left: 1px solid var(--fabric-border-muted);
 }
 
 .workflow-status-bar__button:disabled {

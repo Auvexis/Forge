@@ -21,6 +21,9 @@ test('workflow editor renders inside the shared workbench shell', () => {
   assert.match(source, /#status/)
   assert.match(source, /workflow-tool-rail/)
   assert.match(source, /workflow-tool-rail__group/)
+  assert.match(source, /workflow-tool-rail__button--toggle-on/)
+  assert.doesNotMatch(source, /Create git snapshot"[\s\S]{0,140}workflow-tool-rail__button--active/)
+  assert.doesNotMatch(source, /workflow-status-bar__button--git"\s*:class="\{ 'workflow-status-bar__button--active'/)
   assert.match(source, /\.workflow-tool-rail\s*\{[\s\S]*gap: 0;[\s\S]*padding: 0;/)
   assert.match(source, /\.workflow-tool-rail\s*\{[\s\S]*width: 50px;/)
   assert.match(source, /\.workflow-tool-rail__button\s*\{[\s\S]*width: 49px;[\s\S]*height: 36px;/)
@@ -69,6 +72,8 @@ test('workbench components expose toolstrip body and status slots', () => {
   assert.match(appShell, /min-height: 0;/)
   assert.match(status, /workbench-status-bar__zone--left/)
   assert.match(status, /workbench-status-bar__zone--right/)
+  assert.match(status, /display: flex;/)
+  assert.doesNotMatch(status, /grid-template-columns/)
 })
 
 test('fabric themes define workbench tokens', () => {
