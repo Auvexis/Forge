@@ -94,7 +94,8 @@
   color: var(--fabric-button-ghost-hover-text);
 }
 
-.gs-nav__item--active {
+.gs-nav .base-button.gs-nav__item--active,
+.gs-nav .base-button.gs-nav__item--active:hover {
   background: var(--fabric-button-ghost-active);
   color: var(--fabric-button-ghost-active-text);
 }
