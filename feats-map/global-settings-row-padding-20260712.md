@@ -1,0 +1,3 @@
+- [x] Ajustar padding horizontal
+- [x] Validar frontend
+- [x] Commitar mudancas
