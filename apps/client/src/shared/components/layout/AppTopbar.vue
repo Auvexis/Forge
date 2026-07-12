@@ -73,7 +73,7 @@
         </span>
       </span>
       <BaseTopbarButton
-        class="app-topbar__action-button"
+        class="app-topbar__action-button app-topbar__action-button--icon-only"
         type="button"
         height="40px"
         aria-label="Open settings"
@@ -312,6 +312,11 @@ onMounted(() => {
 .app-topbar__action-button {
   min-width: 40px;
   padding: 0 var(--fabric-space-2);
+}
+
+.app-topbar__action-button--icon-only {
+  width: 40px;
+  padding: 0;
 }
 
 .app-topbar__action-button span {
