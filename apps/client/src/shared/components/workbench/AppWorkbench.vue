@@ -1,5 +1,14 @@
 <template>
-  <section class="app-workbench" :class="[`app-workbench--${density}`]">
+  <section
+    class="app-workbench"
+    :class="[
+      `app-workbench--${density}`,
+      {
+        'app-workbench--has-toolstrip': $slots.toolstrip,
+        'app-workbench--has-status': $slots.status,
+      },
+    ]"
+  >
     <header v-if="$slots.toolstrip" class="app-workbench__toolstrip">
       <slot name="toolstrip" />
     </header>
@@ -38,7 +47,7 @@ withDefaults(
 <style scoped>
 .app-workbench {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
   width: 100%;
   height: 100%;
   min-width: 0;
@@ -46,6 +55,18 @@ withDefaults(
   overflow: hidden;
   color: var(--fabric-workbench-text);
   background: var(--fabric-workbench-bg);
+}
+
+.app-workbench--has-toolstrip {
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.app-workbench--has-status {
+  grid-template-rows: minmax(0, 1fr) var(--fabric-workbench-status-height, 24px);
+}
+
+.app-workbench--has-toolstrip.app-workbench--has-status {
+  grid-template-rows: auto minmax(0, 1fr) var(--fabric-workbench-status-height, 24px);
 }
 
 .app-workbench__toolstrip,

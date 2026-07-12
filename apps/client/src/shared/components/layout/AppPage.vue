@@ -48,10 +48,16 @@ withDefaults(
 }
 
 .app-page__content {
+  display: flex;
+  flex-direction: column;
   flex: 1;
   position: relative;
   min-height: 0; /* allows flex children to scroll */
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.app-page__content:has(> .app-workbench) {
+  overflow: hidden;
 }
 </style>

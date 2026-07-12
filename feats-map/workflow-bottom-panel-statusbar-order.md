@@ -1,0 +1,4 @@
+- [x] Mapear ordem statusbar/painel inferior
+- [x] Colocar painel inferior acima da statusbar
+- [x] Validar frontend
+- [x] Commitar mudancas
