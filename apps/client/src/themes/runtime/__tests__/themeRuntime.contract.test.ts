@@ -94,4 +94,17 @@ describe('theme runtime contract', () => {
     assert.match(settings, /getFabricThemePreviewCards\(\)/)
     assert.doesNotMatch(settings, /accentColor: '#/)
   })
+
+  it('keeps the dark theme neutral instead of warm brown', () => {
+    const darkTheme = JSON.parse(read('src/themes/json/dark.json')) as { tokens: Record<string, string> }
+    const darkThemeSource = read('src/themes/json/dark.json')
+
+    assert.equal(darkTheme.tokens['bg.base'], '#141414')
+    assert.equal(darkTheme.tokens['bg.chrome'], '#191919')
+    assert.equal(darkTheme.tokens['bg.canvas'], '#171717')
+    assert.doesNotMatch(
+      darkThemeSource,
+      /fffaf4|fff7ee|250, 244|3a302c|4a3e39|c8bbb5|9d8f88|6d625d|1c1815|24201d|2c2723|3a332e|171411|1f1a18/,
+    )
+  })
 })

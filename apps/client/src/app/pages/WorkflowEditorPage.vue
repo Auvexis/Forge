@@ -105,6 +105,7 @@ const isGitStatusLoading = ref(false)
 const isGitModalOpen = ref(false)
 const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
+const showInspector = ref(true)
 const workflowInspectorWidth = ref(280)
 const workflowSettingsWidth = ref(360)
 const workflowBottomPanelHeight = ref(300)
@@ -177,14 +178,14 @@ const isExecutionPanelOpen = computed(
   () => appPanelStore.isOpen && appPanelStore.panelId === 'workflow-execution-bottom-panel',
 )
 const workflowWorkbenchStyle = computed(() => ({
-  '--workflow-inspector-width': `${workflowInspectorWidth.value}px`,
+  '--workflow-inspector-width': showInspector.value ? `${workflowInspectorWidth.value}px` : '0px',
   '--workflow-side-panel-width': showSettings.value ? `${workflowSettingsWidth.value}px` : '0px',
   '--workflow-bottom-panel-right': showSettings.value
-    ? `${workflowInspectorWidth.value + workflowSettingsWidth.value}px`
-    : `${workflowInspectorWidth.value}px`,
+    ? `${(showInspector.value ? workflowInspectorWidth.value : 0) + workflowSettingsWidth.value}px`
+    : `${showInspector.value ? workflowInspectorWidth.value : 0}px`,
   '--workflow-canvas-right': showSettings.value
-    ? `${workflowInspectorWidth.value + workflowSettingsWidth.value}px`
-    : `${workflowInspectorWidth.value}px`,
+    ? `${(showInspector.value ? workflowInspectorWidth.value : 0) + workflowSettingsWidth.value}px`
+    : `${showInspector.value ? workflowInspectorWidth.value : 0}px`,
   '--workflow-canvas-bottom': isExecutionPanelOpen.value
     ? `${workflowBottomPanelHeight.value}px`
     : '0px',
@@ -824,27 +825,16 @@ watch(
 
         <AppPanel
           class="workflow-inspector-panel"
-          :is-open="true"
+          :is-open="showInspector"
           title="Inspector"
           position="right"
           width="md"
-          :show-close="false"
           resizable
           resize-side="left"
+          @close="showInspector = false"
           @resize="handleInspectorPanelResize"
           @resize-reset="handleInspectorPanelResize({ width: null })"
         >
-          <template #actions>
-            <button
-              class="workflow-inspector-panel__icon-button"
-              type="button"
-              title="Open workflow settings"
-              @click="openWorkflowSettings"
-            >
-              <LucideIcon name="panel-right" :size="15" />
-            </button>
-          </template>
-
           <div class="workflow-inspector-panel__body" aria-label="Workflow inspector">
             <section class="workflow-inspector-panel__section">
               <span class="workflow-inspector-panel__section-title">Context</span>
