@@ -1,0 +1,4 @@
+- [x] Separar tokens de chrome e main
+- [x] Aplicar tema hibrido
+- [x] Validar frontend
+- [x] Commitar mudanças

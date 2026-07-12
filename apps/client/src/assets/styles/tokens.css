@@ -90,83 +90,92 @@
   /* ── Semantic UI References ─────────────────────────────── */
 
   /* Backgrounds */
-  --fabric-bg-base: var(--fabric-gray-950);
-  --fabric-bg-surface: rgb(15, 15, 15);
-  --fabric-bg-elevated: var(--fabric-gray-850);
-  --fabric-bg-overlay: var(--fabric-gray-800);
-  --fabric-bg-muted: var(--fabric-gray-850);
-  --fabric-bg-subtle: var(--fabric-gray-600);
-  --fabric-bg-inverse: rgba(251, 251, 251, 0.991);
+  --fabric-bg-base: #faf9f7;
+  --fabric-bg-surface: #ffffff;
+  --fabric-bg-elevated: #f4f1ed;
+  --fabric-bg-overlay: #ffffff;
+  --fabric-bg-muted: #f0ede8;
+  --fabric-bg-subtle: #e5dfd7;
+  --fabric-bg-inverse: #2f2524;
+  --fabric-bg-chrome: #3a2f2d;
+  --fabric-bg-chrome-elevated: #463936;
+  --fabric-bg-chrome-hover: rgba(255, 255, 255, 0.08);
 
   /* Accents */
   --fabric-accent: var(--fabric-brand-500);
   --fabric-accent-subtle: rgba(124, 58, 237, 0.15);
 
   /* Borders */
-  --fabric-border: rgba(255, 255, 255, 0.07);
-  --fabric-border-muted: rgba(255, 255, 255, 0.04);
-  --fabric-border-strong: rgba(255, 255, 255, 0.14);
+  --fabric-border: rgba(46, 35, 32, 0.12);
+  --fabric-border-muted: rgba(46, 35, 32, 0.07);
+  --fabric-border-strong: rgba(46, 35, 32, 0.22);
+  --fabric-border-chrome: rgba(255, 255, 255, 0.12);
   --fabric-border-brand: rgba(237, 144, 58, 0.6);
 
   /* Text */
-  --fabric-text-primary: #f2f2f2;
-  --fabric-text-secondary: #a3a3a3;
-  --fabric-text-muted: #737373;
-  --fabric-text-disabled: #525252;
-  --fabric-text-inverse: #0e0e0e;
-  --fabric-text-brand: var(--fabric-brand-300);
+  --fabric-text-primary: #1f1a18;
+  --fabric-text-secondary: #6a5d58;
+  --fabric-text-muted: #897d77;
+  --fabric-text-disabled: #b5aca6;
+  --fabric-text-inverse: #fffaf4;
+  --fabric-text-chrome: #fffaf4;
+  --fabric-text-chrome-muted: #c8bbb5;
+  --fabric-text-brand: var(--fabric-brand-600);
   --fabric-text-success: var(--fabric-green-400);
   --fabric-text-warning: var(--fabric-amber-400);
   --fabric-text-error: var(--fabric-red-400);
 
   /* Sidebar / Topbar */
-  --fabric-sidebar-bg: var(--fabric-bg-surface);
-  --fabric-sidebar-border: var(--fabric-border);
-  --fabric-sidebar-divider: var(--fabric-border);
-  --fabric-sidebar-text: var(--fabric-text-primary);
-  --fabric-sidebar-text-muted: var(--fabric-text-secondary);
-  --fabric-sidebar-link-text: var(--fabric-text-primary);
+  --fabric-sidebar-bg: var(--fabric-bg-chrome);
+  --fabric-sidebar-border: var(--fabric-border-chrome);
+  --fabric-sidebar-divider: var(--fabric-border-chrome);
+  --fabric-sidebar-text: var(--fabric-text-chrome);
+  --fabric-sidebar-text-muted: var(--fabric-text-chrome-muted);
+  --fabric-sidebar-link-text: var(--fabric-text-chrome);
 
-  --fabric-topbar-bg: var(--fabric-bg-surface);
-  --fabric-topbar-border: var(--fabric-border);
-  --fabric-topbar-search-bg: var(--fabric-bg-base);
-  --fabric-topbar-search-border: var(--fabric-border);
-  --fabric-topbar-search-text: var(--fabric-text-muted);
-  --fabric-topbar-search-hover-text: var(--fabric-text-primary);
-  --fabric-topbar-search-hover-bg: var(--fabric-button-ghost-hover);
-  --fabric-topbar-kbd-bg: var(--fabric-bg-surface);
+  --fabric-topbar-bg: var(--fabric-bg-chrome);
+  --fabric-topbar-border: var(--fabric-border-chrome);
+  --fabric-topbar-search-bg: rgba(255, 255, 255, 0.06);
+  --fabric-topbar-search-border: var(--fabric-border-chrome);
+  --fabric-topbar-search-text: var(--fabric-text-chrome-muted);
+  --fabric-topbar-search-hover-text: var(--fabric-text-chrome);
+  --fabric-topbar-search-hover-bg: var(--fabric-bg-chrome-hover);
+  --fabric-topbar-kbd-bg: transparent;
+  
+  --fabric-topbar-button-bg: rgba(255, 255, 255, 0.08);
+  --fabric-topbar-button-text: var(--fabric-text-chrome);
 
   /* ── Buttons ─────────────────────────────────────────────── */
   /* Primary */
-  --fabric-button-primary-bg: var(--fabric-gray-200);
-  --fabric-button-primary-text: var(--fabric-text-inverse);
-  --fabric-button-primary-border: var(--fabric-gray-300);
-  --fabric-button-primary-hover: var(--fabric-gray-300);
-  --fabric-button-primary-active: var(--fabric-gray-300);
-  --fabric-button-primary-active-text: var(--fabric-text-inverse);
+  --fabric-button-primary-bg: #2f2524;
+  --fabric-button-primary-text: #fffaf4;
+  --fabric-button-primary-border: #2f2524;
+  --fabric-button-primary-hover: #463936;
+  --fabric-button-primary-active: #221918;
+  --fabric-button-primary-active-text: #fffaf4;
 
   /* Secondary */
-  --fabric-button-secondary-bg: var(--fabric-gray-850);
+  --fabric-button-secondary-bg: #f0ede8;
   --fabric-button-secondary-text: var(--fabric-text-primary);
-  --fabric-button-secondary-border: var(--fabric-gray-700);
-  --fabric-button-secondary-hover: var(--fabric-gray-700);
-  --fabric-button-secondary-active: var(--fabric-gray-700);
+  --fabric-button-secondary-border: #ded6ce;
+  --fabric-button-secondary-hover: #e7e0d8;
+  --fabric-button-secondary-active: #ded6ce;
   --fabric-button-secondary-active-text: var(--fabric-text-primary);
 
   /* Outline */
   --fabric-button-outline-bg: transparent;
   --fabric-button-outline-text: var(--fabric-text-primary);
-  --fabric-button-outline-border: var(--fabric-gray-700);
-  --fabric-button-outline-hover: var(--fabric-gray-800);
-  --fabric-button-outline-active: var(--fabric-gray-800);
+  --fabric-button-outline-border: #d2c8bf;
+  --fabric-button-outline-hover: #f0ede8;
+  --fabric-button-outline-active: #e7e0d8;
   --fabric-button-outline-active-text: var(--fabric-text-primary);
 
   /* Ghost */
   --fabric-button-ghost-bg: transparent;
   --fabric-button-ghost-text: var(--fabric-text-primary);
   --fabric-button-ghost-border: transparent;
-  --fabric-button-ghost-hover: var(--fabric-gray-800);
-  --fabric-button-ghost-active: var(--fabric-gray-800);
+  --fabric-button-ghost-hover: rgba(46, 35, 32, 0.08);
+  --fabric-button-ghost-active: rgba(46, 35, 32, 0.12);
   --fabric-button-ghost-active-text: var(--fabric-text-primary);
 
   /* Danger */
@@ -178,9 +187,9 @@
   --fabric-button-danger-active-text: rgb(255, 41, 41);
 
   /* ── Inputs ──────────────────────────────────────────────── */
-  --fabric-input-bg: var(--fabric-gray-900);
-  --fabric-input-border: var(--fabric-border);
-  --fabric-input-border-focus: var(--fabric-text-secondary);
+  --fabric-input-bg: #ffffff;
+  --fabric-input-border: #d8d0c7;
+  --fabric-input-border-focus: #7e6a61;
   --fabric-input-text: var(--fabric-text-primary);
   --fabric-input-placeholder: var(--fabric-text-disabled);
   --fabric-input-error-border: var(--fabric-red-500);
@@ -277,14 +286,14 @@
   /* ── React Flow ─────────────────────────────────────────── */
 
   /* ── Canvas ─────────────────────────────────────────── */
-  --fabric-canvas-bg: #0f0f0f;
-  --fabric-canvas-grid: rgba(255, 255, 255, 0.104);
+  --fabric-canvas-bg: #fbfaf7;
+  --fabric-canvas-grid: rgba(46, 35, 32, 0.1);
 
   /* ── Node Colors ─────────────────────────────────────────── */
-  --fabric-node-header: #161617;
-  --fabric-node-body: #191919;
-  --fabric-node-border: rgb(54, 54, 54);
-  --fabric-node-selected: rgb(77, 77, 77);
+  --fabric-node-header: #fffdf9;
+  --fabric-node-body: #ffffff;
+  --fabric-node-border: #d8d0c7;
+  --fabric-node-selected: #3a2f2d;
 
   /* ── Handle Colors ─────────────────────────────────────────── */
   --fabric-node-handle: var(--fabric-node-border);
@@ -313,7 +322,7 @@
 
   /* Plugin */
   --fabric-node-plugin-bg: transparent;
-  --fabric-node-plugin-icon: rgb(253, 253, 253);
+  --fabric-node-plugin-icon: #3a2f2d;
   --fabric-node-plugin-border: var(--fabric-node-border);
 
   /* Code Block */
@@ -407,7 +416,7 @@
   --fabric-node-listener-tag-border: rgba(244, 114, 182, 0.1);
 
   /* ── Canvas (referenced in editor-shared.css as --fabric-bg-canvas) ── */
-  --fabric-bg-canvas: #0c0c0c;
+  --fabric-bg-canvas: #fbfaf7;
 
   /* ── Status semantic tokens ──────────────────────────────────── */
   /* Used by StatusBadge, last-run badge, workflow-badge, execution states */
@@ -446,19 +455,23 @@
    ========================================================= */
 :root.light {
   /* Backgrounds */
-  --fabric-bg-base: var(--fabric-gray-50);
-  --fabric-bg-surface: #f0f2f6;
-  --fabric-bg-elevated: var(--fabric-gray-100);
-  --fabric-bg-overlay: var(--fabric-gray-100);
-  --fabric-bg-muted: var(--fabric-gray-100);
+  --fabric-bg-base: #faf9f7;
+  --fabric-bg-surface: #ffffff;
+  --fabric-bg-elevated: #f4f1ed;
+  --fabric-bg-overlay: #ffffff;
+  --fabric-bg-muted: #f0ede8;
   --fabric-bg-subtle: var(--fabric-gray-200);
-  --fabric-bg-canvas: #f0f0f0;
-  --fabric-bg-inverse: rgb(15, 15, 15);
+  --fabric-bg-canvas: #fbfaf7;
+  --fabric-bg-inverse: #2f2524;
+  --fabric-bg-chrome: #3a2f2d;
+  --fabric-bg-chrome-elevated: #463936;
+  --fabric-bg-chrome-hover: rgba(255, 255, 255, 0.08);
 
   /* Borders */
   --fabric-border: rgba(0, 0, 0, 0.08);
   --fabric-border-muted: rgba(0, 0, 0, 0.04);
   --fabric-border-strong: rgba(0, 0, 0, 0.14);
+  --fabric-border-chrome: rgba(255, 255, 255, 0.12);
   --fabric-border-brand: rgba(237, 147, 58, 0.4);
 
   /* Text */
@@ -467,24 +480,26 @@
   --fabric-text-muted: var(--fabric-gray-500);
   --fabric-text-disabled: var(--fabric-gray-400);
   --fabric-text-inverse: #ffffff;
+  --fabric-text-chrome: #fffaf4;
+  --fabric-text-chrome-muted: #c8bbb5;
   --fabric-text-brand: var(--fabric-brand-600);
 
   /* Sidebar / Topbar */
-  --fabric-sidebar-bg: var(--fabric-bg-surface);
-  --fabric-sidebar-border: var(--fabric-border);
-  --fabric-sidebar-divider: var(--fabric-border);
-  --fabric-sidebar-text: var(--fabric-text-primary);
-  --fabric-sidebar-text-muted: var(--fabric-text-secondary);
-  --fabric-sidebar-link-text: var(--fabric-text-primary);
+  --fabric-sidebar-bg: var(--fabric-bg-chrome);
+  --fabric-sidebar-border: var(--fabric-border-chrome);
+  --fabric-sidebar-divider: var(--fabric-border-chrome);
+  --fabric-sidebar-text: var(--fabric-text-chrome);
+  --fabric-sidebar-text-muted: var(--fabric-text-chrome-muted);
+  --fabric-sidebar-link-text: var(--fabric-text-chrome);
 
-  --fabric-topbar-bg: var(--fabric-bg-surface);
-  --fabric-topbar-border: var(--fabric-border);
-  --fabric-topbar-search-bg: var(--fabric-bg-base);
-  --fabric-topbar-search-border: var(--fabric-border);
-  --fabric-topbar-search-text: var(--fabric-text-muted);
-  --fabric-topbar-search-hover-text: var(--fabric-text-primary);
-  --fabric-topbar-search-hover-bg: var(--fabric-button-ghost-hover);
-  --fabric-topbar-kbd-bg: var(--fabric-bg-surface);
+  --fabric-topbar-bg: var(--fabric-bg-chrome);
+  --fabric-topbar-border: var(--fabric-border-chrome);
+  --fabric-topbar-search-bg: rgba(255, 255, 255, 0.06);
+  --fabric-topbar-search-border: var(--fabric-border-chrome);
+  --fabric-topbar-search-text: var(--fabric-text-chrome-muted);
+  --fabric-topbar-search-hover-text: var(--fabric-text-chrome);
+  --fabric-topbar-search-hover-bg: var(--fabric-bg-chrome-hover);
+  --fabric-topbar-kbd-bg: transparent;
 
   /* Buttons */
   --fabric-button-primary-bg: var(--fabric-gray-900);
@@ -531,14 +546,14 @@
   --fabric-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15), 0 8px 20px rgba(0, 0, 0, 0.1);
 
   /* Canvas */
-  --fabric-canvas-bg: #f1f1f1;
-  --fabric-canvas-grid: rgba(0, 0, 0, 0.143);
+  --fabric-canvas-bg: #fbfaf7;
+  --fabric-canvas-grid: rgba(46, 35, 32, 0.1);
 
   /* Node Colors (light) */
-  --fabric-node-header: #f8f8f8;
+  --fabric-node-header: #fffdf9;
   --fabric-node-body: #ffffff;
-  --fabric-node-border: rgb(194, 194, 194);
-  --fabric-node-selected: rgb(0, 0, 0);
+  --fabric-node-border: #d8d0c7;
+  --fabric-node-selected: #3a2f2d;
   --fabric-node-handle: var(--fabric-node-border);
   --fabric-node-handle-hover: var(--fabric-node-selected);
 

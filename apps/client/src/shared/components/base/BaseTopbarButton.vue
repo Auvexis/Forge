@@ -66,11 +66,11 @@ defineOptions({ inheritAttrs: false })
 
 .base-topbar-button:hover {
   color: var(--fabric-topbar-search-hover-text);
-  background: var(--fabric-button-ghost-hover);
+  background: var(--fabric-topbar-search-hover-bg);
 }
 
 .base-topbar-button:active {
-  background: var(--fabric-button-ghost-active);
+  background: var(--fabric-bg-chrome-elevated);
 }
 
 .base-topbar-button:disabled {
