@@ -325,7 +325,7 @@ function buildCoreParticles(): {
 
   const geo = new THREE.BufferGeometry()
   geo.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  geo.setAttribute('color', new THREE.BufferAttribute(colors, 3))
+  geo.setAttribute('aColor', new THREE.BufferAttribute(colors, 3))
 
   const uniforms = { uTime: { value: 0 }, uSize: { value: 340.0 } }
 
@@ -334,12 +334,12 @@ function buildCoreParticles(): {
     vertexShader: /* glsl */ `
       uniform float uTime;
       uniform float uSize;
-      attribute vec3 color;
+      attribute vec3 aColor;
       varying vec3 vColor;
       varying float vDist;
 
       void main() {
-        vColor = color;
+        vColor = aColor;
         vec3 pos = position;
         float r = length(pos.xz);
         float s = sin(r * 0.38 - uTime * 0.9) * 0.12;

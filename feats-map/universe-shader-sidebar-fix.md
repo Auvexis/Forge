@@ -1,0 +1,5 @@
+- [x] Mapear shader e layout do Universe
+- [x] Corrigir conflito de atributo no shader
+- [x] Remover bloco da sidebar no Universe
+- [x] Validar frontend
+- [x] Commitar mudancas

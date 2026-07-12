@@ -11,7 +11,7 @@
     <template #sidebar>
       <div
         class="app-sidebar-area"
-        :class="{ 'app-sidebar-area--collapsed': isSidebarCollapsed }"
+        :class="{ 'app-sidebar-area--collapsed': isSidebarCollapsed || appUiStore.isUniverseMode }"
         :style="{ '--fabric-active-sidebar-width': activeSidebarWidth }"
       >
         <Transition name="app-sidebar-universe">
