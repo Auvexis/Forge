@@ -1,0 +1,5 @@
+- [x] Adicionar inspector direito
+- [x] Mostrar contexto real do workflow
+- [x] Ajustar densidade visual
+- [x] Validar frontend
+- [x] Commitar mudancas

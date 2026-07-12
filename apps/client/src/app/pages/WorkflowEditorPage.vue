@@ -23,6 +23,7 @@ import { useAuvexisProductEvents } from '@/shared/composables/useAuvexisProductE
 import { useConfirm } from '@/shared/composables/useConfirm'
 import { useToast } from '@/shared/composables/useToast'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
+import { useNodeInspectorStore } from '@/features/workflow-editor/stores/node-inspector.store'
 import { PROFILE_SWITCH_REFRESH_EVENT } from '@/features/profiles/profileSwitchRefresh'
 import { computed, onMounted, onBeforeUnmount, watch, ref, markRaw } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
@@ -44,6 +45,7 @@ const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const commandPaletteStore = useCommandPaletteStore()
 const appPanelStore = useAppPanelStore()
+const nodeInspectorStore = useNodeInspectorStore()
 const agentPanelUi = useAgentPanelUiStore()
 const agentPanelStore = useAgentPanelStore()
 
@@ -145,6 +147,24 @@ const activeChatTitle = computed(() => {
   const trigger = activeChatTrigger.value as Record<string, unknown> | undefined
   return typeof trigger?.chatTitle === 'string' ? trigger.chatTitle.trim() : ''
 })
+const workflowNodeCount = computed(() =>
+  workflowStore.activeWorkflow ? Object.keys(workflowStore.activeWorkflow.nodes).length : 0,
+)
+const workflowEdgeCount = computed(() => workflowStore.activeWorkflow?.edges.length ?? 0)
+const workflowTriggerType = computed(() => workflowStore.activeWorkflow?.trigger.type ?? 'manual')
+const activeInspectorNode = computed(() => nodeInspectorStore.activeNode)
+const activeInspectorNodeName = computed(() => {
+  const data = activeInspectorNode.value?.data as Record<string, unknown> | undefined
+  return typeof data?.name === 'string' && data.name.trim()
+    ? data.name.trim()
+    : (activeInspectorNode.value?.id ?? 'Node')
+})
+const activeInspectorNodeType = computed(() => activeInspectorNode.value?.type ?? 'workflow')
+const activeInspectorNodeStatus = computed(() =>
+  activeInspectorNode.value?.id
+    ? executionStore.nodeStatuses[activeInspectorNode.value.id]?.status
+    : null,
+)
 const isDevChatOpen = computed(
   () => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session',
 )
@@ -750,6 +770,98 @@ watch(
         <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
       </div>
 
+      <template #inspector>
+        <aside class="workflow-inspector-panel" aria-label="Workflow inspector">
+          <header class="workflow-inspector-panel__header">
+            <div>
+              <span class="workflow-inspector-panel__eyebrow">Inspector</span>
+              <strong>{{ activeInspectorNode ? 'Node Properties' : 'Workflow Overview' }}</strong>
+            </div>
+            <button
+              class="workflow-inspector-panel__icon-button"
+              type="button"
+              title="Open workflow settings"
+              @click="showSettings = true"
+            >
+              <LucideIcon name="panel-right" :size="15" />
+            </button>
+          </header>
+
+          <section class="workflow-inspector-panel__section">
+            <span class="workflow-inspector-panel__section-title">Context</span>
+            <dl class="workflow-property-grid">
+              <div>
+                <dt>Name</dt>
+                <dd>{{ workflowStore.activeWorkflow?.metadata.name ?? 'Workflow' }}</dd>
+              </div>
+              <div>
+                <dt>Mode</dt>
+                <dd>{{ workflowStore.activeWorkflow?.metadata.isDraft ? 'Draft' : 'Saved' }}</dd>
+              </div>
+              <div>
+                <dt>Trigger</dt>
+                <dd>{{ workflowTriggerType }}</dd>
+              </div>
+              <div>
+                <dt>Version</dt>
+                <dd>v{{ workflowStore.activeWorkflow?.metadata.version ?? '1' }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="workflow-inspector-panel__section">
+            <span class="workflow-inspector-panel__section-title">Graph</span>
+            <div class="workflow-meter-grid">
+              <button type="button" @click="openGlobalAddNodePanel()">
+                <strong>{{ workflowNodeCount }}</strong>
+                <span>Nodes</span>
+              </button>
+              <button type="button" @click="canvasRef?.fitWorkflowView()">
+                <strong>{{ workflowEdgeCount }}</strong>
+                <span>Edges</span>
+              </button>
+              <button type="button" @click="toggleExecutionPanel">
+                <strong>{{ executionStore.timeline.length }}</strong>
+                <span>Events</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="workflow-inspector-panel__section">
+            <span class="workflow-inspector-panel__section-title">
+              {{ activeInspectorNode ? 'Selected Node' : 'Selection' }}
+            </span>
+            <div v-if="activeInspectorNode" class="workflow-selected-node">
+              <span class="workflow-selected-node__icon">
+                <LucideIcon name="box" :size="15" />
+              </span>
+              <div>
+                <strong>{{ activeInspectorNodeName }}</strong>
+                <small>{{ activeInspectorNodeType }}</small>
+              </div>
+              <code>{{ activeInspectorNodeStatus ?? 'idle' }}</code>
+            </div>
+            <div v-else class="workflow-inspector-panel__empty">
+              <LucideIcon name="mouse-pointer-2" :size="16" />
+              <span>Select or double-click a node to inspect details.</span>
+            </div>
+          </section>
+
+          <section
+            class="workflow-inspector-panel__section workflow-inspector-panel__section--actions"
+          >
+            <button type="button" @click="showVariables = true">
+              <LucideIcon name="tags" :size="14" />
+              Variables
+            </button>
+            <button type="button" @click="openExecutionPanel()">
+              <LucideIcon name="scroll-text" :size="14" />
+              Logs
+            </button>
+          </section>
+        </aside>
+      </template>
+
       <template #status>
         <WorkbenchStatusBar aria-label="Workflow workbench status">
           <template #left>
@@ -901,6 +1013,227 @@ watch(
 
 .workflow-tool-rail__spacer {
   flex: 1;
+}
+
+.workflow-inspector-panel {
+  display: flex;
+  flex-direction: column;
+  width: 248px;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--fabric-workbench-panel-bg);
+  color: var(--fabric-text-primary);
+  font-size: 12px;
+}
+
+.workflow-inspector-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 42px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--fabric-workbench-border);
+  background: var(--fabric-workbench-rail-bg);
+}
+
+.workflow-inspector-panel__header > div,
+.workflow-inspector-panel__section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.workflow-inspector-panel__header strong {
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-inspector-panel__eyebrow,
+.workflow-inspector-panel__section-title {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.workflow-inspector-panel__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--fabric-text-muted);
+  cursor: pointer;
+}
+
+.workflow-inspector-panel__icon-button:hover {
+  border-color: var(--fabric-border-muted);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
+}
+
+.workflow-inspector-panel__section {
+  gap: 8px;
+  padding: 10px;
+  border-bottom: 1px solid var(--fabric-workbench-border);
+}
+
+.workflow-property-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1px;
+  margin: 0;
+}
+
+.workflow-property-grid div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: center;
+  min-height: 24px;
+}
+
+.workflow-property-grid dt {
+  color: var(--fabric-text-muted);
+  font-size: 11px;
+}
+
+.workflow-property-grid dd {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--fabric-text-primary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-meter-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--fabric-border-muted);
+  background: var(--fabric-border-muted);
+}
+
+.workflow-meter-grid button {
+  display: flex;
+  min-width: 0;
+  min-height: 46px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 8px;
+  border: 0;
+  background: var(--fabric-workbench-panel-bg);
+  color: var(--fabric-text-primary);
+  cursor: pointer;
+}
+
+.workflow-meter-grid button:hover {
+  background: var(--fabric-button-ghost-hover);
+}
+
+.workflow-meter-grid strong {
+  font-size: 15px;
+  line-height: 1;
+}
+
+.workflow-meter-grid span {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.workflow-selected-node {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+}
+
+.workflow-selected-node__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 4px;
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-muted);
+}
+
+.workflow-selected-node div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.workflow-selected-node strong,
+.workflow-selected-node small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-selected-node strong {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.workflow-selected-node small,
+.workflow-selected-node code {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.workflow-inspector-panel__empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  color: var(--fabric-text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.workflow-inspector-panel__section--actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  margin-top: auto;
+  padding: 0;
+  border-top: 1px solid var(--fabric-workbench-border);
+  border-bottom: 0;
+  background: var(--fabric-border-muted);
+}
+
+.workflow-inspector-panel__section--actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  border: 0;
+  background: var(--fabric-workbench-panel-bg);
+  color: var(--fabric-text-muted);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.workflow-inspector-panel__section--actions button:hover {
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-status-bar__button {
