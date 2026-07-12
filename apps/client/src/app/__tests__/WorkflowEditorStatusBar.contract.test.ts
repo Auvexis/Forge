@@ -18,6 +18,7 @@ test('workflow editor status bar opens global dev chat and central workflow bott
   assert.match(source, /WorkflowWorkbenchBottomPanel/)
   assert.match(source, /workflow-status-bar__button/)
   assert.match(source, />\s*Chat\s*</)
+  assert.match(source, />\s*Inspector\s*</)
   assert.match(source, />\s*Tree\s*</)
   assert.match(source, />\s*Variables\s*</)
   assert.match(source, />\s*Execution\s*</)
@@ -26,6 +27,7 @@ test('workflow editor status bar opens global dev chat and central workflow bott
   assert.match(source, /openBottomPanel\('execution'\)/)
   assert.match(source, /toggleBottomPanel\('tree'\)/)
   assert.match(source, /toggleBottomPanel\('variables'\)/)
+  assert.match(source, /showInspector = !showInspector/)
   assert.match(source, /workflow-workbench__bottom-panel/)
 })
 

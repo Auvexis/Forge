@@ -1,47 +1,45 @@
 <template>
-  <Transition :name="transitionName">
-    <aside
-      ref="panelRef"
-      v-show="isOpen"
-      class="app-panel surface-elevated"
-      :class="[
-        `app-panel--${position}`,
-        `app-panel--${width}`,
-        { 'app-panel--resizing': isResizing },
-      ]"
-      :style="panelStyle"
-    >
-      <div
-        v-if="resizable"
-        class="app-panel__resize-handle"
-        :class="`app-panel__resize-handle--${resizeSide}`"
-        role="separator"
-        :aria-orientation="isHorizontalResize ? 'vertical' : 'horizontal'"
-        title="Resize panel"
-        @mousedown="startResize"
-        @dblclick="resetResize"
-      />
+  <aside
+    ref="panelRef"
+    v-show="isOpen"
+    class="app-panel surface-elevated"
+    :class="[
+      `app-panel--${position}`,
+      `app-panel--${width}`,
+      { 'app-panel--resizing': isResizing },
+    ]"
+    :style="panelStyle"
+  >
+    <div
+      v-if="resizable"
+      class="app-panel__resize-handle"
+      :class="`app-panel__resize-handle--${resizeSide}`"
+      role="separator"
+      :aria-orientation="isHorizontalResize ? 'vertical' : 'horizontal'"
+      title="Resize panel"
+      @mousedown="startResize"
+      @dblclick="resetResize"
+    />
 
-      <div class="app-panel__header">
-        <h3 class="app-panel__title">{{ title }}</h3>
+    <div class="app-panel__header">
+      <h3 class="app-panel__title">{{ title }}</h3>
 
-        <div class="app-panel__actions">
-          <slot name="actions"></slot>
-          <button v-if="showClose" class="app-panel__close" @click="close">
-            <LucideIcon name="X" :size="18" />
-          </button>
-        </div>
+      <div class="app-panel__actions">
+        <slot name="actions"></slot>
+        <button v-if="showClose" class="app-panel__close" @click="close">
+          <LucideIcon name="X" :size="18" />
+        </button>
       </div>
+    </div>
 
-      <div class="app-panel__body">
-        <slot></slot>
-      </div>
+    <div class="app-panel__body">
+      <slot></slot>
+    </div>
 
-      <div v-if="$slots.footer" class="app-panel__footer">
-        <slot name="footer"></slot>
-      </div>
-    </aside>
-  </Transition>
+    <div v-if="$slots.footer" class="app-panel__footer">
+      <slot name="footer"></slot>
+    </div>
+  </aside>
 </template>
 
 <script setup lang="ts">
@@ -98,13 +96,6 @@ function emitResize() {
     height: resizedHeight.value,
   })
 }
-
-const transitionName = computed(() => {
-  if (props.position === 'right') return 'slide-right'
-  if (props.position === 'left') return 'slide-left'
-  if (props.position === 'bottom') return 'slide-up'
-  return 'fade'
-})
 
 useKeyboard(
   'escape',

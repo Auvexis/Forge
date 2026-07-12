@@ -58,9 +58,17 @@ describe('global app panel resize', () => {
     assert.match(appPanelSource, /\.app-panel__footer\s*\{[\s\S]*padding: var\(--fabric-space-2\) var\(--fabric-space-3\);/)
   })
 
-  it('opens the workflow execution panel as top-resizable', () => {
-    assert.match(workflowPageSource, /id: 'workflow-execution-bottom-panel'/)
-    assert.match(workflowPageSource, /resizable: true/)
-    assert.match(workflowPageSource, /resizeSide: 'top'/)
+  it('keeps AppPanel docked without drawer transitions', () => {
+    assert.doesNotMatch(appPanelSource, /<Transition/)
+    assert.doesNotMatch(appPanelSource, /transitionName/)
+    assert.doesNotMatch(appPanelSource, /slide-right|slide-left|slide-up/)
+  })
+
+  it('keeps workflow bottom panel resizing local to the workbench', () => {
+    assert.match(workflowPageSource, /WorkflowWorkbenchBottomPanel/)
+    assert.match(workflowPageSource, /startBottomPanelResize/)
+    assert.match(workflowPageSource, /resizeBottomPanel/)
+    assert.match(workflowPageSource, /workflowBottomPanelHeight/)
+    assert.doesNotMatch(workflowPageSource, /id: 'workflow-execution-bottom-panel'/)
   })
 })

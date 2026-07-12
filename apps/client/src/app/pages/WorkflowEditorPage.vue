@@ -1082,6 +1082,17 @@ watch(
 
             <button
               class="workflow-status-bar__button"
+              :class="{ 'workflow-status-bar__button--active': showInspector }"
+              type="button"
+              @click="showInspector = !showInspector"
+            >
+              <LucideIcon name="panel-right" :size="13" />
+              <span>Inspector</span>
+              <code>{{ showInspector ? 'open' : 'closed' }}</code>
+            </button>
+
+            <button
+              class="workflow-status-bar__button"
               :class="{
                 'workflow-status-bar__button--active':
                   isBottomPanelOpen && activeBottomPanelView === 'tree',
