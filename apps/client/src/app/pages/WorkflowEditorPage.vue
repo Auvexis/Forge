@@ -13,6 +13,7 @@ import WorkflowSettingsPanel from '@/features/workflow-editor/components/ui/Work
 import WorkflowVariablesModal from '@/features/workflow-editor/components/ui/WorkflowVariablesModal.vue'
 import ExecutionBottomPanel from '@/features/workflow-editor/components/execution/ExecutionBottomPanel.vue'
 import AppPage from '@/shared/components/layout/AppPage.vue'
+import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import AppWorkbench from '@/shared/components/workbench/AppWorkbench.vue'
 import WorkbenchStatusBar from '@/shared/components/workbench/WorkbenchStatusBar.vue'
 import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
@@ -768,15 +769,18 @@ watch(
 
       <div class="workflow-workbench__canvas">
         <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
-      </div>
 
-      <template #inspector>
-        <aside class="workflow-inspector-panel" aria-label="Workflow inspector">
-          <header class="workflow-inspector-panel__header">
-            <div>
-              <span class="workflow-inspector-panel__eyebrow">Inspector</span>
-              <strong>{{ activeInspectorNode ? 'Node Properties' : 'Workflow Overview' }}</strong>
-            </div>
+        <AppPanel
+          class="workflow-inspector-panel"
+          :is-open="true"
+          title="Inspector"
+          position="right"
+          width="md"
+          :show-close="false"
+          resizable
+          resize-side="left"
+        >
+          <template #actions>
             <button
               class="workflow-inspector-panel__icon-button"
               type="button"
@@ -785,82 +789,84 @@ watch(
             >
               <LucideIcon name="panel-right" :size="15" />
             </button>
-          </header>
+          </template>
 
-          <section class="workflow-inspector-panel__section">
-            <span class="workflow-inspector-panel__section-title">Context</span>
-            <dl class="workflow-property-grid">
-              <div>
-                <dt>Name</dt>
-                <dd>{{ workflowStore.activeWorkflow?.metadata.name ?? 'Workflow' }}</dd>
-              </div>
-              <div>
-                <dt>Mode</dt>
-                <dd>{{ workflowStore.activeWorkflow?.metadata.isDraft ? 'Draft' : 'Saved' }}</dd>
-              </div>
-              <div>
-                <dt>Trigger</dt>
-                <dd>{{ workflowTriggerType }}</dd>
-              </div>
-              <div>
-                <dt>Version</dt>
-                <dd>v{{ workflowStore.activeWorkflow?.metadata.version ?? '1' }}</dd>
-              </div>
-            </dl>
-          </section>
+          <div class="workflow-inspector-panel__body" aria-label="Workflow inspector">
+            <section class="workflow-inspector-panel__section">
+              <span class="workflow-inspector-panel__section-title">Context</span>
+              <dl class="workflow-property-grid">
+                <div>
+                  <dt>Name</dt>
+                  <dd>{{ workflowStore.activeWorkflow?.metadata.name ?? 'Workflow' }}</dd>
+                </div>
+                <div>
+                  <dt>Mode</dt>
+                  <dd>{{ workflowStore.activeWorkflow?.metadata.isDraft ? 'Draft' : 'Saved' }}</dd>
+                </div>
+                <div>
+                  <dt>Trigger</dt>
+                  <dd>{{ workflowTriggerType }}</dd>
+                </div>
+                <div>
+                  <dt>Version</dt>
+                  <dd>v{{ workflowStore.activeWorkflow?.metadata.version ?? '1' }}</dd>
+                </div>
+              </dl>
+            </section>
 
-          <section class="workflow-inspector-panel__section">
-            <span class="workflow-inspector-panel__section-title">Graph</span>
-            <div class="workflow-meter-grid">
-              <button type="button" @click="openGlobalAddNodePanel()">
-                <strong>{{ workflowNodeCount }}</strong>
-                <span>Nodes</span>
-              </button>
-              <button type="button" @click="canvasRef?.fitWorkflowView()">
-                <strong>{{ workflowEdgeCount }}</strong>
-                <span>Edges</span>
-              </button>
-              <button type="button" @click="toggleExecutionPanel">
-                <strong>{{ executionStore.timeline.length }}</strong>
-                <span>Events</span>
-              </button>
-            </div>
-          </section>
+            <section class="workflow-inspector-panel__section">
+              <span class="workflow-inspector-panel__section-title">Graph</span>
+              <div class="workflow-meter-grid">
+                <button type="button" @click="openGlobalAddNodePanel()">
+                  <strong>{{ workflowNodeCount }}</strong>
+                  <span>Nodes</span>
+                </button>
+                <button type="button" @click="canvasRef?.fitWorkflowView()">
+                  <strong>{{ workflowEdgeCount }}</strong>
+                  <span>Edges</span>
+                </button>
+                <button type="button" @click="toggleExecutionPanel">
+                  <strong>{{ executionStore.timeline.length }}</strong>
+                  <span>Events</span>
+                </button>
+              </div>
+            </section>
 
-          <section class="workflow-inspector-panel__section">
-            <span class="workflow-inspector-panel__section-title">
-              {{ activeInspectorNode ? 'Selected Node' : 'Selection' }}
-            </span>
-            <div v-if="activeInspectorNode" class="workflow-selected-node">
-              <span class="workflow-selected-node__icon">
-                <LucideIcon name="box" :size="15" />
+            <section class="workflow-inspector-panel__section">
+              <span class="workflow-inspector-panel__section-title">
+                {{ activeInspectorNode ? 'Selected Node' : 'Selection' }}
               </span>
-              <div>
-                <strong>{{ activeInspectorNodeName }}</strong>
-                <small>{{ activeInspectorNodeType }}</small>
+              <div v-if="activeInspectorNode" class="workflow-selected-node">
+                <span class="workflow-selected-node__icon">
+                  <LucideIcon name="box" :size="15" />
+                </span>
+                <div>
+                  <strong>{{ activeInspectorNodeName }}</strong>
+                  <small>{{ activeInspectorNodeType }}</small>
+                </div>
+                <code>{{ activeInspectorNodeStatus ?? 'idle' }}</code>
               </div>
-              <code>{{ activeInspectorNodeStatus ?? 'idle' }}</code>
-            </div>
-            <div v-else class="workflow-inspector-panel__empty">
-              <LucideIcon name="mouse-pointer-2" :size="16" />
-              <span>Select or double-click a node to inspect details.</span>
-            </div>
-          </section>
+              <div v-else class="workflow-inspector-panel__empty">
+                <LucideIcon name="mouse-pointer-2" :size="16" />
+                <span>Select or double-click a node to inspect details.</span>
+              </div>
+            </section>
 
-          <section
-            class="workflow-inspector-panel__section workflow-inspector-panel__section--actions"
-          >
-            <button type="button" @click="showVariables = true">
-              <LucideIcon name="tags" :size="14" />
-              Variables
-            </button>
-            <button type="button" @click="openExecutionPanel()">
-              <LucideIcon name="scroll-text" :size="14" />
-              Logs
-            </button>
-          </section>
-        </aside>
-      </template>
+            <section
+              class="workflow-inspector-panel__section workflow-inspector-panel__section--actions"
+            >
+              <button type="button" @click="showVariables = true">
+                <LucideIcon name="tags" :size="14" />
+                Variables
+              </button>
+              <button type="button" @click="openExecutionPanel()">
+                <LucideIcon name="scroll-text" :size="14" />
+                Logs
+              </button>
+            </section>
+          </div>
+        </AppPanel>
+      </div>
 
       <template #status>
         <WorkbenchStatusBar aria-label="Workflow workbench status">
@@ -1016,43 +1022,36 @@ watch(
 }
 
 .workflow-inspector-panel {
+  --app-panel-resized-width: 280px;
+}
+
+.workflow-inspector-panel :deep(.app-panel__header) {
+  height: 38px;
+  padding: 0 8px 0 10px;
+  background: var(--fabric-workbench-rail-bg);
+}
+
+.workflow-inspector-panel :deep(.app-panel__title) {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.workflow-inspector-panel :deep(.app-panel__body) {
+  overflow: hidden;
+}
+
+.workflow-inspector-panel__body {
   display: flex;
-  flex-direction: column;
-  width: 248px;
+  min-width: 0;
   height: 100%;
   min-height: 0;
+  flex-direction: column;
   overflow: hidden;
   background: var(--fabric-workbench-panel-bg);
   color: var(--fabric-text-primary);
   font-size: 12px;
 }
 
-.workflow-inspector-panel__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 42px;
-  padding: 0 10px;
-  border-bottom: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workbench-rail-bg);
-}
-
-.workflow-inspector-panel__header > div,
-.workflow-inspector-panel__section {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-}
-
-.workflow-inspector-panel__header strong {
-  overflow: hidden;
-  font-size: 12px;
-  font-weight: 650;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.workflow-inspector-panel__eyebrow,
 .workflow-inspector-panel__section-title {
   color: var(--fabric-text-muted);
   font-size: 10px;
@@ -1082,6 +1081,9 @@ watch(
 }
 
 .workflow-inspector-panel__section {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
   gap: 8px;
   padding: 10px;
   border-bottom: 1px solid var(--fabric-workbench-border);
