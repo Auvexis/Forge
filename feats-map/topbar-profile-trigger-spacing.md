@@ -1,0 +1,4 @@
+- [x] Mapear causa do espacamento
+- [x] Ajustar largura do trigger
+- [x] Validar frontend
+- [x] Commitar mudancas

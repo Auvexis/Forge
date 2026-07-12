@@ -151,7 +151,14 @@ function handleAction(action: ProfileDropdownAction) {
 
 <style scoped>
 .base-profile-dropdown {
-  min-width: 300px;
+  width: fit-content;
+  min-width: 0;
+}
+
+.base-profile-dropdown :deep(.app-popover-wrapper),
+.base-profile-dropdown :deep(.app-popover-trigger) {
+  width: fit-content;
+  min-width: 0;
 }
 
 .base-profile-dropdown :deep(.app-dropdown-menu) {
