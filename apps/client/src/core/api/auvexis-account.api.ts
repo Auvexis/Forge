@@ -23,6 +23,10 @@ export interface AuvexisAccountProfile {
   username: string
   displayName?: string | null
   email?: string
+  avatarUrl?: string | null
+  profileImageUrl?: string | null
+  pictureUrl?: string | null
+  photoUrl?: string | null
   badges: AuvexisAccountBadge[]
 }
 

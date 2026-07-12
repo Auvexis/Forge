@@ -1,23 +1,51 @@
 <template>
   <section class="auvexis-settings">
+    <div class="auvexis-settings__cover" aria-hidden="true"></div>
+
     <div class="auvexis-settings__hero">
       <div class="auvexis-settings__avatar">
-        <LucideIcon name="shield-check" :size="24" />
+        <img
+          v-if="accountAvatarUrl"
+          class="auvexis-settings__avatar-image"
+          :src="accountAvatarUrl"
+          alt=""
+          aria-hidden="true"
+        />
+        <LucideIcon v-else name="user-round" :size="30" />
       </div>
 
-      <div class="auvexis-settings__identity">
-        <div class="auvexis-settings__title-row">
-          <h3 class="auvexis-settings__title">
-            {{ accountDisplayName }}
-          </h3>
-          <BaseBadge :variant="statusBadgeVariant" size="sm" :icon="statusBadgeIcon">
-            {{ statusLabel }}
-          </BaseBadge>
-        </div>
-        <p class="auvexis-settings__description">
-          {{ accountStore.status === 'connected' ? 'Connected to this Fabric profile.' : 'Connect this Fabric profile to your Auvexis identity.' }}
-        </p>
+      <div class="auvexis-settings__hero-actions">
+        <BaseButton variant="secondary" size="sm" :loading="accountStore.isLoading" @click="accountStore.loadStatus">
+          <template #left>
+            <LucideIcon name="refresh-cw" :size="15" />
+          </template>
+          Refresh
+        </BaseButton>
+
+        <BaseButton
+          v-if="accountStore.status !== 'disconnected'"
+          variant="danger"
+          size="sm"
+          :loading="accountStore.isDisconnecting"
+          @click="accountStore.logout"
+        >
+          Logout
+        </BaseButton>
       </div>
+    </div>
+
+    <div class="auvexis-settings__identity">
+      <div class="auvexis-settings__title-row">
+        <h3 class="auvexis-settings__title">
+          {{ accountDisplayName }}
+        </h3>
+        <BaseBadge :variant="statusBadgeVariant" size="sm" :icon="statusBadgeIcon">
+          {{ statusLabel }}
+        </BaseBadge>
+      </div>
+      <p class="auvexis-settings__description">
+        {{ accountEmailLabel }}
+      </p>
     </div>
 
     <div v-if="accountStore.isLoading" class="auvexis-settings__state">
@@ -27,55 +55,85 @@
 
     <div v-else class="auvexis-settings__body">
       <template v-if="accountStore.status === 'connected' && accountStore.account">
-        <div class="auvexis-settings__profile-grid">
-          <div class="auvexis-settings__field">
-            <span class="auvexis-settings__label">Display name</span>
-            <strong class="auvexis-settings__value">{{ accountDisplayName }}</strong>
+        <div class="auvexis-settings__metrics">
+          <div class="auvexis-settings__metric">
+            <span>Status</span>
+            <strong>{{ statusLabel }}</strong>
           </div>
-
-          <div class="auvexis-settings__field">
-            <span class="auvexis-settings__label">Username</span>
-            <strong class="auvexis-settings__value">@{{ accountStore.account.username }}</strong>
+          <div class="auvexis-settings__metric">
+            <span>Badges</span>
+            <strong>{{ badgeCountLabel }}</strong>
           </div>
-
-          <div class="auvexis-settings__field auvexis-settings__field--wide">
-            <span class="auvexis-settings__label">Email address</span>
-            <strong class="auvexis-settings__value">
-              {{ accountStore.account.email || 'No email provided' }}
-            </strong>
+          <div class="auvexis-settings__metric">
+            <span>Last validated</span>
+            <strong>{{ lastValidatedLabel }}</strong>
           </div>
         </div>
 
-        <div class="auvexis-settings__badge-section">
-          <div>
-            <span class="auvexis-settings__label">Badges</span>
-            <p class="auvexis-settings__hint">Hover a badge to inspect its details.</p>
+        <div class="auvexis-settings__rows">
+          <div class="auvexis-settings__row">
+            <span class="auvexis-settings__label">Name</span>
+            <div class="auvexis-settings__row-controls auvexis-settings__row-controls--split">
+              <div class="auvexis-settings__control">{{ accountNameParts.firstName }}</div>
+              <div class="auvexis-settings__control">{{ accountNameParts.lastName }}</div>
+            </div>
           </div>
-          <div class="auvexis-settings__badges">
-            <span
-              v-for="badge in accountStore.account.badges"
-              :key="badge.id"
-              class="auvexis-settings__badge-wrap"
-            >
-              <span class="auvexis-settings__badge" :style="badgeStyle(badge)">
-                <img
-                  v-if="badge.iconUrl"
-                  class="auvexis-settings__badge-icon"
-                  :src="badge.iconUrl"
-                  alt=""
-                  aria-hidden="true"
-                />
-                {{ badge.name }}
-              </span>
-              <span class="auvexis-settings__badge-hint">
-                <strong>{{ badge.name }}</strong>
-                <span v-if="badge.description">{{ badge.description }}</span>
-                <span>Awarded {{ formatBadgeDate(badge.awardedAt) }}</span>
-              </span>
-            </span>
-            <span v-if="accountStore.account.badges.length === 0" class="auvexis-settings__muted">
-              No badges yet
-            </span>
+
+          <div class="auvexis-settings__row">
+            <span class="auvexis-settings__label">Email address</span>
+            <div class="auvexis-settings__row-controls">
+              <div class="auvexis-settings__control auvexis-settings__control--with-icon">
+                <LucideIcon name="mail" :size="16" />
+                <span>{{ accountEmailLabel }}</span>
+              </div>
+              <div class="auvexis-settings__verified">
+                <LucideIcon name="badge-check" :size="14" />
+                Verified by Auvexis
+              </div>
+            </div>
+          </div>
+
+          <div class="auvexis-settings__row">
+            <span class="auvexis-settings__label">Username</span>
+            <div class="auvexis-settings__row-controls">
+              <div class="auvexis-settings__control auvexis-settings__username-control">
+                <span class="auvexis-settings__username-prefix">auvexis.com/</span>
+                <span>{{ accountStore.account.username }}</span>
+                <LucideIcon name="badge-check" :size="15" />
+              </div>
+            </div>
+          </div>
+
+          <div class="auvexis-settings__row auvexis-settings__row--top">
+            <span class="auvexis-settings__label">Badges</span>
+            <div class="auvexis-settings__row-controls">
+              <div class="auvexis-settings__badges">
+                <span
+                  v-for="badge in accountStore.account.badges"
+                  :key="badge.id"
+                  class="auvexis-settings__badge-wrap"
+                >
+                  <span class="auvexis-settings__badge" :style="badgeStyle(badge)">
+                    <img
+                      v-if="badge.iconUrl"
+                      class="auvexis-settings__badge-icon"
+                      :src="badge.iconUrl"
+                      alt=""
+                      aria-hidden="true"
+                    />
+                    {{ badge.name }}
+                  </span>
+                  <span class="auvexis-settings__badge-hint">
+                    <strong>{{ badge.name }}</strong>
+                    <span v-if="badge.description">{{ badge.description }}</span>
+                    <span>Awarded {{ formatBadgeDate(badge.awardedAt) }}</span>
+                  </span>
+                </span>
+                <span v-if="accountStore.account.badges.length === 0" class="auvexis-settings__muted">
+                  No badges yet
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </template>
@@ -105,22 +163,6 @@
             <LucideIcon name="external-link" :size="16" />
           </template>
           {{ accountStore.status === 'needs_reconnect' ? 'Reconnect Auvexis' : 'Connect Auvexis Account' }}
-        </BaseButton>
-
-        <BaseButton variant="secondary" :loading="accountStore.isLoading" @click="accountStore.loadStatus">
-          <template #left>
-            <LucideIcon name="refresh-cw" :size="16" />
-          </template>
-          Refresh
-        </BaseButton>
-
-        <BaseButton
-          v-if="accountStore.status !== 'disconnected'"
-          variant="danger"
-          :loading="accountStore.isDisconnecting"
-          @click="accountStore.logout"
-        >
-          Logout
         </BaseButton>
       </div>
     </div>
@@ -160,6 +202,34 @@ const accountDisplayName = computed(() => {
   return account?.displayName || account?.username || 'Auvexis Account'
 })
 
+const accountAvatarUrl = computed(() => {
+  const account = accountStore.account
+  return account?.avatarUrl || account?.profileImageUrl || account?.pictureUrl || account?.photoUrl || null
+})
+
+const accountEmailLabel = computed(() => accountStore.account?.email || 'No email provided')
+
+const accountNameParts = computed(() => {
+  const parts = accountDisplayName.value.trim().split(/\s+/).filter(Boolean)
+  const firstName = parts.shift() || accountStore.account?.username || 'Auvexis'
+  const lastName = parts.join(' ')
+
+  return {
+    firstName,
+    lastName: lastName || '-',
+  }
+})
+
+const badgeCountLabel = computed(() => {
+  const count = accountStore.account?.badges.length ?? 0
+  return count === 1 ? '1 badge' : `${count} badges`
+})
+
+const lastValidatedLabel = computed(() => {
+  if (!accountStore.lastValidatedAt) return '-'
+  return formatBadgeDate(accountStore.lastValidatedAt)
+})
+
 const badgeStyle = (badge: AuvexisAccountBadge) => ({
   backgroundColor: badge.style.backgroundColor,
   borderColor: badge.style.borderColor,
@@ -189,34 +259,61 @@ onMounted(() => {
   gap: 0;
 }
 
+.auvexis-settings__cover {
+  height: 96px;
+  margin: 0 18px;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--fabric-accent) 18%, transparent), transparent 42%),
+    linear-gradient(160deg, var(--fabric-bg-muted), var(--fabric-bg-surface) 48%, color-mix(in srgb, var(--fabric-accent) 12%, var(--fabric-bg-surface)));
+}
+
 .auvexis-settings__hero {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 24px 18px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: -36px;
+  padding: 0 34px 12px;
 }
 
 .auvexis-settings__avatar {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--fabric-border-muted);
+  width: 78px;
+  height: 78px;
+  overflow: hidden;
+  border: 3px solid var(--fabric-bg-base);
   border-radius: 50%;
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--fabric-accent) 18%, transparent), transparent),
-    var(--fabric-bg-surface);
-  color: var(--fabric-accent);
+  background: var(--fabric-bg-surface);
+  box-shadow: 0 0 0 1px var(--fabric-border);
+  color: var(--fabric-text-muted);
   flex: 0 0 auto;
+}
+
+.auvexis-settings__avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.auvexis-settings__hero-actions,
+.auvexis-settings__badges,
+.auvexis-settings__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .auvexis-settings__identity {
   display: flex;
   min-width: 0;
-  flex: 1;
   flex-direction: column;
   gap: 4px;
+  padding: 0 34px 14px;
 }
 
 .auvexis-settings__title-row {
@@ -230,15 +327,14 @@ onMounted(() => {
 .auvexis-settings__title {
   margin: 0;
   color: var(--fabric-text-primary);
-  font-size: 16px;
-  font-weight: 600;
-  line-height: 1.25;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .auvexis-settings__description,
 .auvexis-settings__muted,
-.auvexis-settings__label,
-.auvexis-settings__hint {
+.auvexis-settings__label {
   margin: 0;
   color: var(--fabric-text-muted);
   font-size: 12px;
@@ -246,7 +342,8 @@ onMounted(() => {
 }
 
 .auvexis-settings__label {
-  font-weight: 500;
+  color: var(--fabric-text-primary);
+  font-weight: 600;
 }
 
 .auvexis-settings__state,
@@ -254,65 +351,160 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 18px 24px;
+  padding: 18px 34px;
   font-size: 12px;
   color: var(--fabric-text-secondary);
 }
 
 .auvexis-settings__notice {
-  margin: 0 24px;
+  margin: 0 34px;
   border-top: 1px solid var(--fabric-border-muted);
   border-bottom: 1px solid var(--fabric-border-muted);
   background: transparent;
   color: var(--fabric-status-running-text);
 }
 
-.auvexis-settings__body {
+.auvexis-settings__body,
+.auvexis-settings__rows {
   display: flex;
   flex-direction: column;
 }
 
-.auvexis-settings__profile-grid {
+.auvexis-settings__metrics {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: 8px 24px 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 2px 34px 14px;
 }
 
-.auvexis-settings__field {
+.auvexis-settings__metric {
   display: flex;
   min-width: 0;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  padding-right: 14px;
 }
 
-.auvexis-settings__field--wide {
-  grid-column: 1 / -1;
+.auvexis-settings__metric + .auvexis-settings__metric {
+  padding-left: 14px;
+  border-left: 1px solid var(--fabric-border-muted);
 }
 
-.auvexis-settings__badge-section,
+.auvexis-settings__metric span {
+  color: var(--fabric-text-muted);
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.auvexis-settings__metric strong {
+  overflow: hidden;
+  color: var(--fabric-text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auvexis-settings__rows {
+  padding: 0 34px;
+}
+
+.auvexis-settings__row,
 .auvexis-settings__empty-state {
   display: grid;
-  grid-template-columns: minmax(120px, 0.4fr) minmax(0, 1fr);
-  align-items: flex-start;
-  gap: 18px;
-  padding: 16px 24px;
+  grid-template-columns: 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
   border-top: 1px solid var(--fabric-border-muted);
 }
 
-.auvexis-settings__value {
+.auvexis-settings__row--top {
+  align-items: flex-start;
+}
+
+.auvexis-settings__row-controls {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auvexis-settings__row-controls--split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.auvexis-settings__control {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-md);
+  background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
   font-size: 13px;
   font-weight: 500;
-  line-height: 1.35;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.auvexis-settings__badges,
-.auvexis-settings__actions {
+.auvexis-settings__control--with-icon {
+  gap: 8px;
+}
+
+.auvexis-settings__control--with-icon svg {
+  color: var(--fabric-text-muted);
+  flex: 0 0 auto;
+}
+
+.auvexis-settings__verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  color: var(--fabric-accent);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.auvexis-settings__username-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0;
+  padding: 0;
+}
+
+.auvexis-settings__username-control > span,
+.auvexis-settings__username-control > svg {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
+  height: 100%;
+  padding: 0 12px;
+}
+
+.auvexis-settings__username-control > span:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.auvexis-settings__username-control > svg {
+  padding-left: 6px;
+  color: var(--fabric-accent);
+}
+
+.auvexis-settings__username-prefix {
+  border-right: 1px solid var(--fabric-border-muted);
+  background: var(--fabric-bg-muted);
+  color: var(--fabric-text-muted);
 }
 
 .auvexis-settings__badge-wrap {
@@ -323,8 +515,8 @@ onMounted(() => {
 .auvexis-settings__badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  min-height: 24px;
+  gap: 5px;
+  min-height: 25px;
   padding: 2px 9px;
   border: 1px solid;
   border-radius: 999px;
@@ -376,9 +568,13 @@ onMounted(() => {
   transform: translateX(-50%) translateY(0);
 }
 
+.auvexis-settings__empty-state {
+  margin: 0 34px;
+}
+
 .auvexis-settings__error {
   margin: 0;
-  padding: 12px 24px;
+  padding: 12px 34px;
   border-top: 1px solid var(--fabric-border-muted);
   font-size: 12px;
   color: var(--fabric-status-error-text);
@@ -386,7 +582,7 @@ onMounted(() => {
 
 .auvexis-settings__actions {
   justify-content: flex-end;
-  padding: 18px 24px 0;
+  padding: 16px 34px 0;
 }
 
 .auvexis-settings__spin {
@@ -394,11 +590,46 @@ onMounted(() => {
 }
 
 @media (max-width: 720px) {
-  .auvexis-settings__profile-grid,
-  .auvexis-settings__badge-section,
+  .auvexis-settings__cover {
+    margin: 0 14px;
+  }
+
+  .auvexis-settings__hero,
+  .auvexis-settings__identity,
+  .auvexis-settings__metrics,
+  .auvexis-settings__rows,
+  .auvexis-settings__state,
+  .auvexis-settings__error,
+  .auvexis-settings__actions {
+    padding-right: 20px;
+    padding-left: 20px;
+  }
+
+  .auvexis-settings__hero {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .auvexis-settings__metrics,
+  .auvexis-settings__row,
   .auvexis-settings__empty-state {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .auvexis-settings__metric + .auvexis-settings__metric {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .auvexis-settings__row-controls--split {
+    grid-template-columns: 1fr;
+  }
+
+  .auvexis-settings__empty-state,
+  .auvexis-settings__notice {
+    margin-right: 20px;
+    margin-left: 20px;
   }
 
   .auvexis-settings__actions {
