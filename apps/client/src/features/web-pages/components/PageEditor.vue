@@ -6,6 +6,15 @@
       'web-page-editor--right-collapsed': !isRightPanelOpen,
     }"
   >
+    <Teleport to="#fabric-topbar-context">
+      <PageProjectTopbarDropdown
+        :active-project="sitesStore.activeSite"
+        :projects="sitesStore.sites"
+        @open="listTopbarProjects"
+        @select-project="openProject"
+      />
+    </Teleport>
+
     <PageChromeToolbar
       :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
       :is-saving="pagesStore.isSaving || sitesStore.isSaving"
@@ -450,6 +459,7 @@ import PageMetadataPanel from './PageMetadataPanel.vue'
 import PageSwitcherModal from './PageSwitcherModal.vue'
 import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.vue'
 import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
+import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -1304,6 +1314,10 @@ async function openOpenProjectModal() {
   isOpenProjectModalOpen.value = true
   await sitesStore.listSites()
   await loadProjectPreviews()
+}
+
+async function listTopbarProjects() {
+  await sitesStore.listSites()
 }
 
 async function loadProjectPreviews() {

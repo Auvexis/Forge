@@ -41,6 +41,22 @@ describe('page chrome contract', () => {
     assert.match(source, /Export project/)
   })
 
+  it('page editor exposes the active project dropdown in the app topbar context', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const dropdown = read('src/features/web-pages/components/PageProjectTopbarDropdown.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(editor, /Teleport to="#fabric-topbar-context"/)
+    assert.match(editor, /PageProjectTopbarDropdown/)
+    assert.match(editor, /:active-project="sitesStore\.activeSite"/)
+    assert.match(editor, /:projects="sitesStore\.sites"/)
+    assert.match(editor, /@select-project="openProject"/)
+    assert.match(dropdown, /AppDropdownMenu/)
+    assert.match(dropdown, /Search projects/)
+    assert.match(dropdown, /activeProject\?\.name/)
+    assert.match(css, /\.web-page-project-topbar__trigger/)
+  })
+
   it('page chrome exposes undo and redo commands', () => {
     const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
