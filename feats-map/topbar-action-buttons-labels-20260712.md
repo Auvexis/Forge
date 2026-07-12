@@ -1,0 +1,4 @@
+- [x] Mapear bug de labels na topbar
+- [x] Separar botões fixos e expansíveis
+- [x] Validar frontend
+- [x] Commitar mudanças

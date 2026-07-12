@@ -29,9 +29,11 @@ describe('global notification shell integration', () => {
     assert.doesNotMatch(source, /<NotificationTrigger/)
     assert.match(source, /app-topbar__section--right/)
     assert.match(source, /width="40px"/)
+    assert.match(source, /app-topbar__action-button/)
+    assert.match(source, /min-width:\s*40px/)
     assert.doesNotMatch(source, /\.app-topbar__icon-button\s*\{[\s\S]*?width:\s*auto/)
+    assert.match(source, /<span>Guide<\/span>/)
     assert.match(source, /<span>Command<\/span>/)
-    assert.match(source, /<kbd>Ctrl K<\/kbd>/)
     assert.ok(source.indexOf('app-topbar__section--center') < source.indexOf('name="bell"'))
   })
 

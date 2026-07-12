@@ -73,9 +73,8 @@
         </span>
       </span>
       <BaseTopbarButton
-        class="app-topbar__icon-button"
+        class="app-topbar__action-button"
         type="button"
-        width="40px"
         height="40px"
         aria-label="Open settings"
         @click="$emit('open-settings')"
@@ -84,10 +83,10 @@
           <LucideIcon name="settings" :size="20" />
         </template>
       </BaseTopbarButton>
+
       <BaseTopbarButton
-        class="app-topbar__icon-button"
+        class="app-topbar__action-button"
         type="button"
-        width="40px"
         height="40px"
         aria-label="Open guide book"
         @click="$emit('open-docs')"
@@ -95,9 +94,11 @@
         <template #left>
           <LucideIcon name="book-open" :size="20" />
         </template>
+        <span>Guide</span>
       </BaseTopbarButton>
+
       <BaseTopbarButton
-        class="app-topbar__command"
+        class="app-topbar__action-button app-topbar__command"
         type="button"
         height="40px"
         gap="var(--fabric-space-2)"
@@ -108,9 +109,6 @@
           <LucideIcon name="search" :size="20" />
         </template>
         <span>Command</span>
-        <template #right>
-          <kbd>Ctrl K</kbd>
-        </template>
       </BaseTopbarButton>
     </div>
   </header>
@@ -306,13 +304,24 @@ onMounted(() => {
 }
 
 .app-topbar__icon-button,
+.app-topbar__action-button,
 .app-topbar__command {
   flex: 0 0 auto;
 }
 
+.app-topbar__action-button {
+  min-width: 40px;
+  padding: 0 var(--fabric-space-2);
+}
+
+.app-topbar__action-button span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .app-topbar__command {
   min-width: 0;
-  padding: 0 var(--fabric-space-2);
 }
 
 .app-topbar__command span {
