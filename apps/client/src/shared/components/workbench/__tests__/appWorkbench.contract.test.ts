@@ -22,6 +22,8 @@ test('workflow editor renders inside the shared workbench shell', () => {
   assert.match(source, /workflow-tool-rail/)
   assert.match(source, /workflow-tool-rail__group/)
   assert.match(source, /\.workflow-tool-rail\s*\{[\s\S]*gap: 0;[\s\S]*padding: 0;/)
+  assert.match(source, /\.workflow-tool-rail\s*\{[\s\S]*width: 50px;/)
+  assert.match(source, /\.workflow-tool-rail__button\s*\{[\s\S]*width: 49px;[\s\S]*height: 36px;/)
   assert.match(source, /\.workflow-tool-rail__group\s*\{[\s\S]*border: 0;[\s\S]*background: transparent;/)
   assert.match(source, /workflow-workbench__canvas/)
   assert.match(source, /<AppPanel[\s\S]*class="workflow-inspector-panel"/)

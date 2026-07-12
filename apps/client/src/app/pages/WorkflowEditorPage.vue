@@ -742,7 +742,7 @@ watch(
               :disabled="!workflowStore.canUndo || executionStore.isExecuting || executionStore.isStreaming"
               @click="workflowStore.undo()"
             >
-              <LucideIcon name="undo-2" :size="15" />
+              <LucideIcon name="undo-2" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -751,7 +751,7 @@ watch(
               :disabled="!workflowStore.canRedo || executionStore.isExecuting || executionStore.isStreaming"
               @click="workflowStore.redo()"
             >
-              <LucideIcon name="redo-2" :size="15" />
+              <LucideIcon name="redo-2" :size="18" />
             </button>
           </section>
 
@@ -762,7 +762,7 @@ watch(
               title="Zoom out"
               @click="canvasRef?.zoomOut()"
             >
-              <LucideIcon name="zoom-out" :size="15" />
+              <LucideIcon name="zoom-out" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -770,7 +770,7 @@ watch(
               title="Reset zoom"
               @click="canvasRef?.zoomReset()"
             >
-              <LucideIcon name="rotate-ccw" :size="15" />
+              <LucideIcon name="rotate-ccw" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -778,7 +778,7 @@ watch(
               title="Zoom in"
               @click="canvasRef?.zoomIn()"
             >
-              <LucideIcon name="zoom-in" :size="15" />
+              <LucideIcon name="zoom-in" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -786,7 +786,7 @@ watch(
               title="Fit view"
               @click="canvasRef?.fitWorkflowView()"
             >
-              <LucideIcon name="maximize" :size="15" />
+              <LucideIcon name="maximize" :size="18" />
             </button>
           </section>
 
@@ -797,7 +797,7 @@ watch(
               title="Add node"
               @click="openGlobalAddNodePanel()"
             >
-              <LucideIcon name="plus" :size="16" />
+              <LucideIcon name="plus" :size="19" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -805,7 +805,7 @@ watch(
               title="Variables"
               @click="showVariables = true"
             >
-              <LucideIcon name="tags" :size="15" />
+              <LucideIcon name="tags" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -814,7 +814,7 @@ watch(
               title="Workflow settings"
               @click="showSettings ? (showSettings = false) : openWorkflowSettings()"
             >
-              <LucideIcon name="settings" :size="15" />
+              <LucideIcon name="settings" :size="18" />
             </button>
           </section>
 
@@ -827,7 +827,7 @@ watch(
               :disabled="executionStore.isExecuting"
               @click="canvasRef?.handleRun()"
             >
-              <LucideIcon name="play" :size="15" />
+              <LucideIcon name="play" :size="18" />
             </button>
             <button
               v-else
@@ -836,7 +836,7 @@ watch(
               title="Stop run"
               @click="canvasRef?.handleStop()"
             >
-              <LucideIcon name="square" :size="15" />
+              <LucideIcon name="square" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -845,7 +845,7 @@ watch(
               title="Execution logs"
               @click="toggleExecutionPanel"
             >
-              <LucideIcon name="scroll-text" :size="15" />
+              <LucideIcon name="scroll-text" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -854,7 +854,7 @@ watch(
               :disabled="executionStore.isExecuting || executionStore.isStreaming || !hasExecutionState"
               @click="executionStore.resetNodeStatuses()"
             >
-              <LucideIcon name="eraser" :size="15" />
+              <LucideIcon name="eraser" :size="18" />
             </button>
           </section>
 
@@ -867,7 +867,7 @@ watch(
               :disabled="workflowStore.isSaving || !workflowStore.isDirty || executionStore.isExecuting || executionStore.isStreaming"
               @click="handleSaveWorkflow()"
             >
-              <LucideIcon name="save" :size="15" />
+              <LucideIcon name="save" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -878,7 +878,7 @@ watch(
             >
               <LucideIcon
                 :name="workflowStore.activeWorkflow?.metadata.isActive && !workflowStore.activeWorkflow?.metadata.isDraft ? 'pause' : 'radio'"
-                :size="15"
+                :size="18"
               />
             </button>
             <button
@@ -889,7 +889,7 @@ watch(
               :disabled="executionStore.isExecuting || executionStore.isStreaming || workflowStore.isSaving"
               @click="workflowStore.setAutosaveEnabled(!workflowStore.isAutosaveEnabled)"
             >
-              <LucideIcon name="refresh-cw" :size="15" />
+              <LucideIcon name="refresh-cw" :size="18" />
             </button>
           </section>
 
@@ -902,7 +902,7 @@ watch(
               title="Command palette"
               @click="openCommandPalette"
             >
-              <LucideIcon name="command" :size="15" />
+              <LucideIcon name="command" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -912,7 +912,7 @@ watch(
               :disabled="!route.params.id"
               @click="handleCreateGitSnapshot()"
             >
-              <LucideIcon name="git-commit-horizontal" :size="15" />
+              <LucideIcon name="git-commit-horizontal" :size="18" />
             </button>
             <button
               class="workflow-tool-rail__button"
@@ -920,7 +920,7 @@ watch(
               title="Git snapshot details"
               @click="openGitModal"
             >
-              <LucideIcon name="git-branch" :size="15" />
+              <LucideIcon name="git-branch" :size="18" />
             </button>
           </section>
         </nav>
@@ -1129,7 +1129,7 @@ watch(
 
 .workflow-tool-rail {
   display: flex;
-  width: 44px;
+  width: 50px;
   height: 100%;
   min-height: 0;
   flex-direction: column;
@@ -1156,8 +1156,8 @@ watch(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 43px;
-  height: 30px;
+  width: 49px;
+  height: 36px;
   border: 1px solid transparent;
   border-radius: 0;
   background: transparent;
@@ -1180,7 +1180,7 @@ watch(
   position: absolute;
   left: 0;
   width: 2px;
-  height: 18px;
+  height: 22px;
   border-radius: 0 999px 999px 0;
   background: var(--fabric-accent);
   content: '';
@@ -1205,10 +1205,10 @@ watch(
 
 .workflow-tool-rail__button--dirty::after {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  width: 5px;
-  height: 5px;
+  top: 6px;
+  right: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 999px;
   background: var(--fabric-amber-500);
   content: '';
@@ -1461,3 +1461,4 @@ watch(
   white-space: nowrap;
 }
 </style>
+
