@@ -1,42 +1,40 @@
 <template>
   <div class="web-page-chrome">
-    <button type="button" class="web-page-chrome__exit" title="Back to Home" @click="$emit('command', 'go.home')">
-      <LucideIcon name="arrow-left" :size="15" />
-    </button>
-    <div class="web-page-chrome__divider"></div>
-
-    <AppDropdownMenu
-      v-for="menu in resolvedMenus"
-      :key="menu.id"
-      :ref="(el) => registerMenuRef(menu.id, el)"
-      position="bottom-start"
-      :offset="2"
-      @open="activeMenuId = menu.id"
-      @close="handleMenuClose(menu.id)"
-    >
-      <template #trigger>
-        <button
-          type="button"
-          class="web-page-chrome__menu"
-          :class="{ 'web-page-chrome__menu--active': activeMenuId === menu.id }"
-          @mouseenter="handleMenuMouseEnter(menu.id)"
+    <Teleport to="#fabric-topbar-left">
+      <div class="web-page-chrome__topbar-menu">
+        <AppDropdownMenu
+          v-for="menu in resolvedMenus"
+          :key="menu.id"
+          :ref="(el) => registerMenuRef(menu.id, el)"
+          position="bottom-start"
+          :offset="2"
+          @open="activeMenuId = menu.id"
+          @close="handleMenuClose(menu.id)"
         >
-          {{ menu.label }}
-        </button>
-      </template>
-      <AppDropdownItem
-        v-for="item in menu.items"
-        :key="item.id"
-        :label="item.label"
-        :icon="item.icon"
-        :shortcut="item.shortcut"
-        :disabled="isCommandDisabled(item.id)"
-        :danger="item.danger"
-        @click="$emit('command', item.id)"
-      />
-    </AppDropdownMenu>
+          <template #trigger>
+            <button
+              type="button"
+              class="web-page-chrome__menu"
+              :class="{ 'web-page-chrome__menu--active': activeMenuId === menu.id }"
+              @mouseenter="handleMenuMouseEnter(menu.id)"
+            >
+              {{ menu.label }}
+            </button>
+          </template>
+          <AppDropdownItem
+            v-for="item in menu.items"
+            :key="item.id"
+            :label="item.label"
+            :icon="item.icon"
+            :shortcut="item.shortcut"
+            :disabled="isCommandDisabled(item.id)"
+            :danger="item.danger"
+            @click="$emit('command', item.id)"
+          />
+        </AppDropdownMenu>
+      </div>
+    </Teleport>
 
-    <div class="web-page-chrome__divider"></div>
     <div class="web-page-chrome__actions">
       <BaseButton size="sm" variant="ghost" :disabled="!resolvedCanSave" @click="$emit('command', 'file.save')">
         <template #left>
@@ -92,40 +90,13 @@
         @click="$emit('command', 'edit.redo')"
       />
     </div>
-    <div class="web-page-chrome__status">
-      <span v-if="resolvedSelectedCount > 1" class="web-page-chrome__selection-status">
-        <LucideIcon name="mouse-pointer-2" :size="15" />
-        Editing {{ resolvedSelectedCount }} selected elements
-      </span>
-      <span
-        class="web-page-chrome__publish-status"
-        :class="{ 'web-page-chrome__publish-status--published': publishedAt }"
-      >
-        <LucideIcon :name="publishedAt ? 'radio-tower' : 'radio'" :size="15" />
-        {{ publishedAt ? 'Published' : 'Draft' }}
-      </span>
-      <span class="web-page-chrome__save-status">
-        <LucideIcon
-          class="web-page-chrome__save-status-icon"
-          :class="{ 'web-page-chrome__save-status-icon--spin': saveState === 'saving' }"
-          :name="saveStatusIcon"
-          :size="17"
-        />
-        {{ saveStatusLabel }}
-      </span>
-    </div>
-    <div class="web-page-chrome__global-actions">
-      <NotificationTrigger />
-    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import NotificationTrigger from '@/shared/components/feedback/NotificationTrigger.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 
@@ -134,7 +105,6 @@ const props = defineProps<{
   isSaving?: boolean
   canUndo?: boolean
   canRedo?: boolean
-  selectedCount?: number
   publishedAt?: string | null
   isAutosaveEnabled?: boolean
   canSave?: boolean
@@ -210,23 +180,6 @@ defineEmits<{
   'toggle-autosave': [enabled: boolean]
 }>()
 
-const saveState = computed<'saving' | 'dirty' | 'saved'>(() => {
-  if (props.isSaving) return 'saving'
-  if (props.isDirty) return 'dirty'
-  return 'saved'
-})
-
-const saveStatusLabel = computed(() => {
-  if (saveState.value === 'saving') return 'Saving page...'
-  if (saveState.value === 'dirty') return 'Unsaved changes'
-  return 'Saved'
-})
-
-const saveStatusIcon = computed(() => {
-  if (saveState.value === 'saving') return 'loader-circle'
-  if (saveState.value === 'dirty') return 'cloud-alert'
-  return 'cloud-check'
-})
 const saveShortcutLabel = computed(() => (
   typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/i.test(navigator.platform)
     ? 'Cmd S'
@@ -236,7 +189,6 @@ const publishCommandLabel = computed(() => (props.publishedAt ? 'Unpublish' : 'P
 const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send'))
 const resolvedCanSave = computed(() => props.canSave ?? Boolean(props.isDirty))
 const resolvedCanUseProjectActions = computed(() => props.canUseProjectActions ?? true)
-const resolvedSelectedCount = computed(() => props.selectedCount ?? 0)
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
   items: menu.items.map((item) => {

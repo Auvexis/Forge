@@ -8,22 +8,23 @@ function read(relativePath: string) {
 }
 
 describe('page chrome contract', () => {
-  it('pages editor enters immersive app chrome mode when opening Fabric Pages', () => {
+  it('pages editor keeps the app shell topbar available when opening Fabric Pages', () => {
     const source = read('src/app/pages/PagesEditorPage.vue')
 
-    assert.match(source, /useAppUiStore/)
-    assert.match(source, /enterUniverseMode/)
-    assert.match(source, /quitUniverseMode/)
+    assert.doesNotMatch(source, /useAppUiStore/)
+    assert.doesNotMatch(source, /enterUniverseMode/)
+    assert.doesNotMatch(source, /quitUniverseMode/)
     assert.match(source, /<PageEditor/)
     assert.doesNotMatch(source, /<PagesList/)
     assert.doesNotMatch(source, /route\.params\.pageId/)
   })
 
-  it('page chrome exposes top File Edit View menus and home command', () => {
+  it('page chrome exposes topbar File Edit View menus', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
 
+    assert.match(source, /Teleport to="#fabric-topbar-left"/)
     assert.match(source, /go\.home/)
-    assert.match(source, /Back to Home/)
+    assert.doesNotMatch(source, /Back to Home/)
     assert.match(source, /File/)
     assert.match(source, /Edit/)
     assert.match(source, /View/)
@@ -58,16 +59,16 @@ describe('page chrome contract', () => {
     assert.match(editor, /editorStore\.redo\(\)/)
   })
 
-  it('page chrome shows clean multiselect status in the status area', () => {
+  it('page chrome keeps multiselect state out of the compact toolbar', () => {
     const toolbar = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    assert.match(toolbar, /selectedCount\?: number/)
-    assert.match(toolbar, /web-page-chrome__selection-status/)
-    assert.match(toolbar, /mouse-pointer-2/)
-    assert.match(editor, /:selected-count="editorStore\.selectedBlockIds\.length"/)
-    assert.match(css, /\.web-page-chrome__selection-status/)
+    assert.doesNotMatch(toolbar, /selectedCount\?: number/)
+    assert.doesNotMatch(toolbar, /web-page-chrome__selection-status/)
+    assert.doesNotMatch(toolbar, /mouse-pointer-2/)
+    assert.doesNotMatch(editor, /:selected-count="editorStore\.selectedBlockIds\.length"/)
+    assert.doesNotMatch(css, /\.web-page-chrome__selection-status/)
   })
 
   it('page editor supports undo and redo keyboard shortcuts', () => {
@@ -153,12 +154,9 @@ describe('page chrome contract', () => {
 
   it('page chrome keeps page actions with menus and places undo redo after autosave', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
-    const actionsStart = source.indexOf('<div class="web-page-chrome__actions">')
-    const actionsEnd = source.indexOf('<div class="web-page-chrome__status">')
-    const actionsMarkup = source.slice(actionsStart, actionsEnd)
+    const actionsMarkup = source.match(/<div class="web-page-chrome__actions">[\s\S]*?<\/div>/)?.[0] ?? ''
 
-    assert.ok(actionsStart > source.indexOf('v-for="menu in resolvedMenus"'))
-    assert.ok(actionsStart > source.indexOf('<div class="web-page-chrome__divider"></div>', source.indexOf('v-for="menu in resolvedMenus"')))
+    assert.match(source, /v-for="menu in resolvedMenus"/)
     assert.match(actionsMarkup, /file\.save/)
     assert.match(actionsMarkup, /file\.preview/)
     assert.match(actionsMarkup, /file\.togglePublish/)
@@ -170,32 +168,30 @@ describe('page chrome contract', () => {
     assert.ok(actionsMarkup.indexOf('edit.undo') < actionsMarkup.indexOf('edit.redo'))
   })
 
-  it('page chrome mirrors workflow save cloud status and save dot states', () => {
+  it('page chrome keeps save dot states in the compact toolbar', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    assert.match(source, /saveState/)
-    assert.match(source, /saveStatusIcon/)
-    assert.match(source, /cloud-check/)
-    assert.match(source, /cloud-alert/)
-    assert.match(source, /loader-circle/)
-    assert.match(source, /web-page-chrome__save-status/)
+    assert.doesNotMatch(source, /saveState/)
+    assert.doesNotMatch(source, /saveStatusIcon/)
+    assert.doesNotMatch(source, /cloud-check/)
+    assert.doesNotMatch(source, /cloud-alert/)
+    assert.doesNotMatch(source, /loader-circle/)
+    assert.doesNotMatch(source, /web-page-chrome__save-status/)
     assert.match(source, /web-page-chrome__save-dot/)
     assert.match(source, /web-page-chrome__save-dot--dirty/)
     assert.match(css, /300ms/)
   })
 
-  it('page chrome keeps status indicators on the right side of the topbar', () => {
+  it('page chrome keeps only primary actions in the local toolbar', () => {
     const source = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const css = read('src/features/web-pages/pages.css')
     const actionsRule = css.match(/\.web-page-chrome__actions\s*{[\s\S]*?}/)?.[0] ?? ''
-    const statusRule = css.match(/\.web-page-chrome__status\s*{[\s\S]*?}/)?.[0] ?? ''
 
     assert.match(source, /web-page-chrome__actions/)
-    assert.match(source, /web-page-chrome__status/)
+    assert.doesNotMatch(source, /web-page-chrome__status/)
+    assert.doesNotMatch(source, /NotificationTrigger/)
     assert.doesNotMatch(actionsRule, /margin-left:\s*auto/)
-    assert.match(statusRule, /display:\s*inline-flex/)
-    assert.match(statusRule, /margin-left:\s*auto/)
   })
 
   it('page chrome exposes a Pages autosave switch like Workflow Editor', () => {

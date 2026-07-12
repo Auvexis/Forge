@@ -11,7 +11,6 @@
       :is-saving="pagesStore.isSaving || sitesStore.isSaving"
       :can-undo="editorStore.canUndo"
       :can-redo="editorStore.canRedo"
-      :selected-count="editorStore.selectedBlockIds.length"
       :published-at="activePagePublishedAt"
       :is-autosave-enabled="isPagesAutosaveEnabled"
       :can-save="canSaveActiveDocument"

@@ -43,7 +43,8 @@ describe('page preview and publish contract', () => {
     assert.match(list, /web-pages-list__status/)
     assert.match(editor, /publishedAt/)
     assert.match(toolbar, /publishedAt/)
-    assert.match(toolbar, /web-page-chrome__publish-status/)
+    assert.doesNotMatch(toolbar, /web-page-chrome__publish-status/)
+    assert.match(toolbar, /publishCommandLabel/)
     assert.match(toolbar, /file\.openLive/)
   })
 
