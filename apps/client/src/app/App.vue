@@ -69,6 +69,8 @@
         @open-command-palette="openGlobalCommandPalette"
         @open-settings="settingsStore.toggle()"
         @open-docs="startGuide.openGuideBook()"
+        @switch-profile="hasEnteredProfile = false"
+        @logout="hasEnteredProfile = false"
       />
     </template>
 

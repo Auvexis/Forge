@@ -162,6 +162,11 @@ export const useSettingsStore = defineStore('settings', () => {
     isOpen.value = true
   }
 
+  function openAuvexis() {
+    activeTab.value = 'auvexis'
+    isOpen.value = true
+  }
+
   return {
     // Panel state
     isOpen,
@@ -171,6 +176,7 @@ export const useSettingsStore = defineStore('settings', () => {
     activeTab,
     targetPluginId,
     openCredentialsFor,
+    openAuvexis,
     // Variables
     variables,
     isLoadingVariables,

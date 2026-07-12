@@ -10,7 +10,7 @@
         @click="$emit('toggle-sidebar')"
       >
         <template #left>
-          <LucideIcon name="grip" :size="20" />
+          <LucideIcon name="grip" :size="25" />
         </template>
       </BaseTopbarButton>
       <div class="app-topbar__route-slot">
@@ -20,24 +20,34 @@
     </section>
 
     <section class="app-topbar__section app-topbar__section--center" aria-label="Active profile">
-      <BaseTopbarButton
-        class="app-topbar__profile-button"
-        type="button"
-        height="40px"
-        aria-label="Profile menu"
-        aria-expanded="false"
+      <BaseProfileDropdown
+        :profile-name="activeName"
+        :avatar="activeAvatar"
+        :auvexis-account="auvexisAccountStore.account"
+        @open="handleProfileDropdownOpen"
+        @action="handleProfileDropdownAction"
       >
-        <template #left>
-          <span class="app-topbar__avatar" aria-hidden="true">{{ activeAvatar }}</span>
+        <template #trigger="{ open }">
+          <BaseTopbarButton
+            class="app-topbar__profile-button"
+            type="button"
+            height="40px"
+            aria-label="Profile menu"
+            :aria-expanded="open"
+          >
+            <template #left>
+              <span class="app-topbar__avatar" aria-hidden="true">{{ activeAvatar }}</span>
+            </template>
+            <span class="app-topbar__profile-name">{{ activeName }}</span>
+            <template #right>
+              <span class="app-topbar__profile-chevrons" aria-hidden="true">
+                <LucideIcon name="chevron-up" :size="12" />
+                <LucideIcon name="chevron-down" :size="12" />
+              </span>
+            </template>
+          </BaseTopbarButton>
         </template>
-        <span class="app-topbar__profile-name">{{ activeName }}</span>
-        <template #right>
-          <span class="app-topbar__profile-chevrons" aria-hidden="true">
-            <LucideIcon name="chevron-up" :size="12" />
-            <LucideIcon name="chevron-down" :size="12" />
-          </span>
-        </template>
-      </BaseTopbarButton>
+      </BaseProfileDropdown>
       <span class="app-topbar__separator" aria-hidden="true">/</span>
       <div class="app-topbar__context">
         <div id="fabric-topbar-context" class="app-topbar__portal" />
@@ -60,7 +70,7 @@
           @click="notificationUi.toggle()"
         >
           <template #left>
-            <LucideIcon name="bell" :size="20" />
+            <LucideIcon name="bell" :size="18" />
           </template>
         </BaseTopbarButton>
         <span
@@ -80,7 +90,7 @@
         @click="$emit('open-settings')"
       >
         <template #left>
-          <LucideIcon name="settings" :size="20" />
+          <LucideIcon name="settings" :size="18" />
         </template>
       </BaseTopbarButton>
 
@@ -92,7 +102,7 @@
         @click="$emit('open-docs')"
       >
         <template #left>
-          <LucideIcon name="book-open" :size="20" />
+          <LucideIcon name="book-open" :size="18" />
         </template>
         <span>Guide</span>
       </BaseTopbarButton>
@@ -106,7 +116,7 @@
         @click="$emit('open-command-palette')"
       >
         <template #left>
-          <LucideIcon name="search" :size="20" />
+          <LucideIcon name="search" :size="18" />
         </template>
         <span>Command</span>
       </BaseTopbarButton>
@@ -116,11 +126,14 @@
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
+import BaseProfileDropdown from '@/shared/components/base/BaseProfileDropdown.vue'
 import BaseTopbarButton from '@/shared/components/base/BaseTopbarButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useAuvexisAccountStore } from '@/shared/stores/auvexis-account.store'
 import { useNotificationStore } from '@/shared/stores/notification.store'
 import { useNotificationUiStore } from '@/shared/stores/notification-ui.store'
 import { useProfileStore } from '@/shared/stores/profile.store'
+import { useSettingsStore } from '@/shared/stores/settings.store'
 
 withDefaults(
   defineProps<{
@@ -133,14 +146,18 @@ withDefaults(
   },
 )
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'toggle-sidebar'): void
   (e: 'open-command-palette'): void
   (e: 'open-settings'): void
   (e: 'open-docs'): void
+  (e: 'switch-profile'): void
+  (e: 'logout'): void
 }>()
 
 const profileStore = useProfileStore()
+const auvexisAccountStore = useAuvexisAccountStore()
+const settingsStore = useSettingsStore()
 const notificationStore = useNotificationStore()
 const notificationUi = useNotificationUiStore()
 
@@ -160,6 +177,45 @@ onMounted(() => {
     void profileStore.loadProfiles()
   }
 })
+
+function handleProfileDropdownOpen() {
+  if (!auvexisAccountStore.isLoading) {
+    void auvexisAccountStore.loadStatus()
+  }
+}
+
+function handleProfileDropdownAction(
+  action: 'edit-profile' | 'settings' | 'auvexis-settings' | 'switch-profile' | 'logout',
+) {
+  if (action === 'edit-profile') {
+    window.dispatchEvent(
+      new CustomEvent('fabric:profiles:intent', {
+        detail: {
+          type: 'edit-profile',
+          profileId: profileStore.currentProfile?.id,
+        },
+      }),
+    )
+    return
+  }
+
+  if (action === 'settings') {
+    settingsStore.open()
+    return
+  }
+
+  if (action === 'auvexis-settings') {
+    settingsStore.openAuvexis()
+    return
+  }
+
+  if (action === 'switch-profile') {
+    emit('switch-profile')
+    return
+  }
+
+  emit('logout')
+}
 </script>
 
 <style scoped>
@@ -195,7 +251,6 @@ onMounted(() => {
 
 .app-topbar__section--right {
   justify-content: flex-end;
-  gap: var(--fabric-space-1);
 }
 
 .app-topbar__route-slot,
@@ -284,22 +339,18 @@ onMounted(() => {
 .app-topbar__notification {
   position: relative;
   display: inline-flex;
+  user-select: none;
 }
 
 .app-topbar__notification-badge {
   position: absolute;
-  top: calc(-1 * var(--fabric-space-1));
-  right: calc(-1 * var(--fabric-space-1));
+  top: 0;
+  right: calc(-1 * 2px);
   min-width: var(--fabric-space-4);
   height: var(--fabric-space-4);
-  padding: 0 var(--fabric-space-1);
-  border: 1px solid var(--fabric-bg-surface);
-  border-radius: var(--fabric-radius-full);
-  background: var(--fabric-bg-inverse);
   color: var(--fabric-text-inverse);
-  font-size: var(--fabric-text-xs);
+  font-size: 5px;
   font-weight: var(--fabric-font-bold);
-  line-height: var(--fabric-space-4);
   text-align: center;
 }
 
@@ -329,22 +380,11 @@ onMounted(() => {
   min-width: 0;
 }
 
-.app-topbar__command span {
+.app-topbar span {
   font-size: var(--fabric-text-sm);
 }
 
-.app-topbar__command kbd {
-  flex: 0 0 auto;
-  padding: 2px 6px;
-  border: 1px solid var(--fabric-topbar-search-border);
-  border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-topbar-search-text);
-  background: var(--fabric-topbar-kbd-bg);
-  font-family: var(--fabric-font-mono);
-  font-size: 10px;
-}
-
-@media (max-width: 640px) {
+@media (max-width: 1350px) {
   .app-topbar {
     grid-template-columns: auto minmax(0, 1fr) auto;
     padding: 0 var(--fabric-space-3);
@@ -357,11 +397,7 @@ onMounted(() => {
 
   .app-topbar__profile-name,
   .app-topbar__route-slot,
-  .app-topbar__command span {
-    display: none;
-  }
-
-  .app-topbar__command kbd {
+  .app-topbar span {
     display: none;
   }
 }

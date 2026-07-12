@@ -1,0 +1,6 @@
+- [x] Mapear topbar, profile e temas
+- [x] Criar componente base do dropdown
+- [x] Integrar no botão de perfil da topbar
+- [x] Adicionar tokens nos temas JSON
+- [x] Validar frontend
+- [x] Commitar mudancas
