@@ -54,7 +54,12 @@ function openGuide(guide: StartGuideDefinition) {
 </script>
 
 <template>
-  <section class="guide-book surface" role="dialog" aria-modal="true" aria-labelledby="guide-book-title">
+  <section
+    class="guide-book surface"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="guide-book-title"
+  >
     <header class="guide-book__header">
       <div>
         <p class="guide-book__eyebrow">Fabric Guides</p>
@@ -72,7 +77,13 @@ function openGuide(guide: StartGuideDefinition) {
               <h4>{{ guideTitle(guide) }}</h4>
               <p>{{ guideDescription(guide) }}</p>
             </div>
-            <BaseButton type="button" size="sm" variant="outline" icon-left="play" @click="openGuide(guide)">
+            <BaseButton
+              type="button"
+              size="sm"
+              variant="outline"
+              icon-left="play"
+              @click="openGuide(guide)"
+            >
               Open
             </BaseButton>
           </article>
@@ -89,9 +100,9 @@ function openGuide(guide: StartGuideDefinition) {
   display: flex;
   flex-direction: column;
   background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-lg);
-  box-shadow: var(--fabric-shadow-lg);
+  border: 2px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-xl);
+  box-shadow: var(--fabric-shadow-xl);
 }
 
 .guide-book__header {
@@ -149,8 +160,7 @@ function openGuide(guide: StartGuideDefinition) {
   gap: var(--fabric-space-4);
   padding: var(--fabric-space-4);
   background: var(--fabric-bg-base);
-  border: 1px solid var(--fabric-border-subtle);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-radius-sm);
 }
 
 .guide-book__item h4 {

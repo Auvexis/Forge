@@ -1034,11 +1034,6 @@ onUnmounted(() => {
   }
 }
 
-.te-checkbox {
-  width: 14px;
-  flex: 0 0 14px;
-}
-
 .te-checkbox :deep(.base-input-container) {
   width: 14px;
   height: 14px;

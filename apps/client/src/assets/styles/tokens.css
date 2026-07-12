@@ -625,8 +625,8 @@
   --fabric-bg-subtle: var(--fabric-gray-200);
   --fabric-bg-canvas: #fbfaf7;
   --fabric-bg-inverse: #2f2524;
-  --fabric-bg-chrome: #232120;
-  --fabric-bg-chrome-elevated: #353231;
+  --fabric-bg-chrome: #131111;
+  --fabric-bg-chrome-elevated: #1d1a1a;
   --fabric-bg-chrome-hover: rgba(255, 255, 255, 0.08);
 
   /* Borders */

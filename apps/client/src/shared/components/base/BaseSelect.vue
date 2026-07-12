@@ -264,7 +264,7 @@ defineOptions({ inheritAttrs: false })
 .base-select-dropdown {
   max-height: 240px;
   overflow-y: auto;
-  background-color: var(--fabric-bg-elevated);
+  background-color: var(--fabric-bg-surface);
   border: 1px solid var(--fabric-border-strong);
   border-radius: var(--fabric-radius-sm);
   box-shadow: var(--fabric-shadow-lg);

@@ -123,8 +123,8 @@ function selectLang(lang: string) {
 .start-guide {
   width: min(860px, calc(100vw - 32px));
   background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-lg);
+  border: 2px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-xl);
   box-shadow: var(--fabric-shadow-lg);
   overflow: hidden;
 }
@@ -193,10 +193,6 @@ function selectLang(lang: string) {
   font: inherit;
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
-}
-
-.start-guide__language-option:hover {
-  color: var(--fabric-text-primary);
 }
 
 .start-guide__language-option--active {

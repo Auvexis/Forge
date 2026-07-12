@@ -154,7 +154,7 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
   padding: var(--fabric-space-4);
   border: 1px dashed var(--fabric-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-base);
+  background: var(--fabric-bg-muted);
   color: var(--fabric-text-secondary);
   font: inherit;
   cursor: pointer;

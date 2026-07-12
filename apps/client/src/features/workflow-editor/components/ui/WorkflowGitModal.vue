@@ -239,9 +239,6 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             </BaseDropdownSelect>
           </div>
         </div>
-        <button class="workflow-git-modal__icon-button" type="button" title="Close" @click="emit('close')">
-          <LucideIcon name="x" :size="15" />
-        </button>
       </header>
 
       <div class="workflow-git-modal__body">
@@ -380,9 +377,9 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   align-items: center;
   gap: var(--fabric-space-2);
   padding: 0 var(--fabric-space-3);
-  border: 1px solid var(--fabric-border-subtle);
+  border: 1px solid var(--fabric-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-bg-surface);
 }
 
 .workflow-git-modal__repo-card span,
@@ -484,24 +481,6 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   margin-left: 8px;
 }
 
-.workflow-git-modal__icon-button {
-  width: 32px;
-  height: 32px;
-  align-self: center;
-  display: inline-grid;
-  place-items: center;
-  border: 1px solid var(--fabric-border-subtle);
-  border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-secondary);
-}
-
-.workflow-git-modal__icon-button:hover {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
-}
-
 .workflow-git-modal__body {
   min-height: 0;
   flex: 1;
@@ -523,10 +502,11 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 30px;
+  height: 34px;
   padding: 0 var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-border);
   color: var(--fabric-text-primary);
   font-size: 12px;
 }
@@ -537,7 +517,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: inline-grid;
   place-items: center;
   border-radius: 999px;
-  background: var(--fabric-bg-base);
+  background: transparent;
   color: var(--fabric-text-muted);
   font-size: 10px;
 }
@@ -558,8 +538,8 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 .workflow-git-modal__file--active,
 .workflow-git-modal__file:hover {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-bg-elevated);
+  border-color: var(--fabric-border);
+  background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
 }
 
@@ -585,9 +565,9 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 .workflow-git-modal__description-input {
   width: 100%;
   margin-top: 5px;
-  border: 1px solid var(--fabric-border-subtle);
+  border: 1px solid var(--fabric-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
   font: inherit;
   font-size: 12px;
@@ -634,7 +614,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 .workflow-git-modal__restore-button {
   border: 1px solid var(--fabric-border-subtle);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
 }
 

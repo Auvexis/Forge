@@ -626,7 +626,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   overflow: hidden;
   border: 1px solid var(--fabric-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-bg-surface);
   box-shadow: var(--fabric-shadow-lg);
 }
 

@@ -615,7 +615,7 @@ const closePluginMethodView = () => {
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
 }
 

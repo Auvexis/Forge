@@ -249,7 +249,7 @@
 }
 
 .wec-menu-bar {
-  gap: 2px;
+  /* gap: 2px; */
   height: 40px;
   flex: 0 0 auto;
 }
@@ -275,7 +275,6 @@
   min-width: 0;
   padding: 0 10px;
   border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-chrome-text);
   background: transparent;
   font-size: var(--fabric-text-sm);

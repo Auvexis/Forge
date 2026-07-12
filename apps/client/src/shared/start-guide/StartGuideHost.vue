@@ -8,7 +8,11 @@ const startGuide = useStartGuide()
 <template>
   <Teleport to="body">
     <Transition name="start-guide-fade">
-      <div v-if="startGuide.controller.isOpen" class="start-guide-host" @mousedown.self="startGuide.skip">
+      <div
+        v-if="startGuide.controller.isOpen"
+        class="start-guide-host"
+        @mousedown.self="startGuide.skip"
+      >
         <StartGuide />
       </div>
     </Transition>
@@ -24,7 +28,8 @@ const startGuide = useStartGuide()
   align-items: center;
   justify-content: center;
   padding: var(--fabric-space-4);
-  background: color-mix(in srgb, var(--fabric-bg-base) 68%, transparent);
+  background: rgba(0, 0, 0, 0.717);
+  backdrop-filter: blur(2px);
 }
 
 .start-guide-fade-enter-active,

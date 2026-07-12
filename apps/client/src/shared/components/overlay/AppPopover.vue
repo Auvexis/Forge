@@ -167,7 +167,6 @@ defineExpose({ open, close, toggle, isOpen })
   cursor: pointer;
   height: 100%;
   width: 100%;
-  padding: 5px;
 }
 
 .app-popover-content {

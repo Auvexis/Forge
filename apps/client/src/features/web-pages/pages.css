@@ -166,7 +166,6 @@
 .web-page-chrome__topbar-menu {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
   height: 40px;
   flex: 0 0 auto;
 }
@@ -179,7 +178,6 @@
   min-width: 0;
   padding: 0 10px;
   border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-topbar-search-text);
   background: transparent;
   font-size: var(--fabric-text-sm);

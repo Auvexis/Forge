@@ -52,7 +52,6 @@ defineOptions({ inheritAttrs: false })
   min-width: 0;
   padding: 0;
   border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-topbar-search-text);
   background: transparent;
   font: inherit;

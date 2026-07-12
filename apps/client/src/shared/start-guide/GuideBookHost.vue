@@ -28,7 +28,8 @@ const startGuide = useStartGuide()
   align-items: center;
   justify-content: center;
   padding: var(--fabric-space-4);
-  background: color-mix(in srgb, var(--fabric-bg-base) 68%, transparent);
+  background: rgba(0, 0, 0, 0.717);
+  backdrop-filter: blur(2px);
 }
 
 .guide-book-fade-enter-active,

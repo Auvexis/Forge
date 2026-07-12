@@ -494,7 +494,7 @@ function isIconUrl(icon?: string) {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--fabric-bg-base);
+  background: var(--fabric-bg-surface);
 }
 
 .plugin-installer-modal__main-head {

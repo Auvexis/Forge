@@ -725,7 +725,7 @@ watch(
   height: 24px;
   padding: 0;
   border-top: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-base);
+  background: var(--fabric-bg-topbar);
   color: var(--fabric-text-muted);
   font-size: 11px;
 }
