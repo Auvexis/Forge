@@ -1,0 +1,5 @@
+- [x] Mapear acoes do rail e toolbar
+- [x] Remover duplicacao visual
+- [x] Ajustar estilos do rail/toolbar
+- [x] Validar frontend
+- [x] Commitar mudancas

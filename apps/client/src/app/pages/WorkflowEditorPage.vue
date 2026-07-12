@@ -734,90 +734,6 @@ watch(
         />
       </template>
 
-      <template #left>
-        <nav class="workflow-tool-rail" aria-label="Workflow tools">
-          <button
-            class="workflow-tool-rail__button workflow-tool-rail__button--primary"
-            type="button"
-            title="Add node"
-            @click="openGlobalAddNodePanel()"
-          >
-            <LucideIcon name="plus" :size="16" />
-          </button>
-
-          <span class="workflow-tool-rail__divider" aria-hidden="true" />
-
-          <button
-            v-if="!executionStore.isStreaming"
-            class="workflow-tool-rail__button workflow-tool-rail__button--run"
-            type="button"
-            title="Run workflow"
-            :disabled="executionStore.isExecuting"
-            @click="canvasRef?.handleRun()"
-          >
-            <LucideIcon name="play" :size="16" />
-          </button>
-          <button
-            v-else
-            class="workflow-tool-rail__button workflow-tool-rail__button--danger"
-            type="button"
-            title="Stop run"
-            @click="canvasRef?.handleStop()"
-          >
-            <LucideIcon name="square" :size="15" />
-          </button>
-
-          <button
-            class="workflow-tool-rail__button"
-            :class="{ 'workflow-tool-rail__button--active': isExecutionPanelOpen }"
-            type="button"
-            title="Execution logs"
-            @click="toggleExecutionPanel"
-          >
-            <LucideIcon name="scroll-text" :size="16" />
-          </button>
-
-          <button
-            class="workflow-tool-rail__button"
-            type="button"
-            title="Workflow variables"
-            @click="showVariables = true"
-          >
-            <LucideIcon name="tags" :size="16" />
-          </button>
-
-          <button
-            class="workflow-tool-rail__button"
-            type="button"
-            title="Workflow settings"
-            @click="openWorkflowSettings"
-          >
-            <LucideIcon name="settings" :size="16" />
-          </button>
-
-          <span class="workflow-tool-rail__spacer" />
-
-          <button
-            class="workflow-tool-rail__button"
-            type="button"
-            title="Command palette"
-            @click="openCommandPalette"
-          >
-            <LucideIcon name="command" :size="16" />
-          </button>
-
-          <button
-            class="workflow-tool-rail__button"
-            :class="{ 'workflow-tool-rail__button--active': gitStatus?.state === 'ready' }"
-            type="button"
-            title="Git snapshots"
-            @click="openGitModal"
-          >
-            <LucideIcon name="git-branch" :size="16" />
-          </button>
-        </nav>
-      </template>
-
       <div class="workflow-workbench__canvas">
         <div class="workflow-workbench__canvas-viewport">
           <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
@@ -1019,80 +935,6 @@ watch(
   right: var(--workflow-bottom-panel-right);
 }
 
-.workflow-tool-rail {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  width: 42px;
-  height: 100%;
-  padding: 6px 4px;
-  background: var(--fabric-workbench-rail-bg);
-}
-
-.workflow-tool-rail__button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--fabric-text-muted);
-  cursor: pointer;
-  transition:
-    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard);
-}
-
-.workflow-tool-rail__button:hover:not(:disabled),
-.workflow-tool-rail__button--active {
-  border-color: var(--fabric-border-muted);
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
-}
-
-.workflow-tool-rail__button--active::before {
-  position: absolute;
-  left: -4px;
-  width: 2px;
-  height: 18px;
-  border-radius: 999px;
-  background: var(--fabric-accent);
-  content: '';
-}
-
-.workflow-tool-rail__button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
-}
-
-.workflow-tool-rail__button--primary {
-  color: var(--fabric-accent);
-}
-
-.workflow-tool-rail__button--run {
-  color: var(--fabric-green-500);
-}
-
-.workflow-tool-rail__button--danger {
-  color: var(--fabric-red-500);
-}
-
-.workflow-tool-rail__divider {
-  width: 22px;
-  height: 1px;
-  margin: 3px 0;
-  background: var(--fabric-border-muted);
-}
-
-.workflow-tool-rail__spacer {
-  flex: 1;
-}
-
 .workflow-inspector-panel {
   --app-panel-resized-width: var(--workflow-inspector-width);
 }
@@ -1131,25 +973,6 @@ watch(
   letter-spacing: 0.04em;
   line-height: 1.2;
   text-transform: uppercase;
-}
-
-.workflow-inspector-panel__icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: transparent;
-  color: var(--fabric-text-muted);
-  cursor: pointer;
-}
-
-.workflow-inspector-panel__icon-button:hover {
-  border-color: var(--fabric-border-muted);
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
 }
 
 .workflow-inspector-panel__section {

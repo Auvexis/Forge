@@ -1,7 +1,7 @@
 :root {
   --fabric-chrome-height-header: 38px;
   --fabric-chrome-height-menu: 30px;
-  --fabric-chrome-height-toolbar: 34px;
+  --fabric-chrome-height-toolbar: 32px;
   --fabric-chrome-bg: var(--fabric-bg-elevated);
   --fabric-chrome-bg-muted: var(--fabric-bg-elevated);
   --fabric-chrome-bg-hover: var(--fabric-button-ghost-hover);
@@ -13,9 +13,9 @@
   --fabric-chrome-danger: var(--fabric-red-500);
   --fabric-chrome-save: var(--fabric-amber-500);
   --fabric-chrome-radius: 4px;
-  --fabric-chrome-control-h: 26px;
-  --fabric-chrome-icon: 15px;
-  --fabric-chrome-gap: 6px;
+  --fabric-chrome-control-h: 24px;
+  --fabric-chrome-icon: 14px;
+  --fabric-chrome-gap: 4px;
 }
 
 .wec-shell {
@@ -31,7 +31,7 @@
   display: flex;
   align-items: center;
   min-width: 0;
-  padding: 0 12px;
+  padding: 0 8px;
 }
 
 .wec-header {
@@ -54,6 +54,7 @@
   overflow-x: auto;
   scrollbar-width: none;
   min-height: var(--fabric-chrome-height-toolbar);
+  width: 100%;
 }
 
 .wec-toolbar::-webkit-scrollbar {
@@ -63,16 +64,21 @@
 .wec-group {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 1px;
   flex: 0 0 auto;
+  height: 26px;
+  padding: 1px;
+  border: 1px solid color-mix(in srgb, var(--fabric-chrome-border) 76%, transparent);
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--fabric-bg-base) 38%, transparent);
 }
 
 .wec-divider {
   width: 1px;
-  height: 18px;
+  height: 22px;
   flex: 0 0 auto;
-  background: var(--fabric-chrome-border);
-  margin: 0 4px;
+  background: color-mix(in srgb, var(--fabric-chrome-border) 72%, transparent);
+  margin: 0 2px;
 }
 
 .wec-control {
@@ -82,17 +88,23 @@
   gap: 6px;
   height: var(--fabric-chrome-control-h);
   min-width: var(--fabric-chrome-control-h);
-  padding: 0 7px;
+  padding: 0 6px;
   border: 1px solid transparent;
-  border-radius: var(--fabric-chrome-radius);
+  border-radius: 4px;
   color: var(--fabric-chrome-text-muted);
   font-size: var(--fabric-text-xs);
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .wec-control:hover:not(:disabled),
 .wec-control--active {
+  border-color: color-mix(in srgb, var(--fabric-chrome-border) 74%, transparent);
   background: var(--fabric-chrome-bg-hover);
   color: var(--fabric-chrome-text);
 }
@@ -389,10 +401,12 @@
 }
 
 .wec-control--primary {
+  border-color: color-mix(in srgb, var(--fabric-chrome-run) 24%, transparent);
   background: color-mix(in srgb, var(--fabric-chrome-run) 12%, transparent);
 }
 
 .wec-control--danger {
+  border-color: color-mix(in srgb, var(--fabric-chrome-danger) 24%, transparent);
   background: color-mix(in srgb, var(--fabric-chrome-danger) 10%, transparent);
 }
 
@@ -422,15 +436,16 @@
 
 .wec-toolbar-row {
   grid-column: 1;
-  gap: 6px;
+  gap: 4px;
   background: var(--fabric-chrome-bg-muted);
   overflow-x: auto;
   overflow-y: hidden;
   scrollbar-width: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-chrome-border) 76%, transparent);
 }
 
 .wec-toolbar-row > .wec-toolbar {
-  flex: 0 0 auto;
+  flex: 1 1 auto;
   min-width: 0;
   padding: 0;
   background: transparent;

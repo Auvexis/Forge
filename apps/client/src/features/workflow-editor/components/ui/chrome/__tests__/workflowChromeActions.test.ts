@@ -17,6 +17,10 @@ const canvasSource = readFileSync(
   fileURLToPath(new URL('../../../FabricWorkflowCanvas.vue', import.meta.url)),
   'utf8',
 )
+const chromeStylesSource = readFileSync(
+  fileURLToPath(new URL('../../../../styles/workflow-editor-chrome.css', import.meta.url)),
+  'utf8',
+)
 
 describe('workflow chrome actions', () => {
   it('defines only supported top-level menus in the intended order', () => {
@@ -93,5 +97,11 @@ describe('workflow chrome actions', () => {
   it('defers topbar teleports until the app shell topbar targets exist', () => {
     assert.match(chromeSource, /<Teleport defer to="#fabric-topbar-left">/)
     assert.match(chromeSource, /<Teleport defer to="#fabric-topbar-context">/)
+  })
+
+  it('styles the toolbar as the single compact workflow tool strip', () => {
+    assert.match(chromeStylesSource, /--fabric-chrome-height-toolbar: 32px/)
+    assert.match(chromeStylesSource, /\.wec-group\s*\{[\s\S]*height: 26px;[\s\S]*border:/)
+    assert.match(chromeStylesSource, /\.wec-toolbar-row\s*\{[\s\S]*border-bottom:/)
   })
 })
