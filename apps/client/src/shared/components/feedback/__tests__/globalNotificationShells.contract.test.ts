@@ -17,10 +17,10 @@ describe('global notification shell integration', () => {
     assert.doesNotMatch(styles, /\.sidebar-activity-link/)
   })
 
-  it('wires AppTopbar notifications through a local BaseButton', () => {
+  it('wires AppTopbar notifications through a local BaseTopbarButton', () => {
     const source = read('src/shared/components/layout/AppTopbar.vue')
 
-    assert.match(source, /import BaseButton/)
+    assert.match(source, /import BaseTopbarButton/)
     assert.match(source, /useNotificationStore/)
     assert.match(source, /useNotificationUiStore/)
     assert.match(source, /notificationUi\.toggle\(\)/)

@@ -1,29 +1,25 @@
 <template>
   <header class="app-topbar">
     <section class="app-topbar__section app-topbar__section--left" aria-label="Page controls">
-      <BaseButton
+      <BaseTopbarButton
         class="app-topbar__icon-button"
         type="button"
-        variant="ghost"
-        size="icon"
         :aria-label="sidebarCollapsed ? 'Open sidebar' : 'Close sidebar'"
         @click="$emit('toggle-sidebar')"
       >
         <template #left>
           <LucideIcon name="grip" :size="20" />
         </template>
-      </BaseButton>
+      </BaseTopbarButton>
       <div class="app-topbar__route-slot">
         <slot name="left"></slot>
       </div>
     </section>
 
     <section class="app-topbar__section app-topbar__section--center" aria-label="Active profile">
-      <BaseButton
+      <BaseTopbarButton
         class="app-topbar__profile-button"
         type="button"
-        variant="ghost"
-        size="sm"
         aria-label="Profile menu"
         aria-expanded="false"
       >
@@ -37,7 +33,7 @@
             <LucideIcon name="chevron-down" :size="12" />
           </span>
         </template>
-      </BaseButton>
+      </BaseTopbarButton>
       <span class="app-topbar__separator" aria-hidden="true">/</span>
       <div class="app-topbar__context">
         <slot name="context">{{ pageLabel }}</slot>
@@ -46,11 +42,9 @@
 
     <div class="app-topbar__section app-topbar__section--right" aria-label="Global actions">
       <span class="app-topbar__notification">
-        <BaseButton
+        <BaseTopbarButton
           class="app-topbar__icon-button"
           type="button"
-          variant="ghost"
-          size="icon"
           :aria-label="notificationAriaLabel"
           :aria-expanded="notificationUi.isOpen"
           aria-controls="global-notification-panel"
@@ -59,7 +53,7 @@
           <template #left>
             <LucideIcon name="bell" :size="20" />
           </template>
-        </BaseButton>
+        </BaseTopbarButton>
         <span
           v-if="notificationStore.unreadCount > 0"
           class="app-topbar__notification-badge"
@@ -69,35 +63,29 @@
           {{ notificationBadgeText }}
         </span>
       </span>
-      <BaseButton
+      <BaseTopbarButton
         class="app-topbar__icon-button"
         type="button"
-        variant="ghost"
-        size="icon"
         aria-label="Open settings"
         @click="$emit('open-settings')"
       >
         <template #left>
           <LucideIcon name="settings" :size="20" />
         </template>
-      </BaseButton>
-      <BaseButton
+      </BaseTopbarButton>
+      <BaseTopbarButton
         class="app-topbar__icon-button"
         type="button"
-        variant="ghost"
-        size="icon"
         aria-label="Open guide book"
         @click="$emit('open-docs')"
       >
         <template #left>
           <LucideIcon name="book-open" :size="20" />
         </template>
-      </BaseButton>
-      <BaseButton
+      </BaseTopbarButton>
+      <BaseTopbarButton
         class="app-topbar__command"
         type="button"
-        variant="ghost"
-        size="md"
         aria-label="Open command palette"
         @click="$emit('open-command-palette')"
       >
@@ -106,14 +94,14 @@
         </template>
         <span>Command</span>
         <kbd>Ctrl K</kbd>
-      </BaseButton>
+      </BaseTopbarButton>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseTopbarButton from '@/shared/components/base/BaseTopbarButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useNotificationStore } from '@/shared/stores/notification.store'
 import { useNotificationUiStore } from '@/shared/stores/notification-ui.store'
@@ -232,8 +220,10 @@ onMounted(() => {
 }
 
 .app-topbar__profile-button {
+  height: 40px;
   min-width: 0;
   max-width: 230px;
+  padding: 0 var(--fabric-space-2);
 }
 
 .app-topbar__profile-name {
@@ -285,26 +275,18 @@ onMounted(() => {
 
 .app-topbar__icon-button,
 .app-topbar__command {
-  color: var(--fabric-topbar-search-text);
-  background: transparent;
+  flex: 0 0 auto;
 }
 
 .app-topbar__icon-button {
   width: 40px;
   height: 40px;
-  padding: 0;
 }
 
 .app-topbar__command {
-  gap: var(--fabric-space-2);
   height: 40px;
+  min-width: 0;
   padding: 0 var(--fabric-space-2);
-}
-
-.app-topbar__icon-button:hover,
-.app-topbar__command:hover {
-  color: var(--fabric-topbar-search-hover-text);
-  background: var(--fabric-button-ghost-hover);
 }
 
 .app-topbar__command span {
