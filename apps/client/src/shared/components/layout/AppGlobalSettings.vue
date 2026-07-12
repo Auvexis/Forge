@@ -490,19 +490,61 @@
 
           <!-- Preferences Body -->
           <div v-else-if="activeTab === 'preferences'" key="body-pref" class="gs-pref-list">
-            <div class="gs-pref-row">
-              <div class="gs-pref-row__label">
+            <div class="gs-theme-row">
+              <div class="gs-theme-row__copy">
                 <LucideIcon name="sun-moon" :size="16" />
                 <div>
-                  <span class="gs-pref-row__name">Theme</span>
-                  <span class="gs-pref-row__hint">Controls the app color scheme</span>
+                  <strong>Theme</strong>
+                  <span>Controls the app color scheme</span>
                 </div>
               </div>
-              <BaseSelect
-                :model-value="themeValue"
-                :options="themeOptions"
-                @update:model-value="handleThemeChange"
-              />
+
+              <div class="gs-theme-grid">
+                <button
+                  v-for="theme in themeCards"
+                  :key="theme.value"
+                  class="gs-theme-card"
+                  :class="{ 'gs-theme-card--selected': theme.value === themeValue }"
+                  :style="{
+                    '--theme-bg': theme.bgColor,
+                    '--theme-surface': theme.surfaceColor,
+                    '--theme-component': theme.componentColor,
+                    '--theme-border': theme.borderColor,
+                    '--theme-accent': theme.accentColor,
+                    '--theme-muted': theme.mutedColor,
+                  }"
+                  type="button"
+                  @click="handleThemeChange(theme.value)"
+                >
+                  <span class="gs-theme-preview">
+                    <span class="gs-theme-window">
+                      <span class="gs-theme-toolbar">
+                        <span class="gs-theme-toolbar__group">
+                          <span class="gs-theme-pill gs-theme-pill--small" />
+                          <span class="gs-theme-pill gs-theme-pill--small" />
+                        </span>
+                        <span class="gs-theme-pill gs-theme-pill--center" />
+                        <span class="gs-theme-toolbar__group">
+                          <span class="gs-theme-dot" />
+                          <span class="gs-theme-dot gs-theme-dot--accent" />
+                          <span class="gs-theme-dot" />
+                        </span>
+                      </span>
+                      <span class="gs-theme-body">
+                        <span class="gs-theme-line gs-theme-line--title" />
+                        <span class="gs-theme-line gs-theme-line--wide" />
+                        <span class="gs-theme-row-preview">
+                          <span class="gs-theme-line gs-theme-line--compact gs-theme-line--accent" />
+                          <span class="gs-theme-line gs-theme-line--compact" />
+                          <span class="gs-theme-line gs-theme-line--compact" />
+                        </span>
+                        <span class="gs-theme-action" />
+                      </span>
+                    </span>
+                  </span>
+                  <span class="gs-theme-label">{{ theme.label }}</span>
+                </button>
+              </div>
             </div>
 
             <div class="gs-pref-row">
@@ -819,11 +861,38 @@ async function handleTestConnection(pluginId: string) {
 
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
-const themeOptions = [
-  { value: 'dark', label: 'Dark' },
-  { value: 'light', label: 'Light' },
-  { value: 'system', label: 'System (auto)' },
-]
+const themeCards = [
+  {
+    value: 'dark',
+    label: 'Dark',
+    bgColor: '#14110f',
+    surfaceColor: '#1c1815',
+    componentColor: '#3a332e',
+    borderColor: 'rgba(255, 250, 244, 0.14)',
+    accentColor: '#b9a7ff',
+    mutedColor: '#9d8f88',
+  },
+  {
+    value: 'light',
+    label: 'Light',
+    bgColor: '#f4f1eb',
+    surfaceColor: '#ffffff',
+    componentColor: '#e8e2dc',
+    borderColor: '#ddd7cf',
+    accentColor: '#6f4bd8',
+    mutedColor: '#9f9690',
+  },
+  {
+    value: 'system',
+    label: 'System',
+    bgColor: '#23201d',
+    surfaceColor: '#f8f7f4',
+    componentColor: '#4a3e39',
+    borderColor: '#cfc7bd',
+    accentColor: '#8f6cff',
+    mutedColor: '#8b817a',
+  },
+] as const
 
 const logRetentionOptions = [
   { value: '7', label: '7 days' },
