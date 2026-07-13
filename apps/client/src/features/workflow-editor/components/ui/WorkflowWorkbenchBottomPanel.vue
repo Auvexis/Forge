@@ -33,6 +33,7 @@ interface WorkflowTimelineConnector {
   id: string
   path: string
   isPassed: boolean
+  status: TimelineNodeStatus
 }
 
 interface WorkflowTimelinePlacement {
@@ -86,6 +87,7 @@ const timelineCursorIndex = ref<number | null>(null)
 const timelineTooltipX = ref(0)
 const timelineTooltipY = ref(0)
 const isDraggingTimelinePlayhead = ref(false)
+const timelinePlayheadDragX = ref<number | null>(null)
 const TIMELINE_COLUMN_WIDTH = 132
 const TIMELINE_LANE_HEIGHT = 42
 const TIMELINE_BLOCK_WIDTH = 104
@@ -365,7 +367,8 @@ const panelMeta = computed(() => {
 const playheadStyle = computed(() => {
   const activeNode = timelineNodes.value.find((node) => node.id === activeTimelineNodeId.value)
   const column = activeNode?.column ?? 0
-  return { '--workflow-timeline-playhead-x': `${TIMELINE_CONTENT_LEFT + column * TIMELINE_COLUMN_WIDTH + 52}px` }
+  const playheadX = timelinePlayheadDragX.value ?? TIMELINE_CONTENT_LEFT + column * TIMELINE_COLUMN_WIDTH + 52
+  return { '--workflow-timeline-playhead-x': `${playheadX}px` }
 })
 
 const timelineTrackStyle = computed(() => {
@@ -398,6 +401,7 @@ const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
       id: edge.id,
       path: `M ${sourceX} ${sourceY} H ${middleX} V ${targetY} H ${targetX}`,
       isPassed: source.status !== 'idle' && target.status !== 'idle',
+      status: target.status,
     }]
   })
 })
@@ -457,16 +461,30 @@ function setTimelineCursorToDepth(column: number) {
   traceTimelineNodeId.value = orderedTimelineNodes.value[index]?.id ?? null
 }
 
-function setTimelineCursorFromClientX(clientX: number) {
+function getTimelineSnapColumnFromClientX(clientX: number) {
   const track = timelineTrackRef.value?.querySelector<HTMLElement>('.workflow-timeline__track')
-  if (!track || timelineDepthColumns.value.length === 0) return
+  if (!track || timelineDepthColumns.value.length === 0) return null
   const rect = track.getBoundingClientRect()
   const rawColumn = Math.round((clientX - rect.left - TIMELINE_CONTENT_LEFT - 52) / TIMELINE_COLUMN_WIDTH)
   const columns = timelineDepthColumns.value.map((depth) => depth.column)
-  const closestColumn = columns.reduce((closest, column) => (
+  return columns.reduce((closest, column) => (
     Math.abs(column - rawColumn) < Math.abs(closest - rawColumn) ? column : closest
   ), columns[0] ?? 0)
-  setTimelineCursorToDepth(closestColumn)
+}
+
+function setTimelinePlayheadDragX(clientX: number) {
+  const track = timelineTrackRef.value?.querySelector<HTMLElement>('.workflow-timeline__track')
+  if (!track) return
+  const rect = track.getBoundingClientRect()
+  const minX = TIMELINE_CONTENT_LEFT + 52
+  const maxX = Math.max(minX, rect.width - 36)
+  timelinePlayheadDragX.value = Math.min(maxX, Math.max(minX, clientX - rect.left))
+}
+
+function getTimelinePlayheadDragClientX() {
+  const track = timelineTrackRef.value?.querySelector<HTMLElement>('.workflow-timeline__track')
+  if (!track || timelinePlayheadDragX.value === null) return null
+  return track.getBoundingClientRect().left + timelinePlayheadDragX.value
 }
 
 function moveTimelineCursor(delta: number) {
@@ -485,6 +503,10 @@ function handleTimelineKeydown(event: KeyboardEvent) {
 
 function stopTimelinePlayheadDrag() {
   if (!isDraggingTimelinePlayhead.value) return
+  const dragClientX = getTimelinePlayheadDragClientX()
+  const snapColumn = dragClientX === null ? null : getTimelineSnapColumnFromClientX(dragClientX)
+  if (snapColumn !== null) setTimelineCursorToDepth(snapColumn)
+  timelinePlayheadDragX.value = null
   isDraggingTimelinePlayhead.value = false
   window.removeEventListener('pointermove', handleTimelinePlayheadDrag)
   window.removeEventListener('pointerup', stopTimelinePlayheadDrag)
@@ -494,13 +516,13 @@ function stopTimelinePlayheadDrag() {
 function handleTimelinePlayheadDrag(event: PointerEvent) {
   if (!isDraggingTimelinePlayhead.value) return
   event.preventDefault()
-  setTimelineCursorFromClientX(event.clientX)
+  setTimelinePlayheadDragX(event.clientX)
 }
 
 function startTimelinePlayheadDrag(event: PointerEvent) {
   event.preventDefault()
   isDraggingTimelinePlayhead.value = true
-  setTimelineCursorFromClientX(event.clientX)
+  setTimelinePlayheadDragX(event.clientX)
   window.addEventListener('pointermove', handleTimelinePlayheadDrag)
   window.addEventListener('pointerup', stopTimelinePlayheadDrag, { once: true })
   window.addEventListener('pointercancel', stopTimelinePlayheadDrag, { once: true })
@@ -596,7 +618,10 @@ onBeforeUnmount(() => {
                 v-for="connector in timelineConnectors"
                 :key="connector.id"
                 class="workflow-timeline__connector"
-                :class="{ 'workflow-timeline__connector--passed': connector.isPassed }"
+                :class="[
+                  `workflow-timeline__connector--${connector.status}`,
+                  { 'workflow-timeline__connector--passed': connector.isPassed },
+                ]"
                 :d="connector.path"
               />
             </svg>
@@ -812,6 +837,7 @@ onBeforeUnmount(() => {
   height: var(--workflow-timeline-track-height, 120px);
   min-height: 100%;
   padding: 18px 36px;
+  user-select: none;
 }
 
 .workflow-timeline__depth-grid,
@@ -959,6 +985,24 @@ onBeforeUnmount(() => {
   opacity: 0.82;
 }
 
+.workflow-timeline__connector--success.workflow-timeline__connector--passed {
+  stroke: var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+}
+
+.workflow-timeline__connector--failed.workflow-timeline__connector--passed,
+.workflow-timeline__connector--cancelled.workflow-timeline__connector--passed {
+  stroke: var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+}
+
+.workflow-timeline__connector--waiting.workflow-timeline__connector--passed,
+.workflow-timeline__connector--retrying.workflow-timeline__connector--passed {
+  stroke: var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
+}
+
+.workflow-timeline__connector--running.workflow-timeline__connector--passed {
+  stroke: var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+}
+
 .workflow-timeline__clip {
   position: absolute;
   top: calc(18px + var(--workflow-timeline-y, 0px));
@@ -986,23 +1030,23 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__clip--success {
-  outline: 1px solid var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--failed {
-  outline: 1px solid var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--waiting,
 .workflow-timeline__clip--retrying {
-  outline: 1px solid var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--running {
-  outline: 1px solid var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
   outline-offset: 1px;
 }
 

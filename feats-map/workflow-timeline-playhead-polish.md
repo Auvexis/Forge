@@ -1,0 +1,5 @@
+- [x] Desabilitar selecao de texto na timeline
+- [x] Permitir drag livre do cursor com snap no release
+- [x] Colorir edges pelo status da execucao
+- [x] Reforcar outlines de status dos blocos
+- [x] Validar e commitar
