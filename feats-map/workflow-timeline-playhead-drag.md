@@ -1,0 +1,3 @@
+- [x] Permitir arrastar o losango do cursor
+- [x] Fazer snap do cursor por depth
+- [x] Validar e commitar

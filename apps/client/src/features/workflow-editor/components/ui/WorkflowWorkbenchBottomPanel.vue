@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import ExecutionBottomPanel from '../execution/ExecutionBottomPanel.vue'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
@@ -85,6 +85,7 @@ const traceTimelineNodeId = ref<string | null>(null)
 const timelineCursorIndex = ref<number | null>(null)
 const timelineTooltipX = ref(0)
 const timelineTooltipY = ref(0)
+const isDraggingTimelinePlayhead = ref(false)
 const TIMELINE_COLUMN_WIDTH = 132
 const TIMELINE_LANE_HEIGHT = 42
 const TIMELINE_BLOCK_WIDTH = 104
@@ -456,6 +457,18 @@ function setTimelineCursorToDepth(column: number) {
   traceTimelineNodeId.value = orderedTimelineNodes.value[index]?.id ?? null
 }
 
+function setTimelineCursorFromClientX(clientX: number) {
+  const track = timelineTrackRef.value?.querySelector<HTMLElement>('.workflow-timeline__track')
+  if (!track || timelineDepthColumns.value.length === 0) return
+  const rect = track.getBoundingClientRect()
+  const rawColumn = Math.round((clientX - rect.left - TIMELINE_CONTENT_LEFT - 52) / TIMELINE_COLUMN_WIDTH)
+  const columns = timelineDepthColumns.value.map((depth) => depth.column)
+  const closestColumn = columns.reduce((closest, column) => (
+    Math.abs(column - rawColumn) < Math.abs(closest - rawColumn) ? column : closest
+  ), columns[0] ?? 0)
+  setTimelineCursorToDepth(closestColumn)
+}
+
 function moveTimelineCursor(delta: number) {
   if (timelineNodes.value.length === 0) return
   const activeIndex = timelineCursorIndex.value ?? timelineNodes.value.findIndex((node) => node.id === activeTimelineNodeId.value)
@@ -468,6 +481,29 @@ function handleTimelineKeydown(event: KeyboardEvent) {
   if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
   event.preventDefault()
   moveTimelineCursor(event.key === 'ArrowRight' ? 1 : -1)
+}
+
+function stopTimelinePlayheadDrag() {
+  if (!isDraggingTimelinePlayhead.value) return
+  isDraggingTimelinePlayhead.value = false
+  window.removeEventListener('pointermove', handleTimelinePlayheadDrag)
+  window.removeEventListener('pointerup', stopTimelinePlayheadDrag)
+  window.removeEventListener('pointercancel', stopTimelinePlayheadDrag)
+}
+
+function handleTimelinePlayheadDrag(event: PointerEvent) {
+  if (!isDraggingTimelinePlayhead.value) return
+  event.preventDefault()
+  setTimelineCursorFromClientX(event.clientX)
+}
+
+function startTimelinePlayheadDrag(event: PointerEvent) {
+  event.preventDefault()
+  isDraggingTimelinePlayhead.value = true
+  setTimelineCursorFromClientX(event.clientX)
+  window.addEventListener('pointermove', handleTimelinePlayheadDrag)
+  window.addEventListener('pointerup', stopTimelinePlayheadDrag, { once: true })
+  window.addEventListener('pointercancel', stopTimelinePlayheadDrag, { once: true })
 }
 
 function clearTimelineInteraction() {
@@ -483,6 +519,10 @@ watch(activeTimelineNodeId, async (nodeId) => {
   timelineTrackRef.value
     ?.querySelector(`[data-workflow-timeline-node-id="${CSS.escape(nodeId)}"]`)
     ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+})
+
+onBeforeUnmount(() => {
+  stopTimelinePlayheadDrag()
 })
 </script>
 
@@ -518,7 +558,12 @@ watch(activeTimelineNodeId, async (nodeId) => {
           @keydown="handleTimelineKeydown"
           @click.self="clearTimelineInteraction"
         >
-          <span class="workflow-timeline__playhead" aria-hidden="true" />
+          <span
+            class="workflow-timeline__playhead"
+            :class="{ 'workflow-timeline__playhead--dragging': isDraggingTimelinePlayhead }"
+            aria-hidden="true"
+            @pointerdown.stop="startTimelinePlayheadDrag"
+          />
           <div class="workflow-timeline__depth-grid" @click.self="clearTimelineInteraction">
             <span
               v-for="depth in timelineDepthColumns"
@@ -868,7 +913,14 @@ watch(activeTimelineNodeId, async (nodeId) => {
   width: 2px;
   background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-timeline-playhead, var(--fabric-accent)) 42%, transparent);
+  cursor: grab;
+  touch-action: none;
   transition: left 180ms linear;
+}
+
+.workflow-timeline__playhead--dragging {
+  cursor: grabbing;
+  transition: none;
 }
 
 .workflow-timeline__playhead::before {
