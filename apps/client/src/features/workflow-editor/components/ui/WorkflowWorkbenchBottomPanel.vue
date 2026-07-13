@@ -27,6 +27,7 @@ interface WorkflowTimelineNode {
 interface WorkflowTimelineConnector {
   id: string
   path: string
+  isPassed: boolean
 }
 
 interface WorkflowTimelinePlacement {
@@ -239,6 +240,25 @@ const timelineStats = computed(() => {
   return { passed, success, failed, waiting }
 })
 
+const timelineDepthColumns = computed(() => {
+  const maxColumn = Math.max(0, ...timelineNodes.value.map((node) => node.column))
+  return Array.from({ length: maxColumn + 1 }, (_, column) => ({
+    column,
+    label: column === 0 ? 'Trigger' : `Depth ${column}`,
+    count: timelineNodes.value.filter((node) => node.column === column).length,
+  }))
+})
+
+const timelineBranchLanes = computed(() => {
+  const lanes = [...new Set(timelineNodes.value.map((node) => node.lane))]
+    .sort((a, b) => a - b)
+  return lanes.map((lane, index) => ({
+    lane,
+    label: `Lane ${index + 1}`,
+    isActive: timelineNodes.value.some((node) => node.lane === lane && node.isActive),
+  }))
+})
+
 const panelTitle = computed(() => {
   if (props.activeView === 'tree') return 'Workflow tree'
   if (props.activeView === 'execution') return 'Execution'
@@ -264,6 +284,7 @@ const timelineTrackStyle = computed(() => {
   const maxColumn = Math.max(0, ...timelineNodes.value.map((node) => node.column))
   return {
     ...playheadStyle.value,
+    '--workflow-timeline-column-width': `${TIMELINE_COLUMN_WIDTH}px`,
     '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + 76}px`,
     '--workflow-timeline-track-height': `${maxLane * TIMELINE_LANE_HEIGHT + TIMELINE_TRACK_TOP + 56}px`,
   }
@@ -285,6 +306,7 @@ const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
     return [{
       id: edge.id,
       path: `M ${sourceX} ${sourceY} H ${middleX} V ${targetY} H ${targetX}`,
+      isPassed: source.status !== 'idle' && target.status !== 'idle',
     }]
   })
 })
@@ -293,6 +315,11 @@ function formatDuration(duration: number | undefined) {
   if (duration === undefined) return '...'
   if (duration < 1000) return `${duration}ms`
   return `${(duration / 1000).toFixed(1)}s`
+}
+
+function durationLabel(duration: number | undefined) {
+  if (duration === undefined) return ''
+  return formatDuration(duration)
 }
 
 function iconForNodeType(type: string) {
@@ -341,12 +368,35 @@ watch(activeTimelineNodeId, async (nodeId) => {
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
         <div class="workflow-timeline__track" :style="timelineTrackStyle">
           <span class="workflow-timeline__playhead" aria-hidden="true" />
+          <div class="workflow-timeline__depth-grid" aria-hidden="true">
+            <span
+              v-for="depth in timelineDepthColumns"
+              :key="depth.column"
+              class="workflow-timeline__depth-column"
+              :style="{ '--workflow-timeline-depth-x': `${depth.column * TIMELINE_COLUMN_WIDTH}px` }"
+            >
+              <code>{{ depth.label }}</code>
+              <small>{{ depth.count }}</small>
+            </span>
+          </div>
+          <div class="workflow-timeline__lanes" aria-hidden="true">
+            <span
+              v-for="lane in timelineBranchLanes"
+              :key="lane.lane"
+              class="workflow-timeline__lane"
+              :class="{ 'workflow-timeline__lane--active': lane.isActive }"
+              :style="{ '--workflow-timeline-lane-y': `${lane.lane * TIMELINE_LANE_HEIGHT}px` }"
+            >
+              <code>{{ lane.label }}</code>
+            </span>
+          </div>
           <div class="workflow-timeline__plane">
             <svg class="workflow-timeline__connectors" aria-hidden="true">
               <path
                 v-for="connector in timelineConnectors"
                 :key="connector.id"
                 class="workflow-timeline__connector"
+                :class="{ 'workflow-timeline__connector--passed': connector.isPassed }"
                 :d="connector.path"
               />
             </svg>
@@ -367,7 +417,10 @@ watch(activeTimelineNodeId, async (nodeId) => {
             >
               <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
               <span>{{ node.name }}</span>
-              <code>{{ formatDuration(node.duration) }}</code>
+              <code v-if="durationLabel(node.duration)" class="workflow-timeline__duration">
+                {{ durationLabel(node.duration) }}
+              </code>
+              <code v-else class="workflow-timeline__status">{{ node.status }}</code>
             </div>
           </div>
         </div>
@@ -530,6 +583,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__track {
   position: relative;
+  --workflow-timeline-plane-top: max(18px, calc((100% - var(--workflow-timeline-track-height, 120px)) / 2));
   width: var(--workflow-timeline-track-width, 100%);
   min-width: 100%;
   height: var(--workflow-timeline-track-height, 120px);
@@ -537,9 +591,82 @@ watch(activeTimelineNodeId, async (nodeId) => {
   padding: 18px 36px;
 }
 
+.workflow-timeline__depth-grid,
+.workflow-timeline__lanes {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.workflow-timeline__depth-grid {
+  z-index: 0;
+}
+
+.workflow-timeline__lanes {
+  z-index: 1;
+}
+
+.workflow-timeline__depth-column {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(36px + var(--workflow-timeline-depth-x, 0px));
+  width: var(--workflow-timeline-column-width, 132px);
+  border-left: 1px solid var(--fabric-workflow-timeline-depth-border, var(--fabric-border-muted));
+  background:
+    linear-gradient(
+      90deg,
+      var(--fabric-workflow-timeline-depth-bg, transparent),
+      transparent 68%
+    );
+}
+
+.workflow-timeline__depth-column code,
+.workflow-timeline__depth-column small,
+.workflow-timeline__lane code {
+  position: absolute;
+  color: var(--fabric-workflow-timeline-muted-text, var(--fabric-text-muted));
+  font-family: var(--fabric-font-mono);
+  font-size: 9px;
+  line-height: 1;
+  opacity: 0.56;
+  text-transform: uppercase;
+}
+
+.workflow-timeline__depth-column code {
+  top: 9px;
+  left: 8px;
+}
+
+.workflow-timeline__depth-column small {
+  top: 9px;
+  right: 8px;
+}
+
+.workflow-timeline__lane {
+  position: absolute;
+  right: 0;
+  left: 0;
+  top: calc(var(--workflow-timeline-plane-top, 18px) + 18px + var(--workflow-timeline-lane-y, 0px));
+  height: 28px;
+  border-top: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
+  border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
+  background: var(--fabric-workflow-timeline-lane-bg, transparent);
+}
+
+.workflow-timeline__lane--active {
+  background: var(--fabric-workflow-timeline-lane-active-bg, var(--fabric-accent-subtle));
+}
+
+.workflow-timeline__lane code {
+  top: 9px;
+  left: 8px;
+}
+
 .workflow-timeline__plane {
   position: absolute;
-  top: max(18px, calc((100% - var(--workflow-timeline-track-height, 120px)) / 2));
+  top: var(--workflow-timeline-plane-top);
   left: 0;
   width: var(--workflow-timeline-track-width, 100%);
   height: var(--workflow-timeline-track-height, 120px);
@@ -550,7 +677,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   top: 8px;
   bottom: 0;
   left: calc(36px + var(--workflow-timeline-playhead-x, 52px));
-  z-index: 3;
+  z-index: 5;
   width: 2px;
   background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-timeline-playhead, var(--fabric-accent)) 42%, transparent);
@@ -571,7 +698,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-timeline__connectors {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   height: 100%;
   overflow: visible;
@@ -587,11 +714,17 @@ watch(activeTimelineNodeId, async (nodeId) => {
   vector-effect: non-scaling-stroke;
 }
 
+.workflow-timeline__connector--passed {
+  stroke: var(--fabric-workflow-timeline-trail, var(--fabric-accent));
+  stroke-width: 2;
+  opacity: 0.82;
+}
+
 .workflow-timeline__clip {
   position: absolute;
   top: calc(18px + var(--workflow-timeline-y, 0px));
   left: calc(36px + var(--workflow-timeline-x, 0px));
-  z-index: 2;
+  z-index: 4;
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr) auto;
   align-items: center;
@@ -644,5 +777,19 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-timeline__clip code {
   color: var(--fabric-text-muted);
   font-size: 9px;
+}
+
+.workflow-timeline__duration {
+  min-width: 32px;
+  padding: 2px 4px;
+  border: 1px solid var(--fabric-workflow-timeline-duration-border, var(--fabric-border-muted));
+  border-radius: 2px;
+  background: var(--fabric-workflow-timeline-duration-bg, var(--fabric-bg-muted));
+  color: var(--fabric-workflow-timeline-duration-text, var(--fabric-text-primary)) !important;
+  text-align: center;
+}
+
+.workflow-timeline__status {
+  color: var(--fabric-workflow-timeline-muted-text, var(--fabric-text-muted)) !important;
 }
 </style>

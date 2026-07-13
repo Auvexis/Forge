@@ -74,7 +74,11 @@ describe('theme runtime contract', () => {
       'workbench.status.button.active.bg',
       'workflowTimeline.bg',
       'workflowTimeline.clip.bg',
+      'workflowTimeline.depth.bg',
+      'workflowTimeline.duration.bg',
+      'workflowTimeline.lane.bg',
       'workflowTimeline.playhead',
+      'workflowTimeline.trail',
       'executionPanel.bg',
     ]) {
       assert.equal(typeof darkTheme.tokens[tokenName], 'string')
