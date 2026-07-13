@@ -1,0 +1,6 @@
+- [x] Mapear layout dos paineis
+- [x] Centralizar timeline
+- [x] Respeitar Add Node Panel
+- [x] Adicionar fechar no painel horizontal
+- [x] Expandir tokens de tema
+- [x] Validar e commitar

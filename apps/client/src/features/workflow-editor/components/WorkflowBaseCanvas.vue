@@ -13,9 +13,9 @@
       pattern-style="dot"
       :pattern-size="30"
       rulers
-      rulers-bg="var(--fabric-workbench-status-bg)"
-      rulers-text="var(--fabric-text-muted)"
-      rulers-lines="var(--fabric-workbench-border)"
+      rulers-bg="var(--fabric-base-canvas-ruler-bg)"
+      rulers-text="var(--fabric-base-canvas-ruler-text)"
+      rulers-lines="var(--fabric-base-canvas-ruler-lines)"
       class="fabric-workflow-base-canvas"
       data-workflow-base-canvas
       :data-workflow-items-count="workflowItems.length"

@@ -41,6 +41,10 @@ const props = defineProps<{
   activeView: WorkflowBottomPanelView
 }>()
 
+const emit = defineEmits<{
+  close: []
+}>()
+
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const timelineTrackRef = ref<HTMLElement | null>(null)
@@ -235,6 +239,20 @@ const timelineStats = computed(() => {
   return { passed, success, failed, waiting }
 })
 
+const panelTitle = computed(() => {
+  if (props.activeView === 'tree') return 'Workflow tree'
+  if (props.activeView === 'execution') return 'Execution'
+  if (props.activeView === 'variables') return 'Variables'
+  return 'Timeline'
+})
+
+const panelMeta = computed(() => {
+  if (props.activeView === 'tree') return `${workflowNodes.value.length} nodes`
+  if (props.activeView === 'variables') return `${workflowVariables.value.length} local`
+  if (props.activeView === 'execution') return `${executionStore.timeline.length} events`
+  return ''
+})
+
 const playheadStyle = computed(() => {
   const activeNode = timelineNodes.value.find((node) => node.id === activeTimelineNodeId.value)
   const column = activeNode?.column ?? 0
@@ -298,56 +316,65 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 <template>
   <section class="workflow-bottom-panel" aria-label="Workflow bottom panel">
-    <div v-if="activeView === 'timeline'" class="workflow-bottom-panel__view workflow-timeline">
-      <div class="workflow-bottom-panel__heading workflow-timeline__header">
-        <strong>Timeline</strong>
+    <header class="workflow-bottom-panel__heading">
+      <strong>{{ panelTitle }}</strong>
+      <code v-if="panelMeta">{{ panelMeta }}</code>
+      <template v-if="activeView === 'timeline'">
         <div class="workflow-timeline__stats" aria-label="Execution timeline stats">
           <code>{{ timelineStats.passed }} passed</code>
           <code>{{ timelineStats.success }} ok</code>
           <code>{{ timelineStats.failed }} errors</code>
           <code>{{ timelineStats.waiting }} waiting</code>
         </div>
-      </div>
+      </template>
+      <button
+        class="workflow-bottom-panel__close"
+        type="button"
+        title="Close bottom panel"
+        @click="emit('close')"
+      >
+        <LucideIcon name="x" :size="16" />
+      </button>
+    </header>
 
+    <div v-if="activeView === 'timeline'" class="workflow-bottom-panel__view workflow-timeline">
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
         <div class="workflow-timeline__track" :style="timelineTrackStyle">
-          <svg class="workflow-timeline__connectors" aria-hidden="true">
-            <path
-              v-for="connector in timelineConnectors"
-              :key="connector.id"
-              class="workflow-timeline__connector"
-              :d="connector.path"
-            />
-          </svg>
-          <span class="workflow-timeline__playhead" aria-hidden="true" />
-          <div
-            v-for="node in timelineNodes"
-            :key="node.id"
-            class="workflow-timeline__clip"
-            :class="[
-              `workflow-timeline__clip--${node.status}`,
-              { 'workflow-timeline__clip--active': node.isActive },
-            ]"
-            :data-workflow-timeline-node-id="node.id"
-            :style="{
-              '--workflow-timeline-x': `${node.column * TIMELINE_COLUMN_WIDTH}px`,
-              '--workflow-timeline-y': `${node.lane * TIMELINE_LANE_HEIGHT}px`,
-              '--workflow-timeline-color': node.color,
-            }"
-          >
-            <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
-            <span>{{ node.name }}</span>
-            <code>{{ formatDuration(node.duration) }}</code>
+          <div class="workflow-timeline__plane">
+            <svg class="workflow-timeline__connectors" aria-hidden="true">
+              <path
+                v-for="connector in timelineConnectors"
+                :key="connector.id"
+                class="workflow-timeline__connector"
+                :d="connector.path"
+              />
+            </svg>
+            <span class="workflow-timeline__playhead" aria-hidden="true" />
+            <div
+              v-for="node in timelineNodes"
+              :key="node.id"
+              class="workflow-timeline__clip"
+              :class="[
+                `workflow-timeline__clip--${node.status}`,
+                { 'workflow-timeline__clip--active': node.isActive },
+              ]"
+              :data-workflow-timeline-node-id="node.id"
+              :style="{
+                '--workflow-timeline-x': `${node.column * TIMELINE_COLUMN_WIDTH}px`,
+                '--workflow-timeline-y': `${node.lane * TIMELINE_LANE_HEIGHT}px`,
+                '--workflow-timeline-color': node.color,
+              }"
+            >
+              <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
+              <span>{{ node.name }}</span>
+              <code>{{ formatDuration(node.duration) }}</code>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <div v-else-if="activeView === 'tree'" class="workflow-bottom-panel__view">
-      <div class="workflow-bottom-panel__heading">
-        <strong>Workflow tree</strong>
-        <code>{{ workflowNodes.length }} nodes</code>
-      </div>
       <div v-if="workflowNodes.length" class="workflow-bottom-panel__rows">
         <button
           v-for="node in workflowNodes"
@@ -366,10 +393,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
     <ExecutionBottomPanel v-else-if="activeView === 'execution'" />
 
     <div v-else class="workflow-bottom-panel__view">
-      <div class="workflow-bottom-panel__heading">
-        <strong>Variables</strong>
-        <code>{{ workflowVariables.length }} local</code>
-      </div>
       <div v-if="workflowVariables.length" class="workflow-bottom-panel__rows">
         <div
           v-for="variable in workflowVariables"
@@ -389,16 +412,16 @@ watch(activeTimelineNodeId, async (nodeId) => {
 <style scoped>
 .workflow-bottom-panel {
   display: grid;
-  grid-template-rows: minmax(0, 1fr);
+  grid-template-rows: 32px minmax(0, 1fr);
   height: 100%;
   min-height: 0;
-  color: var(--fabric-workbench-text);
-  background: var(--fabric-workbench-panel-bg);
+  color: var(--fabric-workflow-timeline-text, var(--fabric-workbench-text));
+  background: var(--fabric-workflow-timeline-bg, var(--fabric-workbench-panel-bg));
 }
 
 .workflow-bottom-panel__view {
   display: grid;
-  grid-template-rows: 32px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
   height: 100%;
   min-height: 0;
 }
@@ -410,6 +433,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   gap: 12px;
   padding: 0 10px;
   border-bottom: 1px solid var(--fabric-workbench-border);
+  background: var(--fabric-workflow-timeline-header-bg, var(--fabric-workbench-panel-header-bg, var(--fabric-workbench-rail-bg)));
   font-size: var(--fabric-text-xs);
 }
 
@@ -417,6 +441,27 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-bottom-panel__row code {
   color: var(--fabric-text-muted);
   font-size: 11px;
+}
+
+.workflow-bottom-panel__heading strong {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.workflow-bottom-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  margin-left: auto;
+  border-radius: var(--fabric-radius-sm);
+  color: var(--fabric-workbench-panel-action-text, var(--fabric-text-secondary));
+}
+
+.workflow-bottom-panel__close:hover {
+  background: var(--fabric-workbench-panel-action-hover-bg, var(--fabric-button-ghost-hover));
+  color: var(--fabric-workbench-panel-action-hover-text, var(--fabric-text-primary));
 }
 
 .workflow-bottom-panel__rows {
@@ -457,17 +502,13 @@ watch(activeTimelineNodeId, async (nodeId) => {
   font-size: var(--fabric-text-xs);
 }
 
-.workflow-timeline__header {
-  justify-content: flex-start;
-}
-
 .workflow-timeline__stats {
   display: flex;
   align-items: center;
   gap: 1px;
   margin-left: auto;
   border: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-border-muted);
+  background: var(--fabric-workflow-timeline-stats-bg, var(--fabric-border-muted));
 }
 
 .workflow-timeline__stats code {
@@ -475,7 +516,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   align-items: center;
   height: 22px;
   padding: 0 8px;
-  background: var(--fabric-workbench-panel-bg);
+  background: var(--fabric-workflow-timeline-stats-item-bg, var(--fabric-workbench-panel-bg));
 }
 
 .workflow-timeline__scroll {
@@ -493,6 +534,14 @@ watch(activeTimelineNodeId, async (nodeId) => {
   padding: 18px 36px;
 }
 
+.workflow-timeline__plane {
+  position: absolute;
+  top: max(18px, calc((100% - var(--workflow-timeline-track-height, 120px)) / 2));
+  left: 0;
+  width: var(--workflow-timeline-track-width, 100%);
+  height: var(--workflow-timeline-track-height, 120px);
+}
+
 .workflow-timeline__playhead {
   position: absolute;
   top: 10px;
@@ -500,8 +549,8 @@ watch(activeTimelineNodeId, async (nodeId) => {
   left: calc(36px + var(--workflow-timeline-playhead-x, 52px));
   z-index: 3;
   width: 2px;
-  background: var(--fabric-accent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-accent) 42%, transparent);
+  background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-timeline-playhead, var(--fabric-accent)) 42%, transparent);
   transition: left 180ms linear;
 }
 
@@ -512,7 +561,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   width: 10px;
   height: 10px;
   transform: translateX(-50%) rotate(45deg);
-  background: var(--fabric-accent);
+  background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
   content: '';
 }
 
@@ -528,7 +577,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__connector {
   fill: none;
-  stroke: var(--fabric-border-strong);
+  stroke: var(--fabric-workflow-timeline-connector, var(--fabric-border-strong));
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1;
@@ -551,7 +600,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   border-radius: 3px;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--workflow-timeline-color) 24%, transparent), transparent 48%),
-    var(--fabric-bg-surface);
+    var(--fabric-workflow-timeline-clip-bg, var(--fabric-bg-surface));
   color: var(--fabric-text-primary);
   font-size: 11px;
   transition:
@@ -561,25 +610,25 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__clip--success {
-  border-color: var(--fabric-status-success-border);
+  border-color: var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
 }
 
 .workflow-timeline__clip--failed {
-  border-color: var(--fabric-status-error-border);
+  border-color: var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
 }
 
 .workflow-timeline__clip--waiting,
 .workflow-timeline__clip--retrying {
-  border-color: var(--fabric-border-brand);
+  border-color: var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
 }
 
 .workflow-timeline__clip--running {
-  border-color: var(--fabric-status-running-border);
+  border-color: var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
 }
 
 .workflow-timeline__clip--active {
   transform: translateY(-2px);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-workflow-timeline-clip-active-bg, var(--fabric-bg-elevated));
   box-shadow: inset 0 0 0 1px var(--fabric-accent);
 }
 

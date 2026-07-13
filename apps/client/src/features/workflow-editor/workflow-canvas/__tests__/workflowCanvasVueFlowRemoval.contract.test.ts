@@ -49,8 +49,8 @@ describe('workflow canvas Vue Flow removal contract', () => {
     const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')
 
     assert.match(canvas, /<BaseCanvas[\s\S]*rulers/)
-    assert.match(canvas, /rulers-bg="var\(--fabric-workbench-status-bg\)"/)
-    assert.match(canvas, /rulers-text="var\(--fabric-text-muted\)"/)
-    assert.match(canvas, /rulers-lines="var\(--fabric-workbench-border\)"/)
+    assert.match(canvas, /rulers-bg="var\(--fabric-base-canvas-ruler-bg\)"/)
+    assert.match(canvas, /rulers-text="var\(--fabric-base-canvas-ruler-text\)"/)
+    assert.match(canvas, /rulers-lines="var\(--fabric-base-canvas-ruler-lines\)"/)
   })
 })

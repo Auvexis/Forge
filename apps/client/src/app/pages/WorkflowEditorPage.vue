@@ -112,6 +112,12 @@ const workflowInspectorWidth = ref(280)
 const workflowSettingsWidth = ref(360)
 const workflowBottomPanelHeight = ref(300)
 const bottomPanelResizeStart = ref({ y: 0, height: 0 })
+const globalSidePanelWidth = computed(() => {
+  if (!appPanelStore.isOpen || appPanelStore.position !== 'right') return 0
+  if (appPanelStore.width === 'xl') return 600
+  if (appPanelStore.width === 'lg') return 480
+  return 360
+})
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
@@ -198,12 +204,17 @@ const isExecutionPanelOpen = computed(
 const workflowWorkbenchStyle = computed(() => ({
   '--workflow-inspector-width': showInspector.value ? `${workflowInspectorWidth.value}px` : '0px',
   '--workflow-side-panel-width': showSettings.value ? `${workflowSettingsWidth.value}px` : '0px',
-  '--workflow-bottom-panel-right': showSettings.value
-    ? `${(showInspector.value ? workflowInspectorWidth.value : 0) + workflowSettingsWidth.value}px`
-    : `${showInspector.value ? workflowInspectorWidth.value : 0}px`,
-  '--workflow-canvas-right': showSettings.value
-    ? `${(showInspector.value ? workflowInspectorWidth.value : 0) + workflowSettingsWidth.value}px`
-    : `${showInspector.value ? workflowInspectorWidth.value : 0}px`,
+  '--workflow-global-panel-width': `${globalSidePanelWidth.value}px`,
+  '--workflow-bottom-panel-right': `${
+    (showInspector.value ? workflowInspectorWidth.value : 0)
+    + (showSettings.value ? workflowSettingsWidth.value : 0)
+    + globalSidePanelWidth.value
+  }px`,
+  '--workflow-canvas-right': `${
+    (showInspector.value ? workflowInspectorWidth.value : 0)
+    + (showSettings.value ? workflowSettingsWidth.value : 0)
+    + globalSidePanelWidth.value
+  }px`,
   '--workflow-canvas-bottom': isBottomPanelOpen.value
     ? `${workflowBottomPanelHeight.value}px`
     : '0px',
@@ -1106,7 +1117,10 @@ watch(
             title="Resize bottom panel"
             @mousedown="startBottomPanelResize"
           />
-          <WorkflowWorkbenchBottomPanel v-model:active-view="activeBottomPanelView" />
+          <WorkflowWorkbenchBottomPanel
+            v-model:active-view="activeBottomPanelView"
+            @close="isBottomPanelOpen = false"
+          />
         </section>
 
         <GlobalAppPanel />
@@ -1227,6 +1241,7 @@ watch(
   --fabric-workbench-status-height: 24px;
   --workflow-inspector-width: 280px;
   --workflow-side-panel-width: 0px;
+  --workflow-global-panel-width: 0px;
   --workflow-bottom-panel-right: var(--workflow-inspector-width);
   --workflow-canvas-right: var(--workflow-inspector-width);
   --workflow-canvas-bottom: 0px;
@@ -1316,8 +1331,8 @@ watch(
   height: 36px;
   border: 1px solid transparent;
   border-radius: 0;
-  background: transparent;
-  color: var(--fabric-text-muted);
+  background: var(--fabric-workbench-rail-button-bg, transparent);
+  color: var(--fabric-workbench-rail-button-text, var(--fabric-text-muted));
   cursor: pointer;
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -1328,8 +1343,8 @@ watch(
 .workflow-tool-rail__button:hover:not(:disabled),
 .workflow-tool-rail__button--active {
   border-color: transparent;
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workbench-rail-button-hover-bg, var(--fabric-button-ghost-hover));
+  color: var(--fabric-workbench-rail-button-hover-text, var(--fabric-text-primary));
 }
 
 .workflow-tool-rail__button--active::before {
@@ -1338,7 +1353,7 @@ watch(
   width: 2px;
   height: 22px;
   border-radius: 0 999px 999px 0;
-  background: var(--fabric-accent);
+  background: var(--fabric-workbench-rail-button-active-indicator, var(--fabric-accent));
   content: '';
 }
 
@@ -1348,15 +1363,15 @@ watch(
 }
 
 .workflow-tool-rail__button--primary {
-  color: var(--fabric-accent);
+  color: var(--fabric-workbench-rail-button-primary-text, var(--fabric-accent));
 }
 
 .workflow-tool-rail__button--run {
-  color: var(--fabric-green-500);
+  color: var(--fabric-workbench-rail-button-run-text, var(--fabric-green-500));
 }
 
 .workflow-tool-rail__button--danger {
-  color: var(--fabric-red-500);
+  color: var(--fabric-workbench-rail-button-danger-text, var(--fabric-red-500));
 }
 
 .workflow-tool-rail__button--dirty::after {
@@ -1366,12 +1381,12 @@ watch(
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: var(--fabric-amber-500);
+  background: var(--fabric-workbench-rail-button-dirty-indicator, var(--fabric-amber-500));
   content: '';
 }
 
 .workflow-tool-rail__button--toggle-on {
-  color: var(--fabric-accent);
+  color: var(--fabric-workbench-rail-button-toggle-text, var(--fabric-accent));
 }
 
 .workflow-tool-rail__button--toggle-on::after,
@@ -1583,7 +1598,7 @@ watch(
   padding: 0 var(--fabric-space-3);
   border: 0;
   border-right: 1px solid var(--fabric-border-muted);
-  background: transparent;
+  background: var(--fabric-workbench-status-button-bg, transparent);
   color: inherit;
   cursor: pointer;
 }
@@ -1591,7 +1606,11 @@ watch(
 .workflow-status-bar__button:hover,
 .workflow-status-bar__button--active {
   color: var(--fabric-text-primary);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-workbench-status-button-hover-bg, var(--fabric-bg-surface));
+}
+
+.workflow-status-bar__button--active {
+  background: var(--fabric-workbench-status-button-active-bg, var(--fabric-bg-surface));
 }
 
 .workflow-status-bar__button--git {
