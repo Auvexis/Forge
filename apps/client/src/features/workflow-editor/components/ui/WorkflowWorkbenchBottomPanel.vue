@@ -136,17 +136,6 @@ const orderedTimelineNodes = computed(() => {
     syncSingleParentChildren(placement.id, centeredLane)
   }
 
-  const pushSingleParentChildrenLane = (nodeId: string, lane: number) => {
-    for (const childId of childIdsByParent.get(nodeId) ?? []) {
-      const childParents = parentIdsByChild.get(childId) ?? []
-      if (childParents.length !== 1) continue
-      const childPlacement = placementById.get(childId)
-      if (!childPlacement) continue
-      childPlacement.lane = lane
-      pushSingleParentChildrenLane(childId, lane)
-    }
-  }
-
   const occupiedSlots = new Set<string>()
   for (const placement of [...placed].sort((a, b) => a.column - b.column)) {
     let slotKey = `${placement.column}:${placement.lane}`
@@ -157,7 +146,14 @@ const orderedTimelineNodes = computed(() => {
       slotKey = `${placement.column}:${placement.lane}`
     }
     occupiedSlots.add(slotKey)
-    pushSingleParentChildrenLane(placement.id, placement.lane)
+  }
+
+  for (const placement of [...placed].reverse()) {
+    const childPlacements = (childIdsByParent.get(placement.id) ?? [])
+      .map((childId) => placementById.get(childId))
+      .filter((child): child is NonNullable<typeof child> => child !== undefined)
+    if (childPlacements.length <= 1) continue
+    placement.lane = childPlacements.reduce((sum, child) => sum + child.lane, 0) / childPlacements.length
   }
 
   const minLane = Math.min(0, ...placed.map((node) => node.lane))
