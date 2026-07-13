@@ -769,7 +769,7 @@ onBeforeUnmount(() => {
               <small>{{ depth.count }}</small>
             </span>
           </div>
-          <div class="workflow-timeline__lanes" aria-hidden="true">
+          <div v-if="timelineNodes.length" class="workflow-timeline__lanes" aria-hidden="true">
             <span
               v-for="lane in timelineBranchLanes"
               :key="lane.lane"
