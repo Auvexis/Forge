@@ -1,0 +1,5 @@
+- [x] Mapear bug de sobreposicao
+- [x] Usar posicao real do canvas
+- [x] Centralizar splits e merges
+- [x] Validar timeline
+- [x] Commitar mudancas

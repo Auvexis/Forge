@@ -29,6 +29,14 @@ interface WorkflowTimelineConnector {
   path: string
 }
 
+interface WorkflowTimelinePlacement {
+  id: string
+  parentId: string | null
+  lane: number
+  column: number
+  positionY: number
+}
+
 const props = defineProps<{
   activeView: WorkflowBottomPanelView
 }>()
@@ -42,6 +50,7 @@ const workflowNodes = computed(() =>
     id,
     name: typeof node.name === 'string' && node.name.trim() ? node.name : id,
     type: node.type,
+    positionY: typeof node.ui?.positionY === 'number' ? node.ui.positionY : 0,
   })),
 )
 
@@ -69,13 +78,8 @@ const orderedTimelineNodes = computed(() => {
   const childIdsByParent = new Map<string, string[]>()
   const parentIdsByChild = new Map<string, string[]>()
   const incomingCount = new Map<string, number>()
-  const placed: Array<{
-    id: string
-    parentId: string | null
-    lane: number
-    column: number
-  }> = []
-  const visited = new Set<string>()
+  const columnById = new Map<string, number>()
+  const parentByChild = new Map<string, string | null>()
 
   for (const edge of workflowEdges.value) {
     if (!nodesById.has(edge.source) || !nodesById.has(edge.target)) continue
@@ -90,74 +94,113 @@ const orderedTimelineNodes = computed(() => {
 
   const roots = workflowNodes.value
     .filter((node) => !incomingCount.has(node.id))
-    .sort((a, b) => Number(a.type !== 'trigger') - Number(b.type !== 'trigger'))
+    .sort((a, b) => Number(a.type !== 'trigger') - Number(b.type !== 'trigger') || a.positionY - b.positionY)
 
-  const branchLane = (parentLane: number, branchIndex: number, totalBranches: number) => {
-    if (totalBranches <= 1) return parentLane
-    const distance = Math.ceil((branchIndex + 1) / 2)
-    return parentLane + (branchIndex % 2 === 0 ? -distance : distance)
-  }
-
-  const walk = (nodeId: string, lane: number, column: number, parentId: string | null) => {
+  const assignColumn = (nodeId: string, column: number, parentId: string | null, path = new Set<string>()) => {
+    if (path.has(nodeId)) return
     const node = nodesById.get(nodeId)
-    if (!node || visited.has(nodeId)) return
-    visited.add(nodeId)
-    placed.push({ id: nodeId, parentId, lane, column })
-    const children = childIdsByParent.get(nodeId) ?? []
-    children.forEach((childId, index) => {
-      walk(childId, branchLane(lane, index, children.length), column + 1, nodeId)
-    })
-  }
-
-  roots.forEach((node, index) => walk(node.id, index * 2, 0, null))
-  workflowNodes.value.forEach((node) => walk(node.id, placed.length ? Math.max(...placed.map((item) => item.lane)) + 1 : 0, 0, null))
-
-  const placementById = new Map(placed.map((placement) => [placement.id, placement]))
-  const syncSingleParentChildren = (nodeId: string, lane: number) => {
+    if (!node) return
+    columnById.set(nodeId, Math.max(columnById.get(nodeId) ?? 0, column))
+    if (!parentByChild.has(nodeId)) parentByChild.set(nodeId, parentId)
+    const nextPath = new Set(path)
+    nextPath.add(nodeId)
     for (const childId of childIdsByParent.get(nodeId) ?? []) {
-      const childParents = parentIdsByChild.get(childId) ?? []
-      if (childParents.length !== 1) continue
-      const childPlacement = placementById.get(childId)
-      if (!childPlacement) continue
-      childPlacement.lane = lane
-      syncSingleParentChildren(childId, lane)
+      assignColumn(childId, column + 1, nodeId, nextPath)
     }
   }
 
-  for (const placement of placed) {
-    const parents = parentIdsByChild.get(placement.id) ?? []
-    if (parents.length <= 1) continue
-    const parentPlacements = parents
-      .map((parentId) => placementById.get(parentId))
-      .filter((parent): parent is NonNullable<typeof parent> => parent !== undefined)
-    if (parentPlacements.length <= 1) continue
-    const centeredLane = parentPlacements.reduce((sum, parent) => sum + parent.lane, 0) / parentPlacements.length
-    placement.lane = centeredLane
-    syncSingleParentChildren(placement.id, centeredLane)
-  }
+  roots.forEach((node) => assignColumn(node.id, 0, null))
+  workflowNodes.value.forEach((node) => assignColumn(node.id, columnById.get(node.id) ?? 0, parentByChild.get(node.id) ?? null))
 
-  const occupiedSlots = new Set<string>()
-  for (const placement of [...placed].sort((a, b) => a.column - b.column)) {
-    let slotKey = `${placement.column}:${placement.lane}`
-    let distance = 1
-    while (occupiedSlots.has(slotKey)) {
-      placement.lane += distance
-      distance += 1
-      slotKey = `${placement.column}:${placement.lane}`
+  const placements: WorkflowTimelinePlacement[] = workflowNodes.value.map((node) => ({
+    id: node.id,
+    parentId: parentByChild.get(node.id) ?? null,
+    lane: 0,
+    column: columnById.get(node.id) ?? 0,
+    positionY: node.positionY,
+  }))
+  const placementById = new Map(placements.map((placement) => [placement.id, placement]))
+  const placementsByColumn = () => {
+    const columns = new Map<number, WorkflowTimelinePlacement[]>()
+    for (const placement of placements) {
+      const columnPlacements = columns.get(placement.column) ?? []
+      columnPlacements.push(placement)
+      columns.set(placement.column, columnPlacements)
     }
-    occupiedSlots.add(slotKey)
+    return columns
   }
 
-  for (const placement of [...placed].reverse()) {
-    const childPlacements = (childIdsByParent.get(placement.id) ?? [])
-      .map((childId) => placementById.get(childId))
-      .filter((child): child is NonNullable<typeof child> => child !== undefined)
-    if (childPlacements.length <= 1) continue
-    placement.lane = childPlacements.reduce((sum, child) => sum + child.lane, 0) / childPlacements.length
+  for (const columnPlacements of placementsByColumn().values()) {
+    columnPlacements
+      .sort((a, b) => a.positionY - b.positionY || a.id.localeCompare(b.id))
+      .forEach((placement, index) => {
+        placement.lane = index
+      })
   }
 
-  const minLane = Math.min(0, ...placed.map((node) => node.lane))
-  return placed.map((placement, index) => ({
+  const centerMergesFromParents = () => {
+    for (const placement of placements) {
+      const parentPlacements = (parentIdsByChild.get(placement.id) ?? [])
+        .map((parentId) => placementById.get(parentId))
+        .filter((parent): parent is WorkflowTimelinePlacement => parent !== undefined)
+      if (parentPlacements.length <= 1) continue
+      placement.lane = parentPlacements.reduce((sum, parent) => sum + parent.lane, 0) / parentPlacements.length
+    }
+  }
+
+  const centerSplitsFromChildren = () => {
+    const columns = [...placementsByColumn().keys()].sort((a, b) => b - a)
+    for (const column of columns) {
+      const columnPlacements = placements.filter((placement) => placement.column === column)
+      for (const placement of columnPlacements) {
+        const childPlacements = (childIdsByParent.get(placement.id) ?? [])
+          .map((childId) => placementById.get(childId))
+          .filter((child): child is WorkflowTimelinePlacement => child !== undefined)
+        if (childPlacements.length <= 1) continue
+        placement.lane = childPlacements.reduce((sum, child) => sum + child.lane, 0) / childPlacements.length
+      }
+    }
+  }
+
+  const separateColumnCollisions = () => {
+    for (const columnPlacements of placementsByColumn().values()) {
+      const laneGroups = new Map<string, WorkflowTimelinePlacement[]>()
+      for (const placement of columnPlacements) {
+        const laneKey = placement.lane.toFixed(3)
+        const laneGroup = laneGroups.get(laneKey) ?? []
+        laneGroup.push(placement)
+        laneGroups.set(laneKey, laneGroup)
+      }
+
+      for (const group of laneGroups.values()) {
+        if (group.length <= 1) continue
+        const baseLane = group.reduce((sum, placement) => sum + placement.lane, 0) / group.length
+        group
+          .sort((a, b) => a.positionY - b.positionY || a.id.localeCompare(b.id))
+          .forEach((placement, index) => {
+            placement.lane = baseLane + index - (group.length - 1) / 2
+          })
+      }
+
+      columnPlacements
+        .sort((a, b) => a.lane - b.lane || a.positionY - b.positionY)
+        .forEach((placement, index, sortedPlacements) => {
+          if (index === 0) return
+          const previous = sortedPlacements[index - 1]
+          if (!previous || placement.lane - previous.lane >= 1) return
+          placement.lane = previous.lane + 1
+        })
+    }
+  }
+
+  centerMergesFromParents()
+  separateColumnCollisions()
+  centerSplitsFromChildren()
+  separateColumnCollisions()
+
+  const orderedPlacements = [...placements].sort((a, b) => a.column - b.column || a.lane - b.lane || a.positionY - b.positionY)
+  const minLane = Math.min(0, ...orderedPlacements.map((node) => node.lane))
+  return orderedPlacements.map((placement, index) => ({
     ...nodesById.get(placement.id)!,
     lane: placement.lane - minLane,
     column: placement.column,
