@@ -236,7 +236,7 @@
     "workflowTimeline.stats.item.bg": "var(--fabric-workbench-panel-bg)",
     "workflowTimeline.connector": "var(--fabric-border-strong)",
     "workflowTimeline.playhead": "var(--fabric-accent)",
-    "workflowTimeline.depth.bg": "rgba(255, 255, 255, 0.018)",
+    "workflowTimeline.depth.bg": "transparent",
     "workflowTimeline.depth.border": "rgba(255, 255, 255, 0.055)",
     "workflowTimeline.lane.bg": "rgba(255, 255, 255, 0.012)",
     "workflowTimeline.lane.border": "rgba(255, 255, 255, 0.045)",

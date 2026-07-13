@@ -1,0 +1,4 @@
+- [x] Aumentar espacamento das lanes
+- [x] Reservar gutter para labels
+- [x] Remover gradiente dos depths
+- [x] Validar e commitar
