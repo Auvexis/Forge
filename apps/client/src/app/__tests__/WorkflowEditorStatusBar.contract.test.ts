@@ -62,9 +62,12 @@ test('workflow editor forwards timeline node interactions to the canvas', () => 
   assert.match(source, /canvasRef\.value\?\.focusNode\(nodeId\)/)
   assert.match(source, /function highlightTimelineNode\(nodeId: string \| null\)/)
   assert.match(source, /canvasRef\.value\?\.highlightNode\(nodeId\)/)
+  assert.match(source, /function clearTimelineNodeSelection\(\)/)
+  assert.match(source, /canvasRef\.value\?\.clearSelection\(\)/)
   assert.match(source, /@node-select="selectTimelineNode"/)
   assert.match(source, /@node-focus="focusTimelineNode"/)
   assert.match(source, /@node-hover="highlightTimelineNode"/)
+  assert.match(source, /@node-clear="clearTimelineNodeSelection"/)
 })
 
 test('workflow editor exposes undo redo and add-node keyboard shortcuts outside editable fields', () => {

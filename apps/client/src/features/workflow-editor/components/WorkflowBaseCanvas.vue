@@ -27,8 +27,7 @@
         <WorkflowCanvasNodeHost
           :item="item"
           :component="nodeComponentByType[resolveNodeType(item)]"
-          :selected="canvasSelection.includes(item.id)"
-          :highlighted="highlightedNodeId === item.id"
+          :selected="canvasSelection.includes(item.id) || highlightedNodeId === item.id"
           :status="resolveNodeStatus(item.id)"
           :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
           @open-inspector="openNodeInspector"

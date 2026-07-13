@@ -60,6 +60,7 @@ const emit = defineEmits<{
   nodeSelect: [nodeId: string]
   nodeFocus: [nodeId: string]
   nodeHover: [nodeId: string | null]
+  nodeClear: []
 }>()
 
 const workflowStore = useWorkflowStore()
@@ -81,8 +82,9 @@ const latestNodeEvent = computed(() => [...executionStore.timeline].reverse().fi
 const latestTimelineNodeId = computed<string>(() => latestNodeEvent.value?.nodeId ?? workflowNodes.value[0]?.id ?? '')
 const hoveredTimelineNodeId = ref<string | null>(null)
 const traceTimelineNodeId = ref<string | null>(null)
-const timelineScrubIndex = ref<number | null>(null)
-const timelineZoom = ref(1)
+const timelineCursorIndex = ref<number | null>(null)
+const timelineTooltipX = ref(0)
+const timelineTooltipY = ref(0)
 const TIMELINE_COLUMN_WIDTH = 132
 const TIMELINE_LANE_HEIGHT = 42
 const TIMELINE_BLOCK_WIDTH = 104
@@ -98,9 +100,8 @@ const TIMELINE_COLORS = [
   '#ec4899',
   '#06b6d4',
 ]
-const timelineColumnWidth = computed(() => Math.round(TIMELINE_COLUMN_WIDTH * timelineZoom.value))
 const activeTimelineNodeId = computed<string>(() => {
-  if (timelineScrubIndex.value !== null) return orderedTimelineNodes.value[timelineScrubIndex.value]?.id ?? latestTimelineNodeId.value
+  if (timelineCursorIndex.value !== null) return orderedTimelineNodes.value[timelineCursorIndex.value]?.id ?? latestTimelineNodeId.value
   return latestTimelineNodeId.value
 })
 
@@ -363,7 +364,7 @@ const panelMeta = computed(() => {
 const playheadStyle = computed(() => {
   const activeNode = timelineNodes.value.find((node) => node.id === activeTimelineNodeId.value)
   const column = activeNode?.column ?? 0
-  return { '--workflow-timeline-playhead-x': `${TIMELINE_CONTENT_LEFT + column * timelineColumnWidth.value + 52}px` }
+  return { '--workflow-timeline-playhead-x': `${TIMELINE_CONTENT_LEFT + column * TIMELINE_COLUMN_WIDTH + 52}px` }
 })
 
 const timelineTrackStyle = computed(() => {
@@ -371,10 +372,10 @@ const timelineTrackStyle = computed(() => {
   const maxColumn = Math.max(0, ...timelineNodes.value.map((node) => node.column))
   return {
     ...playheadStyle.value,
-    '--workflow-timeline-column-width': `${timelineColumnWidth.value}px`,
+    '--workflow-timeline-column-width': `${TIMELINE_COLUMN_WIDTH}px`,
     '--workflow-timeline-content-left': `${TIMELINE_CONTENT_LEFT}px`,
     '--workflow-timeline-lane-height': `${TIMELINE_LANE_HEIGHT}px`,
-    '--workflow-timeline-track-width': `${maxColumn * timelineColumnWidth.value + TIMELINE_BLOCK_WIDTH + TIMELINE_CONTENT_LEFT + 40}px`,
+    '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + TIMELINE_CONTENT_LEFT + 40}px`,
     '--workflow-timeline-track-height': `${maxLane * TIMELINE_LANE_HEIGHT + TIMELINE_TRACK_TOP + 56}px`,
   }
 })
@@ -386,8 +387,8 @@ const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
     const target = nodesById.get(edge.target)
     if (!source || !target) return []
 
-    const sourceX = TIMELINE_CONTENT_LEFT + source.column * timelineColumnWidth.value + TIMELINE_BLOCK_WIDTH
-    const targetX = TIMELINE_CONTENT_LEFT + target.column * timelineColumnWidth.value
+    const sourceX = TIMELINE_CONTENT_LEFT + source.column * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH
+    const targetX = TIMELINE_CONTENT_LEFT + target.column * TIMELINE_COLUMN_WIDTH
     const sourceY = 18 + source.lane * TIMELINE_LANE_HEIGHT + 14
     const targetY = 18 + target.lane * TIMELINE_LANE_HEIGHT + 14
     const middleX = sourceX + Math.max(18, (targetX - sourceX) / 2)
@@ -424,6 +425,7 @@ function iconForNodeType(type: string) {
 
 function selectTimelineNode(nodeId: string) {
   traceTimelineNodeId.value = nodeId
+  setTimelineCursorToNode(nodeId)
   emit('nodeSelect', nodeId)
 }
 
@@ -437,30 +439,44 @@ function hoverTimelineNode(nodeId: string | null) {
   emit('nodeHover', nodeId)
 }
 
-function setTimelineZoom(nextZoom: number) {
-  timelineZoom.value = Math.min(1.8, Math.max(0.7, Number(nextZoom.toFixed(2))))
+function positionTimelineTooltip(event: MouseEvent) {
+  timelineTooltipX.value = event.clientX + 12
+  timelineTooltipY.value = event.clientY + 12
 }
 
-function setTimelineZoomFromEvent(event: Event) {
-  const target = event.target instanceof HTMLInputElement ? event.target : null
-  if (target) setTimelineZoom(Number(target.value))
+function setTimelineCursorToNode(nodeId: string) {
+  const index = orderedTimelineNodes.value.findIndex((node) => node.id === nodeId)
+  if (index !== -1) timelineCursorIndex.value = index
 }
 
-function setTimelineScrub(value: string | number) {
-  timelineScrubIndex.value = Math.min(timelineNodes.value.length - 1, Math.max(0, Number(value)))
+function setTimelineCursorToDepth(column: number) {
+  const index = orderedTimelineNodes.value.findIndex((node) => node.column === column)
+  if (index === -1) return
+  timelineCursorIndex.value = index
+  traceTimelineNodeId.value = orderedTimelineNodes.value[index]?.id ?? null
 }
 
-function setTimelineScrubFromEvent(event: Event) {
-  const target = event.target instanceof HTMLInputElement ? event.target : null
-  if (target) setTimelineScrub(target.value)
+function moveTimelineCursor(delta: number) {
+  if (timelineNodes.value.length === 0) return
+  const activeIndex = timelineCursorIndex.value ?? timelineNodes.value.findIndex((node) => node.id === activeTimelineNodeId.value)
+  const nextIndex = Math.min(timelineNodes.value.length - 1, Math.max(0, Math.max(0, activeIndex) + delta))
+  timelineCursorIndex.value = nextIndex
+  traceTimelineNodeId.value = timelineNodes.value[nextIndex]?.id ?? null
 }
 
-function clearTimelineScrub() {
-  timelineScrubIndex.value = null
+function handleTimelineKeydown(event: KeyboardEvent) {
+  if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+  event.preventDefault()
+  moveTimelineCursor(event.key === 'ArrowRight' ? 1 : -1)
 }
 
-const timelineScrubMax = computed(() => Math.max(0, timelineNodes.value.length - 1))
-const timelineScrubValue = computed(() => timelineScrubIndex.value ?? Math.max(0, timelineNodes.value.findIndex((node) => node.id === activeTimelineNodeId.value)))
+function clearTimelineInteraction() {
+  hoveredTimelineNodeId.value = null
+  traceTimelineNodeId.value = null
+  timelineCursorIndex.value = null
+  emit('nodeHover', null)
+  emit('nodeClear')
+}
 
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
@@ -483,33 +499,11 @@ watch(activeTimelineNodeId, async (nodeId) => {
           <code>{{ timelineStats.waiting }} waiting</code>
         </div>
         <div class="workflow-timeline__controls" aria-label="Timeline controls">
-          <button type="button" title="Zoom out timeline" @click="setTimelineZoom(timelineZoom - 0.1)">
-            <LucideIcon name="zoom-out" :size="13" />
+          <button type="button" title="Previous timeline node" @click="moveTimelineCursor(-1)">
+            <LucideIcon name="arrow-left" :size="13" />
           </button>
-          <input
-            :value="timelineZoom"
-            type="range"
-            min="0.7"
-            max="1.8"
-            step="0.1"
-            aria-label="Timeline zoom"
-            @input="setTimelineZoomFromEvent"
-          >
-          <button type="button" title="Zoom in timeline" @click="setTimelineZoom(timelineZoom + 0.1)">
-            <LucideIcon name="zoom-in" :size="13" />
-          </button>
-          <input
-            v-if="timelineNodes.length > 1"
-            :value="timelineScrubValue"
-            type="range"
-            min="0"
-            :max="timelineScrubMax"
-            step="1"
-            aria-label="Scrub timeline"
-            @input="setTimelineScrubFromEvent"
-          >
-          <button v-if="timelineScrubIndex !== null" type="button" title="Resume live cursor" @click="clearTimelineScrub">
-            <LucideIcon name="radio" :size="13" />
+          <button type="button" title="Next timeline node" @click="moveTimelineCursor(1)">
+            <LucideIcon name="arrow-right" :size="13" />
           </button>
         </div>
       </template>
@@ -525,14 +519,21 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
     <div v-if="activeView === 'timeline'" class="workflow-bottom-panel__view workflow-timeline">
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
-        <div class="workflow-timeline__track" :style="timelineTrackStyle">
+        <div
+          class="workflow-timeline__track"
+          :style="timelineTrackStyle"
+          tabindex="0"
+          @keydown="handleTimelineKeydown"
+          @click.self="clearTimelineInteraction"
+        >
           <span class="workflow-timeline__playhead" aria-hidden="true" />
-          <div class="workflow-timeline__depth-grid" aria-hidden="true">
+          <div class="workflow-timeline__depth-grid" @click.self="clearTimelineInteraction">
             <span
               v-for="depth in timelineDepthColumns"
               :key="depth.column"
               class="workflow-timeline__depth-column"
-              :style="{ '--workflow-timeline-depth-x': `${depth.column * timelineColumnWidth}px` }"
+              :style="{ '--workflow-timeline-depth-x': `${depth.column * TIMELINE_COLUMN_WIDTH}px` }"
+              @click.stop="setTimelineCursorToDepth(depth.column)"
             >
               <code>{{ depth.label }}</code>
               <small>{{ depth.count }}</small>
@@ -552,7 +553,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
               <code>{{ lane.label }}</code>
             </span>
           </div>
-          <div class="workflow-timeline__plane">
+          <div class="workflow-timeline__plane" @click.self="clearTimelineInteraction">
             <svg class="workflow-timeline__connectors" aria-hidden="true">
               <path
                 v-for="connector in timelineConnectors"
@@ -576,13 +577,16 @@ watch(activeTimelineNodeId, async (nodeId) => {
               role="button"
               tabindex="0"
               :style="{
-                '--workflow-timeline-x': `${node.column * timelineColumnWidth}px`,
+                '--workflow-timeline-x': `${node.column * TIMELINE_COLUMN_WIDTH}px`,
                 '--workflow-timeline-y': `${node.lane * TIMELINE_LANE_HEIGHT}px`,
                 '--workflow-timeline-color': node.color,
+                '--workflow-timeline-tooltip-x': `${timelineTooltipX}px`,
+                '--workflow-timeline-tooltip-y': `${timelineTooltipY}px`,
               }"
               @click="selectTimelineNode(node.id)"
               @dblclick.stop="focusTimelineNode(node.id)"
-              @mouseenter="hoverTimelineNode(node.id)"
+              @mouseenter="(event) => { hoverTimelineNode(node.id); positionTimelineTooltip(event) }"
+              @mousemove="positionTimelineTooltip"
               @mouseleave="hoverTimelineNode(null)"
               @keydown.enter.prevent="selectTimelineNode(node.id)"
               @keydown.space.prevent="selectTimelineNode(node.id)"
@@ -782,11 +786,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
   color: var(--fabric-text-primary);
 }
 
-.workflow-timeline__controls input[type='range'] {
-  width: 74px;
-  accent-color: var(--fabric-accent);
-}
-
 .workflow-timeline__scroll {
   min-width: 0;
   min-height: 0;
@@ -808,15 +807,16 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   inset: 0;
   overflow: hidden;
-  pointer-events: none;
 }
 
 .workflow-timeline__depth-grid {
   z-index: 0;
+  pointer-events: auto;
 }
 
 .workflow-timeline__lanes {
   z-index: 1;
+  pointer-events: none;
 }
 
 .workflow-timeline__depth-column {
@@ -827,6 +827,12 @@ watch(activeTimelineNodeId, async (nodeId) => {
   width: var(--workflow-timeline-column-width, 132px);
   border-left: 1px solid var(--fabric-workflow-timeline-depth-border, var(--fabric-border-muted));
   background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.workflow-timeline__depth-column:hover {
+  background: var(--fabric-workflow-timeline-lane-active-bg, transparent);
 }
 
 .workflow-timeline__depth-column code,
@@ -1017,9 +1023,9 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 0;
+  position: fixed;
+  top: var(--workflow-timeline-tooltip-y, 0);
+  left: var(--workflow-timeline-tooltip-x, 0);
   z-index: 20;
   display: none;
   width: 220px;

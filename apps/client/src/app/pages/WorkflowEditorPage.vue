@@ -502,6 +502,11 @@ function highlightTimelineNode(nodeId: string | null) {
   canvasRef.value?.highlightNode(nodeId)
 }
 
+function clearTimelineNodeSelection() {
+  canvasRef.value?.highlightNode(null)
+  canvasRef.value?.clearSelection()
+}
+
 function handleInspectorPanelResize(size: { width: number | null }) {
   workflowInspectorWidth.value = size.width ?? 280
 }
@@ -1135,6 +1140,7 @@ watch(
             @node-select="selectTimelineNode"
             @node-focus="focusTimelineNode"
             @node-hover="highlightTimelineNode"
+            @node-clear="clearTimelineNodeSelection"
           />
         </section>
 
