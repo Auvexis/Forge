@@ -343,19 +343,23 @@ function addLogicNodeAtViewportCenter(
   type: WorkflowNodeType,
   providedDefaults: Record<string, unknown> = {},
 ) {
+  const pendingPosition = takePendingAddNodePosition()
   return addLogicNode(
     type,
     providedDefaults,
-    takePendingAddNodePosition() ?? getCanvasCenterPosition(),
+    pendingPosition ?? getCanvasCenterPosition(),
+    { preservePosition: Boolean(pendingPosition) },
   )
 }
 
 function addPluginNodeAtViewportCenter(pluginId: string, action: string, actionName: string) {
+  const pendingPosition = takePendingAddNodePosition()
   return addPluginNode(
     pluginId,
     action,
     actionName,
-    takePendingAddNodePosition() ?? getCanvasCenterPosition(),
+    pendingPosition ?? getCanvasCenterPosition(),
+    { preservePosition: Boolean(pendingPosition) },
   )
 }
 
@@ -364,7 +368,7 @@ function addLogicNodeAtScreenPoint(
   point: { x: number; y: number },
   providedDefaults: Record<string, unknown> = {},
 ) {
-  return addLogicNode(type, providedDefaults, screenToCanvasWorld(point))
+  return addLogicNode(type, providedDefaults, screenToCanvasWorld(point), { preservePosition: true })
 }
 
 function addPluginNodeAtScreenPoint(
@@ -373,13 +377,16 @@ function addPluginNodeAtScreenPoint(
   actionName: string,
   point: { x: number; y: number },
 ) {
-  return addPluginNode(pluginId, action, actionName, screenToCanvasWorld(point))
+  return addPluginNode(pluginId, action, actionName, screenToCanvasWorld(point), {
+    preservePosition: true,
+  })
 }
 
 function addLogicNode(
   type: WorkflowNodeType,
   providedDefaults: Record<string, unknown> = {},
   position = getCanvasCenterPosition(),
+  options: { preservePosition?: boolean } = {},
 ) {
   const workflow = workflowStore.activeWorkflow
   if (!workflow) return undefined
@@ -393,7 +400,7 @@ function addLogicNode(
     ...providedDefaults,
   } as any
 
-  connectNewNode(id, type)
+  connectNewNode(id, type, options)
   return id
 }
 
@@ -402,6 +409,7 @@ function addPluginNode(
   action: string,
   actionName: string,
   position = getCanvasCenterPosition(),
+  options: { preservePosition?: boolean } = {},
 ) {
   const workflow = workflowStore.activeWorkflow
   if (!workflow) return undefined
@@ -416,11 +424,15 @@ function addPluginNode(
     ui: { positionX: position.x, positionY: position.y },
   } as any
 
-  connectNewNode(id, 'plugin')
+  connectNewNode(id, 'plugin', options)
   return id
 }
 
-function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
+function connectNewNode(
+  nodeId: string,
+  type: WorkflowNodeType | 'plugin',
+  options: { preservePosition?: boolean } = {},
+) {
   const workflow = workflowStore.activeWorkflow
   if (!workflow) return
 
@@ -442,7 +454,7 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
   }
 
   if (targetId && targetHandle) {
-    if (targetHandle === 'target') {
+    if (targetHandle === 'target' && !options.preservePosition) {
       pendingQuickAddAlignment.value = {
         anchorNodeId: targetId,
         anchorHandle: targetHandle,
@@ -463,7 +475,7 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
     )
     arrangeAdvancedConfigNodes(targetId)
   } else if (targetId) {
-    pendingQuickAddAlignment.value = {
+    if (!options.preservePosition) pendingQuickAddAlignment.value = {
       anchorNodeId: targetId,
       anchorHandle: 'target',
       anchorType: 'target',
@@ -481,7 +493,7 @@ function connectNewNode(nodeId: string, type: WorkflowNodeType | 'plugin') {
       }),
     )
   } else if (sourceId && type !== 'trigger') {
-    pendingQuickAddAlignment.value = {
+    if (!options.preservePosition) pendingQuickAddAlignment.value = {
       anchorNodeId: sourceId,
       anchorHandle: sourceHandle ?? 'source',
       anchorType: 'source',

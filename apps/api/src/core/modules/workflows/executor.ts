@@ -178,7 +178,13 @@ export const WorkflowEngine = {
         : collectReachableNodeIds(triggerNodeId, adjList);
       const branchInDegree = createBranchInDegree(reachable, adjList, triggerNodeId);
       const queue: string[] = [];
+      const queued = new Set<string>();
       const executed = new Set<string>();
+      const enqueueReady = (targetId: string) => {
+        if (executed.has(targetId) || queued.has(targetId)) return;
+        queue.push(targetId);
+        queued.add(targetId);
+      };
 
       const enqueueTarget = (targetId: string) => {
         if (!reachable.has(targetId)) return;
@@ -188,83 +194,82 @@ export const WorkflowEngine = {
           targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
 
         if (isWaitAny) {
-          if (!executed.has(targetId) && !queue.includes(targetId)) queue.push(targetId);
+          enqueueReady(targetId);
           return;
         }
 
-        if (branchInDegree[targetId] <= 0) queue.push(targetId);
+        if (branchInDegree[targetId] <= 0) enqueueReady(targetId);
       };
 
       for (const edge of adjList[triggerNodeId] || []) enqueueTarget(edge.target);
 
       while (queue.length > 0) {
-        const nodeId = queue.shift()!;
-        if (executed.has(nodeId)) continue;
+        const batch = queue.splice(0);
+        batch.forEach((nodeId) => queued.delete(nodeId));
 
-        if (CancellationRegistry.consume(execId)) {
-          status = "CANCELLED";
-          workflowEventBus.emitWorkflowEvent({
-            executionId: execId,
-            workflowId: workflow.metadata.id,
-            type: "workflow:cancelled",
-            timestamp: Date.now(),
-          });
-          WorkflowRepository.saveExecutionLog(
-            execId,
-            workflow.metadata.id,
-            status,
-            startTime,
-            Date.now(),
-            sanitizeContextForLogging(context),
-          );
-          return { executionId: execId, status, context };
-        }
+        const results = await Promise.allSettled(batch.map(async (nodeId) => {
+          if (executed.has(nodeId)) return { stop: false };
 
-        executed.add(nodeId);
+          if (CancellationRegistry.consume(execId)) {
+            status = "CANCELLED";
+            workflowEventBus.emitWorkflowEvent({
+              executionId: execId,
+              workflowId: workflow.metadata.id,
+              type: "workflow:cancelled",
+              timestamp: Date.now(),
+            });
+            return { stop: true };
+          }
 
-        const node = workflow.nodes[nodeId];
-        if (!node || node.type === "trigger" || node.disabled === true) {
-          for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
-          continue;
-        }
+          executed.add(nodeId);
 
-        recordNodeStart(context, nodeId);
-        emitNodeStart(workflow.metadata.id, execId, nodeId);
+          const node = workflow.nodes[nodeId];
+          if (!node || node.type === "trigger" || node.disabled === true) {
+            for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
+            return { stop: false };
+          }
 
-        await executeWithRetry({
-          nodeId,
-          node,
-          context,
-          workflow,
-          executionId: execId,
-        });
+          recordNodeStart(context, nodeId);
+          emitNodeStart(workflow.metadata.id, execId, nodeId);
 
-        if (node.type === "return") {
-          queue.length = 0;
-          continue;
-        }
-
-        if (node.type === "event") {
-          enqueueMatchingEventListeners(
-            workflow,
+          await executeWithRetry({
             nodeId,
+            node,
             context,
-            executed,
-            queue,
-            adjList,
-            reachable,
-            branchInDegree,
-          );
-        }
+            workflow,
+            executionId: execId,
+          });
 
-        const output = context.steps[nodeId]?.output;
-        if (options.targetNodeId && nodeId === options.targetNodeId) {
+          if (node.type === "return") return { stop: true };
+
+          if (node.type === "event") {
+            enqueueMatchingEventListeners(
+              workflow,
+              nodeId,
+              context,
+              executed,
+              queue,
+              adjList,
+              reachable,
+              branchInDegree,
+            );
+          }
+
+          const output = context.steps[nodeId]?.output;
+          if (options.targetNodeId && nodeId === options.targetNodeId) return { stop: true };
+
+          for (const edge of adjList[nodeId] || []) {
+            if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
+          }
+          return { stop: false };
+        }));
+
+        const rejected = results.find((result) => result.status === "rejected");
+        if (rejected?.status === "rejected") throw rejected.reason;
+
+        if (results.some((result) => result.status === "fulfilled" && result.value.stop)) {
           queue.length = 0;
-          continue;
-        }
-
-        for (const edge of adjList[nodeId] || []) {
-          if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
+          break;
         }
       }
 
@@ -435,6 +440,12 @@ async function continueWorkflowExecution(input: {
     const reachable = collectReachableNodeIds(triggerNodeId, adjList);
     const branchInDegree = createBranchInDegree(reachable, adjList, triggerNodeId);
     const queue = [...initialQueue];
+    const queued = new Set(queue);
+    const enqueueReady = (targetId: string) => {
+      if (executed.has(targetId) || queued.has(targetId)) return;
+      queue.push(targetId);
+      queued.add(targetId);
+    };
 
     const enqueueTarget = (targetId: string) => {
       if (!reachable.has(targetId)) return;
@@ -444,62 +455,72 @@ async function continueWorkflowExecution(input: {
         targetNode?.type === "merge" && (targetNode as MergeNode).mode === "wait-any";
 
       if (isWaitAny) {
-        if (!executed.has(targetId) && !queue.includes(targetId)) queue.push(targetId);
+        enqueueReady(targetId);
         return;
       }
 
-      if (branchInDegree[targetId] <= 0) queue.push(targetId);
+      if (branchInDegree[targetId] <= 0) enqueueReady(targetId);
     };
 
     while (queue.length > 0) {
-      const nodeId = queue.shift()!;
-      if (executed.has(nodeId)) continue;
+      const batch = queue.splice(0);
+      batch.forEach((nodeId) => queued.delete(nodeId));
 
-      if (CancellationRegistry.consume(executionId)) {
-        status = "CANCELLED";
-        break;
-      }
+      const results = await Promise.allSettled(batch.map(async (nodeId) => {
+        if (executed.has(nodeId)) return { stop: false };
 
-      executed.add(nodeId);
+        if (CancellationRegistry.consume(executionId)) {
+          status = "CANCELLED";
+          return { stop: true };
+        }
 
-      const node = workflow.nodes[nodeId];
-      if (!node || node.type === "trigger" || node.disabled === true) {
-        for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
-        continue;
-      }
+        executed.add(nodeId);
 
-      recordNodeStart(context, nodeId);
-      emitNodeStart(workflow.metadata.id, executionId, nodeId);
+        const node = workflow.nodes[nodeId];
+        if (!node || node.type === "trigger" || node.disabled === true) {
+          for (const edge of adjList[nodeId]) enqueueTarget(edge.target);
+          return { stop: false };
+        }
 
-      await executeWithRetry({
-        nodeId,
-        node,
-        context,
-        workflow,
-        executionId,
-      });
+        recordNodeStart(context, nodeId);
+        emitNodeStart(workflow.metadata.id, executionId, nodeId);
 
-      if (node.type === "return") {
-        queue.length = 0;
-        continue;
-      }
-
-      if (node.type === "event") {
-        enqueueMatchingEventListeners(
-          workflow,
+        await executeWithRetry({
           nodeId,
+          node,
           context,
-          executed,
-          queue,
-          adjList,
-          reachable,
-          branchInDegree,
-        );
-      }
+          workflow,
+          executionId,
+        });
 
-      const output = context.steps[nodeId]?.output;
-      for (const edge of adjList[nodeId] || []) {
-        if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
+        if (node.type === "return") return { stop: true };
+
+        if (node.type === "event") {
+          enqueueMatchingEventListeners(
+            workflow,
+            nodeId,
+            context,
+            executed,
+            queue,
+            adjList,
+            reachable,
+            branchInDegree,
+          );
+        }
+
+        const output = context.steps[nodeId]?.output;
+        for (const edge of adjList[nodeId] || []) {
+          if (shouldReleaseEdge(node, edge, output)) enqueueTarget(edge.target);
+        }
+        return { stop: false };
+      }));
+
+      const rejected = results.find((result) => result.status === "rejected");
+      if (rejected?.status === "rejected") throw rejected.reason;
+
+      if (results.some((result) => result.status === "fulfilled" && result.value.stop)) {
+        queue.length = 0;
+        break;
       }
     }
 

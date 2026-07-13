@@ -564,6 +564,44 @@ describe("WorkflowEngine trigger entry execution", () => {
     assert.equal(result.context.steps.after_disabled.output.continued, "yes");
   });
 
+  it("executes independent sibling branches concurrently after the same parent", async () => {
+    const wf = baseWorkflow();
+    wf.nodes.http_like_a = {
+      type: "code",
+      name: "HTTP-like A",
+      language: "javascript",
+      script: "return await new Promise(resolve => setTimeout(() => resolve({ branch: 'a' }), 120));",
+    };
+    wf.nodes.http_like_b = {
+      type: "code",
+      name: "HTTP-like B",
+      language: "javascript",
+      script: "return await new Promise(resolve => setTimeout(() => resolve({ branch: 'b' }), 120));",
+    };
+    wf.edges = [
+      { id: "trigger-a", source: "trigger_a", target: "http_like_a" },
+      { id: "trigger-b", source: "trigger_a", target: "http_like_b" },
+    ];
+    WorkflowRepository.saveWorkflow(wf);
+
+    const started = Date.now();
+    const result = await WorkflowEngine.executeWorkflowFromTrigger(
+      wf,
+      "trigger_a",
+      {},
+      "exec_parallel_siblings",
+    );
+    const elapsed = Date.now() - started;
+    const aStartedAt = result.context.steps.http_like_a.startedAt;
+    const bStartedAt = result.context.steps.http_like_b.startedAt;
+
+    assert.equal(result.status, "SUCCESS");
+    assert.equal(result.context.steps.http_like_a.output.branch, "a");
+    assert.equal(result.context.steps.http_like_b.output.branch, "b");
+    assert.ok(Math.abs(aStartedAt - bStartedAt) < 60);
+    assert.ok(elapsed < 220, `expected sibling branches to run concurrently, took ${elapsed}ms`);
+  });
+
   it("executes nodes downstream of a matching event listener in the same workflow", async () => {
     let requests = 0;
     const server = http.createServer((req, res) => {
