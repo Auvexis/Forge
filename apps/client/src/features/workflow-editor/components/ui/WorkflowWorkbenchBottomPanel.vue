@@ -14,7 +14,9 @@ interface WorkflowTimelineNode {
   name: string
   type: string
   index: number
-  depth: number
+  lane: number
+  column: number
+  color: string
   parentId: string | null
   status: TimelineNodeStatus
   duration?: number
@@ -42,12 +44,31 @@ const workflowVariables = computed(() => workflowStore.activeWorkflow?.variables
 const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
 const latestNodeEvent = computed(() => [...executionStore.timeline].reverse().find((event) => event.nodeId))
 const activeTimelineNodeId = computed<string>(() => latestNodeEvent.value?.nodeId ?? workflowNodes.value[0]?.id ?? '')
+const TIMELINE_COLUMN_WIDTH = 132
+const TIMELINE_LANE_HEIGHT = 42
+const TIMELINE_BLOCK_WIDTH = 104
+const TIMELINE_TRACK_TOP = 46
+const TIMELINE_COLORS = [
+  '#4f8cff',
+  '#8b5cf6',
+  '#14b8a6',
+  '#f59e0b',
+  '#ef4444',
+  '#22c55e',
+  '#ec4899',
+  '#06b6d4',
+]
 
 const orderedTimelineNodes = computed(() => {
   const nodesById = new Map(workflowNodes.value.map((node) => [node.id, node]))
   const childIdsByParent = new Map<string, string[]>()
   const incomingCount = new Map<string, number>()
-  const orderedIds: string[] = []
+  const placed: Array<{
+    id: string
+    parentId: string | null
+    lane: number
+    column: number
+  }> = []
   const visited = new Set<string>()
 
   for (const edge of workflowEdges.value) {
@@ -62,40 +83,33 @@ const orderedTimelineNodes = computed(() => {
     .filter((node) => !incomingCount.has(node.id))
     .sort((a, b) => Number(a.type !== 'trigger') - Number(b.type !== 'trigger'))
 
-  const walk = (nodeId: string, depth: number, parentId: string | null) => {
+  const branchLane = (parentLane: number, branchIndex: number, totalBranches: number) => {
+    if (totalBranches <= 1) return parentLane
+    const distance = Math.ceil((branchIndex + 1) / 2)
+    return parentLane + (branchIndex % 2 === 0 ? -distance : distance)
+  }
+
+  const walk = (nodeId: string, lane: number, column: number, parentId: string | null) => {
     const node = nodesById.get(nodeId)
     if (!node || visited.has(nodeId)) return
     visited.add(nodeId)
-    orderedIds.push(nodeId)
+    placed.push({ id: nodeId, parentId, lane, column })
     const children = childIdsByParent.get(nodeId) ?? []
-    for (const childId of children) walk(childId, depth + 1, nodeId)
+    children.forEach((childId, index) => {
+      walk(childId, branchLane(lane, index, children.length), column + 1, nodeId)
+    })
   }
 
-  roots.forEach((node) => walk(node.id, 0, null))
-  workflowNodes.value.forEach((node) => walk(node.id, 0, null))
+  roots.forEach((node, index) => walk(node.id, index * 2, 0, null))
+  workflowNodes.value.forEach((node) => walk(node.id, placed.length ? Math.max(...placed.map((item) => item.lane)) + 1 : 0, 0, null))
 
-  const parentByChild = new Map<string, string>()
-  for (const [parentId, childIds] of childIdsByParent) {
-    for (const childId of childIds) if (!parentByChild.has(childId)) parentByChild.set(childId, parentId)
-  }
-
-  const depthById = new Map<string, number>()
-  const resolveDepth = (nodeId: string, seen = new Set<string>()): number => {
-    if (depthById.has(nodeId)) return depthById.get(nodeId)!
-    const parentId = parentByChild.get(nodeId)
-    if (!parentId || seen.has(parentId)) {
-      depthById.set(nodeId, 0)
-      return 0
-    }
-    const depth = resolveDepth(parentId, new Set(seen).add(nodeId)) + 1
-    depthById.set(nodeId, depth)
-    return depth
-  }
-
-  return orderedIds.map((id) => ({
-    ...nodesById.get(id)!,
-    depth: resolveDepth(id),
-    parentId: parentByChild.get(id) ?? null,
+  const minLane = Math.min(0, ...placed.map((node) => node.lane))
+  return placed.map((placement, index) => ({
+    ...nodesById.get(placement.id)!,
+    lane: placement.lane - minLane,
+    column: placement.column,
+    color: TIMELINE_COLORS[index % TIMELINE_COLORS.length] ?? '#4f8cff',
+    parentId: placement.parentId,
   }))
 })
 
@@ -126,8 +140,19 @@ const timelineStats = computed(() => {
 })
 
 const playheadStyle = computed(() => {
-  const activeIndex = Math.max(0, timelineNodes.value.findIndex((node) => node.id === activeTimelineNodeId.value))
-  return { '--workflow-timeline-playhead-x': `${activeIndex * 172 + 86}px` }
+  const activeNode = timelineNodes.value.find((node) => node.id === activeTimelineNodeId.value)
+  const column = activeNode?.column ?? 0
+  return { '--workflow-timeline-playhead-x': `${column * TIMELINE_COLUMN_WIDTH + 52}px` }
+})
+
+const timelineTrackStyle = computed(() => {
+  const maxLane = Math.max(0, ...timelineNodes.value.map((node) => node.lane))
+  const maxColumn = Math.max(0, ...timelineNodes.value.map((node) => node.column))
+  return {
+    ...playheadStyle.value,
+    '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + 76}px`,
+    '--workflow-timeline-track-height': `${maxLane * TIMELINE_LANE_HEIGHT + TIMELINE_TRACK_TOP + 56}px`,
+  }
 })
 
 function formatDuration(duration: number | undefined) {
@@ -169,7 +194,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
       </div>
 
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
-        <div class="workflow-timeline__track" :style="playheadStyle">
+        <div class="workflow-timeline__track" :style="timelineTrackStyle">
           <span class="workflow-timeline__playhead" aria-hidden="true" />
           <div
             v-for="node in timelineNodes"
@@ -180,22 +205,16 @@ watch(activeTimelineNodeId, async (nodeId) => {
               { 'workflow-timeline__clip--active': node.isActive },
             ]"
             :data-workflow-timeline-node-id="node.id"
-            :style="{ '--workflow-timeline-depth': String(node.depth) }"
+            :style="{
+              '--workflow-timeline-x': `${node.column * TIMELINE_COLUMN_WIDTH}px`,
+              '--workflow-timeline-y': `${node.lane * TIMELINE_LANE_HEIGHT}px`,
+              '--workflow-timeline-color': node.color,
+            }"
           >
             <span v-if="node.parentId" class="workflow-timeline__branch" aria-hidden="true" />
-            <div class="workflow-timeline__clip-top">
-              <LucideIcon :name="iconForNodeType(node.type)" :size="13" />
-              <span>{{ node.name }}</span>
-              <code>{{ formatDuration(node.duration) }}</code>
-            </div>
-            <div class="workflow-timeline__clip-mid">
-              <span>{{ node.type }}</span>
-              <code>{{ node.status }}</code>
-            </div>
-            <div class="workflow-timeline__clip-bottom">
-              <span>depth {{ node.depth }}</span>
-              <code>{{ node.childCount }} out</code>
-            </div>
+            <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
+            <span>{{ node.name }}</span>
+            <code>{{ formatDuration(node.duration) }}</code>
           </div>
         </div>
       </div>
@@ -339,25 +358,23 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-timeline__scroll {
   min-width: 0;
   min-height: 0;
-  overflow: auto hidden;
+  overflow: auto;
 }
 
 .workflow-timeline__track {
   position: relative;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  min-width: max-content;
-  height: 100%;
-  min-height: 138px;
-  padding: 22px 36px;
+  width: var(--workflow-timeline-track-width, 100%);
+  min-width: 100%;
+  height: var(--workflow-timeline-track-height, 120px);
+  min-height: 100%;
+  padding: 18px 36px;
 }
 
 .workflow-timeline__track::before {
   position: absolute;
-  top: 56px;
-  right: 0;
-  left: 0;
+  top: 50%;
+  right: 24px;
+  left: 24px;
   height: 1px;
   background: var(--fabric-border-muted);
   content: '';
@@ -367,7 +384,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   top: 10px;
   bottom: 10px;
-  left: var(--workflow-timeline-playhead-x, 78px);
+  left: calc(36px + var(--workflow-timeline-playhead-x, 52px));
   z-index: 3;
   width: 2px;
   background: var(--fabric-accent);
@@ -387,26 +404,35 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__clip {
-  position: relative;
+  position: absolute;
+  top: calc(18px + var(--workflow-timeline-y, 0px));
+  left: calc(36px + var(--workflow-timeline-x, 0px));
   z-index: 2;
   display: grid;
-  grid-template-rows: 26px 22px 20px;
-  width: 160px;
-  height: 68px;
-  margin-top: calc(var(--workflow-timeline-depth, 0) * 34px);
-  border: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-secondary);
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+  width: 104px;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--workflow-timeline-color) 72%, var(--fabric-border-muted));
+  border-radius: 3px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--workflow-timeline-color) 24%, transparent), transparent 48%),
+    var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
+  font-size: 11px;
   transition:
+    transform var(--fabric-duration-fast) var(--fabric-ease-standard),
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
 .workflow-timeline__clip::after {
   position: absolute;
-  top: 34px;
-  right: -13px;
-  width: 12px;
+  top: 50%;
+  right: -28px;
+  width: 28px;
   height: 1px;
   background: var(--fabric-border-strong);
   content: '';
@@ -418,12 +444,11 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__branch {
   position: absolute;
-  top: -34px;
-  left: 16px;
-  width: 24px;
-  height: 34px;
-  border-bottom: 1px solid var(--fabric-border-strong);
-  border-left: 1px solid var(--fabric-border-strong);
+  top: 50%;
+  left: -28px;
+  width: 28px;
+  height: 1px;
+  border-top: 1px solid var(--fabric-border-strong);
   content: '';
 }
 
@@ -445,29 +470,9 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__clip--active {
-  color: var(--fabric-text-primary);
+  transform: translateY(-2px);
   background: var(--fabric-bg-elevated);
-}
-
-.workflow-timeline__clip-top,
-.workflow-timeline__clip-mid,
-.workflow-timeline__clip-bottom {
-  display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 0 8px;
-}
-
-.workflow-timeline__clip-mid {
-  grid-template-columns: minmax(0, 1fr) auto;
-  background: color-mix(in srgb, var(--fabric-bg-base) 62%, transparent);
-}
-
-.workflow-timeline__clip-bottom {
-  grid-template-columns: minmax(0, 1fr) auto;
-  border-top: 1px solid var(--fabric-border-muted);
+  box-shadow: inset 0 0 0 1px var(--fabric-accent);
 }
 
 .workflow-timeline__clip span {
@@ -476,8 +481,8 @@ watch(activeTimelineNodeId, async (nodeId) => {
   white-space: nowrap;
 }
 
-.workflow-timeline__clip-mid code {
+.workflow-timeline__clip code {
   color: var(--fabric-text-muted);
-  text-transform: uppercase;
+  font-size: 9px;
 }
 </style>
