@@ -552,9 +552,9 @@ watch(
 )
 
 watch(
-  () => executionStore.timeline[0]?.id ?? null,
-  (firstEventId, previousFirstEventId) => {
-    if (!firstEventId || firstEventId === previousFirstEventId) return
+  () => executionStore.timeline.at(-1)?.id ?? null,
+  (latestEventId, previousLatestEventId) => {
+    if (!latestEventId || latestEventId === previousLatestEventId) return
     resetTimelineCursorForExecution()
   },
 )

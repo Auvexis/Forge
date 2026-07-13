@@ -1,0 +1,3 @@
+- [x] Resetar cursor manual ao receber qualquer evento novo
+- [x] Corrigir execute trigger com timeline acumulada
+- [x] Validar e commitar
