@@ -645,8 +645,8 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   right: 0;
   left: 0;
-  top: calc(var(--workflow-timeline-plane-top, 18px) + 12px + var(--workflow-timeline-lane-y, 0px));
-  height: 40px;
+  top: calc(var(--workflow-timeline-plane-top, 18px) + 18px + var(--workflow-timeline-lane-y, 0px));
+  height: 28px;
   border-top: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
   border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
   background: var(--fabric-workflow-timeline-lane-bg, transparent);
