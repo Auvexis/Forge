@@ -1,0 +1,3 @@
+- [x] Ajustar altura visual da lane
+- [x] Atualizar teste
+- [x] Validar e commitar
