@@ -1,0 +1,2 @@
+- [x] Ajustar linha central da lane
+- [x] Validar e commitar
