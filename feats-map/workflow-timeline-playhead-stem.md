@@ -1,0 +1,2 @@
+- [x] Remover cabo acima do marcador
+- [x] Validar e commitar

@@ -547,7 +547,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__playhead {
   position: absolute;
-  top: 0;
+  top: 8px;
   bottom: 0;
   left: calc(36px + var(--workflow-timeline-playhead-x, 52px));
   z-index: 3;
@@ -559,7 +559,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__playhead::before {
   position: absolute;
-  top: 3px;
+  top: -5px;
   left: 50%;
   width: 10px;
   height: 10px;
