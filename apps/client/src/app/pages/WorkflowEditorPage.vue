@@ -107,7 +107,7 @@ const isGitCommitting = ref(false)
 const gitModalRefreshKey = ref(0)
 const showInspector = ref(true)
 const isBottomPanelOpen = ref(true)
-const activeBottomPanelView = ref<WorkflowBottomPanelView>('tree')
+const activeBottomPanelView = ref<WorkflowBottomPanelView>('timeline')
 const workflowInspectorWidth = ref(280)
 const workflowSettingsWidth = ref(360)
 const workflowBottomPanelHeight = ref(300)
@@ -1091,43 +1091,6 @@ watch(
                 </div>
               </dl>
             </section>
-
-            <section
-              class="workflow-inspector-panel__section workflow-inspector-panel__section--actions"
-            >
-              <button type="button" @click="openGlobalAddNodePanel()">
-                <LucideIcon name="plus" :size="14" />
-                Add
-              </button>
-              <button type="button" @click="canvasRef?.fitWorkflowView()">
-                <LucideIcon name="maximize" :size="14" />
-                Fit
-              </button>
-              <button
-                type="button"
-                :disabled="!activeInspectorNode"
-                @click="canvasRef?.duplicateSelection()"
-              >
-                <LucideIcon name="copy" :size="14" />
-                Duplicate
-              </button>
-              <button
-                type="button"
-                :disabled="!activeInspectorNode"
-                @click="canvasRef?.deleteSelection()"
-              >
-                <LucideIcon name="trash-2" :size="14" />
-                Delete
-              </button>
-              <button type="button" @click="openBottomPanel('variables')">
-                <LucideIcon name="tags" :size="14" />
-                Variables
-              </button>
-              <button type="button" @click="openExecutionPanel()">
-                <LucideIcon name="scroll-text" :size="14" />
-                Logs
-              </button>
-            </section>
           </div>
         </AppPanel>
 
@@ -1170,6 +1133,20 @@ watch(
               <code>{{
                 canOpenDevChat ? selectedChatSlug || 'dev session' : 'dev session only'
               }}</code>
+            </button>
+
+            <button
+              class="workflow-status-bar__button"
+              :class="{
+                'workflow-status-bar__button--active':
+                  isBottomPanelOpen && activeBottomPanelView === 'timeline',
+              }"
+              type="button"
+              @click="toggleBottomPanel('timeline')"
+            >
+              <LucideIcon name="chart-no-axes-gantt" :size="13" />
+              <span>Timeline</span>
+              <code>{{ executionStore.timeline.length }} events</code>
             </button>
 
             <button
@@ -1595,40 +1572,6 @@ watch(
   color: var(--fabric-text-muted);
   font-size: 11px;
   line-height: 1.35;
-}
-
-.workflow-inspector-panel__section--actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  margin-top: auto;
-  padding: 0;
-  border-top: 1px solid var(--fabric-workbench-border);
-  border-bottom: 0;
-  background: var(--fabric-border-muted);
-}
-
-.workflow-inspector-panel__section--actions button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 32px;
-  border: 0;
-  background: var(--fabric-workbench-panel-bg);
-  color: var(--fabric-text-muted);
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.workflow-inspector-panel__section--actions button:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
-}
-
-.workflow-inspector-panel__section--actions button:disabled {
-  cursor: not-allowed;
-  opacity: 0.45;
 }
 
 .workflow-status-bar__button {

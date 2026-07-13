@@ -9,7 +9,11 @@ const source = readFileSync(
 )
 
 test('workflow bottom panel renders the selected view without internal tabs', () => {
-  assert.match(source, /export type WorkflowBottomPanelView = 'tree' \| 'execution' \| 'variables'/)
+  assert.match(source, /export type WorkflowBottomPanelView = 'timeline' \| 'tree' \| 'execution' \| 'variables'/)
+  assert.match(source, /activeView === 'timeline'/)
+  assert.match(source, /workflow-timeline__playhead/)
+  assert.match(source, /timelineStats/)
+  assert.match(source, /scrollIntoView/)
   assert.match(source, /<ExecutionBottomPanel v-else-if="activeView === 'execution'"/)
   assert.match(source, /activeView === 'tree'/)
   assert.match(source, /v-else class="workflow-bottom-panel__view"/)
