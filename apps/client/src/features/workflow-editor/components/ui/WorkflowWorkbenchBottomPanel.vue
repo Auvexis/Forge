@@ -222,10 +222,14 @@ const orderedTimelineNodes = computed(() => {
   separateColumnCollisions()
 
   const orderedPlacements = [...placements].sort((a, b) => a.column - b.column || a.lane - b.lane || a.positionY - b.positionY)
-  const minLane = Math.min(0, ...orderedPlacements.map((node) => node.lane))
+  const normalizedLaneByValue = new Map(
+    [...new Set(orderedPlacements.map((node) => node.lane))]
+      .sort((a, b) => a - b)
+      .map((lane, index) => [lane, index]),
+  )
   return orderedPlacements.map((placement, index) => ({
     ...nodesById.get(placement.id)!,
-    lane: placement.lane - minLane,
+    lane: normalizedLaneByValue.get(placement.lane) ?? 0,
     column: placement.column,
     color: TIMELINE_COLORS[index % TIMELINE_COLORS.length] ?? '#4f8cff',
     parentId: placement.parentId,
