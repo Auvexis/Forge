@@ -551,6 +551,14 @@ watch(
   },
 )
 
+watch(
+  () => executionStore.timeline[0]?.id ?? null,
+  (firstEventId, previousFirstEventId) => {
+    if (!firstEventId || firstEventId === previousFirstEventId) return
+    resetTimelineCursorForExecution()
+  },
+)
+
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
   timelineTrackRef.value
