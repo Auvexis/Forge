@@ -747,20 +747,24 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__clip--success {
-  border-color: var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+  outline: 1px solid var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+  outline-offset: 1px;
 }
 
 .workflow-timeline__clip--failed {
-  border-color: var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+  outline: 1px solid var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+  outline-offset: 1px;
 }
 
 .workflow-timeline__clip--waiting,
 .workflow-timeline__clip--retrying {
-  border-color: var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
+  outline: 1px solid var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
+  outline-offset: 1px;
 }
 
 .workflow-timeline__clip--running {
-  border-color: var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+  outline: 1px solid var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+  outline-offset: 1px;
 }
 
 .workflow-timeline__clip--active {
