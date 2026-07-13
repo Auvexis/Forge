@@ -498,14 +498,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
           <code>{{ timelineStats.failed }} errors</code>
           <code>{{ timelineStats.waiting }} waiting</code>
         </div>
-        <div class="workflow-timeline__controls" aria-label="Timeline controls">
-          <button type="button" title="Previous timeline node" @click="moveTimelineCursor(-1)">
-            <LucideIcon name="arrow-left" :size="13" />
-          </button>
-          <button type="button" title="Next timeline node" @click="moveTimelineCursor(1)">
-            <LucideIcon name="arrow-right" :size="13" />
-          </button>
-        </div>
       </template>
       <button
         class="workflow-bottom-panel__close"
@@ -759,31 +751,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__stats code:not(:last-child) {
   border-right: 1px solid var(--fabric-border-muted);
-}
-
-.workflow-timeline__controls {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  min-width: 0;
-  margin-left: auto;
-}
-
-.workflow-timeline__controls button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 22px;
-  border: 1px solid transparent;
-  border-radius: 3px;
-  color: var(--fabric-text-secondary);
-}
-
-.workflow-timeline__controls button:hover {
-  border-color: var(--fabric-border-muted);
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
 }
 
 .workflow-timeline__scroll {
