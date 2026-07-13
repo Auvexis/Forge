@@ -1,0 +1,3 @@
+- [x] Resetar cursor manual ao parar execucao
+- [x] Cobrir transicao de execucao ativa para inativa
+- [x] Validar e commitar

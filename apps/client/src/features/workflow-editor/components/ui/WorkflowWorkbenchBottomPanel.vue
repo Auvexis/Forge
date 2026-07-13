@@ -559,6 +559,14 @@ watch(
   },
 )
 
+watch(
+  () => executionStore.hasActiveExecution,
+  (hasActiveExecution, hadActiveExecution) => {
+    if (hasActiveExecution || !hadActiveExecution) return
+    resetTimelineCursorForExecution()
+  },
+)
+
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
   timelineTrackRef.value
