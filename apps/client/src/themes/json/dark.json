@@ -230,6 +230,7 @@
     "workbench.rail.button.toggle.text": "var(--fabric-accent)",
     "workflowTimeline.bg": "var(--fabric-workbench-panel-bg)",
     "workflowTimeline.header.bg": "var(--fabric-workbench-panel-header-bg)",
+    "workflowTimeline.entry.bg": "var(--fabric-workbench-panel-bg)",
     "workflowTimeline.text": "var(--fabric-workbench-text)",
     "workflowTimeline.muted.text": "var(--fabric-text-muted)",
     "workflowTimeline.stats.bg": "var(--fabric-border-muted)",

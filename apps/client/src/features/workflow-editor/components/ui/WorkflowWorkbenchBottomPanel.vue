@@ -52,6 +52,16 @@ interface WorkflowTimelineLane {
   isActive: boolean
 }
 
+interface WorkflowTimelineEntryPoint {
+  id: string
+  name: string
+  type: string
+  nodeCount: number
+  eventCount: number
+  status: TimelineNodeStatus
+  isActive: boolean
+}
+
 const props = defineProps<{
   activeView: WorkflowBottomPanelView
 }>()
@@ -80,7 +90,6 @@ const workflowNodes = computed(() =>
 const workflowVariables = computed(() => workflowStore.activeWorkflow?.variables ?? [])
 const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
 const latestNodeEvent = computed(() => [...executionStore.timeline].reverse().find((event) => event.nodeId))
-const latestTimelineNodeId = computed<string>(() => latestNodeEvent.value?.nodeId ?? workflowNodes.value[0]?.id ?? '')
 const hoveredTimelineNodeId = ref<string | null>(null)
 const traceTimelineNodeId = ref<string | null>(null)
 const timelineCursorIndex = ref<number | null>(null)
@@ -88,6 +97,7 @@ const timelineTooltipX = ref(0)
 const timelineTooltipY = ref(0)
 const isDraggingTimelinePlayhead = ref(false)
 const timelinePlayheadDragX = ref<number | null>(null)
+const selectedTimelineEntryId = ref<string>('all')
 const TIMELINE_COLUMN_WIDTH = 132
 const TIMELINE_LANE_HEIGHT = 42
 const TIMELINE_BLOCK_WIDTH = 104
@@ -108,27 +118,119 @@ const activeTimelineNodeId = computed<string>(() => {
   return latestTimelineNodeId.value
 })
 
+const childIdsByParent = computed(() => {
+  const childrenByParent = new Map<string, string[]>()
+  const nodeIds = new Set(workflowNodes.value.map((node) => node.id))
+  for (const edge of workflowEdges.value) {
+    if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) continue
+    const children = childrenByParent.get(edge.source) ?? []
+    children.push(edge.target)
+    childrenByParent.set(edge.source, children)
+  }
+  return childrenByParent
+})
+
+const parentIdsByChild = computed(() => {
+  const parentsByChild = new Map<string, string[]>()
+  const nodeIds = new Set(workflowNodes.value.map((node) => node.id))
+  for (const edge of workflowEdges.value) {
+    if (!nodeIds.has(edge.source) || !nodeIds.has(edge.target)) continue
+    const parents = parentsByChild.get(edge.target) ?? []
+    parents.push(edge.source)
+    parentsByChild.set(edge.target, parents)
+  }
+  return parentsByChild
+})
+
+function collectTimelineDescendantIds(rootId: string) {
+  const visited = new Set<string>()
+  const visit = (nodeId: string) => {
+    if (visited.has(nodeId)) return
+    visited.add(nodeId)
+    for (const childId of childIdsByParent.value.get(nodeId) ?? []) visit(childId)
+  }
+  visit(rootId)
+  return visited
+}
+
+const timelineRootNodes = computed(() =>
+  workflowNodes.value
+    .filter((node) => node.type === 'trigger' || !parentIdsByChild.value.has(node.id))
+    .sort((a, b) => Number(a.type !== 'trigger') - Number(b.type !== 'trigger') || a.positionY - b.positionY),
+)
+
+const latestTimelineEntryId = computed(() => {
+  const latestNodeId = latestNodeEvent.value?.nodeId
+  if (!latestNodeId) return null
+  return timelineRootNodes.value.find((root) => collectTimelineDescendantIds(root.id).has(latestNodeId))?.id ?? null
+})
+
+const selectedTimelineNodeIds = computed(() => (
+  selectedTimelineEntryId.value === 'all'
+    ? new Set(workflowNodes.value.map((node) => node.id))
+    : collectTimelineDescendantIds(selectedTimelineEntryId.value)
+))
+
+const timelineWorkflowNodes = computed(() =>
+  workflowNodes.value.filter((node) => selectedTimelineNodeIds.value.has(node.id)),
+)
+
+const timelineWorkflowEdges = computed(() =>
+  workflowEdges.value.filter((edge) => selectedTimelineNodeIds.value.has(edge.source) && selectedTimelineNodeIds.value.has(edge.target)),
+)
+
+const latestTimelineNodeId = computed<string>(() => {
+  const latestNodeId = latestNodeEvent.value?.nodeId
+  if (latestNodeId && selectedTimelineNodeIds.value.has(latestNodeId)) return latestNodeId
+  return timelineWorkflowNodes.value[0]?.id ?? workflowNodes.value[0]?.id ?? ''
+})
+
+const timelineEntryPoints = computed<WorkflowTimelineEntryPoint[]>(() => {
+  const statusRank: TimelineNodeStatus[] = ['failed', 'running', 'retrying', 'waiting', 'success', 'cancelled', 'info', 'idle']
+  const resolveStatus = (nodeIds: Set<string>) => {
+    const statuses = [...nodeIds].map((nodeId) => executionStore.nodeStatuses[nodeId]?.status ?? 'idle' as TimelineNodeStatus)
+    return statusRank.find((status) => statuses.includes(status)) ?? 'idle'
+  }
+  const eventCountFor = (nodeIds: Set<string>) => executionStore.timeline.filter((event) => event.nodeId && nodeIds.has(event.nodeId)).length
+  const allNodeIds = new Set(workflowNodes.value.map((node) => node.id))
+  return [
+    {
+      id: 'all',
+      name: 'All entry points',
+      type: 'workspace',
+      nodeCount: allNodeIds.size,
+      eventCount: eventCountFor(allNodeIds),
+      status: resolveStatus(allNodeIds),
+      isActive: latestNodeEvent.value?.nodeId ? allNodeIds.has(latestNodeEvent.value.nodeId) : false,
+    },
+    ...timelineRootNodes.value.map((node) => {
+      const nodeIds = collectTimelineDescendantIds(node.id)
+      return {
+        id: node.id,
+        name: node.name,
+        type: node.type,
+        nodeCount: nodeIds.size,
+        eventCount: eventCountFor(nodeIds),
+        status: resolveStatus(nodeIds),
+        isActive: latestNodeEvent.value?.nodeId ? nodeIds.has(latestNodeEvent.value.nodeId) : false,
+      }
+    }),
+  ]
+})
+
 const orderedTimelineNodes = computed(() => {
-  const nodesById = new Map(workflowNodes.value.map((node) => [node.id, node]))
-  const childIdsByParent = new Map<string, string[]>()
-  const parentIdsByChild = new Map<string, string[]>()
+  const nodesById = new Map(timelineWorkflowNodes.value.map((node) => [node.id, node]))
   const incomingCount = new Map<string, number>()
   const columnById = new Map<string, number>()
   const parentByChild = new Map<string, string | null>()
   const rootByChild = new Map<string, string>()
 
-  for (const edge of workflowEdges.value) {
+  for (const edge of timelineWorkflowEdges.value) {
     if (!nodesById.has(edge.source) || !nodesById.has(edge.target)) continue
-    const children = childIdsByParent.get(edge.source) ?? []
-    children.push(edge.target)
-    childIdsByParent.set(edge.source, children)
-    const parents = parentIdsByChild.get(edge.target) ?? []
-    parents.push(edge.source)
-    parentIdsByChild.set(edge.target, parents)
     incomingCount.set(edge.target, (incomingCount.get(edge.target) ?? 0) + 1)
   }
 
-  const roots = workflowNodes.value
+  const roots = timelineWorkflowNodes.value
     .filter((node) => !incomingCount.has(node.id))
     .sort((a, b) => Number(a.type !== 'trigger') - Number(b.type !== 'trigger') || a.positionY - b.positionY)
 
@@ -141,20 +243,21 @@ const orderedTimelineNodes = computed(() => {
     if (!rootByChild.has(nodeId)) rootByChild.set(nodeId, rootId)
     const nextPath = new Set(path)
     nextPath.add(nodeId)
-    for (const childId of childIdsByParent.get(nodeId) ?? []) {
+    for (const childId of childIdsByParent.value.get(nodeId) ?? []) {
+      if (!nodesById.has(childId)) continue
       assignColumn(childId, column + 1, nodeId, rootId, nextPath)
     }
   }
 
   roots.forEach((node) => assignColumn(node.id, 0, null, node.id))
-  workflowNodes.value.forEach((node) => assignColumn(
+  timelineWorkflowNodes.value.forEach((node) => assignColumn(
     node.id,
     columnById.get(node.id) ?? 0,
     parentByChild.get(node.id) ?? null,
     rootByChild.get(node.id) ?? node.id,
   ))
 
-  const placements: WorkflowTimelinePlacement[] = workflowNodes.value.map((node) => ({
+  const placements: WorkflowTimelinePlacement[] = timelineWorkflowNodes.value.map((node) => ({
     id: node.id,
     parentId: parentByChild.get(node.id) ?? null,
     rootId: rootByChild.get(node.id) ?? node.id,
@@ -183,7 +286,7 @@ const orderedTimelineNodes = computed(() => {
 
   const centerMergesFromParents = () => {
     for (const placement of placements) {
-      const parentPlacements = (parentIdsByChild.get(placement.id) ?? [])
+      const parentPlacements = (parentIdsByChild.value.get(placement.id) ?? [])
         .map((parentId) => placementById.get(parentId))
         .filter((parent): parent is WorkflowTimelinePlacement => parent !== undefined)
       if (parentPlacements.length <= 1) continue
@@ -196,7 +299,7 @@ const orderedTimelineNodes = computed(() => {
     for (const column of columns) {
       const columnPlacements = placements.filter((placement) => placement.column === column)
       for (const placement of columnPlacements) {
-        const childPlacements = (childIdsByParent.get(placement.id) ?? [])
+        const childPlacements = (childIdsByParent.value.get(placement.id) ?? [])
           .map((childId) => placementById.get(childId))
           .filter((child): child is WorkflowTimelinePlacement => child !== undefined)
         if (childPlacements.length <= 1) continue
@@ -263,7 +366,7 @@ const timelineNodes = computed<WorkflowTimelineNode[]>(() =>
     const events = executionStore.timeline.filter((event) => event.nodeId === node.id)
     const latestEvent = events.at(-1)
     const duration = state?.startedAt && state?.endedAt ? state.endedAt - state.startedAt : undefined
-    const childCount = workflowEdges.value.filter((edge) => edge.source === node.id).length
+    const childCount = timelineWorkflowEdges.value.filter((edge) => edge.source === node.id).length
     const isTrace = traceNodeIds.value.has(node.id)
     return {
       ...node,
@@ -286,7 +389,7 @@ const traceNodeIds = computed(() => {
 
   const parentIdsByChild = new Map<string, string[]>()
   const childIdsByParent = new Map<string, string[]>()
-  for (const edge of workflowEdges.value) {
+  for (const edge of timelineWorkflowEdges.value) {
     const parents = parentIdsByChild.get(edge.target) ?? []
     parents.push(edge.source)
     parentIdsByChild.set(edge.target, parents)
@@ -386,7 +489,7 @@ const timelineTrackStyle = computed(() => {
 
 const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
   const nodesById = new Map(timelineNodes.value.map((node) => [node.id, node]))
-  return workflowEdges.value.flatMap((edge) => {
+  return timelineWorkflowEdges.value.flatMap((edge) => {
     const source = nodesById.get(edge.source)
     const target = nodesById.get(edge.target)
     if (!source || !target) return []
@@ -418,6 +521,7 @@ function durationLabel(duration: number | undefined) {
 }
 
 function iconForNodeType(type: string) {
+  if (type === 'workspace') return 'boxes'
   if (type === 'trigger') return 'play'
   if (type === 'http') return 'globe-2'
   if (type === 'code') return 'code-2'
@@ -426,6 +530,11 @@ function iconForNodeType(type: string) {
   if (type === 'switch') return 'git-branch-plus'
   if (type === 'set') return 'list-plus'
   return 'box'
+}
+
+function selectTimelineEntry(entryId: string) {
+  selectedTimelineEntryId.value = entryId
+  clearTimelineInteraction()
 }
 
 function selectTimelineNode(nodeId: string) {
@@ -555,6 +664,7 @@ watch(
   () => executionStore.timeline.at(-1)?.id ?? null,
   (latestEventId, previousLatestEventId) => {
     if (!latestEventId || latestEventId === previousLatestEventId) return
+    if (latestTimelineEntryId.value) selectedTimelineEntryId.value = latestTimelineEntryId.value
     resetTimelineCursorForExecution()
   },
 )
@@ -566,6 +676,11 @@ watch(
     resetTimelineCursorForExecution()
   },
 )
+
+watch(timelineEntryPoints, (entryPoints) => {
+  if (entryPoints.some((entry) => entry.id === selectedTimelineEntryId.value)) return
+  selectedTimelineEntryId.value = 'all'
+})
 
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
@@ -603,6 +718,31 @@ onBeforeUnmount(() => {
     </header>
 
     <div v-if="activeView === 'timeline'" class="workflow-bottom-panel__view workflow-timeline">
+      <aside class="workflow-timeline__entries" aria-label="Timeline entry points">
+        <div class="workflow-timeline__entries-heading">
+          <strong>Entry Points</strong>
+          <code>{{ timelineEntryPoints.length }}</code>
+        </div>
+        <div class="workflow-timeline__entries-list">
+          <button
+            v-for="entry in timelineEntryPoints"
+            :key="entry.id"
+            class="workflow-timeline__entry"
+            :class="{
+              'workflow-timeline__entry--selected': selectedTimelineEntryId === entry.id,
+              'workflow-timeline__entry--active': entry.isActive,
+              [`workflow-timeline__entry--${entry.status}`]: true,
+            }"
+            type="button"
+            @click="selectTimelineEntry(entry.id)"
+          >
+            <LucideIcon :name="iconForNodeType(entry.type)" :size="14" />
+            <span>{{ entry.name }}</span>
+            <code>{{ entry.nodeCount }} nodes</code>
+            <small>{{ entry.eventCount }} events</small>
+          </button>
+        </div>
+      </aside>
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
         <div
           class="workflow-timeline__track"
@@ -852,6 +992,100 @@ onBeforeUnmount(() => {
 
 .workflow-timeline__stats code:not(:last-child) {
   border-right: 1px solid var(--fabric-border-muted);
+}
+
+.workflow-timeline {
+  grid-template-columns: 220px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.workflow-timeline__entries {
+  display: grid;
+  grid-template-rows: 28px minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+  border-right: 1px solid var(--fabric-workbench-border);
+  background: var(--fabric-workflow-timeline-entry-bg, var(--fabric-workbench-panel-bg));
+}
+
+.workflow-timeline__entries-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--fabric-border-muted);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+}
+
+.workflow-timeline__entries-heading code {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.workflow-timeline__entries-list {
+  min-height: 0;
+  overflow: auto;
+}
+
+.workflow-timeline__entry {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  grid-template-rows: 18px 14px;
+  align-items: center;
+  gap: 0 7px;
+  width: 100%;
+  min-height: 38px;
+  padding: 3px 10px;
+  border-bottom: 1px solid var(--fabric-border-muted);
+  border-left: 2px solid transparent;
+  color: var(--fabric-text-secondary);
+  font-size: 11px;
+  text-align: left;
+}
+
+.workflow-timeline__entry:hover,
+.workflow-timeline__entry--selected {
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
+}
+
+.workflow-timeline__entry--active {
+  border-left-color: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
+}
+
+.workflow-timeline__entry--running,
+.workflow-timeline__entry--retrying {
+  border-left-color: var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+}
+
+.workflow-timeline__entry--success {
+  border-left-color: var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+}
+
+.workflow-timeline__entry--failed {
+  border-left-color: var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+}
+
+.workflow-timeline__entry svg {
+  grid-row: 1 / span 2;
+}
+
+.workflow-timeline__entry span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-timeline__entry code,
+.workflow-timeline__entry small {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.workflow-timeline__entry small {
+  grid-column: 2 / span 2;
 }
 
 .workflow-timeline__scroll {

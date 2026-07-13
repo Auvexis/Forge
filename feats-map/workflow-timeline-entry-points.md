@@ -1,0 +1,5 @@
+- [x] Adicionar lista lateral de entry points da timeline
+- [x] Filtrar timeline pelo trigger selecionado
+- [x] Auto-selecionar entry point pela execucao
+- [x] Mostrar status e contadores por entry point
+- [x] Validar e commitar
