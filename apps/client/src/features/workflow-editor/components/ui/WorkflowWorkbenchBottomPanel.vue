@@ -23,6 +23,10 @@ interface WorkflowTimelineNode {
   duration?: number
   childCount: number
   isActive: boolean
+  isTrace: boolean
+  isDimmed: boolean
+  eventCount: number
+  latestLabel: string
 }
 
 interface WorkflowTimelineConnector {
@@ -53,6 +57,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   close: []
+  nodeSelect: [nodeId: string]
+  nodeFocus: [nodeId: string]
+  nodeHover: [nodeId: string | null]
 }>()
 
 const workflowStore = useWorkflowStore()
@@ -71,7 +78,11 @@ const workflowNodes = computed(() =>
 const workflowVariables = computed(() => workflowStore.activeWorkflow?.variables ?? [])
 const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
 const latestNodeEvent = computed(() => [...executionStore.timeline].reverse().find((event) => event.nodeId))
-const activeTimelineNodeId = computed<string>(() => latestNodeEvent.value?.nodeId ?? workflowNodes.value[0]?.id ?? '')
+const latestTimelineNodeId = computed<string>(() => latestNodeEvent.value?.nodeId ?? workflowNodes.value[0]?.id ?? '')
+const hoveredTimelineNodeId = ref<string | null>(null)
+const traceTimelineNodeId = ref<string | null>(null)
+const timelineScrubIndex = ref<number | null>(null)
+const timelineZoom = ref(1)
 const TIMELINE_COLUMN_WIDTH = 132
 const TIMELINE_LANE_HEIGHT = 42
 const TIMELINE_BLOCK_WIDTH = 104
@@ -87,6 +98,11 @@ const TIMELINE_COLORS = [
   '#ec4899',
   '#06b6d4',
 ]
+const timelineColumnWidth = computed(() => Math.round(TIMELINE_COLUMN_WIDTH * timelineZoom.value))
+const activeTimelineNodeId = computed<string>(() => {
+  if (timelineScrubIndex.value !== null) return orderedTimelineNodes.value[timelineScrubIndex.value]?.id ?? latestTimelineNodeId.value
+  return latestTimelineNodeId.value
+})
 
 const orderedTimelineNodes = computed(() => {
   const nodesById = new Map(workflowNodes.value.map((node) => [node.id, node]))
@@ -244,6 +260,7 @@ const timelineNodes = computed<WorkflowTimelineNode[]>(() =>
     const latestEvent = events.at(-1)
     const duration = state?.startedAt && state?.endedAt ? state.endedAt - state.startedAt : undefined
     const childCount = workflowEdges.value.filter((edge) => edge.source === node.id).length
+    const isTrace = traceNodeIds.value.has(node.id)
     return {
       ...node,
       index,
@@ -251,9 +268,41 @@ const timelineNodes = computed<WorkflowTimelineNode[]>(() =>
       duration,
       childCount,
       isActive: activeTimelineNodeId.value === node.id,
+      isTrace,
+      isDimmed: traceNodeIds.value.size > 0 && !isTrace,
+      eventCount: events.length,
+      latestLabel: latestEvent?.label ?? 'No execution event',
     }
   }),
 )
+
+const traceNodeIds = computed(() => {
+  const anchorId = traceTimelineNodeId.value ?? hoveredTimelineNodeId.value
+  if (!anchorId) return new Set<string>()
+
+  const parentIdsByChild = new Map<string, string[]>()
+  const childIdsByParent = new Map<string, string[]>()
+  for (const edge of workflowEdges.value) {
+    const parents = parentIdsByChild.get(edge.target) ?? []
+    parents.push(edge.source)
+    parentIdsByChild.set(edge.target, parents)
+    const children = childIdsByParent.get(edge.source) ?? []
+    children.push(edge.target)
+    childIdsByParent.set(edge.source, children)
+  }
+
+  const visited = new Set<string>([anchorId])
+  const visit = (nodeId: string, map: Map<string, string[]>) => {
+    for (const nextId of map.get(nodeId) ?? []) {
+      if (visited.has(nextId)) continue
+      visited.add(nextId)
+      visit(nextId, map)
+    }
+  }
+  visit(anchorId, parentIdsByChild)
+  visit(anchorId, childIdsByParent)
+  return visited
+})
 
 const timelineStats = computed(() => {
   const passed = timelineNodes.value.filter((node) => node.status !== 'idle').length
@@ -314,7 +363,7 @@ const panelMeta = computed(() => {
 const playheadStyle = computed(() => {
   const activeNode = timelineNodes.value.find((node) => node.id === activeTimelineNodeId.value)
   const column = activeNode?.column ?? 0
-  return { '--workflow-timeline-playhead-x': `${TIMELINE_CONTENT_LEFT + column * TIMELINE_COLUMN_WIDTH + 52}px` }
+  return { '--workflow-timeline-playhead-x': `${TIMELINE_CONTENT_LEFT + column * timelineColumnWidth.value + 52}px` }
 })
 
 const timelineTrackStyle = computed(() => {
@@ -322,10 +371,10 @@ const timelineTrackStyle = computed(() => {
   const maxColumn = Math.max(0, ...timelineNodes.value.map((node) => node.column))
   return {
     ...playheadStyle.value,
-    '--workflow-timeline-column-width': `${TIMELINE_COLUMN_WIDTH}px`,
+    '--workflow-timeline-column-width': `${timelineColumnWidth.value}px`,
     '--workflow-timeline-content-left': `${TIMELINE_CONTENT_LEFT}px`,
     '--workflow-timeline-lane-height': `${TIMELINE_LANE_HEIGHT}px`,
-    '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + TIMELINE_CONTENT_LEFT + 40}px`,
+    '--workflow-timeline-track-width': `${maxColumn * timelineColumnWidth.value + TIMELINE_BLOCK_WIDTH + TIMELINE_CONTENT_LEFT + 40}px`,
     '--workflow-timeline-track-height': `${maxLane * TIMELINE_LANE_HEIGHT + TIMELINE_TRACK_TOP + 56}px`,
   }
 })
@@ -337,8 +386,8 @@ const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
     const target = nodesById.get(edge.target)
     if (!source || !target) return []
 
-    const sourceX = TIMELINE_CONTENT_LEFT + source.column * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH
-    const targetX = TIMELINE_CONTENT_LEFT + target.column * TIMELINE_COLUMN_WIDTH
+    const sourceX = TIMELINE_CONTENT_LEFT + source.column * timelineColumnWidth.value + TIMELINE_BLOCK_WIDTH
+    const targetX = TIMELINE_CONTENT_LEFT + target.column * timelineColumnWidth.value
     const sourceY = 18 + source.lane * TIMELINE_LANE_HEIGHT + 14
     const targetY = 18 + target.lane * TIMELINE_LANE_HEIGHT + 14
     const middleX = sourceX + Math.max(18, (targetX - sourceX) / 2)
@@ -373,6 +422,46 @@ function iconForNodeType(type: string) {
   return 'box'
 }
 
+function selectTimelineNode(nodeId: string) {
+  traceTimelineNodeId.value = nodeId
+  emit('nodeSelect', nodeId)
+}
+
+function focusTimelineNode(nodeId: string) {
+  traceTimelineNodeId.value = nodeId
+  emit('nodeFocus', nodeId)
+}
+
+function hoverTimelineNode(nodeId: string | null) {
+  hoveredTimelineNodeId.value = nodeId
+  emit('nodeHover', nodeId)
+}
+
+function setTimelineZoom(nextZoom: number) {
+  timelineZoom.value = Math.min(1.8, Math.max(0.7, Number(nextZoom.toFixed(2))))
+}
+
+function setTimelineZoomFromEvent(event: Event) {
+  const target = event.target instanceof HTMLInputElement ? event.target : null
+  if (target) setTimelineZoom(Number(target.value))
+}
+
+function setTimelineScrub(value: string | number) {
+  timelineScrubIndex.value = Math.min(timelineNodes.value.length - 1, Math.max(0, Number(value)))
+}
+
+function setTimelineScrubFromEvent(event: Event) {
+  const target = event.target instanceof HTMLInputElement ? event.target : null
+  if (target) setTimelineScrub(target.value)
+}
+
+function clearTimelineScrub() {
+  timelineScrubIndex.value = null
+}
+
+const timelineScrubMax = computed(() => Math.max(0, timelineNodes.value.length - 1))
+const timelineScrubValue = computed(() => timelineScrubIndex.value ?? Math.max(0, timelineNodes.value.findIndex((node) => node.id === activeTimelineNodeId.value)))
+
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
   timelineTrackRef.value
@@ -392,6 +481,36 @@ watch(activeTimelineNodeId, async (nodeId) => {
           <code>{{ timelineStats.success }} ok</code>
           <code>{{ timelineStats.failed }} errors</code>
           <code>{{ timelineStats.waiting }} waiting</code>
+        </div>
+        <div class="workflow-timeline__controls" aria-label="Timeline controls">
+          <button type="button" title="Zoom out timeline" @click="setTimelineZoom(timelineZoom - 0.1)">
+            <LucideIcon name="zoom-out" :size="13" />
+          </button>
+          <input
+            :value="timelineZoom"
+            type="range"
+            min="0.7"
+            max="1.8"
+            step="0.1"
+            aria-label="Timeline zoom"
+            @input="setTimelineZoomFromEvent"
+          >
+          <button type="button" title="Zoom in timeline" @click="setTimelineZoom(timelineZoom + 0.1)">
+            <LucideIcon name="zoom-in" :size="13" />
+          </button>
+          <input
+            v-if="timelineNodes.length > 1"
+            :value="timelineScrubValue"
+            type="range"
+            min="0"
+            :max="timelineScrubMax"
+            step="1"
+            aria-label="Scrub timeline"
+            @input="setTimelineScrubFromEvent"
+          >
+          <button v-if="timelineScrubIndex !== null" type="button" title="Resume live cursor" @click="clearTimelineScrub">
+            <LucideIcon name="radio" :size="13" />
+          </button>
         </div>
       </template>
       <button
@@ -413,7 +532,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
               v-for="depth in timelineDepthColumns"
               :key="depth.column"
               class="workflow-timeline__depth-column"
-              :style="{ '--workflow-timeline-depth-x': `${depth.column * TIMELINE_COLUMN_WIDTH}px` }"
+              :style="{ '--workflow-timeline-depth-x': `${depth.column * timelineColumnWidth}px` }"
             >
               <code>{{ depth.label }}</code>
               <small>{{ depth.count }}</small>
@@ -450,13 +569,23 @@ watch(activeTimelineNodeId, async (nodeId) => {
               :class="[
                 `workflow-timeline__clip--${node.status}`,
                 { 'workflow-timeline__clip--active': node.isActive },
+                { 'workflow-timeline__clip--trace': node.isTrace },
+                { 'workflow-timeline__clip--dimmed': node.isDimmed },
               ]"
               :data-workflow-timeline-node-id="node.id"
+              role="button"
+              tabindex="0"
               :style="{
-                '--workflow-timeline-x': `${node.column * TIMELINE_COLUMN_WIDTH}px`,
+                '--workflow-timeline-x': `${node.column * timelineColumnWidth}px`,
                 '--workflow-timeline-y': `${node.lane * TIMELINE_LANE_HEIGHT}px`,
                 '--workflow-timeline-color': node.color,
               }"
+              @click="selectTimelineNode(node.id)"
+              @dblclick.stop="focusTimelineNode(node.id)"
+              @mouseenter="hoverTimelineNode(node.id)"
+              @mouseleave="hoverTimelineNode(null)"
+              @keydown.enter.prevent="selectTimelineNode(node.id)"
+              @keydown.space.prevent="selectTimelineNode(node.id)"
             >
               <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
               <span>{{ node.name }}</span>
@@ -464,6 +593,16 @@ watch(activeTimelineNodeId, async (nodeId) => {
                 {{ durationLabel(node.duration) }}
               </code>
               <code v-else class="workflow-timeline__status">{{ node.status }}</code>
+              <div class="workflow-timeline__tooltip" role="tooltip">
+                <strong>{{ node.name }}</strong>
+                <span>{{ node.latestLabel }}</span>
+                <dl>
+                  <div><dt>Status</dt><dd>{{ node.status }}</dd></div>
+                  <div><dt>Duration</dt><dd>{{ durationLabel(node.duration) || 'No data' }}</dd></div>
+                  <div><dt>Events</dt><dd>{{ node.eventCount }}</dd></div>
+                  <div><dt>Outputs</dt><dd>{{ node.childCount }}</dd></div>
+                </dl>
+              </div>
             </div>
           </div>
         </div>
@@ -616,6 +755,36 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__stats code:not(:last-child) {
   border-right: 1px solid var(--fabric-border-muted);
+}
+
+.workflow-timeline__controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  margin-left: auto;
+}
+
+.workflow-timeline__controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  border: 1px solid transparent;
+  border-radius: 3px;
+  color: var(--fabric-text-secondary);
+}
+
+.workflow-timeline__controls button:hover {
+  border-color: var(--fabric-border-muted);
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
+}
+
+.workflow-timeline__controls input[type='range'] {
+  width: 74px;
+  accent-color: var(--fabric-accent);
 }
 
 .workflow-timeline__scroll {
@@ -784,6 +953,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
     var(--fabric-workflow-timeline-clip-bg, var(--fabric-bg-surface));
   color: var(--fabric-text-primary);
   font-size: 11px;
+  cursor: pointer;
   transition:
     transform var(--fabric-duration-fast) var(--fabric-ease-standard),
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -817,6 +987,14 @@ watch(activeTimelineNodeId, async (nodeId) => {
   box-shadow: inset 0 0 0 1px var(--fabric-accent);
 }
 
+.workflow-timeline__clip--trace {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fabric-accent) 72%, transparent);
+}
+
+.workflow-timeline__clip--dimmed {
+  opacity: 0.38;
+}
+
 .workflow-timeline__clip span {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -836,6 +1014,66 @@ watch(activeTimelineNodeId, async (nodeId) => {
   background: var(--fabric-workflow-timeline-duration-bg, var(--fabric-bg-muted));
   color: var(--fabric-workflow-timeline-duration-text, var(--fabric-text-primary)) !important;
   text-align: center;
+}
+
+.workflow-timeline__tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  display: none;
+  width: 220px;
+  padding: 8px;
+  border: 1px solid var(--fabric-border);
+  border-radius: 4px;
+  background: var(--fabric-bg-overlay);
+  color: var(--fabric-text-primary);
+  box-shadow: var(--fabric-shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.32));
+  pointer-events: none;
+}
+
+.workflow-timeline__clip:hover .workflow-timeline__tooltip,
+.workflow-timeline__clip:focus-visible .workflow-timeline__tooltip {
+  display: grid;
+  gap: 6px;
+}
+
+.workflow-timeline__tooltip strong,
+.workflow-timeline__tooltip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-timeline__tooltip span {
+  color: var(--fabric-text-secondary);
+  font-size: 11px;
+}
+
+.workflow-timeline__tooltip dl {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 8px;
+  margin: 0;
+}
+
+.workflow-timeline__tooltip div {
+  min-width: 0;
+}
+
+.workflow-timeline__tooltip dt {
+  color: var(--fabric-text-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.workflow-timeline__tooltip dd {
+  margin: 1px 0 0;
+  overflow: hidden;
+  color: var(--fabric-text-primary);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workflow-timeline__status {

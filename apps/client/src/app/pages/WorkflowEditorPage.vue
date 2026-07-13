@@ -490,6 +490,18 @@ function toggleExecutionPanel() {
   toggleBottomPanel('execution')
 }
 
+function selectTimelineNode(nodeId: string) {
+  canvasRef.value?.selectNode(nodeId)
+}
+
+function focusTimelineNode(nodeId: string) {
+  canvasRef.value?.focusNode(nodeId)
+}
+
+function highlightTimelineNode(nodeId: string | null) {
+  canvasRef.value?.highlightNode(nodeId)
+}
+
 function handleInspectorPanelResize(size: { width: number | null }) {
   workflowInspectorWidth.value = size.width ?? 280
 }
@@ -1120,6 +1132,9 @@ watch(
           <WorkflowWorkbenchBottomPanel
             v-model:active-view="activeBottomPanelView"
             @close="isBottomPanelOpen = false"
+            @node-select="selectTimelineNode"
+            @node-focus="focusTimelineNode"
+            @node-hover="highlightTimelineNode"
           />
         </section>
 

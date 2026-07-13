@@ -44,6 +44,8 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(host, /:type="nodeType"/)
     assert.match(host, /:data="item\.data"/)
     assert.match(source, /:selected="canvasSelection\.includes\(item\.id\)"/)
+    assert.match(source, /:highlighted="highlightedNodeId === item\.id"/)
+    assert.match(host, /fabric-workflow-base-canvas__node--highlighted/)
     assert.match(source, /:status="resolveNodeStatus\(item\.id\)"/)
     assert.match(source, /:has-outgoing-connection="hasNodeOutgoingConnection\(item\.id\)"/)
   })
@@ -56,5 +58,19 @@ describe('workflow BaseCanvas shell contract', () => {
     assert.match(source, /positionY/)
     assert.match(read('WorkflowCanvasNodeHost.vue'), /@dblclick\.stop="\$emit\('open-inspector', item\)"/)
     assert.match(source, /inspectorStore\.openInspector/)
+  })
+
+  it('exposes node selection, focus, and hover helpers for timeline interactions', () => {
+    const source = read('WorkflowBaseCanvas.vue')
+    const shell = read('FabricWorkflowCanvas.vue')
+
+    assert.match(source, /function selectNode\(nodeId: string\)/)
+    assert.match(source, /function focusNode\(nodeId: string\)/)
+    assert.match(source, /function highlightNode\(nodeId: string \| null\)/)
+    assert.match(source, /canvasSelection\.value = \[nodeId\]/)
+    assert.match(source, /animateWorkflowViewport/)
+    assert.match(shell, /selectNode: \(nodeId: string\) => workflowBaseCanvasRef\.value\?\.selectNode\(nodeId\)/)
+    assert.match(shell, /focusNode: \(nodeId: string\) => workflowBaseCanvasRef\.value\?\.focusNode\(nodeId\)/)
+    assert.match(shell, /highlightNode: \(nodeId: string \| null\) => workflowBaseCanvasRef\.value\?\.highlightNode\(nodeId\)/)
   })
 })

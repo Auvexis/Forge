@@ -28,6 +28,7 @@
           :item="item"
           :component="nodeComponentByType[resolveNodeType(item)]"
           :selected="canvasSelection.includes(item.id)"
+          :highlighted="highlightedNodeId === item.id"
           :status="resolveNodeStatus(item.id)"
           :has-outgoing-connection="hasNodeOutgoingConnection(item.id)"
           @open-inspector="openNodeInspector"
@@ -156,6 +157,7 @@ const executionStore = useExecutionStore()
 const inspectorStore = useNodeInspectorStore()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const canvasSelection = ref<string[]>([])
+const highlightedNodeId = ref<string | null>(null)
 const baseCanvasRef = ref<InstanceType<typeof BaseCanvas> | null>(null)
 const handleRegistry = createWorkflowHandleRegistry()
 const shellRef = ref<HTMLElement | null>(null)
@@ -782,6 +784,29 @@ function clearSelection() {
   canvasSelection.value = []
 }
 
+function selectNode(nodeId: string) {
+  if (!workflowItems.value.some((item) => item.id === nodeId)) return
+  canvasSelection.value = [nodeId]
+}
+
+function highlightNode(nodeId: string | null) {
+  highlightedNodeId.value = nodeId && workflowItems.value.some((item) => item.id === nodeId) ? nodeId : null
+}
+
+function focusNode(nodeId: string) {
+  const item = workflowItems.value.find((candidate) => candidate.id === nodeId)
+  const rect = getCanvasRect()
+  if (!item || !rect) return
+  canvasSelection.value = [nodeId]
+  const width = item.width ?? 236
+  const height = item.height ?? 100
+  animateWorkflowViewport({
+    x: rect.width / 2 - (item.x + width / 2) * viewport.value.zoom,
+    y: rect.height / 2 - (item.y + height / 2) * viewport.value.zoom,
+    zoom: viewport.value.zoom,
+  })
+}
+
 function deleteSelection() {
   const workflow = workflowStore.activeWorkflow
   if (!workflow) return
@@ -969,6 +994,9 @@ defineExpose({
   addLogicNodeAtScreenPoint,
   addPluginNodeAtScreenPoint,
   selectAllNodes,
+  selectNode,
+  focusNode,
+  highlightNode,
   clearSelection,
   duplicateSelection,
   deleteSelection,

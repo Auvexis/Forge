@@ -53,6 +53,20 @@ test('workflow editor status bar tracks active panel state from the local bottom
   assert.match(source, /agentPanelUi\.close\(\)/)
 })
 
+test('workflow editor forwards timeline node interactions to the canvas', () => {
+  const source = read('src/app/pages/WorkflowEditorPage.vue')
+
+  assert.match(source, /function selectTimelineNode\(nodeId: string\)/)
+  assert.match(source, /canvasRef\.value\?\.selectNode\(nodeId\)/)
+  assert.match(source, /function focusTimelineNode\(nodeId: string\)/)
+  assert.match(source, /canvasRef\.value\?\.focusNode\(nodeId\)/)
+  assert.match(source, /function highlightTimelineNode\(nodeId: string \| null\)/)
+  assert.match(source, /canvasRef\.value\?\.highlightNode\(nodeId\)/)
+  assert.match(source, /@node-select="selectTimelineNode"/)
+  assert.match(source, /@node-focus="focusTimelineNode"/)
+  assert.match(source, /@node-hover="highlightTimelineNode"/)
+})
+
 test('workflow editor exposes undo redo and add-node keyboard shortcuts outside editable fields', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
