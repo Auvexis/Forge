@@ -94,7 +94,11 @@ export function isWorkflowConnectionAllowed(input: {
   if (input.sourceNodeId === input.targetNodeId) return false
   if (input.sourceHandleType !== 'source' || input.targetHandleType !== 'target') return false
 
-  const targetHandle = input.targetHandle ?? { id: 'target', cardinality: 'one' as const }
+  const targetHandle = input.targetHandle ?? {
+    id: 'target',
+    cardinality: 'many' as const,
+    connectionPolicy: 'append' as const,
+  }
   const connectionCount = input.existingEdges?.filter((edge) =>
     edge.target === input.targetNodeId &&
     (edge.targetHandle ?? 'target') === targetHandle.id,
@@ -121,7 +125,11 @@ export function getWorkflowTargetHandlePolicy(
     candidate.type === 'target' && candidate.id === targetHandleId,
   )
 
-  return handle ?? { id: targetHandleId || 'target', cardinality: 'one' }
+  return handle ?? {
+    id: targetHandleId || 'target',
+    cardinality: targetHandleId === 'target' || !targetHandleId ? 'many' : 'one',
+    connectionPolicy: targetHandleId === 'target' || !targetHandleId ? 'append' : undefined,
+  }
 }
 
 export function getAdvancedNodeHandlersForCanvas(workflow: WorkflowItem | null, nodeId: string) {

@@ -5,6 +5,7 @@ import {
   createWorkflowConnectionEdge,
   getWorkflowConnectionAction,
   getWorkflowConnectionPreviewPath,
+  getWorkflowTargetHandlePolicy,
   isWorkflowConnectionAllowed,
 } from '../workflowCanvasConnections.ts'
 
@@ -83,6 +84,28 @@ describe('workflow canvas connection helpers', () => {
       targetHandle: { id: 'tool', cardinality: 'many', connectionPolicy: 'append' },
       existingEdges: [{ id: 'e-1', source: 'a', target: 'agent_1', targetHandle: 'tool' }],
     }), true)
+  })
+
+  it('allows multiple normal parents into the default workflow target handle', () => {
+    const existingEdges = [{ id: 'e-1', source: 'parent_a', target: 'child_b', targetHandle: 'target' }]
+
+    assert.equal(isWorkflowConnectionAllowed({
+      sourceNodeId: 'parent_b',
+      targetNodeId: 'child_b',
+      sourceHandleType: 'source',
+      targetHandleType: 'target',
+      existingEdges,
+    }), true)
+  })
+
+  it('treats missing default target definitions as appendable normal flow handles', () => {
+    const policy = getWorkflowTargetHandlePolicy(null, 'node_1', 'target')
+
+    assert.deepEqual(policy, {
+      id: 'target',
+      cardinality: 'many',
+      connectionPolicy: 'append',
+    })
   })
 
   it('creates a stable preview path between world coordinates', () => {

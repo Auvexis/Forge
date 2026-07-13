@@ -1,0 +1,4 @@
+- [x] Mapear politica de conexao
+- [x] Ajustar target padrao
+- [x] Validar conexoes multiplas
+- [x] Commitar mudancas
