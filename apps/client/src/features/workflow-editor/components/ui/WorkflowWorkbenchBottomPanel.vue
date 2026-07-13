@@ -536,6 +536,21 @@ function clearTimelineInteraction() {
   emit('nodeClear')
 }
 
+function resetTimelineCursorForExecution() {
+  traceTimelineNodeId.value = null
+  timelineCursorIndex.value = null
+  timelinePlayheadDragX.value = null
+}
+
+watch(
+  () => [executionStore.activeExecutionId, executionStore.activeSessionId] as const,
+  ([executionId, sessionId], [previousExecutionId, previousSessionId]) => {
+    if (!executionId && !sessionId) return
+    if (executionId === previousExecutionId && sessionId === previousSessionId) return
+    resetTimelineCursorForExecution()
+  },
+)
+
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
   timelineTrackRef.value
