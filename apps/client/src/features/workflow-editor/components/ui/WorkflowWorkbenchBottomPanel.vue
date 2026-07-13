@@ -67,6 +67,7 @@ const TIMELINE_COLORS = [
 const orderedTimelineNodes = computed(() => {
   const nodesById = new Map(workflowNodes.value.map((node) => [node.id, node]))
   const childIdsByParent = new Map<string, string[]>()
+  const parentIdsByChild = new Map<string, string[]>()
   const incomingCount = new Map<string, number>()
   const placed: Array<{
     id: string
@@ -81,6 +82,9 @@ const orderedTimelineNodes = computed(() => {
     const children = childIdsByParent.get(edge.source) ?? []
     children.push(edge.target)
     childIdsByParent.set(edge.source, children)
+    const parents = parentIdsByChild.get(edge.target) ?? []
+    parents.push(edge.source)
+    parentIdsByChild.set(edge.target, parents)
     incomingCount.set(edge.target, (incomingCount.get(edge.target) ?? 0) + 1)
   }
 
@@ -107,6 +111,30 @@ const orderedTimelineNodes = computed(() => {
 
   roots.forEach((node, index) => walk(node.id, index * 2, 0, null))
   workflowNodes.value.forEach((node) => walk(node.id, placed.length ? Math.max(...placed.map((item) => item.lane)) + 1 : 0, 0, null))
+
+  const placementById = new Map(placed.map((placement) => [placement.id, placement]))
+  const syncSingleParentChildren = (nodeId: string, lane: number) => {
+    for (const childId of childIdsByParent.get(nodeId) ?? []) {
+      const childParents = parentIdsByChild.get(childId) ?? []
+      if (childParents.length !== 1) continue
+      const childPlacement = placementById.get(childId)
+      if (!childPlacement) continue
+      childPlacement.lane = lane
+      syncSingleParentChildren(childId, lane)
+    }
+  }
+
+  for (const placement of placed) {
+    const parents = parentIdsByChild.get(placement.id) ?? []
+    if (parents.length <= 1) continue
+    const parentPlacements = parents
+      .map((parentId) => placementById.get(parentId))
+      .filter((parent): parent is NonNullable<typeof parent> => parent !== undefined)
+    if (parentPlacements.length <= 1) continue
+    const centeredLane = parentPlacements.reduce((sum, parent) => sum + parent.lane, 0) / parentPlacements.length
+    placement.lane = centeredLane
+    syncSingleParentChildren(placement.id, centeredLane)
+  }
 
   const minLane = Math.min(0, ...placed.map((node) => node.lane))
   return placed.map((placement, index) => ({
