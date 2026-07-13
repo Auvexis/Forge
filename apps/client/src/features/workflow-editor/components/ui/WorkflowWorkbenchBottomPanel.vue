@@ -320,6 +320,7 @@ const timelineTrackStyle = computed(() => {
     ...playheadStyle.value,
     '--workflow-timeline-column-width': `${TIMELINE_COLUMN_WIDTH}px`,
     '--workflow-timeline-content-left': `${TIMELINE_CONTENT_LEFT}px`,
+    '--workflow-timeline-lane-height': `${TIMELINE_LANE_HEIGHT}px`,
     '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + TIMELINE_CONTENT_LEFT + 40}px`,
     '--workflow-timeline-track-height': `${maxLane * TIMELINE_LANE_HEIGHT + TIMELINE_TRACK_TOP + 56}px`,
   }
@@ -681,8 +682,8 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   right: 0;
   left: 0;
-  top: calc(var(--workflow-timeline-plane-top, 18px) + 18px + var(--workflow-timeline-lane-y, 0px));
-  height: 32px;
+  top: calc(var(--workflow-timeline-plane-top, 18px) + var(--workflow-timeline-lane-y, 0px));
+  height: var(--workflow-timeline-lane-height, 42px);
   border-top: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
   border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
 }
@@ -696,7 +697,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__lane code {
-  top: 9px;
+  top: 15px;
   left: 8px;
   width: calc(var(--workflow-timeline-content-left, 76px) - 18px);
   overflow: hidden;

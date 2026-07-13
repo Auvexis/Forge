@@ -1,0 +1,3 @@
+- [x] Ajustar lane para slot completo
+- [x] Atualizar teste
+- [x] Validar e commitar
