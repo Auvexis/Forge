@@ -682,26 +682,14 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   right: 0;
   left: 0;
-  top: calc(var(--workflow-timeline-plane-top, 18px) + var(--workflow-timeline-lane-y, 0px));
+  top: calc(var(--workflow-timeline-plane-top, 18px) + 11px + var(--workflow-timeline-lane-y, 0px));
   height: var(--workflow-timeline-lane-height, 42px);
-}
-
-.workflow-timeline__lane::before {
-  position: absolute;
-  top: 50%;
-  right: 0;
-  left: 0;
-  height: 1px;
-  background: var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
-  content: '';
-}
-
-.workflow-timeline__lane:last-child {
+  border-top: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
   border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
 }
 
-.workflow-timeline__lane--root::before {
-  background: var(--fabric-workflow-timeline-lane-root-border, var(--fabric-border-strong));
+.workflow-timeline__lane--root {
+  border-top-color: var(--fabric-workflow-timeline-lane-root-border, var(--fabric-border-strong));
 }
 
 .workflow-timeline__lane--active {

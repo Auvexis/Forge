@@ -1,0 +1,3 @@
+- [x] Centralizar banda da lane no bloco
+- [x] Restaurar bordas top/bottom
+- [x] Validar e commitar
