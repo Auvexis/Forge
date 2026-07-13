@@ -1,0 +1,3 @@
+- [x] Reverter padding das lanes
+- [x] Reverter linha central
+- [x] Validar e commitar
