@@ -240,6 +240,7 @@
     "workflowTimeline.depth.border": "rgba(36, 33, 31, 0.07)",
     "workflowTimeline.lane.bg": "rgba(36, 33, 31, 0.018)",
     "workflowTimeline.lane.border": "rgba(36, 33, 31, 0.055)",
+    "workflowTimeline.lane.root.border": "rgba(36, 33, 31, 0.14)",
     "workflowTimeline.lane.active.bg": "rgba(111, 75, 216, 0.08)",
     "workflowTimeline.trail": "var(--fabric-accent)",
     "workflowTimeline.duration.bg": "var(--fabric-bg-muted)",

@@ -1,0 +1,3 @@
+- [x] Mapear layout atual
+- [x] Criar lanes por root
+- [x] Validar e commitar
