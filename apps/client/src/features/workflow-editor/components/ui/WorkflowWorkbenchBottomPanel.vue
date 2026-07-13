@@ -136,6 +136,30 @@ const orderedTimelineNodes = computed(() => {
     syncSingleParentChildren(placement.id, centeredLane)
   }
 
+  const pushSingleParentChildrenLane = (nodeId: string, lane: number) => {
+    for (const childId of childIdsByParent.get(nodeId) ?? []) {
+      const childParents = parentIdsByChild.get(childId) ?? []
+      if (childParents.length !== 1) continue
+      const childPlacement = placementById.get(childId)
+      if (!childPlacement) continue
+      childPlacement.lane = lane
+      pushSingleParentChildrenLane(childId, lane)
+    }
+  }
+
+  const occupiedSlots = new Set<string>()
+  for (const placement of [...placed].sort((a, b) => a.column - b.column)) {
+    let slotKey = `${placement.column}:${placement.lane}`
+    let distance = 1
+    while (occupiedSlots.has(slotKey)) {
+      placement.lane += distance
+      distance += 1
+      slotKey = `${placement.column}:${placement.lane}`
+    }
+    occupiedSlots.add(slotKey)
+    pushSingleParentChildrenLane(placement.id, placement.lane)
+  }
+
   const minLane = Math.min(0, ...placed.map((node) => node.lane))
   return placed.map((placement, index) => ({
     ...nodesById.get(placement.id)!,

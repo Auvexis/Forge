@@ -1,0 +1,4 @@
+- [x] Mapear colisao de lanes
+- [x] Separar nodes sobrepostos
+- [x] Validar timeline
+- [x] Commitar mudancas
