@@ -1,0 +1,4 @@
+- [x] Ajustar hover do X
+- [x] Mover stats para o titulo
+- [x] Remover borda do grupo
+- [x] Validar e commitar

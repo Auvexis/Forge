@@ -456,12 +456,13 @@ watch(activeTimelineNodeId, async (nodeId) => {
   height: 26px;
   margin-left: auto;
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-workbench-panel-action-text, var(--fabric-text-secondary));
+  color: var(--fabric-text-secondary);
+  transition: background-color var(--fabric-duration-fast);
 }
 
 .workflow-bottom-panel__close:hover {
-  background: var(--fabric-workbench-panel-action-hover-bg, var(--fabric-button-ghost-hover));
-  color: var(--fabric-workbench-panel-action-hover-text, var(--fabric-text-primary));
+  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-text-primary);
 }
 
 .workflow-bottom-panel__rows {
@@ -505,10 +506,8 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-timeline__stats {
   display: flex;
   align-items: center;
-  gap: 1px;
-  margin-left: auto;
-  border: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-workflow-timeline-stats-bg, var(--fabric-border-muted));
+  gap: 0;
+  min-width: 0;
 }
 
 .workflow-timeline__stats code {
@@ -516,7 +515,11 @@ watch(activeTimelineNodeId, async (nodeId) => {
   align-items: center;
   height: 22px;
   padding: 0 8px;
-  background: var(--fabric-workflow-timeline-stats-item-bg, var(--fabric-workbench-panel-bg));
+  background: transparent;
+}
+
+.workflow-timeline__stats code:not(:last-child) {
+  border-right: 1px solid var(--fabric-border-muted);
 }
 
 .workflow-timeline__scroll {
