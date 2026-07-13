@@ -174,6 +174,21 @@ const activeInspectorNodeStatus = computed(() =>
     ? executionStore.nodeStatuses[activeInspectorNode.value.id]?.status
     : null,
 )
+const activeInspectorNodeEdges = computed(() => {
+  const nodeId = activeInspectorNode.value?.id
+  if (!nodeId) return { incoming: 0, outgoing: 0 }
+  const edges = workflowStore.activeWorkflow?.edges ?? []
+  return {
+    incoming: edges.filter((edge) => edge.target === nodeId).length,
+    outgoing: edges.filter((edge) => edge.source === nodeId).length,
+  }
+})
+const workflowRuntimeState = computed(() => {
+  if (executionStore.isStreaming) return 'streaming'
+  if (executionStore.isExecuting) return 'running'
+  if (executionStore.workflowStatus) return executionStore.workflowStatus.toLowerCase()
+  return 'idle'
+})
 const isDevChatOpen = computed(
   () => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session',
 )
@@ -841,7 +856,7 @@ watch(
               title="Inspector"
               @click="showInspector = !showInspector"
             >
-              <LucideIcon name="panel-right" :size="18" />
+              <LucideIcon name="test-tube-diagonal" :size="18" />
             </button>
           </section>
 
@@ -1033,9 +1048,77 @@ watch(
               </div>
             </section>
 
+            <section v-if="activeInspectorNode" class="workflow-inspector-panel__section">
+              <span class="workflow-inspector-panel__section-title">Routing</span>
+              <dl class="workflow-property-grid">
+                <div>
+                  <dt>Node ID</dt>
+                  <dd>{{ activeInspectorNode.id }}</dd>
+                </div>
+                <div>
+                  <dt>Inputs</dt>
+                  <dd>{{ activeInspectorNodeEdges.incoming }}</dd>
+                </div>
+                <div>
+                  <dt>Outputs</dt>
+                  <dd>{{ activeInspectorNodeEdges.outgoing }}</dd>
+                </div>
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ activeInspectorNodeStatus ?? 'idle' }}</dd>
+                </div>
+              </dl>
+            </section>
+
+            <section class="workflow-inspector-panel__section">
+              <span class="workflow-inspector-panel__section-title">Runtime</span>
+              <dl class="workflow-property-grid">
+                <div>
+                  <dt>State</dt>
+                  <dd>{{ workflowRuntimeState }}</dd>
+                </div>
+                <div>
+                  <dt>Session</dt>
+                  <dd>{{ executionStore.activeSessionId ?? 'none' }}</dd>
+                </div>
+                <div>
+                  <dt>Timeline</dt>
+                  <dd>{{ executionStore.timeline.length }} events</dd>
+                </div>
+                <div>
+                  <dt>Git</dt>
+                  <dd>{{ gitStatusLabel }}</dd>
+                </div>
+              </dl>
+            </section>
+
             <section
               class="workflow-inspector-panel__section workflow-inspector-panel__section--actions"
             >
+              <button type="button" @click="openGlobalAddNodePanel()">
+                <LucideIcon name="plus" :size="14" />
+                Add
+              </button>
+              <button type="button" @click="canvasRef?.fitWorkflowView()">
+                <LucideIcon name="maximize" :size="14" />
+                Fit
+              </button>
+              <button
+                type="button"
+                :disabled="!activeInspectorNode"
+                @click="canvasRef?.duplicateSelection()"
+              >
+                <LucideIcon name="copy" :size="14" />
+                Duplicate
+              </button>
+              <button
+                type="button"
+                :disabled="!activeInspectorNode"
+                @click="canvasRef?.deleteSelection()"
+              >
+                <LucideIcon name="trash-2" :size="14" />
+                Delete
+              </button>
               <button type="button" @click="openBottomPanel('variables')">
                 <LucideIcon name="tags" :size="14" />
                 Variables
@@ -1541,6 +1624,11 @@ watch(
 .workflow-inspector-panel__section--actions button:hover {
   background: var(--fabric-button-ghost-hover);
   color: var(--fabric-text-primary);
+}
+
+.workflow-inspector-panel__section--actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .workflow-status-bar__button {

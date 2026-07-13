@@ -1,0 +1,5 @@
+- [x] Mapear dados do Inspector
+- [x] Trocar icone do rail
+- [x] Adicionar acoes e diagnostico
+- [x] Validar contratos
+- [x] Commitar mudancas

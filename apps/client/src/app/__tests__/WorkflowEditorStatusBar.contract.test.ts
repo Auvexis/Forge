@@ -35,7 +35,7 @@ test('workflow editor opens the inspector from the rail instead of the status ba
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /workflow-tool-rail__button[\s\S]*title="Inspector"[\s\S]*showInspector = !showInspector/)
-  assert.match(source, /<LucideIcon name="panel-right" :size="18" \/>/)
+  assert.match(source, /<LucideIcon name="test-tube-diagonal" :size="18" \/>/)
 })
 
 test('workflow editor status bar tracks active panel state from the local bottom panel', () => {
