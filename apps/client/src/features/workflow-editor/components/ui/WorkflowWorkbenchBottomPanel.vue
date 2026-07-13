@@ -249,16 +249,6 @@ const timelineDepthColumns = computed(() => {
   }))
 })
 
-const timelineBranchLanes = computed(() => {
-  const lanes = [...new Set(timelineNodes.value.map((node) => node.lane))]
-    .sort((a, b) => a - b)
-  return lanes.map((lane, index) => ({
-    lane,
-    label: `Lane ${index + 1}`,
-    isActive: timelineNodes.value.some((node) => node.lane === lane && node.isActive),
-  }))
-})
-
 const panelTitle = computed(() => {
   if (props.activeView === 'tree') return 'Workflow tree'
   if (props.activeView === 'execution') return 'Execution'
@@ -377,17 +367,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
             >
               <code>{{ depth.label }}</code>
               <small>{{ depth.count }}</small>
-            </span>
-          </div>
-          <div class="workflow-timeline__lanes" aria-hidden="true">
-            <span
-              v-for="lane in timelineBranchLanes"
-              :key="lane.lane"
-              class="workflow-timeline__lane"
-              :class="{ 'workflow-timeline__lane--active': lane.isActive }"
-              :style="{ '--workflow-timeline-lane-y': `${lane.lane * TIMELINE_LANE_HEIGHT}px` }"
-            >
-              <code>{{ lane.label }}</code>
             </span>
           </div>
           <div class="workflow-timeline__plane">
@@ -591,8 +570,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   padding: 18px 36px;
 }
 
-.workflow-timeline__depth-grid,
-.workflow-timeline__lanes {
+.workflow-timeline__depth-grid {
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -601,10 +579,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__depth-grid {
   z-index: 0;
-}
-
-.workflow-timeline__lanes {
-  z-index: 1;
 }
 
 .workflow-timeline__depth-column {
@@ -618,8 +592,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 }
 
 .workflow-timeline__depth-column code,
-.workflow-timeline__depth-column small,
-.workflow-timeline__lane code {
+.workflow-timeline__depth-column small {
   position: absolute;
   color: var(--fabric-workflow-timeline-muted-text, var(--fabric-text-muted));
   font-family: var(--fabric-font-mono);
@@ -637,26 +610,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-timeline__depth-column small {
   top: 9px;
   right: 8px;
-}
-
-.workflow-timeline__lane {
-  position: absolute;
-  right: 0;
-  left: 0;
-  top: calc(var(--workflow-timeline-plane-top, 18px) + 18px + var(--workflow-timeline-lane-y, 0px));
-  height: 32px;
-  border-top: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
-  border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
-  background: var(--fabric-workflow-timeline-lane-bg, transparent);
-}
-
-.workflow-timeline__lane--active {
-  background: var(--fabric-workflow-timeline-lane-active-bg, var(--fabric-accent-subtle));
-}
-
-.workflow-timeline__lane code {
-  top: 9px;
-  left: 8px;
 }
 
 .workflow-timeline__plane {

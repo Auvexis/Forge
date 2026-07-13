@@ -1,0 +1,3 @@
+- [x] Remover layer de lanes
+- [x] Manter depth grid
+- [x] Validar e commitar
