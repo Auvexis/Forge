@@ -24,6 +24,11 @@ interface WorkflowTimelineNode {
   isActive: boolean
 }
 
+interface WorkflowTimelineConnector {
+  id: string
+  path: string
+}
+
 const props = defineProps<{
   activeView: WorkflowBottomPanelView
 }>()
@@ -155,6 +160,26 @@ const timelineTrackStyle = computed(() => {
   }
 })
 
+const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
+  const nodesById = new Map(timelineNodes.value.map((node) => [node.id, node]))
+  return workflowEdges.value.flatMap((edge) => {
+    const source = nodesById.get(edge.source)
+    const target = nodesById.get(edge.target)
+    if (!source || !target) return []
+
+    const sourceX = 36 + source.column * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH
+    const targetX = 36 + target.column * TIMELINE_COLUMN_WIDTH
+    const sourceY = 18 + source.lane * TIMELINE_LANE_HEIGHT + 14
+    const targetY = 18 + target.lane * TIMELINE_LANE_HEIGHT + 14
+    const middleX = sourceX + Math.max(18, (targetX - sourceX) / 2)
+
+    return [{
+      id: edge.id,
+      path: `M ${sourceX} ${sourceY} H ${middleX} V ${targetY} H ${targetX}`,
+    }]
+  })
+})
+
 function formatDuration(duration: number | undefined) {
   if (duration === undefined) return '...'
   if (duration < 1000) return `${duration}ms`
@@ -195,6 +220,14 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
         <div class="workflow-timeline__track" :style="timelineTrackStyle">
+          <svg class="workflow-timeline__connectors" aria-hidden="true">
+            <path
+              v-for="connector in timelineConnectors"
+              :key="connector.id"
+              class="workflow-timeline__connector"
+              :d="connector.path"
+            />
+          </svg>
           <span class="workflow-timeline__playhead" aria-hidden="true" />
           <div
             v-for="node in timelineNodes"
@@ -211,7 +244,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
               '--workflow-timeline-color': node.color,
             }"
           >
-            <span v-if="node.parentId" class="workflow-timeline__branch" aria-hidden="true" />
             <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
             <span>{{ node.name }}</span>
             <code>{{ formatDuration(node.duration) }}</code>
@@ -370,16 +402,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
   padding: 18px 36px;
 }
 
-.workflow-timeline__track::before {
-  position: absolute;
-  top: 50%;
-  right: 24px;
-  left: 24px;
-  height: 1px;
-  background: var(--fabric-border-muted);
-  content: '';
-}
-
 .workflow-timeline__playhead {
   position: absolute;
   top: 10px;
@@ -401,6 +423,25 @@ watch(activeTimelineNodeId, async (nodeId) => {
   transform: translateX(-50%) rotate(45deg);
   background: var(--fabric-accent);
   content: '';
+}
+
+.workflow-timeline__connectors {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.workflow-timeline__connector {
+  fill: none;
+  stroke: var(--fabric-border-strong);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
 }
 
 .workflow-timeline__clip {
@@ -426,30 +467,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
     transform var(--fabric-duration-fast) var(--fabric-ease-standard),
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard);
-}
-
-.workflow-timeline__clip::after {
-  position: absolute;
-  top: 50%;
-  right: -28px;
-  width: 28px;
-  height: 1px;
-  background: var(--fabric-border-strong);
-  content: '';
-}
-
-.workflow-timeline__clip:last-child::after {
-  display: none;
-}
-
-.workflow-timeline__branch {
-  position: absolute;
-  top: 50%;
-  left: -28px;
-  width: 28px;
-  height: 1px;
-  border-top: 1px solid var(--fabric-border-strong);
-  content: '';
 }
 
 .workflow-timeline__clip--success {
