@@ -64,9 +64,8 @@ const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
 const latestNodeEvent = computed(() => [...executionStore.timeline].reverse().find((event) => event.nodeId))
 const activeTimelineNodeId = computed<string>(() => latestNodeEvent.value?.nodeId ?? workflowNodes.value[0]?.id ?? '')
 const TIMELINE_COLUMN_WIDTH = 132
-const TIMELINE_LANE_HEIGHT = 56
+const TIMELINE_LANE_HEIGHT = 42
 const TIMELINE_BLOCK_WIDTH = 104
-const TIMELINE_LEFT_GUTTER = 92
 const TIMELINE_TRACK_TOP = 46
 const TIMELINE_COLORS = [
   '#4f8cff',
@@ -277,7 +276,7 @@ const panelMeta = computed(() => {
 const playheadStyle = computed(() => {
   const activeNode = timelineNodes.value.find((node) => node.id === activeTimelineNodeId.value)
   const column = activeNode?.column ?? 0
-  return { '--workflow-timeline-playhead-x': `${column * TIMELINE_COLUMN_WIDTH + TIMELINE_LEFT_GUTTER + 52}px` }
+  return { '--workflow-timeline-playhead-x': `${column * TIMELINE_COLUMN_WIDTH + 52}px` }
 })
 
 const timelineTrackStyle = computed(() => {
@@ -286,8 +285,7 @@ const timelineTrackStyle = computed(() => {
   return {
     ...playheadStyle.value,
     '--workflow-timeline-column-width': `${TIMELINE_COLUMN_WIDTH}px`,
-    '--workflow-timeline-left-gutter': `${TIMELINE_LEFT_GUTTER}px`,
-    '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + TIMELINE_LEFT_GUTTER + 40}px`,
+    '--workflow-timeline-track-width': `${maxColumn * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH + 76}px`,
     '--workflow-timeline-track-height': `${maxLane * TIMELINE_LANE_HEIGHT + TIMELINE_TRACK_TOP + 56}px`,
   }
 })
@@ -299,8 +297,8 @@ const timelineConnectors = computed<WorkflowTimelineConnector[]>(() => {
     const target = nodesById.get(edge.target)
     if (!source || !target) return []
 
-    const sourceX = TIMELINE_LEFT_GUTTER + source.column * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH
-    const targetX = TIMELINE_LEFT_GUTTER + target.column * TIMELINE_COLUMN_WIDTH
+    const sourceX = 36 + source.column * TIMELINE_COLUMN_WIDTH + TIMELINE_BLOCK_WIDTH
+    const targetX = 36 + target.column * TIMELINE_COLUMN_WIDTH
     const sourceY = 18 + source.lane * TIMELINE_LANE_HEIGHT + 14
     const targetY = 18 + target.lane * TIMELINE_LANE_HEIGHT + 14
     const middleX = sourceX + Math.max(18, (targetX - sourceX) / 2)
@@ -613,7 +611,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   top: 0;
   bottom: 0;
-  left: calc(var(--workflow-timeline-left-gutter, 92px) + var(--workflow-timeline-depth-x, 0px));
+  left: calc(36px + var(--workflow-timeline-depth-x, 0px));
   width: var(--workflow-timeline-column-width, 132px);
   border-left: 1px solid var(--fabric-workflow-timeline-depth-border, var(--fabric-border-muted));
   background: transparent;
@@ -658,11 +656,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 
 .workflow-timeline__lane code {
   top: 9px;
-  left: 10px;
-  width: calc(var(--workflow-timeline-left-gutter, 92px) - 18px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  left: 8px;
 }
 
 .workflow-timeline__plane {
@@ -677,7 +671,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
   position: absolute;
   top: 8px;
   bottom: 0;
-  left: var(--workflow-timeline-playhead-x, 144px);
+  left: calc(36px + var(--workflow-timeline-playhead-x, 52px));
   z-index: 5;
   width: 2px;
   background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
@@ -724,7 +718,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
 .workflow-timeline__clip {
   position: absolute;
   top: calc(18px + var(--workflow-timeline-y, 0px));
-  left: calc(var(--workflow-timeline-left-gutter, 92px) + var(--workflow-timeline-x, 0px));
+  left: calc(36px + var(--workflow-timeline-x, 0px));
   z-index: 4;
   display: grid;
   grid-template-columns: 18px minmax(0, 1fr) auto;
