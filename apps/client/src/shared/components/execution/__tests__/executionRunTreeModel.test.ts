@@ -64,6 +64,9 @@ describe('execution run tree model', () => {
     assert.equal(model?.durationMs, 250)
     assert.deepEqual(model?.output, { tokens: 8 })
     assert.equal(detail.nodesById.detached?.error, 'boom')
+    assert.equal(detail.nodesById.detached?.children[0]?.kind, 'error')
+    assert.equal(detail.nodesById.detached?.children[0]?.icon, 'circle-alert')
+    assert.equal(detail.nodesById['detached:error']?.error, 'boom')
   })
 
   it('exposes explicit Return results in the run detail model', () => {
@@ -148,5 +151,21 @@ describe('execution run tree model', () => {
     assert.equal(live?.id, 'live-1')
     assert.equal(live?.status, 'RUNNING')
     assert.deepEqual(live?.context.steps?.agent?.input, { prompt: 'hi' })
+  })
+
+  it('infers terminal live run status from job timeline events', () => {
+    const live = buildLiveExecutionLog({
+      executionId: 'live-1',
+      workflowId: 'wf-1',
+      workflowStatus: null,
+      timeline: [
+        { id: 'start', type: 'job:start', executionId: 'live-1', timestamp: 100, status: 'running', label: 'started' },
+        { id: 'failed', type: 'job:failed', executionId: 'live-1', timestamp: 240, status: 'failed', label: 'failed' },
+      ],
+      nodeStatuses: { agent: { status: 'failed', error: 'boom', startedAt: 120, endedAt: 220 } },
+    })
+
+    assert.equal(live?.status, 'FAILED')
+    assert.equal(live?.endedAt, 240)
   })
 })

@@ -15,6 +15,10 @@ function formatJson(value: unknown) {
   try { return JSON.stringify(value, null, 2) } catch { return String(value) }
 }
 
+function hasData(value: unknown) {
+  return value !== undefined && value !== null
+}
+
 function previewState(key: string, value: unknown) {
   if (forcedPreviews.value.has(key)) return { skipped: false, summary: '' }
   const count = Array.isArray(value)
@@ -48,7 +52,7 @@ function showPreview(key: string) {
           <p>{{ node.status }}<template v-if="node.durationMs !== null"> · {{ node.durationMs }}ms</template> · {{ node.nodeId }}</p>
         </div>
       </header>
-      <details class="execution-node-inspector__section" open>
+      <details v-if="node.kind !== 'error'" class="execution-node-inspector__section" :open="hasData(node.input)">
         <summary>Input</summary>
         <div v-if="previewState(`${node.nodeId}:input`, node.input).skipped" class="execution-node-inspector__guard">
           <span>{{ previewState(`${node.nodeId}:input`, node.input).summary }}</span>
@@ -62,10 +66,13 @@ function showPreview(key: string) {
           readonly
         />
       </details>
-      <details class="execution-node-inspector__section" open>
-        <summary>{{ node.error ? 'Error' : 'Output' }}</summary>
-        <pre v-if="node.error">{{ node.error }}</pre>
-        <div v-else-if="previewState(`${node.nodeId}:output`, node.output).skipped" class="execution-node-inspector__guard">
+      <details v-if="node.error" class="execution-node-inspector__section execution-node-inspector__section--error" open>
+        <summary>Error</summary>
+        <pre>{{ node.error }}</pre>
+      </details>
+      <details v-else-if="node.kind !== 'error'" class="execution-node-inspector__section" :open="hasData(node.output)">
+        <summary>Output</summary>
+        <div v-if="previewState(`${node.nodeId}:output`, node.output).skipped" class="execution-node-inspector__guard">
           <span>{{ previewState(`${node.nodeId}:output`, node.output).summary }}</span>
           <BaseButton size="sm" variant="outline" @click="showPreview(`${node.nodeId}:output`)">Show preview</BaseButton>
         </div>
@@ -93,7 +100,9 @@ function showPreview(key: string) {
 .execution-node-inspector__header h3 { margin: 0; color: var(--fabric-text-primary); font-size: var(--fabric-text-base); font-weight: var(--fabric-font-semibold); }
 .execution-node-inspector__header p { margin: 3px 0 0; color: var(--fabric-text-muted); font-size: var(--fabric-text-xs); }
 .execution-node-inspector__section { margin-top: var(--fabric-space-3); border: 1px solid var(--fabric-border); border-radius: var(--fabric-radius-sm); background-color: var(--fabric-bg-base); }
+.execution-node-inspector__section--error { border-color: var(--fabric-status-error-border); }
 .execution-node-inspector__section summary { padding: var(--fabric-space-3); color: var(--fabric-text-secondary); font-size: var(--fabric-text-xs); font-weight: var(--fabric-font-semibold); cursor: pointer; }
+.execution-node-inspector__section--error summary { color: var(--fabric-status-error-text); }
 .execution-node-inspector__section pre { max-height: 240px; margin: 0; overflow: auto; padding: var(--fabric-space-3); border-top: 1px solid var(--fabric-border-muted); color: var(--fabric-text-secondary); font-family: var(--fabric-font-mono); font-size: var(--fabric-text-xs); line-height: 1.5; white-space: pre-wrap; }
 .execution-node-inspector__guard { display: flex; align-items: center; justify-content: space-between; gap: var(--fabric-space-3); padding: var(--fabric-space-3); border-top: 1px solid var(--fabric-border-muted); color: var(--fabric-text-muted); font-size: var(--fabric-text-xs); }
 </style>

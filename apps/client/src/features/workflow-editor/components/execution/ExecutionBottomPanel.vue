@@ -14,13 +14,19 @@ const profileStore = useProfileStore()
 const historyRuns = ref<ExecutionLog[]>([])
 const historyLoading = ref(false)
 const currentProfileId = computed(() => profileStore.currentProfile?.id)
+const activeExecutionNodeStatuses = computed(() => {
+  const executionId = executionStore.activeExecutionId
+  return executionId
+    ? executionStore.nodeStatusesByExecution[executionId] ?? executionStore.nodeStatuses
+    : executionStore.nodeStatuses
+})
 
 const liveRun = computed(() => buildLiveExecutionLog({
   executionId: executionStore.activeExecutionId,
   workflowId: workflowStore.activeWorkflow?.metadata.id ?? null,
   workflowStatus: executionStore.workflowStatus,
   timeline: executionStore.timeline,
-  nodeStatuses: executionStore.nodeStatuses,
+  nodeStatuses: activeExecutionNodeStatuses.value,
 }))
 
 const visibleRuns = computed(() => {

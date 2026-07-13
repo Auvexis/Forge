@@ -42,6 +42,8 @@ function activate(node: ExecutionRunTreeNode) {
         :class="{
           'execution-node-tree__row--active': node.nodeId === props.selectedNodeId,
           'execution-node-tree__row--leaf': !node.children.length,
+          [`execution-node-tree__row--${node.status}`]: true,
+          'execution-node-tree__row--error': node.kind === 'error',
         }"
         variant="ghost"
         type="button"
@@ -66,6 +68,7 @@ function activate(node: ExecutionRunTreeNode) {
         />
         <span class="execution-node-tree__name">{{ node.name }}</span>
         <code v-if="node.durationMs !== null">{{ node.durationMs }}ms</code>
+        <span v-else-if="node.kind === 'error'" class="execution-node-tree__error-label">Failed</span>
       </BaseButton>
 
       <Transition name="execution-node-tree-children">
@@ -150,6 +153,25 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree__row--active {
   background-color: var(--fabric-button-ghost-active);
 }
+.execution-node-tree__row--success {
+  border-left: 2px solid var(--fabric-status-success-border);
+}
+.execution-node-tree__row--failed,
+.execution-node-tree__row--error {
+  border-left: 2px solid var(--fabric-status-error-border);
+}
+.execution-node-tree__row--failed .execution-node-tree__name,
+.execution-node-tree__row--error .execution-node-tree__name {
+  color: var(--fabric-status-error-text);
+}
+.execution-node-tree__row--error {
+  background-color: color-mix(in srgb, var(--fabric-status-error-bg) 58%, transparent);
+}
+.execution-node-tree__row--running,
+.execution-node-tree__row--retrying,
+.execution-node-tree__row--waiting {
+  border-left: 2px solid var(--fabric-border-brand);
+}
 .execution-node-tree__chevron {
   color: var(--fabric-text-muted);
   transition: transform var(--fabric-duration-base) var(--fabric-ease-standard);
@@ -178,6 +200,11 @@ function activate(node: ExecutionRunTreeNode) {
 }
 .execution-node-tree__row code {
   color: var(--fabric-text-muted);
+  font-family: var(--fabric-font-mono);
+  font-size: 9px;
+}
+.execution-node-tree__error-label {
+  color: var(--fabric-status-error-text);
   font-family: var(--fabric-font-mono);
   font-size: 9px;
 }

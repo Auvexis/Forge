@@ -2,7 +2,6 @@
 import { computed, ref, watch } from 'vue'
 import type { ExecutionRunDetailModel } from './executionRunTree.types.ts'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
-import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import ExecutionNodeInspector from './ExecutionNodeInspector.vue'
 import ExecutionNodeTree from './ExecutionNodeTree.vue'
 
@@ -12,11 +11,6 @@ const selectedNodeId = ref<string | null>(null)
 const selectedNode = computed(() => selectedNodeId.value ? props.detail.nodesById[selectedNodeId.value] ?? null : null)
 
 watch(() => props.detail.id, () => { selectedNodeId.value = props.detail.roots[0]?.nodeId ?? null }, { immediate: true })
-
-function formatJson(value: unknown) {
-  if (value === undefined) return 'No data.'
-  try { return JSON.stringify(value, null, 2) } catch { return String(value) }
-}
 </script>
 
 <template>
@@ -28,18 +22,6 @@ function formatJson(value: unknown) {
     </header>
     <div class="execution-run-detail__body">
       <aside class="execution-run-detail__tree">
-        <section v-if="detail.finalResult" class="execution-run-detail__result">
-          <header>
-            <strong>Final Result</strong>
-            <span>{{ detail.finalResult.label }}</span>
-          </header>
-          <BaseCodeEditor
-            :model-value="formatJson(detail.finalResult.value)"
-            language="json"
-            height="180px"
-            readonly
-          />
-        </section>
         <ExecutionNodeTree :nodes="detail.roots" :selected-node-id="selectedNodeId" @select="selectedNodeId = $event" />
       </aside>
       <ExecutionNodeInspector :node="selectedNode" />
@@ -56,9 +38,5 @@ function formatJson(value: unknown) {
 .execution-run-detail__header > span { margin-left: auto; }
 .execution-run-detail__body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(240px, 40%) minmax(0, 1fr); }
 .execution-run-detail__tree { min-height: 0; overflow: auto; padding: var(--fabric-space-3); border-right: 1px solid var(--fabric-border); background-color: var(--fabric-bg-base); }
-.execution-run-detail__result { display: grid; gap: var(--fabric-space-2); margin-bottom: var(--fabric-space-3); padding: var(--fabric-space-3); border: 1px solid var(--fabric-border); border-radius: var(--fabric-radius-sm); background-color: var(--fabric-bg-surface); }
-.execution-run-detail__result header { display: flex; align-items: center; justify-content: space-between; gap: var(--fabric-space-2); }
-.execution-run-detail__result strong { color: var(--fabric-text-primary); font-size: var(--fabric-text-xs); font-weight: var(--fabric-font-semibold); }
-.execution-run-detail__result span { color: var(--fabric-text-muted); font-size: var(--fabric-text-xs); }
 @media (max-width: 720px) { .execution-run-detail__body { grid-template-columns: 1fr; } .execution-run-detail__tree { max-height: 42%; border-right: 0; border-bottom: 1px solid var(--fabric-border); } }
 </style>

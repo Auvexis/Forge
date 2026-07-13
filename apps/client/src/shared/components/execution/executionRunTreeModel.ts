@@ -73,7 +73,7 @@ export function buildLiveExecutionLog(input: {
   const events = input.timeline.filter((event) => !event.executionId || event.executionId === input.executionId)
   const timestamps = events.map((event) => event.timestamp)
   const startedAt = timestamps.length ? Math.min(...timestamps) : Date.now()
-  const status = input.workflowStatus ?? 'RUNNING'
+  const status = input.workflowStatus ?? inferExecutionStatus(events) ?? 'RUNNING'
   const endedAt = status === 'RUNNING' ? null : (timestamps.length ? Math.max(...timestamps) : startedAt)
   const steps = Object.fromEntries(
     Object.entries(input.nodeStatuses)
@@ -124,23 +124,26 @@ export function buildExecutionRunDetail(input: {
 
   const nodesById: Record<string, ExecutionRunTreeNode | undefined> = {}
   for (const nodeId of executedIds) {
-    nodesById[nodeId] = createTreeNode(
+    const treeNode = createTreeNode(
       nodeId,
       steps[nodeId]!,
       input.workflow,
       parentByChild.get(nodeId) ?? null,
       input.nodePresentations,
     )
+    nodesById[nodeId] = treeNode
+    for (const child of treeNode.children) nodesById[child.nodeId] = child
   }
 
   const attachChildren = (node: ExecutionRunTreeNode, ancestors: Set<string>) => {
     if (ancestors.has(node.nodeId)) return
     const nextAncestors = new Set(ancestors).add(node.nodeId)
-    node.children = (childIdsByParent.get(node.nodeId) ?? [])
+    const graphChildren = (childIdsByParent.get(node.nodeId) ?? [])
       .map((id) => nodesById[id])
       .filter((child): child is ExecutionRunTreeNode => child !== undefined)
       .filter((child) => !nextAncestors.has(child.nodeId))
-    node.children.forEach((child) => attachChildren(child, nextAncestors))
+    node.children = [...node.children, ...graphChildren]
+    graphChildren.forEach((child) => attachChildren(child, nextAncestors))
   }
 
   const roots = executedIds
@@ -173,6 +176,15 @@ function buildFinalResult(run: ExecutionLog): ExecutionRunFinalResult | undefine
   }
 }
 
+function inferExecutionStatus(events: ExecutionTimelineEvent[]): WorkflowExecutionStatus | null {
+  for (const event of [...events].reverse()) {
+    if (event.type === 'workflow:success' || event.type === 'job:success') return 'SUCCESS'
+    if (event.type === 'workflow:failed' || event.type === 'job:failed') return 'FAILED'
+    if (event.type === 'workflow:cancelled' || event.type === 'job:cancelled') return 'CANCELLED'
+  }
+  return null
+}
+
 function createTreeNode(
   nodeId: string,
   step: ExecutionStep,
@@ -190,6 +202,7 @@ function createTreeNode(
     id: nodeId,
     nodeId,
     parentId,
+    kind: 'node',
     name: agentName ? `${agentName} - AI Agent` : node?.name || nodeId,
     type,
     icon: presentation?.icon || node?.ui?.icon || NODE_ICON[type] || 'box',
@@ -204,6 +217,24 @@ function createTreeNode(
     error: step.error,
     attempts: step.attempts,
     retries: step.retries,
+    children: step.error ? [createErrorTreeNode(nodeId, step.error)] : [],
+  }
+}
+
+function createErrorTreeNode(parentId: string, error: string): ExecutionRunTreeNode {
+  const nodeId = `${parentId}:error`
+  return {
+    id: nodeId,
+    nodeId,
+    parentId,
+    kind: 'error',
+    name: 'Error',
+    type: 'error',
+    icon: 'circle-alert',
+    iconColor: 'var(--fabric-status-error-border)',
+    status: 'failed',
+    durationMs: null,
+    error,
     children: [],
   }
 }

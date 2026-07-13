@@ -1021,6 +1021,7 @@ export const useExecutionStore = defineStore('execution', () => {
           case 'job:start':
             if (ev.jobId) activeJobs[ev.jobId] = ev
             if (ev.executionId) activeExecutionId.value = ev.executionId
+            workflowStatus.value = 'RUNNING'
             if (ev.triggerNodeId) {
               triggerStatuses[ev.triggerNodeId] = 'running'
               _patchNode(ev.triggerNodeId, { status: 'running', startedAt: ev.timestamp })
@@ -1190,20 +1191,29 @@ export const useExecutionStore = defineStore('execution', () => {
             break
 
           case 'job:success':
+            workflowStatus.value = 'SUCCESS'
             recordEditorChatJobSuccess(ev)
             if (ev.triggerNodeId) {
               triggerStatuses[ev.triggerNodeId] = 'success'
               _patchNode(ev.triggerNodeId, { status: 'success', endedAt: ev.timestamp })
+              _patchExecutionNode(ev.executionId, ev.triggerNodeId, { status: 'success', endedAt: ev.timestamp })
             }
             break
 
           case 'job:failed':
+            workflowStatus.value = 'FAILED'
             recordEditorChatJobFailure(ev)
             if (ev.triggerNodeId) {
               triggerStatuses[ev.triggerNodeId] = 'failed'
               _patchNode(ev.triggerNodeId, { status: 'failed', error: ev.error, endedAt: ev.timestamp })
+              _patchExecutionNode(ev.executionId, ev.triggerNodeId, { status: 'failed', error: ev.error, endedAt: ev.timestamp })
             }
             toastError(ev.error ?? 'Workflow job failed', 'Job failed')
+            break
+
+          case 'job:cancelled':
+            workflowStatus.value = 'CANCELLED'
+            clearExecutionWaitingState(ev.executionId ?? '')
             break
 
           case 'session:stopping':

@@ -48,6 +48,9 @@ describe('shared execution run components', () => {
     assert.match(source, /\.execution-node-tree__row \{[^}]*margin-left: var\(--fabric-space-2\)/)
     assert.match(source, /v-if="node\.children\.length"/)
     assert.match(source, /execution-node-tree__row--leaf/)
+    assert.match(source, /execution-node-tree__row--success/)
+    assert.match(source, /execution-node-tree__row--failed/)
+    assert.match(source, /execution-node-tree__row--error/)
     assert.match(source, /\.execution-node-tree__row--leaf[^}]*grid-template-columns: 24px minmax\(0,\s*1fr\) auto/)
     assert.match(source, /width: calc\(var\(--fabric-space-3\) \+ var\(--fabric-space-2\)\)/)
     assert.doesNotMatch(source, /visibility: hidden/)
@@ -73,19 +76,16 @@ describe('shared execution run components', () => {
     assert.match(source, /nodePresentations/)
   })
 
-  it('shows final workflow result above the step tree while keeping the tree visible', () => {
+  it('keeps the run detail focused on the execution tree instead of a final result card', () => {
     const detail = read('ExecutionRunDetail.vue')
     const types = read('executionRunTree.types.ts')
 
     assert.match(types, /ExecutionRunFinalResult/)
     assert.match(types, /finalResult\?: ExecutionRunFinalResult/)
-    assert.match(detail, /Final Result/)
-    assert.match(detail, /detail\.finalResult/)
-    assert.match(detail, /detail\.finalResult\.label/)
-    assert.match(detail, /detail\.finalResult\.value/)
-    assert.match(detail, /BaseCodeEditor/)
     assert.match(detail, /ExecutionNodeTree/)
-    assert.match(detail, /execution-run-detail__result/)
+    assert.doesNotMatch(detail, /Final Result/)
+    assert.doesNotMatch(detail, /detail\.finalResult/)
+    assert.doesNotMatch(detail, /execution-run-detail__result/)
   })
 
   it('shows the selected real icon and guarded text payload details', () => {
@@ -99,8 +99,12 @@ describe('shared execution run components', () => {
     assert.match(source, /readonly/)
     assert.match(source, /:model-value="formatJson\(node\.input\)"/)
     assert.match(source, /:model-value="formatJson\(node\.output\)"/)
+    assert.match(source, /:open="hasData\(node\.input\)"/)
+    assert.match(source, /:open="hasData\(node\.output\)"/)
+    assert.match(source, /node\.kind !== 'error'/)
     assert.match(source, /Input/)
     assert.match(source, /Output/)
+    assert.match(source, /Error/)
     assert.match(source, /Retries/)
     assert.match(source, /JSON\.stringify/)
     assert.doesNotMatch(source, /v-html/)
