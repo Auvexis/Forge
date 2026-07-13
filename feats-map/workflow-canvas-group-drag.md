@@ -1,0 +1,3 @@
+- [x] Mover todos os nodes selecionados ao arrastar um item selecionado
+- [x] Evitar que o click sintetico apos drag reduza a selecao para um node
+- [x] Validar e commitar

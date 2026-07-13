@@ -1,6 +1,6 @@
 <template>
   <div v-if="showBox" class="workflow-selection-box" data-workflow-selection-box :style="viewportTransform">
-    <div class="fabric-group-box-outer" :style="outerBoxStyle">
+    <div class="fabric-group-box-outer" :style="outerBoxStyle" @pointerdown.stop="startSelectionDrag">
       <div class="fabric-group-box-inner" />
     </div>
 
@@ -23,19 +23,26 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import type { BaseCanvasItem, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
+import { computed, onBeforeUnmount, ref } from 'vue'
+import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasPoint, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
+import { getIncrementalDragDelta } from '@/shared/base-canvas/drag'
+import { shouldBypassSnap } from '@/shared/base-canvas/snap'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<{
   items: BaseCanvasItem[]
   selection: string[]
   viewport: BaseCanvasViewport
+  gridSize?: number
+  snapToGrid?: boolean
 }>()
 
 const emit = defineEmits<{
   duplicateSelection: []
   deleteSelection: []
+  selectionDragStart: []
+  selectionDragEnd: []
+  selectionMove: [event: BaseCanvasItemsMoveEvent]
 }>()
 
 const PADDING_TOP = 24
@@ -43,6 +50,12 @@ const PADDING_BOTTOM = 60
 const PADDING_LEFT = 24
 const PADDING_RIGHT = 24
 const TOOLBAR_H = 40
+const activeSelectionDrag = ref<{
+  start: BaseCanvasPoint
+  previous: BaseCanvasPoint
+  emitted: BaseCanvasPoint
+  pointerId: number
+} | null>(null)
 
 const selectedItems = computed(() => props.items.filter((item) => props.selection.includes(item.id)))
 const showBox = computed(() => selectedItems.value.length >= 2)
@@ -100,6 +113,54 @@ function duplicateSelection() {
 function deleteSelection() {
   emit('deleteSelection')
 }
+
+function startSelectionDrag(event: PointerEvent) {
+  if (event.button !== 0) return
+  if (selectedItems.value.length < 2) return
+  event.preventDefault()
+  activeSelectionDrag.value = {
+    start: { x: event.clientX, y: event.clientY },
+    previous: { x: event.clientX, y: event.clientY },
+    emitted: { x: 0, y: 0 },
+    pointerId: event.pointerId,
+  }
+  emit('selectionDragStart')
+  window.addEventListener('pointermove', moveSelection)
+  window.addEventListener('pointerup', stopSelectionDrag, { once: true })
+  window.addEventListener('pointercancel', stopSelectionDrag, { once: true })
+}
+
+function moveSelection(event: PointerEvent) {
+  const drag = activeSelectionDrag.value
+  if (!drag || event.pointerId !== drag.pointerId) return
+  const { delta, nextPrevious, nextEmitted } = getIncrementalDragDelta({
+    start: drag.start,
+    previous: drag.previous,
+    current: { x: event.clientX, y: event.clientY },
+    emitted: drag.emitted,
+    zoom: props.viewport.zoom,
+    gridSize: props.gridSize ?? 20,
+    snapToGrid: props.snapToGrid ?? true,
+    bypassSnap: shouldBypassSnap(event),
+  })
+  drag.previous = nextPrevious
+  drag.emitted = nextEmitted
+  emit('selectionMove', {
+    itemIds: selectedItems.value.map((item) => item.id),
+    delta,
+  })
+}
+
+function stopSelectionDrag() {
+  if (activeSelectionDrag.value) emit('selectionDragEnd')
+  activeSelectionDrag.value = null
+  window.removeEventListener('pointermove', moveSelection)
+  window.removeEventListener('pointercancel', stopSelectionDrag)
+}
+
+onBeforeUnmount(() => {
+  stopSelectionDrag()
+})
 </script>
 
 <style scoped>
@@ -119,7 +180,8 @@ function deleteSelection() {
   border: 2px dashed color-mix(in srgb, var(--fabric-accent) 30%, transparent);
   border-radius: 8px;
   background: color-mix(in srgb, var(--fabric-accent) 4%, transparent);
-  pointer-events: none;
+  cursor: move;
+  pointer-events: auto;
 }
 
 .fabric-group-box-inner {

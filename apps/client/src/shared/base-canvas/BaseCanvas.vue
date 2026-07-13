@@ -129,10 +129,12 @@ const emit = defineEmits<{
 
 const activeDrag = ref<{
   itemId: string
+  itemIds: string[]
   start: BaseCanvasPoint
   previous: BaseCanvasPoint
   emitted: BaseCanvasPoint
   pointerId: number
+  moved: boolean
 } | null>(null)
 const activePan = ref<{
   start: BaseCanvasPoint
@@ -151,6 +153,7 @@ const activeAlignmentGuides = ref<BaseCanvasAlignmentGuide[]>([])
 const isSpacePressed = ref(false)
 const canvasRef = ref<HTMLElement | null>(null)
 const suppressNextCanvasClick = ref(false)
+const suppressNextItemClick = ref(false)
 let viewportAnimationFrame: number | null = null
 
 const viewportStyle = computed(() => ({
@@ -248,6 +251,10 @@ function handleCanvasClick(event: MouseEvent) {
 }
 
 function handleItemClick(itemId: string) {
+  if (suppressNextItemClick.value) {
+    suppressNextItemClick.value = false
+    return
+  }
   emit('update:selection', [itemId])
   emit('item-click', itemId)
 }
@@ -343,12 +350,19 @@ function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
   if (event.button !== 0) return
   if (item.locked) return
   event.preventDefault()
+  const selectedItemIds = props.selection.includes(item.id) ? props.selection : [item.id]
+  const draggableItemIds = selectedItemIds.filter((itemId) => {
+    const candidate = props.items.find((item) => item.id === itemId)
+    return candidate && !candidate.locked
+  })
   activeDrag.value = {
     itemId: item.id,
+    itemIds: draggableItemIds.length ? draggableItemIds : [item.id],
     start: { x: event.clientX, y: event.clientY },
     previous: { x: event.clientX, y: event.clientY },
     emitted: { x: 0, y: 0 },
     pointerId: event.pointerId,
+    moved: false,
   }
   emit('item-drag-start', { itemId: item.id })
   window.addEventListener('pointermove', moveItem)
@@ -370,7 +384,8 @@ function moveItem(event: PointerEvent) {
     bypassSnap: shouldBypassSnap(event),
   })
   const item = props.items.find((candidate) => candidate.id === drag.itemId)
-  const alignment = item && !shouldBypassSnap(event)
+  const isGroupDrag = drag.itemIds.length > 1
+  const alignment = item && !isGroupDrag && !shouldBypassSnap(event)
     ? snapRectToAlignment({
       rect: {
         x: item.x + delta.x,
@@ -378,20 +393,22 @@ function moveItem(event: PointerEvent) {
         width: item.width ?? 0,
         height: item.height ?? 0,
       },
-      targets: props.items.filter((candidate) => candidate.id !== item.id).map(itemToRect),
+      targets: props.items.filter((candidate) => !drag.itemIds.includes(candidate.id)).map(itemToRect),
     })
     : { delta: { x: 0, y: 0 }, guides: [] }
   drag.previous = nextPrevious
   drag.emitted = nextEmitted
+  drag.moved = drag.moved || Math.hypot(event.clientX - drag.start.x, event.clientY - drag.start.y) >= 3
   activeAlignmentGuides.value = alignment.guides
   emit('items-move', {
-    itemIds: [drag.itemId],
+    itemIds: drag.itemIds,
     delta: { x: delta.x + alignment.delta.x, y: delta.y + alignment.delta.y },
   })
 }
 
 function stopItemDrag() {
   const drag = activeDrag.value
+  if (drag?.moved) suppressNextItemClick.value = true
   activeDrag.value = null
   activeAlignmentGuides.value = []
   window.removeEventListener('pointermove', moveItem)

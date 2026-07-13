@@ -169,6 +169,11 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /window\.addEventListener\('blur', stopActiveGestures\)/)
     assert.match(source, /emit\('item-drag-start', \{ itemId: item\.id \}\)/)
     assert.match(source, /emit\('item-drag-end', \{ itemId: drag\.itemId \}\)/)
+    assert.match(source, /itemIds: draggableItemIds\.length \? draggableItemIds : \[item\.id\]/)
+    assert.match(source, /const isGroupDrag = drag\.itemIds\.length > 1/)
+    assert.match(source, /itemIds: drag\.itemIds/)
+    assert.match(source, /suppressNextItemClick/)
+    assert.match(source, /if \(drag\?\.moved\) suppressNextItemClick\.value = true/)
   })
 
   it('preserves marquee selection through the synthetic canvas click', () => {

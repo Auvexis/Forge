@@ -20,6 +20,9 @@ describe('workflow canvas selection contract', () => {
     assert.match(canvas, /canvasSelection\.includes\(item\.id\)/)
     assert.match(canvas, /WorkflowSelectionBox/)
     assert.match(canvas, /:selection="canvasSelection"/)
+    assert.match(canvas, /@selection-move="handleItemsMove"/)
+    assert.match(canvas, /@selection-drag-start="workflowStore\.beginHistoryTransaction"/)
+    assert.match(canvas, /@selection-drag-end="workflowStore\.commitHistoryTransaction"/)
   })
 
   it('adds WorkflowBaseCanvas selection commands without importing Vue Flow', () => {
@@ -47,6 +50,12 @@ describe('workflow canvas selection contract', () => {
     assert.match(selectionBox, /selectedItems/)
     assert.match(selectionBox, /duplicateSelection/)
     assert.match(selectionBox, /deleteSelection/)
+    assert.match(selectionBox, /startSelectionDrag/)
+    assert.match(selectionBox, /moveSelection/)
+    assert.match(selectionBox, /selectionMove/)
+    assert.match(selectionBox, /getIncrementalDragDelta/)
+    assert.match(selectionBox, /shouldBypassSnap/)
+    assert.match(selectionBox, /pointer-events: auto/)
     assert.match(selectionBox, /viewport\.zoom/)
     assert.doesNotMatch(selectionBox, /EdgeLabelRenderer/)
     assert.doesNotMatch(selectionBox, /useVueFlow/)

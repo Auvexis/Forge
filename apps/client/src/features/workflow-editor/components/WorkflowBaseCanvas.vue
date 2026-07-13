@@ -56,8 +56,13 @@
       :items="workflowItems"
       :selection="canvasSelection"
       :viewport="viewport"
+      :grid-size="20"
+      :snap-to-grid="true"
       @duplicate-selection="duplicateSelection"
       @delete-selection="deleteSelection"
+      @selection-move="handleItemsMove"
+      @selection-drag-start="workflowStore.beginHistoryTransaction"
+      @selection-drag-end="workflowStore.commitHistoryTransaction"
     />
   </div>
 </template>
