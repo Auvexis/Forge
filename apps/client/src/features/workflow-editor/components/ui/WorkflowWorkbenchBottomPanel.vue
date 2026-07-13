@@ -757,7 +757,7 @@ onBeforeUnmount(() => {
             aria-hidden="true"
             @pointerdown.stop="startTimelinePlayheadDrag"
           />
-          <div class="workflow-timeline__depth-grid" @click.self="clearTimelineInteraction">
+          <div v-if="timelineNodes.length" class="workflow-timeline__depth-grid" @click.self="clearTimelineInteraction">
             <span
               v-for="depth in timelineDepthColumns"
               :key="depth.column"

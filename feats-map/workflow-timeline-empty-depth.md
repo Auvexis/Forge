@@ -1,0 +1,3 @@
+- [x] Esconder depth grid quando a timeline estiver vazia
+- [x] Atualizar contrato da timeline
+- [x] Validar e commitar
