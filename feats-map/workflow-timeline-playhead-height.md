@@ -1,0 +1,3 @@
+- [x] Ajustar altura do playhead
+- [x] Validar contrato
+- [x] Commitar mudanca

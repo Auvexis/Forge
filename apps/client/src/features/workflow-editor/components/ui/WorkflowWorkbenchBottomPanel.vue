@@ -340,6 +340,7 @@ watch(activeTimelineNodeId, async (nodeId) => {
     <div v-if="activeView === 'timeline'" class="workflow-bottom-panel__view workflow-timeline">
       <div ref="timelineTrackRef" class="workflow-timeline__scroll">
         <div class="workflow-timeline__track" :style="timelineTrackStyle">
+          <span class="workflow-timeline__playhead" aria-hidden="true" />
           <div class="workflow-timeline__plane">
             <svg class="workflow-timeline__connectors" aria-hidden="true">
               <path
@@ -349,7 +350,6 @@ watch(activeTimelineNodeId, async (nodeId) => {
                 :d="connector.path"
               />
             </svg>
-            <span class="workflow-timeline__playhead" aria-hidden="true" />
             <div
               v-for="node in timelineNodes"
               :key="node.id"
