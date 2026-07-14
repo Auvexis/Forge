@@ -98,6 +98,13 @@ test('fabric themes define workbench tokens', () => {
     assert.equal(typeof theme.tokens['workflowTimeline.clip.bg'], 'string')
     assert.equal(typeof theme.tokens['executionPanel.bg'], 'string')
     assert.equal(typeof theme.tokens['globalAddNodePanel.bg'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.bg'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.grid'], 'string')
     assert.equal(typeof theme.tokens['baseCanvas.ruler.lines'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.ruler.z'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.selection.bg'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.selection.border'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.alignmentGuide.bg'], 'string')
+    assert.equal(typeof theme.tokens['baseCanvas.alignmentGuide.shadow'], 'string')
   }
 })

@@ -1,0 +1,3 @@
+- [x] Completar tokens do BaseCanvas nos temas
+- [x] Aplicar tokens no BaseCanvas e rulers
+- [x] Validar e commitar

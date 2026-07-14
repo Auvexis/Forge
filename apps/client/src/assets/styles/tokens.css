@@ -609,6 +609,12 @@
   --fabric-base-canvas-grid: var(--fabric-border-muted);
   --fabric-base-canvas-ruler-bg: var(--fabric-bg-elevated);
   --fabric-base-canvas-ruler-text: var(--fabric-text-muted);
+  --fabric-base-canvas-ruler-lines: var(--fabric-workbench-border);
+  --fabric-base-canvas-ruler-z: 30;
+  --fabric-base-canvas-selection-bg: var(--fabric-accent-subtle);
+  --fabric-base-canvas-selection-border: var(--fabric-border-brand);
+  --fabric-base-canvas-alignment-guide-bg: var(--fabric-accent);
+  --fabric-base-canvas-alignment-guide-shadow: rgba(237, 147, 58, 0.24);
 }
 
 /* =========================================================

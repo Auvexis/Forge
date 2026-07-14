@@ -28,9 +28,9 @@ const props = withDefaults(defineProps<{
 }>(), {
   gridSize: 16,
   rulerSize: 24,
-  rulersBg: 'var(--fabric-bg-canvas)',
-  rulersText: 'rgba(255, 255, 255, 0.54)',
-  rulersLines: 'rgba(255, 255, 255, 0.2)',
+  rulersBg: 'var(--fabric-base-canvas-ruler-bg, var(--fabric-bg-canvas))',
+  rulersText: 'var(--fabric-base-canvas-ruler-text, rgba(255, 255, 255, 0.54))',
+  rulersLines: 'var(--fabric-base-canvas-ruler-lines, rgba(255, 255, 255, 0.2))',
 })
 
 const topCanvasRef = ref<HTMLCanvasElement | null>(null)

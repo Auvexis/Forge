@@ -8,8 +8,8 @@
       :snap-to-grid="true"
       :grid-size="20"
       :marquee-selection="true"
-      background-color="var(--fabric-canvas-bg)"
-      pattern-color="var(--fabric-canvas-grid)"
+      background-color="var(--fabric-base-canvas-bg)"
+      pattern-color="var(--fabric-base-canvas-grid)"
       pattern-style="dot"
       :pattern-size="30"
       rulers

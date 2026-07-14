@@ -333,7 +333,10 @@
     "baseCanvas.ruler.bg": "var(--fabric-bg-elevated)",
     "baseCanvas.ruler.text": "var(--fabric-text-muted)",
     "baseCanvas.ruler.lines": "var(--fabric-workbench-border)",
+    "baseCanvas.ruler.z": "30",
     "baseCanvas.selection.bg": "var(--fabric-accent-subtle)",
-    "baseCanvas.selection.border": "var(--fabric-border-brand)"
+    "baseCanvas.selection.border": "var(--fabric-border-brand)",
+    "baseCanvas.alignmentGuide.bg": "var(--fabric-accent)",
+    "baseCanvas.alignmentGuide.shadow": "rgba(185, 167, 255, 0.24)"
   }
 }

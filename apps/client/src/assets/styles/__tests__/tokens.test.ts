@@ -49,6 +49,9 @@ describe('component semantic color tokens', () => {
     '--fabric-app-panel-bg',
     '--fabric-start-guide-bg',
     '--fabric-base-canvas-bg',
+    '--fabric-base-canvas-ruler-z',
+    '--fabric-base-canvas-selection-bg',
+    '--fabric-base-canvas-alignment-guide-bg',
   ]
 
   it('defines component-specific aliases as CSS fallbacks for JSON themes', () => {
