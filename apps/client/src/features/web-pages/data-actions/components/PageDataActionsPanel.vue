@@ -190,6 +190,15 @@
             >
               Bind
             </BaseButton>
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              icon-left="table-2"
+              :disabled="!canBindCollection"
+              @click="bindTableToSelectedElement"
+            >
+              Table
+            </BaseButton>
           </div>
           <div v-if="collectionBindings.length === 0" class="web-page-data-actions__hint">
             Bind an array result to a selected container. Children can use item.name paths.
@@ -202,7 +211,7 @@
             <LucideIcon name="repeat" :size="12" />
             <span>
               {{ binding.collectionPath }} -> {{ binding.targetElementId }}
-              <small>{{ binding.itemAlias }}</small>
+              <small>{{ binding.mode ?? 'repeater' }}</small>
             </span>
             <button
               type="button"
@@ -370,7 +379,12 @@ function clearOutputBinding(bindingId: string) {
 
 function bindCollectionToSelectedElement() {
   if (!store.selectedAction || !selectedCollectionTarget.value) return
-  bindingStore.bindCollectionToElement(store.selectedAction, collectionResultPath.value, selectedCollectionTarget.value)
+  bindingStore.bindCollectionToElement(store.selectedAction, collectionResultPath.value, selectedCollectionTarget.value, 'repeater')
+}
+
+function bindTableToSelectedElement() {
+  if (!store.selectedAction || !selectedCollectionTarget.value) return
+  bindingStore.bindCollectionToElement(store.selectedAction, collectionResultPath.value, selectedCollectionTarget.value, 'table')
 }
 
 function clearCollectionBinding(bindingId: string) {

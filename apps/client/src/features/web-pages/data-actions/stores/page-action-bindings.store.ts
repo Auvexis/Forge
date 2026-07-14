@@ -142,7 +142,12 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     }
   }
 
-  function bindCollectionToElement(action: PageActionDefinition, collectionPath: string, targetElementId: string) {
+  function bindCollectionToElement(
+    action: PageActionDefinition,
+    collectionPath: string,
+    targetElementId: string,
+    mode: PageActionCollectionBinding['mode'] = 'repeater',
+  ) {
     const normalizedPath = collectionPath.trim()
     if (!normalizedPath || !targetElementId) return null
     const binding: PageActionCollectionBinding = {
@@ -151,6 +156,7 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
       collectionPath: normalizedPath,
       targetElementId,
       itemAlias: 'item',
+      mode,
       createdAt: new Date().toISOString(),
     }
     const current = collectionBindingsForAction(action.id)

@@ -76,6 +76,7 @@ export interface PageActionCollectionBinding {
   collectionPath: string
   targetElementId: string
   itemAlias: string
+  mode?: 'repeater' | 'table'
   createdAt: string
 }
 

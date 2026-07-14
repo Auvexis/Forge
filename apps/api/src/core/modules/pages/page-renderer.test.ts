@@ -276,6 +276,7 @@ describe("page renderer", () => {
                 collectionPath: "fruits",
                 targetElementId: "section_1",
                 itemAlias: "item",
+                mode: "table",
                 createdAt: "2026-07-14T00:00:00.000Z",
               },
             ],
@@ -291,6 +292,9 @@ describe("page renderer", () => {
     assert.match(html, /payloadWithBindings\(actionId, payload\)/);
     assert.match(html, /readBindingValue\(binding\.target\)/);
     assert.match(html, /applyCollectionBindings\(actionId, body\?\.data\?\.result\)/);
+    assert.match(html, /binding\.mode === "table"/);
+    assert.match(html, /renderTable\(host, collection\)/);
+    assert.match(html, /\[data-fabric-bound-table\]/);
     assert.match(html, /resolveScopedPath\(result, \{ item, index \}, outputBinding\.resultPath\)/);
     assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
     assert.match(html, /resolveResultPath\(result, binding\.resultPath\)/);
