@@ -287,7 +287,6 @@
   padding-left: calc(var(--web-page-rail-width) + var(--web-page-left-panel-width));
   padding-right: var(--web-page-right-panel-width);
   overflow: hidden;
-  transition: padding 160ms var(--fabric-ease-standard);
 }
 
 .web-page-editor--left-collapsed .web-page-editor__workspace {
@@ -314,7 +313,6 @@
   min-height: 1800px;
   padding: var(--fabric-space-8) 0 320px;
   transform-origin: top center;
-  transition: transform 180ms var(--fabric-ease-standard);
 }
 
 .web-page-editor__page-shell {
