@@ -16,17 +16,17 @@ defineProps<{
 
 <style scoped>
 .fabric-connection-preview-line {
-  stroke: var(--fabric-rf-edge-stroke);
+  stroke: var(--fabric-workflow-edge-stroke, var(--fabric-rf-edge-stroke));
   stroke-width: 2;
   stroke-linecap: round;
   pointer-events: none;
 }
 
 .fabric-connection-preview-line.valid {
-  stroke: var(--fabric-rf-edge-stroke-selected);
+  stroke: var(--fabric-workflow-edge-selected, var(--fabric-rf-edge-stroke-selected));
 }
 
 .fabric-connection-preview-line.invalid {
-  stroke: var(--fabric-rf-edge-stroke-selected);
+  stroke: var(--fabric-workflow-edge-error, var(--fabric-rf-edge-stroke-selected));
 }
 </style>

@@ -52,6 +52,12 @@ describe('component semantic color tokens', () => {
     '--fabric-base-canvas-ruler-z',
     '--fabric-base-canvas-selection-bg',
     '--fabric-base-canvas-alignment-guide-bg',
+    '--fabric-workflow-node-bg',
+    '--fabric-workflow-node-border',
+    '--fabric-workflow-handle-bg',
+    '--fabric-workflow-edge-stroke',
+    '--fabric-workflow-edge-toolbar-bg',
+    '--fabric-workflow-edge-label-bg',
   ]
 
   it('defines component-specific aliases as CSS fallbacks for JSON themes', () => {

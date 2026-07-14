@@ -156,21 +156,21 @@ export function countWorkflowEdgeItems(output: unknown): number | null {
 }
 
 export function workflowEdgeStrokeFor(status: WorkflowEdgeStatus | string, selected: boolean): string {
-  if (selected) return 'var(--fabric-rf-edge-stroke-selected)'
+  if (selected) return 'var(--fabric-workflow-edge-selected, var(--fabric-rf-edge-stroke-selected))'
 
   switch (status) {
     case 'success':
-      return 'var(--fabric-green-500, #22c55e)'
+      return 'var(--fabric-workflow-edge-success, var(--fabric-green-500, #22c55e))'
     case 'failed':
-      return 'var(--fabric-red-500, #ef4444)'
+      return 'var(--fabric-workflow-edge-error, var(--fabric-red-500, #ef4444))'
     case 'running':
-      return 'var(--fabric-amber-500, #f59e0b)'
+      return 'var(--fabric-workflow-edge-running, var(--fabric-amber-500, #f59e0b))'
     case 'waiting':
-      return 'var(--fabric-purple-500, #a855f7)'
+      return 'var(--fabric-workflow-edge-waiting, var(--fabric-purple-500, #a855f7))'
     case 'retrying':
-      return 'var(--fabric-amber-500, #f59e0b)'
+      return 'var(--fabric-workflow-edge-retrying, var(--fabric-amber-500, #f59e0b))'
     default:
-      return 'var(--fabric-rf-edge-stroke)'
+      return 'var(--fabric-workflow-edge-stroke, var(--fabric-rf-edge-stroke))'
   }
 }
 

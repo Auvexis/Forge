@@ -60,11 +60,21 @@ describe('workflow canvas edges contract', () => {
 
   it('preserves edge visuals, labels, item count, toolbar, and delete action', () => {
     const edge = readComponent('WorkflowEdge.vue')
+    const preview = readComponent('WorkflowConnectionPreviewLine.vue')
+    const helpers = read('workflowCanvasEdges.ts')
 
     assert.match(edge, /marker-end/)
     assert.match(edge, /fabric-edge-toolbar/)
     assert.match(edge, /fabric-edge-item-count/)
     assert.match(edge, /fabric-edge-label-input/)
+    assert.match(edge, /--fabric-workflow-edge-toolbar-bg/)
+    assert.match(edge, /--fabric-workflow-edge-label-bg/)
+    assert.match(edge, /--fabric-workflow-edge-input-bg/)
+    assert.match(preview, /--fabric-workflow-edge-stroke/)
+    assert.match(preview, /--fabric-workflow-edge-selected/)
+    assert.match(helpers, /--fabric-workflow-edge-success/)
+    assert.match(helpers, /--fabric-workflow-edge-error/)
+    assert.match(helpers, /--fabric-workflow-edge-running/)
     assert.match(edge, /commitLabel/)
     assert.match(edge, /onDelete/)
     assert.match(edge, /onQuickAdd/)

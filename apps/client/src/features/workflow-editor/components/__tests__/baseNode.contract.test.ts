@@ -68,7 +68,25 @@ test('BaseHandle delegates to the workflow-native handle', () => {
   assert.match(source, /WorkflowHandle/)
   assert.match(source, /:position="props\.position"/)
   assert.match(source, /:variant="props\.variant \?\? 'circle'"/)
+  assert.match(source, /--fabric-workflow-handle-bg/)
+  assert.match(source, /--fabric-workflow-handle-border/)
+  assert.match(source, /--fabric-workflow-handle-hover-bg/)
   assert.doesNotMatch(source, /@vue-flow\/core/)
+})
+
+test('BaseNode uses workflow theme tokens for canvas chrome', () => {
+  const source = read('BaseNode.vue')
+
+  assert.match(source, /--fabric-workflow-node-bg/)
+  assert.match(source, /--fabric-workflow-node-border/)
+  assert.match(source, /--fabric-workflow-node-hover-border/)
+  assert.match(source, /--fabric-workflow-node-selected-border/)
+  assert.match(source, /--fabric-workflow-node-shadow/)
+  assert.match(source, /--fabric-workflow-node-selected-shadow/)
+  assert.match(source, /--fabric-workflow-node-label-text/)
+  assert.match(source, /--fabric-workflow-node-quick-add-bg/)
+  assert.match(source, /--fabric-workflow-node-success-border/)
+  assert.match(source, /--fabric-workflow-node-error-border/)
 })
 
 test('configured handles anchor their measured center on each node border', () => {

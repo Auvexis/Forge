@@ -52,16 +52,17 @@ const attrs = useAttrs()
   width: 12px;
   height: 12px;
   box-sizing: border-box;
-  border: 1px solid var(--fabric-border-strong);
+  border: 1px solid var(--fabric-workflow-handle-border, var(--fabric-border-strong));
   border-radius: 100%;
-  background-color: var(--fabric-node-handle);
+  background-color: var(--fabric-workflow-handle-bg, var(--fabric-node-handle));
   pointer-events: none;
   transform: translate(-50%, -50%);
   transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .fabric-base-handle:hover .fabric-base-handle__visual {
-  background-color: var(--fabric-node-handle-hover);
+  border-color: var(--fabric-workflow-handle-hover-border, var(--fabric-workflow-handle-border, var(--fabric-border-strong)));
+  background-color: var(--fabric-workflow-handle-hover-bg, var(--fabric-node-handle-hover));
 }
 
 .fabric-base-handle.is-position-left .fabric-base-handle__visual,

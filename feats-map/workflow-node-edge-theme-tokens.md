@@ -1,0 +1,3 @@
+- [x] Adicionar tokens JSON de node, handle e edge
+- [x] Aplicar tokens em BaseNode, BaseHandle e edges
+- [x] Validar e commitar

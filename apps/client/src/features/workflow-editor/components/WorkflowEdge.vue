@@ -187,10 +187,10 @@ function cancelLabel() {
 }
 
 .fabric-edge-btn {
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border-subtle);
+  background: var(--fabric-workflow-edge-toolbar-bg, var(--fabric-bg-surface));
+  border: 1px solid var(--fabric-workflow-edge-toolbar-border, var(--fabric-border-subtle));
   border-radius: var(--fabric-radius-xs, 3px);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-edge-toolbar-text, var(--fabric-text-muted));
   width: 24px;
   height: 24px;
   display: inline-flex;
@@ -201,8 +201,8 @@ function cancelLabel() {
 }
 
 .fabric-edge-btn:hover {
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workflow-edge-toolbar-hover-bg, var(--fabric-bg-elevated));
+  color: var(--fabric-workflow-edge-toolbar-hover-text, var(--fabric-text-primary));
 }
 
 .fabric-edge-btn--danger:hover {
@@ -211,7 +211,7 @@ function cancelLabel() {
 }
 
 .fabric-edge-item-count {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-edge-muted-text, var(--fabric-text-muted));
   font-family: var(--fabric-font-mono);
   font-size: 10px;
   line-height: 18px;
@@ -233,16 +233,16 @@ function cancelLabel() {
   font-size: 13px;
   font-weight: 500;
   line-height: 1;
-  color: var(--fabric-text-secondary);
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border-subtle);
+  color: var(--fabric-workflow-edge-label-text, var(--fabric-text-secondary));
+  background: var(--fabric-workflow-edge-label-bg, var(--fabric-bg-surface));
+  border: 1px solid var(--fabric-workflow-edge-label-border, var(--fabric-border-subtle));
   border-radius: var(--fabric-radius-xs, 3px);
   padding: 4px 8px;
 }
 
 .fabric-edge-label-input {
-  background: var(--fabric-bg-base);
-  border: 1px solid var(--fabric-border);
+  background: var(--fabric-workflow-edge-input-bg, var(--fabric-bg-base));
+  border: 1px solid var(--fabric-workflow-edge-input-border, var(--fabric-border));
   border-radius: var(--fabric-radius-xs, 3px);
   color: var(--fabric-text-primary);
   font-size: 12px;

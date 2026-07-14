@@ -290,24 +290,67 @@
   --fabric-canvas-grid: rgba(255, 250, 244, 0.1);
 
   /* ── Node Colors ─────────────────────────────────────────── */
-  --fabric-node-header: #211d1a;
-  --fabric-node-body: #1c1815;
-  --fabric-node-border: #3a332e;
-  --fabric-node-selected: #fffaf4;
+  --fabric-workflow-node-bg: #202020;
+  --fabric-workflow-node-border: rgba(255, 255, 255, 0.18);
+  --fabric-workflow-node-hover-border: rgba(255, 255, 255, 0.34);
+  --fabric-workflow-node-selected-border: rgba(242, 242, 242, 0.62);
+  --fabric-workflow-node-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+  --fabric-workflow-node-hover-shadow: 0 6px 18px rgba(0, 0, 0, 0.38);
+  --fabric-workflow-node-selected-shadow: 0 6px 18px rgba(0, 0, 0, 0.38), 0 0 0 3px rgba(242, 242, 242, 0.16);
+  --fabric-workflow-node-label-text: var(--fabric-text-primary);
+  --fabric-workflow-node-label-muted-text: var(--fabric-text-muted);
+  --fabric-workflow-node-quick-add-bg: #2b2b2b;
+  --fabric-workflow-node-quick-add-border: rgba(255, 255, 255, 0.22);
+  --fabric-workflow-node-quick-add-text: var(--fabric-text-primary);
+  --fabric-workflow-node-running-border: var(--fabric-status-running-border);
+  --fabric-workflow-node-waiting-border: var(--fabric-border-brand);
+  --fabric-workflow-node-waiting-shadow: 0 6px 18px rgba(0, 0, 0, 0.38), 0 0 0 3px rgba(185, 167, 255, 0.14);
+  --fabric-workflow-node-waiting-shimmer: rgba(185, 167, 255, 0.16);
+  --fabric-workflow-node-retrying-border: var(--fabric-status-running-border);
+  --fabric-workflow-node-retrying-shadow: 0 6px 18px rgba(0, 0, 0, 0.38), 0 0 0 3px rgba(157, 187, 255, 0.14);
+  --fabric-workflow-node-retrying-shimmer: rgba(157, 187, 255, 0.18);
+  --fabric-workflow-node-success-border: var(--fabric-status-success-border);
+  --fabric-workflow-node-error-border: var(--fabric-status-error-border);
+  --fabric-node-header: #202020;
+  --fabric-node-body: var(--fabric-workflow-node-bg);
+  --fabric-node-border: var(--fabric-workflow-node-border);
+  --fabric-node-selected: var(--fabric-workflow-node-selected-border);
 
   /* ── Handle Colors ─────────────────────────────────────────── */
-  --fabric-node-handle: var(--fabric-node-border);
-  --fabric-node-handle-hover: var(--fabric-node-selected);
+  --fabric-workflow-handle-bg: #3a3a3a;
+  --fabric-workflow-handle-border: rgba(255, 255, 255, 0.2);
+  --fabric-workflow-handle-hover-bg: #f2f2f2;
+  --fabric-workflow-handle-hover-border: #f2f2f2;
+  --fabric-node-handle: var(--fabric-workflow-handle-bg);
+  --fabric-node-handle-hover: var(--fabric-workflow-handle-hover-bg);
 
   /* ── Edge Colors ─────────────────────────────────────────── */
-  --fabric-rf-edge-stroke: var(--fabric-node-border);
-  --fabric-rf-edge-stroke-hover: var(--fabric-node-selected);
-  --fabric-rf-edge-stroke-selected: var(--fabric-node-selected);
-  --fabric-rf-edge-stroke-error: var(--fabric-node-selected);
+  --fabric-workflow-edge-stroke: rgba(255, 255, 255, 0.2);
+  --fabric-workflow-edge-selected: #f2f2f2;
+  --fabric-workflow-edge-success: var(--fabric-status-success-text);
+  --fabric-workflow-edge-error: var(--fabric-status-error-text);
+  --fabric-workflow-edge-running: var(--fabric-status-running-text);
+  --fabric-workflow-edge-waiting: var(--fabric-accent);
+  --fabric-workflow-edge-retrying: var(--fabric-status-running-text);
+  --fabric-workflow-edge-toolbar-bg: #242424;
+  --fabric-workflow-edge-toolbar-border: rgba(255, 255, 255, 0.14);
+  --fabric-workflow-edge-toolbar-text: var(--fabric-text-muted);
+  --fabric-workflow-edge-toolbar-hover-bg: #2f2f2f;
+  --fabric-workflow-edge-toolbar-hover-text: var(--fabric-text-primary);
+  --fabric-workflow-edge-label-bg: #1b1b1b;
+  --fabric-workflow-edge-label-border: rgba(255, 255, 255, 0.12);
+  --fabric-workflow-edge-label-text: var(--fabric-text-secondary);
+  --fabric-workflow-edge-input-bg: #141414;
+  --fabric-workflow-edge-input-border: rgba(255, 255, 255, 0.18);
+  --fabric-workflow-edge-muted-text: var(--fabric-text-muted);
+  --fabric-rf-edge-stroke: var(--fabric-workflow-edge-stroke);
+  --fabric-rf-edge-stroke-hover: var(--fabric-workflow-edge-selected);
+  --fabric-rf-edge-stroke-selected: var(--fabric-workflow-edge-selected);
+  --fabric-rf-edge-stroke-error: var(--fabric-workflow-edge-error);
 
   /* ── Arrow Colors ─────────────────────────────────────────── */
-  --fabric-rf-arrow-stroke: var(--fabric-node-border);
-  --fabric-rf-arrow-stroke-selected: var(--fabric-node-selected);
+  --fabric-rf-arrow-stroke: var(--fabric-workflow-edge-stroke);
+  --fabric-rf-arrow-stroke-selected: var(--fabric-workflow-edge-selected);
 
   /* Nodes */
   /* Triggers */
@@ -720,12 +763,43 @@
   --fabric-canvas-grid: rgba(46, 35, 32, 0.1);
 
   /* Node Colors (light) */
+  --fabric-workflow-node-bg: #ffffff;
+  --fabric-workflow-node-border: #d4d0ca;
+  --fabric-workflow-node-hover-border: #9e968e;
+  --fabric-workflow-node-selected-border: #24211f;
+  --fabric-workflow-node-shadow: 0 3px 10px rgba(36, 33, 31, 0.12);
+  --fabric-workflow-node-hover-shadow: 0 6px 16px rgba(36, 33, 31, 0.16);
+  --fabric-workflow-node-selected-shadow: 0 6px 16px rgba(36, 33, 31, 0.16), 0 0 0 3px rgba(36, 33, 31, 0.12);
+  --fabric-workflow-node-label-text: var(--fabric-text-primary);
+  --fabric-workflow-node-label-muted-text: var(--fabric-text-muted);
+  --fabric-workflow-node-quick-add-bg: #f1efea;
+  --fabric-workflow-node-quick-add-border: #cfc7bd;
+  --fabric-workflow-node-quick-add-text: var(--fabric-text-primary);
+  --fabric-workflow-handle-bg: #cfc7bd;
+  --fabric-workflow-handle-border: #a79d94;
+  --fabric-workflow-handle-hover-bg: #24211f;
+  --fabric-workflow-handle-hover-border: #24211f;
+  --fabric-workflow-edge-stroke: #b7aea4;
+  --fabric-workflow-edge-selected: #24211f;
+  --fabric-workflow-edge-toolbar-bg: #ffffff;
+  --fabric-workflow-edge-toolbar-border: #d8d0c7;
+  --fabric-workflow-edge-toolbar-hover-bg: #f1efea;
+  --fabric-workflow-edge-label-bg: #ffffff;
+  --fabric-workflow-edge-label-border: #ddd7cf;
+  --fabric-workflow-edge-input-bg: #ffffff;
+  --fabric-workflow-edge-input-border: #d8d0c7;
   --fabric-node-header: #fffdf9;
-  --fabric-node-body: #ffffff;
-  --fabric-node-border: #d8d0c7;
-  --fabric-node-selected: #3a2f2d;
-  --fabric-node-handle: var(--fabric-node-border);
-  --fabric-node-handle-hover: var(--fabric-node-selected);
+  --fabric-node-body: var(--fabric-workflow-node-bg);
+  --fabric-node-border: var(--fabric-workflow-node-border);
+  --fabric-node-selected: var(--fabric-workflow-node-selected-border);
+  --fabric-node-handle: var(--fabric-workflow-handle-bg);
+  --fabric-node-handle-hover: var(--fabric-workflow-handle-hover-bg);
+  --fabric-rf-edge-stroke: var(--fabric-workflow-edge-stroke);
+  --fabric-rf-edge-stroke-hover: var(--fabric-workflow-edge-selected);
+  --fabric-rf-edge-stroke-selected: var(--fabric-workflow-edge-selected);
+  --fabric-rf-edge-stroke-error: var(--fabric-workflow-edge-error);
+  --fabric-rf-arrow-stroke: var(--fabric-workflow-edge-stroke);
+  --fabric-rf-arrow-stroke-selected: var(--fabric-workflow-edge-selected);
 
   /* Scrollbar (light) */
   --fabric-scrollbar-thumb: rgba(0, 0, 0, 0.15);
