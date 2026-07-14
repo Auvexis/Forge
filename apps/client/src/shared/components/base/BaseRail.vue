@@ -18,7 +18,7 @@ withDefaults(
 <style scoped>
 .base-rail {
   display: flex;
-  width: var(--fabric-base-rail-width, 40px);
+  width: var(--fabric-base-rail-width, var(--fabric-base-rail-item-width, 49px));
   height: 100%;
   min-height: 0;
   flex-direction: column;
