@@ -11,6 +11,10 @@ const lightTheme = readFileSync(
   fileURLToPath(new URL('../../../../../themes/json/light.json', import.meta.url)),
   'utf8',
 )
+const workflowPageSource = readFileSync(
+  fileURLToPath(new URL('../../../../../app/pages/WorkflowEditorPage.vue', import.meta.url)),
+  'utf8',
+)
 
 test('workflow bottom panel renders the selected view without internal tabs', () => {
   assert.match(source, /export type WorkflowBottomPanelView = 'timeline' \| 'tree' \| 'execution' \| 'variables'/)
@@ -174,6 +178,10 @@ test('workflow bottom panel renders the selected view without internal tabs', ()
   assert.match(source, /<ExecutionBottomPanel v-else-if="activeView === 'execution'"/)
   assert.match(source, /activeView === 'tree'/)
   assert.match(source, /v-else class="workflow-bottom-panel__view"/)
+  assert.match(workflowPageSource, /const isVariablesPanelOpen = computed/)
+  assert.match(workflowPageSource, /'workflow-tool-rail__button--active': isVariablesPanelOpen/)
+  assert.match(workflowPageSource, /@click="toggleBottomPanel\('variables'\)"/)
+  assert.doesNotMatch(workflowPageSource, /@click="openBottomPanel\('variables'\)"/)
   assert.doesNotMatch(source, /workflow-bottom-panel__tabs/)
   assert.doesNotMatch(source, /workflow-bottom-panel__tab/)
   assert.doesNotMatch(source, /emit\('update:activeView'/)

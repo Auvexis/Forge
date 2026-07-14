@@ -1,0 +1,4 @@
+- [x] Habilitar resize do Add Node panel
+- [x] Fazer Add Node e Variables alternarem aberto/fechado
+- [x] Marcar botões ativos no rail
+- [x] Validar e commitar

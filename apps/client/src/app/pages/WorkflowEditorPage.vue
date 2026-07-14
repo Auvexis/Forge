@@ -120,6 +120,12 @@ const globalSidePanelWidth = computed(() => {
   return 360
 })
 const hasExecutionState = computed(() => Object.keys(executionStore.nodeStatuses).length > 0)
+const isGlobalAddNodePanelOpen = computed(() =>
+  appPanelStore.isOpen && appPanelStore.panelId === 'workflow-global-add-node-panel',
+)
+const isVariablesPanelOpen = computed(() =>
+  isBottomPanelOpen.value && activeBottomPanelView.value === 'variables',
+)
 const activeChatTriggers = computed(() => {
   const workflow = workflowStore.activeWorkflow
   return workflow ? listWorkflowChatTriggers(workflow) : []
@@ -414,6 +420,8 @@ function openGlobalAddNodePanel(toggle = false) {
     component: markRaw(GlobalAddNodePanel),
     position: 'right',
     width: 'md',
+    resizable: true,
+    resizeSide: 'left',
     props: {
       onAddLogicNodeAtCenter: (type: WorkflowNodeType, defaults?: Record<string, unknown>) =>
         canvasRef.value?.addLogicNodeAtViewportCenter(type, defaults),
@@ -859,17 +867,19 @@ watch(
           <section class="workflow-tool-rail__group" aria-label="Build">
             <button
               class="workflow-tool-rail__button workflow-tool-rail__button--primary"
+              :class="{ 'workflow-tool-rail__button--active': isGlobalAddNodePanelOpen }"
               type="button"
               title="Add node"
-              @click="openGlobalAddNodePanel()"
+              @click="openGlobalAddNodePanel(true)"
             >
               <LucideIcon name="plus" :size="19" />
             </button>
             <button
               class="workflow-tool-rail__button"
+              :class="{ 'workflow-tool-rail__button--active': isVariablesPanelOpen }"
               type="button"
               title="Variables"
-              @click="openBottomPanel('variables')"
+              @click="toggleBottomPanel('variables')"
             >
               <LucideIcon name="tags" :size="18" />
             </button>
