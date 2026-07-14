@@ -1,0 +1,3 @@
+- [x] Recarregar icones quando nodes/pluginId mudarem
+- [x] Evitar request antigo sobrescrevendo apresentacao
+- [x] Validar e commitar

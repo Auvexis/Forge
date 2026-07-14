@@ -95,6 +95,7 @@ const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const timelineTrackRef = ref<HTMLElement | null>(null)
 const nodePresentations = ref<Record<string, WorkflowTimelineNodePresentation>>({})
+const nodePresentationRequestId = ref(0)
 const { isDark } = useTheme()
 
 const workflowNodes = computed(() =>
@@ -104,6 +105,12 @@ const workflowNodes = computed(() =>
     type: node.type,
     positionY: typeof node.ui?.positionY === 'number' ? node.ui.positionY : 0,
   })),
+)
+const workflowNodePresentationKey = computed(() =>
+  Object.entries(workflowStore.activeWorkflow?.nodes ?? {})
+    .map(([id, node]) => `${id}:${node.type}:${nodePluginId(node as WorkflowNode) ?? ''}:${node.ui?.icon ?? ''}`)
+    .sort()
+    .join('|'),
 )
 
 const workflowVariables = computed(() => workflowStore.activeWorkflow?.variables ?? [])
@@ -176,6 +183,7 @@ function presentationForNode(
 }
 
 async function loadNodePresentations() {
+  const requestId = ++nodePresentationRequestId.value
   const workflow = workflowStore.activeWorkflow
   if (!workflow) {
     nodePresentations.value = {}
@@ -186,10 +194,15 @@ async function loadNodePresentations() {
     workflowNodesApi.getCatalog(),
     pluginsApi.getAll(),
   ])
+  if (requestId !== nodePresentationRequestId.value) return
   const catalog = catalogResult.status === 'fulfilled' ? catalogResult.value.nodes : []
   const plugins = pluginsResult.status === 'fulfilled' ? pluginsResult.value : []
   const catalogByType = new Map(catalog.map((item) => [item.type, item]))
-  const pluginsById = new Map(plugins.map((plugin) => [plugin.id, plugin]))
+  const pluginsById = new Map<string, PluginSummary>()
+  for (const plugin of plugins) {
+    pluginsById.set(plugin.id, plugin)
+    pluginsById.set(plugin.manifest.metadata.id, plugin)
+  }
 
   nodePresentations.value = Object.fromEntries(
     Object.entries(workflow.nodes).map(([nodeId, node]) => [
@@ -838,7 +851,7 @@ watch(timelineEntryPoints, (entryPoints) => {
   if (entryPoints.some((entry) => entry.id === selectedTimelineEntryId.value)) return
   selectedTimelineEntryId.value = 'all'
 })
-watch([() => workflowStore.activeWorkflow, isDark], loadNodePresentations, { immediate: true })
+watch([workflowNodePresentationKey, isDark], loadNodePresentations, { immediate: true })
 
 watch(
   () => props.focusedNodeId,
