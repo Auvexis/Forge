@@ -137,27 +137,9 @@ export function buildExecutionRunDetail(input: {
     for (const child of treeNode.children) nodesById[child.nodeId] = child
   }
 
-  const getAncestorChain = (nodeId: string): string[] => {
-    const chain: string[] = [nodeId]
-    const visited = new Set<string>(chain)
-    let currentId: string | undefined = nodeId
-    while (currentId) {
-      const parentId: string | undefined = parentIdsByChild.get(currentId)?.[0]
-      if (!parentId || visited.has(parentId)) break
-      chain.push(parentId)
-      visited.add(parentId)
-      currentId = parentId
-    }
-    return chain
-  }
-
-  const getSharedParentAnchor = (nodeId: string): string | null => {
+  const getVisualParentId = (nodeId: string): string | null => {
     const parents = parentIdsByChild.get(nodeId) ?? []
-    if (parents.length < 2) return null
-    const [firstParent, ...otherParents] = parents as [string, ...string[]]
-    const firstChain = getAncestorChain(firstParent)
-    const otherChains = otherParents.map((parentId) => new Set(getAncestorChain(parentId)))
-    return firstChain.find((ancestorId) => otherChains.every((chain) => chain.has(ancestorId))) ?? null
+    return parents.at(-1) ?? null
   }
 
   const instantiateTreeNode = (
@@ -181,21 +163,15 @@ export function buildExecutionRunDetail(input: {
     const directChildren = (childIdsByParent.get(node.nodeId) ?? [])
       .filter((id) => {
         const parents = parentIdsByChild.get(id) ?? []
-        return parents.length < 2 || getSharedParentAnchor(id) === node.nodeId
+        return parents.length < 2 || getVisualParentId(id) === node.nodeId
       })
-    const sharedChildren = executedIds.filter((id) => {
-      const parents = parentIdsByChild.get(id) ?? []
-      return parents.length > 1 && !directChildren.includes(id) && getSharedParentAnchor(id) === node.nodeId
-    })
-    const graphChildren = [...directChildren, ...sharedChildren]
+    const graphChildren = directChildren
       .map((id) => {
-        const primaryParentId = parentIdsByChild.get(id)?.[0] ?? node.nodeId
         return instantiateTreeNode(
           id,
           node.nodeId,
           `${node.id}>${id}`,
           nextAncestors,
-          primaryParentId === node.nodeId || getSharedParentAnchor(id) === node.nodeId,
         )
       })
       .filter((child): child is ExecutionRunTreeNode => child !== null)

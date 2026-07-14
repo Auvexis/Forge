@@ -118,7 +118,7 @@ describe('execution run tree model', () => {
     assert.equal(detail.roots[0]?.icon, 'box')
   })
 
-  it('groups a multi-parent merge under the nearest shared ancestor', () => {
+  it('shows a multi-parent merge once inside the parent group', () => {
     const multiParentWorkflow = {
       metadata: { id: 'wf-merge', name: 'Merge Flow', version: '1', isActive: true, isDraft: false, public: false },
       trigger: { type: 'manual' },
@@ -160,13 +160,14 @@ describe('execution run tree model', () => {
     const trigger = detail.roots.find((node) => node.nodeId === 'trigger')
     const httpA = trigger?.children.find((node) => node.nodeId === 'httpA')
     const httpB = trigger?.children.find((node) => node.nodeId === 'httpB')
-    const sharedMerge = trigger?.children.find((node) => node.nodeId === 'merge')
+    const mergeFromA = httpA?.children.find((node) => node.nodeId === 'merge')
+    const mergeFromB = httpB?.children.find((node) => node.nodeId === 'merge')
 
-    assert.equal(httpA?.children.some((node) => node.nodeId === 'merge'), false)
-    assert.equal(httpB?.children.some((node) => node.nodeId === 'merge'), false)
-    assert.equal(sharedMerge?.nodeId, 'merge')
-    assert.equal(sharedMerge?.parentId, 'trigger')
-    assert.equal(sharedMerge?.children.some((node) => node.nodeId === 'done'), true)
+    assert.equal(trigger?.children.some((node) => node.nodeId === 'merge'), false)
+    assert.equal(mergeFromA, undefined)
+    assert.equal(mergeFromB?.nodeId, 'merge')
+    assert.equal(mergeFromB?.parentId, 'httpB')
+    assert.equal(mergeFromB?.children.some((node) => node.nodeId === 'done'), true)
   })
 
   it('treats persisted steps without status as idle instead of crashing', () => {

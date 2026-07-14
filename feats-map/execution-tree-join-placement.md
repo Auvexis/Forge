@@ -1,0 +1,3 @@
+- [x] Manter join multipai dentro do grupo de pais
+- [x] Evitar duplicar subarvore compartilhada
+- [x] Validar e commitar
