@@ -1858,6 +1858,26 @@
   font-size: 11px;
 }
 
+.web-page-test-run-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: inherit;
+  font: inherit;
+}
+
+.web-page-test-run-table th,
+.web-page-test-run-table td {
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  text-align: left;
+  vertical-align: top;
+}
+
+.web-page-test-run-table th {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-weight: 600;
+}
+
 .web-page-data-actions__empty,
 .web-page-data-actions__error {
   padding: var(--fabric-space-3);

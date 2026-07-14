@@ -253,6 +253,7 @@ import type { PageBlock } from '../../types/page.types.ts'
 import {
   resolvePageActionInputBindings,
   resolvePageActionResultPath,
+  type PageActionCollectionBinding,
   type PageActionElementBindingTarget,
   type PageActionInputField,
   type PageActionOutputBinding,
@@ -397,7 +398,10 @@ async function runSelectedAction() {
   const bindings = bindingStore.bindingsForAction(store.selectedAction.id)
   const input = resolvePageActionInputBindings(store.draftInput, bindings, readPageActionBindingTargetValue)
   const result = await store.runSelectedAction(input)
-  if (result?.ok) applyOutputBindings(result.data, outputBindings.value)
+  if (result?.ok) {
+    applyCollectionBindings(result.data, collectionBindings.value, outputBindings.value)
+    applyOutputBindings(result.data, outputBindings.value)
+  }
 }
 
 function applyOutputBindings(result: unknown, bindings: PageActionOutputBinding[]) {
@@ -423,11 +427,148 @@ function patchOutputTarget(target: PageActionElementBindingTarget, value: unknow
   })
 }
 
+function applyCollectionBindings(
+  result: unknown,
+  bindings: PageActionCollectionBinding[],
+  scopedOutputBindings: PageActionOutputBinding[],
+) {
+  for (const binding of bindings) {
+    const collection = resolvePageActionResultPath(result, binding.collectionPath)
+    const host = readPreviewHost(binding.targetElementId)
+    if (!host || !Array.isArray(collection)) continue
+    if (binding.mode === 'table') {
+      renderPreviewTable(host, collection)
+      continue
+    }
+    renderPreviewRepeater(host, collection, scopedOutputBindings, result)
+  }
+}
+
+function readPreviewHost(elementId: string) {
+  return document.querySelector<HTMLElement>(
+    `[data-page-action-binding-element-id="${escapeCss(elementId)}"] .web-page-block-frame__inner`,
+  )
+}
+
+function renderPreviewRepeater(
+  host: HTMLElement,
+  collection: unknown[],
+  scopedOutputBindings: PageActionOutputBinding[],
+  result: unknown,
+) {
+  const templates = readOrStorePreviewTemplates(host)
+  host.replaceChildren()
+  collection.forEach((item, index) => {
+    const fragment = document.createDocumentFragment()
+    templates.forEach((template) => fragment.appendChild(template.cloneNode(true)))
+    const wrapper = document.createElement('span')
+    wrapper.dataset.fabricTestPreview = 'repeater-item'
+    wrapper.dataset.fabricRepeaterIndex = String(index)
+    wrapper.appendChild(fragment)
+    for (const binding of scopedOutputBindings) {
+      const value = resolveScopedResultPath(result, item, binding.resultPath)
+      if (value !== undefined) writePreviewOutput(wrapper, binding.target, value)
+    }
+    while (wrapper.firstChild) host.appendChild(wrapper.firstChild)
+  })
+}
+
+function readOrStorePreviewTemplates(host: HTMLElement) {
+  const existing = host.dataset.fabricPreviewTemplate
+  if (existing) {
+    const template = document.createElement('template')
+    template.innerHTML = existing
+    return Array.from(template.content.childNodes)
+  }
+  host.dataset.fabricPreviewTemplate = host.innerHTML
+  return Array.from(host.childNodes).map((node) => node.cloneNode(true))
+}
+
+function renderPreviewTable(host: HTMLElement, collection: unknown[]) {
+  if (!host.dataset.fabricPreviewTemplate) host.dataset.fabricPreviewTemplate = host.innerHTML
+  const columns = tableColumns(collection)
+  const table = document.createElement('table')
+  table.className = 'web-page-test-run-table'
+  table.dataset.fabricTestPreview = 'table'
+  const thead = document.createElement('thead')
+  const headerRow = document.createElement('tr')
+  columns.forEach((column) => {
+    const th = document.createElement('th')
+    th.textContent = humanizeColumn(column)
+    headerRow.appendChild(th)
+  })
+  thead.appendChild(headerRow)
+  const tbody = document.createElement('tbody')
+  collection.forEach((item, index) => {
+    const row = document.createElement('tr')
+    row.dataset.fabricRepeaterIndex = String(index)
+    columns.forEach((column) => {
+      const td = document.createElement('td')
+      td.textContent = stringifyOutputValue(column === 'value' ? item : resolvePageActionResultPath(item, column))
+      row.appendChild(td)
+    })
+    tbody.appendChild(row)
+  })
+  table.append(thead, tbody)
+  host.replaceChildren(table)
+}
+
+function tableColumns(collection: unknown[]) {
+  const columns: string[] = []
+  for (const item of collection.slice(0, 25)) {
+    if (!item || typeof item !== 'object' || Array.isArray(item)) continue
+    for (const key of Object.keys(item)) {
+      if (!columns.includes(key) && columns.length < 8) columns.push(key)
+    }
+  }
+  return columns.length ? columns : ['value']
+}
+
+function writePreviewOutput(root: ParentNode, target: PageActionElementBindingTarget, value: unknown) {
+  const frame = root.querySelector<HTMLElement>(
+    `[data-page-action-binding-element-id="${escapeCss(target.elementId)}"]`,
+  )
+  const element = frame?.querySelector<HTMLElement>('.web-page-block-frame__inner') ?? frame
+  if (!element) return
+  const nextValue = stringifyOutputValue(value)
+  if (target.property === 'value' && isValueElement(element)) {
+    element.value = nextValue
+    return
+  }
+  if (target.property === 'checked' && element instanceof HTMLInputElement) {
+    element.checked = Boolean(value)
+    return
+  }
+  element.textContent = nextValue
+}
+
+function resolveScopedResultPath(result: unknown, item: unknown, path: string) {
+  if (path === 'item') return item
+  if (path.startsWith('item.')) return resolvePageActionResultPath(item, path.slice(5))
+  return resolvePageActionResultPath(result, path)
+}
+
+function humanizeColumn(key: string) {
+  return key
+    .replace(/[-_]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .replace(/^./, (letter) => letter.toUpperCase())
+}
+
 function stringifyOutputValue(value: unknown) {
   if (typeof value === 'string') return value
   if (typeof value === 'number' || typeof value === 'boolean') return String(value)
   if (value == null) return ''
   return JSON.stringify(value)
+}
+
+function isValueElement(element: HTMLElement): element is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
+  return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement
+}
+
+function escapeCss(value: string) {
+  if (typeof CSS !== 'undefined' && 'escape' in CSS) return CSS.escape(value)
+  return value.replace(/["\\]/g, '\\$&')
 }
 
 function findBlock(blocks: PageBlock[], blockId: string): PageBlock | null {
