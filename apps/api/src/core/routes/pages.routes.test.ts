@@ -11,9 +11,12 @@ import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { PageRepository } from "../modules/pages/page-repository.ts";
 import { SiteRepository } from "../modules/pages/site-repository.ts";
 import type { FabricPage } from "../modules/pages/page-types.ts";
-import pagesRoutes from "./pages.routes.ts";
+import pagesRoutes, { type PagesRoutesOptions } from "./pages.routes.ts";
 
-async function buildApp() {
+async function buildApp(actionService: PagesRoutesOptions["actionService"] = {
+  submitAction: async () => ({ ok: true, statusCode: 202, executionId: "exec_page" }),
+  submitPreviewAction: async () => ({ ok: true, statusCode: 202, executionId: "exec_preview" }),
+}) {
   const db = new Database(":memory:");
   const assetStorageRoot = fs.mkdtempSync(path.join(os.tmpdir(), "fabric-page-assets-route-"));
   PageRepository.setDatabaseProvider(() => db);
@@ -24,9 +27,7 @@ async function buildApp() {
   await app.register(pagesRoutes, {
     getActiveProfileId: () => "profile_a",
     assetStorageRoot,
-    actionService: {
-      submitAction: async () => ({ ok: true, statusCode: 202, executionId: "exec_page" }),
-    },
+    actionService,
   });
   return app;
 }
@@ -136,6 +137,47 @@ describe("pages routes", () => {
 
     assert.equal(response.statusCode, 202);
     assert.equal(response.json().data.executionId, "exec_page");
+  });
+
+  it("published action submits with the project id from the URL", async () => {
+    let submittedSiteId = "";
+    const app = await buildApp({
+      submitAction: async (_profileId, _slug, _actionId, _req, options) => {
+        submittedSiteId = options?.siteId ?? "";
+        return { ok: true, statusCode: 202, executionId: "exec_page" };
+      },
+      submitPreviewAction: async () => ({ ok: true, statusCode: 202, executionId: "exec_preview" }),
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/p/public_marketing/actions/action_submit/landing-page",
+      payload: { email: "ada@example.com" },
+    });
+
+    assert.equal(response.statusCode, 202);
+    assert.equal(submittedSiteId, "public_marketing");
+  });
+
+  it("preview action submits against the draft page id", async () => {
+    let submittedPageId = "";
+    const app = await buildApp({
+      submitAction: async () => ({ ok: true, statusCode: 202, executionId: "exec_page" }),
+      submitPreviewAction: async (_profileId, pageId) => {
+        submittedPageId = pageId;
+        return { ok: true, statusCode: 202, executionId: "exec_preview" };
+      },
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/pages/page_contact/actions/action_submit",
+      payload: { email: "ada@example.com" },
+    });
+
+    assert.equal(response.statusCode, 202);
+    assert.equal(response.json().data.executionId, "exec_preview");
+    assert.equal(submittedPageId, "page_contact");
   });
 
   it("invalid payload returns 400 with no stack trace", async () => {

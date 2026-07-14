@@ -140,23 +140,27 @@ export class PageService {
   renderPreview(id: string): string | null {
     const page = this.getPage(id);
     if (!page) return null;
-    return renderPublishedPage({
-      id: `preview_${page.id}`,
-      pageId: page.id,
-      profileId: this.profileId,
-      siteId: page.siteId,
-      title: page.title,
-      slug: page.slug,
-      fileSlug: page.slug,
-      publicPath: page.publicPath,
-      metaTitle: page.metaTitle,
-      metaDescription: page.metaDescription,
-      faviconUrl: page.faviconUrl,
-      bodyStyles: page.bodyStyles,
-      pageActions: page.pageActions,
-      blocks: page.blocks,
-      publishedAt: new Date().toISOString(),
-    }, SiteRepository.getSite(this.profileId, page.siteId));
+    return renderPublishedPage(
+      {
+        id: `preview_${page.id}`,
+        pageId: page.id,
+        profileId: this.profileId,
+        siteId: page.siteId,
+        title: page.title,
+        slug: page.slug,
+        fileSlug: page.slug,
+        publicPath: page.publicPath,
+        metaTitle: page.metaTitle,
+        metaDescription: page.metaDescription,
+        faviconUrl: page.faviconUrl,
+        bodyStyles: page.bodyStyles,
+        pageActions: page.pageActions,
+        blocks: page.blocks,
+        publishedAt: new Date().toISOString(),
+      },
+      SiteRepository.getSite(this.profileId, page.siteId),
+      { actionEndpointBase: `/pages/${encodeURIComponent(page.id)}/actions/` },
+    );
   }
 
   renderPublished(projectPublicId: string, path: string): string | null {

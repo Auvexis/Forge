@@ -184,6 +184,26 @@ describe("page renderer", () => {
     assert.doesNotMatch(html, /eval\(/);
   });
 
+  it("renders preview action runtime with draft action endpoint", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        blocks: [
+          {
+            id: "button_1",
+            tag: "button",
+            action: { id: "action_run", type: "triggerWorkflow", workflowId: "workflow_1" },
+            children: [],
+          },
+        ],
+      }),
+      null,
+      { actionEndpointBase: "/pages/page_contact/actions/" },
+    );
+
+    assert.match(html, /const actionEndpointBase = "\/pages\/page_contact\/actions\/";/);
+    assert.match(html, /actionEndpointBase \+ encodeURIComponent\(actionId\)/);
+  });
+
   it("renders buttons with data-fabric-action-id", () => {
     const html = renderPageBody([
       {

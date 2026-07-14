@@ -3,6 +3,7 @@ import type { FabricSite } from "./site-types.ts";
 
 interface RenderOptions {
   site?: FabricSite | null;
+  actionEndpointBase?: string;
 }
 
 const RENDER_TAGS: Record<PageBlockTag, string> = {
@@ -77,9 +78,9 @@ const STYLE_ALLOWLIST = new Set([
 
 const DANGEROUS_CSS_PATTERN = /javascript:|data:text\/html|expression\s*\(|<\/style|<\s*script/i;
 
-export function renderPublishedPage(page: PublishedPage, site?: FabricSite | null): string {
+export function renderPublishedPage(page: PublishedPage, site?: FabricSite | null, options: Pick<RenderOptions, "actionEndpointBase"> = {}): string {
   const title = escapeHtml(page.metaTitle?.trim() || page.title);
-  const pageJs = renderPageJs(page, site);
+  const pageJs = renderPageJs(page, { site, actionEndpointBase: options.actionEndpointBase });
   const siteJs = renderSiteJs(page, site);
   const css = [renderBaseCss(), renderSiteFontFaces(site), renderSiteCss(page, site), renderPageCss(page)].filter(Boolean).join("\n");
   const metaDescription = page.metaDescription?.trim()
@@ -244,9 +245,9 @@ function formatCustomCss(block: PageBlock): string[] {
   return [`.${blockClass(block.id)} {\n  ${css}\n}`];
 }
 
-function renderPageJs(page: PublishedPage, site?: FabricSite | null): string {
+function renderPageJs(page: PublishedPage, options: RenderOptions = {}): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
-  const actionRuntime = hasPageActions(page.blocks) || hasPageActionBindings(page) ? renderActionRuntime(page, site) : "";
+  const actionRuntime = hasPageActions(page.blocks) || hasPageActionBindings(page) ? renderActionRuntime(page, options) : "";
   return [actionRuntime, ...scripts].filter(Boolean).join("\n");
 }
 
@@ -328,11 +329,12 @@ function hasPageActionBindings(page: PublishedPage): boolean {
   return Object.values(page.pageActions?.inputBindings ?? {}).some((bindings) => Object.keys(bindings).length > 0);
 }
 
-function renderActionRuntime(page: PublishedPage, site?: FabricSite | null): string {
+function renderActionRuntime(page: PublishedPage, options: RenderOptions = {}): string {
   return [
     `;(() => {`,
     `  const slug = ${JSON.stringify(page.slug)};`,
-    `  const projectPublicId = ${JSON.stringify(site?.publicId ?? page.siteId)};`,
+    `  const projectPublicId = ${JSON.stringify(options.site?.publicId ?? page.siteId)};`,
+    `  const actionEndpointBase = ${JSON.stringify(options.actionEndpointBase ?? "")};`,
     `  const inputBindings = ${JSON.stringify(page.pageActions?.inputBindings ?? {})};`,
     `  let pendingActionId = "";`,
     `  let executionId = "";`,
@@ -370,7 +372,10 @@ function renderActionRuntime(page: PublishedPage, site?: FabricSite | null): str
     `    executionId = "";`,
     `    updateStatus();`,
     `    try {`,
-    `      const response = await fetch("/p/" + encodeURIComponent(projectPublicId) + "/actions/" + encodeURIComponent(actionId) + "/" + encodePublishedPath(slug), {`,
+    `      const actionUrl = actionEndpointBase`,
+    `        ? actionEndpointBase + encodeURIComponent(actionId)`,
+    `        : "/p/" + encodeURIComponent(projectPublicId) + "/actions/" + encodeURIComponent(actionId) + "/" + encodePublishedPath(slug);`,
+    `      const response = await fetch(actionUrl, {`,
     `        method: "POST",`,
     `        headers: { "content-type": "application/json" },`,
     `        body: JSON.stringify(payloadWithBindings(actionId, payload)),`,

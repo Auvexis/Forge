@@ -11,6 +11,7 @@ import { fabricHomePaths } from "../runtime/fabric-home.ts";
 
 interface PageActionServiceLike {
   submitAction: PageActionService["submitAction"];
+  submitPreviewAction?: PageActionService["submitPreviewAction"];
 }
 
 export interface PagesRoutesOptions {
@@ -414,6 +415,38 @@ export default async function pagesRoutes(
     return reply.code(200).type("text/html").send(html);
   });
 
+  fastify.post("/pages/:pageId/actions/:actionId", async (req, reply) => {
+    const { pageId, actionId } = req.params as { pageId: string; actionId: string };
+    if (!actionService.submitPreviewAction) {
+      return sendResponse(reply, {
+        status_code: 501,
+        message: "Preview page actions are not available",
+        error: "not_implemented",
+        data: null,
+      });
+    }
+
+    const result = await actionService.submitPreviewAction(getProfileId(), pageId, actionId, {
+      body: req.body,
+      headers: req.headers,
+      ip: req.ip,
+    });
+    if (!result.ok) {
+      return sendResponse(reply, {
+        status_code: result.statusCode,
+        message: result.message,
+        error: result.message,
+        data: null,
+      });
+    }
+    return sendResponse(reply, {
+      status_code: 202,
+      message: "Page action accepted",
+      error: null,
+      data: { executionId: result.executionId },
+    });
+  });
+
   fastify.get("/p/:siteId/*", async (req, reply) => {
     const { siteId } = req.params as { siteId: string };
     const slug = (req.params as { "*": string })["*"];
@@ -429,7 +462,7 @@ export default async function pagesRoutes(
       body: req.body,
       headers: req.headers,
       ip: req.ip,
-    });
+    }, { siteId });
     if (!result.ok) {
       return sendResponse(reply, {
         status_code: result.statusCode,

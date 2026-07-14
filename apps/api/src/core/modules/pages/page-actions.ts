@@ -3,6 +3,7 @@ import { processFormSubmission } from "../forms/form-submission.ts";
 import { WorkflowEngine } from "../workflows/executor.ts";
 import { WorkflowRepository } from "../workflows/repository.ts";
 import { PageRepository } from "./page-repository.ts";
+import { SiteRepository } from "./site-repository.ts";
 import type { PageBlock, PageBlockAction, PublishedPage } from "./page-types.ts";
 
 type PageActionResult =
@@ -16,7 +17,9 @@ interface PageActionRequestLike {
 }
 
 interface PageActionDependencies {
-  getPublishedPageBySlug: (profileId: string, slug: string) => PublishedPage | null;
+  getPublishedPageBySlug: (profileId: string, slug: string, siteId?: string) => PublishedPage | null;
+  getDraftPageById: (profileId: string, pageId: string) => PublishedPage | null;
+  resolveSiteId: (profileId: string, siteIdOrPublicId: string) => string | null;
   processFormSubmission: typeof processFormSubmission;
   getWorkflowById: (id: string) => WorkflowItem | null;
   executeWorkflowFromTrigger: typeof WorkflowEngine.executeWorkflowFromTrigger;
@@ -25,8 +28,8 @@ interface PageActionDependencies {
 export class PageActionService {
   private readonly dependencies: PageActionDependencies;
 
-  constructor(dependencies: PageActionDependencies = defaultDependencies) {
-    this.dependencies = dependencies;
+  constructor(dependencies: Partial<PageActionDependencies> = {}) {
+    this.dependencies = { ...defaultDependencies, ...dependencies };
   }
 
   async submitAction(
@@ -34,12 +37,37 @@ export class PageActionService {
     pageSlug: string,
     actionId: string,
     req: PageActionRequestLike,
+    options: { siteId?: string } = {},
   ): Promise<PageActionResult> {
-    const page = this.dependencies.getPublishedPageBySlug(profileId, pageSlug);
+    const siteId = options.siteId ? this.dependencies.resolveSiteId(profileId, options.siteId) : undefined;
+    if (options.siteId && !siteId) {
+      return { ok: false, statusCode: 404, message: "Published page not found" };
+    }
+
+    const page = this.dependencies.getPublishedPageBySlug(profileId, pageSlug, siteId ?? undefined);
     if (!page) {
       return { ok: false, statusCode: 404, message: "Published page not found" };
     }
 
+    return this.submitResolvedPageAction(page, actionId, req);
+  }
+
+  async submitPreviewAction(
+    profileId: string,
+    pageId: string,
+    actionId: string,
+    req: PageActionRequestLike,
+  ): Promise<PageActionResult> {
+    const page = this.dependencies.getDraftPageById(profileId, pageId);
+    if (!page) return { ok: false, statusCode: 404, message: "Page not found" };
+    return this.submitResolvedPageAction(page, actionId, req);
+  }
+
+  private async submitResolvedPageAction(
+    page: PublishedPage,
+    actionId: string,
+    req: PageActionRequestLike,
+  ): Promise<PageActionResult> {
     const action = findAction(page.blocks, actionId);
     if (!action) {
       return { ok: false, statusCode: 404, message: "Page action not found" };
@@ -101,6 +129,31 @@ export class PageActionService {
 
 const defaultDependencies: PageActionDependencies = {
   getPublishedPageBySlug: PageRepository.getPublishedPageBySlug.bind(PageRepository),
+  getDraftPageById: (profileId, pageId) => {
+    const page = PageRepository.getPage(profileId, pageId);
+    if (!page) return null;
+    return {
+      id: `preview_${page.id}`,
+      pageId: page.id,
+      profileId,
+      siteId: page.siteId,
+      title: page.title,
+      slug: page.slug,
+      fileSlug: page.slug,
+      publicPath: page.publicPath,
+      metaTitle: page.metaTitle,
+      metaDescription: page.metaDescription,
+      faviconUrl: page.faviconUrl,
+      bodyStyles: page.bodyStyles,
+      pageActions: page.pageActions,
+      blocks: page.blocks,
+      publishedAt: new Date().toISOString(),
+    };
+  },
+  resolveSiteId: (profileId, siteIdOrPublicId) =>
+    SiteRepository.getSite(profileId, siteIdOrPublicId)?.id ??
+    SiteRepository.getSiteByPublicId(profileId, siteIdOrPublicId)?.id ??
+    null,
   processFormSubmission,
   getWorkflowById: WorkflowRepository.getWorkflowById,
   executeWorkflowFromTrigger: WorkflowEngine.executeWorkflowFromTrigger,

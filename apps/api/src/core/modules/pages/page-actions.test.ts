@@ -109,6 +109,53 @@ describe("PageActionService", () => {
     assert.deepEqual((calls[0] as any[])[2].fields, { name: "Ada" });
   });
 
+  it("published action resolves the page inside the requested site", async () => {
+    let resolvedSiteId = "";
+    const service = new PageActionService({
+      resolveSiteId: () => "site_marketing",
+      getPublishedPageBySlug: (_profileId, _slug, siteId) => {
+        resolvedSiteId = siteId ?? "";
+        return publishedPage({ siteId: "site_marketing" });
+      },
+      processFormSubmission: async () => ({ ok: true, workflow: {} as any, executionId: "exec_form" }),
+      getWorkflowById: () => ({ metadata: { id: "workflow_1", isActive: true, isDraft: false } }) as any,
+      executeWorkflowFromTrigger: async () => ({}),
+    });
+
+    const result = await service.submitAction(
+      "profile_a",
+      "contact",
+      "action_workflow",
+      { body: {}, headers: {}, ip: "127.0.0.1" },
+      { siteId: "public_marketing" },
+    );
+
+    assert.equal(result.ok, true);
+    assert.equal(resolvedSiteId, "site_marketing");
+  });
+
+  it("preview action resolves draft pages by id", async () => {
+    let draftPageId = "";
+    const service = new PageActionService({
+      getDraftPageById: (_profileId, pageId) => {
+        draftPageId = pageId;
+        return publishedPage({ id: "preview_page_contact", pageId });
+      },
+      processFormSubmission: async () => ({ ok: true, workflow: {} as any, executionId: "exec_form" }),
+      getWorkflowById: () => ({ metadata: { id: "workflow_1", isActive: true, isDraft: false } }) as any,
+      executeWorkflowFromTrigger: async () => ({}),
+    });
+
+    const result = await service.submitPreviewAction("profile_a", "page_contact", "action_workflow", {
+      body: {},
+      headers: {},
+      ip: "127.0.0.1",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal(draftPageId, "page_contact");
+  });
+
   it("unknown action id returns 404", async () => {
     const service = new PageActionService({
       getPublishedPageBySlug: () => publishedPage(),
