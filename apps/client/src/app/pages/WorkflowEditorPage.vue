@@ -18,6 +18,8 @@ import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import GlobalAppPanel from '@/shared/components/layout/GlobalAppPanel.vue'
 import AppWorkbench from '@/shared/components/workbench/AppWorkbench.vue'
 import WorkbenchStatusBar from '@/shared/components/workbench/WorkbenchStatusBar.vue'
+import BaseRail from '@/shared/components/base/BaseRail.vue'
+import BaseRailItem from '@/shared/components/base/BaseRailItem.vue'
 import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
@@ -829,210 +831,148 @@ watch(
       />
 
       <template #left>
-        <nav class="workflow-tool-rail" aria-label="Workflow editor tools">
-          <section class="workflow-tool-rail__group" aria-label="Edit">
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+        <BaseRail aria-label="Workflow editor tools">
+          <section class="base-rail__group" aria-label="Edit">
+            <BaseRailItem
+              icon="undo-2"
               title="Undo"
               :disabled="!workflowStore.canUndo || executionStore.isExecuting || executionStore.isStreaming"
               @click="workflowStore.undo()"
-            >
-              <LucideIcon name="undo-2" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="redo-2"
               title="Redo"
               :disabled="!workflowStore.canRedo || executionStore.isExecuting || executionStore.isStreaming"
               @click="workflowStore.redo()"
-            >
-              <LucideIcon name="redo-2" :size="18" />
-            </button>
+            />
           </section>
 
-          <section class="workflow-tool-rail__group" aria-label="Canvas">
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+          <section class="base-rail__group" aria-label="Canvas">
+            <BaseRailItem
+              icon="zoom-out"
               title="Zoom out"
               @click="canvasRef?.zoomOut()"
-            >
-              <LucideIcon name="zoom-out" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="rotate-ccw"
               title="Reset zoom"
               @click="canvasRef?.zoomReset()"
-            >
-              <LucideIcon name="rotate-ccw" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="zoom-in"
               title="Zoom in"
               @click="canvasRef?.zoomIn()"
-            >
-              <LucideIcon name="zoom-in" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="maximize"
               title="Fit view"
               @click="canvasRef?.fitWorkflowView()"
-            >
-              <LucideIcon name="maximize" :size="18" />
-            </button>
+            />
           </section>
 
-          <section class="workflow-tool-rail__group" aria-label="Build">
-            <button
-              class="workflow-tool-rail__button workflow-tool-rail__button--primary"
-              :class="{ 'workflow-tool-rail__button--active': isGlobalAddNodePanelOpen }"
-              type="button"
+          <section class="base-rail__group" aria-label="Build">
+            <BaseRailItem
+              icon="plus"
+              :icon-size="19"
+              tone="primary"
+              :active="isGlobalAddNodePanelOpen"
               title="Add node"
               @click="openGlobalAddNodePanel(true)"
-            >
-              <LucideIcon name="plus" :size="19" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--active': isVariablesPanelOpen }"
-              type="button"
+            />
+            <BaseRailItem
+              icon="tags"
+              :active="isVariablesPanelOpen"
               title="Variables"
               @click="toggleBottomPanel('variables')"
-            >
-              <LucideIcon name="tags" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--active': showSettings }"
-              type="button"
+            />
+            <BaseRailItem
+              icon="settings"
+              :active="showSettings"
               title="Workflow settings"
               @click="showSettings ? (showSettings = false) : openWorkflowSettings()"
-            >
-              <LucideIcon name="settings" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--active': showInspector }"
-              type="button"
+            />
+            <BaseRailItem
+              icon="test-tube-diagonal"
+              :active="showInspector"
               title="Inspector"
               @click="toggleInspectorPanel"
-            >
-              <LucideIcon name="test-tube-diagonal" :size="18" />
-            </button>
+            />
           </section>
 
-          <section class="workflow-tool-rail__group" aria-label="Execution">
-            <button
+          <section class="base-rail__group" aria-label="Execution">
+            <BaseRailItem
               v-if="!executionStore.isStreaming"
-              class="workflow-tool-rail__button workflow-tool-rail__button--run"
-              type="button"
+              icon="play"
+              tone="run"
               title="Run workflow"
               :disabled="executionStore.isExecuting"
               @click="canvasRef?.handleRun()"
-            >
-              <LucideIcon name="play" :size="18" />
-            </button>
-            <button
+            />
+            <BaseRailItem
               v-else
-              class="workflow-tool-rail__button workflow-tool-rail__button--danger"
-              type="button"
+              icon="square"
+              tone="danger"
               title="Stop run"
               @click="canvasRef?.handleStop()"
-            >
-              <LucideIcon name="square" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--active': isExecutionPanelOpen }"
-              type="button"
+            />
+            <BaseRailItem
+              icon="scroll-text"
+              :active="isExecutionPanelOpen"
               title="Execution logs"
               @click="toggleExecutionPanel"
-            >
-              <LucideIcon name="scroll-text" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="eraser"
               title="Clean execution"
               :disabled="executionStore.isExecuting || executionStore.isStreaming || !hasExecutionState"
               @click="executionStore.resetNodeStatuses()"
-            >
-              <LucideIcon name="eraser" :size="18" />
-            </button>
+            />
           </section>
 
-          <section class="workflow-tool-rail__group" aria-label="Save and publish">
-            <button
-              class="workflow-tool-rail__button"
-              :class="{ 'workflow-tool-rail__button--dirty': workflowStore.isDirty }"
-              type="button"
+          <section class="base-rail__group" aria-label="Save and publish">
+            <BaseRailItem
+              icon="save"
+              :dirty="workflowStore.isDirty"
               title="Save workflow"
               :disabled="workflowStore.isSaving || !workflowStore.isDirty || executionStore.isExecuting || executionStore.isStreaming"
               @click="handleSaveWorkflow()"
-            >
-              <LucideIcon name="save" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              :icon="workflowStore.activeWorkflow?.metadata.isActive && !workflowStore.activeWorkflow?.metadata.isDraft ? 'pause' : 'radio'"
               :title="workflowStore.activeWorkflow?.metadata.isActive && !workflowStore.activeWorkflow?.metadata.isDraft ? 'Unpublish workflow' : 'Publish workflow'"
               :disabled="workflowStore.isSaving || executionStore.isExecuting || executionStore.isStreaming || !route.params.id"
               @click="handlePublishWorkflow()"
-            >
-              <LucideIcon
-                :name="workflowStore.activeWorkflow?.metadata.isActive && !workflowStore.activeWorkflow?.metadata.isDraft ? 'pause' : 'radio'"
-                :size="18"
-              />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              :class="{
-                'workflow-tool-rail__button--toggle-on': workflowStore.isAutosaveEnabled,
-                'workflow-tool-rail__button--toggle-off': !workflowStore.isAutosaveEnabled,
-              }"
-              type="button"
+            />
+            <BaseRailItem
+              icon="refresh-cw"
+              :toggle="workflowStore.isAutosaveEnabled ? 'on' : 'off'"
               :title="workflowStore.isAutosaveEnabled ? 'Autosave on' : 'Autosave off'"
               :disabled="executionStore.isExecuting || executionStore.isStreaming || workflowStore.isSaving"
               @click="workflowStore.setAutosaveEnabled(!workflowStore.isAutosaveEnabled)"
-            >
-              <LucideIcon name="refresh-cw" :size="18" />
-            </button>
+            />
           </section>
 
-          <span class="workflow-tool-rail__spacer" aria-hidden="true" />
+          <span class="base-rail__spacer" aria-hidden="true" />
 
-          <section class="workflow-tool-rail__group" aria-label="Utilities">
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+          <section class="base-rail__group" aria-label="Utilities">
+            <BaseRailItem
+              icon="command"
               title="Command palette"
               @click="openCommandPalette"
-            >
-              <LucideIcon name="command" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="git-commit-horizontal"
               title="Create git snapshot"
               :disabled="!route.params.id"
               @click="handleCreateGitSnapshot()"
-            >
-              <LucideIcon name="git-commit-horizontal" :size="18" />
-            </button>
-            <button
-              class="workflow-tool-rail__button"
-              type="button"
+            />
+            <BaseRailItem
+              icon="git-branch"
               title="Git snapshot details"
               @click="openGitModal"
-            >
-              <LucideIcon name="git-branch" :size="18" />
-            </button>
+            />
           </section>
-        </nav>
+        </BaseRail>
       </template>
 
       <div class="workflow-workbench__canvas">
@@ -1362,128 +1302,6 @@ watch(
 
 .workflow-workbench__canvas :deep(.app-panel--bottom) {
   right: var(--workflow-bottom-panel-right);
-}
-
-.workflow-tool-rail {
-  display: flex;
-  width: 40px;
-  height: 100%;
-  min-height: 0;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  padding: 0;
-  background: var(--fabric-workbench-rail-bg);
-}
-
-.workflow-tool-rail__group {
-  display: flex;
-  width: 100%;
-  flex-direction: column;
-  align-items: center;
-  gap: 0;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-}
-
-.workflow-tool-rail__button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 49px;
-  height: 36px;
-  border: 1px solid transparent;
-  border-radius: 0;
-  background: var(--fabric-workbench-rail-button-bg, transparent);
-  color: var(--fabric-workbench-rail-button-text, var(--fabric-text-muted));
-  cursor: pointer;
-  transition:
-    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard);
-}
-
-.workflow-tool-rail__button:hover:not(:disabled),
-.workflow-tool-rail__button--active {
-  border-color: transparent;
-  background: var(--fabric-workbench-rail-button-hover-bg, var(--fabric-button-ghost-hover));
-  color: var(--fabric-workbench-rail-button-hover-text, var(--fabric-text-primary));
-}
-
-.workflow-tool-rail__button--active::before {
-  position: absolute;
-  left: 0;
-  width: 2px;
-  height: 22px;
-  border-radius: 0 999px 999px 0;
-  background: var(--fabric-workbench-rail-button-active-indicator, var(--fabric-accent));
-  content: '';
-}
-
-.workflow-tool-rail__button:disabled {
-  cursor: not-allowed;
-  opacity: 0.42;
-}
-
-.workflow-tool-rail__button--primary {
-  color: var(--fabric-workbench-rail-button-primary-text, var(--fabric-accent));
-}
-
-.workflow-tool-rail__button--run {
-  color: var(--fabric-workbench-rail-button-run-text, var(--fabric-green-500));
-}
-
-.workflow-tool-rail__button--danger {
-  color: var(--fabric-workbench-rail-button-danger-text, var(--fabric-red-500));
-}
-
-.workflow-tool-rail__button--dirty::after {
-  position: absolute;
-  top: 6px;
-  right: 7px;
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--fabric-workbench-rail-button-dirty-indicator, var(--fabric-amber-500));
-  content: '';
-}
-
-.workflow-tool-rail__button--toggle-on {
-  color: var(--fabric-workbench-rail-button-toggle-text, var(--fabric-accent));
-}
-
-.workflow-tool-rail__button--toggle-on::after,
-.workflow-tool-rail__button--toggle-off::after {
-  position: absolute;
-  right: 5px;
-  bottom: 5px;
-  width: 10px;
-  height: 5px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  content: '';
-}
-
-.workflow-tool-rail__button--toggle-on::before {
-  position: absolute;
-  right: 6px;
-  bottom: 6px;
-  width: 3px;
-  height: 3px;
-  border-radius: 999px;
-  background: currentColor;
-  content: '';
-}
-
-.workflow-tool-rail__button--toggle-off::after {
-  opacity: 0.42;
-}
-
-.workflow-tool-rail__spacer {
-  flex: 1;
 }
 
 .workflow-inspector-panel {

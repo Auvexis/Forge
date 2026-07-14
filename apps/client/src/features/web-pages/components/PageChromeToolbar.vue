@@ -35,60 +35,64 @@
       </div>
     </Teleport>
 
-    <div class="web-page-chrome__actions" aria-label="Pages tools">
-      <BaseButton
-        class="web-page-chrome__save"
-        size="icon"
-        variant="ghost"
-        icon-left="save"
-        :disabled="!resolvedCanSave"
-        :data-dirty="isDirty || isSaving"
-        title="Save"
-        @click="$emit('command', 'file.save')"
-      />
-      <BaseButton size="icon" variant="ghost" icon-left="eye" :disabled="!resolvedCanUseProjectActions" title="Preview" @click="$emit('command', 'file.preview')" />
-      <BaseButton size="icon" variant="ghost" :icon-left="publishCommandIcon" :disabled="!resolvedCanUseProjectActions" :title="publishCommandLabel" @click="$emit('command', 'file.togglePublish')" />
-      <BaseButton
-        size="icon"
-        variant="ghost"
-        icon-left="external-link"
-        :disabled="!publishedAt"
-        title="Open live"
-        @click="$emit('command', 'file.openLive')"
-      />
-      <BaseButton
-        class="web-page-chrome__autosave"
-        size="icon"
-        variant="ghost"
-        icon-left="refresh-cw"
-        :disabled="isSaving || !resolvedCanUseProjectActions"
-        :data-active="!!isAutosaveEnabled"
-        title="Autosave"
-        @click="$emit('toggle-autosave', !isAutosaveEnabled)"
-      />
-      <BaseButton
-        size="icon"
-        variant="ghost"
-        icon-left="undo-2"
-        :disabled="!canUndo"
-        title="Undo"
-        @click="$emit('command', 'edit.undo')"
-      />
-      <BaseButton
-        size="icon"
-        variant="ghost"
-        icon-left="redo-2"
-        :disabled="!canRedo"
-        title="Redo"
-        @click="$emit('command', 'edit.redo')"
-      />
-    </div>
+    <BaseRail aria-label="Pages tools">
+      <section class="base-rail__group" aria-label="Project">
+        <BaseRailItem
+          icon="save"
+          :dirty="isDirty || isSaving"
+          :disabled="!resolvedCanSave"
+          title="Save"
+          @click="$emit('command', 'file.save')"
+        />
+        <BaseRailItem
+          icon="eye"
+          :disabled="!resolvedCanUseProjectActions"
+          title="Preview"
+          @click="$emit('command', 'file.preview')"
+        />
+        <BaseRailItem
+          :icon="publishCommandIcon"
+          :disabled="!resolvedCanUseProjectActions"
+          :title="publishCommandLabel"
+          @click="$emit('command', 'file.togglePublish')"
+        />
+        <BaseRailItem
+          icon="external-link"
+          :disabled="!publishedAt"
+          title="Open live"
+          @click="$emit('command', 'file.openLive')"
+        />
+      </section>
+
+      <section class="base-rail__group" aria-label="Edit">
+        <BaseRailItem
+          icon="refresh-cw"
+          :disabled="isSaving || !resolvedCanUseProjectActions"
+          :toggle="isAutosaveEnabled ? 'on' : 'off'"
+          :title="isAutosaveEnabled ? 'Autosave on' : 'Autosave off'"
+          @click="$emit('toggle-autosave', !isAutosaveEnabled)"
+        />
+        <BaseRailItem
+          icon="undo-2"
+          :disabled="!canUndo"
+          title="Undo"
+          @click="$emit('command', 'edit.undo')"
+        />
+        <BaseRailItem
+          icon="redo-2"
+          :disabled="!canRedo"
+          title="Redo"
+          @click="$emit('command', 'edit.redo')"
+        />
+      </section>
+    </BaseRail>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseRail from '@/shared/components/base/BaseRail.vue'
+import BaseRailItem from '@/shared/components/base/BaseRailItem.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 
