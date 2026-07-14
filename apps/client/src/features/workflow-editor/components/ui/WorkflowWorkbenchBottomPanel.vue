@@ -218,6 +218,7 @@ const timelineEntryPoints = computed<WorkflowTimelineEntryPoint[]>(() => {
     }),
   ]
 })
+const timelineEntryPointCount = computed(() => timelineRootNodes.value.length)
 
 const orderedTimelineNodes = computed(() => {
   const nodesById = new Map(timelineWorkflowNodes.value.map((node) => [node.id, node]))
@@ -758,7 +759,7 @@ onBeforeUnmount(() => {
       <aside class="workflow-timeline__entries" aria-label="Timeline entry points">
         <div class="workflow-timeline__entries-heading">
           <strong>Entry Points</strong>
-          <code>{{ timelineEntryPoints.length }}</code>
+          <code>{{ timelineEntryPointCount }}</code>
         </div>
         <div class="workflow-timeline__entries-list">
           <button

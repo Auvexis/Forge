@@ -1,0 +1,3 @@
+- [x] Ajustar contagem de entry points reais
+- [x] Cobrir contrato do contador
+- [x] Validar e commitar
