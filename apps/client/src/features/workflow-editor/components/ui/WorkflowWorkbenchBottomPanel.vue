@@ -405,6 +405,12 @@ const timelineNodes = computed<WorkflowTimelineNode[]>(() =>
   }),
 )
 
+const hoveredTimelineNode = computed(() =>
+  hoveredTimelineNodeId.value
+    ? timelineNodes.value.find((node) => node.id === hoveredTimelineNodeId.value) ?? null
+    : null,
+)
+
 const traceNodeIds = computed(() => {
   const anchorId = traceTimelineNodeId.value ?? hoveredTimelineNodeId.value
   if (!anchorId) return new Set<string>()
@@ -590,6 +596,35 @@ function positionTimelineTooltip(event: MouseEvent) {
   timelineTooltipY.value = event.clientY + 12
 }
 
+function scrollTimelineNodeIntoView(nodeId: string) {
+  const scroller = timelineTrackRef.value
+  const nodeElement = scroller
+    ?.querySelector<HTMLElement>(`[data-workflow-timeline-node-id="${CSS.escape(nodeId)}"]`)
+  if (!scroller || !nodeElement) return
+
+  const padding = 24
+  const left = nodeElement.offsetLeft
+  const right = left + nodeElement.offsetWidth
+  const top = nodeElement.offsetTop
+  const bottom = top + nodeElement.offsetHeight
+  const maxLeft = Math.max(0, scroller.scrollWidth - scroller.clientWidth)
+  const maxTop = Math.max(0, scroller.scrollHeight - scroller.clientHeight)
+  let nextLeft = scroller.scrollLeft
+  let nextTop = scroller.scrollTop
+
+  if (left < scroller.scrollLeft + padding) nextLeft = left - padding
+  else if (right > scroller.scrollLeft + scroller.clientWidth - padding) nextLeft = right - scroller.clientWidth + padding
+
+  if (top < scroller.scrollTop + padding) nextTop = top - padding
+  else if (bottom > scroller.scrollTop + scroller.clientHeight - padding) nextTop = bottom - scroller.clientHeight + padding
+
+  scroller.scrollTo({
+    left: Math.min(maxLeft, Math.max(0, nextLeft)),
+    top: Math.min(maxTop, Math.max(0, nextTop)),
+    behavior: 'smooth',
+  })
+}
+
 function setTimelineCursorToNode(nodeId: string) {
   const index = orderedTimelineNodes.value.findIndex((node) => node.id === nodeId)
   if (index !== -1) timelineCursorIndex.value = index
@@ -722,9 +757,7 @@ watch(
 
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()
-  timelineTrackRef.value
-    ?.querySelector(`[data-workflow-timeline-node-id="${CSS.escape(nodeId)}"]`)
-    ?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' })
+  scrollTimelineNodeIntoView(nodeId)
 })
 
 onBeforeUnmount(() => {
@@ -793,6 +826,12 @@ onBeforeUnmount(() => {
             class="workflow-timeline__playhead"
             :class="{ 'workflow-timeline__playhead--dragging': isDraggingTimelinePlayhead }"
             aria-hidden="true"
+          />
+          <button
+            class="workflow-timeline__playhead-handle"
+            :class="{ 'workflow-timeline__playhead-handle--dragging': isDraggingTimelinePlayhead }"
+            type="button"
+            aria-label="Move timeline cursor"
             @pointerdown.stop="startTimelinePlayheadDrag"
           />
           <div v-if="timelineNodes.length" class="workflow-timeline__depth-grid" @click.self="clearTimelineInteraction">
@@ -851,8 +890,6 @@ onBeforeUnmount(() => {
                 '--workflow-timeline-x': `${node.column * TIMELINE_COLUMN_WIDTH}px`,
                 '--workflow-timeline-y': `${node.lane * TIMELINE_LANE_HEIGHT}px`,
                 '--workflow-timeline-color': node.color,
-                '--workflow-timeline-tooltip-x': `${timelineTooltipX}px`,
-                '--workflow-timeline-tooltip-y': `${timelineTooltipY}px`,
               }"
               @click="selectTimelineNode(node.id)"
               @dblclick.stop="focusTimelineNode(node.id)"
@@ -868,17 +905,25 @@ onBeforeUnmount(() => {
                 {{ durationLabel(node.duration) }}
               </code>
               <code v-else class="workflow-timeline__status">{{ node.status }}</code>
-              <div class="workflow-timeline__tooltip" role="tooltip">
-                <strong>{{ node.name }}</strong>
-                <span>{{ node.latestLabel }}</span>
-                <dl>
-                  <div><dt>Status</dt><dd>{{ node.status }}</dd></div>
-                  <div><dt>Duration</dt><dd>{{ durationLabel(node.duration) || 'No data' }}</dd></div>
-                  <div><dt>Events</dt><dd>{{ node.eventCount }}</dd></div>
-                  <div><dt>Outputs</dt><dd>{{ node.childCount }}</dd></div>
-                </dl>
-              </div>
             </div>
+          </div>
+          <div
+            v-if="hoveredTimelineNode"
+            class="workflow-timeline__tooltip"
+            role="tooltip"
+            :style="{
+              '--workflow-timeline-tooltip-x': `${timelineTooltipX}px`,
+              '--workflow-timeline-tooltip-y': `${timelineTooltipY}px`,
+            }"
+          >
+            <strong>{{ hoveredTimelineNode.name }}</strong>
+            <span>{{ hoveredTimelineNode.latestLabel }}</span>
+            <dl>
+              <div><dt>Status</dt><dd>{{ hoveredTimelineNode.status }}</dd></div>
+              <div><dt>Duration</dt><dd>{{ durationLabel(hoveredTimelineNode.duration) || 'No data' }}</dd></div>
+              <div><dt>Events</dt><dd>{{ hoveredTimelineNode.eventCount }}</dd></div>
+              <div><dt>Outputs</dt><dd>{{ hoveredTimelineNode.childCount }}</dd></div>
+            </dl>
           </div>
         </div>
       </div>
@@ -1249,7 +1294,6 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__playhead--dragging {
-  cursor: grabbing;
   transition: none;
 }
 
@@ -1262,7 +1306,25 @@ onBeforeUnmount(() => {
   transform: translateX(-50%) rotate(45deg);
   background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
   content: '';
-  pointer-events: auto;
+}
+
+.workflow-timeline__playhead-handle {
+  position: absolute;
+  top: 3px;
+  left: var(--workflow-timeline-playhead-x, 128px);
+  z-index: 50;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  transform: translateX(-50%);
+  background: transparent;
+  cursor: grab;
+  touch-action: none;
+}
+
+.workflow-timeline__playhead-handle--dragging {
+  cursor: grabbing;
 }
 
 .workflow-timeline__connectors {
@@ -1400,7 +1462,8 @@ onBeforeUnmount(() => {
   top: var(--workflow-timeline-tooltip-y, 0);
   left: var(--workflow-timeline-tooltip-x, 0);
   z-index: var(--fabric-z-popover);
-  display: none;
+  display: grid;
+  gap: 6px;
   width: 220px;
   padding: 8px;
   border: 1px solid var(--fabric-border);
@@ -1409,12 +1472,6 @@ onBeforeUnmount(() => {
   color: var(--fabric-text-primary);
   box-shadow: var(--fabric-shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.32));
   pointer-events: none;
-}
-
-.workflow-timeline__clip:hover .workflow-timeline__tooltip,
-.workflow-timeline__clip:focus-visible .workflow-timeline__tooltip {
-  display: grid;
-  gap: 6px;
 }
 
 .workflow-timeline__tooltip strong,
