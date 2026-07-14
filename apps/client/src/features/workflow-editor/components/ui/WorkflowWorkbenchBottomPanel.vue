@@ -1243,6 +1243,7 @@ onBeforeUnmount(() => {
   background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-timeline-playhead, var(--fabric-accent)) 42%, transparent);
   cursor: grab;
+  pointer-events: none;
   touch-action: none;
   transition: left 180ms linear;
 }
@@ -1261,6 +1262,7 @@ onBeforeUnmount(() => {
   transform: translateX(-50%) rotate(45deg);
   background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
   content: '';
+  pointer-events: auto;
 }
 
 .workflow-timeline__connectors {
@@ -1367,6 +1369,11 @@ onBeforeUnmount(() => {
   opacity: 0.38;
 }
 
+.workflow-timeline__clip:hover,
+.workflow-timeline__clip:focus-visible {
+  z-index: 40;
+}
+
 .workflow-timeline__clip span {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1392,7 +1399,7 @@ onBeforeUnmount(() => {
   position: fixed;
   top: var(--workflow-timeline-tooltip-y, 0);
   left: var(--workflow-timeline-tooltip-x, 0);
-  z-index: 20;
+  z-index: var(--fabric-z-popover);
   display: none;
   width: 220px;
   padding: 8px;
