@@ -72,4 +72,16 @@ describe('global app panel resize', () => {
     assert.match(workflowPageSource, /workflowBottomPanelHeight/)
     assert.doesNotMatch(workflowPageSource, /id: 'workflow-execution-bottom-panel'/)
   })
+
+  it('keeps workflow side panels in one right-side stack', () => {
+    assert.match(workflowPageSource, /const workflowGlobalPanelWidth = ref<number \| null>\(null\)/)
+    assert.match(workflowPageSource, /if \(workflowGlobalPanelWidth\.value !== null\) return workflowGlobalPanelWidth\.value/)
+    assert.match(workflowPageSource, /@resize="handleGlobalPanelResize"/)
+    assert.match(workflowPageSource, /@resize-reset="handleGlobalPanelResizeReset"/)
+    assert.match(workflowPageSource, /function toggleInspectorPanel\(\)/)
+    assert.match(workflowPageSource, /closeGlobalSidePanel\(\)[\s\S]*showSettings\.value = false[\s\S]*showInspector\.value = true/)
+    assert.match(workflowPageSource, /function openGlobalAddNodePanel\(toggle = false\)[\s\S]*showInspector\.value = false/)
+    assert.match(workflowPageSource, /function openWorkflowSettings\(\)[\s\S]*showInspector\.value = false/)
+    assert.doesNotMatch(workflowPageSource, /\.workflow-inspector-panel :deep\(\.app-panel__header\)\s*\{[^}]*background:/)
+  })
 })

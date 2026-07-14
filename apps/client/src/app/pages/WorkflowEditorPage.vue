@@ -111,10 +111,12 @@ const isBottomPanelOpen = ref(true)
 const activeBottomPanelView = ref<WorkflowBottomPanelView>('timeline')
 const workflowInspectorWidth = ref(280)
 const workflowSettingsWidth = ref(360)
+const workflowGlobalPanelWidth = ref<number | null>(null)
 const workflowBottomPanelHeight = ref(300)
 const bottomPanelResizeStart = ref({ y: 0, height: 0 })
 const globalSidePanelWidth = computed(() => {
   if (!appPanelStore.isOpen || appPanelStore.position !== 'right') return 0
+  if (workflowGlobalPanelWidth.value !== null) return workflowGlobalPanelWidth.value
   if (appPanelStore.width === 'xl') return 600
   if (appPanelStore.width === 'lg') return 480
   return 360
@@ -414,6 +416,7 @@ function openExecutionPanel() {
 
 function openGlobalAddNodePanel(toggle = false) {
   showSettings.value = false
+  showInspector.value = false
   const panel: AppPanelConfig = {
     id: 'workflow-global-add-node-panel',
     title: 'Add Node',
@@ -528,6 +531,14 @@ function handleSettingsPanelResize(size: { width: number | null }) {
   workflowSettingsWidth.value = size.width ?? 360
 }
 
+function handleGlobalPanelResize(size: { width: number | null }) {
+  workflowGlobalPanelWidth.value = size.width
+}
+
+function handleGlobalPanelResizeReset() {
+  workflowGlobalPanelWidth.value = null
+}
+
 function startBottomPanelResize(event: MouseEvent) {
   event.preventDefault()
   bottomPanelResizeStart.value = {
@@ -552,12 +563,23 @@ function stopBottomPanelResize() {
 
 function openWorkflowSettings() {
   closeGlobalSidePanel()
+  showInspector.value = false
   showSettings.value = true
 }
 
 function closeGlobalSidePanel() {
   if (!appPanelStore.isOpen || appPanelStore.position === 'bottom') return
   appPanelStore.closePanel()
+}
+
+function toggleInspectorPanel() {
+  if (showInspector.value) {
+    showInspector.value = false
+    return
+  }
+  closeGlobalSidePanel()
+  showSettings.value = false
+  showInspector.value = true
 }
 
 function openCommandPalette() {
@@ -897,7 +919,7 @@ watch(
               :class="{ 'workflow-tool-rail__button--active': showInspector }"
               type="button"
               title="Inspector"
-              @click="showInspector = !showInspector"
+              @click="toggleInspectorPanel"
             >
               <LucideIcon name="test-tube-diagonal" :size="18" />
             </button>
@@ -1164,7 +1186,10 @@ watch(
           />
         </section>
 
-        <GlobalAppPanel />
+        <GlobalAppPanel
+          @resize="handleGlobalPanelResize"
+          @resize-reset="handleGlobalPanelResizeReset"
+        />
         <WorkflowSettingsPanel
           :is-open="showSettings"
           @close="showSettings = false"
@@ -1468,7 +1493,6 @@ watch(
 .workflow-inspector-panel :deep(.app-panel__header) {
   height: 38px;
   padding: 0 8px 0 10px;
-  background: var(--fabric-workbench-rail-bg);
 }
 
 .workflow-inspector-panel :deep(.app-panel__title) {
