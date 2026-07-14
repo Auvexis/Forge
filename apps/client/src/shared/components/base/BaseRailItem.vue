@@ -48,7 +48,7 @@ withDefaults(
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--fabric-base-rail-item-width, 49px);
+  width: var(--fabric-base-rail-item-width, 100%);
   height: var(--fabric-base-rail-item-height, 36px);
   border: 1px solid transparent;
   border-radius: 0;

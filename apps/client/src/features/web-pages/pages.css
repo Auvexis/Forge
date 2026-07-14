@@ -135,7 +135,7 @@
 }
 
 .web-page-editor {
-  --web-page-rail-width: var(--fabric-base-rail-width, var(--fabric-base-rail-item-width, 49px));
+  --web-page-rail-width: var(--fabric-base-rail-width, 40px);
   --web-page-left-panel-width: var(--fabric-panel-width);
   --web-page-right-panel-width: var(--fabric-panel-width);
   --web-page-drop-color: var(--fabric-border-strong);
