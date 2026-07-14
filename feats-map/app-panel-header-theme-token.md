@@ -1,0 +1,3 @@
+- [x] Aplicar token no header do AppPanel
+- [x] Cobrir contrato do header
+- [x] Validar e commitar

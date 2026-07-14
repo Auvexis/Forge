@@ -54,6 +54,7 @@ describe('global app panel resize', () => {
 
   it('keeps AppPanel chrome compact for dense workspaces', () => {
     assert.match(appPanelSource, /\.app-panel__header\s*\{[\s\S]*height: 36px;/)
+    assert.match(appPanelSource, /\.app-panel__header\s*\{[\s\S]*background: var\(--fabric-workbench-panel-header-bg/)
     assert.match(appPanelSource, /\.app-panel__title\s*\{[\s\S]*font-size: var\(--fabric-text-xs\);/)
     assert.match(appPanelSource, /\.app-panel__footer\s*\{[\s\S]*padding: var\(--fabric-space-2\) var\(--fabric-space-3\);/)
   })

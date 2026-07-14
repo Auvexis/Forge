@@ -278,6 +278,7 @@ onBeforeUnmount(() => {
   height: 36px;
   padding: 0 var(--fabric-space-2) 0 var(--fabric-space-3);
   border-bottom: 1px solid var(--fabric-border);
+  background: var(--fabric-workbench-panel-header-bg, var(--fabric-bg-surface));
   flex-shrink: 0;
 }
 
