@@ -58,11 +58,11 @@
           <BaseButton
             variant="ghost"
             size="sm"
-            icon-left="mouse-pointer-click"
+            :icon-left="isSelectedActionAttached ? 'check' : 'mouse-pointer-click'"
             :disabled="!canAttachSelectedAction"
             @click="attachSelectedAction"
           >
-            Attach
+            {{ isSelectedActionAttached ? 'Attached' : 'Attach' }}
           </BaseButton>
         </div>
 
@@ -203,6 +203,9 @@ const outputBindings = computed(() => bindingStore.outputBindingsForAction(store
 const canAttachSelectedAction = computed(() =>
   Boolean(store.selectedAction && editorStore.selectedBlock && ['button', 'form'].includes(editorStore.selectedBlock.tag)),
 )
+const isSelectedActionAttached = computed(() =>
+  Boolean(store.selectedAction && editorStore.selectedBlock?.action?.id === store.selectedAction.id),
+)
 const canBindOutput = computed(() =>
   Boolean(store.selectedAction && outputResultPath.value.trim() && selectedOutputTarget.value),
 )
@@ -224,6 +227,7 @@ const attachTargetHint = computed(() => {
   if (!store.selectedAction) return 'Select a Page Action first.'
   if (!editorStore.selectedBlock) return 'Select a button or form in the canvas.'
   if (!['button', 'form'].includes(editorStore.selectedBlock.tag)) return 'Only buttons and forms can trigger actions.'
+  if (isSelectedActionAttached.value) return 'This element runs the selected action.'
   return 'Click Attach to run this action from the selected element.'
 })
 
@@ -272,6 +276,7 @@ function clearBinding(inputKey: string) {
 function attachSelectedAction() {
   if (!store.selectedAction || !editorStore.selectedBlockId || !editorStore.selectedBlock) return
   if (!['button', 'form'].includes(editorStore.selectedBlock.tag)) return
+  if (isSelectedActionAttached.value) return
   editorStore.patchBlock(editorStore.selectedBlockId, {
     action: {
       id: store.selectedAction.id,

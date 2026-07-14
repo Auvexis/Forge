@@ -57,7 +57,8 @@ export function buildDefaultActionInput(fields: PageActionInputField[]): Record<
 }
 
 function mapSchemaToInputFields(schema: Record<string, unknown> = {}): PageActionInputField[] {
-  return Object.entries(schema).map(([key, value]) => {
+  const properties = schemaProperties(schema)
+  return Object.entries(properties).map(([key, value]) => {
     const field = normalizeSchemaField(value)
     return {
       key,
@@ -67,6 +68,16 @@ function mapSchemaToInputFields(schema: Record<string, unknown> = {}): PageActio
       description: field.description,
     }
   })
+}
+
+function schemaProperties(schema: Record<string, unknown>): Record<string, unknown> {
+  if (schema.type === 'object') {
+    return isRecord(schema.properties) ? schema.properties : {}
+  }
+  if (isRecord(schema.properties) && Object.keys(schema).every((key) => ['type', 'properties', 'required', 'description', 'title'].includes(key))) {
+    return schema.properties
+  }
+  return schema
 }
 
 function normalizeSchemaField(value: unknown): {
@@ -81,6 +92,10 @@ function normalizeSchemaField(value: unknown): {
     required: raw.required === true,
     description: typeof raw.description === 'string' ? raw.description : undefined,
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
 }
 
 function normalizeInputType(value: unknown): PageActionInputPrimitive {
