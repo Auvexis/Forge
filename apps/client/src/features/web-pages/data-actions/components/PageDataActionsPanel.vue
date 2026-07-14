@@ -445,8 +445,12 @@ function applyCollectionBindings(
 }
 
 function readPreviewHost(elementId: string) {
-  return document.querySelector<HTMLElement>(
+  const frame = document.querySelector<HTMLElement>(
     `[data-page-action-binding-element-id="${escapeCss(elementId)}"] .web-page-block-frame__inner`,
+  )
+  if (frame) return frame
+  return document.querySelector<HTMLElement>(
+    `[data-page-action-binding-element-id="${escapeCss(elementId)}"]`,
   )
 }
 

@@ -242,10 +242,13 @@ const blockAttributes = computed(() => ({
 }))
 const isBindingTarget = computed(() => ['input', 'text', 'button', 'link'].includes(props.block.tag))
 const bindingTargetAttributes = computed(() => {
-  if (!isBindingTarget.value) return {}
-  return {
-    'data-page-action-binding-target': 'true',
+  const attributes: Record<string, string> = {
     'data-page-action-binding-element-id': props.block.id,
+  }
+  if (!isBindingTarget.value) return attributes
+  return {
+    ...attributes,
+    'data-page-action-binding-target': 'true',
     'data-page-action-binding-property': bindingProperty(props.block),
     'data-page-action-binding-label': bindingTargetLabel(props.block),
   }
