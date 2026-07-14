@@ -265,6 +265,7 @@ describe('BaseCanvas component contract', () => {
     assert.match(ruler, /context\.fillStyle = resolveCanvasColor\(canvas, props\.rulersText\)/)
     assert.match(ruler, /getComputedStyle/)
     assert.match(ruler, /getRulerTicks/)
+    assert.match(ruler, /z-index: var\(--fabric-base-canvas-ruler-z, 30\);/)
     assert.doesNotMatch(ruler, /rgba\(17, 17, 17,/)
     assert.doesNotMatch(ruler, /items/)
   })

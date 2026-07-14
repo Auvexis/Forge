@@ -96,6 +96,7 @@ function handleClose() {
 
 // ── Canvas ref — used to call exposed actions (run, stop, add-node) ───────
 const canvasRef = ref<InstanceType<typeof FabricWorkflowCanvas> | null>(null)
+const focusedCanvasNodeId = ref<string | null>(null)
 
 // ── Logs panel state (shared between dock and canvas) ─────────────────────
 const showSettings = ref(false)
@@ -505,6 +506,10 @@ function highlightTimelineNode(nodeId: string | null) {
 function clearTimelineNodeSelection() {
   canvasRef.value?.highlightNode(null)
   canvasRef.value?.clearSelection()
+}
+
+function handleCanvasSelectionFocus(nodeId: string | null) {
+  focusedCanvasNodeId.value = nodeId
 }
 
 function handleInspectorPanelResize(size: { width: number | null }) {
@@ -1000,7 +1005,11 @@ watch(
 
       <div class="workflow-workbench__canvas">
         <div class="workflow-workbench__canvas-viewport">
-          <FabricWorkflowCanvas v-if="workflowStore.activeWorkflow" ref="canvasRef" />
+          <FabricWorkflowCanvas
+            v-if="workflowStore.activeWorkflow"
+            ref="canvasRef"
+            @selection-focus="handleCanvasSelectionFocus"
+          />
         </div>
 
         <AppPanel
@@ -1136,6 +1145,7 @@ watch(
           />
           <WorkflowWorkbenchBottomPanel
             v-model:active-view="activeBottomPanelView"
+            :focused-node-id="focusedCanvasNodeId"
             @close="isBottomPanelOpen = false"
             @node-select="selectTimelineNode"
             @node-focus="focusTimelineNode"

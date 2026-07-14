@@ -50,6 +50,8 @@ describe('workflow canvas editor actions contract', () => {
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.focusNode/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.highlightNode/)
     assert.match(canvas, /workflowBaseCanvasRef\.value\?\.fitWorkflowView/)
+    assert.match(canvas, /\(event: 'selection-focus', nodeId: string \| null\): void/)
+    assert.match(canvas, /@selection-focus="emit\('selection-focus', \$event\)"/)
     assert.match(canvas, /@drop="handleGlobalAddNodeDrop"/)
     assert.doesNotMatch(canvas, /useWorkflowBaseCanvas/)
   })

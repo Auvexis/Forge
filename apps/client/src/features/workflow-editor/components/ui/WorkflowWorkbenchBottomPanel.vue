@@ -64,6 +64,7 @@ interface WorkflowTimelineEntryPoint {
 
 const props = defineProps<{
   activeView: WorkflowBottomPanelView
+  focusedNodeId?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -537,6 +538,16 @@ function selectTimelineEntry(entryId: string) {
   clearTimelineInteraction()
 }
 
+function focusTimelineFromCanvasNode(nodeId: string | null) {
+  if (!nodeId) return
+  const entryId = timelineRootNodes.value.find((root) =>
+    collectTimelineDescendantIds(root.id).has(nodeId),
+  )?.id
+  if (entryId) selectedTimelineEntryId.value = entryId
+  traceTimelineNodeId.value = nodeId
+  setTimelineCursorToNode(nodeId)
+}
+
 function selectTimelineNode(nodeId: string) {
   traceTimelineNodeId.value = nodeId
   setTimelineCursorToNode(nodeId)
@@ -681,6 +692,12 @@ watch(timelineEntryPoints, (entryPoints) => {
   if (entryPoints.some((entry) => entry.id === selectedTimelineEntryId.value)) return
   selectedTimelineEntryId.value = 'all'
 })
+
+watch(
+  () => props.focusedNodeId,
+  (nodeId) => focusTimelineFromCanvasNode(nodeId ?? null),
+  { immediate: true },
+)
 
 watch(activeTimelineNodeId, async (nodeId) => {
   await nextTick()

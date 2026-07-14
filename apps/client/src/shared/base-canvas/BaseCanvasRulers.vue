@@ -138,7 +138,7 @@ function resolveCanvasColor(canvas: HTMLCanvasElement, color: string) {
 .base-canvas-rulers {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: var(--fabric-base-canvas-ruler-z, 30);
   pointer-events: none;
 }
 

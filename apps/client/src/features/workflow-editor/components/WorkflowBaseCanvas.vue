@@ -159,6 +159,9 @@ import VectorStoreToolNode from './nodes/VectorStoreToolNode.vue'
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const inspectorStore = useNodeInspectorStore()
+const emit = defineEmits<{
+  selectionFocus: [nodeId: string | null]
+}>()
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const canvasSelection = ref<string[]>([])
 const highlightedNodeId = ref<string | null>(null)
@@ -286,6 +289,10 @@ watch(
   },
   { flush: 'post' },
 )
+
+watch(canvasSelection, (selection) => {
+  emit('selectionFocus', selection.at(-1) ?? null)
+})
 
 watch(() => handleRegistry.geometryVersion.value, alignPendingQuickAddNode, { flush: 'post' })
 

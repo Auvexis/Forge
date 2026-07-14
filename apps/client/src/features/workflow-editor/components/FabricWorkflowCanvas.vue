@@ -25,8 +25,9 @@ defineProps<{
   showLogs?: boolean
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   (event: 'update:show-logs', value: boolean): void
+  (event: 'selection-focus', nodeId: string | null): void
 }>()
 
 const workflowStore = useWorkflowStore()
@@ -296,7 +297,10 @@ defineExpose({
     @drop="handleGlobalAddNodeDrop"
     @contextmenu="handleCanvasContextMenu"
   >
-    <WorkflowBaseCanvas ref="workflowBaseCanvasRef" />
+    <WorkflowBaseCanvas
+      ref="workflowBaseCanvasRef"
+      @selection-focus="emit('selection-focus', $event)"
+    />
 
     <button
       v-if="isWorkflowEmpty"

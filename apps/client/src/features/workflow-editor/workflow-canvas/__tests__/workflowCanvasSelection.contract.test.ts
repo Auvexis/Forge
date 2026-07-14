@@ -23,6 +23,8 @@ describe('workflow canvas selection contract', () => {
     assert.match(canvas, /@selection-move="handleItemsMove"/)
     assert.match(canvas, /@selection-drag-start="workflowStore\.beginHistoryTransaction"/)
     assert.match(canvas, /@selection-drag-end="workflowStore\.commitHistoryTransaction"/)
+    assert.match(canvas, /defineEmits<\{[\s\S]*selectionFocus: \[nodeId: string \| null\]/)
+    assert.match(canvas, /watch\(canvasSelection, \(selection\) => \{[\s\S]*emit\('selectionFocus', selection\.at\(-1\) \?\? null\)/)
   })
 
   it('adds WorkflowBaseCanvas selection commands without importing Vue Flow', () => {
