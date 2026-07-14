@@ -26,6 +26,8 @@
       :can-redo="editorStore.canRedo"
       :published-at="activePagePublishedAt"
       :is-autosave-enabled="isPagesAutosaveEnabled"
+      :is-explorer-open="isLeftPanelOpen"
+      :is-inspector-open="isRightPanelOpen"
       :can-save="canSaveActiveDocument"
       :can-use-project-actions="hasCreatedProject"
       @command="handleChromeCommand"

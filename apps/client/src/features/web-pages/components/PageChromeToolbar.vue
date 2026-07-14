@@ -64,6 +64,21 @@
         />
       </section>
 
+      <section class="base-rail__group" aria-label="Panels">
+        <BaseRailItem
+          icon="layout-dashboard"
+          :active="!!isExplorerOpen"
+          title="Explorer"
+          @click="$emit('command', 'view.left-panel')"
+        />
+        <BaseRailItem
+          icon="pencil"
+          :active="!!isInspectorOpen"
+          title="Inspector"
+          @click="$emit('command', 'view.right-panel')"
+        />
+      </section>
+
       <section class="base-rail__group" aria-label="Edit">
         <BaseRailButtonToggleItem
           :model-value="!!isAutosaveEnabled"
@@ -103,6 +118,8 @@ const props = defineProps<{
   canRedo?: boolean
   publishedAt?: string | null
   isAutosaveEnabled?: boolean
+  isExplorerOpen?: boolean
+  isInspectorOpen?: boolean
   canSave?: boolean
   canUseProjectActions?: boolean
 }>()
