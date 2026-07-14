@@ -8,6 +8,7 @@ import type {
   WebhookBodyField,
   WorkflowItem,
   WorkflowNode,
+  ReturnNode,
   WorkflowTrigger,
 } from "../../shared/models/workflow-types.ts";
 import { normalizeFormFields } from "../modules/forms/form-fields.ts";
@@ -165,9 +166,21 @@ function normalizeCallableTriggerSchema(trigger: WorkflowTrigger): Record<string
   return EMPTY_OBJECT_SCHEMA;
 }
 
+function inferCallableReturnFields(workflow: WorkflowItem): Array<{ key: string; type: string }> {
+  return Object.values(workflow.nodes)
+    .filter((node): node is ReturnNode => node.type === "return")
+    .filter((node) => node.mode === "fields")
+    .flatMap((node) => node.fields ?? [])
+    .map((field) => field.key.trim())
+    .filter(Boolean)
+    .filter((key, index, keys) => keys.indexOf(key) === index)
+    .map((key) => ({ key, type: "unknown" }));
+}
+
 function listCallableWorkflowSummaries(): CallableWorkflowSummary[] {
   return WorkflowRepository.getActiveWorkflows()
     .map((workflow) => {
+      const returns = inferCallableReturnFields(workflow);
       const triggers = listTriggerEntries(workflow)
         .filter((entry) => !entry.disabled)
         .filter((entry) => CALLABLE_WORKFLOW_TRIGGER_TYPES.has(entry.trigger.type))
@@ -179,6 +192,7 @@ function listCallableWorkflowSummaries(): CallableWorkflowSummary[] {
             type,
             icon: callableTriggerIcon(type),
             schema: normalizeCallableTriggerSchema(entry.trigger),
+            returns,
           };
         });
 
@@ -1309,7 +1323,7 @@ export default async function workflowsRoutes(
 
   fastify.post("/workflows/:workflowId/execute", async (req, reply) => {
     const { workflowId } = req.params as { workflowId: string };
-    const query = req.query as { triggerNodeId?: string };
+    const query = req.query as { triggerNodeId?: string; waitForResult?: string };
 
     try {
       const workflow = WorkflowRepository.getWorkflowById(workflowId);
@@ -1366,6 +1380,27 @@ export default async function workflowsRoutes(
       const executionId =
         headerExecutionId ??
         `exec_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+
+      if (query.waitForResult === "true") {
+        const execution = await WorkflowEngine.executeWorkflowFromTrigger(
+          workflow,
+          triggerNodeId,
+          triggerPayload,
+          executionId,
+        );
+        return sendResponse(reply, {
+          status_code: execution.status === "SUCCESS" ? 200 : 500,
+          message: execution.status === "SUCCESS"
+            ? "Workflow execution completed"
+            : `Workflow execution finished with status ${execution.status}`,
+          error: execution.status === "SUCCESS" ? null : execution.status,
+          data: {
+            executionId,
+            status: execution.status,
+            result: sanitizeContextForLogging(execution.context?.result ?? null),
+          },
+        });
+      }
 
       const responseBody = {
         status_code: 202,

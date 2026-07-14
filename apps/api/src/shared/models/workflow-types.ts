@@ -64,6 +64,7 @@ export interface CallableWorkflowTriggerMetadata {
   type: CallableWorkflowTriggerType;
   icon?: string;
   schema?: Record<string, any>;
+  returns?: Array<{ key: string; type?: string }>;
 }
 
 export interface WorkflowResultSource {

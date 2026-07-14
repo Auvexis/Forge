@@ -87,6 +87,15 @@ function workflow(
           formFields: [{ name: "hidden", label: "Hidden", type: "text" }],
         },
       },
+      returnResult: {
+        type: "return",
+        name: "Return Result",
+        mode: "fields",
+        fields: [
+          { key: "fruits", value: "{{ steps.http.output }}" },
+          { key: "firstFruitName", value: "{{ steps.http.output.0.name }}" },
+        ],
+      },
     },
     edges: [],
     variables: [],
@@ -155,6 +164,10 @@ describe("callable workflows routes", () => {
       },
       required: ["orderId"],
     });
+    assert.deepEqual(callable.triggers[0].returns, [
+      { key: "fruits", type: "unknown" },
+      { key: "firstFruitName", type: "unknown" },
+    ]);
 
     await app.close();
     db.close();

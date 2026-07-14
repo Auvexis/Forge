@@ -108,6 +108,7 @@ export interface CallableWorkflowTrigger {
   type: 'manual' | 'form' | 'webhook'
   icon?: string
   schema?: Record<string, any>
+  returns?: Array<{ key: string; type?: string }>
 }
 
 export interface CallableWorkflowSummary {
@@ -297,7 +298,13 @@ export const workflowsApi = {
     }),
 
   /** Manually trigger a workflow execution */
-  execute: (id: string, payload?: Record<string, unknown>, clientExecId?: string, triggerNodeId?: string) => {
+  execute: (
+    id: string,
+    payload?: Record<string, unknown>,
+    clientExecId?: string,
+    triggerNodeId?: string,
+    options: { waitForResult?: boolean } = {},
+  ) => {
     const headers: Record<string, string> = {}
     if (clientExecId) {
       headers['x-fabric-execution-id'] = clientExecId
@@ -305,8 +312,11 @@ export const workflowsApi = {
 
     const body = buildTriggerPayloadBody(payload)
 
-    const suffix = triggerNodeId ? `?triggerNodeId=${encodeURIComponent(triggerNodeId)}` : ''
-    return apiRequest<{ executionId: string }>(`${ENDPOINTS.EXECUTE_WORKFLOW(id)}${suffix}`, {
+    const params = new URLSearchParams()
+    if (triggerNodeId) params.set('triggerNodeId', triggerNodeId)
+    if (options.waitForResult) params.set('waitForResult', 'true')
+    const suffix = params.toString() ? `?${params.toString()}` : ''
+    return apiRequest<{ executionId: string; status?: string; result?: unknown }>(`${ENDPOINTS.EXECUTE_WORKFLOW(id)}${suffix}`, {
       method: 'POST',
       body,
       headers,

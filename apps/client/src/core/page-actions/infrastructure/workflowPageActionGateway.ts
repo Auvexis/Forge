@@ -21,11 +21,17 @@ export class WorkflowPageActionGateway implements PageActionCatalogGateway, Page
       const input = Object.keys(request.input).length > 0
         ? request.input
         : buildDefaultActionInput(request.action.inputs)
-      const result = await workflowsApi.execute(request.action.workflowId, input, undefined, request.action.triggerId)
+      const result = await workflowsApi.execute(
+        request.action.workflowId,
+        input,
+        undefined,
+        request.action.triggerId,
+        { waitForResult: true },
+      )
       return {
         ok: true,
         executionId: result.executionId,
-        data: result,
+        data: result.result ?? result,
         meta: {
           workflowId: request.action.workflowId,
           triggerId: request.action.triggerId,

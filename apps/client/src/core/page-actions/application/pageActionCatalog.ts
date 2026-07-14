@@ -17,6 +17,7 @@ export interface CallableWorkflowLike {
     type: 'manual' | 'form' | 'webhook'
     icon?: string
     schema?: Record<string, unknown>
+    returns?: Array<{ key: string; type?: string }>
   }>
 }
 
@@ -33,7 +34,7 @@ export function mapCallableWorkflowsToPageActions(workflows: CallableWorkflowLik
       type: trigger.type,
       icon: trigger.icon,
       inputs: mapSchemaToInputFields(trigger.schema),
-      returns: [],
+      returns: mapReturnFields(trigger.returns),
     })),
   }))
 }
@@ -105,6 +106,26 @@ function normalizeInputType(value: unknown): PageActionInputPrimitive {
   if (value === 'array') return 'array'
   if (value === 'file') return 'file'
   return 'string'
+}
+
+function mapReturnFields(returns: Array<{ key: string; type?: string }> = []): PageActionReturnField[] {
+  return returns
+    .filter((field) => field.key.trim())
+    .map((field) => ({
+      key: field.key,
+      label: humanizeKey(field.key),
+      type: normalizeReturnType(field.type),
+    }))
+}
+
+function normalizeReturnType(value: unknown): PageActionReturnField['type'] {
+  if (value === 'string') return 'string'
+  if (value === 'number') return 'number'
+  if (value === 'boolean') return 'boolean'
+  if (value === 'object') return 'object'
+  if (value === 'array') return 'array'
+  if (value === 'file') return 'file'
+  return 'unknown'
 }
 
 function defaultInputValue(type: PageActionInputPrimitive): unknown {

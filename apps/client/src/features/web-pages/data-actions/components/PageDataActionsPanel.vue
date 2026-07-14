@@ -119,7 +119,15 @@
             <input
               v-model="outputResultPath"
               placeholder="executionId"
+              list="page-action-return-fields"
             />
+            <datalist id="page-action-return-fields">
+              <option
+                v-for="field in store.selectedAction.returns"
+                :key="field.key"
+                :value="field.key"
+              />
+            </datalist>
             <BaseButton
               variant="ghost"
               size="sm"
@@ -129,6 +137,18 @@
             >
               Bind
             </BaseButton>
+          </div>
+          <div v-if="store.selectedAction.returns.length" class="web-page-data-actions__return-fields">
+            <button
+              v-for="field in store.selectedAction.returns"
+              :key="field.key"
+              type="button"
+              :class="{ 'web-page-data-actions__return-field--active': outputResultPath === field.key }"
+              @click="outputResultPath = field.key"
+            >
+              <span>{{ field.label }}</span>
+              <small>{{ field.key }}</small>
+            </button>
           </div>
           <div v-if="outputBindings.length === 0" class="web-page-data-actions__hint">
             Bind a result path to a selected text, button, or input element.
@@ -171,7 +191,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PageActionPickWhipOverlay from './PageActionPickWhipOverlay.vue'
@@ -360,6 +380,13 @@ function readInputValue(event: Event, type: PageActionInputField['type']) {
 onMounted(() => {
   if (store.workflows.length === 0) void store.loadAvailableActions()
 })
+
+watch(
+  () => store.selectedAction?.id,
+  () => {
+    outputResultPath.value = store.selectedAction?.returns[0]?.key ?? 'executionId'
+  },
+)
 
 onBeforeUnmount(() => {
   cancelBindingDrag()
