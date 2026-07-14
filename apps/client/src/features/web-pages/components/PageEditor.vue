@@ -5,6 +5,7 @@
       'web-page-editor--left-collapsed': !isLeftPanelOpen,
       'web-page-editor--right-collapsed': !isRightPanelOpen,
     }"
+    :style="pageEditorLayoutStyle"
   >
     <Teleport defer to="#fabric-topbar-context">
       <PageProjectTopbarDropdown
@@ -35,6 +36,8 @@
       resizable
       resize-side="right"
       @close="closeLeftPanel"
+      @resize="handleLeftPanelResize"
+      @resize-reset="resetLeftPanelResize"
     >
       <PageExplorerPanel
         :site="sitesStore.activeSite"
@@ -219,6 +222,8 @@
       resizable
       resize-side="left"
       @close="closeRightPanel"
+      @resize="handleRightPanelResize"
+      @resize-reset="resetRightPanelResize"
     >
       <template v-if="pagesStore.activePage && editorStore.selectedTarget.type === 'page'">
         <div class="web-page-editor__inspector-tabs">
@@ -474,6 +479,8 @@ const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHei
 const PAGE_CANVAS_GAP = 80
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
+const leftPanelWidth = ref<number | null>(null)
+const rightPanelWidth = ref<number | null>(null)
 const isPageSwitcherOpen = ref(false)
 const isNewProjectModalOpen = ref(false)
 const isOpenProjectModalOpen = ref(false)
@@ -529,6 +536,10 @@ const pageInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'advanced', label: 'Advanced', title: 'Advanced', icon: 'code-2' },
 ]
 const workspacePlaneStyle = computed(() => ({}))
+const pageEditorLayoutStyle = computed(() => ({
+  ...(leftPanelWidth.value === null ? {} : { '--web-page-left-panel-width': `${leftPanelWidth.value}px` }),
+  ...(rightPanelWidth.value === null ? {} : { '--web-page-right-panel-width': `${rightPanelWidth.value}px` }),
+}))
 const pageCanvasItems = computed<BaseCanvasItem[]>(() => pagesStore.pages.map((page, index) => {
   const offset = pageCanvasOffsets.value[page.id] ?? { x: 0, y: 0 }
   return {
@@ -770,6 +781,22 @@ function closeLeftPanel() {
 
 function closeRightPanel() {
   isRightPanelOpen.value = false
+}
+
+function handleLeftPanelResize(size: { width: number | null }) {
+  leftPanelWidth.value = size.width
+}
+
+function handleRightPanelResize(size: { width: number | null }) {
+  rightPanelWidth.value = size.width
+}
+
+function resetLeftPanelResize() {
+  leftPanelWidth.value = null
+}
+
+function resetRightPanelResize() {
+  rightPanelWidth.value = null
 }
 
 onMounted(async () => {

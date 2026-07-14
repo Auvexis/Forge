@@ -35,46 +35,39 @@
       </div>
     </Teleport>
 
-    <div class="web-page-chrome__actions">
-      <BaseButton size="sm" variant="ghost" :disabled="!resolvedCanSave" @click="$emit('command', 'file.save')">
-        <template #left>
-          <span
-            class="web-page-chrome__save-dot"
-            :class="{
-              'web-page-chrome__save-dot--dirty': isDirty,
-              'web-page-chrome__save-dot--saving': isSaving,
-            }"
-            aria-hidden="true"
-          />
-        </template>
-        Save
-      </BaseButton>
-      <BaseButton size="sm" variant="ghost" icon-left="eye" :disabled="!resolvedCanUseProjectActions" @click="$emit('command', 'file.preview')">
-        Preview
-      </BaseButton>
-      <BaseButton size="sm" variant="ghost" :icon-left="publishCommandIcon" :disabled="!resolvedCanUseProjectActions" @click="$emit('command', 'file.togglePublish')">
-        {{ publishCommandLabel }}
-      </BaseButton>
+    <div class="web-page-chrome__actions" aria-label="Pages tools">
       <BaseButton
-        size="sm"
+        class="web-page-chrome__save"
+        size="icon"
+        variant="ghost"
+        icon-left="save"
+        :disabled="!resolvedCanSave"
+        :data-dirty="isDirty || isSaving"
+        title="Save"
+        @click="$emit('command', 'file.save')"
+      />
+      <BaseButton size="icon" variant="ghost" icon-left="eye" :disabled="!resolvedCanUseProjectActions" title="Preview" @click="$emit('command', 'file.preview')" />
+      <BaseButton size="icon" variant="ghost" :icon-left="publishCommandIcon" :disabled="!resolvedCanUseProjectActions" :title="publishCommandLabel" @click="$emit('command', 'file.togglePublish')" />
+      <BaseButton
+        size="icon"
         variant="ghost"
         icon-left="external-link"
         :disabled="!publishedAt"
+        title="Open live"
         @click="$emit('command', 'file.openLive')"
-      >
-        Open live
-      </BaseButton>
-      <BaseSwitch
-        class="web-page-chrome__autosave"
-        :model-value="!!isAutosaveEnabled"
-        :disabled="isSaving || !resolvedCanUseProjectActions"
-        title="Toggle autosave for this project"
-        @update:model-value="$emit('toggle-autosave', $event)"
-      >
-        Autosave
-      </BaseSwitch>
+      />
       <BaseButton
-        size="sm"
+        class="web-page-chrome__autosave"
+        size="icon"
+        variant="ghost"
+        icon-left="refresh-cw"
+        :disabled="isSaving || !resolvedCanUseProjectActions"
+        :data-active="!!isAutosaveEnabled"
+        title="Autosave"
+        @click="$emit('toggle-autosave', !isAutosaveEnabled)"
+      />
+      <BaseButton
+        size="icon"
         variant="ghost"
         icon-left="undo-2"
         :disabled="!canUndo"
@@ -82,7 +75,7 @@
         @click="$emit('command', 'edit.undo')"
       />
       <BaseButton
-        size="sm"
+        size="icon"
         variant="ghost"
         icon-left="redo-2"
         :disabled="!canRedo"
@@ -96,7 +89,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
-import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 
