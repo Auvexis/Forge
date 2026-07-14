@@ -33,6 +33,42 @@
       @command="handleChromeCommand"
       @toggle-autosave="setPagesAutosaveEnabled"
     />
+
+    <aside
+      v-if="isDataflowPanelOpen"
+      class="web-page-editor__bottom-panel"
+      :style="{ height: `${dataflowPanelHeight}px` }"
+    >
+      <button
+        type="button"
+        class="web-page-editor__bottom-resize"
+        aria-label="Resize Dataflow panel"
+        @pointerdown.prevent="startDataflowResize"
+      />
+      <PageBlueprintPanel />
+    </aside>
+
+    <footer class="web-page-editor__statusbar">
+      <button
+        type="button"
+        class="web-page-editor__statusbar-item"
+        :class="{ 'web-page-editor__statusbar-item--active': isDataflowPanelOpen }"
+        @click="toggleDataflowPanel"
+      >
+        <LucideIcon name="workflow" :size="13" />
+        <span>Dataflow</span>
+      </button>
+      <span class="web-page-editor__statusbar-item">
+        <LucideIcon name="file-stack" :size="13" />
+        <span>{{ pagesStore.pages.length }} pages</span>
+      </span>
+      <span class="web-page-editor__statusbar-spacer" />
+      <span class="web-page-editor__statusbar-item">
+        <LucideIcon name="mouse-pointer-2" :size="13" />
+        <span>{{ editorStore.selectedBlockId || 'No selection' }}</span>
+      </span>
+    </footer>
+
     <AppPanel
       :is-open="isLeftPanelOpen"
       title="Explorer"
@@ -471,6 +507,7 @@ import PageSwitcherModal from './PageSwitcherModal.vue'
 import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.vue'
 import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
+import PageBlueprintPanel from '../page-blueprint/PageBlueprintPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -486,8 +523,11 @@ const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHei
 const PAGE_CANVAS_GAP = 80
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
+const isDataflowPanelOpen = ref(true)
 const leftPanelWidth = ref<number | null>(null)
 const rightPanelWidth = ref<number | null>(null)
+const dataflowPanelHeight = ref(260)
+const dataflowResizeState = ref<{ startY: number; startHeight: number } | null>(null)
 const isPageSwitcherOpen = ref(false)
 const isNewProjectModalOpen = ref(false)
 const isOpenProjectModalOpen = ref(false)
@@ -791,6 +831,30 @@ function closeRightPanel() {
   isRightPanelOpen.value = false
 }
 
+function toggleDataflowPanel() {
+  isDataflowPanelOpen.value = !isDataflowPanelOpen.value
+}
+
+function startDataflowResize(event: PointerEvent) {
+  dataflowResizeState.value = {
+    startY: event.clientY,
+    startHeight: dataflowPanelHeight.value,
+  }
+  window.addEventListener('pointermove', resizeDataflowPanel)
+  window.addEventListener('pointerup', stopDataflowResize, { once: true })
+}
+
+function resizeDataflowPanel(event: PointerEvent) {
+  if (!dataflowResizeState.value) return
+  const delta = dataflowResizeState.value.startY - event.clientY
+  dataflowPanelHeight.value = Math.max(160, Math.min(520, dataflowResizeState.value.startHeight + delta))
+}
+
+function stopDataflowResize() {
+  dataflowResizeState.value = null
+  window.removeEventListener('pointermove', resizeDataflowPanel)
+}
+
 function handleLeftPanelResize(size: { width: number | null }) {
   leftPanelWidth.value = size.width
 }
@@ -822,6 +886,7 @@ onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleSpacePanKeyDown)
   window.removeEventListener('keyup', handleSpacePanKeyUp)
   window.removeEventListener('beforeunload', handleBeforeUnload)
+  window.removeEventListener('pointermove', resizeDataflowPanel)
   if (pagesAutosaveTimer) window.clearTimeout(pagesAutosaveTimer)
 })
 

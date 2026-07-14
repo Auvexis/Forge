@@ -36,7 +36,7 @@
       />
 
       <SiteFilesPanel
-        v-else-if="activeTab === 'code'"
+        v-else
         :site="site"
         :pages="pages"
         @open-file="$emit('open-file', $event)"
@@ -45,8 +45,6 @@
         @upload-asset="$emit('upload-asset', $event)"
         @delete-file="$emit('delete-file', $event)"
       />
-
-      <PageDataActionsPanel v-else />
     </div>
   </div>
 </template>
@@ -60,7 +58,6 @@ import BlockTreePanel from './BlockTreePanel.vue'
 import PageToolboxPanel from './PageToolboxPanel.vue'
 import SiteAssetsPanel from './SiteAssetsPanel.vue'
 import SiteFilesPanel from './SiteFilesPanel.vue'
-import PageDataActionsPanel from '../data-actions/components/PageDataActionsPanel.vue'
 
 defineProps<{
   site: FabricSite | null
@@ -87,7 +84,7 @@ defineEmits<{
   'delete-file': [path: string]
 }>()
 
-type PageExplorerTab = 'toolbox' | 'tree' | 'assets' | 'code' | 'data'
+type PageExplorerTab = 'toolbox' | 'tree' | 'assets' | 'code'
 
 const activeTab = ref<PageExplorerTab>('toolbox')
 const explorerTabs: BaseSegmentedSelectOption[] = [
@@ -95,6 +92,5 @@ const explorerTabs: BaseSegmentedSelectOption[] = [
   { value: 'tree', label: 'Tree', icon: 'list-tree' },
   { value: 'assets', label: 'Assets', icon: 'image' },
   { value: 'code', label: 'Code', icon: 'code-2' },
-  { value: 'data', label: 'Data', icon: 'database-zap' },
 ]
 </script>

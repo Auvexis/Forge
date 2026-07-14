@@ -74,6 +74,23 @@ describe('Page Actions architecture', () => {
     expect(css).toMatch(/\.web-page-data-actions__target-row/)
   })
 
+  it('exposes page logic through a bottom Dataflow blueprint panel', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
+    const panel = read('src/features/web-pages/page-blueprint/PageBlueprintPanel.vue')
+    const adapter = read('src/features/web-pages/page-blueprint/pageBlueprintAdapter.ts')
+    const css = read('src/features/web-pages/pages.css')
+
+    expect(editor).toMatch(/PageBlueprintPanel/)
+    expect(editor).toMatch(/Dataflow/)
+    expect(editor).toMatch(/web-page-editor__bottom-panel/)
+    expect(explorer).not.toMatch(/PageDataActionsPanel|database-zap|value: 'data'/)
+    expect(panel).toMatch(/Page Blueprint/)
+    expect(adapter).toMatch(/buildPageBlueprintGraph/)
+    expect(adapter).toMatch(/javascript:selected-element/)
+    expect(css).toMatch(/\.web-page-blueprint/)
+  })
+
   it('documents the Page Actions boundary with an ADR', () => {
     const adr = read('../../docs/adr/0001-page-actions-architecture.md')
 
