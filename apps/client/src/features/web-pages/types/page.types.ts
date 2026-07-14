@@ -226,4 +226,6 @@ export interface PagePublicationStatus {
 
 export interface PageActionResponse {
   executionId: string
+  status?: string | null
+  result?: unknown
 }

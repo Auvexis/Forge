@@ -91,7 +91,11 @@ describe("PageActionService", () => {
       getWorkflowById: () => workflow as any,
       executeWorkflowFromTrigger: async (...args) => {
         calls.push(args);
-        return {};
+        return {
+          executionId: args[3],
+          status: "SUCCESS",
+          context: { result: { fruits: ["apple", "banana"] } },
+        };
       },
     });
 
@@ -102,7 +106,8 @@ describe("PageActionService", () => {
     });
 
     assert.equal(result.ok, true);
-    assert.equal((result as any).statusCode, 202);
+    assert.equal((result as any).statusCode, 200);
+    assert.deepEqual((result as any).result, { fruits: ["apple", "banana"] });
     assert.equal(calls.length, 1);
     assert.equal((calls[0] as any[])[0], workflow);
     assert.equal((calls[0] as any[])[1], "trigger");
@@ -119,7 +124,11 @@ describe("PageActionService", () => {
       },
       processFormSubmission: async () => ({ ok: true, workflow: {} as any, executionId: "exec_form" }),
       getWorkflowById: () => ({ metadata: { id: "workflow_1", isActive: true, isDraft: false } }) as any,
-      executeWorkflowFromTrigger: async () => ({}),
+      executeWorkflowFromTrigger: async (_workflow, _triggerId, _payload, executionId) => ({
+        executionId,
+        status: "SUCCESS",
+        context: { result: { ok: true } },
+      }),
     });
 
     const result = await service.submitAction(
@@ -143,7 +152,11 @@ describe("PageActionService", () => {
       },
       processFormSubmission: async () => ({ ok: true, workflow: {} as any, executionId: "exec_form" }),
       getWorkflowById: () => ({ metadata: { id: "workflow_1", isActive: true, isDraft: false } }) as any,
-      executeWorkflowFromTrigger: async () => ({}),
+      executeWorkflowFromTrigger: async (_workflow, _triggerId, _payload, executionId) => ({
+        executionId,
+        status: "SUCCESS",
+        context: { result: { ok: true } },
+      }),
     });
 
     const result = await service.submitPreviewAction("profile_a", "page_contact", "action_workflow", {
@@ -154,6 +167,31 @@ describe("PageActionService", () => {
 
     assert.equal(result.ok, true);
     assert.equal(draftPageId, "page_contact");
+  });
+
+  it("failed workflow action returns a safe error", async () => {
+    const service = new PageActionService({
+      getPublishedPageBySlug: () => publishedPage(),
+      processFormSubmission: async () => ({ ok: true, workflow: {} as any, executionId: "exec_form" }),
+      getWorkflowById: () => ({ metadata: { id: "workflow_1", isActive: true, isDraft: false } }) as any,
+      executeWorkflowFromTrigger: async (_workflow, _triggerId, _payload, executionId) => ({
+        executionId,
+        status: "FAILED",
+        context: { result: null },
+      }),
+    });
+
+    const result = await service.submitAction("profile_a", "contact", "action_workflow", {
+      body: {},
+      headers: {},
+      ip: "127.0.0.1",
+    });
+
+    assert.deepEqual(result, {
+      ok: false,
+      statusCode: 500,
+      message: "Workflow finished with status FAILED",
+    });
   });
 
   it("unknown action id returns 404", async () => {

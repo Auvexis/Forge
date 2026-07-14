@@ -7,7 +7,7 @@ import { SiteRepository } from "./site-repository.ts";
 import type { PageBlock, PageBlockAction, PublishedPage } from "./page-types.ts";
 
 type PageActionResult =
-  | { ok: true; statusCode: 202; executionId: string }
+  | { ok: true; statusCode: 200 | 202; executionId: string; status?: string; result?: unknown }
   | { ok: false; statusCode: number; message: string };
 
 interface PageActionRequestLike {
@@ -111,19 +111,28 @@ export class PageActionService {
       userAgent: req.headers["user-agent"] ?? "",
     };
 
-    const execution = this.dependencies.executeWorkflowFromTrigger(
+    const execution = await this.dependencies.executeWorkflowFromTrigger(
       workflow,
       action.triggerId ?? "trigger",
       triggerPayload,
       executionId,
     );
-    execution.catch((err: Error) => {
-      console.error(
-        `[FABRIC | PAGES]: Workflow action failed for "${workflow.metadata.id}": ${err.message}`,
-      );
-    });
 
-    return { ok: true, statusCode: 202, executionId };
+    if (execution?.status && execution.status !== "SUCCESS") {
+      return {
+        ok: false,
+        statusCode: 500,
+        message: `Workflow finished with status ${execution.status}`,
+      };
+    }
+
+    return {
+      ok: true,
+      statusCode: 200,
+      executionId,
+      status: execution?.status ?? "SUCCESS",
+      result: sanitizeActionResult(execution?.context?.result),
+    };
   }
 }
 
@@ -231,4 +240,21 @@ function sanitizePayloadValue(
   }
 
   return { ok: true, value: null };
+}
+
+function sanitizeActionResult(result: unknown): unknown {
+  if (result === undefined) return null;
+
+  try {
+    const json = JSON.stringify(result);
+    if (json.length > 256 * 1024) {
+      return {
+        truncated: true,
+        message: "Workflow result exceeded 256 KB.",
+      };
+    }
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
 }

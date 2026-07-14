@@ -440,10 +440,14 @@ export default async function pagesRoutes(
       });
     }
     return sendResponse(reply, {
-      status_code: 202,
+      status_code: result.statusCode,
       message: "Page action accepted",
       error: null,
-      data: { executionId: result.executionId },
+      data: {
+        executionId: result.executionId,
+        status: result.status ?? null,
+        result: result.result ?? null,
+      },
     });
   });
 
@@ -472,10 +476,14 @@ export default async function pagesRoutes(
       });
     }
     return sendResponse(reply, {
-      status_code: 202,
+      status_code: result.statusCode,
       message: "Page action accepted",
       error: null,
-      data: { executionId: result.executionId },
+      data: {
+        executionId: result.executionId,
+        status: result.status ?? null,
+        result: result.result ?? null,
+      },
     });
   });
 }

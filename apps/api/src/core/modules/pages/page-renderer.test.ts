@@ -250,14 +250,29 @@ describe("page renderer", () => {
               },
             },
           },
+          outputBindings: {
+            "page-action:workflow_1:trigger": [
+              {
+                id: "output_binding_1",
+                actionId: "page-action:workflow_1:trigger",
+                resultPath: "fruits.0.name",
+                target: { elementId: "button_1", property: "text", label: "Run" },
+                createdAt: "2026-07-14T00:00:00.000Z",
+              },
+            ],
+          },
         },
       }),
     );
 
     assert.match(html, /data-page-action-binding-element-id="email_input"/);
     assert.match(html, /const inputBindings =/);
+    assert.match(html, /const outputBindings =/);
     assert.match(html, /payloadWithBindings\(actionId, payload\)/);
     assert.match(html, /readBindingValue\(binding\.target\)/);
+    assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
+    assert.match(html, /resolveResultPath\(result, binding\.resultPath\)/);
+    assert.match(html, /writeOutputTarget\(binding\.target, value\)/);
   });
 
   it("never renders script from page content", () => {
