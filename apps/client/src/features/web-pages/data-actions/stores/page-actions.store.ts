@@ -50,14 +50,14 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
     draftInput.value = { ...draftInput.value, [key]: value }
   }
 
-  async function runSelectedAction() {
+  async function runSelectedAction(input: Record<string, unknown> = draftInput.value) {
     if (!selectedAction.value) return null
     status.value = 'running'
     error.value = null
     lastRunResult.value = null
     const result = await workflowPageActionGateway.runAction({
       action: selectedAction.value,
-      input: draftInput.value,
+      input,
     })
     lastRunResult.value = result
     status.value = result.ok ? 'success' : 'error'

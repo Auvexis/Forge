@@ -51,6 +51,27 @@ export interface PageBlock {
   children?: PageBlock[]
 }
 
+export type PageActionBindableElementProperty = 'value' | 'checked' | 'text'
+
+export interface PageActionElementBindingTarget {
+  elementId: string
+  property: PageActionBindableElementProperty
+  label: string
+}
+
+export interface PageActionInputBinding {
+  id: string
+  actionId: string
+  inputKey: string
+  source: 'element'
+  target: PageActionElementBindingTarget
+  createdAt: string
+}
+
+export interface PageActionDocument {
+  inputBindings: Record<string, Record<string, PageActionInputBinding>>
+}
+
 export interface FabricPage {
   id: string
   profileId: string
@@ -62,6 +83,7 @@ export interface FabricPage {
   metaDescription?: string
   faviconUrl?: string
   bodyStyles?: PageBlockStyles
+  pageActions?: PageActionDocument
   blocks: PageBlock[]
   createdAt: string
   updatedAt: string
@@ -83,6 +105,7 @@ export interface CreatePagePayload {
   metaDescription?: string
   faviconUrl?: string
   bodyStyles?: PageBlockStyles
+  pageActions?: PageActionDocument
   blocks?: PageBlock[]
 }
 
@@ -94,6 +117,7 @@ export interface UpdatePagePayload {
   metaDescription?: string
   faviconUrl?: string
   bodyStyles?: PageBlockStyles
+  pageActions?: PageActionDocument
   blocks?: PageBlock[]
 }
 
@@ -175,6 +199,7 @@ export interface SiteProjectArchive {
     slug: string
     publicPath?: string
     bodyStyles?: PageBlockStyles
+    pageActions?: PageActionDocument
     blocks: PageBlock[]
   }>
   files: SiteFile[]

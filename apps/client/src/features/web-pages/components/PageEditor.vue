@@ -454,6 +454,7 @@ import { ENDPOINTS } from '@/core/api/endpoints.ts'
 import { pagesApi } from '@/core/api/pages.api.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
+import { usePageActionBindingsStore } from '../data-actions/stores/page-action-bindings.store.ts'
 import { useSitesStore } from '../stores/sites.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
@@ -475,6 +476,7 @@ const route = useRoute()
 const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
+const pageActionBindingsStore = usePageActionBindingsStore()
 const sitesStore = useSitesStore()
 const { confirm } = useConfirm()
 const INITIAL_CANVAS_TOP_OFFSET = 120
@@ -519,6 +521,7 @@ const pageCanvasOffsets = ref<Record<string, { x: number; y: number }>>({})
 const pageCanvasContextMenu = ref<BaseCanvasContextMenuEvent | null>(null)
 const pageDropIndex = ref<number | null>(null)
 let pagesAutosaveTimer: number | null = null
+let isHydratingPageActionBindings = false
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
@@ -893,12 +896,36 @@ function positionInitialCanvas() {
 watch(
   () => pagesStore.activePage,
   (page) => {
+    hydratePageActionBindings(page)
     if (page?.id === editorPageId.value) return
     editorPageId.value = page?.id ?? null
     editorStore.setBlocks(page?.blocks ?? [])
   },
   { immediate: true },
 )
+
+watch(
+  () => pageActionBindingsStore.bindingsByAction,
+  () => {
+    if (isHydratingPageActionBindings || !pagesStore.activePage) return
+    pagesStore.setActivePage({
+      ...pagesStore.activePage,
+      pageActions: {
+        ...(pagesStore.activePage.pageActions ?? {}),
+        inputBindings: pageActionBindingsStore.exportBindings(),
+      },
+    })
+  },
+  { deep: true },
+)
+
+function hydratePageActionBindings(page: FabricPage | null) {
+  isHydratingPageActionBindings = true
+  pageActionBindingsStore.replaceBindings(page?.pageActions?.inputBindings ?? {})
+  void nextTick(() => {
+    isHydratingPageActionBindings = false
+  })
+}
 
 function handleDropBlock(payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }) {
   if (payload.draggedId) editorStore.moveBlock(payload.draggedId, payload.targetId, payload.position)
@@ -1547,7 +1574,14 @@ async function savePage() {
   const selectedBlockIds = [...editorStore.selectedBlockIds]
   const previousSlug = pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.slug
   const nextSlug = pagesStore.activePage.slug
-  pagesStore.setActivePage({ ...pagesStore.activePage, blocks: editorStore.blocks })
+  pagesStore.setActivePage({
+    ...pagesStore.activePage,
+    pageActions: {
+      ...(pagesStore.activePage.pageActions ?? {}),
+      inputBindings: pageActionBindingsStore.exportBindings(),
+    },
+    blocks: editorStore.blocks,
+  })
   await pagesStore.saveActivePage()
   if (previousSlug && previousSlug !== nextSlug && sitesStore.renamePageFiles(previousSlug, nextSlug)) {
     await sitesStore.saveActiveSite()

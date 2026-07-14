@@ -1742,6 +1742,13 @@
   white-space: nowrap;
 }
 
+.web-page-data-actions__binding-chip small {
+  margin-left: var(--fabric-space-1);
+  color: var(--fabric-text-muted);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
 .web-page-data-actions__binding-chip button {
   display: grid;
   width: 16px;

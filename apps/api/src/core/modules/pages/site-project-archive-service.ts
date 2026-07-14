@@ -22,6 +22,7 @@ export interface SiteProjectArchive {
     title: string;
     slug: string;
     bodyStyles?: PageBlockStyles;
+    pageActions?: FabricPage["pageActions"];
     blocks: FabricPage["blocks"];
   }>;
   files: SiteFile[];
@@ -58,6 +59,7 @@ export class SiteProjectArchiveService {
         title: page.title,
         slug: page.slug,
         bodyStyles: page.bodyStyles,
+        pageActions: page.pageActions,
         blocks: page.blocks,
       })),
       files: site.files.map((file) => ({ ...file })),
@@ -125,6 +127,7 @@ export class SiteProjectArchiveService {
         title: page.title,
         slug: this.uniquePageSlug(profileId, siteId, page.slug),
         bodyStyles: page.bodyStyles,
+        pageActions: page.pageActions,
         blocks: page.blocks,
         createdAt: now,
         updatedAt: now,

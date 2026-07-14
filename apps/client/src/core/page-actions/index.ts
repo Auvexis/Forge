@@ -16,6 +16,7 @@ export type {
 } from './domain/pageAction.types'
 export {
   createElementInputBinding,
+  resolvePageActionInputBindings,
 } from './application/pageActionBindings'
 export {
   buildDefaultActionInput,

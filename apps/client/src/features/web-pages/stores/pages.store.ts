@@ -183,6 +183,7 @@ export const usePagesStore = defineStore('web-pages', () => {
         metaDescription: activePage.value.metaDescription,
         faviconUrl: activePage.value.faviconUrl,
         bodyStyles: activePage.value.bodyStyles,
+        pageActions: activePage.value.pageActions,
         blocks: activePage.value.blocks,
       })
       setSavedPage(saved)

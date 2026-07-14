@@ -15,6 +15,27 @@ export function readPageActionBindingTargetAtPoint(x: number, y: number): PageAc
   }
 }
 
+export function readPageActionBindingTargetValue(target: PageActionElementBindingTarget): unknown {
+  const frame = document.querySelector<HTMLElement>(
+    `[data-page-action-binding-element-id="${escapeCss(target.elementId)}"]`,
+  )
+  const element = frame?.querySelector<HTMLElement>('.web-page-block-frame__inner') ?? frame
+  if (!element) return ''
+  if (target.property === 'checked' && element instanceof HTMLInputElement) return element.checked
+  if (target.property === 'value' && isValueElement(element)) return element.value
+  if (target.property === 'text') return element.textContent ?? ''
+  return element.getAttribute(target.property) ?? element.textContent ?? ''
+}
+
 function isBindingProperty(value: string | undefined): value is PageActionElementBindingTarget['property'] {
   return value === 'value' || value === 'checked' || value === 'text'
+}
+
+function isValueElement(element: HTMLElement): element is HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement {
+  return element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement || element instanceof HTMLSelectElement
+}
+
+function escapeCss(value: string) {
+  if (typeof CSS !== 'undefined' && 'escape' in CSS) return CSS.escape(value)
+  return value.replace(/["\\]/g, '\\$&')
 }

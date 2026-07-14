@@ -82,7 +82,10 @@
             </div>
             <div v-if="bindingFor(field.key)" class="web-page-data-actions__binding-chip">
               <LucideIcon name="link-2" :size="12" />
-              <span>{{ bindingFor(field.key)?.target.label }}</span>
+              <span>
+                {{ bindingFor(field.key)?.target.label }}
+                <small>{{ bindingFor(field.key)?.target.property }}</small>
+              </span>
               <button
                 type="button"
                 title="Remove binding"
@@ -99,7 +102,7 @@
           size="sm"
           icon-left="play"
           :loading="store.status === 'running'"
-          @click="store.runSelectedAction()"
+          @click="runSelectedAction"
         >
           Test Run
         </BaseButton>
@@ -118,8 +121,8 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PageActionPickWhipOverlay from './PageActionPickWhipOverlay.vue'
 import { usePageActionsStore } from '../stores/page-actions.store'
 import { usePageActionBindingsStore } from '../stores/page-action-bindings.store'
-import { readPageActionBindingTargetAtPoint } from '../utils/bindingTargetDom'
-import type { PageActionInputField } from '@/core/page-actions'
+import { readPageActionBindingTargetAtPoint, readPageActionBindingTargetValue } from '../utils/bindingTargetDom'
+import { resolvePageActionInputBindings, type PageActionInputField } from '@/core/page-actions'
 
 const store = usePageActionsStore()
 const bindingStore = usePageActionBindingsStore()
@@ -171,6 +174,13 @@ function cancelBindingDrag() {
 function clearBinding(inputKey: string) {
   if (!store.selectedAction) return
   bindingStore.clearInputBinding(store.selectedAction.id, inputKey)
+}
+
+function runSelectedAction() {
+  if (!store.selectedAction) return
+  const bindings = bindingStore.bindingsForAction(store.selectedAction.id)
+  const input = resolvePageActionInputBindings(store.draftInput, bindings, readPageActionBindingTargetValue)
+  void store.runSelectedAction(input)
 }
 
 function removeBindingDragListeners() {

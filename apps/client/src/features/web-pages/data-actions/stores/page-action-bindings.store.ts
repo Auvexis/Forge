@@ -7,6 +7,7 @@ import {
   type PageActionInputBinding,
   type PageActionInputField,
 } from '@/core/page-actions'
+import type { PageActionDocument } from '../../types/page.types.ts'
 
 export interface PageActionPickWhipState {
   action: PageActionDefinition
@@ -25,6 +26,14 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
   function bindingsForAction(actionId: string | null | undefined) {
     if (!actionId) return {}
     return bindingsByAction.value[actionId] ?? {}
+  }
+
+  function replaceBindings(bindings: PageActionDocument['inputBindings'] = {}) {
+    bindingsByAction.value = cloneBindings(bindings)
+  }
+
+  function exportBindings() {
+    return cloneBindings(bindingsByAction.value)
   }
 
   function bindingForInput(actionId: string | null | undefined, inputKey: string) {
@@ -94,6 +103,8 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     isPicking,
     bindingsForAction,
     bindingForInput,
+    replaceBindings,
+    exportBindings,
     startPickWhip,
     movePickWhip,
     completePickWhip,
@@ -102,3 +113,7 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     cancelPickWhip,
   }
 })
+
+function cloneBindings(bindings: Record<string, Record<string, PageActionInputBinding>>) {
+  return JSON.parse(JSON.stringify(bindings)) as Record<string, Record<string, PageActionInputBinding>>
+}

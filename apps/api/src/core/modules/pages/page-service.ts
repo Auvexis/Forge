@@ -49,6 +49,7 @@ export class PageService {
       metaDescription: input.metaDescription,
       faviconUrl: input.faviconUrl,
       bodyStyles: input.bodyStyles ?? defaultBodyStyles(),
+      pageActions: input.pageActions,
       blocks: input.blocks ?? [],
       createdAt: now,
       updatedAt: now,
@@ -76,6 +77,7 @@ export class PageService {
       metaDescription: input.metaDescription ?? existing.metaDescription,
       faviconUrl: input.faviconUrl ?? existing.faviconUrl,
       bodyStyles: input.bodyStyles ?? existing.bodyStyles,
+      pageActions: input.pageActions ?? existing.pageActions,
       blocks: input.blocks ?? existing.blocks,
       updatedAt: new Date().toISOString(),
     };
@@ -111,6 +113,7 @@ export class PageService {
       metaDescription: validation.page.metaDescription,
       faviconUrl: validation.page.faviconUrl,
       bodyStyles: validation.page.bodyStyles,
+      pageActions: validation.page.pageActions,
       blocks: validation.page.blocks,
       publishedAt: new Date().toISOString(),
     };
@@ -150,6 +153,7 @@ export class PageService {
       metaDescription: page.metaDescription,
       faviconUrl: page.faviconUrl,
       bodyStyles: page.bodyStyles,
+      pageActions: page.pageActions,
       blocks: page.blocks,
       publishedAt: new Date().toISOString(),
     }, SiteRepository.getSite(this.profileId, page.siteId));
