@@ -7,6 +7,10 @@ const source = readFileSync(
   fileURLToPath(new URL('../WorkflowWorkbenchBottomPanel.vue', import.meta.url)),
   'utf8',
 )
+const lightTheme = readFileSync(
+  fileURLToPath(new URL('../../../../../themes/json/light.json', import.meta.url)),
+  'utf8',
+)
 
 test('workflow bottom panel renders the selected view without internal tabs', () => {
   assert.match(source, /export type WorkflowBottomPanelView = 'timeline' \| 'tree' \| 'execution' \| 'variables'/)
@@ -156,6 +160,10 @@ test('workflow bottom panel renders the selected view without internal tabs', ()
   assert.match(source, /panelTitle/)
   assert.match(source, /panelMeta/)
   assert.match(source, /emit\('close'\)/)
+  assert.match(source, /workflow-bottom-panel__heading/)
+  assert.match(source, /var\(--fabric-workflow-timeline-header-bg/)
+  assert.match(lightTheme, /"workbench\.panel\.header\.bg": "var\(--fabric-bg-elevated\)"/)
+  assert.doesNotMatch(lightTheme, /"workbench\.panel\.header\.bg": "var\(--fabric-bg-chrome\)"/)
   assert.match(source, /\.workflow-bottom-panel__close:hover\s*\{[\s\S]*background-color: var\(--fabric-bg-muted\);/)
   assert.match(source, /\.workflow-timeline__stats code:not\(:last-child\)\s*\{[\s\S]*border-right: 1px solid var\(--fabric-border-muted\);/)
   assert.doesNotMatch(source, /\.workflow-timeline__stats\s*\{[^}]*margin-left: auto;/)

@@ -207,7 +207,7 @@
     "workbench.main.bg": "var(--fabric-bg-canvas)",
     "workbench.rail.bg": "var(--fabric-bg-surface)",
     "workbench.panel.bg": "var(--fabric-bg-surface)",
-    "workbench.panel.header.bg": "var(--fabric-bg-chrome)",
+    "workbench.panel.header.bg": "var(--fabric-bg-elevated)",
     "workbench.panel.action.text": "var(--fabric-text-muted)",
     "workbench.panel.action.hover.bg": "var(--fabric-button-ghost-hover)",
     "workbench.panel.action.hover.text": "var(--fabric-text-primary)",

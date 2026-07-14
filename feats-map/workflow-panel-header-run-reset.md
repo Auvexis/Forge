@@ -1,0 +1,3 @@
+- [x] Corrigir header do painel horizontal no tema claro
+- [x] Resetar estatísticas da timeline ao iniciar execução
+- [x] Validar e commitar

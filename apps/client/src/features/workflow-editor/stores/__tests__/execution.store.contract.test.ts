@@ -138,6 +138,13 @@ test('execution store preserves node statuses until explicit clear execution', (
   assert.match(source, /function resetNodeStatuses\(\)/)
 })
 
+test('execution store resets timeline stats before running a trigger in an active session', () => {
+  const source = read('src/features/workflow-editor/stores/execution.store.ts')
+
+  assert.match(source, /function resetCurrentRunState\(\)[\s\S]*timeline\.value = \[\]/)
+  assert.match(source, /async function executeTrigger[\s\S]*resetCurrentRunState\(\)[\s\S]*triggerStatuses\[triggerNodeId\] = 'running'/)
+})
+
 test('execution store records input and output snapshots for agent config nodes', () => {
   const source = read('src/features/workflow-editor/stores/execution.store.ts')
 

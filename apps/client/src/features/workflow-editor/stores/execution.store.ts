@@ -87,6 +87,18 @@ export const useExecutionStore = defineStore('execution', () => {
     for (const key of Object.keys(activeJobs)) delete activeJobs[key]
   }
 
+  function resetCurrentRunState() {
+    for (const key of Object.keys(nodeStatuses)) delete nodeStatuses[key]
+    timeline.value = []
+    workflowStatus.value = null
+    activeExecutionId.value = null
+    for (const key of Object.keys(activeJobs)) delete activeJobs[key]
+    for (const key of Object.keys(triggerStatuses)) delete triggerStatuses[key]
+    for (const key of Object.keys(nodeStatusesByExecution)) delete nodeStatusesByExecution[key]
+    agentFailuresByExecution.clear()
+    lastSuccessfulToolByExecution.clear()
+  }
+
   type EditorChatToolStatus = {
     kind: 'toolStatus'
     executionId: string
@@ -1305,6 +1317,7 @@ export const useExecutionStore = defineStore('execution', () => {
     const { error: toastError } = useToast()
     isExecuting.value = true
     try {
+      resetCurrentRunState()
       triggerStatuses[triggerNodeId] = 'running'
       _patchNode(triggerNodeId, { status: 'running', startedAt: Date.now() })
       const result = await workflowsApi.executeDevSessionTrigger(sessionId, triggerNodeId, payload)
