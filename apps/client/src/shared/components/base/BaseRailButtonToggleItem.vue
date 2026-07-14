@@ -1,16 +1,14 @@
 <template>
   <button
-    class="base-rail-item"
-    :class="[
-      tone ? `base-rail-item--${tone}` : null,
-      {
-        'base-rail-item--active': active,
-        'base-rail-item--dirty': dirty,
-      },
-    ]"
+    class="base-rail-toggle-item"
+    :class="{
+      'base-rail-toggle-item--on': modelValue,
+      'base-rail-toggle-item--off': !modelValue,
+    }"
     type="button"
     :title="title"
     :disabled="disabled"
+    @click="$emit('update:modelValue', !modelValue)"
   >
     <slot>
       <LucideIcon v-if="icon" :name="icon" :size="iconSize" />
@@ -23,27 +21,27 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 withDefaults(
   defineProps<{
+    modelValue: boolean
     icon?: string
     iconSize?: number
     title?: string
     disabled?: boolean
-    active?: boolean
-    dirty?: boolean
-    tone?: 'primary' | 'run' | 'danger' | null
   }>(),
   {
     iconSize: 18,
+    icon: 'refresh-cw',
     title: undefined,
     disabled: false,
-    active: false,
-    dirty: false,
-    tone: null,
   },
 )
+
+defineEmits<{
+  'update:modelValue': [value: boolean]
+}>()
 </script>
 
 <style scoped>
-.base-rail-item {
+.base-rail-toggle-item {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -61,49 +59,45 @@ withDefaults(
     color var(--fabric-duration-fast) var(--fabric-ease-standard);
 }
 
-.base-rail-item:hover:not(:disabled),
-.base-rail-item--active {
+.base-rail-toggle-item:hover:not(:disabled) {
   border-color: transparent;
   background: var(--fabric-workbench-rail-button-hover-bg, var(--fabric-button-ghost-hover));
   color: var(--fabric-workbench-rail-button-hover-text, var(--fabric-text-primary));
 }
 
-.base-rail-item--active::before {
-  position: absolute;
-  left: 0;
-  width: 2px;
-  height: 22px;
-  border-radius: 0 999px 999px 0;
-  background: var(--fabric-workbench-rail-button-active-indicator, var(--fabric-accent));
-  content: '';
-}
-
-.base-rail-item:disabled {
+.base-rail-toggle-item:disabled {
   cursor: not-allowed;
   opacity: 0.42;
 }
 
-.base-rail-item--primary {
-  color: var(--fabric-workbench-rail-button-primary-text, var(--fabric-accent));
+.base-rail-toggle-item--on {
+  color: var(--fabric-workbench-rail-button-toggle-text, var(--fabric-accent));
 }
 
-.base-rail-item--run {
-  color: var(--fabric-workbench-rail-button-run-text, var(--fabric-green-500));
-}
-
-.base-rail-item--danger {
-  color: var(--fabric-workbench-rail-button-danger-text, var(--fabric-red-500));
-}
-
-.base-rail-item--dirty::after {
+.base-rail-toggle-item--on::after,
+.base-rail-toggle-item--off::after {
   position: absolute;
-  top: 6px;
-  right: 7px;
-  width: 6px;
-  height: 6px;
+  right: 5px;
+  bottom: 5px;
+  width: 10px;
+  height: 5px;
+  border: 1px solid currentColor;
   border-radius: 999px;
-  background: var(--fabric-workbench-rail-button-dirty-indicator, var(--fabric-amber-500));
   content: '';
 }
 
+.base-rail-toggle-item--on::before {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  width: 3px;
+  height: 3px;
+  border-radius: 999px;
+  background: currentColor;
+  content: '';
+}
+
+.base-rail-toggle-item--off::after {
+  opacity: 0.42;
+}
 </style>

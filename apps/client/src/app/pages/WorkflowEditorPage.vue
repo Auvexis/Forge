@@ -20,6 +20,7 @@ import AppWorkbench from '@/shared/components/workbench/AppWorkbench.vue'
 import WorkbenchStatusBar from '@/shared/components/workbench/WorkbenchStatusBar.vue'
 import BaseRail from '@/shared/components/base/BaseRail.vue'
 import BaseRailItem from '@/shared/components/base/BaseRailItem.vue'
+import BaseRailButtonToggleItem from '@/shared/components/base/BaseRailButtonToggleItem.vue'
 import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
 import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
@@ -943,12 +944,11 @@ watch(
               :disabled="workflowStore.isSaving || executionStore.isExecuting || executionStore.isStreaming || !route.params.id"
               @click="handlePublishWorkflow()"
             />
-            <BaseRailItem
-              icon="refresh-cw"
-              :toggle="workflowStore.isAutosaveEnabled ? 'on' : 'off'"
+            <BaseRailButtonToggleItem
+              :model-value="workflowStore.isAutosaveEnabled"
               :title="workflowStore.isAutosaveEnabled ? 'Autosave on' : 'Autosave off'"
               :disabled="executionStore.isExecuting || executionStore.isStreaming || workflowStore.isSaving"
-              @click="workflowStore.setAutosaveEnabled(!workflowStore.isAutosaveEnabled)"
+              @update:model-value="workflowStore.setAutosaveEnabled($event)"
             />
           </section>
 

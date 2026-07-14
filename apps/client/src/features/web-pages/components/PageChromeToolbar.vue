@@ -65,12 +65,11 @@
       </section>
 
       <section class="base-rail__group" aria-label="Edit">
-        <BaseRailItem
-          icon="refresh-cw"
+        <BaseRailButtonToggleItem
+          :model-value="!!isAutosaveEnabled"
           :disabled="isSaving || !resolvedCanUseProjectActions"
-          :toggle="isAutosaveEnabled ? 'on' : 'off'"
           :title="isAutosaveEnabled ? 'Autosave on' : 'Autosave off'"
-          @click="$emit('toggle-autosave', !isAutosaveEnabled)"
+          @update:model-value="$emit('toggle-autosave', $event)"
         />
         <BaseRailItem
           icon="undo-2"
@@ -93,6 +92,7 @@
 import { computed, nextTick, ref } from 'vue'
 import BaseRail from '@/shared/components/base/BaseRail.vue'
 import BaseRailItem from '@/shared/components/base/BaseRailItem.vue'
+import BaseRailButtonToggleItem from '@/shared/components/base/BaseRailButtonToggleItem.vue'
 import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
 import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
 
