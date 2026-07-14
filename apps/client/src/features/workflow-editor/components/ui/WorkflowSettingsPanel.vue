@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -8,8 +8,9 @@ import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import { useWorkflowActions } from '../../composables/useWorkflowActions'
 import { useConfirm } from '@/shared/composables/useConfirm'
+import type { WorkflowItem } from '@/core/types/workflow.types'
 
-const props = defineProps<{
+defineProps<{
   isOpen: boolean
 }>()
 
@@ -20,33 +21,8 @@ const emit = defineEmits<{
 }>()
 
 const workflowStore = useWorkflowStore()
-const { deleteActiveWorkflow, saveWorkflow } = useWorkflowActions()
+const { deleteActiveWorkflow } = useWorkflowActions()
 const { confirm } = useConfirm()
-
-const draft = ref({
-  name: '',
-  description: '',
-  isActive: false,
-  isDraft: false,
-  public: false,
-})
-
-watch(
-  [() => props.isOpen, () => workflowStore.activeWorkflow],
-  ([open]) => {
-    if (!open) return
-    const meta = workflowStore.activeWorkflow?.metadata
-    if (!meta) return
-    draft.value = {
-      name: meta.name ?? '',
-      description: meta.description ?? '',
-      isActive: meta.isActive ?? false,
-      isDraft: meta.isDraft ?? true,
-      public: meta.public ?? false,
-    }
-  },
-  { immediate: true },
-)
 
 const workflowId = computed(() => workflowStore.activeWorkflow?.metadata.id ?? '-')
 const createdAt = computed(() => {
@@ -60,23 +36,41 @@ const updatedAt = computed(() => {
   return new Date(raw).toLocaleString()
 })
 const version = computed(() => workflowStore.activeWorkflow?.metadata.version ?? '-')
-const isSaving = computed(() => workflowStore.isSaving)
 
-async function handleSave() {
-  if (!workflowStore.activeWorkflow) return
-
-  workflowStore.activeWorkflow.metadata = {
-    ...workflowStore.activeWorkflow.metadata,
-    ...draft.value,
+function updateMetadata(patch: Partial<WorkflowItem['metadata']>) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+  workflow.metadata = {
+    ...workflow.metadata,
+    ...patch,
   }
-
-  await saveWorkflow()
 }
+
+const workflowName = computed({
+  get: () => workflowStore.activeWorkflow?.metadata.name ?? '',
+  set: (name: string) => updateMetadata({ name }),
+})
+const workflowDescription = computed({
+  get: () => workflowStore.activeWorkflow?.metadata.description ?? '',
+  set: (description: string) => updateMetadata({ description }),
+})
+const workflowActive = computed({
+  get: () => workflowStore.activeWorkflow?.metadata.isActive ?? false,
+  set: (isActive: boolean) => updateMetadata({ isActive }),
+})
+const workflowDraft = computed({
+  get: () => workflowStore.activeWorkflow?.metadata.isDraft ?? true,
+  set: (isDraft: boolean) => updateMetadata({ isDraft }),
+})
+const workflowPublic = computed({
+  get: () => workflowStore.activeWorkflow?.metadata.public ?? false,
+  set: (isPublic: boolean) => updateMetadata({ public: isPublic }),
+})
 
 async function handleDeleteClick() {
   const ok = await confirm({
     title: 'Delete Workflow',
-    message: `Are you sure you want to permanently delete "${draft.value.name}"? This action cannot be undone.`,
+    message: `Are you sure you want to permanently delete "${workflowName.value || 'this workflow'}"? This action cannot be undone.`,
     confirmText: 'Delete',
     cancelText: 'Cancel',
     variant: 'danger',
@@ -99,27 +93,15 @@ async function handleDeleteClick() {
     @resize="emit('resize', $event)"
     @resize-reset="emit('resizeReset')"
   >
-    <template #actions>
-      <BaseButton
-        size="sm"
-        variant="ghost"
-        icon-left="save"
-        :loading="isSaving"
-        @click="handleSave"
-      >
-        Save
-      </BaseButton>
-    </template>
-
     <div class="wsp-body">
       <section class="wsp-section">
         <h4 class="wsp-section__title">General</h4>
 
         <div class="wsp-fields">
-          <BaseInput v-model="draft.name" label="Name" placeholder="My Workflow" required />
+          <BaseInput v-model="workflowName" label="Name" placeholder="My Workflow" required />
 
           <BaseTextarea
-            v-model="draft.description"
+            v-model="workflowDescription"
             label="Description"
             placeholder="What does this workflow do?"
             :rows="3"
@@ -136,7 +118,7 @@ async function handleDeleteClick() {
               <span class="wsp-switch-row__label">Active</span>
               <span class="wsp-switch-row__hint">Allow this workflow to be triggered</span>
             </div>
-            <BaseSwitch v-model="draft.isActive" />
+            <BaseSwitch v-model="workflowActive" />
           </div>
 
           <div class="wsp-switch-row">
@@ -144,7 +126,7 @@ async function handleDeleteClick() {
               <span class="wsp-switch-row__label">Draft</span>
               <span class="wsp-switch-row__hint">Mark as draft (not published to production)</span>
             </div>
-            <BaseSwitch v-model="draft.isDraft" />
+            <BaseSwitch v-model="workflowDraft" />
           </div>
 
           <div class="wsp-switch-row">
@@ -152,7 +134,7 @@ async function handleDeleteClick() {
               <span class="wsp-switch-row__label">Public</span>
               <span class="wsp-switch-row__hint">Expose this workflow via public API</span>
             </div>
-            <BaseSwitch v-model="draft.public" />
+            <BaseSwitch v-model="workflowPublic" />
           </div>
         </div>
       </section>

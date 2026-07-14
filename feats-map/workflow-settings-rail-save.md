@@ -1,0 +1,3 @@
+- [x] Remover save local do workflow settings
+- [x] Fazer campos alterarem metadata do workflow ativo
+- [x] Validar e commitar
