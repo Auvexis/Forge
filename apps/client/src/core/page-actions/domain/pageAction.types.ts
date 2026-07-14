@@ -62,6 +62,14 @@ export interface PageActionInputBinding {
   createdAt: string
 }
 
+export interface PageActionOutputBinding {
+  id: string
+  actionId: string
+  resultPath: string
+  target: PageActionElementBindingTarget
+  createdAt: string
+}
+
 export interface PageActionRunRequest {
   action: PageActionDefinition
   input: Record<string, unknown>

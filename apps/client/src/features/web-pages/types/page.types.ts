@@ -68,8 +68,17 @@ export interface PageActionInputBinding {
   createdAt: string
 }
 
+export interface PageActionOutputBinding {
+  id: string
+  actionId: string
+  resultPath: string
+  target: PageActionElementBindingTarget
+  createdAt: string
+}
+
 export interface PageActionDocument {
   inputBindings: Record<string, Record<string, PageActionInputBinding>>
+  outputBindings?: Record<string, PageActionOutputBinding[]>
 }
 
 export interface FabricPage {

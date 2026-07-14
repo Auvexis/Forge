@@ -113,6 +113,46 @@
           </div>
         </div>
 
+        <div class="web-page-data-actions__fields web-page-data-actions__fields--outputs">
+          <h5>Outputs</h5>
+          <div class="web-page-data-actions__output-row">
+            <input
+              v-model="outputResultPath"
+              placeholder="executionId"
+            />
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              icon-left="corner-down-right"
+              :disabled="!canBindOutput"
+              @click="bindOutputToSelectedElement"
+            >
+              Bind
+            </BaseButton>
+          </div>
+          <div v-if="outputBindings.length === 0" class="web-page-data-actions__hint">
+            Bind a result path to a selected text, button, or input element.
+          </div>
+          <div
+            v-for="binding in outputBindings"
+            :key="binding.id"
+            class="web-page-data-actions__binding-chip"
+          >
+            <LucideIcon name="arrow-right-left" :size="12" />
+            <span>
+              {{ binding.resultPath }} -> {{ binding.target.label }}
+              <small>{{ binding.target.property }}</small>
+            </span>
+            <button
+              type="button"
+              title="Remove output binding"
+              @click="clearOutputBinding(binding.id)"
+            >
+              <LucideIcon name="x" :size="12" />
+            </button>
+          </div>
+        </div>
+
         <BaseButton
           variant="primary"
           size="sm"
@@ -131,19 +171,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PageActionPickWhipOverlay from './PageActionPickWhipOverlay.vue'
-import { usePageEditorStore } from '../../stores/page-editor.store'
+import { usePageEditorStore } from '../../stores/page-editor.store.ts'
 import { usePageActionsStore } from '../stores/page-actions.store'
 import { usePageActionBindingsStore } from '../stores/page-action-bindings.store'
 import { readPageActionBindingTargetAtPoint, readPageActionBindingTargetValue } from '../utils/bindingTargetDom'
-import { resolvePageActionInputBindings, type PageActionInputField } from '@/core/page-actions'
+import type { PageBlock } from '../../types/page.types.ts'
+import {
+  resolvePageActionInputBindings,
+  resolvePageActionResultPath,
+  type PageActionElementBindingTarget,
+  type PageActionInputField,
+  type PageActionOutputBinding,
+} from '@/core/page-actions'
 
 const store = usePageActionsStore()
 const bindingStore = usePageActionBindingsStore()
 const editorStore = usePageEditorStore()
+const outputResultPath = ref('executionId')
 
 const actionCountLabel = computed(() => {
   const count = store.workflows.reduce((total, workflow) => total + workflow.actions.length, 0)
@@ -151,9 +199,22 @@ const actionCountLabel = computed(() => {
 })
 
 const formattedResult = computed(() => JSON.stringify(store.lastRunResult, null, 2))
+const outputBindings = computed(() => bindingStore.outputBindingsForAction(store.selectedAction?.id))
 const canAttachSelectedAction = computed(() =>
   Boolean(store.selectedAction && editorStore.selectedBlock && ['button', 'form'].includes(editorStore.selectedBlock.tag)),
 )
+const canBindOutput = computed(() =>
+  Boolean(store.selectedAction && outputResultPath.value.trim() && selectedOutputTarget.value),
+)
+const selectedOutputTarget = computed<PageActionElementBindingTarget | null>(() => {
+  const block = editorStore.selectedBlock
+  if (!block || !['text', 'button', 'input'].includes(block.tag)) return null
+  return {
+    elementId: block.id,
+    property: block.tag === 'input' ? 'value' : 'text',
+    label: String(block.props?.label || block.props?.name || block.props?.text || block.elementId || block.id),
+  }
+})
 const attachTargetLabel = computed(() => {
   const block = editorStore.selectedBlock
   if (!block) return 'No element selected'
@@ -221,11 +282,61 @@ function attachSelectedAction() {
   })
 }
 
-function runSelectedAction() {
+function bindOutputToSelectedElement() {
+  if (!store.selectedAction || !selectedOutputTarget.value) return
+  bindingStore.bindOutputToElement(store.selectedAction, outputResultPath.value, selectedOutputTarget.value)
+}
+
+function clearOutputBinding(bindingId: string) {
+  if (!store.selectedAction) return
+  bindingStore.clearOutputBinding(store.selectedAction.id, bindingId)
+}
+
+async function runSelectedAction() {
   if (!store.selectedAction) return
   const bindings = bindingStore.bindingsForAction(store.selectedAction.id)
   const input = resolvePageActionInputBindings(store.draftInput, bindings, readPageActionBindingTargetValue)
-  void store.runSelectedAction(input)
+  const result = await store.runSelectedAction(input)
+  if (result?.ok) applyOutputBindings(result.data, outputBindings.value)
+}
+
+function applyOutputBindings(result: unknown, bindings: PageActionOutputBinding[]) {
+  for (const binding of bindings) {
+    const value = resolvePageActionResultPath(result, binding.resultPath)
+    if (value === undefined) continue
+    patchOutputTarget(binding.target, value)
+  }
+}
+
+function patchOutputTarget(target: PageActionElementBindingTarget, value: unknown) {
+  const block = findBlock(editorStore.blocks, target.elementId)
+  if (!block) return
+  const nextValue = stringifyOutputValue(value)
+  if (target.property === 'value') {
+    editorStore.patchBlock(block.id, {
+      props: { ...(block.props ?? {}), value: nextValue },
+    })
+    return
+  }
+  editorStore.patchBlock(block.id, {
+    props: { ...(block.props ?? {}), text: nextValue },
+  })
+}
+
+function stringifyOutputValue(value: unknown) {
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  if (value == null) return ''
+  return JSON.stringify(value)
+}
+
+function findBlock(blocks: PageBlock[], blockId: string): PageBlock | null {
+  for (const block of blocks) {
+    if (block.id === blockId) return block
+    const child = findBlock(block.children ?? [], blockId)
+    if (child) return child
+  }
+  return null
 }
 
 function removeBindingDragListeners() {

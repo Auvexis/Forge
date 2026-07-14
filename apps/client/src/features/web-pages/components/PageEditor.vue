@@ -913,6 +913,7 @@ watch(
       pageActions: {
         ...(pagesStore.activePage.pageActions ?? {}),
         inputBindings: pageActionBindingsStore.exportBindings(),
+        outputBindings: pageActionBindingsStore.exportOutputBindings(),
       },
     })
   },
@@ -922,6 +923,7 @@ watch(
 function hydratePageActionBindings(page: FabricPage | null) {
   isHydratingPageActionBindings = true
   pageActionBindingsStore.replaceBindings(page?.pageActions?.inputBindings ?? {})
+  pageActionBindingsStore.replaceOutputBindings(page?.pageActions?.outputBindings ?? {})
   void nextTick(() => {
     isHydratingPageActionBindings = false
   })
@@ -1579,6 +1581,7 @@ async function savePage() {
     pageActions: {
       ...(pagesStore.activePage.pageActions ?? {}),
       inputBindings: pageActionBindingsStore.exportBindings(),
+      outputBindings: pageActionBindingsStore.exportOutputBindings(),
     },
     blocks: editorStore.blocks,
   })

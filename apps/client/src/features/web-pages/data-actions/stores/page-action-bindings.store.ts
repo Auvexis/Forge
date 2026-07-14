@@ -1,11 +1,13 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import {
+  createElementOutputBinding,
   createElementInputBinding,
   type PageActionDefinition,
   type PageActionElementBindingTarget,
   type PageActionInputBinding,
   type PageActionInputField,
+  type PageActionOutputBinding,
 } from '@/core/page-actions'
 import type { PageActionDocument } from '../../types/page.types.ts'
 
@@ -18,6 +20,7 @@ export interface PageActionPickWhipState {
 
 export const usePageActionBindingsStore = defineStore('web-page-action-bindings', () => {
   const bindingsByAction = ref<Record<string, Record<string, PageActionInputBinding>>>({})
+  const outputBindingsByAction = ref<Record<string, PageActionOutputBinding[]>>({})
   const pickWhip = ref<PageActionPickWhipState | null>(null)
   const hoveredTarget = ref<PageActionElementBindingTarget | null>(null)
 
@@ -32,12 +35,25 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     bindingsByAction.value = cloneBindings(bindings)
   }
 
+  function replaceOutputBindings(bindings: NonNullable<PageActionDocument['outputBindings']> = {}) {
+    outputBindingsByAction.value = cloneOutputBindings(bindings)
+  }
+
   function exportBindings() {
     return cloneBindings(bindingsByAction.value)
   }
 
+  function exportOutputBindings() {
+    return cloneOutputBindings(outputBindingsByAction.value)
+  }
+
   function bindingForInput(actionId: string | null | undefined, inputKey: string) {
     return bindingsForAction(actionId)[inputKey] ?? null
+  }
+
+  function outputBindingsForAction(actionId: string | null | undefined) {
+    if (!actionId) return []
+    return outputBindingsByAction.value[actionId] ?? []
   }
 
   function startPickWhip(action: PageActionDefinition, field: PageActionInputField, origin: { x: number; y: number }) {
@@ -91,6 +107,26 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     bindingsByAction.value = nextBindings
   }
 
+  function bindOutputToElement(action: PageActionDefinition, resultPath: string, target: PageActionElementBindingTarget) {
+    const normalizedPath = resultPath.trim()
+    if (!normalizedPath) return null
+    const binding = createElementOutputBinding(action, normalizedPath, target)
+    const current = outputBindingsForAction(action.id)
+      .filter((item) => !(item.resultPath === normalizedPath && item.target.elementId === target.elementId))
+    outputBindingsByAction.value = {
+      ...outputBindingsByAction.value,
+      [action.id]: [...current, binding],
+    }
+    return binding
+  }
+
+  function clearOutputBinding(actionId: string, bindingId: string) {
+    outputBindingsByAction.value = {
+      ...outputBindingsByAction.value,
+      [actionId]: outputBindingsForAction(actionId).filter((binding) => binding.id !== bindingId),
+    }
+  }
+
   function cancelPickWhip() {
     pickWhip.value = null
     hoveredTarget.value = null
@@ -98,22 +134,32 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
 
   return {
     bindingsByAction,
+    outputBindingsByAction,
     pickWhip,
     hoveredTarget,
     isPicking,
     bindingsForAction,
     bindingForInput,
+    outputBindingsForAction,
     replaceBindings,
+    replaceOutputBindings,
     exportBindings,
+    exportOutputBindings,
     startPickWhip,
     movePickWhip,
     completePickWhip,
     clearInputBinding,
     clearActionBindings,
+    bindOutputToElement,
+    clearOutputBinding,
     cancelPickWhip,
   }
 })
 
 function cloneBindings(bindings: Record<string, Record<string, PageActionInputBinding>>) {
   return JSON.parse(JSON.stringify(bindings)) as Record<string, Record<string, PageActionInputBinding>>
+}
+
+function cloneOutputBindings(bindings: Record<string, PageActionOutputBinding[]>) {
+  return JSON.parse(JSON.stringify(bindings)) as Record<string, PageActionOutputBinding[]>
 }

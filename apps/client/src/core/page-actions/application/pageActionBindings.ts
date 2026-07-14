@@ -2,6 +2,7 @@ import type {
   PageActionDefinition,
   PageActionElementBindingTarget,
   PageActionInputBinding,
+  PageActionOutputBinding,
 } from '../domain/pageAction.types'
 
 export function createElementInputBinding(
@@ -10,7 +11,7 @@ export function createElementInputBinding(
   target: PageActionElementBindingTarget,
 ): PageActionInputBinding {
   return {
-    id: stableBindingId(action.id, inputKey, target),
+    id: stableBindingId('input', action.id, inputKey, target),
     actionId: action.id,
     inputKey,
     source: 'element',
@@ -31,6 +32,36 @@ export function resolvePageActionInputBindings(
   return resolved
 }
 
-function stableBindingId(actionId: string, inputKey: string, target: PageActionElementBindingTarget) {
-  return `page-action-binding:${actionId}:${inputKey}:${target.elementId}:${target.property}`
+export function createElementOutputBinding(
+  action: PageActionDefinition,
+  resultPath: string,
+  target: PageActionElementBindingTarget,
+): PageActionOutputBinding {
+  return {
+    id: stableBindingId('output', action.id, resultPath, target),
+    actionId: action.id,
+    resultPath,
+    target,
+    createdAt: new Date().toISOString(),
+  }
+}
+
+export function resolvePageActionResultPath(result: unknown, path: string): unknown {
+  const segments = path.split('.').map((segment) => segment.trim()).filter(Boolean)
+  if (segments.length === 0) return result
+  let value = result
+  for (const segment of segments) {
+    if (value == null) return undefined
+    if (/^\d+$/.test(segment) && Array.isArray(value)) {
+      value = value[Number(segment)]
+      continue
+    }
+    if (typeof value !== 'object') return undefined
+    value = (value as Record<string, unknown>)[segment]
+  }
+  return value
+}
+
+function stableBindingId(kind: 'input' | 'output', actionId: string, key: string, target: PageActionElementBindingTarget) {
+  return `page-action-${kind}-binding:${actionId}:${key}:${target.elementId}:${target.property}`
 }

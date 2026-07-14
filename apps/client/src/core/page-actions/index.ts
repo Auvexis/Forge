@@ -5,6 +5,7 @@ export type {
   PageActionElementBindingTarget,
   PageActionInputBinding,
   PageActionInputField,
+  PageActionOutputBinding,
   PageActionReturnField,
   PageActionRunRequest,
   PageActionRunResult,
@@ -16,7 +17,9 @@ export type {
 } from './domain/pageAction.types'
 export {
   createElementInputBinding,
+  createElementOutputBinding,
   resolvePageActionInputBindings,
+  resolvePageActionResultPath,
 } from './application/pageActionBindings'
 export {
   buildDefaultActionInput,
