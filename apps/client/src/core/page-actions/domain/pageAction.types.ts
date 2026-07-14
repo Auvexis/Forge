@@ -1,6 +1,7 @@
 export type PageActionTriggerType = 'manual' | 'form' | 'webhook'
 export type PageActionInputPrimitive = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file'
 export type PageActionRunStatus = 'idle' | 'running' | 'success' | 'error'
+export type PageActionBindableElementProperty = 'value' | 'checked' | 'text'
 
 export interface PageActionInputField {
   key: string
@@ -44,6 +45,21 @@ export interface PageActionDefinition {
   triggerType: PageActionTriggerType
   inputs: PageActionInputField[]
   returns: PageActionReturnField[]
+}
+
+export interface PageActionElementBindingTarget {
+  elementId: string
+  property: PageActionBindableElementProperty
+  label: string
+}
+
+export interface PageActionInputBinding {
+  id: string
+  actionId: string
+  inputKey: string
+  source: 'element'
+  target: PageActionElementBindingTarget
+  createdAt: string
 }
 
 export interface PageActionRunRequest {

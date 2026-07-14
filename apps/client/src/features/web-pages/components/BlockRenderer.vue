@@ -3,9 +3,11 @@
     ref="frameElementRef"
     class="web-page-block-frame"
     :data-block-id="block.id"
+    v-bind="bindingTargetAttributes"
     :class="{
       'web-page-block-frame--selected': isSelectedBlock,
       'web-page-block-frame--deleting': deletingBlockIds?.includes(block.id),
+      'web-page-block-frame--binding-target': isBindingTarget,
     }"
   >
     <span
@@ -238,6 +240,16 @@ const blockAttributes = computed(() => ({
   ...sanitizeAttributes(props.block.attributes ?? {}),
   ...renderPropAttributes(props.block),
 }))
+const isBindingTarget = computed(() => props.block.tag === 'input')
+const bindingTargetAttributes = computed(() => {
+  if (!isBindingTarget.value) return {}
+  return {
+    'data-page-action-binding-target': 'true',
+    'data-page-action-binding-element-id': props.block.id,
+    'data-page-action-binding-property': inputBindingProperty(props.block),
+    'data-page-action-binding-label': bindingTargetLabel(props.block),
+  }
+})
 const frameElementRef = ref<HTMLElement | null>(null)
 const blockElementRef = ref<HTMLElement | null>(null)
 const previewStyles = ref<PageBlock['styles'] | null>(null)
@@ -763,6 +775,15 @@ function renderPropAttributes(block: PageBlock): Record<string, string | number 
     }
   }
   return {}
+}
+
+function inputBindingProperty(block: PageBlock): 'value' | 'checked' {
+  return block.props?.type === 'checkbox' ? 'checked' : 'value'
+}
+
+function bindingTargetLabel(block: PageBlock): string {
+  const label = block.props?.label || block.props?.name || block.elementId || block.id
+  return String(label)
 }
 
 function resolveMediaUrl(value: string): string {

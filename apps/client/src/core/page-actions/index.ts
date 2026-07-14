@@ -1,6 +1,9 @@
 export type {
   PageActionCatalogGateway,
+  PageActionBindableElementProperty,
   PageActionDefinition,
+  PageActionElementBindingTarget,
+  PageActionInputBinding,
   PageActionInputField,
   PageActionReturnField,
   PageActionRunRequest,
@@ -11,6 +14,9 @@ export type {
   PageActionTriggerType,
   PageActionWorkflowSummary,
 } from './domain/pageAction.types'
+export {
+  createElementInputBinding,
+} from './application/pageActionBindings'
 export {
   buildDefaultActionInput,
   createPageActionDefinition,
