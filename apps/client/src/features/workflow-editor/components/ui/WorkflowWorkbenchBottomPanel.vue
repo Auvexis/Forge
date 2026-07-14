@@ -309,6 +309,24 @@ const orderedTimelineNodes = computed(() => {
     }
   }
 
+  const alignLinearChains = () => {
+    const ordered = [...placements].sort((a, b) => a.column - b.column)
+    for (const placement of ordered) {
+      const parentPlacements = (parentIdsByChild.value.get(placement.id) ?? [])
+        .map((parentId) => placementById.get(parentId))
+        .filter((parent): parent is WorkflowTimelinePlacement => parent !== undefined)
+      if (parentPlacements.length !== 1) continue
+
+      const parent = parentPlacements[0]!
+      const parentChildPlacements = (childIdsByParent.value.get(parent.id) ?? [])
+        .map((childId) => placementById.get(childId))
+        .filter((child): child is WorkflowTimelinePlacement => child !== undefined)
+      if (parentChildPlacements.length !== 1) continue
+
+      placement.lane = parent.lane
+    }
+  }
+
   const separateColumnCollisions = () => {
     for (const columnPlacements of placementsByColumn().values()) {
       const laneGroups = new Map<string, WorkflowTimelinePlacement[]>()
@@ -341,8 +359,10 @@ const orderedTimelineNodes = computed(() => {
   }
 
   centerMergesFromParents()
+  alignLinearChains()
   separateColumnCollisions()
   centerSplitsFromChildren()
+  alignLinearChains()
   separateColumnCollisions()
 
   const orderedPlacements = [...placements].sort((a, b) => a.column - b.column || a.lane - b.lane || a.positionY - b.positionY)

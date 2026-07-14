@@ -1,0 +1,3 @@
+- [x] Preservar lane em cadeia linear da timeline
+- [x] Cobrir contrato do layout
+- [x] Validar e commitar
