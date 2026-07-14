@@ -1,0 +1,3 @@
+- [x] Criar grupo visual para branches que convergem
+- [x] Renderizar grupo sem parecer node executavel
+- [x] Validar e commitar

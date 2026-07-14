@@ -5,7 +5,7 @@ export interface ExecutionRunTreeNode {
   id: string
   nodeId: string
   parentId: string | null
-  kind?: 'node' | 'error'
+  kind?: 'node' | 'error' | 'group'
   name: string
   type: string
   icon: string

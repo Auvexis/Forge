@@ -37,7 +37,18 @@ function activate(node: ExecutionRunTreeNode) {
         'execution-node-tree__branch--has-next': index < props.nodes.length - 1,
       }"
     >
+      <div v-if="node.kind === 'group'" class="execution-node-tree__group">
+        <LucideIcon
+          :name="node.icon"
+          :size="14"
+          class="execution-node-tree__group-icon"
+          :style="{ color: node.iconColor }"
+        />
+        <span>{{ node.name }}</span>
+      </div>
+
       <BaseButton
+        v-else
         class="execution-node-tree__row"
         :class="{
           'execution-node-tree__row--active': node.nodeId === props.selectedNodeId,
@@ -138,6 +149,22 @@ function activate(node: ExecutionRunTreeNode) {
   margin-left: var(--fabric-space-2);
   padding: var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
+}
+.execution-node-tree__group {
+  display: inline-flex;
+  width: 280px;
+  min-height: 24px;
+  align-items: center;
+  gap: var(--fabric-space-2);
+  margin-left: var(--fabric-space-2);
+  padding: 0 var(--fabric-space-2);
+  color: var(--fabric-text-muted);
+  font-family: var(--fabric-font-mono);
+  font-size: 9px;
+  text-transform: uppercase;
+}
+.execution-node-tree__group-icon {
+  flex: 0 0 auto;
 }
 .execution-node-tree__row :deep(.base-button__label) {
   width: 100%;

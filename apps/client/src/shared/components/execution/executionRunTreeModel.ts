@@ -148,19 +148,65 @@ export function buildExecutionRunDetail(input: {
     visualId: string,
     ancestors: Set<string>,
     includeGraphChildren = true,
+    suppressedChildIds = new Set<string>(),
   ): ExecutionRunTreeNode | null => {
     if (ancestors.has(nodeId)) return null
     const step = steps[nodeId]
     if (!step) return null
     const node = createTreeNode(nodeId, step, input.workflow, parentId, input.nodePresentations)
     node.id = visualId
-    if (includeGraphChildren) attachChildren(node, ancestors)
+    if (includeGraphChildren) attachChildren(node, ancestors, suppressedChildIds)
     return node
   }
 
-  const attachChildren = (node: ExecutionRunTreeNode, ancestors: Set<string>) => {
+  const createJoinGroup = (
+    parentNode: ExecutionRunTreeNode,
+    sharedChildId: string,
+    participantIds: string[],
+    ancestors: Set<string>,
+  ): ExecutionRunTreeNode | null => {
+    const nextAncestors = new Set(ancestors).add(parentNode.nodeId)
+    const suppressedChildIds = new Set([sharedChildId])
+    const participantNodes = participantIds
+      .map((participantId) => instantiateTreeNode(
+        participantId,
+        parentNode.nodeId,
+        `${parentNode.id}>join:${sharedChildId}>${participantId}`,
+        nextAncestors,
+        true,
+        suppressedChildIds,
+      ))
+      .filter((child): child is ExecutionRunTreeNode => child !== null)
+    const sharedChild = instantiateTreeNode(
+      sharedChildId,
+      parentNode.nodeId,
+      `${parentNode.id}>join:${sharedChildId}`,
+      nextAncestors,
+    )
+    if (!sharedChild || participantNodes.length < 2) return null
+    return createGroupTreeNode(
+      `${parentNode.id}>group:${sharedChildId}`,
+      parentNode.nodeId,
+      `${participantNodes.length} branches join`,
+      [...participantNodes, sharedChild],
+    )
+  }
+
+  const attachChildren = (
+    node: ExecutionRunTreeNode,
+    ancestors: Set<string>,
+    suppressedChildIds = new Set<string>(),
+  ) => {
     const nextAncestors = new Set(ancestors).add(node.nodeId)
-    const directChildren = (childIdsByParent.get(node.nodeId) ?? [])
+    const directChildIds = childIdsByParent.get(node.nodeId) ?? []
+    const joinChildIds = executedIds.filter((id) => {
+      const parents = parentIdsByChild.get(id) ?? []
+      return parents.length > 1 && parents.every((parentId) => directChildIds.includes(parentId))
+    })
+    const groupedParentIds = new Set(joinChildIds.flatMap((id) => parentIdsByChild.get(id) ?? []))
+    const directChildren = directChildIds
+      .filter((id) => !suppressedChildIds.has(id))
+      .filter((id) => !groupedParentIds.has(id))
       .filter((id) => {
         const parents = parentIdsByChild.get(id) ?? []
         return parents.length < 2 || getVisualParentId(id) === node.nodeId
@@ -175,7 +221,11 @@ export function buildExecutionRunDetail(input: {
         )
       })
       .filter((child): child is ExecutionRunTreeNode => child !== null)
-    node.children = [...node.children, ...graphChildren]
+    const joinGroups = joinChildIds
+      .filter((id) => !suppressedChildIds.has(id))
+      .map((id) => createJoinGroup(node, id, parentIdsByChild.get(id) ?? [], ancestors))
+      .filter((child): child is ExecutionRunTreeNode => child !== null)
+    node.children = [...node.children, ...graphChildren, ...joinGroups]
   }
 
   const roots = executedIds
@@ -268,6 +318,27 @@ function createErrorTreeNode(parentId: string, error: string): ExecutionRunTreeN
     durationMs: null,
     error,
     children: [],
+  }
+}
+
+function createGroupTreeNode(
+  id: string,
+  parentId: string,
+  name: string,
+  children: ExecutionRunTreeNode[],
+): ExecutionRunTreeNode {
+  return {
+    id,
+    nodeId: id,
+    parentId,
+    kind: 'group',
+    name,
+    type: 'group',
+    icon: 'git-merge',
+    iconColor: 'var(--fabric-text-muted)',
+    status: 'idle',
+    durationMs: null,
+    children,
   }
 }
 
