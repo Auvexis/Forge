@@ -105,7 +105,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
@@ -151,8 +151,9 @@ const agentPanelStore = useAgentPanelStore()
 const commandPaletteStore = useCommandPaletteStore()
 const startGuide = useStartGuide()
 const route = useRoute()
+const SIDEBAR_COLLAPSED_STORAGE_KEY = 'fabric:app-sidebar-collapsed'
 const isPublicRoute = computed(() => route.meta.public === true)
-const isSidebarCollapsed = ref(false)
+const isSidebarCollapsed = ref(readStoredSidebarCollapsed())
 const isPluginInstallerOpen = ref(false)
 const isProfileSettingsOpen = ref(false)
 const hasEnteredProfile = ref(false)
@@ -180,6 +181,16 @@ function isSidebarNavItemActive(item: SidebarNavItem) {
   return item.intent?.type === 'plugin-installer.open' && isPluginInstallerOpen.value
 }
 
+function readStoredSidebarCollapsed() {
+  if (typeof localStorage === 'undefined') return false
+  return localStorage.getItem(SIDEBAR_COLLAPSED_STORAGE_KEY) === 'true'
+}
+
+function persistSidebarCollapsed(isCollapsed: boolean) {
+  if (typeof localStorage === 'undefined') return
+  localStorage.setItem(SIDEBAR_COLLAPSED_STORAGE_KEY, String(isCollapsed))
+}
+
 function openPluginInstallerPanel() {
   isPluginInstallerOpen.value = true
 }
@@ -200,6 +211,8 @@ function handleUiIntent(event: Event) {
 function handleProfileIntent() {
   isProfileSettingsOpen.value = true
 }
+
+watch(isSidebarCollapsed, persistSidebarCollapsed)
 
 onMounted(() => {
   window.addEventListener('fabric:command-palette:intent', handleUiIntent)
