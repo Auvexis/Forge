@@ -11,7 +11,10 @@
       <PageProjectTopbarDropdown
         :active-project="sitesStore.activeSite"
         :projects="sitesStore.sites"
-        @open="listTopbarProjects"
+        :is-open="isOpenProjectModalOpen"
+        :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
+        :is-saving="pagesStore.isSaving || sitesStore.isSaving"
+        @open="openProjectFromTopbar"
         @select-project="openProject"
       />
     </Teleport>
@@ -1343,8 +1346,8 @@ async function openOpenProjectModal() {
   await loadProjectPreviews()
 }
 
-async function listTopbarProjects() {
-  await sitesStore.listSites()
+async function openProjectFromTopbar() {
+  await openOpenProjectModal()
 }
 
 async function loadProjectPreviews() {
@@ -1540,8 +1543,13 @@ async function savePage() {
   if (!pagesStore.activePage) return
   const selection = editorStore.selectedTarget
   const selectedBlockIds = [...editorStore.selectedBlockIds]
+  const previousSlug = pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.slug
+  const nextSlug = pagesStore.activePage.slug
   pagesStore.setActivePage({ ...pagesStore.activePage, blocks: editorStore.blocks })
   await pagesStore.saveActivePage()
+  if (previousSlug && previousSlug !== nextSlug && sitesStore.renamePageFiles(previousSlug, nextSlug)) {
+    await sitesStore.saveActiveSite()
+  }
   editorStore.markSaved()
   restoreSelection(selection, selectedBlockIds)
 }

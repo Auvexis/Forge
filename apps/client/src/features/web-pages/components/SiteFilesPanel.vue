@@ -13,7 +13,7 @@
         :style="{ '--depth': String(node.depth) }"
         @click="node.file.kind === 'folder' ? toggleFolder(node.path) : $emit('open-file', node.file)"
       >
-        <span v-if="node.depth > 0" class="web-page-site-files__guide" />
+        <span v-if="node.depth > 0 && node.file.kind !== 'folder'" class="web-page-site-files__guide" />
         <LucideIcon
           v-if="node.file.kind === 'folder'"
           class="web-page-site-files__chevron"

@@ -151,6 +151,24 @@ export const useSitesStore = defineStore('web-sites', () => {
     return true
   }
 
+  function renamePageFiles(previousSlug: string, nextSlug: string) {
+    if (!activeSite.value || previousSlug === nextSlug) return false
+    const previousPrefix = `pages/${previousSlug}`
+    const nextPrefix = `pages/${nextSlug}`
+    let changed = false
+    const renamed = activeSite.value.files.map((file) => {
+      if (file.path !== previousPrefix && !file.path.startsWith(`${previousPrefix}/`)) return file
+      changed = true
+      const nextPath = file.path
+        .replace(previousPrefix, nextPrefix)
+        .replace(new RegExp(`/${escapeRegExp(previousSlug)}\\.(css|js)$`), `/${nextSlug}.$1`)
+      return { ...file, path: nextPath, updatedAt: now() }
+    })
+    if (!changed) return false
+    activeSite.value.files = dedupeFilesByPath(renamed)
+    return true
+  }
+
   async function uploadAsset(file: File) {
     if (!activeSite.value) return null
     const uploaded = await apiClient.value.uploadSiteAsset(activeSite.value.id, file)
@@ -211,6 +229,7 @@ export const useSitesStore = defineStore('web-sites', () => {
     createFile,
     updateFile,
     deleteFile,
+    renamePageFiles,
     uploadAsset,
     exportActiveSiteProject,
     exportSiteProject,
@@ -228,4 +247,12 @@ function snapshot(value: unknown): string {
 
 function now(): string {
   return new Date().toISOString()
+}
+
+function dedupeFilesByPath(files: SiteFile[]): SiteFile[] {
+  return [...new Map(files.map((file) => [file.path, file])).values()]
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
