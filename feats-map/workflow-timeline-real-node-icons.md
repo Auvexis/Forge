@@ -1,0 +1,4 @@
+- [x] Carregar apresentacao real dos nodes da timeline
+- [x] Renderizar icones por manifest/catalogo
+- [x] Cobrir contrato e validar
+- [x] Commitar

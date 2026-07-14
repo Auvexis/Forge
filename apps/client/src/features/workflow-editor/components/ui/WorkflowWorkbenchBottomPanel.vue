@@ -1,10 +1,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import ExecutionBottomPanel from '../execution/ExecutionBottomPanel.vue'
+import { pluginsApi } from '@/core/api/plugins.api'
+import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { NodeExecutionStatus } from '@/core/types/execution.types'
+import type { PluginSummary } from '@/core/types/plugin.types'
+import type { WorkflowNodeCatalogItem } from '@/core/types/workflow-node-catalog.types'
+import type { WorkflowNode } from '@/core/types/workflow.types'
+import { useTheme } from '@/shared/composables/useTheme'
+import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
 export type WorkflowBottomPanelView = 'timeline' | 'tree' | 'execution' | 'variables'
 
@@ -17,6 +24,8 @@ interface WorkflowTimelineNode {
   lane: number
   column: number
   color: string
+  icon: string
+  iconColor: string
   parentId: string | null
   rootId: string
   status: TimelineNodeStatus
@@ -60,6 +69,13 @@ interface WorkflowTimelineEntryPoint {
   eventCount: number
   status: TimelineNodeStatus
   isActive: boolean
+  icon: string
+  iconColor: string
+}
+
+interface WorkflowTimelineNodePresentation {
+  icon: string
+  iconColor: string
 }
 
 const props = defineProps<{
@@ -78,6 +94,8 @@ const emit = defineEmits<{
 const workflowStore = useWorkflowStore()
 const executionStore = useExecutionStore()
 const timelineTrackRef = ref<HTMLElement | null>(null)
+const nodePresentations = ref<Record<string, WorkflowTimelineNodePresentation>>({})
+const { isDark } = useTheme()
 
 const workflowNodes = computed(() =>
   Object.entries(workflowStore.activeWorkflow?.nodes ?? {}).map(([id, node]) => ({
@@ -114,6 +132,72 @@ const TIMELINE_COLORS = [
   '#ec4899',
   '#06b6d4',
 ]
+const TRIGGER_PRESENTATION: Record<string, WorkflowTimelineNodePresentation> = {
+  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--fabric-text-primary)' },
+  webhook: { icon: 'webhook', iconColor: 'rgb(16, 185, 129)' },
+  cron: { icon: 'clock', iconColor: 'rgb(138, 82, 255)' },
+  form: { icon: 'clipboard-list', iconColor: 'rgb(236, 72, 153)' },
+  chat: { icon: 'message-circle', iconColor: 'rgb(20, 184, 166)' },
+}
+
+function nodePluginId(node: WorkflowNode): string | undefined {
+  if (node.type === 'trigger') {
+    return node.trigger?.type === 'plugin' ? node.trigger.pluginId : undefined
+  }
+  return 'pluginId' in node && typeof node.pluginId === 'string' ? node.pluginId : undefined
+}
+
+function presentationForNode(
+  node: WorkflowNode,
+  catalogByType: Map<string, WorkflowNodeCatalogItem>,
+  pluginsById: Map<string, PluginSummary>,
+): WorkflowTimelineNodePresentation {
+  const fallback = node.ui?.icon ?? iconForNodeType(node.type)
+  const pluginId = nodePluginId(node)
+  const plugin = pluginId ? pluginsById.get(pluginId) : undefined
+  if (plugin) {
+    const metadata = plugin.manifest.metadata
+    return {
+      icon: resolvePluginIcon(metadata, { isDark: isDark.value, fallback }),
+      iconColor: metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)',
+    }
+  }
+
+  if (node.type === 'trigger') {
+    const triggerType = node.trigger?.type ?? 'manual'
+    return TRIGGER_PRESENTATION[triggerType] ?? { icon: fallback, iconColor: 'var(--fabric-text-primary)' }
+  }
+
+  const style = catalogByType.get(node.type)?.style
+  return {
+    icon: node.ui?.icon ?? style?.icon ?? fallback,
+    iconColor: style?.iconColor ?? 'var(--fabric-text-secondary)',
+  }
+}
+
+async function loadNodePresentations() {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) {
+    nodePresentations.value = {}
+    return
+  }
+
+  const [catalogResult, pluginsResult] = await Promise.allSettled([
+    workflowNodesApi.getCatalog(),
+    pluginsApi.getAll(),
+  ])
+  const catalog = catalogResult.status === 'fulfilled' ? catalogResult.value.nodes : []
+  const plugins = pluginsResult.status === 'fulfilled' ? pluginsResult.value : []
+  const catalogByType = new Map(catalog.map((item) => [item.type, item]))
+  const pluginsById = new Map(plugins.map((plugin) => [plugin.id, plugin]))
+
+  nodePresentations.value = Object.fromEntries(
+    Object.entries(workflow.nodes).map(([nodeId, node]) => [
+      nodeId,
+      presentationForNode(node as WorkflowNode, catalogByType, pluginsById),
+    ]),
+  )
+}
 const activeTimelineNodeId = computed<string>(() => {
   if (timelineCursorIndex.value !== null) return orderedTimelineNodes.value[timelineCursorIndex.value]?.id ?? latestTimelineNodeId.value
   return latestTimelineNodeId.value
@@ -199,6 +283,8 @@ const timelineEntryPoints = computed<WorkflowTimelineEntryPoint[]>(() => {
       id: 'all',
       name: 'All entry points',
       type: 'workspace',
+      icon: iconForNodeType('workspace'),
+      iconColor: 'var(--fabric-text-secondary)',
       nodeCount: allNodeIds.size,
       eventCount: eventCountFor(allNodeIds),
       status: resolveStatus(allNodeIds),
@@ -210,6 +296,8 @@ const timelineEntryPoints = computed<WorkflowTimelineEntryPoint[]>(() => {
         id: node.id,
         name: node.name,
         type: node.type,
+        icon: nodePresentations.value[node.id]?.icon ?? iconForNodeType(node.type),
+        iconColor: nodePresentations.value[node.id]?.iconColor ?? 'var(--fabric-text-secondary)',
         nodeCount: nodeIds.size,
         eventCount: eventCountFor(nodeIds),
         status: resolveStatus(nodeIds),
@@ -377,6 +465,8 @@ const orderedTimelineNodes = computed(() => {
     lane: normalizedLaneByValue.get(placement.lane) ?? 0,
     column: placement.column,
     color: TIMELINE_COLORS[index % TIMELINE_COLORS.length] ?? '#4f8cff',
+    icon: nodePresentations.value[placement.id]?.icon ?? iconForNodeType(nodesById.get(placement.id)?.type ?? 'unknown'),
+    iconColor: nodePresentations.value[placement.id]?.iconColor ?? 'var(--fabric-text-secondary)',
     parentId: placement.parentId,
     rootId: placement.rootId,
   }))
@@ -748,6 +838,7 @@ watch(timelineEntryPoints, (entryPoints) => {
   if (entryPoints.some((entry) => entry.id === selectedTimelineEntryId.value)) return
   selectedTimelineEntryId.value = 'all'
 })
+watch([() => workflowStore.activeWorkflow, isDark], loadNodePresentations, { immediate: true })
 
 watch(
   () => props.focusedNodeId,
@@ -807,7 +898,7 @@ onBeforeUnmount(() => {
             type="button"
             @click="selectTimelineEntry(entry.id)"
           >
-            <LucideIcon :name="iconForNodeType(entry.type)" :size="14" />
+            <LucideIcon :name="entry.icon" :size="14" :style="{ color: entry.iconColor }" />
             <span>{{ entry.name }}</span>
             <code>{{ entry.nodeCount }} nodes</code>
             <small>{{ entry.eventCount }} events</small>
@@ -899,7 +990,7 @@ onBeforeUnmount(() => {
               @keydown.enter.prevent="selectTimelineNode(node.id)"
               @keydown.space.prevent="selectTimelineNode(node.id)"
             >
-              <LucideIcon :name="iconForNodeType(node.type)" :size="14" />
+              <LucideIcon :name="node.icon" :size="14" :style="{ color: node.iconColor }" />
               <span>{{ node.name }}</span>
               <code v-if="durationLabel(node.duration)" class="workflow-timeline__duration">
                 {{ durationLabel(node.duration) }}
