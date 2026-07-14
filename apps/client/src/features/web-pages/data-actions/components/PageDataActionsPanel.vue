@@ -173,6 +173,47 @@
           </div>
         </div>
 
+        <div class="web-page-data-actions__fields web-page-data-actions__fields--collections">
+          <h5>Collections</h5>
+          <div class="web-page-data-actions__output-row">
+            <input
+              v-model="collectionResultPath"
+              placeholder="fruits"
+              list="page-action-return-fields"
+            />
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              icon-left="repeat"
+              :disabled="!canBindCollection"
+              @click="bindCollectionToSelectedElement"
+            >
+              Bind
+            </BaseButton>
+          </div>
+          <div v-if="collectionBindings.length === 0" class="web-page-data-actions__hint">
+            Bind an array result to a selected container. Children can use item.name paths.
+          </div>
+          <div
+            v-for="binding in collectionBindings"
+            :key="binding.id"
+            class="web-page-data-actions__binding-chip"
+          >
+            <LucideIcon name="repeat" :size="12" />
+            <span>
+              {{ binding.collectionPath }} -> {{ binding.targetElementId }}
+              <small>{{ binding.itemAlias }}</small>
+            </span>
+            <button
+              type="button"
+              title="Remove collection binding"
+              @click="clearCollectionBinding(binding.id)"
+            >
+              <LucideIcon name="x" :size="12" />
+            </button>
+          </div>
+        </div>
+
         <BaseButton
           variant="primary"
           size="sm"
@@ -212,6 +253,7 @@ const store = usePageActionsStore()
 const bindingStore = usePageActionBindingsStore()
 const editorStore = usePageEditorStore()
 const outputResultPath = ref('executionId')
+const collectionResultPath = ref('fruits')
 
 const actionCountLabel = computed(() => {
   const count = store.workflows.reduce((total, workflow) => total + workflow.actions.length, 0)
@@ -220,6 +262,7 @@ const actionCountLabel = computed(() => {
 
 const formattedResult = computed(() => JSON.stringify(store.lastRunResult, null, 2))
 const outputBindings = computed(() => bindingStore.outputBindingsForAction(store.selectedAction?.id))
+const collectionBindings = computed(() => bindingStore.collectionBindingsForAction(store.selectedAction?.id))
 const canAttachSelectedAction = computed(() =>
   Boolean(store.selectedAction && editorStore.selectedBlock && ['button', 'form'].includes(editorStore.selectedBlock.tag)),
 )
@@ -229,6 +272,14 @@ const isSelectedActionAttached = computed(() =>
 const canBindOutput = computed(() =>
   Boolean(store.selectedAction && outputResultPath.value.trim() && selectedOutputTarget.value),
 )
+const canBindCollection = computed(() =>
+  Boolean(store.selectedAction && collectionResultPath.value.trim() && selectedCollectionTarget.value),
+)
+const selectedCollectionTarget = computed(() => {
+  const block = editorStore.selectedBlock
+  if (!block || !['header', 'section', 'div', 'footer', 'form'].includes(block.tag)) return null
+  return block.id
+})
 const selectedOutputTarget = computed<PageActionElementBindingTarget | null>(() => {
   const block = editorStore.selectedBlock
   if (!block || !['text', 'button', 'input'].includes(block.tag)) return null
@@ -317,6 +368,16 @@ function clearOutputBinding(bindingId: string) {
   bindingStore.clearOutputBinding(store.selectedAction.id, bindingId)
 }
 
+function bindCollectionToSelectedElement() {
+  if (!store.selectedAction || !selectedCollectionTarget.value) return
+  bindingStore.bindCollectionToElement(store.selectedAction, collectionResultPath.value, selectedCollectionTarget.value)
+}
+
+function clearCollectionBinding(bindingId: string) {
+  if (!store.selectedAction) return
+  bindingStore.clearCollectionBinding(store.selectedAction.id, bindingId)
+}
+
 async function runSelectedAction() {
   if (!store.selectedAction) return
   const bindings = bindingStore.bindingsForAction(store.selectedAction.id)
@@ -385,6 +446,7 @@ watch(
   () => store.selectedAction?.id,
   () => {
     outputResultPath.value = store.selectedAction?.returns[0]?.key ?? 'executionId'
+    collectionResultPath.value = store.selectedAction?.returns[0]?.key ?? 'items'
   },
 )
 

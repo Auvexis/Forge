@@ -914,6 +914,7 @@ watch(
         ...(pagesStore.activePage.pageActions ?? {}),
         inputBindings: pageActionBindingsStore.exportBindings(),
         outputBindings: pageActionBindingsStore.exportOutputBindings(),
+        collectionBindings: pageActionBindingsStore.exportCollectionBindings(),
       },
     })
   },
@@ -924,6 +925,7 @@ function hydratePageActionBindings(page: FabricPage | null) {
   isHydratingPageActionBindings = true
   pageActionBindingsStore.replaceBindings(page?.pageActions?.inputBindings ?? {})
   pageActionBindingsStore.replaceOutputBindings(page?.pageActions?.outputBindings ?? {})
+  pageActionBindingsStore.replaceCollectionBindings(page?.pageActions?.collectionBindings ?? {})
   void nextTick(() => {
     isHydratingPageActionBindings = false
   })
@@ -1582,6 +1584,7 @@ async function savePage() {
       ...(pagesStore.activePage.pageActions ?? {}),
       inputBindings: pageActionBindingsStore.exportBindings(),
       outputBindings: pageActionBindingsStore.exportOutputBindings(),
+      collectionBindings: pageActionBindingsStore.exportCollectionBindings(),
     },
     blocks: editorStore.blocks,
   })

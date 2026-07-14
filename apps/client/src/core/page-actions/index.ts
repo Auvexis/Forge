@@ -6,6 +6,7 @@ export type {
   PageActionInputBinding,
   PageActionInputField,
   PageActionOutputBinding,
+  PageActionCollectionBinding,
   PageActionReturnField,
   PageActionRunRequest,
   PageActionRunResult,

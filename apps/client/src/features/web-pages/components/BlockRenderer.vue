@@ -240,13 +240,13 @@ const blockAttributes = computed(() => ({
   ...sanitizeAttributes(props.block.attributes ?? {}),
   ...renderPropAttributes(props.block),
 }))
-const isBindingTarget = computed(() => props.block.tag === 'input')
+const isBindingTarget = computed(() => ['input', 'text', 'button', 'link'].includes(props.block.tag))
 const bindingTargetAttributes = computed(() => {
   if (!isBindingTarget.value) return {}
   return {
     'data-page-action-binding-target': 'true',
     'data-page-action-binding-element-id': props.block.id,
-    'data-page-action-binding-property': inputBindingProperty(props.block),
+    'data-page-action-binding-property': bindingProperty(props.block),
     'data-page-action-binding-label': bindingTargetLabel(props.block),
   }
 })
@@ -777,7 +777,8 @@ function renderPropAttributes(block: PageBlock): Record<string, string | number 
   return {}
 }
 
-function inputBindingProperty(block: PageBlock): 'value' | 'checked' {
+function bindingProperty(block: PageBlock): 'value' | 'checked' | 'text' {
+  if (block.tag !== 'input') return 'text'
   return block.props?.type === 'checkbox' ? 'checked' : 'value'
 }
 

@@ -70,6 +70,15 @@ export interface PageActionOutputBinding {
   createdAt: string
 }
 
+export interface PageActionCollectionBinding {
+  id: string
+  actionId: string
+  collectionPath: string
+  targetElementId: string
+  itemAlias: string
+  createdAt: string
+}
+
 export interface PageActionRunRequest {
   action: PageActionDefinition
   input: Record<string, unknown>
