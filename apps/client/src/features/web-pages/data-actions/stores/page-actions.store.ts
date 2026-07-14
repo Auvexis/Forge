@@ -27,10 +27,7 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
     error.value = null
     try {
       workflows.value = await workflowPageActionGateway.listAvailableActions()
-      if (!selectedAction.value) {
-        const firstAction = workflows.value.flatMap((workflow) => workflow.actions)[0]
-        if (firstAction) selectTrigger(firstAction)
-      }
+      if (selectedAction.value && !hasLoadedAction(selectedAction.value)) clearSelection()
     } catch (caught) {
       error.value = caught instanceof Error ? caught.message : 'Failed to load page actions.'
     } finally {
@@ -44,6 +41,20 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
     lastRunResult.value = null
     status.value = 'idle'
     error.value = null
+  }
+
+  function clearSelection() {
+    selectedAction.value = null
+    draftInput.value = {}
+    lastRunResult.value = null
+    status.value = 'idle'
+    error.value = null
+  }
+
+  function hasLoadedAction(action: PageActionDefinition) {
+    return workflows.value.some((workflow) =>
+      workflow.id === action.workflowId && workflow.actions.some((trigger) => trigger.id === action.triggerId),
+    )
   }
 
   function updateInput(key: string, value: unknown) {
@@ -76,6 +87,7 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
     hasActions,
     loadAvailableActions,
     selectTrigger,
+    clearSelection,
     updateInput,
     runSelectedAction,
   }

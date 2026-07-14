@@ -111,6 +111,8 @@ describe("callable workflows routes", () => {
     const db = await createWorkflowDb();
     setWorkflowDatabaseProvider(() => db);
     WorkflowRepository.saveWorkflow(workflow("wf-callable", "Callable Ops", { type: "manual" }));
+    WorkflowRepository.saveWorkflow(workflow("wf-products", "Product Ops", { type: "manual" }));
+    WorkflowRepository.saveWorkflow(workflow("wf-delete", "Delete Ops", { type: "manual" }));
     WorkflowRepository.saveWorkflow(workflow("wf-draft", "Draft Ops", { type: "manual" }, { isDraft: true }));
     WorkflowRepository.saveWorkflow(workflow("wf-inactive", "Inactive Ops", { type: "manual" }, { isActive: false }));
 
@@ -126,7 +128,7 @@ describe("callable workflows routes", () => {
     const body = response.json();
     assert.equal(body.status_code, 200);
     assert.equal(body.error, null);
-    assert.deepEqual(body.data.map((item: any) => item.id), ["wf-callable"]);
+    assert.deepEqual(body.data.map((item: any) => item.id), ["wf-callable", "wf-products", "wf-delete"]);
 
     const [callable] = body.data;
     assert.equal(callable.name, "Callable Ops");

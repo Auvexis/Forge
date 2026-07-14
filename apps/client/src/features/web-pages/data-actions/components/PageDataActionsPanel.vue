@@ -34,7 +34,7 @@
             :key="action.id"
             type="button"
             class="web-page-data-actions__action"
-            :class="{ 'web-page-data-actions__action--active': action.id === store.selectedAction?.triggerId }"
+            :class="{ 'web-page-data-actions__action--active': isSelectedTrigger(action) }"
             @click="store.selectTrigger(action)"
           >
             <LucideIcon :name="action.icon || 'workflow'" :size="14" />
@@ -42,6 +42,12 @@
             <small>{{ action.type }}</small>
           </button>
         </article>
+      </section>
+
+      <section v-if="!store.selectedAction" class="web-page-data-actions__details web-page-data-actions__details--empty">
+        <LucideIcon name="mouse-pointer-click" :size="18" />
+        <strong>Select a workflow trigger</strong>
+        <span>Choose a published workflow action on the left to configure inputs, outputs, collections, and scoped item actions.</span>
       </section>
 
       <section v-if="store.selectedAction" class="web-page-data-actions__details">
@@ -273,6 +279,7 @@ import {
   type PageActionElementBindingTarget,
   type PageActionInputField,
   type PageActionOutputBinding,
+  type PageActionTriggerSummary,
 } from '@/core/page-actions'
 
 const store = usePageActionsStore()
@@ -331,6 +338,10 @@ const attachTargetHint = computed(() => {
 
 function bindingFor(inputKey: string) {
   return bindingStore.bindingForInput(store.selectedAction?.id, inputKey)
+}
+
+function isSelectedTrigger(action: PageActionTriggerSummary) {
+  return store.selectedAction?.workflowId === action.workflowId && store.selectedAction.triggerId === action.id
 }
 
 function startBindingDrag(event: PointerEvent, field: PageActionInputField) {
@@ -648,7 +659,7 @@ function readInputValue(event: Event, type: PageActionInputField['type']) {
 }
 
 onMounted(() => {
-  if (store.workflows.length === 0) void store.loadAvailableActions()
+  void store.loadAvailableActions()
 })
 
 watch(

@@ -39,6 +39,18 @@ describe('Page Actions architecture', () => {
     expect(panel).toMatch(/bindScopeInput/)
   })
 
+  it('requires an explicit page action selection before showing binding details', () => {
+    const panel = read('src/features/web-pages/data-actions/components/PageDataActionsPanel.vue')
+    const store = read('src/features/web-pages/data-actions/stores/page-actions.store.ts')
+
+    expect(store).not.toMatch(/firstAction/)
+    expect(store).toMatch(/clearSelection/)
+    expect(panel).toMatch(/Select a workflow trigger/)
+    expect(panel).toMatch(/isSelectedTrigger/)
+    expect(panel).toMatch(/void store\.loadAvailableActions\(\)/)
+    expect(panel).not.toMatch(/store\.workflows\.length === 0/)
+  })
+
   it('documents the Page Actions boundary with an ADR', () => {
     const adr = read('../../docs/adr/0001-page-actions-architecture.md')
 

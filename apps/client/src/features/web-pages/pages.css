@@ -1675,6 +1675,25 @@
   border-top: 1px solid var(--fabric-border);
 }
 
+.web-page-data-actions__details--empty {
+  align-content: center;
+  justify-items: center;
+  min-height: 180px;
+  padding: var(--fabric-space-4);
+  color: var(--fabric-text-muted);
+  text-align: center;
+}
+
+.web-page-data-actions__details--empty strong {
+  color: var(--fabric-text-secondary);
+}
+
+.web-page-data-actions__details--empty span {
+  max-width: 260px;
+  line-height: 1.45;
+  white-space: normal;
+}
+
 .web-page-data-actions__attach {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
