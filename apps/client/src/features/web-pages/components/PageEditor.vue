@@ -905,7 +905,11 @@ watch(
 )
 
 watch(
-  () => pageActionBindingsStore.bindingsByAction,
+  () => [
+    pageActionBindingsStore.bindingsByAction,
+    pageActionBindingsStore.outputBindingsByAction,
+    pageActionBindingsStore.collectionBindingsByAction,
+  ],
   () => {
     if (isHydratingPageActionBindings || !pagesStore.activePage) return
     pagesStore.setActivePage({

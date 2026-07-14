@@ -51,6 +51,16 @@ describe('Page Actions architecture', () => {
     expect(panel).not.toMatch(/store\.workflows\.length === 0/)
   })
 
+  it('persists all binding groups and keeps collection test runs out of Vue-owned DOM', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const panel = read('src/features/web-pages/data-actions/components/PageDataActionsPanel.vue')
+
+    expect(editor).toMatch(/pageActionBindingsStore\.bindingsByAction/)
+    expect(editor).toMatch(/pageActionBindingsStore\.outputBindingsByAction/)
+    expect(editor).toMatch(/pageActionBindingsStore\.collectionBindingsByAction/)
+    expect(panel).not.toMatch(/replaceChildren|appendChild|fabricPreviewTemplate/)
+  })
+
   it('documents the Page Actions boundary with an ADR', () => {
     const adr = read('../../docs/adr/0001-page-actions-architecture.md')
 
