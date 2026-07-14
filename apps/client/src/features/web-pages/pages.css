@@ -160,7 +160,6 @@
   left: 0;
   width: var(--web-page-rail-width);
   height: 100%;
-  border-right: 1px solid var(--fabric-border);
   padding: 0;
   background: var(--fabric-workbench-rail-bg);
 }

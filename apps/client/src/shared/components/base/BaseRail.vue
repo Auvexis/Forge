@@ -25,6 +25,7 @@ withDefaults(
   align-items: center;
   gap: 0;
   padding: 0;
+  border-right: 1px solid var(--fabric-workbench-rail-border, var(--fabric-border-muted));
   background: var(--fabric-workbench-rail-bg);
 }
 
