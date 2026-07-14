@@ -78,6 +78,8 @@ describe('theme runtime contract', () => {
       'workflowTimeline.duration.bg',
       'workflowTimeline.lane.bg',
       'workflowTimeline.playhead',
+      'workflowTimeline.tooltip.bg',
+      'workflowTimeline.tooltip.border',
       'workflowTimeline.trail',
       'executionPanel.bg',
     ]) {

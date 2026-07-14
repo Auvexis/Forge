@@ -1461,17 +1461,18 @@ onBeforeUnmount(() => {
   position: fixed;
   top: var(--workflow-timeline-tooltip-y, 0);
   left: var(--workflow-timeline-tooltip-x, 0);
-  z-index: var(--fabric-z-popover);
+  z-index: 100;
   display: grid;
   gap: 6px;
   width: 220px;
   padding: 8px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-workflow-timeline-tooltip-border, var(--fabric-border));
   border-radius: 4px;
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-workflow-timeline-tooltip-bg, var(--fabric-workbench-panel-bg));
   color: var(--fabric-text-primary);
   box-shadow: var(--fabric-shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.32));
   pointer-events: none;
+  opacity: 1;
 }
 
 .workflow-timeline__tooltip strong,

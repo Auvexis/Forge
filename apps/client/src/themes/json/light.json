@@ -301,6 +301,8 @@
     "workflowTimeline.duration.bg": "var(--fabric-bg-muted)",
     "workflowTimeline.duration.border": "var(--fabric-border-muted)",
     "workflowTimeline.duration.text": "var(--fabric-text-primary)",
+    "workflowTimeline.tooltip.bg": "var(--fabric-workbench-panel-bg)",
+    "workflowTimeline.tooltip.border": "var(--fabric-workbench-border)",
     "workflowTimeline.clip.bg": "var(--fabric-bg-surface)",
     "workflowTimeline.clip.active.bg": "var(--fabric-bg-elevated)",
     "workflowTimeline.clip.success.border": "var(--fabric-status-success-border)",

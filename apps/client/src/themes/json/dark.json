@@ -301,6 +301,8 @@
     "workflowTimeline.duration.bg": "#202020",
     "workflowTimeline.duration.border": "rgba(255, 255, 255, 0.08)",
     "workflowTimeline.duration.text": "var(--fabric-text-primary)",
+    "workflowTimeline.tooltip.bg": "#202020",
+    "workflowTimeline.tooltip.border": "rgba(255, 255, 255, 0.12)",
     "workflowTimeline.clip.bg": "#191919",
     "workflowTimeline.clip.active.bg": "#242424",
     "workflowTimeline.clip.success.border": "var(--fabric-status-success-border)",
