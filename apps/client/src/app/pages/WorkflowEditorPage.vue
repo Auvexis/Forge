@@ -1366,7 +1366,7 @@ watch(
 
 .workflow-tool-rail {
   display: flex;
-  width: 50px;
+  width: 40px;
   height: 100%;
   min-height: 0;
   flex-direction: column;
@@ -1707,4 +1707,3 @@ watch(
   white-space: nowrap;
 }
 </style>
-
