@@ -3,6 +3,7 @@ import { defineStore } from 'pinia'
 import {
   createElementOutputBinding,
   createElementInputBinding,
+  createScopeInputBinding,
   type PageActionDefinition,
   type PageActionElementBindingTarget,
   type PageActionInputBinding,
@@ -116,6 +117,20 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     }
   }
 
+  function bindInputToScope(action: PageActionDefinition, inputKey: string, scopePath: string) {
+    const normalizedPath = scopePath.trim()
+    if (!normalizedPath) return null
+    const binding = createScopeInputBinding(action, inputKey, normalizedPath)
+    bindingsByAction.value = {
+      ...bindingsByAction.value,
+      [action.id]: {
+        ...bindingsForAction(action.id),
+        [inputKey]: binding,
+      },
+    }
+    return binding
+  }
+
   function clearActionBindings(actionId: string) {
     const nextBindings = { ...bindingsByAction.value }
     delete nextBindings[actionId]
@@ -201,6 +216,7 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     movePickWhip,
     completePickWhip,
     clearInputBinding,
+    bindInputToScope,
     clearActionBindings,
     bindOutputToElement,
     clearOutputBinding,

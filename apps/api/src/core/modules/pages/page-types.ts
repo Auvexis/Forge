@@ -63,8 +63,9 @@ export interface PageActionInputBinding {
   id: string;
   actionId: string;
   inputKey: string;
-  source: "element";
-  target: PageActionElementBindingTarget;
+  source: "element" | "scope";
+  target?: PageActionElementBindingTarget;
+  scopePath?: string;
   createdAt: string;
 }
 

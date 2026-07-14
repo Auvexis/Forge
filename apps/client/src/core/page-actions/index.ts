@@ -19,6 +19,7 @@ export type {
 export {
   createElementInputBinding,
   createElementOutputBinding,
+  createScopeInputBinding,
   resolvePageActionInputBindings,
   resolvePageActionResultPath,
 } from './application/pageActionBindings'

@@ -248,6 +248,14 @@ describe("page renderer", () => {
                 target: { elementId: "email_input", property: "value", label: "Email" },
                 createdAt: "2026-07-14T00:00:00.000Z",
               },
+              fruitId: {
+                id: "binding_2",
+                actionId: "page-action:workflow_1:trigger",
+                inputKey: "fruitId",
+                source: "scope",
+                scopePath: "item.id",
+                createdAt: "2026-07-14T00:00:00.000Z",
+              },
             },
           },
           outputBindings: {
@@ -289,8 +297,11 @@ describe("page renderer", () => {
     assert.match(html, /const inputBindings =/);
     assert.match(html, /const outputBindings =/);
     assert.match(html, /const collectionBindings =/);
-    assert.match(html, /payloadWithBindings\(actionId, payload\)/);
+    assert.match(html, /payloadWithBindings\(actionId, payload, scope\)/);
     assert.match(html, /readBindingValue\(binding\.target\)/);
+    assert.match(html, /binding\.source === "scope"/);
+    assert.match(html, /readElementScope\(actionElement\)/);
+    assert.match(html, /data-fabric-repeater-scope/);
     assert.match(html, /applyCollectionBindings\(actionId, body\?\.data\?\.result\)/);
     assert.match(html, /binding\.mode === "table"/);
     assert.match(html, /renderTable\(host, collection\)/);

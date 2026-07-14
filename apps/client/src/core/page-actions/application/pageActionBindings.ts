@@ -24,12 +24,32 @@ export function resolvePageActionInputBindings(
   input: Record<string, unknown>,
   bindings: Record<string, PageActionInputBinding>,
   readTargetValue: (target: PageActionElementBindingTarget) => unknown,
+  readScopeValue: (path: string) => unknown = () => undefined,
 ): Record<string, unknown> {
   const resolved = { ...input }
   for (const binding of Object.values(bindings)) {
-    resolved[binding.inputKey] = readTargetValue(binding.target)
+    if (binding.source === 'scope') {
+      resolved[binding.inputKey] = readScopeValue(binding.scopePath ?? '')
+      continue
+    }
+    if (binding.target) resolved[binding.inputKey] = readTargetValue(binding.target)
   }
   return resolved
+}
+
+export function createScopeInputBinding(
+  action: PageActionDefinition,
+  inputKey: string,
+  scopePath: string,
+): PageActionInputBinding {
+  return {
+    id: `page-action-scope-binding:${action.id}:${inputKey}:${scopePath}`,
+    actionId: action.id,
+    inputKey,
+    source: 'scope',
+    scopePath,
+    createdAt: new Date().toISOString(),
+  }
 }
 
 export function createElementOutputBinding(

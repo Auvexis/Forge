@@ -85,7 +85,7 @@
                 type="button"
                 class="web-page-data-actions__bind-handle"
                 :class="{ 'web-page-data-actions__bind-handle--active': Boolean(bindingFor(field.key)) }"
-                :title="bindingFor(field.key) ? `Bound to ${bindingFor(field.key)?.target.label}` : 'Drag to a page input'"
+                :title="inputBindingTitle(field.key)"
                 @pointerdown="startBindingDrag($event, field)"
               >
                 <LucideIcon name="circle-dot-dashed" :size="14" />
@@ -96,11 +96,27 @@
                 @input="store.updateInput(field.key, readInputValue($event, field.type))"
               />
             </div>
+            <div class="web-page-data-actions__scope-row">
+              <input
+                :value="scopeInputPath(field.key)"
+                placeholder="item.id"
+                @input="updateScopeInputPath(field.key, ($event.target as HTMLInputElement).value)"
+              />
+              <BaseButton
+                variant="ghost"
+                size="sm"
+                icon-left="braces"
+                :disabled="!scopeInputPath(field.key).trim()"
+                @click="bindScopeInput(field.key)"
+              >
+                Scope
+              </BaseButton>
+            </div>
             <div v-if="bindingFor(field.key)" class="web-page-data-actions__binding-chip">
-              <LucideIcon name="link-2" :size="12" />
+              <LucideIcon :name="bindingFor(field.key)?.source === 'scope' ? 'braces' : 'link-2'" :size="12" />
               <span>
-                {{ bindingFor(field.key)?.target.label }}
-                <small>{{ bindingFor(field.key)?.target.property }}</small>
+                {{ bindingLabel(field.key) }}
+                <small>{{ bindingFor(field.key)?.source }}</small>
               </span>
               <button
                 type="button"
@@ -273,6 +289,7 @@ const actionCountLabel = computed(() => {
 const formattedResult = computed(() => JSON.stringify(store.lastRunResult, null, 2))
 const outputBindings = computed(() => bindingStore.outputBindingsForAction(store.selectedAction?.id))
 const collectionBindings = computed(() => bindingStore.collectionBindingsForAction(store.selectedAction?.id))
+const scopedInputPaths = ref<Record<string, string>>({})
 const canAttachSelectedAction = computed(() =>
   Boolean(store.selectedAction && editorStore.selectedBlock && ['button', 'form'].includes(editorStore.selectedBlock.tag)),
 )
@@ -352,6 +369,39 @@ function cancelBindingDrag() {
 function clearBinding(inputKey: string) {
   if (!store.selectedAction) return
   bindingStore.clearInputBinding(store.selectedAction.id, inputKey)
+}
+
+function inputBindingTitle(inputKey: string) {
+  const binding = bindingFor(inputKey)
+  if (!binding) return 'Drag to a page input'
+  if (binding.source === 'scope') return `Bound to ${binding.scopePath}`
+  return binding.target ? `Bound to ${binding.target.label}` : 'Bound'
+}
+
+function bindingLabel(inputKey: string) {
+  const binding = bindingFor(inputKey)
+  if (!binding) return ''
+  if (binding.source === 'scope') return binding.scopePath ?? 'item'
+  return binding.target?.label ?? ''
+}
+
+function scopeInputPath(inputKey: string) {
+  const draftPath = scopedInputPaths.value[inputKey]
+  if (draftPath !== undefined) return draftPath
+  const binding = bindingFor(inputKey)
+  return binding?.source === 'scope' ? binding.scopePath ?? '' : ''
+}
+
+function updateScopeInputPath(inputKey: string, value: string) {
+  scopedInputPaths.value = {
+    ...scopedInputPaths.value,
+    [inputKey]: value,
+  }
+}
+
+function bindScopeInput(inputKey: string) {
+  if (!store.selectedAction) return
+  bindingStore.bindInputToScope(store.selectedAction, inputKey, scopeInputPath(inputKey))
 }
 
 function attachSelectedAction() {

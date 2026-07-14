@@ -26,6 +26,19 @@ describe('Page Actions architecture', () => {
     expect(store).toMatch(/workflowPageActionGateway/)
   })
 
+  it('supports scoped action inputs from repeated collection items', () => {
+    const domain = read('src/core/page-actions/domain/pageAction.types.ts')
+    const bindings = read('src/core/page-actions/application/pageActionBindings.ts')
+    const panel = read('src/features/web-pages/data-actions/components/PageDataActionsPanel.vue')
+    const store = read('src/features/web-pages/data-actions/stores/page-action-bindings.store.ts')
+
+    expect(domain).toMatch(/source: 'element' \| 'scope'/)
+    expect(bindings).toMatch(/createScopeInputBinding/)
+    expect(bindings).toMatch(/readScopeValue/)
+    expect(store).toMatch(/bindInputToScope/)
+    expect(panel).toMatch(/bindScopeInput/)
+  })
+
   it('documents the Page Actions boundary with an ADR', () => {
     const adr = read('../../docs/adr/0001-page-actions-architecture.md')
 

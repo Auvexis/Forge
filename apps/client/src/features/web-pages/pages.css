@@ -1722,6 +1722,14 @@
   gap: var(--fabric-space-1);
 }
 
+.web-page-data-actions__scope-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--fabric-space-1);
+  padding-left: 28px;
+}
+
 .web-page-data-actions__bind-handle {
   display: grid;
   width: 28px;
@@ -1753,6 +1761,10 @@
 
 .web-page-data-actions__field input {
   border-radius: 0 var(--fabric-radius-sm) var(--fabric-radius-sm) 0;
+}
+
+.web-page-data-actions__scope-row input {
+  border-radius: var(--fabric-radius-sm);
 }
 
 .web-page-data-actions__output-row input {
