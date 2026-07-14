@@ -20,8 +20,8 @@ function activate(node: ExecutionRunTreeNode) {
   emit('select', node.nodeId)
   if (!node.children.length) return
   const next = new Set(collapsedIds.value)
-  if (next.has(node.nodeId)) next.delete(node.nodeId)
-  else next.add(node.nodeId)
+  if (next.has(node.id)) next.delete(node.id)
+  else next.add(node.id)
   collapsedIds.value = next
 }
 </script>
@@ -54,7 +54,7 @@ function activate(node: ExecutionRunTreeNode) {
           name="chevron-right"
           :size="14"
           class="execution-node-tree__chevron"
-          :class="{ 'is-open': !collapsedIds.has(node.nodeId) }"
+          :class="{ 'is-open': !collapsedIds.has(node.id) }"
         />
         <span v-if="node.avatar" class="execution-node-tree__avatar" aria-hidden="true">
           {{ node.avatar }}
@@ -73,7 +73,7 @@ function activate(node: ExecutionRunTreeNode) {
 
       <Transition name="execution-node-tree-children">
         <ExecutionNodeTree
-          v-if="node.children.length && !collapsedIds.has(node.nodeId)"
+          v-if="node.children.length && !collapsedIds.has(node.id)"
           :nodes="node.children"
           :selected-node-id="props.selectedNodeId"
           :depth="props.depth + 1"

@@ -107,7 +107,7 @@ export function buildExecutionRunDetail(input: {
   const steps = input.run.context.steps ?? {}
   const executedIds = Object.keys(steps)
   const executedSet = new Set(executedIds)
-  const parentByChild = new Map<string, string>()
+  const parentIdsByChild = new Map<string, string[]>()
   const childIdsByParent = new Map<string, string[]>()
 
   for (const edge of input.workflow?.edges ?? []) {
@@ -115,8 +115,10 @@ export function buildExecutionRunDetail(input: {
     const configurationEdge = Boolean(edge.targetHandle && edge.targetHandle !== 'target')
     const parentId = configurationEdge ? edge.target : edge.source
     const childId = configurationEdge ? edge.source : edge.target
-    if (parentId === childId || parentByChild.has(childId)) continue
-    parentByChild.set(childId, parentId)
+    if (parentId === childId) continue
+    const parents = parentIdsByChild.get(childId) ?? []
+    parents.push(parentId)
+    parentIdsByChild.set(childId, parents)
     const children = childIdsByParent.get(parentId) ?? []
     children.push(childId)
     childIdsByParent.set(parentId, children)
@@ -128,28 +130,50 @@ export function buildExecutionRunDetail(input: {
       nodeId,
       steps[nodeId]!,
       input.workflow,
-      parentByChild.get(nodeId) ?? null,
+      parentIdsByChild.get(nodeId)?.[0] ?? null,
       input.nodePresentations,
     )
     nodesById[nodeId] = treeNode
     for (const child of treeNode.children) nodesById[child.nodeId] = child
   }
 
+  const instantiateTreeNode = (
+    nodeId: string,
+    parentId: string | null,
+    visualId: string,
+    ancestors: Set<string>,
+    includeGraphChildren = true,
+  ): ExecutionRunTreeNode | null => {
+    if (ancestors.has(nodeId)) return null
+    const step = steps[nodeId]
+    if (!step) return null
+    const node = createTreeNode(nodeId, step, input.workflow, parentId, input.nodePresentations)
+    node.id = visualId
+    if (includeGraphChildren) attachChildren(node, ancestors)
+    return node
+  }
+
   const attachChildren = (node: ExecutionRunTreeNode, ancestors: Set<string>) => {
-    if (ancestors.has(node.nodeId)) return
     const nextAncestors = new Set(ancestors).add(node.nodeId)
     const graphChildren = (childIdsByParent.get(node.nodeId) ?? [])
-      .map((id) => nodesById[id])
-      .filter((child): child is ExecutionRunTreeNode => child !== undefined)
-      .filter((child) => !nextAncestors.has(child.nodeId))
+      .map((id) => {
+        const primaryParentId = parentIdsByChild.get(id)?.[0] ?? node.nodeId
+        return instantiateTreeNode(
+          id,
+          node.nodeId,
+          `${node.id}>${id}`,
+          nextAncestors,
+          primaryParentId === node.nodeId,
+        )
+      })
+      .filter((child): child is ExecutionRunTreeNode => child !== null)
     node.children = [...node.children, ...graphChildren]
-    graphChildren.forEach((child) => attachChildren(child, nextAncestors))
   }
 
   const roots = executedIds
-    .filter((nodeId) => !parentByChild.has(nodeId))
-    .map((nodeId) => nodesById[nodeId]!)
-  roots.forEach((root) => attachChildren(root, new Set()))
+    .filter((nodeId) => !parentIdsByChild.has(nodeId))
+    .map((nodeId) => instantiateTreeNode(nodeId, null, nodeId, new Set()))
+    .filter((node): node is ExecutionRunTreeNode => node !== null)
 
   return {
     id: input.run.id,

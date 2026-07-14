@@ -1,0 +1,4 @@
+- [x] Permitir node aparecer em múltiplos ramos da execution tree
+- [x] Ajustar colapso por instância visual
+- [x] Cobrir merge multipai com teste
+- [x] Validar e commitar

@@ -118,6 +118,59 @@ describe('execution run tree model', () => {
     assert.equal(detail.roots[0]?.icon, 'box')
   })
 
+  it('shows a multi-parent merge under every executed parent branch', () => {
+    const multiParentWorkflow = {
+      metadata: { id: 'wf-merge', name: 'Merge Flow', version: '1', isActive: true, isDraft: false, public: false },
+      trigger: { type: 'manual' },
+      nodes: {
+        trigger: { type: 'trigger', name: 'Trigger' },
+        httpA: { type: 'http', name: 'HTTP Request' },
+        httpB: { type: 'http', name: 'HTTP Request' },
+        merge: { type: 'merge', name: 'Merge' },
+        done: { type: 'return', name: 'Return' },
+      },
+      edges: [
+        { id: 'trigger-http-a', source: 'trigger', target: 'httpA', targetHandle: 'target' },
+        { id: 'trigger-http-b', source: 'trigger', target: 'httpB', targetHandle: 'target' },
+        { id: 'http-a-merge', source: 'httpA', target: 'merge', targetHandle: 'target' },
+        { id: 'http-b-merge', source: 'httpB', target: 'merge', targetHandle: 'target' },
+        { id: 'merge-done', source: 'merge', target: 'done', targetHandle: 'target' },
+      ],
+    } as unknown as WorkflowItem
+    const detail = buildExecutionRunDetail({
+      workflow: multiParentWorkflow,
+      run: {
+        id: 'run-merge',
+        workflowId: 'wf-merge',
+        status: 'SUCCESS',
+        startedAt: 1,
+        endedAt: 10,
+        context: {
+          steps: {
+            trigger: { status: 'SUCCESS', startedAt: 1, endedAt: 2 },
+            httpA: { status: 'SUCCESS', startedAt: 2, endedAt: 4 },
+            httpB: { status: 'SUCCESS', startedAt: 2, endedAt: 4 },
+            merge: { status: 'SUCCESS', startedAt: 4, endedAt: 5 },
+            done: { status: 'SUCCESS', startedAt: 5, endedAt: 6 },
+          },
+        },
+      } as unknown as ExecutionLog,
+    })
+
+    const trigger = detail.roots.find((node) => node.nodeId === 'trigger')
+    const httpA = trigger?.children.find((node) => node.nodeId === 'httpA')
+    const httpB = trigger?.children.find((node) => node.nodeId === 'httpB')
+    const mergeFromA = httpA?.children.find((node) => node.nodeId === 'merge')
+    const mergeFromB = httpB?.children.find((node) => node.nodeId === 'merge')
+
+    assert.equal(mergeFromA?.nodeId, 'merge')
+    assert.equal(mergeFromB?.nodeId, 'merge')
+    assert.equal(mergeFromA?.children.some((node) => node.nodeId === 'done'), true)
+    assert.equal(mergeFromB?.children.some((node) => node.nodeId === 'done'), false)
+    assert.notEqual(mergeFromA?.id, 'merge')
+    assert.notEqual(mergeFromA?.id, mergeFromB?.id)
+  })
+
   it('treats persisted steps without status as idle instead of crashing', () => {
     const detail = buildExecutionRunDetail({
       workflow,
