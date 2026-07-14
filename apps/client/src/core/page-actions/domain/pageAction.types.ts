@@ -1,0 +1,72 @@
+export type PageActionTriggerType = 'manual' | 'form' | 'webhook'
+export type PageActionInputPrimitive = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file'
+export type PageActionRunStatus = 'idle' | 'running' | 'success' | 'error'
+
+export interface PageActionInputField {
+  key: string
+  label: string
+  type: PageActionInputPrimitive
+  required: boolean
+  description?: string
+}
+
+export interface PageActionReturnField {
+  key: string
+  label: string
+  type: PageActionInputPrimitive | 'unknown'
+}
+
+export interface PageActionWorkflowSummary {
+  id: string
+  name: string
+  description?: string
+  actions: PageActionTriggerSummary[]
+}
+
+export interface PageActionTriggerSummary {
+  id: string
+  workflowId: string
+  workflowName: string
+  name: string
+  type: PageActionTriggerType
+  icon?: string
+  inputs: PageActionInputField[]
+  returns: PageActionReturnField[]
+}
+
+export interface PageActionDefinition {
+  id: string
+  name: string
+  workflowId: string
+  workflowName: string
+  triggerId: string
+  triggerName: string
+  triggerType: PageActionTriggerType
+  inputs: PageActionInputField[]
+  returns: PageActionReturnField[]
+}
+
+export interface PageActionRunRequest {
+  action: PageActionDefinition
+  input: Record<string, unknown>
+}
+
+export interface PageActionRunResult {
+  ok: boolean
+  executionId?: string
+  data?: unknown
+  error?: string
+  meta: {
+    workflowId: string
+    triggerId: string
+    actionId: string
+  }
+}
+
+export interface PageActionCatalogGateway {
+  listAvailableActions: () => Promise<PageActionWorkflowSummary[]>
+}
+
+export interface PageActionRunnerGateway {
+  runAction: (request: PageActionRunRequest) => Promise<PageActionRunResult>
+}
