@@ -256,7 +256,7 @@ const pendingQuickAddAlignment = ref<{
   nodeHandleType: 'source' | 'target'
   horizontalGap: number
 } | null>(null)
-const QUICK_ADD_HORIZONTAL_GAP = 160
+const QUICK_ADD_HORIZONTAL_GAP = 220
 
 nodeToolbarBus.on(handleNodeToolbarAction)
 quickAddBus.on((payload) => {

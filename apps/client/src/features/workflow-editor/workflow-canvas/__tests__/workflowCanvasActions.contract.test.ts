@@ -73,6 +73,7 @@ describe('workflow canvas editor actions contract', () => {
 
     assert.match(canvas, /quickAddAnchorPoint/)
     assert.match(canvas, /QUICK_ADD_NODE_VERTICAL_OFFSET/)
+    assert.match(canvas, /if \(anchor\?\.anchorRect\) return null/)
     assert.match(canvas, /addLogicNodeAtScreenPoint/)
     assert.match(base, /useEventBus[\s\S]*\('node:quick-add'\)/)
     assert.match(base, /useEventBus[\s\S]*\('edge:quick-add-between'\)/)
@@ -80,6 +81,7 @@ describe('workflow canvas editor actions contract', () => {
     assert.match(base, /pendingInsertEdgeId/)
     assert.match(base, /insertNodeBetween/)
     assert.match(base, /pendingQuickAddAlignment/)
+    assert.match(base, /const QUICK_ADD_HORIZONTAL_GAP = 220/)
     assert.match(base, /getQuickAddAlignedNodePosition/)
     assert.match(base, /executionStore\.execute/)
     assert.match(base, /executionStore\.cancel/)
@@ -104,7 +106,7 @@ describe('workflow canvas editor actions contract', () => {
     assert.match(base, /horizontalGap: -QUICK_ADD_HORIZONTAL_GAP/)
     assert.match(base, /cancelPendingAddNode/)
     assert.match(shell, /cancelPendingAddNode/)
-    assert.match(preview, /stroke: var\(--fabric-rf-edge-stroke-selected\)/)
+    assert.match(preview, /stroke: var\(--fabric-workflow-edge-selected/)
     assert.doesNotMatch(preview, /fabric-red/)
   })
 

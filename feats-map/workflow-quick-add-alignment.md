@@ -1,0 +1,3 @@
+- [x] Separar Quick Add clicado de drop manual
+- [x] Aumentar distância horizontal do node criado
+- [x] Validar e commitar

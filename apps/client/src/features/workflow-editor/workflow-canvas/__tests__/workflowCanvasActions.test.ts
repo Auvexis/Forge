@@ -17,9 +17,9 @@ describe('workflow canvas editor actions', () => {
         sourceHandle: { x: 200, y: 150 },
         targetHandle: { x: 430, y: 210 },
         nodePosition: { x: 430, y: 160 },
-        horizontalGap: 160,
+        horizontalGap: 220,
       }),
-      { x: 360, y: 100 },
+      { x: 420, y: 100 },
     )
   })
 

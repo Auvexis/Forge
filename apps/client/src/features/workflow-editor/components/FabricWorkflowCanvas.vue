@@ -139,14 +139,9 @@ function getAddNodePickerPosition(anchor?: AddNodePickerAnchor | null): { left: 
 }
 
 function getQuickAddAnchorPoint(anchor?: AddNodePickerAnchor | null): AddNodePickerAnchorPoint | null {
+  if (anchor?.anchorRect) return null
   if (typeof anchor?.clientX === 'number' && typeof anchor.clientY === 'number') {
     return { x: anchor.clientX, y: anchor.clientY - QUICK_ADD_NODE_VERTICAL_OFFSET }
-  }
-  if (anchor?.anchorRect) {
-    return {
-      x: anchor.anchorRect.right,
-      y: anchor.anchorRect.top + anchor.anchorRect.height / 2 - QUICK_ADD_NODE_VERTICAL_OFFSET,
-    }
   }
   return null
 }
