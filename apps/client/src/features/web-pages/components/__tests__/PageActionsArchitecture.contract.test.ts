@@ -61,6 +61,19 @@ describe('Page Actions architecture', () => {
     expect(panel).not.toMatch(/replaceChildren|appendChild|fabricPreviewTemplate/)
   })
 
+  it('presents page actions as a guided configuration flow', () => {
+    const panel = read('src/features/web-pages/data-actions/components/PageDataActionsPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    for (const label of ['Run target', 'Inputs', 'Result bindings', 'Collections', 'Test action']) {
+      expect(panel).toMatch(new RegExp(label))
+    }
+    expect(panel).toMatch(/web-page-data-actions__catalog/)
+    expect(panel).toMatch(/web-page-data-actions__step-header/)
+    expect(css).toMatch(/\.web-page-data-actions__step/)
+    expect(css).toMatch(/\.web-page-data-actions__target-row/)
+  })
+
   it('documents the Page Actions boundary with an ADR', () => {
     const adr = read('../../docs/adr/0001-page-actions-architecture.md')
 

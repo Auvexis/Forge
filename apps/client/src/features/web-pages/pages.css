@@ -1622,15 +1622,28 @@
   color: var(--fabric-text-muted);
 }
 
-.web-page-data-actions__body,
-.web-page-data-actions__fields {
+.web-page-data-actions__body {
   display: grid;
-  gap: var(--fabric-space-2);
+  align-content: start;
+}
+
+.web-page-data-actions__catalog,
+.web-page-data-actions__details {
+  display: grid;
+  align-content: start;
+  gap: 1px;
   padding: var(--fabric-space-2);
 }
 
-.web-page-data-actions__fields--outputs {
-  border-top: 1px solid var(--fabric-border);
+.web-page-data-actions__section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 26px;
+  color: var(--fabric-text-secondary);
+  font-size: 10px;
+  font-weight: var(--fabric-font-bold);
+  text-transform: uppercase;
 }
 
 .web-page-data-actions__workflow {
@@ -1638,22 +1651,33 @@
   gap: 1px;
 }
 
-.web-page-data-actions__workflow h4,
-.web-page-data-actions__fields h5 {
-  margin: var(--fabric-space-2) 0 var(--fabric-space-1);
+.web-page-data-actions__workflow h4 {
+  display: grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--fabric-space-1);
+  min-height: 24px;
+  margin: var(--fabric-space-2) 0 0;
   color: var(--fabric-text-secondary);
   font-size: 10px;
   font-weight: var(--fabric-font-bold);
   text-transform: uppercase;
 }
 
+.web-page-data-actions__workflow h4 span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .web-page-data-actions__action {
   display: grid;
-  grid-template-columns: 16px minmax(0, 1fr) auto;
+  grid-template-columns: 16px minmax(0, 1fr) 12px;
   align-items: center;
   gap: var(--fabric-space-2);
-  min-height: 28px;
+  min-height: 30px;
   padding: 0 var(--fabric-space-2);
+  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-text-primary);
   text-align: left;
 }
@@ -1664,15 +1688,22 @@
 }
 
 .web-page-data-actions__action span {
+  display: grid;
+  gap: 1px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .web-page-data-actions__details {
-  display: grid;
   gap: var(--fabric-space-2);
+  padding-top: var(--fabric-space-1);
   border-top: 1px solid var(--fabric-border);
+}
+
+.web-page-data-actions__selected {
+  margin: calc(var(--fabric-space-2) * -1) calc(var(--fabric-space-2) * -1) 0;
+  background: var(--fabric-panel-header-bg, var(--fabric-bg-elevated));
 }
 
 .web-page-data-actions__details--empty {
@@ -1694,23 +1725,62 @@
   white-space: normal;
 }
 
-.web-page-data-actions__attach {
+.web-page-data-actions__step {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: center;
   gap: var(--fabric-space-2);
-  min-height: 36px;
   padding: var(--fabric-space-2);
   border-bottom: 1px solid var(--fabric-border);
 }
 
-.web-page-data-actions__attach div {
+.web-page-data-actions__step-header {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: var(--fabric-space-2);
+  align-items: start;
+}
+
+.web-page-data-actions__step-header > span {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1px solid var(--fabric-border);
+  border-radius: var(--fabric-radius-sm);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.web-page-data-actions__step-header div,
+.web-page-data-actions__target-row span,
+.web-page-data-actions__step--run div {
   display: grid;
   min-width: 0;
 }
 
-.web-page-data-actions__attach strong,
-.web-page-data-actions__attach span {
+.web-page-data-actions__step-header strong,
+.web-page-data-actions__step--run strong {
+  color: var(--fabric-text-primary);
+}
+
+.web-page-data-actions__step-header small,
+.web-page-data-actions__target-row small,
+.web-page-data-actions__step--run span {
+  color: var(--fabric-text-muted);
+  line-height: 1.35;
+}
+
+.web-page-data-actions__target-row {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--fabric-space-2);
+  min-height: 30px;
+  padding-left: 26px;
+}
+
+.web-page-data-actions__target-row > span,
+.web-page-data-actions__target-row small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1718,20 +1788,31 @@
 
 .web-page-data-actions__field {
   display: grid;
+  gap: var(--fabric-space-2);
+  padding-left: 26px;
+}
+
+.web-page-data-actions__field label,
+.web-page-data-actions__field label span {
+  display: grid;
   gap: var(--fabric-space-1);
 }
 
-.web-page-data-actions__field span {
+.web-page-data-actions__field label span {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+}
+
+.web-page-data-actions__field label span {
   display: flex;
   justify-content: space-between;
-  gap: var(--fabric-space-2);
   color: var(--fabric-text-secondary);
 }
 
-.web-page-data-actions__input-row {
+.web-page-data-actions__binding-tools {
   display: grid;
-  grid-template-columns: 28px minmax(0, 1fr);
-  align-items: center;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--fabric-space-1);
 }
 
 .web-page-data-actions__output-row {
@@ -1746,20 +1827,23 @@
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--fabric-space-1);
-  padding-left: 28px;
 }
 
 .web-page-data-actions__bind-handle {
-  display: grid;
-  width: 28px;
+  display: inline-grid;
+  grid-template-columns: 14px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--fabric-space-1);
+  width: 100%;
   height: 28px;
-  place-items: center;
+  padding: 0 var(--fabric-space-2);
   border: 1px solid var(--fabric-border);
-  border-right: 0;
-  border-radius: var(--fabric-radius-sm) 0 0 var(--fabric-radius-sm);
+  border-radius: var(--fabric-radius-sm);
   background: var(--fabric-bg-elevated);
   color: var(--fabric-text-muted);
   cursor: crosshair;
+  font-size: 11px;
+  text-align: left;
 }
 
 .web-page-data-actions__bind-handle:hover,
@@ -1779,7 +1863,7 @@
 }
 
 .web-page-data-actions__field input {
-  border-radius: 0 var(--fabric-radius-sm) var(--fabric-radius-sm) 0;
+  border-radius: var(--fabric-radius-sm);
 }
 
 .web-page-data-actions__scope-row input {
@@ -1875,6 +1959,11 @@
 .web-page-data-actions__details > .base-button {
   justify-self: start;
   margin-left: var(--fabric-space-2);
+}
+
+.web-page-data-actions__step--run {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
 }
 
 .web-page-data-actions__result {

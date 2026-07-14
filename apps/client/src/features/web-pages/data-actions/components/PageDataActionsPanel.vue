@@ -22,13 +22,20 @@
     </div>
 
     <div v-else class="web-page-data-actions__body">
-      <section class="web-page-data-actions__list" aria-label="Available workflow actions">
+      <section class="web-page-data-actions__catalog" aria-label="Available workflow actions">
+        <div class="web-page-data-actions__section-title">
+          <strong>Actions</strong>
+          <span>{{ store.workflows.length }} workflows</span>
+        </div>
         <article
           v-for="workflow in store.workflows"
           :key="workflow.id"
           class="web-page-data-actions__workflow"
         >
-          <h4>{{ workflow.name }}</h4>
+          <h4>
+            <LucideIcon name="folder" :size="12" />
+            <span>{{ workflow.name }}</span>
+          </h4>
           <button
             v-for="action in workflow.actions"
             :key="action.id"
@@ -38,8 +45,11 @@
             @click="store.selectTrigger(action)"
           >
             <LucideIcon :name="action.icon || 'workflow'" :size="14" />
-            <span>{{ action.name }}</span>
-            <small>{{ action.type }}</small>
+            <span>
+              {{ action.name }}
+              <small>{{ action.type }}</small>
+            </span>
+            <LucideIcon name="chevron-right" :size="12" />
           </button>
         </article>
       </section>
@@ -47,33 +57,58 @@
       <section v-if="!store.selectedAction" class="web-page-data-actions__details web-page-data-actions__details--empty">
         <LucideIcon name="mouse-pointer-click" :size="18" />
         <strong>Select a workflow trigger</strong>
-        <span>Choose a published workflow action on the left to configure inputs, outputs, collections, and scoped item actions.</span>
+        <span>Choose an action to configure inputs, result bindings, collections, and item-scoped actions.</span>
       </section>
 
-      <section v-if="store.selectedAction" class="web-page-data-actions__details">
-        <header>
-          <strong>{{ store.selectedAction.name }}</strong>
-          <span>{{ store.selectedAction.workflowName }}</span>
-        </header>
-
-        <div class="web-page-data-actions__attach">
+      <section v-else class="web-page-data-actions__details">
+        <header class="web-page-data-actions__selected">
           <div>
-            <strong>{{ attachTargetLabel }}</strong>
-            <span>{{ attachTargetHint }}</span>
+            <strong>{{ store.selectedAction.name }}</strong>
+            <span>{{ selectedActionSubtitle }}</span>
           </div>
           <BaseButton
             variant="ghost"
-            size="sm"
-            :icon-left="isSelectedActionAttached ? 'check' : 'mouse-pointer-click'"
-            :disabled="!canAttachSelectedAction"
-            @click="attachSelectedAction"
-          >
-            {{ isSelectedActionAttached ? 'Attached' : 'Attach' }}
-          </BaseButton>
+            size="icon"
+            icon-left="x"
+            title="Clear selected action"
+            @click="store.clearSelection()"
+          />
+        </header>
+
+        <div class="web-page-data-actions__step">
+          <div class="web-page-data-actions__step-header">
+            <span>1</span>
+            <div>
+              <strong>Run target</strong>
+              <small>Attach this action to a selected button or form.</small>
+            </div>
+          </div>
+          <div class="web-page-data-actions__target-row">
+            <LucideIcon name="mouse-pointer-click" :size="14" />
+            <span>
+              {{ attachTargetLabel }}
+              <small>{{ attachTargetHint }}</small>
+            </span>
+            <BaseButton
+              variant="ghost"
+              size="sm"
+              :icon-left="isSelectedActionAttached ? 'check' : 'link'"
+              :disabled="!canAttachSelectedAction"
+              @click="attachSelectedAction"
+            >
+              {{ isSelectedActionAttached ? 'Attached' : 'Attach' }}
+            </BaseButton>
+          </div>
         </div>
 
-        <div class="web-page-data-actions__fields">
-          <h5>Inputs</h5>
+        <div class="web-page-data-actions__step">
+          <div class="web-page-data-actions__step-header">
+            <span>2</span>
+            <div>
+              <strong>Inputs</strong>
+              <small>Use static values, page fields, or current collection item.</small>
+            </div>
+          </div>
           <div v-if="store.selectedAction.inputs.length === 0" class="web-page-data-actions__hint">
             This trigger has no declared inputs.
           </div>
@@ -82,11 +117,18 @@
             :key="field.key"
             class="web-page-data-actions__field"
           >
-            <span>
-              {{ field.label }}
-              <small v-if="field.required">required</small>
-            </span>
-            <div class="web-page-data-actions__input-row">
+            <label>
+              <span>
+                {{ field.label }}
+                <small v-if="field.required">required</small>
+              </span>
+              <input
+                :value="String(store.draftInput[field.key] ?? '')"
+                :type="field.type === 'number' ? 'number' : 'text'"
+                @input="store.updateInput(field.key, readInputValue($event, field.type))"
+              />
+            </label>
+            <div class="web-page-data-actions__binding-tools">
               <button
                 type="button"
                 class="web-page-data-actions__bind-handle"
@@ -95,28 +137,24 @@
                 @pointerdown="startBindingDrag($event, field)"
               >
                 <LucideIcon name="circle-dot-dashed" :size="14" />
+                Pick element
               </button>
-              <input
-                :value="String(store.draftInput[field.key] ?? '')"
-                :type="field.type === 'number' ? 'number' : 'text'"
-                @input="store.updateInput(field.key, readInputValue($event, field.type))"
-              />
-            </div>
-            <div class="web-page-data-actions__scope-row">
-              <input
-                :value="scopeInputPath(field.key)"
-                placeholder="item.id"
-                @input="updateScopeInputPath(field.key, ($event.target as HTMLInputElement).value)"
-              />
-              <BaseButton
-                variant="ghost"
-                size="sm"
-                icon-left="braces"
-                :disabled="!scopeInputPath(field.key).trim()"
-                @click="bindScopeInput(field.key)"
-              >
-                Scope
-              </BaseButton>
+              <div class="web-page-data-actions__scope-row">
+                <input
+                  :value="scopeInputPath(field.key)"
+                  placeholder="item.id"
+                  @input="updateScopeInputPath(field.key, ($event.target as HTMLInputElement).value)"
+                />
+                <BaseButton
+                  variant="ghost"
+                  size="sm"
+                  icon-left="braces"
+                  :disabled="!scopeInputPath(field.key).trim()"
+                  @click="bindScopeInput(field.key)"
+                >
+                  Scope
+                </BaseButton>
+              </div>
             </div>
             <div v-if="bindingFor(field.key)" class="web-page-data-actions__binding-chip">
               <LucideIcon :name="bindingFor(field.key)?.source === 'scope' ? 'braces' : 'link-2'" :size="12" />
@@ -124,31 +162,25 @@
                 {{ bindingLabel(field.key) }}
                 <small>{{ bindingFor(field.key)?.source }}</small>
               </span>
-              <button
-                type="button"
-                title="Remove binding"
-                @click="clearBinding(field.key)"
-              >
+              <button type="button" title="Remove binding" @click="clearBinding(field.key)">
                 <LucideIcon name="x" :size="12" />
               </button>
             </div>
           </div>
         </div>
 
-        <div class="web-page-data-actions__fields web-page-data-actions__fields--outputs">
-          <h5>Outputs</h5>
+        <div class="web-page-data-actions__step">
+          <div class="web-page-data-actions__step-header">
+            <span>3</span>
+            <div>
+              <strong>Result bindings</strong>
+              <small>Bind a returned value into the selected text, button, or input.</small>
+            </div>
+          </div>
           <div class="web-page-data-actions__output-row">
-            <input
-              v-model="outputResultPath"
-              placeholder="executionId"
-              list="page-action-return-fields"
-            />
+            <input v-model="outputResultPath" placeholder="executionId" list="page-action-return-fields" />
             <datalist id="page-action-return-fields">
-              <option
-                v-for="field in store.selectedAction.returns"
-                :key="field.key"
-                :value="field.key"
-              />
+              <option v-for="field in store.selectedAction.returns" :key="field.key" :value="field.key" />
             </datalist>
             <BaseButton
               variant="ghost"
@@ -173,36 +205,30 @@
             </button>
           </div>
           <div v-if="outputBindings.length === 0" class="web-page-data-actions__hint">
-            Bind a result path to a selected text, button, or input element.
+            Select an element in the canvas, choose a result path, then bind it.
           </div>
-          <div
-            v-for="binding in outputBindings"
-            :key="binding.id"
-            class="web-page-data-actions__binding-chip"
-          >
+          <div v-for="binding in outputBindings" :key="binding.id" class="web-page-data-actions__binding-chip">
             <LucideIcon name="arrow-right-left" :size="12" />
             <span>
               {{ binding.resultPath }} -> {{ binding.target.label }}
               <small>{{ binding.target.property }}</small>
             </span>
-            <button
-              type="button"
-              title="Remove output binding"
-              @click="clearOutputBinding(binding.id)"
-            >
+            <button type="button" title="Remove output binding" @click="clearOutputBinding(binding.id)">
               <LucideIcon name="x" :size="12" />
             </button>
           </div>
         </div>
 
-        <div class="web-page-data-actions__fields web-page-data-actions__fields--collections">
-          <h5>Collections</h5>
+        <div class="web-page-data-actions__step">
+          <div class="web-page-data-actions__step-header">
+            <span>4</span>
+            <div>
+              <strong>Collections</strong>
+              <small>Bind an array into a selected container as repeater or table.</small>
+            </div>
+          </div>
           <div class="web-page-data-actions__output-row">
-            <input
-              v-model="collectionResultPath"
-              placeholder="fruits"
-              list="page-action-return-fields"
-            />
+            <input v-model="collectionResultPath" placeholder="fruits" list="page-action-return-fields" />
             <BaseButton
               variant="ghost"
               size="sm"
@@ -210,7 +236,7 @@
               :disabled="!canBindCollection"
               @click="bindCollectionToSelectedElement"
             >
-              Bind
+              Repeat
             </BaseButton>
             <BaseButton
               variant="ghost"
@@ -223,37 +249,35 @@
             </BaseButton>
           </div>
           <div v-if="collectionBindings.length === 0" class="web-page-data-actions__hint">
-            Bind an array result to a selected container. Children can use item.name paths.
+            Select a container before binding a collection.
           </div>
-          <div
-            v-for="binding in collectionBindings"
-            :key="binding.id"
-            class="web-page-data-actions__binding-chip"
-          >
+          <div v-for="binding in collectionBindings" :key="binding.id" class="web-page-data-actions__binding-chip">
             <LucideIcon name="repeat" :size="12" />
             <span>
               {{ binding.collectionPath }} -> {{ binding.targetElementId }}
               <small>{{ binding.mode ?? 'repeater' }}</small>
             </span>
-            <button
-              type="button"
-              title="Remove collection binding"
-              @click="clearCollectionBinding(binding.id)"
-            >
+            <button type="button" title="Remove collection binding" @click="clearCollectionBinding(binding.id)">
               <LucideIcon name="x" :size="12" />
             </button>
           </div>
         </div>
 
-        <BaseButton
-          variant="primary"
-          size="sm"
-          icon-left="play"
-          :loading="store.status === 'running'"
-          @click="runSelectedAction"
-        >
-          Test Run
-        </BaseButton>
+        <div class="web-page-data-actions__step web-page-data-actions__step--run">
+          <div>
+            <strong>Test action</strong>
+            <span>{{ testRunHint }}</span>
+          </div>
+          <BaseButton
+            variant="primary"
+            size="sm"
+            icon-left="play"
+            :loading="store.status === 'running'"
+            @click="runSelectedAction"
+          >
+            Test Run
+          </BaseButton>
+        </div>
 
         <pre v-if="store.lastRunResult" class="web-page-data-actions__result">{{ formattedResult }}</pre>
       </section>
@@ -286,16 +310,23 @@ const bindingStore = usePageActionBindingsStore()
 const editorStore = usePageEditorStore()
 const outputResultPath = ref('executionId')
 const collectionResultPath = ref('fruits')
+const scopedInputPaths = ref<Record<string, string>>({})
 
 const actionCountLabel = computed(() => {
   const count = store.workflows.reduce((total, workflow) => total + workflow.actions.length, 0)
   return count === 1 ? '1 action' : `${count} actions`
 })
-
 const formattedResult = computed(() => JSON.stringify(store.lastRunResult, null, 2))
 const outputBindings = computed(() => bindingStore.outputBindingsForAction(store.selectedAction?.id))
 const collectionBindings = computed(() => bindingStore.collectionBindingsForAction(store.selectedAction?.id))
-const scopedInputPaths = ref<Record<string, string>>({})
+const selectedActionSubtitle = computed(() =>
+  store.selectedAction ? `${store.selectedAction.workflowName} / ${store.selectedAction.triggerType}` : '',
+)
+const testRunHint = computed(() => {
+  if (store.status === 'success') return 'Last run completed.'
+  if (store.status === 'error') return 'Last run failed. Check the response below.'
+  return 'Runs with the current input values and element bindings.'
+})
 const canAttachSelectedAction = computed(() =>
   Boolean(store.selectedAction && editorStore.selectedBlock && ['button', 'form'].includes(editorStore.selectedBlock.tag)),
 )
@@ -348,10 +379,7 @@ function startBindingDrag(event: PointerEvent, field: PageActionInputField) {
   event.preventDefault()
   event.stopPropagation()
   const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const origin = {
-    x: rect.left + rect.width / 2,
-    y: rect.top + rect.height / 2,
-  }
+  const origin = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
   bindingStore.startPickWhip(store.selectedAction, field, origin)
   bindingStore.movePickWhip({ x: event.clientX, y: event.clientY }, readPageActionBindingTargetAtPoint(event.clientX, event.clientY))
   window.addEventListener('pointermove', moveBindingDrag)
@@ -360,10 +388,7 @@ function startBindingDrag(event: PointerEvent, field: PageActionInputField) {
 }
 
 function moveBindingDrag(event: PointerEvent) {
-  bindingStore.movePickWhip(
-    { x: event.clientX, y: event.clientY },
-    readPageActionBindingTargetAtPoint(event.clientX, event.clientY),
-  )
+  bindingStore.movePickWhip({ x: event.clientX, y: event.clientY }, readPageActionBindingTargetAtPoint(event.clientX, event.clientY))
 }
 
 function finishBindingDrag(event: PointerEvent) {
@@ -403,10 +428,7 @@ function scopeInputPath(inputKey: string) {
 }
 
 function updateScopeInputPath(inputKey: string, value: string) {
-  scopedInputPaths.value = {
-    ...scopedInputPaths.value,
-    [inputKey]: value,
-  }
+  scopedInputPaths.value = { ...scopedInputPaths.value, [inputKey]: value }
 }
 
 function bindScopeInput(inputKey: string) {
@@ -458,16 +480,13 @@ async function runSelectedAction() {
   const bindings = bindingStore.bindingsForAction(store.selectedAction.id)
   const input = resolvePageActionInputBindings(store.draftInput, bindings, readPageActionBindingTargetValue)
   const result = await store.runSelectedAction(input)
-  if (result?.ok) {
-    applyOutputBindings(result.data, outputBindings.value)
-  }
+  if (result?.ok) applyOutputBindings(result.data, outputBindings.value)
 }
 
 function applyOutputBindings(result: unknown, bindings: PageActionOutputBinding[]) {
   for (const binding of bindings) {
     const value = resolvePageActionResultPath(result, binding.resultPath)
-    if (value === undefined) continue
-    patchOutputTarget(binding.target, value)
+    if (value !== undefined) patchOutputTarget(binding.target, value)
   }
 }
 
@@ -475,14 +494,8 @@ function patchOutputTarget(target: PageActionElementBindingTarget, value: unknow
   const block = findBlock(editorStore.blocks, target.elementId)
   if (!block) return
   const nextValue = stringifyOutputValue(value)
-  if (target.property === 'value') {
-    editorStore.patchBlock(block.id, {
-      props: { ...(block.props ?? {}), value: nextValue },
-    })
-    return
-  }
   editorStore.patchBlock(block.id, {
-    props: { ...(block.props ?? {}), text: nextValue },
+    props: { ...(block.props ?? {}), [target.property === 'value' ? 'value' : 'text']: nextValue },
   })
 }
 
