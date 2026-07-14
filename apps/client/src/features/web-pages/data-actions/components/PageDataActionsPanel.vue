@@ -50,6 +50,22 @@
           <span>{{ store.selectedAction.workflowName }}</span>
         </header>
 
+        <div class="web-page-data-actions__attach">
+          <div>
+            <strong>{{ attachTargetLabel }}</strong>
+            <span>{{ attachTargetHint }}</span>
+          </div>
+          <BaseButton
+            variant="ghost"
+            size="sm"
+            icon-left="mouse-pointer-click"
+            :disabled="!canAttachSelectedAction"
+            @click="attachSelectedAction"
+          >
+            Attach
+          </BaseButton>
+        </div>
+
         <div class="web-page-data-actions__fields">
           <h5>Inputs</h5>
           <div v-if="store.selectedAction.inputs.length === 0" class="web-page-data-actions__hint">
@@ -119,6 +135,7 @@ import { computed, onBeforeUnmount, onMounted } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import PageActionPickWhipOverlay from './PageActionPickWhipOverlay.vue'
+import { usePageEditorStore } from '../../stores/page-editor.store'
 import { usePageActionsStore } from '../stores/page-actions.store'
 import { usePageActionBindingsStore } from '../stores/page-action-bindings.store'
 import { readPageActionBindingTargetAtPoint, readPageActionBindingTargetValue } from '../utils/bindingTargetDom'
@@ -126,6 +143,7 @@ import { resolvePageActionInputBindings, type PageActionInputField } from '@/cor
 
 const store = usePageActionsStore()
 const bindingStore = usePageActionBindingsStore()
+const editorStore = usePageEditorStore()
 
 const actionCountLabel = computed(() => {
   const count = store.workflows.reduce((total, workflow) => total + workflow.actions.length, 0)
@@ -133,6 +151,20 @@ const actionCountLabel = computed(() => {
 })
 
 const formattedResult = computed(() => JSON.stringify(store.lastRunResult, null, 2))
+const canAttachSelectedAction = computed(() =>
+  Boolean(store.selectedAction && editorStore.selectedBlock && ['button', 'form'].includes(editorStore.selectedBlock.tag)),
+)
+const attachTargetLabel = computed(() => {
+  const block = editorStore.selectedBlock
+  if (!block) return 'No element selected'
+  return `${block.tag} / ${block.elementId || block.id}`
+})
+const attachTargetHint = computed(() => {
+  if (!store.selectedAction) return 'Select a Page Action first.'
+  if (!editorStore.selectedBlock) return 'Select a button or form in the canvas.'
+  if (!['button', 'form'].includes(editorStore.selectedBlock.tag)) return 'Only buttons and forms can trigger actions.'
+  return 'Click Attach to run this action from the selected element.'
+})
 
 function bindingFor(inputKey: string) {
   return bindingStore.bindingForInput(store.selectedAction?.id, inputKey)
@@ -174,6 +206,19 @@ function cancelBindingDrag() {
 function clearBinding(inputKey: string) {
   if (!store.selectedAction) return
   bindingStore.clearInputBinding(store.selectedAction.id, inputKey)
+}
+
+function attachSelectedAction() {
+  if (!store.selectedAction || !editorStore.selectedBlockId || !editorStore.selectedBlock) return
+  if (!['button', 'form'].includes(editorStore.selectedBlock.tag)) return
+  editorStore.patchBlock(editorStore.selectedBlockId, {
+    action: {
+      id: store.selectedAction.id,
+      type: 'triggerWorkflow',
+      workflowId: store.selectedAction.workflowId,
+      triggerId: store.selectedAction.triggerId,
+    },
+  })
 }
 
 function runSelectedAction() {

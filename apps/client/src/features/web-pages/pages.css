@@ -1671,6 +1671,28 @@
   border-top: 1px solid var(--fabric-border);
 }
 
+.web-page-data-actions__attach {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--fabric-space-2);
+  min-height: 36px;
+  padding: var(--fabric-space-2);
+  border-bottom: 1px solid var(--fabric-border);
+}
+
+.web-page-data-actions__attach div {
+  display: grid;
+  min-width: 0;
+}
+
+.web-page-data-actions__attach strong,
+.web-page-data-actions__attach span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .web-page-data-actions__field {
   display: grid;
   gap: var(--fabric-space-1);

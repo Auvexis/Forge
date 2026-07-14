@@ -159,6 +159,7 @@ function renderAttributes(block: PageBlock, options: RenderOptions): string {
     class: ["fabric-page-block", blockClass(block.id), sanitizeClassName(block.className)]
       .filter(Boolean)
       .join(" "),
+    "data-page-action-binding-element-id": block.id,
   };
 
   if (block.elementId) attrs.id = block.elementId;
@@ -245,7 +246,7 @@ function formatCustomCss(block: PageBlock): string[] {
 
 function renderPageJs(page: PublishedPage, site?: FabricSite | null): string {
   const scripts = page.blocks.flatMap((block) => collectBlockJs(block));
-  const actionRuntime = hasPageActions(page.blocks) ? renderActionRuntime(page, site) : "";
+  const actionRuntime = hasPageActions(page.blocks) || hasPageActionBindings(page) ? renderActionRuntime(page, site) : "";
   return [actionRuntime, ...scripts].filter(Boolean).join("\n");
 }
 
@@ -323,11 +324,16 @@ function hasPageActions(blocks: PageBlock[]): boolean {
   return blocks.some((block) => block.action || hasPageActions(block.children ?? []));
 }
 
+function hasPageActionBindings(page: PublishedPage): boolean {
+  return Object.values(page.pageActions?.inputBindings ?? {}).some((bindings) => Object.keys(bindings).length > 0);
+}
+
 function renderActionRuntime(page: PublishedPage, site?: FabricSite | null): string {
   return [
     `;(() => {`,
     `  const slug = ${JSON.stringify(page.slug)};`,
     `  const projectPublicId = ${JSON.stringify(site?.publicId ?? page.siteId)};`,
+    `  const inputBindings = ${JSON.stringify(page.pageActions?.inputBindings ?? {})};`,
     `  let pendingActionId = "";`,
     `  let executionId = "";`,
     `  let runtimeError = "";`,
@@ -340,6 +346,24 @@ function renderActionRuntime(page: PublishedPage, site?: FabricSite | null): str
     `  function encodePublishedPath(path) {`,
     `    return String(path).replace(/^\\/+/, "").split("/").map(encodeURIComponent).join("/");`,
     `  }`,
+    `  function readBindingValue(target) {`,
+    `    const element = document.querySelector("[data-page-action-binding-element-id='" + cssEscape(target.elementId) + "']");`,
+    `    if (!element) return "";`,
+    `    if (target.property === "checked" && "checked" in element) return Boolean(element.checked);`,
+    `    if (target.property === "value" && "value" in element) return element.value;`,
+    `    if (target.property === "text") return element.textContent || "";`,
+    `    return element.getAttribute(target.property) || element.textContent || "";`,
+    `  }`,
+    `  function cssEscape(value) {`,
+    `    if (window.CSS && typeof window.CSS.escape === "function") return window.CSS.escape(String(value));`,
+    `    return String(value).replace(/['\\\\]/g, "\\\\$&");`,
+    `  }`,
+    `  function payloadWithBindings(actionId, payload) {`,
+    `    const next = { ...(payload || {}) };`,
+    `    const bindings = inputBindings[actionId] || {};`,
+    `    for (const binding of Object.values(bindings)) next[binding.inputKey] = readBindingValue(binding.target);`,
+    `    return next;`,
+    `  }`,
     `  async function submitAction(actionId, payload) {`,
     `    pendingActionId = actionId;`,
     `    runtimeError = "";`,
@@ -349,7 +373,7 @@ function renderActionRuntime(page: PublishedPage, site?: FabricSite | null): str
     `      const response = await fetch("/p/" + encodeURIComponent(projectPublicId) + "/actions/" + encodeURIComponent(actionId) + "/" + encodePublishedPath(slug), {`,
     `        method: "POST",`,
     `        headers: { "content-type": "application/json" },`,
-    `        body: JSON.stringify(payload),`,
+    `        body: JSON.stringify(payloadWithBindings(actionId, payload)),`,
     `      });`,
     `      const body = await response.json();`,
     `      if (!response.ok) throw new Error(body?.error || body?.message || "Action failed");`,

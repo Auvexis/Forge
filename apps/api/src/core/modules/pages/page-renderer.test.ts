@@ -199,6 +199,47 @@ describe("page renderer", () => {
     assert.match(html, /data-fabric-action-id="action_run"/);
   });
 
+  it("renders page action binding targets and resolves them in runtime", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        blocks: [
+          {
+            id: "email_input",
+            tag: "input",
+            props: { name: "email", type: "email" },
+            children: [],
+          },
+          {
+            id: "button_1",
+            tag: "button",
+            props: { text: "Run" },
+            action: { id: "page-action:workflow_1:trigger", type: "triggerWorkflow", workflowId: "workflow_1", triggerId: "trigger" },
+            children: [],
+          },
+        ],
+        pageActions: {
+          inputBindings: {
+            "page-action:workflow_1:trigger": {
+              email: {
+                id: "binding_1",
+                actionId: "page-action:workflow_1:trigger",
+                inputKey: "email",
+                source: "element",
+                target: { elementId: "email_input", property: "value", label: "Email" },
+                createdAt: "2026-07-14T00:00:00.000Z",
+              },
+            },
+          },
+        },
+      }),
+    );
+
+    assert.match(html, /data-page-action-binding-element-id="email_input"/);
+    assert.match(html, /const inputBindings =/);
+    assert.match(html, /payloadWithBindings\(actionId, payload\)/);
+    assert.match(html, /readBindingValue\(binding\.target\)/);
+  });
+
   it("never renders script from page content", () => {
     const html = renderPublishedPage(
       publishedPage({
