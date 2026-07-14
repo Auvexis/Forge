@@ -50,6 +50,20 @@ describe('base canvas snap helpers', () => {
     assert.deepEqual(result.delta, { x: 2, y: 0 })
     assert.equal(result.guides.some((guide) => guide.axis === 'x' && guide.position === 100), true)
   })
+
+  it('prefers the nearest alignment target over a distant target with a smaller snap delta', () => {
+    const result = snapRectToAlignment({
+      rect: { x: 96, y: 10, width: 20, height: 20 },
+      targets: [
+        { x: 100, y: 900, width: 20, height: 20 },
+        { x: 102, y: 24, width: 20, height: 20 },
+      ],
+      threshold: 6,
+    })
+
+    assert.equal(result.delta.x, -4)
+    assert.equal(result.guides.some((guide) => guide.axis === 'x' && guide.position === 102), true)
+  })
 })
 
 describe('base canvas drag helpers', () => {

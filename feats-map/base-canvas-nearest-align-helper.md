@@ -1,0 +1,3 @@
+- [x] Priorizar alvo de alinhamento mais próximo
+- [x] Cobrir com teste focado
+- [x] Validar e commitar

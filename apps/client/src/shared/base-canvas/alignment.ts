@@ -15,6 +15,7 @@ export interface SnapRectToAlignmentInput {
 
 interface SnapCandidate {
   delta: number
+  targetDistance: number
   guide: BaseCanvasAlignmentGuide
 }
 
@@ -25,8 +26,20 @@ export function snapRectToAlignment(input: SnapRectToAlignmentInput): {
   guides: BaseCanvasAlignmentGuide[]
 } {
   const threshold = input.threshold ?? DEFAULT_ALIGNMENT_THRESHOLD
-  const xCandidate = closestCandidate(rectAnchors(input.rect, 'x'), input.targets, 'x', threshold)
-  const yCandidate = closestCandidate(rectAnchors(input.rect, 'y'), input.targets, 'y', threshold)
+  const xCandidate = closestCandidate(
+    input.rect,
+    rectAnchors(input.rect, 'x'),
+    input.targets,
+    'x',
+    threshold,
+  )
+  const yCandidate = closestCandidate(
+    input.rect,
+    rectAnchors(input.rect, 'y'),
+    input.targets,
+    'y',
+    threshold,
+  )
 
   return {
     delta: {
@@ -38,6 +51,7 @@ export function snapRectToAlignment(input: SnapRectToAlignmentInput): {
 }
 
 function closestCandidate(
+  rect: BaseCanvasRect,
   anchors: Array<{ value: number; start: number; end: number }>,
   targets: BaseCanvasRect[],
   axis: 'x' | 'y',
@@ -49,9 +63,15 @@ function closestCandidate(
       for (const targetAnchor of rectAnchors(target, axis)) {
         const delta = targetAnchor.value - anchor.value
         if (Math.abs(delta) > threshold) continue
-        if (best && Math.abs(best.delta) <= Math.abs(delta)) continue
+        const targetDistance = rectDistance(rect, target)
+        if (
+          best &&
+          (best.targetDistance < targetDistance ||
+            (best.targetDistance === targetDistance && Math.abs(best.delta) <= Math.abs(delta)))
+        ) continue
         best = {
           delta,
+          targetDistance,
           guide: {
             axis,
             position: targetAnchor.value,
@@ -63,6 +83,18 @@ function closestCandidate(
     }
   }
   return best
+}
+
+function rectDistance(rect: BaseCanvasRect, target: BaseCanvasRect) {
+  const xDistance = intervalDistance(rect.x, rect.x + rect.width, target.x, target.x + target.width)
+  const yDistance = intervalDistance(rect.y, rect.y + rect.height, target.y, target.y + target.height)
+  return xDistance * xDistance + yDistance * yDistance
+}
+
+function intervalDistance(start: number, end: number, targetStart: number, targetEnd: number) {
+  if (end < targetStart) return targetStart - end
+  if (targetEnd < start) return start - targetEnd
+  return 0
 }
 
 function rectAnchors(rect: BaseCanvasRect, axis: 'x' | 'y') {
