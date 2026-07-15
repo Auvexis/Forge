@@ -302,6 +302,16 @@
   padding-right: 0;
 }
 
+.web-page-editor--blueprint-active .web-page-editor__workspace {
+  padding-left: 0;
+  padding-right: 0;
+  padding-bottom: 0;
+}
+
+.web-page-editor--blueprint-active .web-page-document-tabs {
+  left: 0;
+}
+
 .web-page-editor__statusbar {
   position: absolute;
   z-index: 35;
@@ -2178,7 +2188,7 @@
 
 .web-page-blueprint {
   display: grid;
-  grid-template-columns: 240px minmax(420px, 1fr) 340px;
+  grid-template-columns: max-content minmax(420px, 1fr) max-content;
   height: 100%;
   min-height: 0;
   background: var(--fabric-blueprint-bg, var(--fabric-workbench-panel-bg));
@@ -2197,12 +2207,35 @@
 
 .web-page-blueprint__palette,
 .web-page-blueprint__details {
+  position: relative;
   display: grid;
   grid-template-rows: 34px minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
   overflow: hidden;
   background: var(--fabric-blueprint-panel-bg, var(--fabric-workbench-panel-bg));
+}
+
+.web-page-blueprint__resize {
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.web-page-blueprint__resize:hover {
+  background: color-mix(in srgb, var(--fabric-accent) 24%, transparent);
+}
+
+.web-page-blueprint__resize--left {
+  right: -3px;
+}
+
+.web-page-blueprint__resize--right {
+  left: -3px;
 }
 
 .web-page-blueprint__details {

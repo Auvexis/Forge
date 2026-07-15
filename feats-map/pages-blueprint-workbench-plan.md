@@ -5,8 +5,8 @@
 - [x] Alternar entre Design, Code e Blueprints abertos pela barra de abas
 - [x] Manter uma aba Design por pagina e uma aba Blueprint por escopo
 - [ ] Restaurar selecao, viewport e paineis ao alternar documentos
-- [ ] Abrir Blueprint de pagina ou elemento por comando e duplo clique
-- [ ] Fechar, reabrir e identificar abas de Blueprint por pagina ou elemento
+- [x] Abrir Blueprint de pagina ou elemento por comando e duplo clique
+- [x] Fechar, reabrir e identificar abas de Blueprint por pagina ou elemento
 - [x] Criar canvas Blueprint com `BaseCanvas` e pattern square
 - [ ] Criar nodes, pins tipados, edges, selecao e navegacao do grafo
 - [x] Criar Palette lateral para eventos, workflows, elementos, dados e logica

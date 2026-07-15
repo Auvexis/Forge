@@ -5,6 +5,7 @@
       :key="tab.id"
       class="web-page-document-tabs__tab"
       :class="{ 'web-page-document-tabs__tab--active': tab.id === activeTabId }"
+      @mousedown.middle.prevent="tab.closable && $emit('close', tab.id)"
     >
       <button class="web-page-document-tabs__main" type="button" @click="$emit('activate', tab.id)">
         <LucideIcon :name="tab.icon" :size="13" />

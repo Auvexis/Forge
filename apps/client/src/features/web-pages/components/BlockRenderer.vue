@@ -33,14 +33,11 @@
       class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
       :style="resolvedBlockStyles"
-      :draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"
-      :contenteditable="isInlineEditing ? 'true' : undefined"
+      :draggable="!readonly && activeTool === 'cursor'"
       tabindex="0"
       @click.stop="selectBlockFromPointer"
       @dblclick.stop="handleBlockDoubleClick"
       @focus="emit('select', { blockId: block.id })"
-      @keydown="handleInlineEditKeydown"
-      @blur="commitInlineEdit"
       @dragstart.stop="onDragStart"
       @dragover.prevent.stop="onDragOver"
       @dragleave.stop="onDragLeave"
@@ -74,6 +71,7 @@
           @duplicate-block="$emit('duplicate-block', $event)"
           @delete-block="$emit('delete-block', $event)"
           @inspect-block="$emit('inspect-block', $event)"
+          @open-blueprint="$emit('open-blueprint', $event)"
           @resize-block="$emit('resize-block', $event)"
           @rename-block="$emit('rename-block', $event)"
           @patch-block="$emit('patch-block', $event)"
@@ -203,6 +201,7 @@ const emit = defineEmits<{
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
+  'open-blueprint': [blockId: string]
   'resize-start': []
   'resize-end': []
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
@@ -264,9 +263,6 @@ const selectionScale = ref(1)
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
 const blockIdInputRef = ref<HTMLInputElement | null>(null)
-const isInlineEditing = ref(false)
-const originalInlineText = ref('')
-const inlineEditableTags: PageBlockTag[] = ['text', 'button', 'link']
 const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
@@ -432,54 +428,7 @@ function commitBlockIdEdit() {
 }
 
 function handleBlockDoubleClick() {
-  if (!inlineEditableTags.includes(props.block.tag)) {
-    emit('inspect-block', props.block.id)
-    return
-  }
-  originalInlineText.value = String(props.block.props?.text ?? '')
-  isInlineEditing.value = true
-  void nextTick(() => {
-    const element = blockElementRef.value
-    if (!element) return
-    element.focus()
-    const selection = window.getSelection()
-    const range = document.createRange()
-    range.selectNodeContents(element)
-    selection?.removeAllRanges()
-    selection?.addRange(range)
-  })
-}
-
-function handleInlineEditKeydown(event: KeyboardEvent) {
-  if (!isInlineEditing.value) return
-  if (event.key === 'Escape') {
-    event.preventDefault()
-    cancelInlineEdit()
-    return
-  }
-  if (event.key === 'Enter' && !event.shiftKey) {
-    event.preventDefault()
-    commitInlineEdit()
-  }
-}
-
-function commitInlineEdit() {
-  if (!isInlineEditing.value) return
-  const text = blockElementRef.value?.innerText.replace(/\r\n/g, '\n') ?? originalInlineText.value
-  isInlineEditing.value = false
-  if (text !== originalInlineText.value) {
-    emit('patch-block', {
-      blockId: props.block.id,
-      patch: { props: { ...props.block.props, text } },
-    })
-  }
-}
-
-function cancelInlineEdit() {
-  if (!isInlineEditing.value) return
-  isInlineEditing.value = false
-  if (blockElementRef.value) blockElementRef.value.innerText = originalInlineText.value
-  blockElementRef.value?.blur()
+  emit('open-blueprint', props.block.id)
 }
 
 function startResize(event: PointerEvent, corner: ResizeCorner) {

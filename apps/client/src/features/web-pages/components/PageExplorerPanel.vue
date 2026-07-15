@@ -51,6 +51,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { watch } from 'vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import type { InsertPosition } from '../utils/blockTree.ts'
 import type { PageBlock, FabricPageSummary, FabricSite, SiteFile } from '../types/page.types.ts'
@@ -59,10 +60,11 @@ import PageToolboxPanel from './PageToolboxPanel.vue'
 import SiteAssetsPanel from './SiteAssetsPanel.vue'
 import SiteFilesPanel from './SiteFilesPanel.vue'
 
-defineProps<{
+const props = defineProps<{
   site: FabricSite | null
   pages: FabricPageSummary[]
   activePageId?: string
+  activeTab?: PageExplorerTab
   blocks: PageBlock[]
   selectedBlockId: string | null
   selectedBlockIds?: string[]
@@ -93,4 +95,12 @@ const explorerTabs: BaseSegmentedSelectOption[] = [
   { value: 'assets', label: 'Assets', icon: 'image' },
   { value: 'code', label: 'Code', icon: 'code-2' },
 ]
+
+watch(
+  () => props.activeTab,
+  (nextTab) => {
+    if (nextTab) activeTab.value = nextTab
+  },
+  { immediate: true },
+)
 </script>

@@ -4,6 +4,7 @@
     :class="{
       'web-page-editor--left-collapsed': !isLeftPanelOpen,
       'web-page-editor--right-collapsed': !isRightPanelOpen,
+      'web-page-editor--blueprint-active': activePageDocumentKind === 'blueprint',
     }"
     :style="pageEditorLayoutStyle"
   >
@@ -20,6 +21,7 @@
     </Teleport>
 
     <PageChromeToolbar
+      v-if="activePageDocumentKind !== 'blueprint'"
       :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
       :is-saving="pagesStore.isSaving || sitesStore.isSaving"
       :can-undo="editorStore.canUndo"
@@ -42,6 +44,7 @@
     />
 
     <WorkbenchBottomPanel
+      v-if="activePageDocumentKind !== 'blueprint'"
       :is-open="isDataflowPanelOpen"
       :height="dataflowPanelHeight"
       :left="bottomPanelLeft"
@@ -57,7 +60,11 @@
       <PageDataActionsPanel />
     </WorkbenchBottomPanel>
 
-    <WorkbenchStatusBar class="web-page-editor__statusbar" aria-label="Pages workbench status">
+    <WorkbenchStatusBar
+      v-if="activePageDocumentKind !== 'blueprint'"
+      class="web-page-editor__statusbar"
+      aria-label="Pages workbench status"
+    >
       <template #left>
         <button
           class="workflow-status-bar__button"
@@ -93,7 +100,7 @@
     </WorkbenchStatusBar>
 
     <AppPanel
-      :is-open="isLeftPanelOpen"
+      :is-open="isLeftPanelOpen && activePageDocumentKind !== 'blueprint'"
       title="Explorer"
       position="left"
       width="md"
@@ -107,6 +114,7 @@
         :site="sitesStore.activeSite"
         :pages="pagesStore.pages"
         :active-page-id="pagesStore.activePage?.id"
+        :active-tab="activePageDocumentKind === 'code' ? 'code' : undefined"
         :blocks="editorStore.blocks"
         :selected-block-id="editorStore.selectedBlockId"
         :selected-block-ids="editorStore.selectedBlockIds"
@@ -139,25 +147,6 @@
       @pointerup="stopWorkspacePan"
       @pointerleave="stopWorkspacePan"
     >
-      <Transition name="web-page-code-editor">
-        <BaseModal
-          :is-open="Boolean(activeCodeFile)"
-          max-width="min(1180px, calc(100vw - 64px))"
-          height="min(760px, calc(100vh - 72px))"
-          :dim-backdrop="false"
-          @close="closeCodeCanvas"
-        >
-          <SiteCodeCanvas
-            v-if="activeCodeFile"
-            :file="activeCodeFile"
-            :model-value="activeCodeContent"
-            :readonly="isActiveCodeFileReadonly"
-            @update:model-value="updateActiveCodeContent"
-            @close="closeCodeCanvas"
-          />
-        </BaseModal>
-      </Transition>
-
       <template v-if="activePageDocumentKind === 'design'">
         <BaseCanvas
           v-model:selection="pageCanvasSelection"
@@ -237,6 +226,7 @@
                 @duplicate-block="duplicateBlockFromCanvas"
                 @delete-block="deleteBlockFromCanvas"
                 @inspect-block="handleInspectBlock(item.id, $event)"
+                @open-blueprint="handleOpenBlockBlueprint(item.id, $event)"
                 @resize-block="resizeBlockFromCanvas(item.id, $event)"
                 @rename-block="renameBlockFromCanvas(item.id, $event)"
                 @patch-block="patchBlockFromCanvas(item.id, $event)"
@@ -298,7 +288,7 @@
     </div>
 
     <AppPanel
-      :is-open="isRightPanelOpen"
+      :is-open="isRightPanelOpen && activePageDocumentKind !== 'blueprint'"
       title="Inspector"
       position="right"
       width="md"
@@ -1393,6 +1383,33 @@ function handleInspectBlock(pageId: string, blockId: string) {
     editorStore.selectBlock(blockId)
     isRightPanelOpen.value = true
   })
+}
+
+function handleOpenBlockBlueprint(pageId: string, blockId: string) {
+  void ensurePageActive(pageId).then(() => {
+    const block = findPageBlock(editorStore.blocks, blockId)
+    pageBlueprintWorkbench.openBlueprint({
+      type: 'element',
+      pageId,
+      elementId: blockId,
+      label: blockLabel(block, blockId),
+    })
+  })
+}
+
+function findPageBlock(blocks: PageBlock[], blockId: string): PageBlock | null {
+  for (const block of blocks) {
+    if (block.id === blockId) return block
+    const child = findPageBlock(block.children ?? [], blockId)
+    if (child) return child
+  }
+  return null
+}
+
+function blockLabel(block: PageBlock | null, fallback: string) {
+  if (!block) return fallback
+  const label = block.props?.label ?? block.props?.text ?? block.elementId ?? block.id
+  return `${block.tag} / ${String(label)}`
 }
 
 async function addPageBelowCanvas() {

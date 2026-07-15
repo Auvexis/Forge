@@ -87,10 +87,38 @@ export interface PageActionCollectionBinding {
   createdAt: string;
 }
 
+export interface PageBlueprintPersistedDocument {
+  version: number;
+  scope: { type: "page"; pageId: string } | { type: "element"; pageId: string; elementId: string; label: string };
+  graph: {
+    nodes: Array<{
+      id: string;
+      kind: string;
+      label: string;
+      detail?: string;
+      icon: string;
+      x: number;
+      y: number;
+      width?: number;
+      height?: number;
+    }>;
+    edges: Array<{
+      id: string;
+      from: string;
+      to: string;
+      label?: string;
+    }>;
+  };
+  viewport: { x: number; y: number; zoom: number };
+  selectedNodeIds: string[];
+  updatedAt: string;
+}
+
 export interface PageActionDocument {
   inputBindings: Record<string, Record<string, PageActionInputBinding>>;
   outputBindings?: Record<string, PageActionOutputBinding[]>;
   collectionBindings?: Record<string, PageActionCollectionBinding[]>;
+  blueprints?: Record<string, PageBlueprintPersistedDocument>;
 }
 
 export interface FabricPage {

@@ -196,19 +196,18 @@ describe('page selection contract', () => {
     assert.doesNotMatch(css, /web-page-block-selection__distance/)
   })
 
-  it('double click edits text button and link content directly on canvas', () => {
+  it('double clicking a canvas block opens its Blueprint instead of inline text editing', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
 
-    assert.match(renderer, /inlineEditableTags/)
-    assert.match(renderer, /\['text', 'button', 'link'\]/)
-    assert.match(renderer, /:contenteditable="isInlineEditing/)
     assert.match(renderer, /handleBlockDoubleClick/)
-    assert.match(renderer, /commitInlineEdit/)
-    assert.match(renderer, /cancelInlineEdit/)
-    assert.match(renderer, /!isInlineEditing/)
-    assert.match(renderer, /patch-block/)
-    assert.match(editor, /editorStore\.patchBlock/)
+    assert.match(renderer, /open-blueprint/)
+    assert.match(canvas, /@open-blueprint/)
+    assert.match(editor, /handleOpenBlockBlueprint/)
+    assert.match(editor, /pageBlueprintWorkbench\.openBlueprint/)
+    assert.doesNotMatch(renderer, /contenteditable/)
+    assert.doesNotMatch(renderer, /commitInlineEdit/)
   })
   it('canvas can select the body independently from blocks', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')

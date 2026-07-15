@@ -1,6 +1,12 @@
 <template>
   <section class="web-page-blueprint">
-    <aside class="web-page-blueprint__palette">
+    <aside class="web-page-blueprint__palette" :style="{ width: `${paletteWidth}px` }">
+      <span
+        class="web-page-blueprint__resize web-page-blueprint__resize--left"
+        role="separator"
+        title="Resize Palette"
+        @mousedown="startPaletteResize"
+      />
       <header class="web-page-blueprint__panel-header">
         <strong>Palette</strong>
         <BaseButton
@@ -17,6 +23,7 @@
         :key="item.id"
         class="web-page-blueprint__palette-item"
         type="button"
+        @click="addPaletteNode(item)"
       >
         <LucideIcon :name="item.icon" :size="14" />
         <span>
@@ -56,6 +63,7 @@
         pattern-color="var(--fabric-blueprint-canvas-grid, var(--fabric-border-subtle))"
         :pattern-size="24"
         @canvas-click="selection = []"
+        @items-move="moveBlueprintNodes"
       >
         <svg class="web-page-blueprint__edges" :viewBox="viewBox" aria-hidden="true">
           <path
@@ -83,7 +91,13 @@
       </BaseCanvas>
     </div>
 
-    <aside class="web-page-blueprint__details">
+    <aside class="web-page-blueprint__details" :style="{ width: `${detailsWidth}px` }">
+      <span
+        class="web-page-blueprint__resize web-page-blueprint__resize--right"
+        role="separator"
+        title="Resize Details"
+        @mousedown="startDetailsResize"
+      />
       <header class="web-page-blueprint__panel-header">
         <strong>Details</strong>
         <span>{{ activeNode?.kind ?? 'Canvas' }}</span>
@@ -109,16 +123,22 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseCanvas from '@/shared/base-canvas/BaseCanvas.vue'
-import type { BaseCanvasItem, BaseCanvasViewport } from '@/shared/base-canvas/types.ts'
+import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/types.ts'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { usePagesStore } from '../stores/pages.store.ts'
 import PageDataActionsPanel from '../data-actions/components/PageDataActionsPanel.vue'
 import { usePageActionsStore } from '../data-actions/stores/page-actions.store.ts'
-import { createPageBlueprintDocument } from './pageBlueprintDocument.ts'
-import type { PageBlueprintNode, PageBlueprintScope } from './pageBlueprint.types.ts'
+import { blueprintScopeId, createPageBlueprintDocument } from './pageBlueprintDocument.ts'
+import {
+  PAGE_BLUEPRINT_DOCUMENT_VERSION,
+  type PageBlueprintDocument,
+  type PageBlueprintNode,
+  type PageBlueprintNodeKind,
+  type PageBlueprintScope,
+} from './pageBlueprint.types.ts'
 
 const props = defineProps<{
   scope?: PageBlueprintScope | null
@@ -128,6 +148,9 @@ const pagesStore = usePagesStore()
 const actionsStore = usePageActionsStore()
 const selection = ref<string[]>([])
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
+const paletteWidth = ref(240)
+const detailsWidth = ref(340)
+const resizeState = ref<null | { side: 'palette' | 'details'; startX: number; startWidth: number }>(null)
 
 const document = computed(() =>
   createPageBlueprintDocument({
@@ -153,14 +176,18 @@ const graphSummary = computed(() =>
 const documentTitle = computed(() => document.value.scope.type === 'element' ? document.value.scope.label : 'Page Blueprint')
 const selectedLabel = computed(() => activeNode.value?.label ?? 'Canvas')
 const activeNode = computed(() => selection.value[0] ? nodeForItem(selection.value[0]) : null)
-const paletteItems = computed(() => [
-  { id: 'events', label: 'Events', detail: 'Click, submit, mount', icon: 'radio' },
-  { id: 'workflows', label: 'Workflow Actions', detail: `${actionsStore.workflows.length} workflows`, icon: 'workflow' },
-  { id: 'elements', label: 'Elements', detail: 'Inputs, text, buttons', icon: 'box-select' },
-  { id: 'data', label: 'Data', detail: 'Outputs and collections', icon: 'database' },
-  { id: 'logic', label: 'Logic', detail: 'Conditions and transforms', icon: 'split' },
+const paletteItems = computed<Array<{ id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }>>(() => [
+  { id: 'events', label: 'Event', detail: 'Click, submit, mount', icon: 'radio', kind: 'event' },
+  { id: 'workflows', label: 'Workflow Action', detail: `${actionsStore.workflows.length} workflows`, icon: 'workflow', kind: 'workflow-action' },
+  { id: 'elements', label: 'Element', detail: 'Inputs, text, buttons', icon: 'box-select', kind: 'element' },
+  { id: 'data', label: 'Result Binding', detail: 'Outputs and collections', icon: 'database', kind: 'result-binding' },
+  { id: 'logic', label: 'JavaScript', detail: 'Conditions and transforms', icon: 'split', kind: 'javascript' },
 ])
 const viewBox = '-120 -80 1280 560'
+
+onBeforeUnmount(() => {
+  stopResize()
+})
 
 watch(document, (next) => {
   viewport.value = { ...next.viewport }
@@ -169,6 +196,101 @@ watch(document, (next) => {
 
 function nodeForItem(itemId: string): PageBlueprintNode | null {
   return graph.value.nodes.find((node) => node.id === itemId) ?? null
+}
+
+function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
+  const moved = new Set(event.itemIds)
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      ...graph.value,
+      nodes: graph.value.nodes.map((node) =>
+        moved.has(node.id)
+          ? { ...node, x: node.x + event.delta.x, y: node.y + event.delta.y }
+          : node,
+      ),
+    },
+    selectedNodeIds: selection.value,
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+}
+
+function addPaletteNode(item: { label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }) {
+  const node: PageBlueprintNode = {
+    id: `node:${item.kind}:${Date.now().toString(36)}`,
+    kind: item.kind,
+    label: item.label,
+    detail: item.detail,
+    icon: item.icon,
+    x: Math.round((-viewport.value.x + 120) / viewport.value.zoom),
+    y: Math.round((-viewport.value.y + 120 + graph.value.nodes.length * 18) / viewport.value.zoom),
+    width: 184,
+    height: 54,
+  }
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      nodes: [...graph.value.nodes, node],
+      edges: [...graph.value.edges],
+    },
+    selectedNodeIds: [node.id],
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+  selection.value = [node.id]
+}
+
+function persistBlueprintDocument(nextDocument: PageBlueprintDocument) {
+  const page = pagesStore.activePage
+  if (!page) return
+  const scope = nextDocument.scope
+  const id = blueprintScopeId(scope)
+  pagesStore.setActivePage({
+    ...page,
+    pageActions: {
+      inputBindings: page.pageActions?.inputBindings ?? {},
+      outputBindings: page.pageActions?.outputBindings,
+      collectionBindings: page.pageActions?.collectionBindings,
+      blueprints: {
+        ...(page.pageActions?.blueprints ?? {}),
+        [id]: {
+          ...nextDocument,
+          version: PAGE_BLUEPRINT_DOCUMENT_VERSION,
+        },
+      },
+    },
+  })
+}
+
+function startPaletteResize(event: MouseEvent) {
+  resizeState.value = { side: 'palette', startX: event.clientX, startWidth: paletteWidth.value }
+  startResize()
+}
+
+function startDetailsResize(event: MouseEvent) {
+  resizeState.value = { side: 'details', startX: event.clientX, startWidth: detailsWidth.value }
+  startResize()
+}
+
+function startResize() {
+  window.addEventListener('mousemove', resizePanel)
+  window.addEventListener('mouseup', stopResize, { once: true })
+}
+
+function resizePanel(event: MouseEvent) {
+  const state = resizeState.value
+  if (!state) return
+  if (state.side === 'palette') {
+    paletteWidth.value = Math.min(420, Math.max(180, state.startWidth + event.clientX - state.startX))
+    return
+  }
+  detailsWidth.value = Math.min(520, Math.max(240, state.startWidth + state.startX - event.clientX))
+}
+
+function stopResize() {
+  resizeState.value = null
+  window.removeEventListener('mousemove', resizePanel)
 }
 
 function edgePath(fromId: string, toId: string) {

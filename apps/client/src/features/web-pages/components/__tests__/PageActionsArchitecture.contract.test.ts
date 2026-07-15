@@ -102,8 +102,28 @@ describe('Page Actions architecture', () => {
     expect(document).toMatch(/normalizePageBlueprintDocument/)
     expect(tabs).toMatch(/web-page-document-tabs/)
     expect(store).toMatch(/openBlueprint/)
+    expect(tabs).toMatch(/mousedown\.middle/)
+    expect(editor).toMatch(/activePageDocumentKind !== 'blueprint'/)
+    expect(editor).toMatch(/handleOpenBlockBlueprint/)
     expect(css).toMatch(/\.web-page-blueprint/)
     expect(css).toMatch(/\.web-page-document-tabs/)
+  })
+
+  it('keeps Code and Blueprint document modes out of the old modal and side chrome', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
+    const panel = read('src/features/web-pages/page-blueprint/PageBlueprintPanel.vue')
+    const pageTypes = read('src/features/web-pages/types/page.types.ts')
+    const apiTypes = read('../api/src/core/modules/pages/page-types.ts')
+
+    expect(editor).toMatch(/activePageDocumentKind === 'code' \? 'code' : undefined/)
+    expect(editor).not.toMatch(/<BaseModal[\s\S]*<SiteCodeCanvas/)
+    expect(explorer).toMatch(/activeTab\?: PageExplorerTab/)
+    expect(panel).toMatch(/@items-move="moveBlueprintNodes"/)
+    expect(panel).toMatch(/addPaletteNode/)
+    expect(panel).toMatch(/blueprints:/)
+    expect(pageTypes).toMatch(/blueprints\?: Record<string, PageBlueprintPersistedDocument>/)
+    expect(apiTypes).toMatch(/blueprints\?: Record<string, PageBlueprintPersistedDocument>/)
   })
 
   it('adds semantic theme tokens for the Pages Blueprint workbench', () => {

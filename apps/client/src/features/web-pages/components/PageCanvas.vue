@@ -41,6 +41,7 @@
           @duplicate-block="$emit('duplicate-block', $event)"
           @delete-block="$emit('delete-block', $event)"
           @inspect-block="$emit('inspect-block', $event)"
+          @open-blueprint="$emit('open-blueprint', $event)"
           @resize-start="suppressBodySelectionAfterResize"
           @resize-end="suppressBodySelectionAfterResize"
           @resize-block="$emit('resize-block', $event)"
@@ -83,6 +84,7 @@ const emit = defineEmits<{
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
+  'open-blueprint': [blockId: string]
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
   'rename-block': [payload: { blockId: string; nextId: string }]
   'patch-block': [payload: { blockId: string; patch: Partial<PageBlock> }]
