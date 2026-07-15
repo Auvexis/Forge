@@ -23,7 +23,11 @@
         Empty canvas
       </div>
       <TransitionGroup name="web-page-block">
-        <template v-for="block in blocks" :key="block.id">
+        <div
+          v-for="block in blocks"
+          :key="block.id"
+          class="web-page-block-flow-item"
+        >
           <div
             v-if="isDropPlaceholder(block.id, 'before')"
             class="web-page-drop-placeholder"
@@ -55,7 +59,7 @@
             v-if="isDropPlaceholder(block.id, 'after')"
             class="web-page-drop-placeholder"
           />
-        </template>
+        </div>
       </TransitionGroup>
     </section>
   </main>

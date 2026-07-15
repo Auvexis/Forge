@@ -49,7 +49,11 @@
         <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
       </template>
       <TransitionGroup name="web-page-block">
-        <template v-for="child in block.children ?? []" :key="child.id">
+        <div
+          v-for="child in block.children ?? []"
+          :key="child.id"
+          class="web-page-block-flow-item"
+        >
           <div
             v-if="isDropPlaceholder(child.id, 'before')"
             class="web-page-drop-placeholder"
@@ -79,7 +83,7 @@
             v-if="isDropPlaceholder(child.id, 'after')"
             class="web-page-drop-placeholder"
           />
-        </template>
+        </div>
       </TransitionGroup>
     </component>
     <Teleport to="body">
@@ -645,12 +649,15 @@ function onDrop(event: DragEvent) {
   if (props.readonly) return
   const payload = readDragPayload(event)
   if (!payload) return
+  if (payload.draggedId === props.block.id) return
   const intent = getDropIntent(event)
   emit('drop-block', { targetId: props.block.id, position: intent.position, ...payload })
 }
 
 function onDragOver(event: DragEvent) {
   if (props.readonly) return
+  const payload = readDragPayload(event)
+  if (payload?.draggedId === props.block.id) return
   emitDragIntent(getDropIntent(event))
 }
 

@@ -773,6 +773,10 @@
   overflow: visible;
 }
 
+.web-page-block-flow-item {
+  display: contents;
+}
+
 .web-page-block__placeholder {
   display: inline-flex;
   min-height: 24px;

@@ -102,6 +102,17 @@ describe('page drag prediction contract', () => {
     assert.doesNotMatch(css, /web-page-block--drop-after[\s\S]*outline:/)
   })
 
+  it('drop preview keeps transition group children stable during block dragging', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
+    const css = read('src/features/web-pages/pages.css')
+
+    assert.match(renderer, /class="web-page-block-flow-item"/)
+    assert.match(canvas, /class="web-page-block-flow-item"/)
+    assert.match(css, /web-page-block-flow-item[\s\S]*display:\s*contents/)
+    assert.match(renderer, /payload\.draggedId === props\.block\.id/)
+  })
+
   it('canvas deletes blocks immediately without animated removal delay', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
