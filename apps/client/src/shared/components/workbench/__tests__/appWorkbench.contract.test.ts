@@ -19,15 +19,11 @@ test('workflow editor renders inside the shared workbench shell', () => {
   assert.doesNotMatch(source, /#toolstrip/)
   assert.match(source, /#left/)
   assert.match(source, /#status/)
-  assert.match(source, /workflow-tool-rail/)
-  assert.match(source, /workflow-tool-rail__group/)
-  assert.match(source, /workflow-tool-rail__button--toggle-on/)
+  assert.match(source, /BaseRail/)
+  assert.match(source, /BaseRailItem/)
+  assert.match(source, /BaseRailButtonToggleItem/)
   assert.doesNotMatch(source, /Create git snapshot"[\s\S]{0,140}workflow-tool-rail__button--active/)
   assert.doesNotMatch(source, /workflow-status-bar__button--git"\s*:class="\{ 'workflow-status-bar__button--active'/)
-  assert.match(source, /\.workflow-tool-rail\s*\{[\s\S]*gap: 0;[\s\S]*padding: 0;/)
-  assert.match(source, /\.workflow-tool-rail\s*\{[\s\S]*width: 50px;/)
-  assert.match(source, /\.workflow-tool-rail__button\s*\{[\s\S]*width: 49px;[\s\S]*height: 36px;/)
-  assert.match(source, /\.workflow-tool-rail__group\s*\{[\s\S]*border: 0;[\s\S]*background: transparent;/)
   assert.match(source, /workflow-workbench__canvas/)
   assert.match(source, /<AppPanel[\s\S]*class="workflow-inspector-panel"/)
   assert.match(source, /const showInspector = ref\(true\)/)
@@ -65,6 +61,7 @@ test('workflow editor renders inside the shared workbench shell', () => {
 test('workbench components expose toolstrip body and status slots', () => {
   const workbench = read('src/shared/components/workbench/AppWorkbench.vue')
   const status = read('src/shared/components/workbench/WorkbenchStatusBar.vue')
+  const bottomPanel = read('src/shared/components/workbench/WorkbenchBottomPanel.vue')
   const appPage = read('src/shared/components/layout/AppPage.vue')
   const appShell = read('src/shared/components/layout/AppShell.vue')
 
@@ -82,6 +79,10 @@ test('workbench components expose toolstrip body and status slots', () => {
   assert.match(status, /workbench-status-bar__zone--right/)
   assert.match(status, /display: flex;/)
   assert.doesNotMatch(status, /grid-template-columns/)
+  assert.match(bottomPanel, /workbench-bottom-panel/)
+  assert.match(bottomPanel, /workbench-bottom-panel__resize/)
+  assert.match(bottomPanel, /resize-start/)
+  assert.match(bottomPanel, /var\(--fabric-workbench-border\)/)
 })
 
 test('fabric themes define workbench tokens', () => {

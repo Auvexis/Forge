@@ -34,40 +34,53 @@
       @toggle-autosave="setPagesAutosaveEnabled"
     />
 
-    <aside
-      v-if="isDataflowPanelOpen"
-      class="web-page-editor__bottom-panel"
-      :style="{ height: `${dataflowPanelHeight}px` }"
+    <WorkbenchBottomPanel
+      :is-open="isDataflowPanelOpen"
+      :height="dataflowPanelHeight"
+      :left="bottomPanelLeft"
+      :right="bottomPanelRight"
+      bottom="var(--web-page-statusbar-height)"
+      :min-height="180"
+      resize-title="Resize Dataflow panel"
+      @resize-start="startDataflowResize"
     >
-      <button
-        type="button"
-        class="web-page-editor__bottom-resize"
-        aria-label="Resize Dataflow panel"
-        @pointerdown.prevent="startDataflowResize"
-      />
       <PageBlueprintPanel />
-    </aside>
+    </WorkbenchBottomPanel>
 
-    <footer class="web-page-editor__statusbar">
-      <button
-        type="button"
-        class="web-page-editor__statusbar-item"
-        :class="{ 'web-page-editor__statusbar-item--active': isDataflowPanelOpen }"
-        @click="toggleDataflowPanel"
-      >
-        <LucideIcon name="workflow" :size="13" />
-        <span>Dataflow</span>
-      </button>
-      <span class="web-page-editor__statusbar-item">
-        <LucideIcon name="file-stack" :size="13" />
-        <span>{{ pagesStore.pages.length }} pages</span>
-      </span>
-      <span class="web-page-editor__statusbar-spacer" />
-      <span class="web-page-editor__statusbar-item">
-        <LucideIcon name="mouse-pointer-2" :size="13" />
-        <span>{{ editorStore.selectedBlockId || 'No selection' }}</span>
-      </span>
-    </footer>
+    <WorkbenchStatusBar class="web-page-editor__statusbar" aria-label="Pages workbench status">
+      <template #left>
+        <button
+          class="workflow-status-bar__button"
+          :class="{ 'workflow-status-bar__button--active': isDataflowPanelOpen }"
+          type="button"
+          @click="toggleDataflowPanel"
+        >
+          <LucideIcon name="workflow" :size="13" />
+          <span>Dataflow</span>
+          <code>{{ pageBlueprintStatusLabel }}</code>
+        </button>
+
+        <button class="workflow-status-bar__button" type="button" @click="toggleLeftPanel">
+          <LucideIcon name="layout-dashboard" :size="13" />
+          <span>Explorer</span>
+          <code>{{ isLeftPanelOpen ? 'open' : 'closed' }}</code>
+        </button>
+
+        <button class="workflow-status-bar__button" type="button" @click="toggleRightPanel">
+          <LucideIcon name="pencil" :size="13" />
+          <span>Inspector</span>
+          <code>{{ isRightPanelOpen ? 'open' : 'closed' }}</code>
+        </button>
+      </template>
+
+      <template #right>
+        <button class="workflow-status-bar__button workflow-status-bar__button--git" type="button">
+          <LucideIcon name="file-stack" :size="13" />
+          <span>Pages</span>
+          <code>{{ pagesStore.pages.length }} total</code>
+        </button>
+      </template>
+    </WorkbenchStatusBar>
 
     <AppPanel
       :is-open="isLeftPanelOpen"
@@ -476,6 +489,8 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { onBeforeRouteLeave, useRoute, useRouter } from 'vue-router'
 import AppPanel from '@/shared/components/layout/AppPanel.vue'
+import WorkbenchBottomPanel from '@/shared/components/workbench/WorkbenchBottomPanel.vue'
+import WorkbenchStatusBar from '@/shared/components/workbench/WorkbenchStatusBar.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseFileDropzone from '@/shared/components/base/BaseFileDropzone.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
@@ -626,6 +641,18 @@ const bodyStyleBlock = computed<PageBlock>(() => ({
   styles: pagesStore.activePage?.bodyStyles ?? defaultBodyStyles(),
   children: [],
 }))
+const bottomPanelLeft = computed(() =>
+  isLeftPanelOpen.value
+    ? 'calc(var(--web-page-rail-width) + var(--web-page-left-panel-width))'
+    : 'var(--web-page-rail-width)',
+)
+const bottomPanelRight = computed(() => (isRightPanelOpen.value ? 'var(--web-page-right-panel-width)' : '0'))
+const pageBlueprintStatusLabel = computed(() => {
+  const actions = pagesStore.activePage?.pageActions
+  const outputCount = Object.values(actions?.outputBindings ?? {}).reduce((total, bindings) => total + bindings.length, 0)
+  const collectionCount = Object.values(actions?.collectionBindings ?? {}).reduce((total, bindings) => total + bindings.length, 0)
+  return `${outputCount + collectionCount} binds`
+})
 
 function previewBlocks(siteId: string) {
   return projectPreviews.value[siteId]?.blocks.slice(0, 5) ?? []
@@ -835,16 +862,17 @@ function toggleDataflowPanel() {
   isDataflowPanelOpen.value = !isDataflowPanelOpen.value
 }
 
-function startDataflowResize(event: PointerEvent) {
+function startDataflowResize(event: MouseEvent) {
+  event.preventDefault()
   dataflowResizeState.value = {
     startY: event.clientY,
     startHeight: dataflowPanelHeight.value,
   }
-  window.addEventListener('pointermove', resizeDataflowPanel)
-  window.addEventListener('pointerup', stopDataflowResize, { once: true })
+  window.addEventListener('mousemove', resizeDataflowPanel)
+  window.addEventListener('mouseup', stopDataflowResize, { once: true })
 }
 
-function resizeDataflowPanel(event: PointerEvent) {
+function resizeDataflowPanel(event: MouseEvent) {
   if (!dataflowResizeState.value) return
   const delta = dataflowResizeState.value.startY - event.clientY
   dataflowPanelHeight.value = Math.max(160, Math.min(520, dataflowResizeState.value.startHeight + delta))
@@ -852,7 +880,7 @@ function resizeDataflowPanel(event: PointerEvent) {
 
 function stopDataflowResize() {
   dataflowResizeState.value = null
-  window.removeEventListener('pointermove', resizeDataflowPanel)
+  window.removeEventListener('mousemove', resizeDataflowPanel)
 }
 
 function handleLeftPanelResize(size: { width: number | null }) {

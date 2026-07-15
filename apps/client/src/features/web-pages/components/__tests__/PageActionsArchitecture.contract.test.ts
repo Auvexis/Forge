@@ -83,12 +83,23 @@ describe('Page Actions architecture', () => {
 
     expect(editor).toMatch(/PageBlueprintPanel/)
     expect(editor).toMatch(/Dataflow/)
-    expect(editor).toMatch(/web-page-editor__bottom-panel/)
+    expect(editor).toMatch(/WorkbenchBottomPanel/)
+    expect(editor).toMatch(/WorkbenchStatusBar/)
+    expect(editor).toMatch(/workflow-status-bar__button/)
     expect(explorer).not.toMatch(/PageDataActionsPanel|database-zap|value: 'data'/)
     expect(panel).toMatch(/Page Blueprint/)
     expect(adapter).toMatch(/buildPageBlueprintGraph/)
     expect(adapter).toMatch(/javascript:selected-element/)
     expect(css).toMatch(/\.web-page-blueprint/)
+  })
+
+  it('shares the workflow bottom panel chrome with Pages', () => {
+    const bottomPanel = read('src/shared/components/workbench/WorkbenchBottomPanel.vue')
+
+    expect(bottomPanel).toMatch(/workbench-bottom-panel/)
+    expect(bottomPanel).toMatch(/workbench-bottom-panel__resize/)
+    expect(bottomPanel).toMatch(/resize-start/)
+    expect(bottomPanel).toMatch(/var\(--fabric-workbench-border\)/)
   })
 
   it('documents the Page Actions boundary with an ADR', () => {
