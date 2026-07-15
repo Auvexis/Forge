@@ -196,6 +196,8 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { usePagesStore } from '../stores/pages.store.ts'
 import PageDataActionsPanel from '../data-actions/components/PageDataActionsPanel.vue'
 import { usePageActionsStore } from '../data-actions/stores/page-actions.store.ts'
+import { usePageActionBindingsStore } from '../data-actions/stores/page-action-bindings.store.ts'
+import { usePageEditorStore } from '../stores/page-editor.store.ts'
 import { blueprintScopeId, createPageBlueprintDocument } from './pageBlueprintDocument.ts'
 import {
   PAGE_BLUEPRINT_DOCUMENT_VERSION,
@@ -211,6 +213,8 @@ const props = defineProps<{
 
 const pagesStore = usePagesStore()
 const actionsStore = usePageActionsStore()
+const bindingsStore = usePageActionBindingsStore()
+const editorStore = usePageEditorStore()
 const selection = ref<string[]>([])
 const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
@@ -420,7 +424,24 @@ function duplicateNode(nodeId: string) {
   selection.value = [node.id]
 }
 
-function addPaletteNode(item: { label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }) {
+function addPaletteNode(item: { id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }) {
+  if (item.id === 'page-event') {
+    attachSelectedActionToSelectedElement()
+    return
+  }
+  if (item.id === 'run-workflow') {
+    detailsStep.value = 'configure'
+    addSelectedActionNode()
+    return
+  }
+  if (item.id === 'read-element') {
+    addSelectedElementNode()
+    return
+  }
+  if (item.id === 'bind-return') {
+    addOutputBindingNode()
+    return
+  }
   const node: PageBlueprintNode = {
     id: `node:${item.kind}:${Date.now().toString(36)}`,
     kind: item.kind,
@@ -438,6 +459,125 @@ function addPaletteNode(item: { label: string; detail: string; icon: string; kin
       nodes: [...graph.value.nodes, node],
       edges: [...graph.value.edges],
     },
+    selectedNodeIds: [node.id],
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+  selection.value = [node.id]
+}
+
+function addSelectedElementNode() {
+  const block = editorStore.selectedBlock
+  if (!block) return
+  const node = createRuntimeNode({
+    kind: 'element',
+    label: String(block.props?.label ?? block.props?.text ?? block.elementId ?? block.id),
+    detail: `${block.tag} / ${block.id}`,
+    icon: 'box-select',
+  })
+  addNodeToGraph(node)
+}
+
+function addSelectedActionNode() {
+  const action = actionsStore.selectedAction
+  if (!action) return
+  addNodeToGraph(createRuntimeNode({
+    id: `action:${action.id}`,
+    kind: 'workflow-action',
+    label: action.name,
+    detail: action.workflowName,
+    icon: 'workflow',
+  }))
+}
+
+function addOutputBindingNode() {
+  const action = actionsStore.selectedAction
+  const block = editorStore.selectedBlock
+  if (!action || !block || !['text', 'button', 'input'].includes(block.tag)) {
+    detailsStep.value = 'configure'
+    return
+  }
+  const resultPath = action.returns[0]?.key ?? 'executionId'
+  const target = {
+    elementId: block.id,
+    property: block.tag === 'input' ? 'value' as const : 'text' as const,
+    label: String(block.props?.label ?? block.props?.text ?? block.elementId ?? block.id),
+  }
+  const binding = bindingsStore.bindOutputToElement(action, resultPath, target)
+  if (!binding) return
+  const actionNodeId = `action:${action.id}`
+  const node = createRuntimeNode({
+    id: `output:${binding.id}`,
+    kind: 'result-binding',
+    label: resultPath,
+    detail: target.label,
+    icon: 'log-out',
+  })
+  addNodeToGraph(node, actionNodeId)
+}
+
+function attachSelectedActionToSelectedElement() {
+  const action = actionsStore.selectedAction
+  const blockId = editorStore.selectedBlockId
+  const block = editorStore.selectedBlock
+  if (!action || !blockId || !block || !['button', 'form'].includes(block.tag)) {
+    detailsStep.value = 'configure'
+    return
+  }
+  editorStore.patchBlock(blockId, {
+    action: {
+      id: action.id,
+      type: 'triggerWorkflow',
+      workflowId: action.workflowId,
+      triggerId: action.triggerId,
+    },
+  })
+  addNodeToGraph(createRuntimeNode({
+    id: 'event:selected',
+    kind: 'event',
+    label: `${block.tag} event`,
+    detail: block.id,
+    icon: 'radio',
+  }))
+}
+
+function createRuntimeNode(input: {
+  id?: string
+  kind: PageBlueprintNodeKind
+  label: string
+  detail: string
+  icon: string
+}): PageBlueprintNode {
+  return {
+    id: input.id ?? `node:${input.kind}:${Date.now().toString(36)}`,
+    kind: input.kind,
+    label: input.label,
+    detail: input.detail,
+    icon: input.icon,
+    x: Math.round((-viewport.value.x + 120) / viewport.value.zoom),
+    y: Math.round((-viewport.value.y + 120 + graph.value.nodes.length * 18) / viewport.value.zoom),
+    width: 184,
+    height: 92,
+  }
+}
+
+function addNodeToGraph(node: PageBlueprintNode, connectFrom?: string) {
+  const nodes = graph.value.nodes.some((item) => item.id === node.id)
+    ? graph.value.nodes.map((item) => item.id === node.id ? node : item)
+    : [...graph.value.nodes, node]
+  const edges = connectFrom && graph.value.nodes.some((item) => item.id === connectFrom)
+    ? [
+      ...graph.value.edges,
+      {
+        id: `edge:${connectFrom}:${node.id}:${Date.now().toString(36)}`,
+        from: connectFrom,
+        to: node.id,
+      },
+    ]
+    : [...graph.value.edges]
+  persistBlueprintDocument({
+    ...document.value,
+    graph: { nodes, edges },
     selectedNodeIds: [node.id],
     viewport: viewport.value,
     updatedAt: new Date().toISOString(),
