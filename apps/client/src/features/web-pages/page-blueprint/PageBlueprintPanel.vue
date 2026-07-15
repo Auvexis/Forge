@@ -8,7 +8,10 @@
         @mousedown="startPaletteResize"
       />
       <header class="web-page-blueprint__panel-header">
-        <strong>Palette</strong>
+        <div class="web-page-blueprint__panel-title">
+          <LucideIcon name="blocks" :size="13" />
+          <strong>Node Library</strong>
+        </div>
         <BaseButton
           variant="ghost"
           size="icon"
@@ -18,26 +21,58 @@
           @click="actionsStore.loadAvailableActions()"
         />
       </header>
-      <button
-        v-for="item in paletteItems"
-        :key="item.id"
-        class="web-page-blueprint__palette-item"
-        type="button"
-        @click="addPaletteNode(item)"
-      >
-        <LucideIcon :name="item.icon" :size="14" />
-        <span>
-          {{ item.label }}
-          <small>{{ item.detail }}</small>
-        </span>
-      </button>
+      <div class="web-page-blueprint__palette-tools">
+        <label class="web-page-blueprint__search">
+          <LucideIcon name="search" :size="12" />
+          <input v-model="paletteQuery" type="search" placeholder="Search nodes" aria-label="Search Blueprint nodes" />
+          <kbd v-if="!paletteQuery">5 nodes</kbd>
+          <button v-else type="button" title="Clear search" @click="paletteQuery = ''">
+            <LucideIcon name="x" :size="11" />
+          </button>
+        </label>
+      </div>
+      <div class="web-page-blueprint__palette-body">
+        <section
+          v-for="group in filteredPaletteGroups"
+          :key="group.id"
+          class="web-page-blueprint__palette-group"
+        >
+          <header>
+            <span>{{ group.label }}</span>
+            <small>{{ group.items.length }}</small>
+          </header>
+          <button
+            v-for="item in group.items"
+            :key="item.id"
+            class="web-page-blueprint__palette-item"
+            type="button"
+            @click="addPaletteNode(item)"
+          >
+            <span class="web-page-blueprint__palette-icon" :data-kind="item.kind">
+              <LucideIcon :name="item.icon" :size="14" />
+            </span>
+            <span class="web-page-blueprint__palette-copy">
+              <strong>{{ item.label }}</strong>
+              <small>{{ item.detail }}</small>
+            </span>
+            <LucideIcon class="web-page-blueprint__palette-add" name="plus" :size="12" />
+          </button>
+        </section>
+        <div v-if="filteredPaletteGroups.length === 0" class="web-page-blueprint__palette-empty">
+          <span>No matching nodes</span>
+          <button type="button" @click="paletteQuery = ''">Clear search</button>
+        </div>
+      </div>
     </aside>
 
     <div class="web-page-blueprint__graph">
       <header class="web-page-blueprint__header">
-        <div>
+        <div class="web-page-blueprint__graph-title">
+          <LucideIcon name="workflow" :size="13" />
+          <div>
           <strong>{{ documentTitle }}</strong>
           <span>{{ graphSummary }}</span>
+          </div>
         </div>
         <span class="web-page-blueprint__header-meta">
           <LucideIcon name="mouse-pointer-2" :size="13" />
@@ -47,8 +82,8 @@
 
       <div v-if="graph.nodes.length === 0" class="web-page-blueprint__empty">
         <LucideIcon name="workflow" :size="20" />
-        <strong>Select an action</strong>
-        <span>Choose a workflow trigger in the Logic panel to build a page dataflow.</span>
+        <strong>Build the dataflow</strong>
+        <span>Add a node from the Node Library, then configure its runtime in the Inspector.</span>
       </div>
       <BaseCanvas
         v-else
@@ -119,23 +154,23 @@
               </button>
             </div>
             <header class="web-page-blueprint__node-header">
-              <LucideIcon :name="nodeForItem(item.id)?.icon ?? 'box'" :size="15" />
-              <span>{{ nodeForItem(item.id)?.label }}</span>
+              <span class="web-page-blueprint__node-icon">
+                <LucideIcon :name="nodeForItem(item.id)?.icon ?? 'box'" :size="15" />
+              </span>
+              <span class="web-page-blueprint__node-title">
+                <small>{{ nodeKindLabel(nodeForItem(item.id)?.kind) }}</small>
+                <strong>{{ nodeForItem(item.id)?.label }}</strong>
+              </span>
+              <LucideIcon name="grip-vertical" :size="12" class="web-page-blueprint__node-grip" />
             </header>
-            <dl class="web-page-blueprint__node-meta">
-              <div>
-                <dt>Type</dt>
-                <dd>{{ nodeForItem(item.id)?.kind }}</dd>
-              </div>
-              <div>
-                <dt>ID</dt>
-                <dd>{{ item.id }}</dd>
-              </div>
-              <div v-if="nodeForItem(item.id)?.detail">
-                <dt>Detail</dt>
-                <dd>{{ nodeForItem(item.id)?.detail }}</dd>
-              </div>
-            </dl>
+            <div class="web-page-blueprint__node-body">
+              <span>{{ nodeForItem(item.id)?.detail || 'No configuration' }}</span>
+              <code>{{ shortNodeId(item.id) }}</code>
+            </div>
+            <footer class="web-page-blueprint__node-footer">
+              <span><i class="web-page-blueprint__port-dot" /> Input</span>
+              <span>Output <i class="web-page-blueprint__port-dot" /></span>
+            </footer>
           </article>
         </template>
       </BaseCanvas>
@@ -149,40 +184,77 @@
         @mousedown="startDetailsResize"
       />
       <header class="web-page-blueprint__panel-header">
-        <strong>Details</strong>
-        <span>{{ detailsStepLabel }}</span>
+        <div class="web-page-blueprint__panel-title">
+          <LucideIcon name="sliders-horizontal" :size="13" />
+          <strong>Inspector</strong>
+        </div>
+        <span>{{ activeNode ? '1 selected' : 'Canvas' }}</span>
       </header>
       <div class="web-page-blueprint__details-tabs">
         <button
           type="button"
-          :class="{ 'web-page-blueprint__details-tab--active': detailsStep === 'choose' }"
-          @click="detailsStep = 'choose'"
+          :class="{ 'web-page-blueprint__details-tab--active': detailsStep === 'properties' }"
+          @click="detailsStep = 'properties'"
         >
-          Data / Action
+          <LucideIcon name="list-tree" :size="12" />
+          Properties
         </button>
         <button
           type="button"
-          :class="{ 'web-page-blueprint__details-tab--active': detailsStep === 'configure' }"
-          @click="detailsStep = 'configure'"
+          :class="{ 'web-page-blueprint__details-tab--active': detailsStep === 'runtime' }"
+          @click="detailsStep = 'runtime'"
         >
-          Configure
+          <LucideIcon name="workflow" :size="12" />
+          Runtime
         </button>
       </div>
-      <div v-if="detailsStep === 'choose'" class="web-page-blueprint__details-choose">
-        <button
-          v-for="item in paletteItems"
-          :key="`details:${item.id}`"
-          type="button"
-          @click="addPaletteNode(item); detailsStep = 'configure'"
-        >
-          <LucideIcon :name="item.icon" :size="14" />
+      <div v-if="detailsStep === 'properties'" class="web-page-blueprint__inspector">
+        <template v-if="activeNode">
+          <div class="web-page-blueprint__selection-summary">
+            <span class="web-page-blueprint__selection-icon" :data-kind="activeNode.kind">
+              <LucideIcon :name="activeNode.icon" :size="17" />
+            </span>
+            <span>
+              <strong>{{ activeNode.label }}</strong>
+              <small>{{ nodeKindLabel(activeNode.kind) }}</small>
+            </span>
+          </div>
+          <section class="web-page-blueprint__property-section">
+            <header><LucideIcon name="info" :size="11" /><strong>Node</strong></header>
+            <dl class="web-page-blueprint__property-list">
+              <div><dt>Name</dt><dd>{{ activeNode.label }}</dd></div>
+              <div><dt>Type</dt><dd>{{ nodeKindLabel(activeNode.kind) }}</dd></div>
+              <div><dt>ID</dt><dd><code>{{ activeNode.id }}</code></dd></div>
+            </dl>
+          </section>
+          <section class="web-page-blueprint__property-section">
+            <header><LucideIcon name="git-branch" :size="11" /><strong>Connections</strong></header>
+            <dl class="web-page-blueprint__property-list">
+              <div><dt>Inputs</dt><dd>{{ incomingEdgeCount }}</dd></div>
+              <div><dt>Outputs</dt><dd>{{ outgoingEdgeCount }}</dd></div>
+            </dl>
+          </section>
+          <section v-if="activeNode.detail" class="web-page-blueprint__property-section">
+            <header><LucideIcon name="file-text" :size="11" /><strong>Source</strong></header>
+            <p class="web-page-blueprint__property-note">{{ activeNode.detail }}</p>
+          </section>
+        </template>
+        <div v-else class="web-page-blueprint__inspector-empty">
+          <LucideIcon name="mouse-pointer-2" :size="18" />
+          <strong>No node selected</strong>
+          <span>Select a node or connection to inspect its properties.</span>
+        </div>
+      </div>
+      <div v-else class="web-page-blueprint__runtime">
+        <div class="web-page-blueprint__runtime-context">
+          <LucideIcon name="workflow" :size="13" />
           <span>
-            {{ item.label }}
-            <small>{{ item.detail }}</small>
+            <strong>Page Action Runtime</strong>
+            <small>Configure workflow inputs, outputs, and bindings.</small>
           </span>
-        </button>
+        </div>
+        <PageDataActionsPanel />
       </div>
-      <PageDataActionsPanel v-else />
     </aside>
   </section>
 </template>
@@ -220,10 +292,11 @@ const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
 const connectionPointer = ref<{ x: number; y: number } | null>(null)
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
-const paletteWidth = ref(240)
+const paletteWidth = ref(260)
 const detailsWidth = ref(340)
 const resizeState = ref<null | { side: 'palette' | 'details'; startX: number; startWidth: number }>(null)
-const detailsStep = ref<'choose' | 'configure'>('choose')
+const detailsStep = ref<'properties' | 'runtime'>('properties')
+const paletteQuery = ref('')
 
 const document = computed(() =>
   createPageBlueprintDocument({
@@ -239,8 +312,8 @@ const canvasItems = computed<BaseCanvasItem[]>(() =>
     id: node.id,
     x: node.x,
     y: node.y,
-    width: node.width ?? 184,
-    height: node.height ?? 92,
+    width: node.width ?? 208,
+    height: node.height ?? 112,
   })),
 )
 const graphSummary = computed(() =>
@@ -255,20 +328,21 @@ const previewConnectionPath = computed(() => {
   const pointer = connectionPointer.value
   const from = fromId ? nodeForItem(fromId) : null
   if (!from || !pointer) return ''
-  const startX = from.x + (from.width ?? 184)
-  const startY = from.y + ((from.height ?? 92) / 2)
+  const startX = from.x + (from.width ?? 208)
+  const startY = from.y + ((from.height ?? 112) / 2)
   const control = Math.max(48, Math.abs(pointer.x - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${pointer.x - control} ${pointer.y}, ${pointer.x} ${pointer.y}`
 })
-const detailsStepLabel = computed(() => detailsStep.value === 'choose' ? 'Select source' : activeNode.value?.kind ?? 'Configure')
+const incomingEdgeCount = computed(() => activeNode.value ? graph.value.edges.filter((edge) => edge.to === activeNode.value?.id).length : 0)
+const outgoingEdgeCount = computed(() => activeNode.value ? graph.value.edges.filter((edge) => edge.from === activeNode.value?.id).length : 0)
 const edgeToolbarPosition = computed(() => {
   if (!selectedEdge.value) return { x: 0, y: 0 }
   const from = nodeForItem(selectedEdge.value.from)
   const to = nodeForItem(selectedEdge.value.to)
   if (!from || !to) return { x: 0, y: 0 }
   return {
-    x: (from.x + (from.width ?? 184) + to.x) / 2 - 14,
-    y: (from.y + ((from.height ?? 86) / 2) + to.y + ((to.height ?? 86) / 2)) / 2 - 14,
+    x: (from.x + (from.width ?? 208) + to.x) / 2 - 14,
+    y: (from.y + ((from.height ?? 112) / 2) + to.y + ((to.height ?? 112) / 2)) / 2 - 14,
   }
 })
 const paletteItems = computed<Array<{ id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }>>(() => [
@@ -278,6 +352,20 @@ const paletteItems = computed<Array<{ id: string; label: string; detail: string;
   { id: 'bind-return', label: 'Bind Return Output', detail: 'Send workflow Return data into a page element', icon: 'log-out', kind: 'result-binding' },
   { id: 'transform-data', label: 'Transform Data', detail: 'Prepare values before binding or action input', icon: 'braces', kind: 'javascript' },
 ])
+const filteredPaletteGroups = computed(() => {
+  const query = paletteQuery.value.trim().toLowerCase()
+  const items = query
+    ? paletteItems.value.filter((item) => `${item.label} ${item.detail} ${item.kind}`.toLowerCase().includes(query))
+    : paletteItems.value
+  const definitions = [
+    { id: 'events', label: 'Events', kinds: ['event'] },
+    { id: 'actions', label: 'Actions', kinds: ['workflow-action', 'javascript'] },
+    { id: 'data', label: 'Data & Bindings', kinds: ['element', 'input-binding', 'result-binding', 'collection-binding'] },
+  ]
+  return definitions
+    .map((group) => ({ ...group, items: items.filter((item) => group.kinds.includes(item.kind)) }))
+    .filter((group) => group.items.length > 0)
+})
 const viewBox = '-120 -80 1280 560'
 
 onBeforeUnmount(() => {
@@ -430,7 +518,7 @@ function addPaletteNode(item: { id: string; label: string; detail: string; icon:
     return
   }
   if (item.id === 'run-workflow') {
-    detailsStep.value = 'configure'
+    detailsStep.value = 'runtime'
     addSelectedActionNode()
     return
   }
@@ -450,8 +538,8 @@ function addPaletteNode(item: { id: string; label: string; detail: string; icon:
     icon: item.icon,
     x: Math.round((-viewport.value.x + 120) / viewport.value.zoom),
     y: Math.round((-viewport.value.y + 120 + graph.value.nodes.length * 18) / viewport.value.zoom),
-    width: 184,
-    height: 92,
+    width: 208,
+    height: 112,
   }
   persistBlueprintDocument({
     ...document.value,
@@ -494,7 +582,7 @@ function addOutputBindingNode() {
   const action = actionsStore.selectedAction
   const block = editorStore.selectedBlock
   if (!action || !block || !['text', 'button', 'input'].includes(block.tag)) {
-    detailsStep.value = 'configure'
+    detailsStep.value = 'runtime'
     return
   }
   const resultPath = action.returns[0]?.key ?? 'executionId'
@@ -521,7 +609,7 @@ function attachSelectedActionToSelectedElement() {
   const blockId = editorStore.selectedBlockId
   const block = editorStore.selectedBlock
   if (!action || !blockId || !block || !['button', 'form'].includes(block.tag)) {
-    detailsStep.value = 'configure'
+    detailsStep.value = 'runtime'
     return
   }
   editorStore.patchBlock(blockId, {
@@ -556,8 +644,8 @@ function createRuntimeNode(input: {
     icon: input.icon,
     x: Math.round((-viewport.value.x + 120) / viewport.value.zoom),
     y: Math.round((-viewport.value.y + 120 + graph.value.nodes.length * 18) / viewport.value.zoom),
-    width: 184,
-    height: 92,
+    width: 208,
+    height: 112,
   }
 }
 
@@ -641,11 +729,29 @@ function edgePath(fromId: string, toId: string) {
   const from = graph.value.nodes.find((node) => node.id === fromId)
   const to = graph.value.nodes.find((node) => node.id === toId)
   if (!from || !to) return ''
-  const startX = from.x + (from.width ?? 184)
-  const startY = from.y + ((from.height ?? 92) / 2)
+  const startX = from.x + (from.width ?? 208)
+  const startY = from.y + ((from.height ?? 112) / 2)
   const endX = to.x
-  const endY = to.y + ((to.height ?? 92) / 2)
+  const endY = to.y + ((to.height ?? 112) / 2)
   const control = Math.max(48, (endX - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${endX - control} ${endY}, ${endX} ${endY}`
+}
+
+function nodeKindLabel(kind?: PageBlueprintNodeKind) {
+  if (!kind) return 'Node'
+  return ({
+    event: 'Event',
+    'workflow-action': 'Workflow Action',
+    'input-binding': 'Input Binding',
+    'result-binding': 'Result Binding',
+    'collection-binding': 'Collection Binding',
+    javascript: 'Transform',
+    element: 'Page Element',
+  } satisfies Record<PageBlueprintNodeKind, string>)[kind]
+}
+
+function shortNodeId(id: string) {
+  const segment = id.split(':').at(-1) ?? id
+  return segment.length > 18 ? `${segment.slice(0, 15)}...` : segment
 }
 </script>

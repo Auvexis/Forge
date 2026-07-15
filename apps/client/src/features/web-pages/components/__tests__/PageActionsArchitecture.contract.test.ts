@@ -137,12 +137,16 @@ describe('Page Actions architecture', () => {
     expect(panel).toMatch(/deleteNode/)
     expect(panel).toMatch(/deleteSelectedEdge/)
     expect(panel).toMatch(/detailsStep/)
+    expect(panel).toMatch(/filteredPaletteGroups/)
+    expect(panel).toMatch(/Search Blueprint nodes/)
+    expect(panel).toMatch(/Page Action Runtime/)
     expect(panel).toMatch(/blueprints:/)
     expect(css).toMatch(/web-page-blueprint__node-handle/)
     expect(css).toMatch(/web-page-blueprint__node-toolbar/)
     expect(css).toMatch(/web-page-blueprint__edge-toolbar/)
     expect(css).toMatch(/web-page-blueprint__edge--preview/)
-    expect(css).toMatch(/grid-auto-rows: min-content/)
+    expect(css).toMatch(/web-page-blueprint__property-list/)
+    expect(css).toMatch(/web-page-blueprint__palette-group/)
     expect(pageTypes).toMatch(/blueprints\?: Record<string, PageBlueprintPersistedDocument>/)
     expect(apiTypes).toMatch(/blueprints\?: Record<string, PageBlueprintPersistedDocument>/)
   })
@@ -159,6 +163,9 @@ describe('Page Actions architecture', () => {
       'blueprint.panel.bg',
       'blueprint.header.bg',
       'blueprint.node.bg',
+      'blueprint.node.header.bg',
+      'blueprint.field.bg',
+      'blueprint.toolbar.bg',
       'blueprint.edge',
     ]) {
       expect(light).toMatch(new RegExp(`"${token}"`))
