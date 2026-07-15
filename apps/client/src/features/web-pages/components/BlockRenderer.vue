@@ -3,6 +3,7 @@
     ref="frameElementRef"
     class="web-page-block-frame"
     :data-block-id="block.id"
+    :data-block-container="isContainer ? 'true' : undefined"
     v-bind="bindingTargetAttributes"
     :class="{
       'web-page-block-frame--selected': isSelectedBlock,
@@ -28,13 +29,12 @@
       class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
       :style="resolvedBlockStyles"
-      :draggable="!readonly && activeTool === 'cursor'"
+      :draggable="false"
       tabindex="0"
-      @pointerdown.stop="updateSelectionFrame"
+      @pointerdown.stop="startPointerBlockDrag"
       @click.stop="selectBlockFromPointer"
       @dblclick.stop="handleBlockDoubleClick"
       @focus="emit('select', { blockId: block.id })"
-      @dragstart.stop="onDragStart"
       @dragover.prevent.stop="onDragOver"
       @dragleave.stop="onDragLeave"
       @drop.prevent.stop="onDrop"
@@ -70,7 +70,9 @@
             :readonly="readonly"
             @select="$emit('select', $event)"
             @drop-block="$emit('drop-block', $event)"
+            @drop-root="$emit('drop-root', $event)"
             @drag-intent="$emit('drag-intent', $event)"
+            @clear-drag-intent="$emit('clear-drag-intent')"
             @duplicate-block="$emit('duplicate-block', $event)"
             @delete-block="$emit('delete-block', $event)"
             @inspect-block="$emit('inspect-block', $event)"
@@ -172,6 +174,18 @@
         <span v-if="isPrimarySelectedBlock && resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
       </div>
     </Teleport>
+    <Teleport to="body">
+      <div
+        v-if="pointerDragPreview"
+        class="web-page-pointer-drag-preview"
+        :style="{
+          left: `${pointerDragPreview.x}px`,
+          top: `${pointerDragPreview.y}px`,
+        }"
+      >
+        {{ block.id }}
+      </div>
+    </Teleport>
   </div>
 </template>
 
@@ -205,7 +219,9 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   select: [payload: { blockId: string; additive?: boolean }]
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }]
-  'drag-intent': [payload: { targetId: string; position: InsertPosition; dropEdge?: DropEdge }]
+  'drop-root': [payload: { tag?: PageBlockTag; preset?: string; draggedId?: string }]
+  'drag-intent': [payload: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge }]
+  'clear-drag-intent': []
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
@@ -271,6 +287,7 @@ const selectionScale = ref(1)
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
 const blockIdInputRef = ref<HTMLInputElement | null>(null)
+const pointerDragPreview = ref<{ x: number; y: number } | null>(null)
 const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
@@ -345,6 +362,12 @@ const customCssStyleEl = ref<HTMLStyleElement | null>(null)
 const lastDragIntentKey = ref('')
 let selectionFrameRaf = 0
 let lastSelectionFrameKey = ''
+let pointerDragState: {
+  pointerId: number
+  startX: number
+  startY: number
+  dragging: boolean
+} | null = null
 
 onMounted(() => {
   updateCustomCssStyle()
@@ -358,6 +381,7 @@ onBeforeUnmount(() => {
   customCssStyleEl.value?.remove()
   customCssStyleEl.value = null
   stopResizeListeners()
+  stopPointerDragListeners()
   stopSelectionFrameTracking()
   window.removeEventListener('resize', updateSelectionFrame)
   window.removeEventListener('scroll', updateSelectionFrame, true)
@@ -430,6 +454,10 @@ function stopSelectionFrameTracking() {
 }
 
 function selectBlockFromPointer(event: MouseEvent) {
+  if (pointerDragState?.dragging) {
+    event.preventDefault()
+    return
+  }
   emit('select', { blockId: props.block.id, additive: event.ctrlKey || event.metaKey })
 }
 
@@ -638,11 +666,94 @@ function stopResizeListeners() {
   window.removeEventListener('pointercancel', finishResize)
 }
 
-function onDragStart(event: DragEvent) {
-  if (props.readonly) return
-  event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ blockId: props.block.id }))
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
-  setDragPreview(event, props.block.id)
+function startPointerBlockDrag(event: PointerEvent) {
+  updateSelectionFrame()
+  if (props.readonly || props.activeTool !== 'cursor' || event.button !== 0) return
+  pointerDragState = {
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY,
+    dragging: false,
+  }
+  window.addEventListener('pointermove', movePointerBlockDrag)
+  window.addEventListener('pointerup', finishPointerBlockDrag, { once: true })
+  window.addEventListener('pointercancel', cancelPointerBlockDrag, { once: true })
+}
+
+function movePointerBlockDrag(event: PointerEvent) {
+  const drag = pointerDragState
+  if (!drag || event.pointerId !== drag.pointerId) return
+  if (!drag.dragging) {
+    const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY)
+    if (distance < 5) return
+    drag.dragging = true
+  }
+  event.preventDefault()
+  pointerDragPreview.value = { x: event.clientX + 12, y: event.clientY + 12 }
+  const intent = resolvePointerDropIntent(event.clientX, event.clientY)
+  if (!intent || intent.targetId === props.block.id) {
+    emit('clear-drag-intent')
+    return
+  }
+  emit('drag-intent', intent)
+}
+
+function finishPointerBlockDrag(event: PointerEvent) {
+  const drag = pointerDragState
+  if (!drag || event.pointerId !== drag.pointerId) return
+  const wasDragging = drag.dragging
+  const intent = wasDragging ? resolvePointerDropIntent(event.clientX, event.clientY) : null
+  stopPointerDragListeners()
+  pointerDragPreview.value = null
+  pointerDragState = null
+  if (!wasDragging) return
+  if (!intent || intent.targetId === props.block.id) {
+    emit('clear-drag-intent')
+    return
+  }
+  if (intent.targetId === 'root') {
+    emit('drop-root', { draggedId: props.block.id })
+    return
+  }
+  emit('drop-block', { targetId: intent.targetId, position: intent.position, draggedId: props.block.id })
+}
+
+function cancelPointerBlockDrag(event?: PointerEvent) {
+  if (event && pointerDragState && event.pointerId !== pointerDragState.pointerId) return
+  stopPointerDragListeners()
+  pointerDragPreview.value = null
+  pointerDragState = null
+  emit('clear-drag-intent')
+}
+
+function stopPointerDragListeners() {
+  window.removeEventListener('pointermove', movePointerBlockDrag)
+  window.removeEventListener('pointerup', finishPointerBlockDrag)
+  window.removeEventListener('pointercancel', cancelPointerBlockDrag)
+}
+
+function resolvePointerDropIntent(clientX: number, clientY: number) {
+  const element = document.elementFromPoint(clientX, clientY) as HTMLElement | null
+  const targetFrame = element?.closest<HTMLElement>('[data-block-id]')
+  if (!targetFrame) {
+    const root = element?.closest<HTMLElement>('.web-page-canvas__body')
+    return root ? { targetId: 'root' as const, position: 'after' as const, dropEdge: 'center' as const } : null
+  }
+  const targetId = targetFrame.dataset.blockId
+  if (!targetId) return null
+  const targetElement = targetFrame.querySelector<HTMLElement>('.web-page-block-frame__inner') ?? targetFrame
+  const rect = targetElement.getBoundingClientRect()
+  const intent = resolveBlockDropIntent({
+    x: clientX - rect.left,
+    y: clientY - rect.top,
+    width: rect.width,
+    height: rect.height,
+    isContainer: targetFrame.dataset.blockContainer === 'true',
+    previous: props.dropIntent?.targetId === targetId
+      ? { position: props.dropIntent.position, dropEdge: props.dropIntent.dropEdge ?? 'center' }
+      : null,
+  })
+  return { targetId, ...intent }
 }
 
 function onDrop(event: DragEvent) {
@@ -657,6 +768,7 @@ function onDrop(event: DragEvent) {
 function onDragOver(event: DragEvent) {
   if (props.readonly) return
   const payload = readDragPayload(event)
+  if (!payload) return
   if (payload?.draggedId === props.block.id) return
   emitDragIntent(getDropIntent(event))
 }
@@ -698,16 +810,6 @@ function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: strin
   if (!raw) return null
   const parsed = JSON.parse(raw) as { tag?: PageBlockTag; preset?: string; blockId?: string }
   return { tag: parsed.tag, preset: parsed.preset, draggedId: parsed.blockId }
-}
-
-function setDragPreview(event: DragEvent, label: string) {
-  if (!event.dataTransfer) return
-  const preview = document.createElement('div')
-  preview.className = 'web-page-drag-preview'
-  preview.textContent = label
-  document.body.appendChild(preview)
-  event.dataTransfer.setDragImage(preview, 16, 16)
-  window.setTimeout(() => preview.remove(), 0)
 }
 
 function blockClass(id: string): string {

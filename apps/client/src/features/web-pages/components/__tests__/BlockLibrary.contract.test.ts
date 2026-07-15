@@ -16,11 +16,12 @@ describe('block library contract', () => {
     assert.doesNotMatch(source, /absolute|x:|y:/)
   })
 
-  it('blocks support direct drag-and-drop placement', () => {
+  it('blocks support pointer-native drag placement while external drops stay supported', () => {
     const source = read('src/features/web-pages/components/BlockRenderer.vue')
 
-    assert.match(source, /:draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"/)
-    assert.match(source, /@dragstart/)
+    assert.match(source, /:draggable="false"/)
+    assert.match(source, /startPointerBlockDrag/)
+    assert.match(source, /resolvePointerDropIntent/)
     assert.match(source, /@drop/)
     assert.match(source, /before/)
     assert.match(source, /inside/)

@@ -113,6 +113,8 @@ describe('page drag prediction contract', () => {
     assert.match(canvas, /class="web-page-block-flow-item"/)
     assert.match(css, /web-page-block-flow-item[\s\S]*display:\s*contents/)
     assert.match(renderer, /payload\.draggedId === props\.block\.id/)
+    assert.match(renderer, /web-page-pointer-drag-preview/)
+    assert.match(css, /web-page-pointer-drag-preview[\s\S]*pointer-events:\s*none/)
   })
 
   it('canvas deletes blocks immediately without animated removal delay', () => {
