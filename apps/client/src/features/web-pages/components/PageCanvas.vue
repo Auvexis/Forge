@@ -23,31 +23,42 @@
         Empty canvas
       </div>
       <TransitionGroup name="web-page-block">
-        <BlockRenderer
-          v-for="block in blocks"
-          :key="block.id"
-          :block="block"
-          :selected-block-id="selectedBlockId"
-          :selected-block-ids="selectedBlockIds"
-          :drop-intent="dropIntent"
-          :deleting-block-ids="deletingBlockIds"
-          :active-tool="activeTool"
-          :canvas-viewport="canvasViewport"
-          :canvas-zoom="canvasZoom"
-          :readonly="readonly"
-          @select="handleBlockSelect"
-          @drop-block="$emit('drop-block', $event)"
-          @drag-intent="$emit('drag-intent', $event)"
-          @duplicate-block="$emit('duplicate-block', $event)"
-          @delete-block="$emit('delete-block', $event)"
-          @inspect-block="$emit('inspect-block', $event)"
-          @open-blueprint="$emit('open-blueprint', $event)"
-          @resize-start="suppressBodySelectionAfterResize"
-          @resize-end="suppressBodySelectionAfterResize"
-          @resize-block="$emit('resize-block', $event)"
-          @rename-block="$emit('rename-block', $event)"
-          @patch-block="$emit('patch-block', $event)"
-        />
+        <template v-for="block in blocks" :key="block.id">
+          <div
+            v-if="isDropPlaceholder(block.id, 'before')"
+            :key="`${block.id}:drop-before`"
+            class="web-page-drop-placeholder"
+          />
+          <BlockRenderer
+            :key="block.id"
+            :block="block"
+            :selected-block-id="selectedBlockId"
+            :selected-block-ids="selectedBlockIds"
+            :drop-intent="dropIntent"
+            :deleting-block-ids="deletingBlockIds"
+            :active-tool="activeTool"
+            :canvas-viewport="canvasViewport"
+            :canvas-zoom="canvasZoom"
+            :readonly="readonly"
+            @select="handleBlockSelect"
+            @drop-block="$emit('drop-block', $event)"
+            @drag-intent="$emit('drag-intent', $event)"
+            @duplicate-block="$emit('duplicate-block', $event)"
+            @delete-block="$emit('delete-block', $event)"
+            @inspect-block="$emit('inspect-block', $event)"
+            @open-blueprint="$emit('open-blueprint', $event)"
+            @resize-start="suppressBodySelectionAfterResize"
+            @resize-end="suppressBodySelectionAfterResize"
+            @resize-block="$emit('resize-block', $event)"
+            @rename-block="$emit('rename-block', $event)"
+            @patch-block="$emit('patch-block', $event)"
+          />
+          <div
+            v-if="isDropPlaceholder(block.id, 'after')"
+            :key="`${block.id}:drop-after`"
+            class="web-page-drop-placeholder"
+          />
+        </template>
       </TransitionGroup>
     </section>
   </main>
@@ -129,6 +140,10 @@ function handleBodyClick(event: MouseEvent) {
 
 function suppressBodySelectionAfterResize() {
   suppressBodySelectionUntil.value = Date.now() + 240
+}
+
+function isDropPlaceholder(blockId: string, position: InsertPosition) {
+  return props.dropIntent?.targetId === blockId && props.dropIntent.position === position
 }
 
 function onRootDragOver(event: DragEvent) {

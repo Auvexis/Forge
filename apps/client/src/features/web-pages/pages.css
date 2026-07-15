@@ -1112,10 +1112,10 @@
 }
 
 .web-page-block--drop-inside {
-  outline: 2px solid var(--web-page-drop-color);
-  outline-offset: -4px;
-  background: color-mix(in srgb, var(--fabric-border) 14%, transparent);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--web-page-drop-color) 22%, transparent);
+  outline: 1px solid var(--web-page-drop-color);
+  outline-offset: -3px;
+  background: color-mix(in srgb, var(--web-page-drop-color) 8%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--web-page-drop-color) 18%, transparent);
 }
 
 .web-page-block-frame__drop-layer {
@@ -1140,6 +1140,23 @@
     transform 120ms var(--fabric-ease-standard);
 }
 
+.web-page-drop-placeholder {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  margin: 6px 0;
+  border: 1px dashed color-mix(in srgb, var(--web-page-drop-color) 72%, transparent);
+  border-radius: var(--fabric-radius-sm);
+  background:
+    linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--web-page-drop-color) 12%, transparent),
+      color-mix(in srgb, var(--web-page-drop-color) 4%, transparent)
+    );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fabric-bg-surface) 52%, transparent);
+  pointer-events: none;
+}
+
 .web-page-drop-indicator--before {
   top: -10px;
 }
@@ -1152,7 +1169,10 @@
   position: static;
   display: block;
   width: 100%;
+  height: 36px;
   margin: var(--fabric-space-3) 0;
+  border: 1px dashed color-mix(in srgb, var(--web-page-drop-color) 72%, transparent);
+  background: color-mix(in srgb, var(--web-page-drop-color) 8%, transparent);
 }
 
 .web-page-drop-arrow {

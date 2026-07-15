@@ -40,9 +40,7 @@ describe('page drag prediction contract', () => {
   it('css includes placement indicator states', () => {
     const source = read('src/features/web-pages/pages.css')
 
-    assert.match(source, /web-page-drop-indicator/)
-    assert.match(source, /web-page-drop-indicator--before/)
-    assert.match(source, /web-page-drop-indicator--after/)
+    assert.match(source, /web-page-drop-placeholder/)
     assert.match(source, /web-page-block--drop-inside/)
   })
 
@@ -54,7 +52,8 @@ describe('page drag prediction contract', () => {
     assert.doesNotMatch(source, /--web-page-drop-color:[^;]*fabric-accent/)
     assert.match(dropIndicatorRule, /border-radius:\s*0/)
     assert.match(dropIndicatorRule, /height:\s*4px/)
-    assert.match(source, /outline:\s*2px solid var\(--web-page-drop-color\)/)
+    assert.match(source, /outline:\s*1px solid var\(--web-page-drop-color\)/)
+    assert.match(source, /web-page-drop-placeholder[\s\S]*border:\s*1px dashed/)
     assert.doesNotMatch(dropIndicatorRule, /drop-shadow\(0 0/)
   })
 
@@ -88,15 +87,17 @@ describe('page drag prediction contract', () => {
     assert.match(css, /web-page-drop-arrow--left/)
   })
 
-  it('drop indicators render outside the block frame without intercepting drag events', () => {
+  it('drop placeholders reserve layout space while inside indicators avoid intercepting drag events', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
     const css = read('src/features/web-pages/pages.css')
 
     assert.match(renderer, /web-page-block-frame__drop-layer/)
-    assert.match(renderer, /web-page-block-frame__drop-layer[\s\S]*web-page-drop-indicator/)
+    assert.match(renderer, /dropIntent\?\.targetId === block\.id && dropIntent\.position === 'inside'/)
+    assert.match(renderer, /web-page-drop-placeholder/)
+    assert.match(canvas, /web-page-drop-placeholder/)
     assert.match(css, /web-page-block-frame__drop-layer[\s\S]*pointer-events:\s*none/)
-    assert.match(css, /web-page-drop-indicator--before[\s\S]*top:\s*-10px/)
-    assert.match(css, /web-page-drop-indicator--after[\s\S]*bottom:\s*-10px/)
+    assert.match(css, /web-page-drop-placeholder[\s\S]*min-height:\s*36px/)
     assert.doesNotMatch(css, /web-page-block--drop-before[\s\S]*outline:/)
     assert.doesNotMatch(css, /web-page-block--drop-after[\s\S]*outline:/)
   })

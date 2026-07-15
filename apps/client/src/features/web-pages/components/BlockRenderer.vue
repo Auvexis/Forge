@@ -11,15 +11,10 @@
     }"
   >
     <span
-      v-if="dropIntent?.targetId === block.id"
+      v-if="dropIntent?.targetId === block.id && dropIntent.position === 'inside'"
       class="web-page-block-frame__drop-layer"
       aria-hidden="true"
     >
-      <span
-        v-if="dropIntent.position !== 'inside'"
-        class="web-page-drop-indicator"
-        :class="`web-page-drop-indicator--${dropIntent.position}`"
-      />
       <span
         class="web-page-drop-arrow"
         :class="`web-page-drop-arrow--${dropIntent.dropEdge ?? 'center'}`"
@@ -54,29 +49,40 @@
         <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
       </template>
       <TransitionGroup name="web-page-block">
-        <BlockRenderer
-          v-for="child in block.children ?? []"
-          :key="child.id"
-          :block="child"
-          :selected-block-id="selectedBlockId"
-          :selected-block-ids="selectedBlockIds"
-          :drop-intent="dropIntent"
-          :deleting-block-ids="deletingBlockIds"
-          :active-tool="activeTool"
-          :canvas-viewport="canvasViewport"
-          :canvas-zoom="canvasZoom"
-          :readonly="readonly"
-          @select="$emit('select', $event)"
-          @drop-block="$emit('drop-block', $event)"
-          @drag-intent="$emit('drag-intent', $event)"
-          @duplicate-block="$emit('duplicate-block', $event)"
-          @delete-block="$emit('delete-block', $event)"
-          @inspect-block="$emit('inspect-block', $event)"
-          @open-blueprint="$emit('open-blueprint', $event)"
-          @resize-block="$emit('resize-block', $event)"
-          @rename-block="$emit('rename-block', $event)"
-          @patch-block="$emit('patch-block', $event)"
-        />
+        <template v-for="child in block.children ?? []" :key="child.id">
+          <div
+            v-if="isDropPlaceholder(child.id, 'before')"
+            :key="`${child.id}:drop-before`"
+            class="web-page-drop-placeholder"
+          />
+          <BlockRenderer
+            :key="child.id"
+            :block="child"
+            :selected-block-id="selectedBlockId"
+            :selected-block-ids="selectedBlockIds"
+            :drop-intent="dropIntent"
+            :deleting-block-ids="deletingBlockIds"
+            :active-tool="activeTool"
+            :canvas-viewport="canvasViewport"
+            :canvas-zoom="canvasZoom"
+            :readonly="readonly"
+            @select="$emit('select', $event)"
+            @drop-block="$emit('drop-block', $event)"
+            @drag-intent="$emit('drag-intent', $event)"
+            @duplicate-block="$emit('duplicate-block', $event)"
+            @delete-block="$emit('delete-block', $event)"
+            @inspect-block="$emit('inspect-block', $event)"
+            @open-blueprint="$emit('open-blueprint', $event)"
+            @resize-block="$emit('resize-block', $event)"
+            @rename-block="$emit('rename-block', $event)"
+            @patch-block="$emit('patch-block', $event)"
+          />
+          <div
+            v-if="isDropPlaceholder(child.id, 'after')"
+            :key="`${child.id}:drop-after`"
+            class="web-page-drop-placeholder"
+          />
+        </template>
       </TransitionGroup>
     </component>
     <Teleport to="body">
@@ -671,6 +677,10 @@ function emitDragIntent(intent: { position: InsertPosition; dropEdge?: DropEdge 
   if (key === lastDragIntentKey.value) return
   lastDragIntentKey.value = key
   emit('drag-intent', { targetId: props.block.id, ...intent })
+}
+
+function isDropPlaceholder(blockId: string, position: InsertPosition) {
+  return props.dropIntent?.targetId === blockId && props.dropIntent.position === position
 }
 
 function onDragLeave(event: DragEvent) {
