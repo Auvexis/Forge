@@ -2342,8 +2342,7 @@
 }
 
 .web-page-blueprint__header span,
-.web-page-blueprint__node small,
-.web-page-blueprint__empty span {
+.web-page-blueprint__node small {
   color: var(--fabric-text-muted);
 }
 
@@ -2602,17 +2601,6 @@
 .web-page-blueprint__node--collection-binding { --fabric-blueprint-node-accent: var(--fabric-green-400); }
 .web-page-blueprint__node--javascript { --fabric-blueprint-node-accent: var(--fabric-text-error); }
 
-.web-page-blueprint__empty {
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 6px;
-  min-height: 100%;
-  padding: var(--fabric-space-4);
-  color: var(--fabric-text-muted);
-  text-align: center;
-}
-
 .web-page-blueprint__palette-tools {
   padding: 7px 8px 6px;
   border-bottom: 1px solid var(--fabric-blueprint-header-border, var(--fabric-workbench-border));
@@ -2796,8 +2784,7 @@
   overflow-y: auto;
 }
 
-.web-page-blueprint__selection-summary,
-.web-page-blueprint__runtime-context {
+.web-page-blueprint__selection-summary {
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr);
   align-items: center;
@@ -2814,15 +2801,13 @@
   background: var(--fabric-blueprint-node-icon-bg, color-mix(in srgb, var(--fabric-accent) 14%, transparent));
 }
 
-.web-page-blueprint__selection-summary > span:last-child,
-.web-page-blueprint__runtime-context > span {
+.web-page-blueprint__selection-summary > span:last-child {
   display: grid;
   gap: 2px;
   min-width: 0;
 }
 
-.web-page-blueprint__selection-summary strong,
-.web-page-blueprint__runtime-context strong {
+.web-page-blueprint__selection-summary strong {
   overflow: hidden;
   color: var(--fabric-text-primary);
   font-size: 11px;
@@ -2830,8 +2815,7 @@
   white-space: nowrap;
 }
 
-.web-page-blueprint__selection-summary small,
-.web-page-blueprint__runtime-context small {
+.web-page-blueprint__selection-summary small {
   color: var(--fabric-text-muted);
   font-size: 9px;
 }
@@ -2909,11 +2893,6 @@
 }
 
 .web-page-blueprint__inspector-empty span { max-width: 210px; font-size: 10px; line-height: 1.4; }
-
-.web-page-blueprint__runtime-context {
-  grid-template-columns: 18px minmax(0, 1fr);
-  min-height: 42px;
-}
 
 .web-page-blueprint__runtime > .web-page-data-actions > .web-page-data-actions__header { display: none; }
 

@@ -80,13 +80,7 @@
         </span>
       </header>
 
-      <div v-if="graph.nodes.length === 0" class="web-page-blueprint__empty">
-        <LucideIcon name="workflow" :size="20" />
-        <strong>Build the dataflow</strong>
-        <span>Add a node from the Node Library, then configure its runtime in the Inspector.</span>
-      </div>
       <BaseCanvas
-        v-else
         v-model:selection="selection"
         v-model:viewport="viewport"
         class="web-page-blueprint__surface"
@@ -246,13 +240,6 @@
         </div>
       </div>
       <div v-else class="web-page-blueprint__runtime">
-        <div class="web-page-blueprint__runtime-context">
-          <LucideIcon name="workflow" :size="13" />
-          <span>
-            <strong>Page Action Runtime</strong>
-            <small>Configure workflow inputs, outputs, and bindings.</small>
-          </span>
-        </div>
         <PageDataActionsPanel />
       </div>
     </aside>
@@ -451,8 +438,7 @@ function clearConnectionPreview() {
 }
 
 function pointerWorldPoint(event: PointerEvent) {
-  const rect = (event.currentTarget as HTMLElement | null)?.closest('.base-canvas')?.getBoundingClientRect()
-    ?? window.document.querySelector('.web-page-blueprint__surface')?.getBoundingClientRect()
+  const rect = window.document.querySelector('.web-page-blueprint__surface')?.getBoundingClientRect()
   if (!rect) return { x: 0, y: 0 }
   return {
     x: (event.clientX - rect.left - viewport.value.x) / viewport.value.zoom,
