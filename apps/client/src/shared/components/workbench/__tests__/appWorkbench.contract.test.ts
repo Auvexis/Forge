@@ -81,7 +81,10 @@ test('workbench components expose toolstrip body and status slots', () => {
   assert.doesNotMatch(status, /grid-template-columns/)
   assert.match(bottomPanel, /workbench-bottom-panel/)
   assert.match(bottomPanel, /workbench-bottom-panel__resize/)
+  assert.match(bottomPanel, /workbench-bottom-panel__header/)
+  assert.match(bottomPanel, /workbench-bottom-panel__close/)
   assert.match(bottomPanel, /resize-start/)
+  assert.match(bottomPanel, /close: \[\]/)
   assert.match(bottomPanel, /var\(--fabric-workbench-border\)/)
 })
 

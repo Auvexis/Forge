@@ -41,7 +41,10 @@
       :right="bottomPanelRight"
       bottom="var(--web-page-statusbar-height)"
       :min-height="180"
+      title="Dataflow"
+      closable
       resize-title="Resize Dataflow panel"
+      @close="isDataflowPanelOpen = false"
       @resize-start="startDataflowResize"
     >
       <PageBlueprintPanel />
@@ -602,6 +605,9 @@ const workspacePlaneStyle = computed(() => ({}))
 const pageEditorLayoutStyle = computed(() => ({
   ...(leftPanelWidth.value === null ? {} : { '--web-page-left-panel-width': `${leftPanelWidth.value}px` }),
   ...(rightPanelWidth.value === null ? {} : { '--web-page-right-panel-width': `${rightPanelWidth.value}px` }),
+  '--web-page-canvas-bottom': isDataflowPanelOpen.value
+    ? `calc(var(--web-page-statusbar-height) + ${dataflowPanelHeight.value}px)`
+    : 'var(--web-page-statusbar-height)',
 }))
 const pageCanvasItems = computed<BaseCanvasItem[]>(() => pagesStore.pages.map((page, index) => {
   const offset = pageCanvasOffsets.value[page.id] ?? { x: 0, y: 0 }
@@ -875,7 +881,7 @@ function startDataflowResize(event: MouseEvent) {
 function resizeDataflowPanel(event: MouseEvent) {
   if (!dataflowResizeState.value) return
   const delta = dataflowResizeState.value.startY - event.clientY
-  dataflowPanelHeight.value = Math.max(160, Math.min(520, dataflowResizeState.value.startHeight + delta))
+  dataflowPanelHeight.value = Math.max(180, Math.min(520, dataflowResizeState.value.startHeight + delta))
 }
 
 function stopDataflowResize() {
