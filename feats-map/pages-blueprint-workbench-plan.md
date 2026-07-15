@@ -19,6 +19,9 @@
 - [ ] Adicionar validacao de tipos, conexoes invalidas e diagnosticos no canvas
 - [ ] Adicionar undo, redo, copy, paste, duplicate, delete e atalhos
 - [ ] Migrar paginas existentes e remover o configurador Dataflow legado
-- [ ] Adicionar tokens completos de tema para o Blueprint Workbench
+- [ ] Definir tokens semanticos do Blueprint no schema de temas
+- [ ] Aplicar tokens completos em `light.json` e `dark.json`
+- [ ] Tematizar abas, canvas, nodes, pins, edges, paineis e estados
+- [ ] Impedir cores fixas nos componentes do Blueprint Workbench
 - [ ] Cobrir contratos, compilador, migracao, stores e fluxos de interacao
 - [ ] Validar Design, Preview, Publish e execucao ponta a ponta
