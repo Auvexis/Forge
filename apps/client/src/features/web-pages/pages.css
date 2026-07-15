@@ -2316,6 +2316,13 @@
   opacity: 1;
 }
 
+.web-page-blueprint__edge--preview {
+  stroke-width: 2;
+  stroke-dasharray: 7 5;
+  opacity: 0.95;
+  pointer-events: none;
+}
+
 .web-page-blueprint__edge-toolbar {
   position: absolute;
   display: inline-grid;

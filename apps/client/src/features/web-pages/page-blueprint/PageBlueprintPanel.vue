@@ -67,6 +67,11 @@
       >
         <svg class="web-page-blueprint__edges" :viewBox="viewBox" aria-hidden="true">
           <path
+            v-if="previewConnectionPath"
+            class="web-page-blueprint__edge web-page-blueprint__edge--preview"
+            :d="previewConnectionPath"
+          />
+          <path
             v-for="edge in graph.edges"
             :key="edge.id"
             class="web-page-blueprint__edge"
@@ -103,7 +108,7 @@
               class="web-page-blueprint__node-handle web-page-blueprint__node-handle--output"
               type="button"
               title="Output"
-              @pointerdown.stop.prevent="startConnection(item.id)"
+              @pointerdown.stop.prevent="startConnection(item.id, $event)"
             />
             <div v-if="selected" class="web-page-blueprint__node-toolbar" @pointerdown.stop>
               <button type="button" title="Duplicate node" @click="duplicateNode(item.id)">
@@ -209,6 +214,7 @@ const actionsStore = usePageActionsStore()
 const selection = ref<string[]>([])
 const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
+const connectionPointer = ref<{ x: number; y: number } | null>(null)
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
 const paletteWidth = ref(240)
 const detailsWidth = ref(340)
@@ -240,6 +246,16 @@ const documentTitle = computed(() => document.value.scope.type === 'element' ? d
 const selectedLabel = computed(() => activeNode.value?.label ?? 'Canvas')
 const activeNode = computed(() => selection.value[0] ? nodeForItem(selection.value[0]) : null)
 const selectedEdge = computed(() => selectedEdgeId.value ? graph.value.edges.find((edge) => edge.id === selectedEdgeId.value) ?? null : null)
+const previewConnectionPath = computed(() => {
+  const fromId = connectionStartNodeId.value
+  const pointer = connectionPointer.value
+  const from = fromId ? nodeForItem(fromId) : null
+  if (!from || !pointer) return ''
+  const startX = from.x + (from.width ?? 184)
+  const startY = from.y + ((from.height ?? 92) / 2)
+  const control = Math.max(48, Math.abs(pointer.x - startX) / 2)
+  return `M ${startX} ${startY} C ${startX + control} ${startY}, ${pointer.x - control} ${pointer.y}, ${pointer.x} ${pointer.y}`
+})
 const detailsStepLabel = computed(() => detailsStep.value === 'choose' ? 'Select source' : activeNode.value?.kind ?? 'Configure')
 const edgeToolbarPosition = computed(() => {
   if (!selectedEdge.value) return { x: 0, y: 0 }
@@ -252,11 +268,11 @@ const edgeToolbarPosition = computed(() => {
   }
 })
 const paletteItems = computed<Array<{ id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }>>(() => [
-  { id: 'events', label: 'Event', detail: 'Click, submit, mount', icon: 'radio', kind: 'event' },
-  { id: 'workflows', label: 'Workflow Action', detail: `${actionsStore.workflows.length} workflows`, icon: 'workflow', kind: 'workflow-action' },
-  { id: 'elements', label: 'Element', detail: 'Inputs, text, buttons', icon: 'box-select', kind: 'element' },
-  { id: 'data', label: 'Result Binding', detail: 'Outputs and collections', icon: 'database', kind: 'result-binding' },
-  { id: 'logic', label: 'JavaScript', detail: 'Conditions and transforms', icon: 'split', kind: 'javascript' },
+  { id: 'page-event', label: 'Page Event', detail: 'Start from click, submit, or mount', icon: 'radio', kind: 'event' },
+  { id: 'run-workflow', label: 'Run Workflow', detail: `${actionsStore.workflows.length} published workflow groups`, icon: 'workflow', kind: 'workflow-action' },
+  { id: 'read-element', label: 'Read Element', detail: 'Use value/text from the selected page element', icon: 'box-select', kind: 'element' },
+  { id: 'bind-return', label: 'Bind Return Output', detail: 'Send workflow Return data into a page element', icon: 'log-out', kind: 'result-binding' },
+  { id: 'transform-data', label: 'Transform Data', detail: 'Prepare values before binding or action input', icon: 'braces', kind: 'javascript' },
 ])
 const viewBox = '-120 -80 1280 560'
 
@@ -296,13 +312,17 @@ function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
   })
 }
 
-function startConnection(nodeId: string) {
+function startConnection(nodeId: string, event: PointerEvent) {
   connectionStartNodeId.value = nodeId
+  selectedEdgeId.value = null
+  connectionPointer.value = pointerWorldPoint(event)
+  window.addEventListener('pointermove', moveConnectionPreview)
+  window.addEventListener('pointerup', cancelConnectionPreview, { once: true })
 }
 
 function finishConnection(nodeId: string) {
   const from = connectionStartNodeId.value
-  connectionStartNodeId.value = null
+  clearConnectionPreview()
   if (!from || from === nodeId) return
   if (graph.value.edges.some((edge) => edge.from === from && edge.to === nodeId)) return
   persistBlueprintDocument({
@@ -322,6 +342,30 @@ function finishConnection(nodeId: string) {
     viewport: viewport.value,
     updatedAt: new Date().toISOString(),
   })
+}
+
+function moveConnectionPreview(event: PointerEvent) {
+  connectionPointer.value = pointerWorldPoint(event)
+}
+
+function cancelConnectionPreview() {
+  clearConnectionPreview()
+}
+
+function clearConnectionPreview() {
+  connectionStartNodeId.value = null
+  connectionPointer.value = null
+  window.removeEventListener('pointermove', moveConnectionPreview)
+}
+
+function pointerWorldPoint(event: PointerEvent) {
+  const rect = (event.currentTarget as HTMLElement | null)?.closest('.base-canvas')?.getBoundingClientRect()
+    ?? window.document.querySelector('.web-page-blueprint__surface')?.getBoundingClientRect()
+  if (!rect) return { x: 0, y: 0 }
+  return {
+    x: (event.clientX - rect.left - viewport.value.x) / viewport.value.zoom,
+    y: (event.clientY - rect.top - viewport.value.y) / viewport.value.zoom,
+  }
 }
 
 function deleteSelectedEdge() {
