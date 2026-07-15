@@ -1674,6 +1674,7 @@
 .web-page-data-actions__body {
   display: grid;
   align-content: start;
+  min-height: 0;
 }
 
 .web-page-data-actions__catalog,
@@ -1682,6 +1683,11 @@
   align-content: start;
   gap: 1px;
   padding: var(--fabric-space-2);
+}
+
+.web-page-data-actions__catalog {
+  min-height: 0;
+  overflow: auto;
 }
 
 .web-page-data-actions__section-title {
@@ -1753,6 +1759,8 @@
 }
 
 .web-page-data-actions__selected {
+  display: grid !important;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   min-height: 36px;
   background: var(--fabric-workbench-panel-header-bg, var(--fabric-panel-header-bg, var(--fabric-bg-elevated)));
 }

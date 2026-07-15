@@ -45,7 +45,9 @@ describe('Page Actions architecture', () => {
 
     expect(store).not.toMatch(/firstAction/)
     expect(store).toMatch(/clearSelection/)
-    expect(panel).toMatch(/Select a workflow trigger/)
+    expect(panel).toMatch(/v-if="!store\.selectedAction"[\s\S]*web-page-data-actions__catalog/)
+    expect(panel).toMatch(/v-else class="web-page-data-actions__details"/)
+    expect(panel).toMatch(/Back to workflow actions/)
     expect(panel).toMatch(/isSelectedTrigger/)
     expect(panel).toMatch(/void store\.loadAvailableActions\(\)/)
     expect(panel).not.toMatch(/store\.workflows\.length === 0/)

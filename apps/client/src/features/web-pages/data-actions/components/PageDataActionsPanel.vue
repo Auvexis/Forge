@@ -22,7 +22,11 @@
     </div>
 
     <div v-else class="web-page-data-actions__body">
-      <section class="web-page-data-actions__catalog" aria-label="Available workflow actions">
+      <section
+        v-if="!store.selectedAction"
+        class="web-page-data-actions__catalog"
+        aria-label="Available workflow actions"
+      >
         <div class="web-page-data-actions__section-title">
           <strong>Actions</strong>
           <span>{{ store.workflows.length }} workflows</span>
@@ -54,14 +58,17 @@
         </article>
       </section>
 
-      <section v-if="!store.selectedAction" class="web-page-data-actions__details web-page-data-actions__details--empty">
-        <LucideIcon name="mouse-pointer-click" :size="18" />
-        <strong>Select a workflow trigger</strong>
-        <span>Choose an action to configure inputs, result bindings, collections, and item-scoped actions.</span>
-      </section>
-
       <section v-else class="web-page-data-actions__details">
         <header class="web-page-data-actions__selected">
+          <BaseButton
+            variant="ghost"
+            size="sm"
+            icon-left="arrow-left"
+            title="Back to workflow actions"
+            @click="store.clearSelection()"
+          >
+            Actions
+          </BaseButton>
           <div>
             <strong>{{ store.selectedAction.name }}</strong>
             <span>{{ selectedActionSubtitle }}</span>
