@@ -75,13 +75,25 @@
           />
         </header>
 
-        <div class="web-page-data-actions__step">
-          <div class="web-page-data-actions__step-header">
-            <span>1</span>
-            <div>
-              <strong>Run target</strong>
-              <small>Attach this action to a selected button or form.</small>
-            </div>
+        <nav class="web-page-data-actions__tabs" aria-label="Action configuration">
+          <button
+            v-for="tab in configTabs"
+            :key="tab.id"
+            type="button"
+            class="web-page-data-actions__tab"
+            :class="{ 'web-page-data-actions__tab--active': activeConfigTab === tab.id }"
+            @click="activeConfigTab = tab.id"
+          >
+            <LucideIcon :name="tab.icon" :size="13" />
+            <span>{{ tab.label }}</span>
+            <code>{{ tab.meta }}</code>
+          </button>
+        </nav>
+
+        <div v-if="activeConfigTab === 'target'" class="web-page-data-actions__module">
+          <div class="web-page-data-actions__module-header">
+            <strong>Run Target</strong>
+            <span>Attach this action to a selected button or form.</span>
           </div>
           <div class="web-page-data-actions__target-row">
             <LucideIcon name="mouse-pointer-click" :size="14" />
@@ -101,13 +113,10 @@
           </div>
         </div>
 
-        <div class="web-page-data-actions__step">
-          <div class="web-page-data-actions__step-header">
-            <span>2</span>
-            <div>
-              <strong>Inputs</strong>
-              <small>Use static values, page fields, or current collection item.</small>
-            </div>
+        <div v-if="activeConfigTab === 'inputs'" class="web-page-data-actions__module">
+          <div class="web-page-data-actions__module-header">
+            <strong>Inputs</strong>
+            <span>Use static values, page fields, or current collection item.</span>
           </div>
           <div v-if="store.selectedAction.inputs.length === 0" class="web-page-data-actions__hint">
             This trigger has no declared inputs.
@@ -169,13 +178,10 @@
           </div>
         </div>
 
-        <div class="web-page-data-actions__step">
-          <div class="web-page-data-actions__step-header">
-            <span>3</span>
-            <div>
-              <strong>Result bindings</strong>
-              <small>Bind a returned value into the selected text, button, or input.</small>
-            </div>
+        <div v-if="activeConfigTab === 'outputs'" class="web-page-data-actions__module">
+          <div class="web-page-data-actions__module-header">
+            <strong>Result Bindings</strong>
+            <span>Bind a returned value into the selected text, button, or input.</span>
           </div>
           <div class="web-page-data-actions__output-row">
             <input v-model="outputResultPath" placeholder="executionId" list="page-action-return-fields" />
@@ -219,13 +225,10 @@
           </div>
         </div>
 
-        <div class="web-page-data-actions__step">
-          <div class="web-page-data-actions__step-header">
-            <span>4</span>
-            <div>
-              <strong>Collections</strong>
-              <small>Bind an array into a selected container as repeater or table.</small>
-            </div>
+        <div v-if="activeConfigTab === 'collections'" class="web-page-data-actions__module">
+          <div class="web-page-data-actions__module-header">
+            <strong>Collections</strong>
+            <span>Bind an array into a selected container as repeater or table.</span>
           </div>
           <div class="web-page-data-actions__output-row">
             <input v-model="collectionResultPath" placeholder="fruits" list="page-action-return-fields" />
@@ -263,7 +266,7 @@
           </div>
         </div>
 
-        <div class="web-page-data-actions__step web-page-data-actions__step--run">
+        <div v-if="activeConfigTab === 'test'" class="web-page-data-actions__module web-page-data-actions__module--run">
           <div>
             <strong>Test action</strong>
             <span>{{ testRunHint }}</span>
@@ -277,9 +280,8 @@
           >
             Test Run
           </BaseButton>
+          <pre v-if="store.lastRunResult" class="web-page-data-actions__result">{{ formattedResult }}</pre>
         </div>
-
-        <pre v-if="store.lastRunResult" class="web-page-data-actions__result">{{ formattedResult }}</pre>
       </section>
     </div>
     <PageActionPickWhipOverlay />
@@ -311,6 +313,7 @@ const editorStore = usePageEditorStore()
 const outputResultPath = ref('executionId')
 const collectionResultPath = ref('fruits')
 const scopedInputPaths = ref<Record<string, string>>({})
+const activeConfigTab = ref<'target' | 'inputs' | 'outputs' | 'collections' | 'test'>('target')
 
 const actionCountLabel = computed(() => {
   const count = store.workflows.reduce((total, workflow) => total + workflow.actions.length, 0)
@@ -319,6 +322,38 @@ const actionCountLabel = computed(() => {
 const formattedResult = computed(() => JSON.stringify(store.lastRunResult, null, 2))
 const outputBindings = computed(() => bindingStore.outputBindingsForAction(store.selectedAction?.id))
 const collectionBindings = computed(() => bindingStore.collectionBindingsForAction(store.selectedAction?.id))
+const configTabs = computed(() => [
+  {
+    id: 'target' as const,
+    label: 'Target',
+    icon: isSelectedActionAttached.value ? 'check-circle-2' : 'mouse-pointer-click',
+    meta: isSelectedActionAttached.value ? 'linked' : 'idle',
+  },
+  {
+    id: 'inputs' as const,
+    label: 'Inputs',
+    icon: 'sliders-horizontal',
+    meta: `${store.selectedAction?.inputs.length ?? 0}`,
+  },
+  {
+    id: 'outputs' as const,
+    label: 'Outputs',
+    icon: 'corner-down-right',
+    meta: `${outputBindings.value.length}`,
+  },
+  {
+    id: 'collections' as const,
+    label: 'Lists',
+    icon: 'table-2',
+    meta: `${collectionBindings.value.length}`,
+  },
+  {
+    id: 'test' as const,
+    label: 'Test',
+    icon: store.status === 'error' ? 'circle-alert' : store.status === 'success' ? 'circle-check' : 'play',
+    meta: store.status,
+  },
+])
 const selectedActionSubtitle = computed(() =>
   store.selectedAction ? `${store.selectedAction.workflowName} / ${store.selectedAction.triggerType}` : '',
 )

@@ -65,12 +65,14 @@ describe('Page Actions architecture', () => {
     const panel = read('src/features/web-pages/data-actions/components/PageDataActionsPanel.vue')
     const css = read('src/features/web-pages/pages.css')
 
-    for (const label of ['Run target', 'Inputs', 'Result bindings', 'Collections', 'Test action']) {
+    for (const label of ['Target', 'Inputs', 'Outputs', 'Lists', 'Test']) {
       expect(panel).toMatch(new RegExp(label))
     }
     expect(panel).toMatch(/web-page-data-actions__catalog/)
-    expect(panel).toMatch(/web-page-data-actions__step-header/)
-    expect(css).toMatch(/\.web-page-data-actions__step/)
+    expect(panel).toMatch(/web-page-data-actions__tabs/)
+    expect(panel).toMatch(/web-page-data-actions__module/)
+    expect(css).toMatch(/\.web-page-data-actions__tab/)
+    expect(css).toMatch(/\.web-page-data-actions__module/)
     expect(css).toMatch(/\.web-page-data-actions__target-row/)
   })
 
