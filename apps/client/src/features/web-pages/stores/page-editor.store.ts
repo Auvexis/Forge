@@ -26,12 +26,15 @@ export interface PageDragIntent {
   dropEdge?: DropEdge
 }
 
+const DRAG_INTENT_SETTLE_MS = 90
+
 export const usePageEditorStore = defineStore('web-page-editor', () => {
   const blocks = ref<PageBlock[]>([])
   const selectedBlockId = ref<string | null>(null)
   const selectedBlockIds = ref<string[]>([])
   const selectedTarget = ref<PageEditorSelection>({ type: 'none' })
   const dragIntent = ref<PageDragIntent | null>(null)
+  const pendingDragIntent = ref<{ intent: PageDragIntent; requestedAt: number } | null>(null)
   const collapsedBlockIds = ref<Record<string, boolean>>({})
   const savedSnapshot = ref<string>('[]')
   const undoStack = ref<string[]>([])
@@ -104,12 +107,35 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
     selectedTarget.value = { type: 'none' }
   }
 
-  function setDragIntent(intent: PageDragIntent) {
-    dragIntent.value = intent
+  function setDragIntent(intent: PageDragIntent, now = Date.now()) {
+    const current = dragIntent.value
+    if (!current) {
+      dragIntent.value = intent
+      pendingDragIntent.value = null
+      return
+    }
+
+    if (sameDragIntent(current, intent) || current.targetId === intent.targetId) {
+      dragIntent.value = intent
+      pendingDragIntent.value = null
+      return
+    }
+
+    const pending = pendingDragIntent.value
+    if (!pending || !sameDragIntent(pending.intent, intent)) {
+      pendingDragIntent.value = { intent, requestedAt: now }
+      return
+    }
+
+    if (now - pending.requestedAt >= DRAG_INTENT_SETTLE_MS) {
+      dragIntent.value = intent
+      pendingDragIntent.value = null
+    }
   }
 
   function clearDragIntent() {
     dragIntent.value = null
+    pendingDragIntent.value = null
   }
 
   function toggleBlockCollapsed(blockId: string) {
@@ -286,4 +312,10 @@ function clone<T>(value: T): T {
 
 function snapshot(value: unknown): string {
   return JSON.stringify(value)
+}
+
+function sameDragIntent(left: PageDragIntent, right: PageDragIntent) {
+  return left.targetId === right.targetId
+    && left.position === right.position
+    && left.dropEdge === right.dropEdge
 }

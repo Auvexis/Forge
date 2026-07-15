@@ -13,6 +13,8 @@ describe('page drag prediction contract', () => {
 
     assert.match(source, /PageDragIntent/)
     assert.match(source, /dragIntent/)
+    assert.match(source, /pendingDragIntent/)
+    assert.match(source, /DRAG_INTENT_SETTLE_MS/)
     assert.match(source, /setDragIntent/)
     assert.match(source, /clearDragIntent/)
   })

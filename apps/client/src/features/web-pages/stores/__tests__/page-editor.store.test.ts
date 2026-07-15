@@ -170,4 +170,20 @@ describe('page editor store', () => {
     assert.equal(store.selectedBlockId, 'page_shell')
     assert.equal(store.selectedBlock?.children?.[0]?.id, 'site_header')
   })
+
+  it('settles drag intent before switching targets to avoid canvas flicker', () => {
+    const store = usePageEditorStore()
+
+    store.setDragIntent({ targetId: 'text_1', position: 'after' }, 1000)
+    assert.deepEqual(store.dragIntent, { targetId: 'text_1', position: 'after' })
+
+    store.setDragIntent({ targetId: 'button_1', position: 'before' }, 1030)
+    assert.deepEqual(store.dragIntent, { targetId: 'text_1', position: 'after' })
+
+    store.setDragIntent({ targetId: 'button_1', position: 'after' }, 1060)
+    assert.deepEqual(store.dragIntent, { targetId: 'text_1', position: 'after' })
+
+    store.setDragIntent({ targetId: 'button_1', position: 'after' }, 1155)
+    assert.deepEqual(store.dragIntent, { targetId: 'button_1', position: 'after' })
+  })
 })
