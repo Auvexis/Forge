@@ -35,6 +35,7 @@
       :style="resolvedBlockStyles"
       :draggable="!readonly && activeTool === 'cursor'"
       tabindex="0"
+      @pointerdown.stop="updateSelectionFrame"
       @click.stop="selectBlockFromPointer"
       @dblclick.stop="handleBlockDoubleClick"
       @focus="emit('select', { blockId: block.id })"
@@ -335,18 +336,24 @@ const customCssRule = computed(() => {
 })
 const customCssStyleEl = ref<HTMLStyleElement | null>(null)
 const lastDragIntentKey = ref('')
+let selectionFrameRaf = 0
+let lastSelectionFrameKey = ''
 
 onMounted(() => {
   updateCustomCssStyle()
   updateSelectionFrame()
+  updateSelectionFrameTracking()
   window.addEventListener('resize', updateSelectionFrame)
+  window.addEventListener('scroll', updateSelectionFrame, true)
 })
 
 onBeforeUnmount(() => {
   customCssStyleEl.value?.remove()
   customCssStyleEl.value = null
   stopResizeListeners()
+  stopSelectionFrameTracking()
   window.removeEventListener('resize', updateSelectionFrame)
+  window.removeEventListener('scroll', updateSelectionFrame, true)
 })
 
 watch(customCssRule, () => {
@@ -362,26 +369,57 @@ watch(
 
 watch(
   () => [props.selectedBlockId, props.selectedBlockIds, props.block.styles, previewStyles.value, props.canvasZoom, props.canvasViewport?.x, props.canvasViewport?.y, props.canvasViewport?.zoom],
-  () => void nextTick(updateSelectionFrame),
+  () => {
+    updateSelectionFrameTracking()
+    void nextTick(updateSelectionFrame)
+  },
   { deep: true },
 )
 
 function updateSelectionFrame() {
   if (!isSelectedBlock.value) {
     selectionFrameStyle.value = {}
+    lastSelectionFrameKey = ''
     return
   }
   const frame = frameElementRef.value
   const element = blockElementRef.value
   if (!frame || !element) return
   const rect = element.getBoundingClientRect()
+  const nextScale = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
+  const nextKey = `${rect.left}:${rect.top}:${rect.width}:${rect.height}:${nextScale}`
+  if (nextKey === lastSelectionFrameKey) return
+  lastSelectionFrameKey = nextKey
   selectionFrameStyle.value = {
     left: `${rect.left}px`,
     top: `${rect.top}px`,
     width: `${rect.width}px`,
     height: `${rect.height}px`,
   }
-  selectionScale.value = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
+  selectionScale.value = nextScale
+}
+
+function updateSelectionFrameTracking() {
+  if (isSelectedBlock.value) {
+    startSelectionFrameTracking()
+    return
+  }
+  stopSelectionFrameTracking()
+}
+
+function startSelectionFrameTracking() {
+  if (selectionFrameRaf) return
+  const tick = () => {
+    updateSelectionFrame()
+    selectionFrameRaf = isSelectedBlock.value ? window.requestAnimationFrame(tick) : 0
+  }
+  selectionFrameRaf = window.requestAnimationFrame(tick)
+}
+
+function stopSelectionFrameTracking() {
+  if (!selectionFrameRaf) return
+  window.cancelAnimationFrame(selectionFrameRaf)
+  selectionFrameRaf = 0
 }
 
 function selectBlockFromPointer(event: MouseEvent) {

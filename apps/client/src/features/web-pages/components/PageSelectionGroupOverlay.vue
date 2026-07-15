@@ -60,26 +60,34 @@ defineEmits<{
 
 const frameStyle = ref<Record<string, string> | null>(null)
 const corners = ['north-west', 'north-east', 'south-west', 'south-east']
+let frameRaf = 0
+let lastFrameKey = ''
 
 onMounted(() => {
   updateGroupFrame()
+  updateGroupFrameTracking()
   window.addEventListener('resize', updateGroupFrame)
   window.addEventListener('scroll', updateGroupFrame, true)
 })
 
 onBeforeUnmount(() => {
+  stopGroupFrameTracking()
   window.removeEventListener('resize', updateGroupFrame)
   window.removeEventListener('scroll', updateGroupFrame, true)
 })
 
 watch(
   () => [props.selectedBlockIds.join(','), props.viewportKey],
-  () => void nextTick(updateGroupFrame),
+  () => {
+    updateGroupFrameTracking()
+    void nextTick(updateGroupFrame)
+  },
 )
 
 function updateGroupFrame() {
   if (props.selectedBlockIds.length < 2) {
     frameStyle.value = null
+    lastFrameKey = ''
     return
   }
 
@@ -98,6 +106,9 @@ function updateGroupFrame() {
   const top = Math.min(...rects.map((rect) => rect.top))
   const right = Math.max(...rects.map((rect) => rect.right))
   const bottom = Math.max(...rects.map((rect) => rect.bottom))
+  const nextKey = `${left}:${top}:${right}:${bottom}`
+  if (nextKey === lastFrameKey) return
+  lastFrameKey = nextKey
 
   frameStyle.value = {
     left: `${left}px`,
@@ -106,5 +117,28 @@ function updateGroupFrame() {
     height: `${bottom - top}px`,
     position: 'fixed',
   }
+}
+
+function updateGroupFrameTracking() {
+  if (props.selectedBlockIds.length > 1) {
+    startGroupFrameTracking()
+    return
+  }
+  stopGroupFrameTracking()
+}
+
+function startGroupFrameTracking() {
+  if (frameRaf) return
+  const tick = () => {
+    updateGroupFrame()
+    frameRaf = props.selectedBlockIds.length > 1 ? window.requestAnimationFrame(tick) : 0
+  }
+  frameRaf = window.requestAnimationFrame(tick)
+}
+
+function stopGroupFrameTracking() {
+  if (!frameRaf) return
+  window.cancelAnimationFrame(frameRaf)
+  frameRaf = 0
 }
 </script>

@@ -126,6 +126,19 @@ describe('page selection contract', () => {
     assert.match(css, /\.web-page-block-leave-active \.web-page-block-selection\s*\{[\s\S]*display:\s*none/)
   })
 
+  it('selection chrome tracks canvas movement and editor layout changes live', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+    const groupOverlay = read('src/features/web-pages/components/PageSelectionGroupOverlay.vue')
+
+    assert.match(renderer, /startSelectionFrameTracking/)
+    assert.match(renderer, /requestAnimationFrame\(tick\)/)
+    assert.match(renderer, /cancelAnimationFrame\(selectionFrameRaf\)/)
+    assert.match(renderer, /window\.addEventListener\('scroll', updateSelectionFrame, true\)/)
+    assert.match(groupOverlay, /startGroupFrameTracking/)
+    assert.match(groupOverlay, /requestAnimationFrame\(tick\)/)
+    assert.match(groupOverlay, /cancelAnimationFrame\(frameRaf\)/)
+  })
+
   it('selection chrome stays compact and uses the selected blue surface', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
