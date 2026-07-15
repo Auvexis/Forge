@@ -64,6 +64,16 @@ describe('page explorer contract', () => {
     assert.match(create, /if \(preset === 'media-image'\)/)
   })
 
+  it('new blocks have visible hit areas for stable canvas dragging', () => {
+    const create = read('src/features/web-pages/utils/createBlock.ts')
+
+    assert.match(create, /minHeight: '96px'/)
+    assert.match(create, /backgroundColor: '#f8fafc'/)
+    assert.match(create, /if \(tag === 'button'\) return \{ minHeight: '44px'/)
+    assert.match(create, /if \(tag === 'input'\) return \{ minHeight: '44px'/)
+    assert.match(create, /if \(tag === 'text' \|\| tag === 'link'\) return \{ minHeight: '40px'/)
+  })
+
   it('toolbox builds Recently used from the last 6 used items', () => {
     const toolbox = read('src/features/web-pages/components/PageToolboxPanel.vue')
 
