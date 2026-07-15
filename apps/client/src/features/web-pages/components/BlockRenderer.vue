@@ -52,11 +52,9 @@
         <template v-for="child in block.children ?? []" :key="child.id">
           <div
             v-if="isDropPlaceholder(child.id, 'before')"
-            :key="`${child.id}:drop-before`"
             class="web-page-drop-placeholder"
           />
           <BlockRenderer
-            :key="child.id"
             :block="child"
             :selected-block-id="selectedBlockId"
             :selected-block-ids="selectedBlockIds"
@@ -79,7 +77,6 @@
           />
           <div
             v-if="isDropPlaceholder(child.id, 'after')"
-            :key="`${child.id}:drop-after`"
             class="web-page-drop-placeholder"
           />
         </template>

@@ -26,11 +26,9 @@
         <template v-for="block in blocks" :key="block.id">
           <div
             v-if="isDropPlaceholder(block.id, 'before')"
-            :key="`${block.id}:drop-before`"
             class="web-page-drop-placeholder"
           />
           <BlockRenderer
-            :key="block.id"
             :block="block"
             :selected-block-id="selectedBlockId"
             :selected-block-ids="selectedBlockIds"
@@ -55,7 +53,6 @@
           />
           <div
             v-if="isDropPlaceholder(block.id, 'after')"
-            :key="`${block.id}:drop-after`"
             class="web-page-drop-placeholder"
           />
         </template>
