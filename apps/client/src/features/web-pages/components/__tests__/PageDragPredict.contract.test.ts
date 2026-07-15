@@ -117,6 +117,15 @@ describe('page drag prediction contract', () => {
     assert.match(css, /web-page-pointer-drag-preview[\s\S]*pointer-events:\s*none/)
   })
 
+  it('pointer dragging uses frozen block rects instead of live placeholder geometry', () => {
+    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
+
+    assert.match(renderer, /collectPointerDragTargets\(props\.block\.id\)/)
+    assert.match(renderer, /closestPointerDragTarget/)
+    assert.match(renderer, /pointerDragState\?\.targets/)
+    assert.match(renderer, /document\.querySelectorAll<HTMLElement>\('\[data-block-id\]'\)/)
+  })
+
   it('canvas deletes blocks immediately without animated removal delay', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')

@@ -367,7 +367,14 @@ let pointerDragState: {
   startX: number
   startY: number
   dragging: boolean
+  targets: PointerDragTarget[]
 } | null = null
+
+interface PointerDragTarget {
+  id: string
+  rect: DOMRect
+  isContainer: boolean
+}
 
 onMounted(() => {
   updateCustomCssStyle()
@@ -674,6 +681,7 @@ function startPointerBlockDrag(event: PointerEvent) {
     startX: event.clientX,
     startY: event.clientY,
     dragging: false,
+    targets: collectPointerDragTargets(props.block.id),
   }
   window.addEventListener('pointermove', movePointerBlockDrag)
   window.addEventListener('pointerup', finishPointerBlockDrag, { once: true })
@@ -733,27 +741,66 @@ function stopPointerDragListeners() {
 }
 
 function resolvePointerDropIntent(clientX: number, clientY: number) {
-  const element = document.elementFromPoint(clientX, clientY) as HTMLElement | null
-  const targetFrame = element?.closest<HTMLElement>('[data-block-id]')
-  if (!targetFrame) {
+  const target = closestPointerDragTarget(clientX, clientY)
+  if (!target) {
+    const element = document.elementFromPoint(clientX, clientY) as HTMLElement | null
     const root = element?.closest<HTMLElement>('.web-page-canvas__body')
     return root ? { targetId: 'root' as const, position: 'after' as const, dropEdge: 'center' as const } : null
   }
-  const targetId = targetFrame.dataset.blockId
-  if (!targetId) return null
-  const targetElement = targetFrame.querySelector<HTMLElement>('.web-page-block-frame__inner') ?? targetFrame
-  const rect = targetElement.getBoundingClientRect()
+  const rect = target.rect
   const intent = resolveBlockDropIntent({
     x: clientX - rect.left,
     y: clientY - rect.top,
     width: rect.width,
     height: rect.height,
-    isContainer: targetFrame.dataset.blockContainer === 'true',
-    previous: props.dropIntent?.targetId === targetId
+    isContainer: target.isContainer,
+    previous: props.dropIntent?.targetId === target.id
       ? { position: props.dropIntent.position, dropEdge: props.dropIntent.dropEdge ?? 'center' }
       : null,
   })
-  return { targetId, ...intent }
+  return { targetId: target.id, ...intent }
+}
+
+function collectPointerDragTargets(draggedId: string): PointerDragTarget[] {
+  return Array.from(document.querySelectorAll<HTMLElement>('[data-block-id]'))
+    .filter((frame) => frame.dataset.blockId && frame.dataset.blockId !== draggedId)
+    .map((frame) => {
+      const targetElement = frame.querySelector<HTMLElement>('.web-page-block-frame__inner') ?? frame
+      return {
+        id: frame.dataset.blockId!,
+        rect: targetElement.getBoundingClientRect(),
+        isContainer: frame.dataset.blockContainer === 'true',
+      }
+    })
+    .filter((target) => target.rect.width > 0 && target.rect.height > 0)
+}
+
+function closestPointerDragTarget(clientX: number, clientY: number) {
+  const targets = pointerDragState?.targets ?? []
+  const containing = targets
+    .filter((target) => (
+      clientX >= target.rect.left
+      && clientX <= target.rect.right
+      && clientY >= target.rect.top
+      && clientY <= target.rect.bottom
+    ))
+    .sort((left, right) => rectArea(left.rect) - rectArea(right.rect))[0]
+  if (containing) return containing
+
+  return targets
+    .map((target) => ({ target, distance: rectDistance(target.rect, clientX, clientY) }))
+    .filter((item) => item.distance <= 48)
+    .sort((left, right) => left.distance - right.distance)[0]?.target ?? null
+}
+
+function rectArea(rect: DOMRect) {
+  return rect.width * rect.height
+}
+
+function rectDistance(rect: DOMRect, x: number, y: number) {
+  const dx = x < rect.left ? rect.left - x : x > rect.right ? x - rect.right : 0
+  const dy = y < rect.top ? rect.top - y : y > rect.bottom ? y - rect.bottom : 0
+  return Math.hypot(dx, dy)
 }
 
 function onDrop(event: DragEvent) {
