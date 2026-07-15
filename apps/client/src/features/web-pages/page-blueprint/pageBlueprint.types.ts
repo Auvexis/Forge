@@ -1,6 +1,8 @@
 import type { PageActionDefinition } from '@/core/page-actions'
 import type { PageActionDocument } from '../types/page.types.ts'
 
+export const PAGE_BLUEPRINT_DOCUMENT_VERSION = 1
+
 export type PageBlueprintNodeKind =
   | 'event'
   | 'workflow-action'
@@ -18,6 +20,8 @@ export interface PageBlueprintNode {
   icon: string
   x: number
   y: number
+  width?: number
+  height?: number
 }
 
 export interface PageBlueprintEdge {
@@ -30,6 +34,38 @@ export interface PageBlueprintEdge {
 export interface PageBlueprintGraph {
   nodes: PageBlueprintNode[]
   edges: PageBlueprintEdge[]
+}
+
+export type PageBlueprintScope =
+  | { type: 'page'; pageId: string }
+  | { type: 'element'; pageId: string; elementId: string; label: string }
+
+export type PageBlueprintDocumentKind = 'design' | 'code' | 'blueprint'
+
+export interface PageBlueprintViewport {
+  x: number
+  y: number
+  zoom: number
+}
+
+export interface PageBlueprintDocument {
+  version: typeof PAGE_BLUEPRINT_DOCUMENT_VERSION
+  scope: PageBlueprintScope
+  graph: PageBlueprintGraph
+  viewport: PageBlueprintViewport
+  selectedNodeIds: string[]
+  updatedAt: string
+}
+
+export interface PageBlueprintDocumentTab {
+  id: string
+  kind: PageBlueprintDocumentKind
+  label: string
+  detail?: string
+  icon: string
+  closable: boolean
+  dirty?: boolean
+  scope?: PageBlueprintScope
 }
 
 export interface PageBlueprintGraphInput {

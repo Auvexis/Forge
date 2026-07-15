@@ -22,6 +22,7 @@
       :rulers-lines="rulersLines"
     />
     <div class="base-canvas__viewport" :style="viewportStyle">
+      <slot />
       <div
         v-for="item in items"
         :key="item.id"

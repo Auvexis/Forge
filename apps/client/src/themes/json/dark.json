@@ -393,6 +393,21 @@
     "baseCanvas.selection.bg": "var(--fabric-accent-subtle)",
     "baseCanvas.selection.border": "var(--fabric-border-brand)",
     "baseCanvas.alignmentGuide.bg": "var(--fabric-accent)",
-    "baseCanvas.alignmentGuide.shadow": "rgba(185, 167, 255, 0.24)"
+    "baseCanvas.alignmentGuide.shadow": "rgba(185, 167, 255, 0.24)",
+    "blueprint.bg": "#171717",
+    "blueprint.tab.active.bg": "#171717",
+    "blueprint.canvas.bg": "#141414",
+    "blueprint.canvas.grid": "rgba(255, 255, 255, 0.055)",
+    "blueprint.panel.bg": "#1b1b1b",
+    "blueprint.header.bg": "#181818",
+    "blueprint.header.border": "rgba(255, 255, 255, 0.1)",
+    "blueprint.palette.item.hover.bg": "rgba(255, 255, 255, 0.07)",
+    "blueprint.node.bg": "#202020",
+    "blueprint.node.border": "rgba(255, 255, 255, 0.16)",
+    "blueprint.node.text": "var(--fabric-text-primary)",
+    "blueprint.node.muted.text": "var(--fabric-text-muted)",
+    "blueprint.node.selected.outline": "var(--fabric-accent)",
+    "blueprint.edge": "var(--fabric-accent)",
+    "blueprint.details.row.border": "rgba(255, 255, 255, 0.055)"
   }
 }

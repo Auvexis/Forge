@@ -78,23 +78,53 @@ describe('Page Actions architecture', () => {
     expect(css).toMatch(/\.web-page-data-actions__target-row/)
   })
 
-  it('exposes page logic through a bottom Dataflow blueprint panel', () => {
+  it('exposes page logic through document tabs and a Blueprint workbench', () => {
     const editor = read('src/features/web-pages/components/PageEditor.vue')
     const explorer = read('src/features/web-pages/components/PageExplorerPanel.vue')
     const panel = read('src/features/web-pages/page-blueprint/PageBlueprintPanel.vue')
     const adapter = read('src/features/web-pages/page-blueprint/pageBlueprintAdapter.ts')
+    const document = read('src/features/web-pages/page-blueprint/pageBlueprintDocument.ts')
+    const tabs = read('src/features/web-pages/page-blueprint/PageDocumentTabs.vue')
+    const store = read('src/features/web-pages/page-blueprint/stores/page-blueprint-workbench.store.ts')
     const css = read('src/features/web-pages/pages.css')
 
     expect(editor).toMatch(/PageBlueprintPanel/)
-    expect(editor).toMatch(/Dataflow/)
+    expect(editor).toMatch(/PageDocumentTabs/)
     expect(editor).toMatch(/WorkbenchBottomPanel/)
     expect(editor).toMatch(/WorkbenchStatusBar/)
     expect(editor).toMatch(/workflow-status-bar__button/)
     expect(explorer).not.toMatch(/PageDataActionsPanel|database-zap|value: 'data'/)
-    expect(panel).toMatch(/Page Blueprint/)
+    expect(panel).toMatch(/BaseCanvas/)
+    expect(panel).toMatch(/pattern-style="square"/)
     expect(adapter).toMatch(/buildPageBlueprintGraph/)
     expect(adapter).toMatch(/javascript:selected-element/)
+    expect(document).toMatch(/PAGE_BLUEPRINT_DOCUMENT_VERSION/)
+    expect(document).toMatch(/normalizePageBlueprintDocument/)
+    expect(tabs).toMatch(/web-page-document-tabs/)
+    expect(store).toMatch(/openBlueprint/)
     expect(css).toMatch(/\.web-page-blueprint/)
+    expect(css).toMatch(/\.web-page-document-tabs/)
+  })
+
+  it('adds semantic theme tokens for the Pages Blueprint workbench', () => {
+    const light = read('src/themes/json/light.json')
+    const dark = read('src/themes/json/dark.json')
+    const css = read('src/features/web-pages/pages.css')
+    const panel = read('src/features/web-pages/page-blueprint/PageBlueprintPanel.vue')
+
+    for (const token of [
+      'blueprint.canvas.bg',
+      'blueprint.canvas.grid',
+      'blueprint.panel.bg',
+      'blueprint.header.bg',
+      'blueprint.node.bg',
+      'blueprint.edge',
+    ]) {
+      expect(light).toMatch(new RegExp(`"${token}"`))
+      expect(dark).toMatch(new RegExp(`"${token}"`))
+    }
+    expect(panel).toMatch(/--fabric-blueprint-canvas-bg/)
+    expect(css).toMatch(/--fabric-blueprint-node-bg/)
   })
 
   it('shares the workflow bottom panel chrome with Pages', () => {

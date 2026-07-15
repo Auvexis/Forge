@@ -1,16 +1,16 @@
 # Pages Blueprint Workbench
 
-- [ ] Definir documento versionado de grafo e compatibilidade com `PageActionDocument`
-- [ ] Criar barra de documentos abaixo da topbar e acima do workspace
-- [ ] Alternar entre Design, Code e Blueprints abertos pela barra de abas
-- [ ] Manter uma aba Design por pagina e uma aba Blueprint por escopo
+- [x] Definir documento versionado de grafo e compatibilidade com `PageActionDocument`
+- [x] Criar barra de documentos abaixo da topbar e acima do workspace
+- [x] Alternar entre Design, Code e Blueprints abertos pela barra de abas
+- [x] Manter uma aba Design por pagina e uma aba Blueprint por escopo
 - [ ] Restaurar selecao, viewport e paineis ao alternar documentos
 - [ ] Abrir Blueprint de pagina ou elemento por comando e duplo clique
 - [ ] Fechar, reabrir e identificar abas de Blueprint por pagina ou elemento
-- [ ] Criar canvas Blueprint com `BaseCanvas` e pattern square
+- [x] Criar canvas Blueprint com `BaseCanvas` e pattern square
 - [ ] Criar nodes, pins tipados, edges, selecao e navegacao do grafo
-- [ ] Criar Palette lateral para eventos, workflows, elementos, dados e logica
-- [ ] Criar Details lateral contextual para node, pin, binding e elemento
+- [x] Criar Palette lateral para eventos, workflows, elementos, dados e logica
+- [x] Criar Details lateral contextual para node, pin, binding e elemento
 - [ ] Mover Results, Console e Debug para painel horizontal compartilhado
 - [ ] Migrar attach, inputs, outputs, collections e scoped actions para nodes
 - [ ] Adicionar pick whip entre pins e propriedades de elementos
@@ -19,9 +19,9 @@
 - [ ] Adicionar validacao de tipos, conexoes invalidas e diagnosticos no canvas
 - [ ] Adicionar undo, redo, copy, paste, duplicate, delete e atalhos
 - [ ] Migrar paginas existentes e remover o configurador Dataflow legado
-- [ ] Definir tokens semanticos do Blueprint no schema de temas
-- [ ] Aplicar tokens completos em `light.json` e `dark.json`
-- [ ] Tematizar abas, canvas, nodes, pins, edges, paineis e estados
+- [x] Definir tokens semanticos do Blueprint no schema de temas
+- [x] Aplicar tokens completos em `light.json` e `dark.json`
+- [x] Tematizar abas, canvas, nodes, pins, edges, paineis e estados
 - [ ] Impedir cores fixas nos componentes do Blueprint Workbench
 - [ ] Cobrir contratos, compilador, migracao, stores e fluxos de interacao
 - [ ] Validar Design, Preview, Publish e execucao ponta a ponta

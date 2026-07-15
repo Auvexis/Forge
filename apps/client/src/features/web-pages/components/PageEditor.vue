@@ -34,6 +34,13 @@
       @toggle-autosave="setPagesAutosaveEnabled"
     />
 
+    <PageDocumentTabs
+      :tabs="pageBlueprintWorkbench.tabs"
+      :active-tab-id="pageBlueprintWorkbench.activeTabId"
+      @activate="activatePageDocumentTab"
+      @close="pageBlueprintWorkbench.closeTab"
+    />
+
     <WorkbenchBottomPanel
       :is-open="isDataflowPanelOpen"
       :height="dataflowPanelHeight"
@@ -47,7 +54,7 @@
       @close="isDataflowPanelOpen = false"
       @resize-start="startDataflowResize"
     >
-      <PageBlueprintPanel />
+      <PageDataActionsPanel />
     </WorkbenchBottomPanel>
 
     <WorkbenchStatusBar class="web-page-editor__statusbar" aria-label="Pages workbench status">
@@ -59,7 +66,7 @@
           @click="toggleDataflowPanel"
         >
           <LucideIcon name="workflow" :size="13" />
-          <span>Dataflow</span>
+          <span>Blueprint</span>
           <code>{{ pageBlueprintStatusLabel }}</code>
         </button>
 
@@ -151,7 +158,8 @@
         </BaseModal>
       </Transition>
 
-      <BaseCanvas
+      <template v-if="activePageDocumentKind === 'design'">
+        <BaseCanvas
           v-model:selection="pageCanvasSelection"
           v-model:viewport="pageCanvasViewport"
           class="web-page-editor__base-canvas"
@@ -236,7 +244,25 @@
             </div>
           </template>
         </BaseCanvas>
+      </template>
+      <PageBlueprintPanel
+        v-else-if="activePageDocumentKind === 'blueprint'"
+        class="web-page-editor__blueprint-document"
+        :scope="pageBlueprintWorkbench.activeBlueprintScope"
+      />
+      <div v-else class="web-page-editor__code-document">
+        <SiteCodeCanvas
+          v-if="activeCodeFile"
+          :file="activeCodeFile"
+          :model-value="activeCodeContent"
+          :readonly="isActiveCodeFileReadonly"
+          @update:model-value="updateActiveCodeContent"
+          @close="closeCodeCanvas"
+        />
+        <p v-else class="web-page-editor__empty">Select a file from Explorer to edit project code.</p>
+      </div>
         <PageSelectionGroupOverlay
+          v-if="activePageDocumentKind === 'design'"
           :selected-block-ids="editorStore.selectedBlockIds"
           :viewport-key="selectionOverlayViewportKey"
           @inspect="inspectGroupSelection"
@@ -509,6 +535,7 @@ import { pagesApi } from '@/core/api/pages.api.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
 import { usePageActionBindingsStore } from '../data-actions/stores/page-action-bindings.store.ts'
+import PageDataActionsPanel from '../data-actions/components/PageDataActionsPanel.vue'
 import { useSitesStore } from '../stores/sites.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'
@@ -526,12 +553,15 @@ import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.v
 import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 import PageBlueprintPanel from '../page-blueprint/PageBlueprintPanel.vue'
+import PageDocumentTabs from '../page-blueprint/PageDocumentTabs.vue'
+import { usePageBlueprintWorkbenchStore } from '../page-blueprint/stores/page-blueprint-workbench.store.ts'
 
 const route = useRoute()
 const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const pageActionBindingsStore = usePageActionBindingsStore()
+const pageBlueprintWorkbench = usePageBlueprintWorkbenchStore()
 const sitesStore = useSitesStore()
 const { confirm } = useConfirm()
 const INITIAL_CANVAS_TOP_OFFSET = 120
@@ -541,7 +571,7 @@ const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHei
 const PAGE_CANVAS_GAP = 80
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
-const isDataflowPanelOpen = ref(true)
+const isDataflowPanelOpen = ref(false)
 const leftPanelWidth = ref<number | null>(null)
 const rightPanelWidth = ref<number | null>(null)
 const dataflowPanelHeight = ref(260)
@@ -591,6 +621,7 @@ const hasDraftPageWithoutProject = computed(() => Boolean(!sitesStore.activeSite
 const canSaveActiveDocument = computed(() =>
   hasCreatedProject.value ? hasUnsavedProjectChanges.value : hasDraftPageWithoutProject.value,
 )
+const activePageDocumentKind = computed(() => pageBlueprintWorkbench.activeTab?.kind ?? 'design')
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
   { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
@@ -677,6 +708,7 @@ function previewBlockStyle(block: PageBlock, index: number) {
 function openCodeFile(file: SiteFile) {
   if (!isGeneratedPageHtmlFile(file.path)) ensureEditablePageAssetFile(file)
   activeCodeFile.value = file
+  pageBlueprintWorkbench.activateTab('code')
   editorStore.clearSelection()
 }
 
@@ -865,7 +897,18 @@ function closeRightPanel() {
 }
 
 function toggleDataflowPanel() {
-  isDataflowPanelOpen.value = !isDataflowPanelOpen.value
+  openActivePageBlueprint()
+}
+
+function activatePageDocumentTab(tabId: string) {
+  pageBlueprintWorkbench.activateTab(tabId)
+  if (tabId === 'code') isLeftPanelOpen.value = true
+}
+
+function openActivePageBlueprint() {
+  const pageId = pagesStore.activePage?.id
+  if (!pageId) return
+  pageBlueprintWorkbench.openBlueprint({ type: 'page', pageId })
 }
 
 function startDataflowResize(event: MouseEvent) {
@@ -966,6 +1009,7 @@ function clearActiveProject() {
   editorStore.setBlocks([])
   editorStore.clearSelection()
   activeCodeFile.value = null
+  pageBlueprintWorkbench.resetForPage(null)
 }
 
 async function loadProject(projectId: string) {
@@ -996,8 +1040,10 @@ watch(
   () => pagesStore.activePage,
   (page) => {
     hydratePageActionBindings(page)
-    if (page?.id === editorPageId.value) return
-    editorPageId.value = page?.id ?? null
+    const nextPageId = page?.id ?? null
+    if (nextPageId === editorPageId.value) return
+    pageBlueprintWorkbench.resetForPage(nextPageId)
+    editorPageId.value = nextPageId
     editorStore.setBlocks(page?.blocks ?? [])
   },
   { immediate: true },

@@ -393,6 +393,21 @@
     "baseCanvas.selection.bg": "var(--fabric-accent-subtle)",
     "baseCanvas.selection.border": "var(--fabric-border-brand)",
     "baseCanvas.alignmentGuide.bg": "var(--fabric-accent)",
-    "baseCanvas.alignmentGuide.shadow": "rgba(111, 75, 216, 0.2)"
+    "baseCanvas.alignmentGuide.shadow": "rgba(111, 75, 216, 0.2)",
+    "blueprint.bg": "var(--fabric-workbench-panel-bg)",
+    "blueprint.tab.active.bg": "var(--fabric-bg-canvas)",
+    "blueprint.canvas.bg": "#f7f5ef",
+    "blueprint.canvas.grid": "rgba(36, 33, 31, 0.06)",
+    "blueprint.panel.bg": "var(--fabric-bg-surface)",
+    "blueprint.header.bg": "var(--fabric-workbench-panel-header-bg)",
+    "blueprint.header.border": "var(--fabric-workbench-border)",
+    "blueprint.palette.item.hover.bg": "var(--fabric-button-ghost-hover)",
+    "blueprint.node.bg": "#ffffff",
+    "blueprint.node.border": "#d8d0c7",
+    "blueprint.node.text": "var(--fabric-text-primary)",
+    "blueprint.node.muted.text": "var(--fabric-text-muted)",
+    "blueprint.node.selected.outline": "var(--fabric-accent)",
+    "blueprint.edge": "var(--fabric-accent)",
+    "blueprint.details.row.border": "var(--fabric-border-subtle)"
   }
 }
