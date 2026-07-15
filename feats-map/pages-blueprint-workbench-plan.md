@@ -1,8 +1,12 @@
 # Pages Blueprint Workbench
 
 - [ ] Definir documento versionado de grafo e compatibilidade com `PageActionDocument`
-- [ ] Criar shell de documentos do Pages com abas Design, Blueprint e Code
+- [ ] Criar barra de documentos abaixo da topbar e acima do workspace
+- [ ] Alternar entre Design, Code e Blueprints abertos pela barra de abas
+- [ ] Manter uma aba Design por pagina e uma aba Blueprint por escopo
+- [ ] Restaurar selecao, viewport e paineis ao alternar documentos
 - [ ] Abrir Blueprint de pagina ou elemento por comando e duplo clique
+- [ ] Fechar, reabrir e identificar abas de Blueprint por pagina ou elemento
 - [ ] Criar canvas Blueprint com `BaseCanvas` e pattern square
 - [ ] Criar nodes, pins tipados, edges, selecao e navegacao do grafo
 - [ ] Criar Palette lateral para eventos, workflows, elementos, dados e logica
