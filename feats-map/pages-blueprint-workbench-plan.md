@@ -8,7 +8,7 @@
 - [x] Abrir Blueprint de pagina ou elemento por comando e duplo clique
 - [x] Fechar, reabrir e identificar abas de Blueprint por pagina ou elemento
 - [x] Criar canvas Blueprint com `BaseCanvas` e pattern square
-- [ ] Criar nodes, pins tipados, edges, selecao e navegacao do grafo
+- [x] Criar nodes, pins tipados, edges, selecao e navegacao do grafo
 - [x] Criar Palette lateral para eventos, workflows, elementos, dados e logica
 - [x] Criar Details lateral contextual para node, pin, binding e elemento
 - [ ] Mover Results, Console e Debug para painel horizontal compartilhado

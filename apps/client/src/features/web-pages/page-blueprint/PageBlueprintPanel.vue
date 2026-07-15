@@ -62,7 +62,7 @@
         background-color="var(--fabric-blueprint-canvas-bg, var(--fabric-bg-canvas))"
         pattern-color="var(--fabric-blueprint-canvas-grid, var(--fabric-border-subtle))"
         :pattern-size="24"
-        @canvas-click="selection = []"
+        @canvas-click="clearCanvasSelection"
         @items-move="moveBlueprintNodes"
       >
         <svg class="web-page-blueprint__edges" :viewBox="viewBox" aria-hidden="true">
@@ -70,9 +70,21 @@
             v-for="edge in graph.edges"
             :key="edge.id"
             class="web-page-blueprint__edge"
+            :class="{ 'web-page-blueprint__edge--selected': selectedEdgeId === edge.id }"
             :d="edgePath(edge.from, edge.to)"
+            @click.stop="selectedEdgeId = edge.id"
           />
         </svg>
+        <div
+          v-if="selectedEdge"
+          class="web-page-blueprint__edge-toolbar"
+          :style="{ transform: `translate(${edgeToolbarPosition.x}px, ${edgeToolbarPosition.y}px)` }"
+          @pointerdown.stop
+        >
+          <button type="button" title="Delete connection" @click="deleteSelectedEdge">
+            <LucideIcon name="unlink" :size="13" />
+          </button>
+        </div>
         <template #item="{ item, selected }">
           <article
             class="web-page-blueprint__node"
@@ -81,11 +93,44 @@
               { 'web-page-blueprint__node--selected': selected },
             ]"
           >
-            <LucideIcon :name="nodeForItem(item.id)?.icon ?? 'box'" :size="15" />
-            <span>
-              {{ nodeForItem(item.id)?.label }}
-              <small>{{ nodeForItem(item.id)?.detail }}</small>
-            </span>
+            <button
+              class="web-page-blueprint__node-handle web-page-blueprint__node-handle--input"
+              type="button"
+              title="Input"
+              @pointerup.stop.prevent="finishConnection(item.id)"
+            />
+            <button
+              class="web-page-blueprint__node-handle web-page-blueprint__node-handle--output"
+              type="button"
+              title="Output"
+              @pointerdown.stop.prevent="startConnection(item.id)"
+            />
+            <div v-if="selected" class="web-page-blueprint__node-toolbar" @pointerdown.stop>
+              <button type="button" title="Duplicate node" @click="duplicateNode(item.id)">
+                <LucideIcon name="copy" :size="12" />
+              </button>
+              <button type="button" title="Delete node" @click="deleteNode(item.id)">
+                <LucideIcon name="trash-2" :size="12" />
+              </button>
+            </div>
+            <header class="web-page-blueprint__node-header">
+              <LucideIcon :name="nodeForItem(item.id)?.icon ?? 'box'" :size="15" />
+              <span>{{ nodeForItem(item.id)?.label }}</span>
+            </header>
+            <dl class="web-page-blueprint__node-meta">
+              <div>
+                <dt>Type</dt>
+                <dd>{{ nodeForItem(item.id)?.kind }}</dd>
+              </div>
+              <div>
+                <dt>ID</dt>
+                <dd>{{ item.id }}</dd>
+              </div>
+              <div v-if="nodeForItem(item.id)?.detail">
+                <dt>Detail</dt>
+                <dd>{{ nodeForItem(item.id)?.detail }}</dd>
+              </div>
+            </dl>
           </article>
         </template>
       </BaseCanvas>
@@ -100,24 +145,39 @@
       />
       <header class="web-page-blueprint__panel-header">
         <strong>Details</strong>
-        <span>{{ activeNode?.kind ?? 'Canvas' }}</span>
+        <span>{{ detailsStepLabel }}</span>
       </header>
-      <dl v-if="activeNode" class="web-page-blueprint__details-list">
-        <div>
-          <dt>Name</dt>
-          <dd>{{ activeNode.label }}</dd>
-        </div>
-        <div>
-          <dt>Type</dt>
-          <dd>{{ activeNode.kind }}</dd>
-        </div>
-        <div>
-          <dt>Position</dt>
-          <dd>{{ Math.round(activeNode.x) }}, {{ Math.round(activeNode.y) }}</dd>
-        </div>
-      </dl>
-      <p v-else class="web-page-blueprint__details-empty">Select a node to inspect bindings, pins, and runtime data.</p>
-      <PageDataActionsPanel />
+      <div class="web-page-blueprint__details-tabs">
+        <button
+          type="button"
+          :class="{ 'web-page-blueprint__details-tab--active': detailsStep === 'choose' }"
+          @click="detailsStep = 'choose'"
+        >
+          Data / Action
+        </button>
+        <button
+          type="button"
+          :class="{ 'web-page-blueprint__details-tab--active': detailsStep === 'configure' }"
+          @click="detailsStep = 'configure'"
+        >
+          Configure
+        </button>
+      </div>
+      <div v-if="detailsStep === 'choose'" class="web-page-blueprint__details-choose">
+        <button
+          v-for="item in paletteItems"
+          :key="`details:${item.id}`"
+          type="button"
+          @click="addPaletteNode(item); detailsStep = 'configure'"
+        >
+          <LucideIcon :name="item.icon" :size="14" />
+          <span>
+            {{ item.label }}
+            <small>{{ item.detail }}</small>
+          </span>
+        </button>
+      </div>
+      <PageDataActionsPanel v-else />
     </aside>
   </section>
 </template>
@@ -147,10 +207,13 @@ const props = defineProps<{
 const pagesStore = usePagesStore()
 const actionsStore = usePageActionsStore()
 const selection = ref<string[]>([])
+const selectedEdgeId = ref<string | null>(null)
+const connectionStartNodeId = ref<string | null>(null)
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
 const paletteWidth = ref(240)
 const detailsWidth = ref(340)
 const resizeState = ref<null | { side: 'palette' | 'details'; startX: number; startWidth: number }>(null)
+const detailsStep = ref<'choose' | 'configure'>('choose')
 
 const document = computed(() =>
   createPageBlueprintDocument({
@@ -167,7 +230,7 @@ const canvasItems = computed<BaseCanvasItem[]>(() =>
     x: node.x,
     y: node.y,
     width: node.width ?? 184,
-    height: node.height ?? 54,
+    height: node.height ?? 92,
   })),
 )
 const graphSummary = computed(() =>
@@ -176,6 +239,18 @@ const graphSummary = computed(() =>
 const documentTitle = computed(() => document.value.scope.type === 'element' ? document.value.scope.label : 'Page Blueprint')
 const selectedLabel = computed(() => activeNode.value?.label ?? 'Canvas')
 const activeNode = computed(() => selection.value[0] ? nodeForItem(selection.value[0]) : null)
+const selectedEdge = computed(() => selectedEdgeId.value ? graph.value.edges.find((edge) => edge.id === selectedEdgeId.value) ?? null : null)
+const detailsStepLabel = computed(() => detailsStep.value === 'choose' ? 'Select source' : activeNode.value?.kind ?? 'Configure')
+const edgeToolbarPosition = computed(() => {
+  if (!selectedEdge.value) return { x: 0, y: 0 }
+  const from = nodeForItem(selectedEdge.value.from)
+  const to = nodeForItem(selectedEdge.value.to)
+  if (!from || !to) return { x: 0, y: 0 }
+  return {
+    x: (from.x + (from.width ?? 184) + to.x) / 2 - 14,
+    y: (from.y + ((from.height ?? 86) / 2) + to.y + ((to.height ?? 86) / 2)) / 2 - 14,
+  }
+})
 const paletteItems = computed<Array<{ id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }>>(() => [
   { id: 'events', label: 'Event', detail: 'Click, submit, mount', icon: 'radio', kind: 'event' },
   { id: 'workflows', label: 'Workflow Action', detail: `${actionsStore.workflows.length} workflows`, icon: 'workflow', kind: 'workflow-action' },
@@ -198,6 +273,11 @@ function nodeForItem(itemId: string): PageBlueprintNode | null {
   return graph.value.nodes.find((node) => node.id === itemId) ?? null
 }
 
+function clearCanvasSelection() {
+  selection.value = []
+  selectedEdgeId.value = null
+}
+
 function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
   const moved = new Set(event.itemIds)
   persistBlueprintDocument({
@@ -216,6 +296,86 @@ function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
   })
 }
 
+function startConnection(nodeId: string) {
+  connectionStartNodeId.value = nodeId
+}
+
+function finishConnection(nodeId: string) {
+  const from = connectionStartNodeId.value
+  connectionStartNodeId.value = null
+  if (!from || from === nodeId) return
+  if (graph.value.edges.some((edge) => edge.from === from && edge.to === nodeId)) return
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      nodes: [...graph.value.nodes],
+      edges: [
+        ...graph.value.edges,
+        {
+          id: `edge:${from}:${nodeId}:${Date.now().toString(36)}`,
+          from,
+          to: nodeId,
+        },
+      ],
+    },
+    selectedNodeIds: selection.value,
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+}
+
+function deleteSelectedEdge() {
+  const edgeId = selectedEdgeId.value
+  if (!edgeId) return
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      nodes: [...graph.value.nodes],
+      edges: graph.value.edges.filter((edge) => edge.id !== edgeId),
+    },
+    selectedNodeIds: selection.value,
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+  selectedEdgeId.value = null
+}
+
+function deleteNode(nodeId: string) {
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      nodes: graph.value.nodes.filter((node) => node.id !== nodeId),
+      edges: graph.value.edges.filter((edge) => edge.from !== nodeId && edge.to !== nodeId),
+    },
+    selectedNodeIds: selection.value.filter((id) => id !== nodeId),
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+  selection.value = selection.value.filter((id) => id !== nodeId)
+}
+
+function duplicateNode(nodeId: string) {
+  const source = nodeForItem(nodeId)
+  if (!source) return
+  const node: PageBlueprintNode = {
+    ...source,
+    id: `node:${source.kind}:${Date.now().toString(36)}`,
+    x: source.x + 32,
+    y: source.y + 32,
+  }
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      nodes: [...graph.value.nodes, node],
+      edges: [...graph.value.edges],
+    },
+    selectedNodeIds: [node.id],
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
+  })
+  selection.value = [node.id]
+}
+
 function addPaletteNode(item: { label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }) {
   const node: PageBlueprintNode = {
     id: `node:${item.kind}:${Date.now().toString(36)}`,
@@ -226,7 +386,7 @@ function addPaletteNode(item: { label: string; detail: string; icon: string; kin
     x: Math.round((-viewport.value.x + 120) / viewport.value.zoom),
     y: Math.round((-viewport.value.y + 120 + graph.value.nodes.length * 18) / viewport.value.zoom),
     width: 184,
-    height: 54,
+    height: 92,
   }
   persistBlueprintDocument({
     ...document.value,
@@ -298,9 +458,9 @@ function edgePath(fromId: string, toId: string) {
   const to = graph.value.nodes.find((node) => node.id === toId)
   if (!from || !to) return ''
   const startX = from.x + (from.width ?? 184)
-  const startY = from.y + ((from.height ?? 54) / 2)
+  const startY = from.y + ((from.height ?? 92) / 2)
   const endX = to.x
-  const endY = to.y + ((to.height ?? 54) / 2)
+  const endY = to.y + ((to.height ?? 92) / 2)
   const control = Math.max(48, (endX - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${endX - control} ${endY}, ${endX} ${endY}`
 }
