@@ -225,6 +225,30 @@ describe('Page Actions architecture', () => {
     }
   })
 
+  it('connects workflow execution and keeps Blueprint interactions stable', () => {
+    const panel = read('src/features/web-pages/page-blueprint/PageBlueprintPanel.vue')
+    const preview = read('src/features/web-pages/page-blueprint/PageBlueprintElementPreview.vue')
+    const css = read('src/features/web-pages/pages.css')
+    const light = read('src/themes/json/light.json')
+    const dark = read('src/themes/json/dark.json')
+
+    expect(panel).toMatch(/On click/)
+    expect(panel).toMatch(/attachWorkflowTrigger/)
+    expect(panel).toMatch(/actionLink/)
+    expect(panel).toMatch(/startGroupDrag/)
+    expect(panel).toMatch(/watch\(\(\) => `\$\{pagesStore\.activePage/)
+    expect(panel).not.toMatch(/watch\(document,/)
+    expect(preview).toMatch(/block\.styles/)
+    expect(preview).toMatch(/PageBlueprintElementPreview/)
+    expect(css).toMatch(/web-page-blueprint__edge-hit/)
+    expect(css).toMatch(/stroke-width:\s*14/)
+    expect(css).toMatch(/web-page-blueprint__group-preview-stage/)
+    for (const theme of [light, dark]) {
+      expect(theme).toMatch(/"blueprint\.group\.preview\.stage\.bg"/)
+      expect(theme).toMatch(/"blueprint\.edge\.action"/)
+    }
+  })
+
   it('shares the workflow bottom panel chrome with Pages', () => {
     const bottomPanel = read('src/shared/components/workbench/WorkbenchBottomPanel.vue')
 

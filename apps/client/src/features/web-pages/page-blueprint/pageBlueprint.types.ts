@@ -38,6 +38,7 @@ export interface PageBlueprintEdge {
   returnKey?: string
   targetProperty?: string
   bindingId?: string
+  actionLink?: boolean
 }
 
 export interface PageBlueprintGraph {

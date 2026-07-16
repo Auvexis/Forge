@@ -1,5 +1,8 @@
 <template>
-  <section class="web-page-blueprint" :class="{ 'web-page-blueprint--connecting': connectionStartNodeId }">
+  <section class="web-page-blueprint" :class="[
+    { 'web-page-blueprint--connecting': connectionStartNodeId },
+    connectionPurpose ? `web-page-blueprint--connecting-${connectionPurpose}` : '',
+  ]">
     <aside class="web-page-blueprint__palette" :style="{ width: `${paletteWidth}px` }">
       <span
         class="web-page-blueprint__resize web-page-blueprint__resize--left"
@@ -101,18 +104,20 @@
           :class="{ 'is-selected': group.nodeIds.some((id) => selection.includes(id)) }"
           :style="group.style"
         >
-          <header data-base-canvas-no-drag>
+          <header data-base-canvas-no-drag @pointerdown.stop.prevent="startGroupDrag(group.nodeIds, $event)">
             <span class="web-page-blueprint__group-accent" :style="{ background: group.color }" />
             <LucideIcon :name="group.icon" :size="12" />
             <strong>{{ group.label }}</strong>
             <small>{{ group.childCount }} children</small>
-            <button type="button" :title="collapsedGroupIds.has(group.id) ? 'Show preview' : 'Hide preview'" @click.stop="toggleGroup(group.id)">
+            <button type="button" :title="collapsedGroupIds.has(group.id) ? 'Show preview' : 'Hide preview'" @pointerdown.stop @click.stop="toggleGroup(group.id)">
               <LucideIcon :name="collapsedGroupIds.has(group.id) ? 'panel-top-open' : 'panel-top-close'" :size="12" />
             </button>
           </header>
           <div v-if="!collapsedGroupIds.has(group.id)" class="web-page-blueprint__group-preview" data-base-canvas-no-drag>
-            <span>{{ group.tag }}</span>
-            <strong>{{ group.preview }}</strong>
+            <div class="web-page-blueprint__group-preview-stage">
+              <PageBlueprintElementPreview :block="group.block" />
+            </div>
+            <footer><span>{{ group.tag }}</span><strong>{{ group.preview }}</strong></footer>
           </div>
         </div>
         <svg class="web-page-blueprint__edges" :viewBox="viewBox" aria-hidden="true">
@@ -121,14 +126,17 @@
             class="web-page-blueprint__edge web-page-blueprint__edge--preview"
             :d="previewConnectionPath"
           />
-          <path
-            v-for="edge in graph.edges"
-            :key="edge.id"
-            class="web-page-blueprint__edge"
-            :class="{ 'web-page-blueprint__edge--selected': selectedEdgeId === edge.id }"
-            :d="edgePath(edge)"
-            @click.stop="selectedEdgeId = edge.id"
-          />
+          <g v-for="edge in graph.edges" :key="edge.id">
+            <path class="web-page-blueprint__edge-hit" :d="edgePath(edge)" @click.stop="selectedEdgeId = edge.id" />
+            <path
+              class="web-page-blueprint__edge"
+              :class="{
+                'web-page-blueprint__edge--selected': selectedEdgeId === edge.id,
+                'web-page-blueprint__edge--action': edge.actionLink,
+              }"
+              :d="edgePath(edge)"
+            />
+          </g>
         </svg>
         <div
           v-if="selectedEdge"
@@ -157,12 +165,15 @@
             class="web-page-blueprint__node"
             :class="[
               `web-page-blueprint__node--${nodeForItem(item.id)?.kind}`,
-              { 'web-page-blueprint__node--selected': selected },
+              {
+                'web-page-blueprint__node--selected': selected,
+                'web-page-blueprint__node--connection-target': canAcceptConnection(nodeForItem(item.id)),
+              },
             ]"
             @pointerup="finishElementConnection(item.id)"
           >
             <button
-              v-if="nodeForItem(item.id)?.kind === 'element'"
+              v-if="nodeForItem(item.id)?.kind === 'element' && canAcceptConnection(nodeForItem(item.id))"
               data-base-canvas-no-drag
               class="web-page-blueprint__node-handle web-page-blueprint__node-handle--input"
               type="button"
@@ -199,6 +210,20 @@
               <span>{{ nodeForItem(item.id)?.detail || 'No configuration' }}</span>
               <code>{{ shortNodeId(item.id) }}</code>
               <div v-if="nodeForItem(item.id)?.kind === 'workflow-action'" class="web-page-blueprint__node-returns">
+                <div class="web-page-blueprint__workflow-trigger-port">
+                  <span>On click</span>
+                  <small>action</small>
+                  <span />
+                  <button
+                    data-base-canvas-no-drag
+                    class="web-page-blueprint__pick-whip"
+                    type="button"
+                    title="Connect click or submit to this workflow"
+                    @pointerdown.stop.prevent="startConnection(item.id, $event, undefined, 'single', 'trigger')"
+                  >
+                    <LucideIcon name="mouse-pointer-click" :size="11" />
+                  </button>
+                </div>
                 <div v-for="field in workflowReturns(nodeForItem(item.id))" :key="field.key">
                   <span>{{ field.label }}</span>
                   <small>{{ field.type }}</small>
@@ -221,7 +246,7 @@
                     class="web-page-blueprint__pick-whip"
                     type="button"
                     :title="`Connect ${field.label}`"
-                    @pointerdown.stop.prevent="startConnection(item.id, $event, field.key, returnMode(nodeForItem(item.id), field))"
+                    @pointerdown.stop.prevent="startConnection(item.id, $event, field.key, returnMode(nodeForItem(item.id), field), 'return')"
                   >
                     <LucideIcon name="link-2" :size="11" />
                   </button>
@@ -284,6 +309,7 @@ import { usePageEditorStore } from '../stores/page-editor.store.ts'
 import type { PageBlock } from '../types/page.types.ts'
 import { blueprintScopeId, createPageBlueprintDocument } from './pageBlueprintDocument.ts'
 import PageBlueprintNodeInspector from './PageBlueprintNodeInspector.vue'
+import PageBlueprintElementPreview from './PageBlueprintElementPreview.vue'
 import {
   PAGE_BLUEPRINT_DOCUMENT_VERSION,
   type PageBlueprintDocument,
@@ -307,6 +333,7 @@ const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
 const connectionReturnKey = ref<string | null>(null)
 const connectionReturnMode = ref<'single' | 'multiple'>('single')
+const connectionPurpose = ref<'flow' | 'return' | 'trigger' | null>(null)
 const connectionPointer = ref<{ x: number; y: number } | null>(null)
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
 const paletteWidth = ref(260)
@@ -314,6 +341,7 @@ const detailsWidth = ref(340)
 const resizeState = ref<null | { side: 'palette' | 'details'; startX: number; startWidth: number }>(null)
 const paletteQuery = ref('')
 const collapsedGroupIds = ref(new Set<string>())
+const groupDrag = ref<null | { nodeIds: string[]; pointerId: number; x: number; y: number }>(null)
 
 const document = computed(() =>
   createPageBlueprintDocument({
@@ -356,8 +384,8 @@ const previewConnectionPath = computed(() => {
   const pointer = connectionPointer.value
   const from = fromId ? nodeForItem(fromId) : null
   if (!from || !pointer) return ''
-  const startX = returnPortX(from, connectionReturnKey.value)
-  const startY = returnPortY(from, connectionReturnKey.value)
+  const startX = connectionPurpose.value === 'trigger' ? actionPortX(from) : returnPortX(from, connectionReturnKey.value)
+  const startY = connectionPurpose.value === 'trigger' ? actionPortY(from) : returnPortY(from, connectionReturnKey.value)
   const control = Math.max(48, Math.abs(pointer.x - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${pointer.x - control} ${pointer.y}, ${pointer.x} ${pointer.y}`
 })
@@ -367,8 +395,8 @@ const edgeToolbarPosition = computed(() => {
   const to = nodeForItem(selectedEdge.value.to)
   if (!from || !to) return { x: 0, y: 0 }
   return {
-    x: (returnPortX(from, selectedEdge.value.returnKey) + to.x) / 2 - 14,
-    y: (returnPortY(from, selectedEdge.value.returnKey) + to.y + (nodeHeight(to) / 2)) / 2 - 14,
+    x: (edgeStartX(from, selectedEdge.value) + to.x) / 2 - 14,
+    y: (edgeStartY(from, selectedEdge.value) + to.y + (nodeHeight(to) / 2)) / 2 - 14,
   }
 })
 const paletteItems = computed<Array<{ id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }>>(() => [
@@ -395,6 +423,7 @@ const viewBox = '-120 -80 1280 560'
 
 onBeforeUnmount(() => {
   stopResize()
+  stopGroupDrag()
   window.removeEventListener('keydown', handleBlueprintKeyDown)
 })
 
@@ -403,7 +432,8 @@ onMounted(() => {
   window.addEventListener('keydown', handleBlueprintKeyDown)
 })
 
-watch(document, (next) => {
+watch(() => `${pagesStore.activePage?.id ?? ''}:${props.scope ? blueprintScopeId(props.scope) : ''}`, () => {
+  const next = document.value
   viewport.value = { ...next.viewport }
   const selectedElementNodeId = editorStore.selectedBlockId ? `element:${editorStore.selectedBlockId}` : null
   selection.value = next.selectedNodeIds.length > 0
@@ -413,6 +443,12 @@ watch(document, (next) => {
 
 function nodeForItem(itemId: string): PageBlueprintNode | null {
   return graph.value.nodes.find((node) => node.id === itemId) ?? null
+}
+
+function canAcceptConnection(node: PageBlueprintNode | null) {
+  if (node?.kind !== 'element') return false
+  if (connectionPurpose.value === 'trigger') return ['button', 'form'].includes(node.elementTag ?? '')
+  return true
 }
 
 function clearCanvasSelection() {
@@ -457,10 +493,12 @@ function startConnection(
   event: PointerEvent,
   returnKey?: string,
   mode: 'single' | 'multiple' = 'single',
+  purpose: 'flow' | 'return' | 'trigger' = 'flow',
 ) {
   connectionStartNodeId.value = nodeId
   connectionReturnKey.value = returnKey ?? null
   connectionReturnMode.value = mode
+  connectionPurpose.value = purpose
   selectedEdgeId.value = null
   connectionPointer.value = pointerWorldPoint(event)
   window.addEventListener('pointermove', moveConnectionPreview)
@@ -471,8 +509,13 @@ function finishConnection(nodeId: string) {
   const from = connectionStartNodeId.value
   const returnKey = connectionReturnKey.value
   const mode = connectionReturnMode.value
+  const purpose = connectionPurpose.value
   clearConnectionPreview()
   if (!from || from === nodeId) return
+  if (purpose === 'trigger') {
+    attachWorkflowTrigger(from, nodeId)
+    return
+  }
   if (returnKey) {
     bindWorkflowReturn(from, nodeId, returnKey, mode)
     return
@@ -514,6 +557,7 @@ function clearConnectionPreview() {
   connectionStartNodeId.value = null
   connectionReturnKey.value = null
   connectionReturnMode.value = 'single'
+  connectionPurpose.value = null
   connectionPointer.value = null
   window.removeEventListener('pointermove', moveConnectionPreview)
 }
@@ -536,6 +580,11 @@ function deleteSelectedEdge() {
     bindingsStore.clearOutputBinding(source.actionId, edge.bindingId)
     bindingsStore.clearCollectionBinding(source.actionId, edge.bindingId)
   }
+  if (edge?.actionLink) {
+    const target = nodeForItem(edge.to)
+    const block = target?.elementId ? findPageBlock(editorStore.blocks, target.elementId) : null
+    if (block?.action?.type === 'triggerWorkflow') editorStore.patchBlock(block.id, { action: undefined })
+  }
   persistBlueprintDocument({
     ...document.value,
     graph: {
@@ -549,6 +598,51 @@ function deleteSelectedEdge() {
   selectedEdgeId.value = null
 }
 
+function attachWorkflowTrigger(sourceId: string, targetId: string) {
+  const source = nodeForItem(sourceId)
+  const target = nodeForItem(targetId)
+  const block = target?.elementId ? findPageBlock(editorStore.blocks, target.elementId) : null
+  if (!source?.actionId || !source.workflowId || !source.triggerId || !block || !['button', 'form'].includes(block.tag)) return false
+  editorStore.patchBlock(block.id, {
+    action: {
+      id: source.actionId,
+      type: 'triggerWorkflow',
+      workflowId: source.workflowId,
+      triggerId: source.triggerId,
+    },
+  })
+  selection.value = [targetId]
+  return true
+}
+
+function startGroupDrag(nodeIds: string[], event: PointerEvent) {
+  if (event.button !== 0) return
+  selection.value = [...nodeIds]
+  groupDrag.value = { nodeIds: [...nodeIds], pointerId: event.pointerId, x: event.clientX, y: event.clientY }
+  window.addEventListener('pointermove', moveGroupDrag)
+  window.addEventListener('pointerup', stopGroupDrag, { once: true })
+  window.addEventListener('pointercancel', stopGroupDrag, { once: true })
+}
+
+function moveGroupDrag(event: PointerEvent) {
+  const drag = groupDrag.value
+  if (!drag || drag.pointerId !== event.pointerId) return
+  const delta = {
+    x: (event.clientX - drag.x) / viewport.value.zoom,
+    y: (event.clientY - drag.y) / viewport.value.zoom,
+  }
+  if (delta.x === 0 && delta.y === 0) return
+  drag.x = event.clientX
+  drag.y = event.clientY
+  moveBlueprintNodes({ itemIds: drag.nodeIds, delta })
+}
+
+function stopGroupDrag() {
+  groupDrag.value = null
+  window.removeEventListener('pointermove', moveGroupDrag)
+  window.removeEventListener('pointercancel', stopGroupDrag)
+}
+
 function deleteNode(nodeId: string) {
   const node = nodeForItem(nodeId)
   if (node?.actionId) {
@@ -559,6 +653,11 @@ function deleteNode(nodeId: string) {
     for (const binding of bindingsStore.collectionBindingsForAction(node.actionId)) {
       bindingsStore.clearCollectionBinding(node.actionId, binding.id)
     }
+  }
+  for (const edge of graph.value.edges.filter((candidate) => candidate.from === nodeId && candidate.actionLink)) {
+    const target = nodeForItem(edge.to)
+    const block = target?.elementId ? findPageBlock(editorStore.blocks, target.elementId) : null
+    if (block?.action?.type === 'triggerWorkflow') editorStore.patchBlock(block.id, { action: undefined })
   }
   persistBlueprintDocument({
     ...document.value,
@@ -940,8 +1039,8 @@ function edgePath(edge: PageBlueprintEdge) {
   const from = graph.value.nodes.find((node) => node.id === edge.from)
   const to = graph.value.nodes.find((node) => node.id === edge.to)
   if (!from || !to) return ''
-  const startX = returnPortX(from, edge.returnKey)
-  const startY = returnPortY(from, edge.returnKey)
+  const startX = edgeStartX(from, edge)
+  const startY = edgeStartY(from, edge)
   const endX = to.x
   const endY = to.y + (nodeHeight(to) / 2)
   const control = Math.max(48, (endX - startX) / 2)
@@ -951,7 +1050,7 @@ function edgePath(edge: PageBlueprintEdge) {
 function returnPortY(node: PageBlueprintNode, returnKey?: string | null) {
   const returns = workflowReturns(node)
   const index = returnKey ? returns.findIndex((field) => field.key === returnKey) : -1
-  return index >= 0 ? node.y + 96 + (index * 24) : node.y + (nodeHeight(node) / 2)
+  return index >= 0 ? node.y + 120 + (index * 24) : node.y + (nodeHeight(node) / 2)
 }
 
 function returnPortX(node: PageBlueprintNode, returnKey?: string | null) {
@@ -959,9 +1058,25 @@ function returnPortX(node: PageBlueprintNode, returnKey?: string | null) {
   return returnKey ? right - 10 : right
 }
 
+function actionPortX(node: PageBlueprintNode) {
+  return node.x + (node.width ?? 208) - 10
+}
+
+function actionPortY(node: PageBlueprintNode) {
+  return node.y + 96
+}
+
+function edgeStartX(node: PageBlueprintNode, edge: PageBlueprintEdge) {
+  return edge.actionLink ? actionPortX(node) : returnPortX(node, edge.returnKey)
+}
+
+function edgeStartY(node: PageBlueprintNode, edge: PageBlueprintEdge) {
+  return edge.actionLink ? actionPortY(node) : returnPortY(node, edge.returnKey)
+}
+
 function nodeHeight(node: PageBlueprintNode) {
   if (node.kind !== 'workflow-action') return node.height ?? 112
-  return Math.max(node.height ?? 112, 104 + (workflowReturns(node).length * 24))
+  return Math.max(node.height ?? 112, 128 + (workflowReturns(node).length * 24))
 }
 
 function synchronizePageElements(nodes: PageBlueprintNode[], edges: PageBlueprintEdge[], blocks: PageBlock[]) {
@@ -1023,12 +1138,32 @@ function synchronizePageElements(nodes: PageBlueprintNode[], edges: PageBlueprin
       })
     }
   }
+  const actionEdges: PageBlueprintEdge[] = []
+  for (const block of flattenBlocks(blocks)) {
+    if (block.action?.type !== 'triggerWorkflow') continue
+    const action = block.action
+    const source = retained.find((node) =>
+      node.kind === 'workflow-action'
+      && node.workflowId === action.workflowId
+      && (!action.triggerId || node.triggerId === action.triggerId),
+    )
+    const targetId = `element:${block.id}`
+    if (!source || !nodeIds.has(targetId)) continue
+    actionEdges.push({
+      id: `action:${source.id}:${targetId}`,
+      from: source.id,
+      to: targetId,
+      label: block.tag === 'form' ? 'submit' : 'click',
+      actionLink: true,
+    })
+  }
   const bindingEdgeIds = new Set(bindingEdges.map((edge) => edge.id))
   return {
     nodes: nextNodes,
     edges: [
-      ...edges.filter((edge) => !edge.bindingId && !bindingEdgeIds.has(edge.id) && nodeIds.has(edge.from) && nodeIds.has(edge.to) && (!edge.to.startsWith('element:') || elementIds.has(edge.to))),
+      ...edges.filter((edge) => !edge.bindingId && !edge.actionLink && !bindingEdgeIds.has(edge.id) && nodeIds.has(edge.from) && nodeIds.has(edge.to) && (!edge.to.startsWith('element:') || elementIds.has(edge.to))),
       ...bindingEdges,
+      ...actionEdges,
     ],
   }
 }
@@ -1069,11 +1204,12 @@ function buildHierarchyGroups(blocks: PageBlock[], nodes: PageBlueprintNode[]) {
     const groupNodes = descendants.map((item) => byId.get(item.id)).filter((node): node is PageBlueprintNode => Boolean(node))
     if (groupNodes.length < 2) return []
     const minX = Math.min(...groupNodes.map((node) => node.x)) - 20
-    const minY = Math.min(...groupNodes.map((node) => node.y)) - 54
+    const minY = Math.min(...groupNodes.map((node) => node.y)) - 112
     const maxX = Math.max(...groupNodes.map((node) => node.x + (node.width ?? 208))) + 20
     const maxY = Math.max(...groupNodes.map((node) => node.y + nodeHeight(node))) + 20
     return [{
       id: `group:${block.id}`,
+      block,
       label: pageBlockLabel(block),
       tag: block.tag,
       icon: pageBlockIcon(block.tag),

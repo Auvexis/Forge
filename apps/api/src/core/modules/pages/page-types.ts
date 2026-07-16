@@ -116,6 +116,7 @@ export interface PageBlueprintPersistedDocument {
       returnKey?: string;
       targetProperty?: string;
       bindingId?: string;
+      actionLink?: boolean;
     }>;
   };
   viewport: { x: number; y: number; zoom: number };
