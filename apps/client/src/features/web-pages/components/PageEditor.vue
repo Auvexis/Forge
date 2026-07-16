@@ -33,6 +33,10 @@
       @command="handleChromeCommand"
       @toggle-autosave="setPagesAutosaveEnabled"
     />
+    <PageBlueprintDocumentTabs
+      v-model="activePageDocument"
+      :tabs="pageDocumentTabs"
+    />
     <AppPanel
       :is-open="isLeftPanelOpen"
       title="Explorer"
@@ -100,6 +104,7 @@
       </Transition>
 
       <BaseCanvas
+          v-if="activePageDocument === 'design'"
           v-model:selection="pageCanvasSelection"
           v-model:viewport="pageCanvasViewport"
           class="web-page-editor__base-canvas"
@@ -184,7 +189,15 @@
             </div>
           </template>
         </BaseCanvas>
+        <PageBlueprintWorkbench
+          v-else
+          :blocks="editorStore.blocks"
+          :workflows="pageActionsStore.workflows"
+          :output-bindings="pageActionBindingsStore.outputBindingsByAction"
+          :collection-bindings="pageActionBindingsStore.collectionBindingsByAction"
+        />
         <PageSelectionGroupOverlay
+          v-if="activePageDocument === 'design'"
           :selected-block-ids="editorStore.selectedBlockIds"
           :viewport-key="selectionOverlayViewportKey"
           @inspect="inspectGroupSelection"
@@ -456,6 +469,7 @@ import { pagesApi } from '@/core/api/pages.api.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
 import { usePageActionBindingsStore } from '../data-actions/stores/page-action-bindings.store.ts'
+import { usePageActionsStore } from '../data-actions/stores/page-actions.store.ts'
 import PageActionPickWhipOverlay from '../data-actions/components/PageActionPickWhipOverlay.vue'
 import { useSitesStore } from '../stores/sites.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
@@ -473,12 +487,15 @@ import PageSwitcherModal from './PageSwitcherModal.vue'
 import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.vue'
 import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
+import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue'
+import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
 
 const route = useRoute()
 const router = useRouter()
 const pagesStore = usePagesStore()
 const editorStore = usePageEditorStore()
 const pageActionBindingsStore = usePageActionBindingsStore()
+const pageActionsStore = usePageActionsStore()
 const sitesStore = useSitesStore()
 const { confirm } = useConfirm()
 const INITIAL_CANVAS_TOP_OFFSET = 120
@@ -511,6 +528,7 @@ const activeTool = ref<PageCanvasTool>('cursor')
 const isPagesAutosaveEnabled = ref(false)
 const pageInspectorTab = ref<'content' | 'style' | 'advanced'>('content')
 const blockInspectorTab = ref<'content' | 'style' | 'advanced'>('content')
+const activePageDocument = ref<'design' | 'blueprint'>('design')
 const activeCodeFile = ref<SiteFile | null>(null)
 const deletingBlockIds = ref<string[]>([])
 const workspaceRef = ref<HTMLElement | null>(null)
@@ -544,6 +562,10 @@ const pageInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
   { value: 'style', label: 'Style', title: 'Style', icon: 'palette' },
   { value: 'advanced', label: 'Advanced', title: 'Advanced', icon: 'code-2' },
+]
+const pageDocumentTabs = [
+  { id: 'design', label: 'Design', icon: 'layout-template' },
+  { id: 'blueprint', label: 'Blueprint', icon: 'workflow' },
 ]
 const workspacePlaneStyle = computed(() => ({}))
 const pageEditorLayoutStyle = computed(() => ({
@@ -815,6 +837,7 @@ onMounted(async () => {
   window.addEventListener('keyup', handleSpacePanKeyUp)
   window.addEventListener('beforeunload', handleBeforeUnload)
   await openRouteProject(route.params.projectId)
+  void pageActionsStore.loadAvailableActions()
   await nextTick()
   positionInitialCanvas()
 })
