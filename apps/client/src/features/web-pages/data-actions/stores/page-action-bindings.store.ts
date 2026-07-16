@@ -14,8 +14,11 @@ import {
 import type { PageActionDocument } from '../../types/page.types.ts'
 
 export interface PageActionPickWhipState {
+  kind: 'input' | 'output' | 'collection'
   action: PageActionDefinition
-  field: PageActionInputField
+  field?: PageActionInputField
+  resultPath?: string
+  collectionPath?: string
   origin: { x: number; y: number }
   pointer: { x: number; y: number }
 }
@@ -74,8 +77,31 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
 
   function startPickWhip(action: PageActionDefinition, field: PageActionInputField, origin: { x: number; y: number }) {
     pickWhip.value = {
+      kind: 'input',
       action,
       field,
+      origin,
+      pointer: origin,
+    }
+    hoveredTarget.value = null
+  }
+
+  function startOutputPickWhip(action: PageActionDefinition, resultPath: string, origin: { x: number; y: number }) {
+    pickWhip.value = {
+      kind: 'output',
+      action,
+      resultPath,
+      origin,
+      pointer: origin,
+    }
+    hoveredTarget.value = null
+  }
+
+  function startCollectionPickWhip(action: PageActionDefinition, collectionPath: string, origin: { x: number; y: number }) {
+    pickWhip.value = {
+      kind: 'collection',
+      action,
+      collectionPath,
       origin,
       pointer: origin,
     }
@@ -93,6 +119,20 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
 
   function completePickWhip(target: PageActionElementBindingTarget | null) {
     if (!pickWhip.value || !target) {
+      cancelPickWhip()
+      return null
+    }
+    if (pickWhip.value.kind === 'output') {
+      const binding = bindOutputToElement(pickWhip.value.action, pickWhip.value.resultPath ?? '', target)
+      cancelPickWhip()
+      return binding
+    }
+    if (pickWhip.value.kind === 'collection') {
+      const binding = bindCollectionToElement(pickWhip.value.action, pickWhip.value.collectionPath ?? '', target.elementId)
+      cancelPickWhip()
+      return binding
+    }
+    if (!pickWhip.value.field) {
       cancelPickWhip()
       return null
     }
@@ -213,6 +253,8 @@ export const usePageActionBindingsStore = defineStore('web-page-action-bindings'
     exportOutputBindings,
     exportCollectionBindings,
     startPickWhip,
+    startOutputPickWhip,
+    startCollectionPickWhip,
     movePickWhip,
     completePickWhip,
     clearInputBinding,

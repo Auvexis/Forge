@@ -296,6 +296,7 @@
       @close="isPageSwitcherOpen = false"
       @select="switchPage"
     />
+    <PageActionPickWhipOverlay />
 
     <BaseModal :is-open="isNewProjectModalOpen" max-width="480px" height="auto" @close="closeProjectModals">
       <div class="web-page-project-modal">
@@ -455,6 +456,7 @@ import { pagesApi } from '@/core/api/pages.api.ts'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageEditorStore, type DropEdge } from '../stores/page-editor.store.ts'
 import { usePageActionBindingsStore } from '../data-actions/stores/page-action-bindings.store.ts'
+import PageActionPickWhipOverlay from '../data-actions/components/PageActionPickWhipOverlay.vue'
 import { useSitesStore } from '../stores/sites.store.ts'
 import { createBlock } from '../utils/createBlock.ts'
 import type { InsertPosition } from '../utils/blockTree.ts'

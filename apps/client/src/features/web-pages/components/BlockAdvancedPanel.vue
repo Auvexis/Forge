@@ -17,6 +17,7 @@
         @update:model-value="patchField('className', String($event))"
       />
     </label>
+    <PageElementEventsPanel :block="block" @patch="$emit('patch', $event)" />
     <details class="web-page-advanced-panel__section">
       <summary>
         <LucideIcon name="braces" :size="14" />
@@ -69,6 +70,7 @@ import BaseCodeEditor from '@/shared/components/base/BaseCodeEditor.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlock, PageBlockAttributes } from '../types/page.types.ts'
+import PageElementEventsPanel from './page-events/PageElementEventsPanel.vue'
 
 const props = defineProps<{ block: PageBlock }>()
 const emit = defineEmits<{ patch: [patch: Partial<PageBlock>] }>()

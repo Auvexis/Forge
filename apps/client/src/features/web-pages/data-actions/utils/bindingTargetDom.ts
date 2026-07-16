@@ -15,6 +15,22 @@ export function readPageActionBindingTargetAtPoint(x: number, y: number): PageAc
   }
 }
 
+export function readPageActionElementTargetAtPoint(x: number, y: number): PageActionElementBindingTarget | null {
+  const bindingTarget = readPageActionBindingTargetAtPoint(x, y)
+  if (bindingTarget) return bindingTarget
+
+  const element = document
+    .elementFromPoint(x, y)
+    ?.closest<HTMLElement>('[data-page-action-binding-element-id]')
+  const elementId = element?.dataset.pageActionBindingElementId
+  if (!elementId) return null
+  return {
+    elementId,
+    property: 'text',
+    label: element.getAttribute('aria-label') || elementId,
+  }
+}
+
 export function readPageActionBindingTargetValue(target: PageActionElementBindingTarget): unknown {
   const frame = document.querySelector<HTMLElement>(
     `[data-page-action-binding-element-id="${escapeCss(target.elementId)}"]`,
