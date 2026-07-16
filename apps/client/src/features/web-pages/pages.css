@@ -2519,6 +2519,12 @@
   font-size: var(--fabric-text-xs);
 }
 
+.web-page-event-error {
+  margin: 0;
+  color: var(--fabric-text-error);
+  font-size: var(--fabric-text-xs);
+}
+
 .web-page-event-inputs,
 .web-page-event-returns {
   display: grid;

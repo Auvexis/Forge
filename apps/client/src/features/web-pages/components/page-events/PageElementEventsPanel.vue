@@ -1,11 +1,18 @@
 <template>
   <PageEventSection title="Events" icon="zap">
     <template #actions>
-      <BaseButton size="sm" variant="ghost" icon-left="plus" :disabled="!firstTrigger" @click="addEvent">
+      <BaseButton
+        size="sm"
+        variant="ghost"
+        icon-left="plus"
+        :loading="actionsStore.isLoading"
+        @click="addEvent"
+      >
         Add
       </BaseButton>
     </template>
 
+    <p v-if="eventPanelMessage" class="web-page-event-error">{{ eventPanelMessage }}</p>
     <p v-if="!actionsStore.hasActions && !actionsStore.isLoading" class="web-page-event-empty">
       Publish a workflow with a callable trigger to connect events.
     </p>
@@ -38,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import {
   createPageActionDefinition,
   type PageActionDefinition,
@@ -69,6 +76,7 @@ const emit = defineEmits<{
 
 const actionsStore = usePageActionsStore()
 const bindingStore = usePageActionBindingsStore()
+const eventPanelMessage = ref('')
 
 const events = computed(() => props.block.events ?? [])
 const eventOptions = computed(() => eventOptionsForBlock(props.block))
@@ -78,10 +86,21 @@ onMounted(() => {
   void actionsStore.loadAvailableActions()
 })
 
-function addEvent() {
+async function addEvent() {
+  eventPanelMessage.value = ''
+  if (!firstTrigger.value && !actionsStore.isLoading) {
+    await actionsStore.loadAvailableActions()
+  }
   const trigger = firstTrigger.value
   const eventName = eventOptions.value[0]?.value
-  if (!trigger || !eventName) return
+  if (!eventName) {
+    eventPanelMessage.value = 'This element does not support page events.'
+    return
+  }
+  if (!trigger) {
+    eventPanelMessage.value = actionsStore.error || 'No published callable workflow is available.'
+    return
+  }
   patchEvents([...events.value, createElementEvent(eventName, trigger)])
 }
 
