@@ -3,7 +3,6 @@
     ref="frameElementRef"
     class="web-page-block-frame"
     :data-block-id="block.id"
-    :data-block-container="isContainer ? 'true' : undefined"
     v-bind="bindingTargetAttributes"
     :class="{
       'web-page-block-frame--selected': isSelectedBlock,
@@ -12,10 +11,15 @@
     }"
   >
     <span
-      v-if="dropIntent?.targetId === block.id && dropIntent.position === 'inside'"
+      v-if="dropIntent?.targetId === block.id"
       class="web-page-block-frame__drop-layer"
       aria-hidden="true"
     >
+      <span
+        v-if="dropIntent.position !== 'inside'"
+        class="web-page-drop-indicator"
+        :class="`web-page-drop-indicator--${dropIntent.position}`"
+      />
       <span
         class="web-page-drop-arrow"
         :class="`web-page-drop-arrow--${dropIntent.dropEdge ?? 'center'}`"
@@ -29,12 +33,15 @@
       class="web-page-block web-page-block-frame__inner"
       :class="blockClasses"
       :style="resolvedBlockStyles"
-      :draggable="false"
+      :draggable="!readonly && activeTool === 'cursor' && !isInlineEditing"
+      :contenteditable="isInlineEditing ? 'true' : undefined"
       tabindex="0"
-      @pointerdown.stop="startPointerBlockDrag"
       @click.stop="selectBlockFromPointer"
       @dblclick.stop="handleBlockDoubleClick"
       @focus="emit('select', { blockId: block.id })"
+      @keydown="handleInlineEditKeydown"
+      @blur="commitInlineEdit"
+      @dragstart.stop="onDragStart"
       @dragover.prevent.stop="onDragOver"
       @dragleave.stop="onDragLeave"
       @drop.prevent.stop="onDrop"
@@ -49,43 +56,28 @@
         <span class="web-page-block__placeholder">{{ block.props?.label ?? block.tag }}</span>
       </template>
       <TransitionGroup name="web-page-block">
-        <div
+        <BlockRenderer
           v-for="child in block.children ?? []"
           :key="child.id"
-          class="web-page-block-flow-item"
-        >
-          <div
-            v-if="isDropPlaceholder(child.id, 'before')"
-            class="web-page-drop-placeholder"
-          />
-          <BlockRenderer
-            :block="child"
-            :selected-block-id="selectedBlockId"
-            :selected-block-ids="selectedBlockIds"
-            :drop-intent="dropIntent"
-            :deleting-block-ids="deletingBlockIds"
-            :active-tool="activeTool"
-            :canvas-viewport="canvasViewport"
-            :canvas-zoom="canvasZoom"
-            :readonly="readonly"
-            @select="$emit('select', $event)"
-            @drop-block="$emit('drop-block', $event)"
-            @drop-root="$emit('drop-root', $event)"
-            @drag-intent="$emit('drag-intent', $event)"
-            @clear-drag-intent="$emit('clear-drag-intent')"
-            @duplicate-block="$emit('duplicate-block', $event)"
-            @delete-block="$emit('delete-block', $event)"
-            @inspect-block="$emit('inspect-block', $event)"
-            @open-blueprint="$emit('open-blueprint', $event)"
-            @resize-block="$emit('resize-block', $event)"
-            @rename-block="$emit('rename-block', $event)"
-            @patch-block="$emit('patch-block', $event)"
-          />
-          <div
-            v-if="isDropPlaceholder(child.id, 'after')"
-            class="web-page-drop-placeholder"
-          />
-        </div>
+          :block="child"
+          :selected-block-id="selectedBlockId"
+          :selected-block-ids="selectedBlockIds"
+          :drop-intent="dropIntent"
+          :deleting-block-ids="deletingBlockIds"
+          :active-tool="activeTool"
+          :canvas-viewport="canvasViewport"
+          :canvas-zoom="canvasZoom"
+          :readonly="readonly"
+          @select="$emit('select', $event)"
+          @drop-block="$emit('drop-block', $event)"
+          @drag-intent="$emit('drag-intent', $event)"
+          @duplicate-block="$emit('duplicate-block', $event)"
+          @delete-block="$emit('delete-block', $event)"
+          @inspect-block="$emit('inspect-block', $event)"
+          @resize-block="$emit('resize-block', $event)"
+          @rename-block="$emit('rename-block', $event)"
+          @patch-block="$emit('patch-block', $event)"
+        />
       </TransitionGroup>
     </component>
     <Teleport to="body">
@@ -174,18 +166,6 @@
         <span v-if="isPrimarySelectedBlock && resizeState && !isFreeResizeActive" class="web-page-block-selection__ratio">Locked</span>
       </div>
     </Teleport>
-    <Teleport to="body">
-      <div
-        v-if="pointerDragPreview"
-        class="web-page-pointer-drag-preview"
-        :style="{
-          left: `${pointerDragPreview.x}px`,
-          top: `${pointerDragPreview.y}px`,
-        }"
-      >
-        {{ block.id }}
-      </div>
-    </Teleport>
   </div>
 </template>
 
@@ -219,13 +199,10 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   select: [payload: { blockId: string; additive?: boolean }]
   'drop-block': [payload: { targetId: string; position: InsertPosition; tag?: PageBlockTag; preset?: string; draggedId?: string }]
-  'drop-root': [payload: { tag?: PageBlockTag; preset?: string; draggedId?: string }]
-  'drag-intent': [payload: { targetId: string | 'root'; position: InsertPosition; dropEdge?: DropEdge }]
-  'clear-drag-intent': []
+  'drag-intent': [payload: { targetId: string; position: InsertPosition; dropEdge?: DropEdge }]
   'duplicate-block': [blockId: string]
   'delete-block': [blockId: string]
   'inspect-block': [blockId: string]
-  'open-blueprint': [blockId: string]
   'resize-start': []
   'resize-end': []
   'resize-block': [payload: { blockId: string; styles: PageBlock['styles'] }]
@@ -287,7 +264,9 @@ const selectionScale = ref(1)
 const editingBlockId = ref(false)
 const draftBlockId = ref('')
 const blockIdInputRef = ref<HTMLInputElement | null>(null)
-const pointerDragPreview = ref<{ x: number; y: number } | null>(null)
+const isInlineEditing = ref(false)
+const originalInlineText = ref('')
+const inlineEditableTags: PageBlockTag[] = ['text', 'button', 'link']
 const mediaOnlyTags: PageBlockTag[] = ['image', 'audio', 'video', 'youtube']
 const resizeCorners: ResizeCorner[] = ['north-west', 'north-east', 'south-west', 'south-east']
 const resolvedBlockStyles = computed(() => ({ ...props.block.styles, ...previewStyles.value }))
@@ -360,38 +339,18 @@ const customCssRule = computed(() => {
 })
 const customCssStyleEl = ref<HTMLStyleElement | null>(null)
 const lastDragIntentKey = ref('')
-let selectionFrameRaf = 0
-let lastSelectionFrameKey = ''
-let pointerDragState: {
-  pointerId: number
-  startX: number
-  startY: number
-  dragging: boolean
-  targets: PointerDragTarget[]
-} | null = null
-
-interface PointerDragTarget {
-  id: string
-  rect: DOMRect
-  isContainer: boolean
-}
 
 onMounted(() => {
   updateCustomCssStyle()
   updateSelectionFrame()
-  updateSelectionFrameTracking()
   window.addEventListener('resize', updateSelectionFrame)
-  window.addEventListener('scroll', updateSelectionFrame, true)
 })
 
 onBeforeUnmount(() => {
   customCssStyleEl.value?.remove()
   customCssStyleEl.value = null
   stopResizeListeners()
-  stopPointerDragListeners()
-  stopSelectionFrameTracking()
   window.removeEventListener('resize', updateSelectionFrame)
-  window.removeEventListener('scroll', updateSelectionFrame, true)
 })
 
 watch(customCssRule, () => {
@@ -407,64 +366,29 @@ watch(
 
 watch(
   () => [props.selectedBlockId, props.selectedBlockIds, props.block.styles, previewStyles.value, props.canvasZoom, props.canvasViewport?.x, props.canvasViewport?.y, props.canvasViewport?.zoom],
-  () => {
-    updateSelectionFrameTracking()
-    void nextTick(updateSelectionFrame)
-  },
+  () => void nextTick(updateSelectionFrame),
   { deep: true },
 )
 
 function updateSelectionFrame() {
   if (!isSelectedBlock.value) {
     selectionFrameStyle.value = {}
-    lastSelectionFrameKey = ''
     return
   }
   const frame = frameElementRef.value
   const element = blockElementRef.value
   if (!frame || !element) return
   const rect = element.getBoundingClientRect()
-  const nextScale = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
-  const nextKey = `${rect.left}:${rect.top}:${rect.width}:${rect.height}:${nextScale}`
-  if (nextKey === lastSelectionFrameKey) return
-  lastSelectionFrameKey = nextKey
   selectionFrameStyle.value = {
     left: `${rect.left}px`,
     top: `${rect.top}px`,
     width: `${rect.width}px`,
     height: `${rect.height}px`,
   }
-  selectionScale.value = nextScale
-}
-
-function updateSelectionFrameTracking() {
-  if (isSelectedBlock.value) {
-    startSelectionFrameTracking()
-    return
-  }
-  stopSelectionFrameTracking()
-}
-
-function startSelectionFrameTracking() {
-  if (selectionFrameRaf) return
-  const tick = () => {
-    updateSelectionFrame()
-    selectionFrameRaf = isSelectedBlock.value ? window.requestAnimationFrame(tick) : 0
-  }
-  selectionFrameRaf = window.requestAnimationFrame(tick)
-}
-
-function stopSelectionFrameTracking() {
-  if (!selectionFrameRaf) return
-  window.cancelAnimationFrame(selectionFrameRaf)
-  selectionFrameRaf = 0
+  selectionScale.value = clampSelectionScale(props.canvasZoom ?? rect.width / Math.max(element.offsetWidth, 1))
 }
 
 function selectBlockFromPointer(event: MouseEvent) {
-  if (pointerDragState?.dragging) {
-    event.preventDefault()
-    return
-  }
   emit('select', { blockId: props.block.id, additive: event.ctrlKey || event.metaKey })
 }
 
@@ -508,7 +432,54 @@ function commitBlockIdEdit() {
 }
 
 function handleBlockDoubleClick() {
-  emit('open-blueprint', props.block.id)
+  if (!inlineEditableTags.includes(props.block.tag)) {
+    emit('inspect-block', props.block.id)
+    return
+  }
+  originalInlineText.value = String(props.block.props?.text ?? '')
+  isInlineEditing.value = true
+  void nextTick(() => {
+    const element = blockElementRef.value
+    if (!element) return
+    element.focus()
+    const selection = window.getSelection()
+    const range = document.createRange()
+    range.selectNodeContents(element)
+    selection?.removeAllRanges()
+    selection?.addRange(range)
+  })
+}
+
+function handleInlineEditKeydown(event: KeyboardEvent) {
+  if (!isInlineEditing.value) return
+  if (event.key === 'Escape') {
+    event.preventDefault()
+    cancelInlineEdit()
+    return
+  }
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault()
+    commitInlineEdit()
+  }
+}
+
+function commitInlineEdit() {
+  if (!isInlineEditing.value) return
+  const text = blockElementRef.value?.innerText.replace(/\r\n/g, '\n') ?? originalInlineText.value
+  isInlineEditing.value = false
+  if (text !== originalInlineText.value) {
+    emit('patch-block', {
+      blockId: props.block.id,
+      patch: { props: { ...props.block.props, text } },
+    })
+  }
+}
+
+function cancelInlineEdit() {
+  if (!isInlineEditing.value) return
+  isInlineEditing.value = false
+  if (blockElementRef.value) blockElementRef.value.innerText = originalInlineText.value
+  blockElementRef.value?.blur()
 }
 
 function startResize(event: PointerEvent, corner: ResizeCorner) {
@@ -673,150 +644,23 @@ function stopResizeListeners() {
   window.removeEventListener('pointercancel', finishResize)
 }
 
-function startPointerBlockDrag(event: PointerEvent) {
-  updateSelectionFrame()
-  if (props.readonly || props.activeTool !== 'cursor' || event.button !== 0) return
-  pointerDragState = {
-    pointerId: event.pointerId,
-    startX: event.clientX,
-    startY: event.clientY,
-    dragging: false,
-    targets: collectPointerDragTargets(props.block.id),
-  }
-  window.addEventListener('pointermove', movePointerBlockDrag)
-  window.addEventListener('pointerup', finishPointerBlockDrag, { once: true })
-  window.addEventListener('pointercancel', cancelPointerBlockDrag, { once: true })
-}
-
-function movePointerBlockDrag(event: PointerEvent) {
-  const drag = pointerDragState
-  if (!drag || event.pointerId !== drag.pointerId) return
-  if (!drag.dragging) {
-    const distance = Math.hypot(event.clientX - drag.startX, event.clientY - drag.startY)
-    if (distance < 5) return
-    drag.dragging = true
-  }
-  event.preventDefault()
-  pointerDragPreview.value = { x: event.clientX + 12, y: event.clientY + 12 }
-  const intent = resolvePointerDropIntent(event.clientX, event.clientY)
-  if (!intent || intent.targetId === props.block.id) {
-    emit('clear-drag-intent')
-    return
-  }
-  emit('drag-intent', intent)
-}
-
-function finishPointerBlockDrag(event: PointerEvent) {
-  const drag = pointerDragState
-  if (!drag || event.pointerId !== drag.pointerId) return
-  const wasDragging = drag.dragging
-  const intent = wasDragging ? resolvePointerDropIntent(event.clientX, event.clientY) : null
-  stopPointerDragListeners()
-  pointerDragPreview.value = null
-  pointerDragState = null
-  if (!wasDragging) return
-  if (!intent || intent.targetId === props.block.id) {
-    emit('clear-drag-intent')
-    return
-  }
-  if (intent.targetId === 'root') {
-    emit('drop-root', { draggedId: props.block.id })
-    return
-  }
-  emit('drop-block', { targetId: intent.targetId, position: intent.position, draggedId: props.block.id })
-}
-
-function cancelPointerBlockDrag(event?: PointerEvent) {
-  if (event && pointerDragState && event.pointerId !== pointerDragState.pointerId) return
-  stopPointerDragListeners()
-  pointerDragPreview.value = null
-  pointerDragState = null
-  emit('clear-drag-intent')
-}
-
-function stopPointerDragListeners() {
-  window.removeEventListener('pointermove', movePointerBlockDrag)
-  window.removeEventListener('pointerup', finishPointerBlockDrag)
-  window.removeEventListener('pointercancel', cancelPointerBlockDrag)
-}
-
-function resolvePointerDropIntent(clientX: number, clientY: number) {
-  const target = closestPointerDragTarget(clientX, clientY)
-  if (!target) {
-    const element = document.elementFromPoint(clientX, clientY) as HTMLElement | null
-    const root = element?.closest<HTMLElement>('.web-page-canvas__body')
-    return root ? { targetId: 'root' as const, position: 'after' as const, dropEdge: 'center' as const } : null
-  }
-  const rect = target.rect
-  const intent = resolveBlockDropIntent({
-    x: clientX - rect.left,
-    y: clientY - rect.top,
-    width: rect.width,
-    height: rect.height,
-    isContainer: target.isContainer,
-    previous: props.dropIntent?.targetId === target.id
-      ? { position: props.dropIntent.position, dropEdge: props.dropIntent.dropEdge ?? 'center' }
-      : null,
-  })
-  return { targetId: target.id, ...intent }
-}
-
-function collectPointerDragTargets(draggedId: string): PointerDragTarget[] {
-  return Array.from(document.querySelectorAll<HTMLElement>('[data-block-id]'))
-    .filter((frame) => frame.dataset.blockId && frame.dataset.blockId !== draggedId)
-    .map((frame) => {
-      const targetElement = frame.querySelector<HTMLElement>('.web-page-block-frame__inner') ?? frame
-      return {
-        id: frame.dataset.blockId!,
-        rect: targetElement.getBoundingClientRect(),
-        isContainer: frame.dataset.blockContainer === 'true',
-      }
-    })
-    .filter((target) => target.rect.width > 0 && target.rect.height > 0)
-}
-
-function closestPointerDragTarget(clientX: number, clientY: number) {
-  const targets = pointerDragState?.targets ?? []
-  const containing = targets
-    .filter((target) => (
-      clientX >= target.rect.left
-      && clientX <= target.rect.right
-      && clientY >= target.rect.top
-      && clientY <= target.rect.bottom
-    ))
-    .sort((left, right) => rectArea(left.rect) - rectArea(right.rect))[0]
-  if (containing) return containing
-
-  return targets
-    .map((target) => ({ target, distance: rectDistance(target.rect, clientX, clientY) }))
-    .filter((item) => item.distance <= 48)
-    .sort((left, right) => left.distance - right.distance)[0]?.target ?? null
-}
-
-function rectArea(rect: DOMRect) {
-  return rect.width * rect.height
-}
-
-function rectDistance(rect: DOMRect, x: number, y: number) {
-  const dx = x < rect.left ? rect.left - x : x > rect.right ? x - rect.right : 0
-  const dy = y < rect.top ? rect.top - y : y > rect.bottom ? y - rect.bottom : 0
-  return Math.hypot(dx, dy)
+function onDragStart(event: DragEvent) {
+  if (props.readonly) return
+  event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ blockId: props.block.id }))
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
+  setDragPreview(event, props.block.id)
 }
 
 function onDrop(event: DragEvent) {
   if (props.readonly) return
   const payload = readDragPayload(event)
   if (!payload) return
-  if (payload.draggedId === props.block.id) return
   const intent = getDropIntent(event)
   emit('drop-block', { targetId: props.block.id, position: intent.position, ...payload })
 }
 
 function onDragOver(event: DragEvent) {
   if (props.readonly) return
-  const payload = readDragPayload(event)
-  if (!payload) return
-  if (payload?.draggedId === props.block.id) return
   emitDragIntent(getDropIntent(event))
 }
 
@@ -842,10 +686,6 @@ function emitDragIntent(intent: { position: InsertPosition; dropEdge?: DropEdge 
   emit('drag-intent', { targetId: props.block.id, ...intent })
 }
 
-function isDropPlaceholder(blockId: string, position: InsertPosition) {
-  return props.dropIntent?.targetId === blockId && props.dropIntent.position === position
-}
-
 function onDragLeave(event: DragEvent) {
   if (!blockElementRef.value?.contains(event.relatedTarget as Node | null)) {
     lastDragIntentKey.value = ''
@@ -857,6 +697,16 @@ function readDragPayload(event: DragEvent): { tag?: PageBlockTag; preset?: strin
   if (!raw) return null
   const parsed = JSON.parse(raw) as { tag?: PageBlockTag; preset?: string; blockId?: string }
   return { tag: parsed.tag, preset: parsed.preset, draggedId: parsed.blockId }
+}
+
+function setDragPreview(event: DragEvent, label: string) {
+  if (!event.dataTransfer) return
+  const preview = document.createElement('div')
+  preview.className = 'web-page-drag-preview'
+  preview.textContent = label
+  document.body.appendChild(preview)
+  event.dataTransfer.setDragImage(preview, 16, 16)
+  window.setTimeout(() => preview.remove(), 0)
 }
 
 function blockClass(id: string): string {

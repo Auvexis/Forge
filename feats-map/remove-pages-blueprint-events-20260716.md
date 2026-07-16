@@ -1,0 +1,5 @@
+- [x] Mapear arquivos da feature blueprint/eventos
+- [x] Remover integração do Fabric Pages
+- [x] Remover arquivos, estilos, tokens e contratos da feature
+- [x] Validar build/testes
+- [x] Commitar limpeza

@@ -5,7 +5,6 @@ export type {
   PageActionElementBindingTarget,
   PageActionInputBinding,
   PageActionInputField,
-  PageActionInputPrimitive,
   PageActionOutputBinding,
   PageActionCollectionBinding,
   PageActionReturnField,

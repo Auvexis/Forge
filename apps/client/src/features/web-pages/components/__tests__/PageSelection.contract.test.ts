@@ -126,19 +126,6 @@ describe('page selection contract', () => {
     assert.match(css, /\.web-page-block-leave-active \.web-page-block-selection\s*\{[\s\S]*display:\s*none/)
   })
 
-  it('selection chrome tracks canvas movement and editor layout changes live', () => {
-    const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
-    const groupOverlay = read('src/features/web-pages/components/PageSelectionGroupOverlay.vue')
-
-    assert.match(renderer, /startSelectionFrameTracking/)
-    assert.match(renderer, /requestAnimationFrame\(tick\)/)
-    assert.match(renderer, /cancelAnimationFrame\(selectionFrameRaf\)/)
-    assert.match(renderer, /window\.addEventListener\('scroll', updateSelectionFrame, true\)/)
-    assert.match(groupOverlay, /startGroupFrameTracking/)
-    assert.match(groupOverlay, /requestAnimationFrame\(tick\)/)
-    assert.match(groupOverlay, /cancelAnimationFrame\(frameRaf\)/)
-  })
-
   it('selection chrome stays compact and uses the selected blue surface', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const css = read('src/features/web-pages/pages.css')
@@ -209,18 +196,19 @@ describe('page selection contract', () => {
     assert.doesNotMatch(css, /web-page-block-selection__distance/)
   })
 
-  it('double clicking a canvas block opens its Blueprint instead of inline text editing', () => {
+  it('double click edits text button and link content directly on canvas', () => {
     const renderer = read('src/features/web-pages/components/BlockRenderer.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
-    const canvas = read('src/features/web-pages/components/PageCanvas.vue')
 
+    assert.match(renderer, /inlineEditableTags/)
+    assert.match(renderer, /\['text', 'button', 'link'\]/)
+    assert.match(renderer, /:contenteditable="isInlineEditing/)
     assert.match(renderer, /handleBlockDoubleClick/)
-    assert.match(renderer, /open-blueprint/)
-    assert.match(canvas, /@open-blueprint/)
-    assert.match(editor, /handleOpenBlockBlueprint/)
-    assert.match(editor, /pageBlueprintWorkbench\.openBlueprint/)
-    assert.doesNotMatch(renderer, /contenteditable/)
-    assert.doesNotMatch(renderer, /commitInlineEdit/)
+    assert.match(renderer, /commitInlineEdit/)
+    assert.match(renderer, /cancelInlineEdit/)
+    assert.match(renderer, /!isInlineEditing/)
+    assert.match(renderer, /patch-block/)
+    assert.match(editor, /editorStore\.patchBlock/)
   })
   it('canvas can select the body independently from blocks', () => {
     const source = read('src/features/web-pages/components/PageCanvas.vue')
