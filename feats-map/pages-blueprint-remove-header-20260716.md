@@ -1,0 +1,4 @@
+- [x] Analisar shell da Blueprint
+- [x] Remover header e moldura
+- [x] Validar type-check
+- [x] Commitar ajuste

@@ -343,43 +343,9 @@
 
 .web-page-blueprint-v2 {
   display: grid;
-  grid-template-rows: 42px minmax(0, 1fr);
   width: 100%;
   min-width: 0;
   height: 100%;
-  border: 1px solid var(--fabric-border-muted);
-  border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-sm);
-}
-
-.web-page-blueprint-v2__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fabric-space-3);
-  min-height: 42px;
-  padding: 0 var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-bg-elevated);
-}
-
-.web-page-blueprint-v2__header > div {
-  display: inline-flex;
-  align-items: center;
-  min-width: 0;
-  gap: var(--fabric-space-2);
-}
-
-.web-page-blueprint-v2__header strong {
-  color: var(--fabric-text-primary);
-  font-size: var(--fabric-text-xs);
-  font-weight: var(--fabric-font-semibold);
-}
-
-.web-page-blueprint-v2__header span {
-  color: var(--fabric-text-muted);
-  font-size: var(--fabric-text-xs);
 }
 
 .web-page-blueprint-v2__body {

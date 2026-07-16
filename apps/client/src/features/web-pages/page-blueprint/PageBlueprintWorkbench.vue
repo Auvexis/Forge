@@ -1,8 +1,5 @@
 <template>
-  <PageBlueprintShell
-    title="Blueprint"
-    :subtitle="`${model.elements.length} event elements, ${model.workflows.length} workflows`"
-  >
+  <PageBlueprintShell>
     <BaseCanvas
       v-model:selection="selection"
       v-model:viewport="viewport"
