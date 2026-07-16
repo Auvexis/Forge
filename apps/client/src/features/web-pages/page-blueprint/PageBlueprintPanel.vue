@@ -1,5 +1,5 @@
 <template>
-  <section class="web-page-blueprint">
+  <section class="web-page-blueprint" :class="{ 'web-page-blueprint--connecting': connectionStartNodeId }">
     <aside class="web-page-blueprint__palette" :style="{ width: `${paletteWidth}px` }">
       <span
         class="web-page-blueprint__resize web-page-blueprint__resize--left"
@@ -105,7 +105,7 @@
             :key="edge.id"
             class="web-page-blueprint__edge"
             :class="{ 'web-page-blueprint__edge--selected': selectedEdgeId === edge.id }"
-            :d="edgePath(edge.from, edge.to)"
+            :d="edgePath(edge)"
             @click.stop="selectedEdgeId = edge.id"
           />
         </svg>
@@ -126,20 +126,23 @@
               `web-page-blueprint__node--${nodeForItem(item.id)?.kind}`,
               { 'web-page-blueprint__node--selected': selected },
             ]"
+            @pointerup="finishElementConnection(item.id)"
           >
             <button
+              v-if="nodeForItem(item.id)?.kind === 'element'"
               class="web-page-blueprint__node-handle web-page-blueprint__node-handle--input"
               type="button"
-              title="Input"
+              title="Bind dynamic value"
               @pointerup.stop.prevent="finishConnection(item.id)"
             />
             <button
+              v-if="nodeForItem(item.id)?.kind !== 'workflow-action' && nodeForItem(item.id)?.kind !== 'element'"
               class="web-page-blueprint__node-handle web-page-blueprint__node-handle--output"
               type="button"
               title="Output"
               @pointerdown.stop.prevent="startConnection(item.id, $event)"
             />
-            <div v-if="selected" class="web-page-blueprint__node-toolbar" @pointerdown.stop>
+            <div v-if="selected && nodeForItem(item.id)?.kind !== 'element'" class="web-page-blueprint__node-toolbar" @pointerdown.stop>
               <button type="button" title="Duplicate node" @click="duplicateNode(item.id)">
                 <LucideIcon name="copy" :size="12" />
               </button>
@@ -160,8 +163,22 @@
             <div class="web-page-blueprint__node-body">
               <span>{{ nodeForItem(item.id)?.detail || 'No configuration' }}</span>
               <code>{{ shortNodeId(item.id) }}</code>
+              <div v-if="nodeForItem(item.id)?.kind === 'workflow-action'" class="web-page-blueprint__node-returns">
+                <div v-for="field in workflowReturns(nodeForItem(item.id))" :key="field.key">
+                  <span>{{ field.label }}</span>
+                  <small>{{ field.type }}</small>
+                  <button
+                    class="web-page-blueprint__pick-whip"
+                    type="button"
+                    :title="`Connect ${field.label}`"
+                    @pointerdown.stop.prevent="startConnection(item.id, $event, field.key)"
+                  >
+                    <LucideIcon name="link-2" :size="11" />
+                  </button>
+                </div>
+              </div>
             </div>
-            <footer class="web-page-blueprint__node-footer">
+            <footer v-if="nodeForItem(item.id)?.kind !== 'workflow-action' && nodeForItem(item.id)?.kind !== 'element'" class="web-page-blueprint__node-footer">
               <span><i class="web-page-blueprint__port-dot" /> Input</span>
               <span>Output <i class="web-page-blueprint__port-dot" /></span>
             </footer>
@@ -191,10 +208,6 @@
           :scope="document.scope"
           @configure-workflow="configureActiveWorkflow"
           @clear-workflow="clearActiveWorkflow"
-          @output-bound="addOutputBindingNode"
-          @output-unbound="removeBindingNode"
-          @collection-bound="addCollectionBindingNode"
-          @collection-unbound="removeBindingNode"
         />
         <div v-else class="web-page-blueprint__inspector-empty">
           <LucideIcon name="mouse-pointer-2" :size="18" />
@@ -207,20 +220,23 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseCanvas from '@/shared/base-canvas/BaseCanvas.vue'
 import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/types.ts'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { PageActionCollectionBinding, PageActionOutputBinding, PageActionTriggerSummary } from '@/core/page-actions'
+import { createPageActionDefinition, type PageActionReturnField, type PageActionTriggerSummary } from '@/core/page-actions'
 import { usePagesStore } from '../stores/pages.store.ts'
 import { usePageActionsStore } from '../data-actions/stores/page-actions.store.ts'
+import { usePageActionBindingsStore } from '../data-actions/stores/page-action-bindings.store.ts'
 import { usePageEditorStore } from '../stores/page-editor.store.ts'
+import type { PageBlock } from '../types/page.types.ts'
 import { blueprintScopeId, createPageBlueprintDocument } from './pageBlueprintDocument.ts'
 import PageBlueprintNodeInspector from './PageBlueprintNodeInspector.vue'
 import {
   PAGE_BLUEPRINT_DOCUMENT_VERSION,
   type PageBlueprintDocument,
+  type PageBlueprintEdge,
   type PageBlueprintNode,
   type PageBlueprintNodeKind,
   type PageBlueprintScope,
@@ -232,10 +248,12 @@ const props = defineProps<{
 
 const pagesStore = usePagesStore()
 const actionsStore = usePageActionsStore()
+const bindingsStore = usePageActionBindingsStore()
 const editorStore = usePageEditorStore()
 const selection = ref<string[]>([])
 const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
+const connectionReturnKey = ref<string | null>(null)
 const connectionPointer = ref<{ x: number; y: number } | null>(null)
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
 const paletteWidth = ref(260)
@@ -251,14 +269,14 @@ const document = computed(() =>
     scope: props.scope ?? undefined,
   }),
 )
-const graph = computed(() => document.value.graph)
+const graph = computed(() => synchronizePageElements(document.value.graph.nodes, document.value.graph.edges, editorStore.blocks))
 const canvasItems = computed<BaseCanvasItem[]>(() =>
   graph.value.nodes.map((node) => ({
     id: node.id,
     x: node.x,
     y: node.y,
     width: node.width ?? 208,
-    height: node.height ?? 112,
+    height: nodeHeight(node),
   })),
 )
 const graphSummary = computed(() =>
@@ -274,7 +292,7 @@ const previewConnectionPath = computed(() => {
   const from = fromId ? nodeForItem(fromId) : null
   if (!from || !pointer) return ''
   const startX = from.x + (from.width ?? 208)
-  const startY = from.y + ((from.height ?? 112) / 2)
+  const startY = returnPortY(from, connectionReturnKey.value)
   const control = Math.max(48, Math.abs(pointer.x - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${pointer.x - control} ${pointer.y}, ${pointer.x} ${pointer.y}`
 })
@@ -285,7 +303,7 @@ const edgeToolbarPosition = computed(() => {
   if (!from || !to) return { x: 0, y: 0 }
   return {
     x: (from.x + (from.width ?? 208) + to.x) / 2 - 14,
-    y: (from.y + ((from.height ?? 112) / 2) + to.y + ((to.height ?? 112) / 2)) / 2 - 14,
+    y: (returnPortY(from, selectedEdge.value.returnKey) + to.y + (nodeHeight(to) / 2)) / 2 - 14,
   }
 })
 const paletteItems = computed<Array<{ id: string; label: string; detail: string; icon: string; kind: PageBlueprintNodeKind }>>(() => [
@@ -314,9 +332,16 @@ onBeforeUnmount(() => {
   stopResize()
 })
 
+onMounted(() => {
+  if (actionsStore.workflows.length === 0) void actionsStore.loadAvailableActions()
+})
+
 watch(document, (next) => {
   viewport.value = { ...next.viewport }
-  selection.value = [...next.selectedNodeIds]
+  const selectedElementNodeId = editorStore.selectedBlockId ? `element:${editorStore.selectedBlockId}` : null
+  selection.value = next.selectedNodeIds.length > 0
+    ? [...next.selectedNodeIds]
+    : selectedElementNodeId ? [selectedElementNodeId] : []
 }, { immediate: true })
 
 function nodeForItem(itemId: string): PageBlueprintNode | null {
@@ -346,8 +371,9 @@ function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
   })
 }
 
-function startConnection(nodeId: string, event: PointerEvent) {
+function startConnection(nodeId: string, event: PointerEvent, returnKey?: string) {
   connectionStartNodeId.value = nodeId
+  connectionReturnKey.value = returnKey ?? null
   selectedEdgeId.value = null
   connectionPointer.value = pointerWorldPoint(event)
   window.addEventListener('pointermove', moveConnectionPreview)
@@ -356,8 +382,13 @@ function startConnection(nodeId: string, event: PointerEvent) {
 
 function finishConnection(nodeId: string) {
   const from = connectionStartNodeId.value
+  const returnKey = connectionReturnKey.value
   clearConnectionPreview()
   if (!from || from === nodeId) return
+  if (returnKey) {
+    bindWorkflowReturn(from, nodeId, returnKey)
+    return
+  }
   if (graph.value.edges.some((edge) => edge.from === from && edge.to === nodeId)) return
   persistBlueprintDocument({
     ...document.value,
@@ -378,6 +409,11 @@ function finishConnection(nodeId: string) {
   })
 }
 
+function finishElementConnection(nodeId: string) {
+  if (!connectionStartNodeId.value || nodeForItem(nodeId)?.kind !== 'element') return
+  finishConnection(nodeId)
+}
+
 function moveConnectionPreview(event: PointerEvent) {
   connectionPointer.value = pointerWorldPoint(event)
 }
@@ -388,6 +424,7 @@ function cancelConnectionPreview() {
 
 function clearConnectionPreview() {
   connectionStartNodeId.value = null
+  connectionReturnKey.value = null
   connectionPointer.value = null
   window.removeEventListener('pointermove', moveConnectionPreview)
 }
@@ -404,6 +441,12 @@ function pointerWorldPoint(event: PointerEvent) {
 function deleteSelectedEdge() {
   const edgeId = selectedEdgeId.value
   if (!edgeId) return
+  const edge = graph.value.edges.find((candidate) => candidate.id === edgeId)
+  const source = edge ? nodeForItem(edge.from) : null
+  if (edge?.bindingId && source?.actionId) {
+    bindingsStore.clearOutputBinding(source.actionId, edge.bindingId)
+    bindingsStore.clearCollectionBinding(source.actionId, edge.bindingId)
+  }
   persistBlueprintDocument({
     ...document.value,
     graph: {
@@ -418,6 +461,16 @@ function deleteSelectedEdge() {
 }
 
 function deleteNode(nodeId: string) {
+  const node = nodeForItem(nodeId)
+  if (node?.actionId) {
+    bindingsStore.clearActionBindings(node.actionId)
+    for (const binding of bindingsStore.outputBindingsForAction(node.actionId)) {
+      bindingsStore.clearOutputBinding(node.actionId, binding.id)
+    }
+    for (const binding of bindingsStore.collectionBindingsForAction(node.actionId)) {
+      bindingsStore.clearCollectionBinding(node.actionId, binding.id)
+    }
+  }
   persistBlueprintDocument({
     ...document.value,
     graph: {
@@ -562,7 +615,7 @@ function configureActiveWorkflow(trigger: PageActionTriggerSummary) {
   if (!nodeId || !action) return
   patchNode(nodeId, {
     label: trigger.workflowName,
-    detail: `${trigger.name} · ${trigger.type}`,
+    detail: `${trigger.name} / ${trigger.type}`,
     actionId: action.id,
     workflowId: trigger.workflowId,
     triggerId: trigger.id,
@@ -572,77 +625,86 @@ function configureActiveWorkflow(trigger: PageActionTriggerSummary) {
 function clearActiveWorkflow() {
   const nodeId = activeNode.value?.id
   if (!nodeId) return
-  patchNode(nodeId, {
-    label: 'Run Workflow',
-    detail: 'Choose a published trigger in Properties',
-    actionId: undefined,
-    workflowId: undefined,
-    triggerId: undefined,
+  persistBlueprintDocument({
+    ...document.value,
+    graph: {
+      nodes: graph.value.nodes.map((node) => node.id === nodeId ? {
+        ...node,
+        label: 'Run Workflow',
+        detail: 'Choose a published trigger in Properties',
+        actionId: undefined,
+        workflowId: undefined,
+        triggerId: undefined,
+      } : node),
+      edges: graph.value.edges.filter((edge) => edge.from !== nodeId || !edge.bindingId),
+    },
+    selectedNodeIds: [nodeId],
+    viewport: viewport.value,
+    updatedAt: new Date().toISOString(),
   })
 }
 
-function addOutputBindingNode(binding: PageActionOutputBinding) {
-  addBindingNode({
-    id: `output:${binding.id}`,
-    kind: 'result-binding',
-    label: binding.resultPath,
-    detail: `${binding.target.label}.${binding.target.property}`,
-    icon: 'log-out',
-  })
+function workflowReturns(node: PageBlueprintNode | null): PageActionReturnField[] {
+  if (!node?.workflowId || !node.triggerId) return []
+  const trigger = actionsStore.workflows
+    .find((workflow) => workflow.id === node.workflowId)
+    ?.actions.find((candidate) => candidate.id === node.triggerId)
+  return trigger ? createPageActionDefinition(trigger).returns : []
 }
 
-function addCollectionBindingNode(binding: PageActionCollectionBinding) {
-  addBindingNode({
-    id: `collection:${binding.id}`,
-    kind: 'collection-binding',
-    label: binding.collectionPath,
-    detail: `${binding.mode ?? 'repeater'} → ${binding.targetElementId}`,
-    icon: binding.mode === 'table' ? 'table-2' : 'repeat',
-  })
-}
+function bindWorkflowReturn(sourceId: string, targetId: string, returnKey: string) {
+  const source = nodeForItem(sourceId)
+  const target = nodeForItem(targetId)
+  if (!source?.workflowId || !source.triggerId || !target?.elementId) return false
+  const trigger = actionsStore.workflows
+    .find((workflow) => workflow.id === source.workflowId)
+    ?.actions.find((candidate) => candidate.id === source.triggerId)
+  const block = findPageBlock(editorStore.blocks, target.elementId)
+  if (!trigger || !block) return false
+  const action = createPageActionDefinition(trigger)
+  const field = action.returns.find((candidate) => candidate.key === returnKey)
+  if (!field) return false
 
-function addBindingNode(input: Pick<PageBlueprintNode, 'id' | 'kind' | 'label' | 'detail' | 'icon'>) {
-  const source = activeNode.value
-  if (!source) return
-  const existing = nodeForItem(input.id)
-  const node: PageBlueprintNode = existing ?? {
-    ...input,
-    x: source.x + (source.width ?? 208) + 96,
-    y: source.y + graph.value.nodes.filter((item) => item.kind === input.kind).length * 128,
-    width: 208,
-    height: 112,
+  let bindingId = ''
+  let targetProperty = ''
+  if (['header', 'section', 'div', 'footer', 'form'].includes(block.tag)) {
+    const binding = bindingsStore.bindCollectionToElement(action, returnKey, block.id, 'repeater')
+    if (!binding) return false
+    bindingId = binding.id
+    targetProperty = 'items'
+  } else if (['text', 'button', 'input'].includes(block.tag)) {
+    targetProperty = block.tag === 'input' ? (block.props?.type === 'checkbox' ? 'checked' : 'value') : 'text'
+    const binding = bindingsStore.bindOutputToElement(action, returnKey, {
+      elementId: block.id,
+      property: targetProperty as 'text' | 'value' | 'checked',
+      label: target.label,
+    })
+    if (!binding) return false
+    bindingId = binding.id
+  } else {
+    return false
   }
-  const edgeExists = graph.value.edges.some((edge) => edge.from === source.id && edge.to === node.id)
-  persistBlueprintDocument({
-    ...document.value,
-    graph: {
-      nodes: existing ? [...graph.value.nodes] : [...graph.value.nodes, node],
-      edges: edgeExists ? [...graph.value.edges] : [...graph.value.edges, {
-        id: `edge:${source.id}:${node.id}`,
-        from: source.id,
-        to: node.id,
-        label: input.label,
-      }],
-    },
-    selectedNodeIds: [source.id],
-    viewport: viewport.value,
-    updatedAt: new Date().toISOString(),
-  })
-  selection.value = [source.id]
-}
 
-function removeBindingNode(bindingId: string) {
-  const ids = new Set([`output:${bindingId}`, `collection:${bindingId}`])
+  const edge: PageBlueprintEdge = {
+    id: `binding:${bindingId}`,
+    from: sourceId,
+    to: targetId,
+    label: `${returnKey} -> ${targetProperty}`,
+    returnKey,
+    targetProperty,
+    bindingId,
+  }
   persistBlueprintDocument({
     ...document.value,
     graph: {
-      nodes: graph.value.nodes.filter((node) => !ids.has(node.id)),
-      edges: graph.value.edges.filter((edge) => !ids.has(edge.from) && !ids.has(edge.to)),
+      nodes: [...graph.value.nodes],
+      edges: [...graph.value.edges.filter((candidate) => candidate.id !== edge.id), edge],
     },
-    selectedNodeIds: [...selection.value],
+    selectedNodeIds: [sourceId],
     viewport: viewport.value,
     updatedAt: new Date().toISOString(),
   })
+  return true
 }
 
 function patchNode(nodeId: string, patch: Partial<PageBlueprintNode>) {
@@ -711,16 +773,118 @@ function stopResize() {
   window.removeEventListener('mousemove', resizePanel)
 }
 
-function edgePath(fromId: string, toId: string) {
-  const from = graph.value.nodes.find((node) => node.id === fromId)
-  const to = graph.value.nodes.find((node) => node.id === toId)
+function edgePath(edge: PageBlueprintEdge) {
+  const from = graph.value.nodes.find((node) => node.id === edge.from)
+  const to = graph.value.nodes.find((node) => node.id === edge.to)
   if (!from || !to) return ''
   const startX = from.x + (from.width ?? 208)
-  const startY = from.y + ((from.height ?? 112) / 2)
+  const startY = returnPortY(from, edge.returnKey)
   const endX = to.x
-  const endY = to.y + ((to.height ?? 112) / 2)
+  const endY = to.y + (nodeHeight(to) / 2)
   const control = Math.max(48, (endX - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${endX - control} ${endY}, ${endX} ${endY}`
+}
+
+function returnPortY(node: PageBlueprintNode, returnKey?: string | null) {
+  const returns = workflowReturns(node)
+  const index = returnKey ? returns.findIndex((field) => field.key === returnKey) : -1
+  return index >= 0 ? node.y + 79 + (index * 24) : node.y + (nodeHeight(node) / 2)
+}
+
+function nodeHeight(node: PageBlueprintNode) {
+  if (node.kind !== 'workflow-action') return node.height ?? 112
+  return Math.max(node.height ?? 112, 104 + (workflowReturns(node).length * 24))
+}
+
+function synchronizePageElements(nodes: PageBlueprintNode[], edges: PageBlueprintEdge[], blocks: PageBlock[]) {
+  const existing = new Map(nodes.map((node) => [node.id, node]))
+  const elements: PageBlueprintNode[] = []
+  let index = 0
+  const visit = (items: PageBlock[], depth: number) => {
+    for (const block of items) {
+      const id = `element:${block.id}`
+      const current = existing.get(id)
+      elements.push({
+        id,
+        kind: 'element',
+        label: pageBlockLabel(block),
+        detail: `${block.tag} / ${block.id}`,
+        icon: pageBlockIcon(block.tag),
+        elementId: block.id,
+        elementTag: block.tag,
+        x: current?.x ?? 520 + (depth * 36),
+        y: current?.y ?? 48 + (index * 136),
+        width: current?.width ?? 208,
+        height: current?.height ?? 112,
+      })
+      index += 1
+      visit(block.children ?? [], depth + 1)
+    }
+  }
+  visit(blocks, 0)
+  const elementIds = new Set(elements.map((node) => node.id))
+  const retained = nodes.filter((node) => node.kind !== 'element' && node.kind !== 'result-binding' && node.kind !== 'collection-binding')
+  const nextNodes = [...retained, ...elements]
+  const nodeIds = new Set(nextNodes.map((node) => node.id))
+  const bindingEdges: PageBlueprintEdge[] = []
+  for (const source of retained.filter((node) => node.kind === 'workflow-action' && node.actionId)) {
+    for (const binding of bindingsStore.outputBindingsForAction(source.actionId)) {
+      const targetId = `element:${binding.target.elementId}`
+      if (!nodeIds.has(targetId)) continue
+      bindingEdges.push({
+        id: `binding:${binding.id}`,
+        from: source.id,
+        to: targetId,
+        label: `${binding.resultPath} -> ${binding.target.property}`,
+        returnKey: binding.resultPath,
+        targetProperty: binding.target.property,
+        bindingId: binding.id,
+      })
+    }
+    for (const binding of bindingsStore.collectionBindingsForAction(source.actionId)) {
+      const targetId = `element:${binding.targetElementId}`
+      if (!nodeIds.has(targetId)) continue
+      bindingEdges.push({
+        id: `binding:${binding.id}`,
+        from: source.id,
+        to: targetId,
+        label: `${binding.collectionPath} -> items`,
+        returnKey: binding.collectionPath,
+        targetProperty: 'items',
+        bindingId: binding.id,
+      })
+    }
+  }
+  const bindingEdgeIds = new Set(bindingEdges.map((edge) => edge.id))
+  return {
+    nodes: nextNodes,
+    edges: [
+      ...edges.filter((edge) => !bindingEdgeIds.has(edge.id) && nodeIds.has(edge.from) && nodeIds.has(edge.to) && (!edge.to.startsWith('element:') || elementIds.has(edge.to))),
+      ...bindingEdges,
+    ],
+  }
+}
+
+function findPageBlock(blocks: PageBlock[], blockId: string): PageBlock | null {
+  for (const block of blocks) {
+    if (block.id === blockId) return block
+    const child = findPageBlock(block.children ?? [], blockId)
+    if (child) return child
+  }
+  return null
+}
+
+function pageBlockLabel(block: PageBlock) {
+  return String(block.props?.label ?? block.props?.text ?? block.elementId ?? block.id)
+}
+
+function pageBlockIcon(tag: string) {
+  if (tag === 'text') return 'type'
+  if (tag === 'button') return 'square-mouse-pointer'
+  if (tag === 'input') return 'text-cursor-input'
+  if (tag === 'form') return 'clipboard-list'
+  if (tag === 'img') return 'image'
+  return 'box'
 }
 
 function nodeKindLabel(kind?: PageBlueprintNodeKind) {

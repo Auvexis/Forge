@@ -1387,29 +1387,9 @@ function handleInspectBlock(pageId: string, blockId: string) {
 
 function handleOpenBlockBlueprint(pageId: string, blockId: string) {
   void ensurePageActive(pageId).then(() => {
-    const block = findPageBlock(editorStore.blocks, blockId)
-    pageBlueprintWorkbench.openBlueprint({
-      type: 'element',
-      pageId,
-      elementId: blockId,
-      label: blockLabel(block, blockId),
-    })
+    editorStore.selectBlock(blockId)
+    pageBlueprintWorkbench.openBlueprint({ type: 'page', pageId })
   })
-}
-
-function findPageBlock(blocks: PageBlock[], blockId: string): PageBlock | null {
-  for (const block of blocks) {
-    if (block.id === blockId) return block
-    const child = findPageBlock(block.children ?? [], blockId)
-    if (child) return child
-  }
-  return null
-}
-
-function blockLabel(block: PageBlock | null, fallback: string) {
-  if (!block) return fallback
-  const label = block.props?.label ?? block.props?.text ?? block.elementId ?? block.id
-  return `${block.tag} / ${String(label)}`
 }
 
 async function addPageBelowCanvas() {

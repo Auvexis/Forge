@@ -25,6 +25,8 @@ export type PageBlockAction =
       type: "triggerWorkflow";
       workflowId: string;
       triggerId?: string;
+      elementId?: string;
+      elementTag?: string;
     }
   | {
       id: string;
@@ -110,6 +112,9 @@ export interface PageBlueprintPersistedDocument {
       from: string;
       to: string;
       label?: string;
+      returnKey?: string;
+      targetProperty?: string;
+      bindingId?: string;
     }>;
   };
   viewport: { x: number; y: number; zoom: number };

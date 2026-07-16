@@ -41,9 +41,10 @@ export const usePageBlueprintWorkbenchStore = defineStore('web-page-blueprint-wo
   }
 
   function openBlueprint(scope: PageBlueprintScope) {
-    const id = blueprintScopeId(scope)
+    const pageScope: PageBlueprintScope = { type: 'page', pageId: scope.pageId }
+    const id = blueprintScopeId(pageScope)
     if (!openBlueprintScopes.value.some((candidate) => blueprintScopeId(candidate) === id)) {
-      openBlueprintScopes.value = [...openBlueprintScopes.value, scope]
+      openBlueprintScopes.value = [...openBlueprintScopes.value, pageScope]
     }
     activeTabId.value = id
   }

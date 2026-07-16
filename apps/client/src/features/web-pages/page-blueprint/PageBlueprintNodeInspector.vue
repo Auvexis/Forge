@@ -93,42 +93,15 @@
             v-else
             :key="field.key"
             class="web-page-blueprint__return-row"
-            :class="{ 'web-page-blueprint__return-row--bound': isReturnBound(field.key) }"
+            :class="{ 'web-page-blueprint__return-row--bound': returnBindingCount(field.key) > 0 }"
           >
             <span class="web-page-blueprint__return-port" />
             <span class="web-page-blueprint__return-copy">
               <strong>{{ field.label }}</strong>
               <small>{{ field.key }} / {{ field.type }}</small>
             </span>
-            <button
-              v-if="isReturnBound(field.key)"
-              type="button"
-              :title="`Remove binding from ${targetLabel}`"
-              @click="unbindReturn(field.key)"
-            >
-              <LucideIcon name="unlink" :size="12" />
-              Bound
-            </button>
-            <button
-              v-else
-              type="button"
-              :disabled="!canBindReturn(field.type)"
-              :title="bindTitle(field.type)"
-              @click="bindReturn(field.key, field.type)"
-            >
-              <LucideIcon name="link-2" :size="12" />
-              Bind
-            </button>
+            <span class="web-page-blueprint__return-count">{{ returnBindingCount(field.key) }} links</span>
           </div>
-          <label class="web-page-blueprint__binding-target">
-            <span>Target</span>
-            <select v-model="selectedTargetId">
-              <option value="" disabled>Select element</option>
-              <option v-for="target in availableTargets" :key="target.id" :value="target.id">
-                {{ target.label }}
-              </option>
-            </select>
-          </label>
         </section>
 
         <section class="web-page-blueprint__property-section">
@@ -167,15 +140,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, watch } from 'vue'
 import {
   createPageActionDefinition,
   resolvePageActionResultPath,
-  type PageActionCollectionBinding,
   type PageActionDefinition,
   type PageActionInputField,
-  type PageActionOutputBinding,
-  type PageActionReturnField,
   type PageActionTriggerSummary,
 } from '@/core/page-actions'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -193,17 +163,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   configureWorkflow: [trigger: PageActionTriggerSummary]
   clearWorkflow: []
-  outputBound: [binding: PageActionOutputBinding]
-  outputUnbound: [bindingId: string]
-  collectionBound: [binding: PageActionCollectionBinding]
-  collectionUnbound: [bindingId: string]
 }>()
 
 const actionsStore = usePageActionsStore()
 const bindingsStore = usePageActionBindingsStore()
 const editorStore = usePageEditorStore()
-const selectedTargetId = ref(props.scope.type === 'element' ? props.scope.elementId : editorStore.selectedBlockId ?? '')
-
 const configuredTrigger = computed(() => {
   if (!props.node.workflowId || !props.node.triggerId) return null
   return actionsStore.workflows
@@ -213,31 +177,6 @@ const configuredTrigger = computed(() => {
 const activeAction = computed<PageActionDefinition | null>(() =>
   configuredTrigger.value ? createPageActionDefinition(configuredTrigger.value) : null,
 )
-const targetBlock = computed(() => {
-  return selectedTargetId.value ? findBlock(editorStore.blocks, selectedTargetId.value) : null
-})
-const availableTargets = computed(() => collectBindableBlocks(editorStore.blocks))
-const scalarTarget = computed(() => {
-  const block = targetBlock.value
-  if (!block || !['text', 'button', 'input'].includes(block.tag)) return null
-  const property = block.tag === 'input'
-    ? (block.props?.type === 'checkbox' ? 'checked' as const : 'value' as const)
-    : 'text' as const
-  return {
-    elementId: block.id,
-    property,
-    label: String(block.props?.label ?? block.props?.text ?? block.elementId ?? block.id),
-  }
-})
-const collectionTarget = computed(() => {
-  const block = targetBlock.value
-  return block && ['header', 'section', 'div', 'footer', 'form'].includes(block.tag) ? block.id : null
-})
-const targetLabel = computed(() => {
-  if (scalarTarget.value) return `${scalarTarget.value.label}.${scalarTarget.value.property}`
-  if (collectionTarget.value) return `${collectionTarget.value}.items`
-  return 'Select a compatible element in Design'
-})
 const formattedRunResult = computed(() => JSON.stringify(actionsStore.lastRunResult, null, 2))
 const nodeKindLabel = computed(() => props.node.kind === 'workflow-action' ? 'Run Workflow' : props.node.kind)
 
@@ -251,24 +190,8 @@ watch(configuredTrigger, (trigger) => {
   actionsStore.selectTrigger(trigger)
 }, { immediate: true })
 
-watch(availableTargets, (targets) => {
-  if (targets.some((target) => target.id === selectedTargetId.value)) return
-  selectedTargetId.value = targets[0]?.id ?? ''
-}, { immediate: true })
-
 function configureWorkflow(trigger: PageActionTriggerSummary) {
   actionsStore.selectTrigger(trigger)
-  const block = targetBlock.value
-  if (block && ['button', 'form'].includes(block.tag)) {
-    editorStore.patchBlock(block.id, {
-      action: {
-        id: createPageActionDefinition(trigger).id,
-        type: 'triggerWorkflow',
-        workflowId: trigger.workflowId,
-        triggerId: trigger.id,
-      },
-    })
-  }
   emit('configureWorkflow', trigger)
 }
 
@@ -277,11 +200,9 @@ function clearWorkflow() {
   if (action) {
     for (const binding of bindingsStore.outputBindingsForAction(action.id)) {
       bindingsStore.clearOutputBinding(action.id, binding.id)
-      emit('outputUnbound', binding.id)
     }
     for (const binding of bindingsStore.collectionBindingsForAction(action.id)) {
       bindingsStore.clearCollectionBinding(action.id, binding.id)
-      emit('collectionUnbound', binding.id)
     }
     bindingsStore.clearActionBindings(action.id)
   }
@@ -289,61 +210,11 @@ function clearWorkflow() {
   emit('clearWorkflow')
 }
 
-function outputBinding(returnKey: string) {
+function returnBindingCount(returnKey: string) {
   const action = activeAction.value
-  if (!action) return null
-  return bindingsStore.outputBindingsForAction(action.id)
-    .find((binding) => binding.resultPath === returnKey && binding.target.elementId === scalarTarget.value?.elementId) ?? null
-}
-
-function collectionBinding(returnKey: string) {
-  const action = activeAction.value
-  if (!action) return null
-  return bindingsStore.collectionBindingsForAction(action.id)
-    .find((binding) => binding.collectionPath === returnKey && binding.targetElementId === collectionTarget.value) ?? null
-}
-
-function isReturnBound(returnKey: string) {
-  return Boolean(outputBinding(returnKey) || collectionBinding(returnKey))
-}
-
-function canBindReturn(type: PageActionReturnField['type']) {
-  return type === 'array'
-    ? Boolean(collectionTarget.value || scalarTarget.value)
-    : Boolean(scalarTarget.value || collectionTarget.value)
-}
-
-function bindTitle(type: PageActionReturnField['type']) {
-  if (canBindReturn(type)) return `Bind to ${targetLabel.value}`
-  return type === 'array' ? 'Select a container, text, button, or input in Design' : 'Select a text, button, or input in Design'
-}
-
-function bindReturn(returnKey: string, type: PageActionReturnField['type']) {
-  const action = activeAction.value
-  if (!action) return
-  if (collectionTarget.value && (type === 'array' || !scalarTarget.value)) {
-    const binding = bindingsStore.bindCollectionToElement(action, returnKey, collectionTarget.value, 'repeater')
-    if (binding) emit('collectionBound', binding)
-    return
-  }
-  if (!scalarTarget.value) return
-  const binding = bindingsStore.bindOutputToElement(action, returnKey, scalarTarget.value)
-  if (binding) emit('outputBound', binding)
-}
-
-function unbindReturn(returnKey: string) {
-  const action = activeAction.value
-  if (!action) return
-  const output = outputBinding(returnKey)
-  if (output) {
-    bindingsStore.clearOutputBinding(action.id, output.id)
-    emit('outputUnbound', output.id)
-  }
-  const collection = collectionBinding(returnKey)
-  if (collection) {
-    bindingsStore.clearCollectionBinding(action.id, collection.id)
-    emit('collectionUnbound', collection.id)
-  }
+  if (!action) return 0
+  return bindingsStore.outputBindingsForAction(action.id).filter((binding) => binding.resultPath === returnKey).length
+    + bindingsStore.collectionBindingsForAction(action.id).filter((binding) => binding.collectionPath === returnKey).length
 }
 
 async function runWorkflow() {
@@ -392,18 +263,4 @@ function findBlock(blocks: PageBlock[], id: string): PageBlock | null {
   return null
 }
 
-function collectBindableBlocks(blocks: PageBlock[]) {
-  const targets: Array<{ id: string; label: string }> = []
-  const visit = (items: PageBlock[]) => {
-    for (const block of items) {
-      if (['text', 'button', 'input', 'header', 'section', 'div', 'footer', 'form'].includes(block.tag)) {
-        const name = String(block.props?.label ?? block.props?.text ?? block.elementId ?? block.id)
-        targets.push({ id: block.id, label: `${name} / ${block.tag}` })
-      }
-      visit(block.children ?? [])
-    }
-  }
-  visit(blocks)
-  return targets
-}
 </script>
