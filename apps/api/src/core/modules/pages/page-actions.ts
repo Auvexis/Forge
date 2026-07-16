@@ -171,6 +171,15 @@ const defaultDependencies: PageActionDependencies = {
 function findAction(blocks: PageBlock[], actionId: string): PageBlockAction | null {
   for (const block of blocks) {
     if (block.action?.id === actionId) return block.action;
+    const event = block.events?.find((candidate) => candidate.actionId === actionId);
+    if (event) {
+      return {
+        id: event.actionId,
+        type: "triggerWorkflow",
+        workflowId: event.workflowId,
+        triggerId: event.triggerId,
+      };
+    }
     const childAction = findAction(block.children ?? [], actionId);
     if (childAction) return childAction;
   }

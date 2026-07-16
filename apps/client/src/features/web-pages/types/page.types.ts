@@ -33,6 +33,16 @@ export type PageBlockAction =
       target?: '_self' | '_blank'
     }
 
+export type PageElementEventName = 'click' | 'change' | 'input' | 'submit'
+
+export interface PageElementEvent {
+  id: string
+  event: PageElementEventName
+  actionId: string
+  workflowId: string
+  triggerId: string
+}
+
 export type PageBlockStyles = Record<string, string | number>
 export type PageBlockProps = Record<string, string | number | boolean | null | undefined>
 export type PageBlockAttributes = Record<string, string | number | boolean>
@@ -48,6 +58,7 @@ export interface PageBlock {
   customCss?: string
   customJs?: string
   action?: PageBlockAction
+  events?: PageElementEvent[]
   children?: PageBlock[]
 }
 

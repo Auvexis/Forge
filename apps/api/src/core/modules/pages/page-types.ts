@@ -36,6 +36,16 @@ export type PageBlockAction =
       target?: "_self" | "_blank";
     };
 
+export type PageElementEventName = "click" | "change" | "input" | "submit";
+
+export interface PageElementEvent {
+  id: string;
+  event: PageElementEventName;
+  actionId: string;
+  workflowId: string;
+  triggerId: string;
+}
+
 export type PageBlockStyles = Record<string, string | number>;
 export type PageBlockProps = Record<string, string | number | boolean | null | undefined>;
 export type PageBlockAttributes = Record<string, string | number | boolean>;
@@ -51,6 +61,7 @@ export interface PageBlock {
   customCss?: string;
   customJs?: string;
   action?: PageBlockAction;
+  events?: PageElementEvent[];
   children?: PageBlock[];
 }
 
@@ -90,45 +101,10 @@ export interface PageActionCollectionBinding {
   createdAt: string;
 }
 
-export interface PageBlueprintPersistedDocument {
-  version: number;
-  scope: { type: "page"; pageId: string } | { type: "element"; pageId: string; elementId: string; label: string };
-  graph: {
-    nodes: Array<{
-      id: string;
-      kind: string;
-      label: string;
-      detail?: string;
-      icon: string;
-      x: number;
-      y: number;
-      width?: number;
-      height?: number;
-      actionId?: string;
-      workflowId?: string;
-      triggerId?: string;
-    }>;
-    edges: Array<{
-      id: string;
-      from: string;
-      to: string;
-      label?: string;
-      returnKey?: string;
-      targetProperty?: string;
-      bindingId?: string;
-      actionLink?: boolean;
-    }>;
-  };
-  viewport: { x: number; y: number; zoom: number };
-  selectedNodeIds: string[];
-  updatedAt: string;
-}
-
 export interface PageActionDocument {
   inputBindings: Record<string, Record<string, PageActionInputBinding>>;
   outputBindings?: Record<string, PageActionOutputBinding[]>;
   collectionBindings?: Record<string, PageActionCollectionBinding[]>;
-  blueprints?: Record<string, PageBlueprintPersistedDocument>;
 }
 
 export interface FabricPage {

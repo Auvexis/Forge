@@ -2,6 +2,7 @@ import type {
   PageBlock,
   PageBlockAttributes,
   PageBlockAction,
+  PageElementEvent,
   PageBlockProps,
   PageBlockStyles,
   PageBlockTag,
@@ -33,6 +34,7 @@ const ALLOWED_TAGS = new Set<PageBlockTag>([
 ]);
 
 const ALLOWED_ACTION_TYPES = new Set(["submitForm", "triggerWorkflow", "openUrl"]);
+const ALLOWED_ELEMENT_EVENT_NAMES = new Set(["click", "change", "input", "submit"]);
 
 const ALLOWED_PROPS: Record<PageBlockTag, Set<string>> = {
   header: new Set(["ariaLabel"]),
@@ -204,6 +206,8 @@ function normalizeBlock(
 
   const actionResult = normalizeAction(block.action);
   if (!actionResult.success) return actionResult;
+  const eventsResult = normalizeElementEvents(block.events);
+  if (!eventsResult.success) return eventsResult;
 
   const children: PageBlock[] = [];
   for (const child of block.children ?? []) {
@@ -225,6 +229,7 @@ function normalizeBlock(
       ...(customCss ? { customCss } : {}),
       ...(customJs ? { customJs } : {}),
       ...(actionResult.action ? { action: actionResult.action } : {}),
+      ...(eventsResult.events.length ? { events: eventsResult.events } : {}),
       children,
     },
   };
@@ -300,6 +305,46 @@ function normalizeAction(
     return { success: false, error: "Open URL action contains unsafe URL." };
   }
   return { success: true, action };
+}
+
+function normalizeElementEvents(
+  events: PageElementEvent[] | undefined,
+): { success: true; events: PageElementEvent[] } | { success: false; error: string } {
+  if (!events) return { success: true, events: [] };
+  if (!Array.isArray(events)) return { success: false, error: "Block events must be an array." };
+  if (events.length > 8) return { success: false, error: "Block cannot contain more than 8 events." };
+
+  const normalized: PageElementEvent[] = [];
+  for (const event of events) {
+    if (!event || typeof event !== "object") {
+      return { success: false, error: "Invalid block event." };
+    }
+    if (!ALLOWED_ELEMENT_EVENT_NAMES.has(event.event)) {
+      return { success: false, error: `Unsupported element event: ${String(event.event)}` };
+    }
+    const id = normalizeEventToken(event.id);
+    const actionId = normalizeEventToken(event.actionId);
+    const workflowId = normalizeEventToken(event.workflowId);
+    const triggerId = normalizeEventToken(event.triggerId);
+    if (!id || !actionId || !workflowId || !triggerId) {
+      return { success: false, error: "Element event is missing workflow configuration." };
+    }
+    normalized.push({
+      id,
+      event: event.event,
+      actionId,
+      workflowId,
+      triggerId,
+    });
+  }
+  return { success: true, events: normalized };
+}
+
+function normalizeEventToken(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > 160 || containsDangerousText(trimmed)) return "";
+  return trimmed.replace(/[<>"']/g, "");
 }
 
 function countBlocks(blocks: PageBlock[]): number {
