@@ -94,6 +94,27 @@
         @canvas-click="clearCanvasSelection"
         @items-move="moveBlueprintNodes"
       >
+        <div
+          v-for="group in hierarchyGroups"
+          :key="group.id"
+          class="web-page-blueprint__element-group"
+          :class="{ 'is-selected': group.nodeIds.some((id) => selection.includes(id)) }"
+          :style="group.style"
+        >
+          <header data-base-canvas-no-drag>
+            <span class="web-page-blueprint__group-accent" :style="{ background: group.color }" />
+            <LucideIcon :name="group.icon" :size="12" />
+            <strong>{{ group.label }}</strong>
+            <small>{{ group.childCount }} children</small>
+            <button type="button" :title="collapsedGroupIds.has(group.id) ? 'Show preview' : 'Hide preview'" @click.stop="toggleGroup(group.id)">
+              <LucideIcon :name="collapsedGroupIds.has(group.id) ? 'panel-top-open' : 'panel-top-close'" :size="12" />
+            </button>
+          </header>
+          <div v-if="!collapsedGroupIds.has(group.id)" class="web-page-blueprint__group-preview" data-base-canvas-no-drag>
+            <span>{{ group.tag }}</span>
+            <strong>{{ group.preview }}</strong>
+          </div>
+        </div>
         <svg class="web-page-blueprint__edges" :viewBox="viewBox" aria-hidden="true">
           <path
             v-if="previewConnectionPath"
@@ -117,6 +138,18 @@
         >
           <button type="button" title="Delete connection" @click="deleteSelectedEdge">
             <LucideIcon name="unlink" :size="13" />
+          </button>
+        </div>
+        <div
+          v-if="selectionToolbar"
+          class="web-page-blueprint__selection-toolbar"
+          :style="selectionToolbar.style"
+          data-base-canvas-no-drag
+          @pointerdown.stop
+        >
+          <span>{{ selectionToolbar.count }} selected</span>
+          <button type="button" title="Delete selection" @click="deleteSelection()">
+            <LucideIcon name="trash-2" :size="12" />
           </button>
         </div>
         <template #item="{ item, selected }">
@@ -144,11 +177,11 @@
               title="Output"
               @pointerdown.stop.prevent="startConnection(item.id, $event)"
             />
-            <div v-if="selected && nodeForItem(item.id)?.kind !== 'element'" data-base-canvas-no-drag class="web-page-blueprint__node-toolbar" @pointerdown.stop>
-              <button type="button" title="Duplicate node" @click="duplicateNode(item.id)">
+            <div v-if="selected" data-base-canvas-no-drag class="web-page-blueprint__node-toolbar" @pointerdown.stop>
+              <button v-if="nodeForItem(item.id)?.kind !== 'element'" type="button" title="Duplicate node" @click="duplicateNode(item.id)">
                 <LucideIcon name="copy" :size="12" />
               </button>
-              <button type="button" title="Delete node" @click="deleteNode(item.id)">
+              <button type="button" :title="nodeForItem(item.id)?.kind === 'element' ? 'Delete page element' : 'Delete node'" @click="deleteSelection([item.id])">
                 <LucideIcon name="trash-2" :size="12" />
               </button>
             </div>
@@ -241,6 +274,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseCanvas from '@/shared/base-canvas/BaseCanvas.vue'
 import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/types.ts'
+import { useConfirm } from '@/shared/composables/useConfirm.ts'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { createPageActionDefinition, type PageActionReturnField, type PageActionTriggerSummary } from '@/core/page-actions'
 import { usePagesStore } from '../stores/pages.store.ts'
@@ -267,6 +301,7 @@ const pagesStore = usePagesStore()
 const actionsStore = usePageActionsStore()
 const bindingsStore = usePageActionBindingsStore()
 const editorStore = usePageEditorStore()
+const { confirm } = useConfirm()
 const selection = ref<string[]>([])
 const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
@@ -278,6 +313,7 @@ const paletteWidth = ref(260)
 const detailsWidth = ref(340)
 const resizeState = ref<null | { side: 'palette' | 'details'; startX: number; startWidth: number }>(null)
 const paletteQuery = ref('')
+const collapsedGroupIds = ref(new Set<string>())
 
 const document = computed(() =>
   createPageBlueprintDocument({
@@ -303,6 +339,17 @@ const graphSummary = computed(() =>
 const documentTitle = computed(() => document.value.scope.type === 'element' ? document.value.scope.label : 'Page Blueprint')
 const selectedLabel = computed(() => activeNode.value?.label ?? 'Canvas')
 const activeNode = computed(() => selection.value[0] ? nodeForItem(selection.value[0]) : null)
+const hierarchyGroups = computed(() => buildHierarchyGroups(editorStore.blocks, graph.value.nodes))
+const selectionToolbar = computed(() => {
+  const nodes = selection.value.map(nodeForItem).filter((node): node is PageBlueprintNode => Boolean(node))
+  if (nodes.length < 2) return null
+  const minY = Math.min(...nodes.map((node) => node.y))
+  const maxX = Math.max(...nodes.map((node) => node.x + (node.width ?? 208)))
+  return {
+    count: nodes.length,
+    style: { transform: `translate(${maxX - 112}px, ${minY - 30}px)` },
+  }
+})
 const selectedEdge = computed(() => selectedEdgeId.value ? graph.value.edges.find((edge) => edge.id === selectedEdgeId.value) ?? null : null)
 const previewConnectionPath = computed(() => {
   const fromId = connectionStartNodeId.value
@@ -348,10 +395,12 @@ const viewBox = '-120 -80 1280 560'
 
 onBeforeUnmount(() => {
   stopResize()
+  window.removeEventListener('keydown', handleBlueprintKeyDown)
 })
 
 onMounted(() => {
   if (actionsStore.workflows.length === 0) void actionsStore.loadAvailableActions()
+  window.addEventListener('keydown', handleBlueprintKeyDown)
 })
 
 watch(document, (next) => {
@@ -369,6 +418,20 @@ function nodeForItem(itemId: string): PageBlueprintNode | null {
 function clearCanvasSelection() {
   selection.value = []
   selectedEdgeId.value = null
+}
+
+function toggleGroup(groupId: string) {
+  const next = new Set(collapsedGroupIds.value)
+  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+  collapsedGroupIds.value = next
+}
+
+function handleBlueprintKeyDown(event: KeyboardEvent) {
+  if (!['Delete', 'Backspace'].includes(event.key)) return
+  if (event.target instanceof HTMLElement && event.target.closest('input, textarea, select, [contenteditable="true"]')) return
+  if (selection.value.length === 0) return
+  event.preventDefault()
+  void deleteSelection()
 }
 
 function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
@@ -508,6 +571,42 @@ function deleteNode(nodeId: string) {
     updatedAt: new Date().toISOString(),
   })
   selection.value = selection.value.filter((id) => id !== nodeId)
+}
+
+async function deleteSelection(nodeIds = selection.value) {
+  const nodes = nodeIds.map(nodeForItem).filter((node): node is PageBlueprintNode => Boolean(node))
+  const elementIds = nodes.flatMap((node) => node.kind === 'element' && node.elementId ? [node.elementId] : [])
+  if (elementIds.length > 0) {
+    const roots = selectedElementRoots(editorStore.blocks, new Set(elementIds))
+    const accepted = await confirm({
+      title: roots.length === 1 ? 'Delete page element' : `Delete ${roots.length} page elements`,
+      message: 'This removes the selected element hierarchy from the Page and cannot be undone after saving.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    })
+    if (!accepted) return
+    clearElementBindings(new Set(roots.flatMap((blockId) => {
+      const block = findPageBlock(editorStore.blocks, blockId)
+      return block ? flattenBlocks([block]).map((item) => item.id) : []
+    })))
+    for (const blockId of roots) editorStore.deleteBlock(blockId)
+  }
+  for (const node of nodes) {
+    if (node.kind !== 'element') deleteNode(node.id)
+  }
+  selection.value = []
+  selectedEdgeId.value = null
+}
+
+function clearElementBindings(elementIds: Set<string>) {
+  for (const source of graph.value.nodes.filter((node) => node.kind === 'workflow-action' && node.actionId)) {
+    for (const binding of bindingsStore.outputBindingsForAction(source.actionId!)) {
+      if (elementIds.has(binding.target.elementId)) bindingsStore.clearOutputBinding(source.actionId!, binding.id)
+    }
+    for (const binding of bindingsStore.collectionBindingsForAction(source.actionId!)) {
+      if (elementIds.has(binding.targetElementId)) bindingsStore.clearCollectionBinding(source.actionId!, binding.id)
+    }
+  }
 }
 
 function duplicateNode(nodeId: string) {
@@ -954,6 +1053,58 @@ function pageBlockIcon(tag: string) {
   if (tag === 'form') return 'clipboard-list'
   if (tag === 'img') return 'image'
   return 'box'
+}
+
+function buildHierarchyGroups(blocks: PageBlock[], nodes: PageBlueprintNode[]) {
+  const byId = new Map(nodes.filter((node) => node.elementId).map((node) => [node.elementId!, node]))
+  const colors = [
+    'var(--fabric-blueprint-group-accent-1, #5b8def)',
+    'var(--fabric-blueprint-group-accent-2, #8b6fd6)',
+    'var(--fabric-blueprint-group-accent-3, #4f9b8f)',
+    'var(--fabric-blueprint-group-accent-4, #c27b48)',
+  ]
+  return flattenBlocks(blocks).flatMap((block, index) => {
+    if (!block.children?.length) return []
+    const descendants = flattenBlocks([block])
+    const groupNodes = descendants.map((item) => byId.get(item.id)).filter((node): node is PageBlueprintNode => Boolean(node))
+    if (groupNodes.length < 2) return []
+    const minX = Math.min(...groupNodes.map((node) => node.x)) - 20
+    const minY = Math.min(...groupNodes.map((node) => node.y)) - 54
+    const maxX = Math.max(...groupNodes.map((node) => node.x + (node.width ?? 208))) + 20
+    const maxY = Math.max(...groupNodes.map((node) => node.y + nodeHeight(node))) + 20
+    return [{
+      id: `group:${block.id}`,
+      label: pageBlockLabel(block),
+      tag: block.tag,
+      icon: pageBlockIcon(block.tag),
+      preview: String(block.props?.text ?? block.props?.label ?? `${block.children.length} direct children`),
+      childCount: descendants.length - 1,
+      nodeIds: groupNodes.map((node) => node.id),
+      color: colors[index % colors.length],
+      style: {
+        transform: `translate(${minX}px, ${minY}px)`,
+        width: `${maxX - minX}px`,
+        height: `${maxY - minY}px`,
+      },
+    }]
+  })
+}
+
+function flattenBlocks(blocks: PageBlock[]): PageBlock[] {
+  return blocks.flatMap((block) => [block, ...flattenBlocks(block.children ?? [])])
+}
+
+function selectedElementRoots(blocks: PageBlock[], selectedIds: Set<string>) {
+  const roots: string[] = []
+  const visit = (items: PageBlock[], selectedAncestor: boolean) => {
+    for (const block of items) {
+      const selected = selectedIds.has(block.id)
+      if (selected && !selectedAncestor) roots.push(block.id)
+      visit(block.children ?? [], selectedAncestor || selected)
+    }
+  }
+  visit(blocks, false)
+  return roots
 }
 
 function nodeKindLabel(kind?: PageBlueprintNodeKind) {

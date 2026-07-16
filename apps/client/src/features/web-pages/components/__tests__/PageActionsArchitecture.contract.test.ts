@@ -204,6 +204,27 @@ describe('Page Actions architecture', () => {
     expect(css).toMatch(/--fabric-blueprint-node-bg/)
   })
 
+  it('supports hierarchy groups, marquee selection, and safe Page element deletion', () => {
+    const panel = read('src/features/web-pages/page-blueprint/PageBlueprintPanel.vue')
+    const css = read('src/features/web-pages/pages.css')
+    const light = read('src/themes/json/light.json')
+    const dark = read('src/themes/json/dark.json')
+
+    expect(panel).toMatch(/buildHierarchyGroups/)
+    expect(panel).toMatch(/selectionToolbar/)
+    expect(panel).toMatch(/selectedElementRoots/)
+    expect(panel).toMatch(/editorStore\.deleteBlock/)
+    expect(panel).toMatch(/clearElementBindings/)
+    expect(panel).toMatch(/useConfirm/)
+    expect(css).toMatch(/web-page-blueprint__element-group/)
+    expect(css).toMatch(/web-page-blueprint__selection-toolbar/)
+    for (const theme of [light, dark]) {
+      expect(theme).toMatch(/"blueprint\.group\.bg"/)
+      expect(theme).toMatch(/"blueprint\.group\.header\.bg"/)
+      expect(theme).toMatch(/"blueprint\.group\.preview\.bg"/)
+    }
+  })
+
   it('shares the workflow bottom panel chrome with Pages', () => {
     const bottomPanel = read('src/shared/components/workbench/WorkbenchBottomPanel.vue')
 
