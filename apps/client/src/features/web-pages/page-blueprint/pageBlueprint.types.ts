@@ -1,7 +1,7 @@
 import type { PageActionDefinition } from '@/core/page-actions'
 import type { PageActionDocument } from '../types/page.types.ts'
 
-export const PAGE_BLUEPRINT_DOCUMENT_VERSION = 1
+export const PAGE_BLUEPRINT_DOCUMENT_VERSION = 2
 
 export type PageBlueprintNodeKind =
   | 'event'
@@ -22,6 +22,9 @@ export interface PageBlueprintNode {
   y: number
   width?: number
   height?: number
+  actionId?: string
+  workflowId?: string
+  triggerId?: string
 }
 
 export interface PageBlueprintEdge {

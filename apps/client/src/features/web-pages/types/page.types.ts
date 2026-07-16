@@ -101,6 +101,9 @@ export interface PageBlueprintPersistedDocument {
       y: number
       width?: number
       height?: number
+      actionId?: string
+      workflowId?: string
+      triggerId?: string
     }>
     edges: Array<{
       id: string

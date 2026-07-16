@@ -418,6 +418,7 @@
     "blueprint.handle.border": "#6f6f6f",
     "blueprint.toolbar.bg": "#ffffff",
     "blueprint.toolbar.border": "#bdbdbd",
+    "blueprint.binding.active": "var(--fabric-accent)",
     "blueprint.edge": "#6952bc",
     "blueprint.details.row.border": "var(--fabric-border-subtle)"
   }
