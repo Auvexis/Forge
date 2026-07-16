@@ -2,4 +2,4 @@
 - [x] Criar componentes base de eventos
 - [x] Integrar Advanced ao Pages
 - [x] Atualizar runtime publicado
-- [ ] Validar build e testes
+- [x] Validar build e testes
