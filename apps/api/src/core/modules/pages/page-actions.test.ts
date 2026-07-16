@@ -114,6 +114,52 @@ describe("PageActionService", () => {
     assert.deepEqual((calls[0] as any[])[2].fields, { name: "Ada" });
   });
 
+  it("element events execute published workflow actions", async () => {
+    const calls: unknown[] = [];
+    const workflow = { metadata: { id: "workflow_1", isActive: true, isDraft: false } };
+    const service = new PageActionService({
+      getPublishedPageBySlug: () =>
+        publishedPage({
+          blocks: [
+            {
+              id: "button_1",
+              tag: "button",
+              events: [
+                {
+                  id: "page-event:page-action:workflow_1:manualTrigger:click",
+                  event: "click",
+                  actionId: "page-action:workflow_1:manualTrigger",
+                  workflowId: "workflow_1",
+                  triggerId: "manualTrigger",
+                },
+              ],
+              children: [],
+            },
+          ],
+        }),
+      processFormSubmission: async () => ({ ok: true, workflow: {} as any, executionId: "exec_form" }),
+      getWorkflowById: () => workflow as any,
+      executeWorkflowFromTrigger: async (...args) => {
+        calls.push(args);
+        return {
+          executionId: args[3],
+          status: "SUCCESS",
+          context: { result: { ok: true } },
+        };
+      },
+    });
+
+    const result = await service.submitAction("profile_a", "contact", "page-action:workflow_1:manualTrigger", {
+      body: { event: "click" },
+      headers: {},
+      ip: "127.0.0.1",
+    });
+
+    assert.equal(result.ok, true);
+    assert.equal((calls[0] as any[])[1], "manualTrigger");
+    assert.deepEqual((calls[0] as any[])[2].fields, { event: "click" });
+  });
+
   it("published action resolves the page inside the requested site", async () => {
     let resolvedSiteId = "";
     const service = new PageActionService({

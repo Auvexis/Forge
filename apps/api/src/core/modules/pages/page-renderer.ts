@@ -325,7 +325,7 @@ function pageFileSlug(page: PublishedPage): string {
 }
 
 function hasPageActions(blocks: PageBlock[]): boolean {
-  return blocks.some((block) => block.action || hasPageActions(block.children ?? []));
+  return blocks.some((block) => block.action || (block.events?.length ?? 0) > 0 || hasPageActions(block.children ?? []));
 }
 
 function hasPageActionBindings(page: PublishedPage): boolean {
@@ -345,6 +345,7 @@ function renderActionRuntime(page: PublishedPage, options: RenderOptions = {}): 
     `  const inputBindings = ${JSON.stringify(page.pageActions?.inputBindings ?? {})};`,
     `  const outputBindings = ${JSON.stringify(page.pageActions?.outputBindings ?? {})};`,
     `  const collectionBindings = ${JSON.stringify(page.pageActions?.collectionBindings ?? {})};`,
+    `  const elementEvents = ${JSON.stringify(collectElementEvents(page.blocks))};`,
     `  const repeaterTemplates = new Map();`,
     `  let pendingActionId = "";`,
     `  let executionId = "";`,
@@ -393,6 +394,20 @@ function renderActionRuntime(page: PublishedPage, options: RenderOptions = {}): 
     `    } catch {`,
     `      return null;`,
     `    }`,
+    `  }`,
+    `  function readElementEventPayload(element, eventName) {`,
+    `    const payload = { event: eventName, elementId: element?.dataset?.pageActionBindingElementId || "" };`,
+    `    if (element && "value" in element) payload.value = element.value;`,
+    `    if (element && "checked" in element) payload.checked = Boolean(element.checked);`,
+    `    payload.text = element?.textContent || "";`,
+    `    if (eventName === "submit" && element instanceof HTMLFormElement) {`,
+    `      return { ...payload, ...Object.fromEntries(new FormData(element).entries()) };`,
+    `    }`,
+    `    return payload;`,
+    `  }`,
+    `  function configuredEventsFor(element, eventName) {`,
+    `    const elementId = element?.dataset?.pageActionBindingElementId || "";`,
+    `    return (elementEvents[elementId] || []).filter((entry) => entry.event === eventName);`,
     `  }`,
     `  function resolveResultPath(result, path) {`,
     `    const segments = String(path || "").split(".").map((segment) => segment.trim()).filter(Boolean);`,
@@ -567,8 +582,39 @@ function renderActionRuntime(page: PublishedPage, options: RenderOptions = {}): 
     `    event.preventDefault();`,
     `    submitAction(actionId, {}, readElementScope(actionElement));`,
     `  });`,
+    `  ["click", "change", "input"].forEach((eventName) => {`,
+    `    document.addEventListener(eventName, (event) => {`,
+    `      const element = event.target?.closest?.("[data-page-action-binding-element-id]");`,
+    `      if (!element) return;`,
+    `      const entries = configuredEventsFor(element, eventName);`,
+    `      if (entries.length === 0) return;`,
+    `      if (eventName === "click") event.preventDefault();`,
+    `      const payload = readElementEventPayload(element, eventName);`,
+    `      entries.forEach((entry) => submitAction(entry.actionId, payload, readElementScope(element)));`,
+    `    });`,
+    `  });`,
+    `  document.addEventListener("submit", (event) => {`,
+    `    const form = event.target;`,
+    `    const entries = configuredEventsFor(form, "submit");`,
+    `    if (entries.length === 0) return;`,
+    `    event.preventDefault();`,
+    `    const payload = readElementEventPayload(form, "submit");`,
+    `    entries.forEach((entry) => submitAction(entry.actionId, payload, readElementScope(form)));`,
+    `  });`,
     `})();`,
   ].join("\n");
+}
+
+function collectElementEvents(blocks: PageBlock[]): Record<string, NonNullable<PageBlock["events"]>> {
+  const entries: Record<string, NonNullable<PageBlock["events"]>> = {};
+  const visit = (items: PageBlock[]) => {
+    for (const block of items) {
+      if (block.events?.length) entries[block.id] = block.events;
+      visit(block.children ?? []);
+    }
+  };
+  visit(blocks);
+  return entries;
 }
 
 function collectBlockJs(block: PageBlock): string[] {

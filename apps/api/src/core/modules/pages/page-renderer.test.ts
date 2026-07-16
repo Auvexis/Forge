@@ -313,6 +313,55 @@ describe("page renderer", () => {
     assert.match(html, /writeOutputTarget\(binding\.target, value\)/);
   });
 
+  it("renders element event runtime for workflow actions", () => {
+    const html = renderPublishedPage(
+      publishedPage({
+        blocks: [
+          {
+            id: "button_1",
+            tag: "button",
+            props: { text: "Load products" },
+            events: [
+              {
+                id: "page-event:page-action:workflow_1:trigger:click",
+                event: "click",
+                actionId: "page-action:workflow_1:trigger",
+                workflowId: "workflow_1",
+                triggerId: "trigger",
+              },
+            ],
+            children: [],
+          },
+          { id: "text_1", tag: "text", props: { text: "Waiting" }, children: [] },
+        ],
+        pageActions: {
+          inputBindings: {},
+          outputBindings: {
+            "page-action:workflow_1:trigger": [
+              {
+                id: "output_binding_1",
+                actionId: "page-action:workflow_1:trigger",
+                resultPath: "name",
+                target: { elementId: "text_1", property: "text", label: "Text" },
+                createdAt: "2026-07-16T00:00:00.000Z",
+              },
+            ],
+          },
+          collectionBindings: {},
+        },
+      }),
+    );
+
+    assert.match(html, /const elementEvents =/);
+    assert.match(html, /"button_1":\[/);
+    assert.match(html, /configuredEventsFor\(element, eventName\)/);
+    assert.match(html, /\["click", "change", "input"\]\.forEach/);
+    assert.match(html, /readElementEventPayload\(element, eventName\)/);
+    assert.match(html, /submitAction\(entry\.actionId, payload, readElementScope\(element\)\)/);
+    assert.match(html, /configuredEventsFor\(form, "submit"\)/);
+    assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
+  });
+
   it("never renders script from page content", () => {
     const html = renderPublishedPage(
       publishedPage({
