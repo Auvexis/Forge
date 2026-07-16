@@ -8,7 +8,6 @@
       pattern-style="square"
       :pattern-size="24"
       :grid-size="24"
-      :rulers="true"
       @items-move="moveCanvasItems"
     >
       <template #item="{ item, selected }">
@@ -66,7 +65,7 @@ const props = defineProps<{
 }>()
 
 const selection = ref<string[]>([])
-const viewport = ref<BaseCanvasViewport>({ x: 48, y: 48, zoom: 1 })
+const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const movedPositions = ref<Record<string, { x: number; y: number }>>({})
 
 const model = computed(() => createPageBlueprintViewModel({

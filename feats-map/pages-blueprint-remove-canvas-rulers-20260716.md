@@ -1,0 +1,4 @@
+- [x] Analisar margem preta da Blueprint
+- [x] Remover rulers e offset inicial
+- [x] Validar type-check
+- [x] Commitar ajuste
