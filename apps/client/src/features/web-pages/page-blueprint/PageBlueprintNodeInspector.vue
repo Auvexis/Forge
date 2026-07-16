@@ -98,7 +98,7 @@
             <span class="web-page-blueprint__return-port" />
             <span class="web-page-blueprint__return-copy">
               <strong>{{ field.label }}</strong>
-              <small>{{ field.key }} / {{ field.type }}</small>
+              <small>{{ field.key }} / {{ resolvedReturnType(field) }}</small>
             </span>
             <span class="web-page-blueprint__return-count">{{ returnBindingCount(field.key) }} links</span>
           </div>
@@ -120,6 +120,54 @@
           <p v-else-if="actionsStore.error" class="web-page-blueprint__run-error">{{ actionsStore.error }}</p>
         </section>
       </template>
+    </template>
+
+    <template v-else-if="node.kind === 'element' && elementBlock">
+      <section v-if="elementContentProperty" class="web-page-blueprint__property-section">
+        <header><LucideIcon name="type" :size="11" /><strong>Content</strong></header>
+        <BaseInput
+          :model-value="String(elementBlock.props?.[elementContentProperty] ?? '')"
+          :label="elementContentProperty === 'value' ? 'Value' : 'Text'"
+          @update:model-value="patchElementContent"
+        />
+      </section>
+      <section class="web-page-blueprint__property-section">
+        <header>
+          <LucideIcon name="waypoints" :size="11" />
+          <strong>Dynamic Values</strong>
+          <small>{{ elementBindings.length }}</small>
+        </header>
+        <div v-if="elementBindings.length === 0" class="web-page-blueprint__inspector-state">No bindings</div>
+        <div v-for="binding in elementBindings" v-else :key="binding.id" class="web-page-blueprint__element-binding">
+          <div>
+            <strong>{{ binding.path }}</strong>
+            <small>{{ actionLabel(binding.actionId) }} / {{ binding.property }}</small>
+          </div>
+          <span class="web-page-blueprint__binding-mode">
+            <button
+              type="button"
+              :class="{ 'is-active': binding.mode === 'single' }"
+              :disabled="!canUseSingleMode"
+              @click="changeElementBindingMode(binding, 'single')"
+            >Single</button>
+            <button
+              type="button"
+              :class="{ 'is-active': binding.mode === 'multiple' }"
+              @click="changeElementBindingMode(binding, 'multiple')"
+            >Multiple</button>
+          </span>
+          <button type="button" title="Remove binding" @click="removeElementBinding(binding)">
+            <LucideIcon name="unlink" :size="11" />
+          </button>
+        </div>
+      </section>
+      <section class="web-page-blueprint__property-section">
+        <header><LucideIcon name="info" :size="11" /><strong>Element</strong></header>
+        <dl class="web-page-blueprint__property-list">
+          <div><dt>Type</dt><dd>{{ elementBlock.tag }}</dd></div>
+          <div><dt>ID</dt><dd><code>{{ elementBlock.id }}</code></dd></div>
+        </dl>
+      </section>
     </template>
 
     <template v-else>
@@ -146,8 +194,10 @@ import {
   resolvePageActionResultPath,
   type PageActionDefinition,
   type PageActionInputField,
+  type PageActionReturnField,
   type PageActionTriggerSummary,
 } from '@/core/page-actions'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlock } from '../types/page.types.ts'
 import { usePageActionsStore } from '../data-actions/stores/page-actions.store.ts'
@@ -179,6 +229,36 @@ const activeAction = computed<PageActionDefinition | null>(() =>
 )
 const formattedRunResult = computed(() => JSON.stringify(actionsStore.lastRunResult, null, 2))
 const nodeKindLabel = computed(() => props.node.kind === 'workflow-action' ? 'Run Workflow' : props.node.kind)
+const elementBlock = computed(() => props.node.elementId ? findBlock(editorStore.blocks, props.node.elementId) : null)
+const elementContentProperty = computed<'text' | 'value' | null>(() => {
+  if (!elementBlock.value) return null
+  if (elementBlock.value.tag === 'input') return 'value'
+  return ['text', 'button', 'link'].includes(elementBlock.value.tag) ? 'text' : null
+})
+const canUseSingleMode = computed(() => Boolean(elementBlock.value && ['text', 'button', 'input'].includes(elementBlock.value.tag)))
+const elementBindings = computed<ElementBindingView[]>(() => {
+  const elementId = props.node.elementId
+  if (!elementId) return []
+  const outputs = Object.entries(bindingsStore.outputBindingsByAction).flatMap(([actionId, bindings]) =>
+    bindings.filter((binding) => binding.target.elementId === elementId).map((binding) => ({
+      id: binding.id,
+      actionId,
+      path: binding.resultPath,
+      property: binding.target.property,
+      mode: 'single' as const,
+    })),
+  )
+  const collections = Object.entries(bindingsStore.collectionBindingsByAction).flatMap(([actionId, bindings]) =>
+    bindings.filter((binding) => binding.targetElementId === elementId).map((binding) => ({
+      id: binding.id,
+      actionId,
+      path: binding.collectionPath,
+      property: 'items',
+      mode: 'multiple' as const,
+    })),
+  )
+  return [...outputs, ...collections]
+})
 
 onMounted(() => {
   if (actionsStore.workflows.length === 0) void actionsStore.loadAvailableActions()
@@ -215,6 +295,11 @@ function returnBindingCount(returnKey: string) {
   if (!action) return 0
   return bindingsStore.outputBindingsForAction(action.id).filter((binding) => binding.resultPath === returnKey).length
     + bindingsStore.collectionBindingsForAction(action.id).filter((binding) => binding.collectionPath === returnKey).length
+}
+
+function resolvedReturnType(field: PageActionReturnField) {
+  const action = activeAction.value
+  return action ? actionsStore.resolvedReturnType(action.id, field.key, field.type) : field.type
 }
 
 async function runWorkflow() {
@@ -254,6 +339,52 @@ function readInputValue(event: Event, type: PageActionInputField['type']) {
   return value
 }
 
+function patchElementContent(value: string | boolean) {
+  const block = elementBlock.value
+  const property = elementContentProperty.value
+  if (!block || !property) return
+  editorStore.patchBlock(block.id, { props: { ...(block.props ?? {}), [property]: String(value) } })
+}
+
+function actionForId(actionId: string) {
+  for (const workflow of actionsStore.workflows) {
+    for (const trigger of workflow.actions) {
+      const action = createPageActionDefinition(trigger)
+      if (action.id === actionId) return action
+    }
+  }
+  return null
+}
+
+function actionLabel(actionId: string) {
+  return actionForId(actionId)?.workflowName ?? actionId
+}
+
+function changeElementBindingMode(binding: ElementBindingView, mode: 'single' | 'multiple') {
+  if (binding.mode === mode || !elementBlock.value) return
+  const action = actionForId(binding.actionId)
+  if (!action) return
+  removeElementBinding(binding)
+  if (mode === 'multiple') {
+    bindingsStore.bindCollectionToElement(action, binding.path, elementBlock.value.id, 'repeater')
+    return
+  }
+  if (!canUseSingleMode.value) return
+  const property = elementBlock.value.tag === 'input'
+    ? (elementBlock.value.props?.type === 'checkbox' ? 'checked' as const : 'value' as const)
+    : 'text' as const
+  bindingsStore.bindOutputToElement(action, binding.path, {
+    elementId: elementBlock.value.id,
+    property,
+    label: String(elementBlock.value.props?.label ?? elementBlock.value.props?.text ?? elementBlock.value.id),
+  })
+}
+
+function removeElementBinding(binding: ElementBindingView) {
+  if (binding.mode === 'single') bindingsStore.clearOutputBinding(binding.actionId, binding.id)
+  else bindingsStore.clearCollectionBinding(binding.actionId, binding.id)
+}
+
 function findBlock(blocks: PageBlock[], id: string): PageBlock | null {
   for (const block of blocks) {
     if (block.id === id) return block
@@ -261,6 +392,14 @@ function findBlock(blocks: PageBlock[], id: string): PageBlock | null {
     if (child) return child
   }
   return null
+}
+
+interface ElementBindingView {
+  id: string
+  actionId: string
+  path: string
+  property: string
+  mode: 'single' | 'multiple'
 }
 
 </script>

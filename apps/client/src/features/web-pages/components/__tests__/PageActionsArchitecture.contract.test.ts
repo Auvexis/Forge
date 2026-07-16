@@ -63,6 +63,17 @@ describe('Page Actions architecture', () => {
     expect(panel).not.toMatch(/replaceChildren|appendChild|fabricPreviewTemplate/)
   })
 
+  it('infers unknown Return types from test runs without persisting the inference', () => {
+    const store = read('src/features/web-pages/data-actions/stores/page-actions.store.ts')
+    const pageTypes = read('src/features/web-pages/types/page.types.ts')
+
+    expect(store).toMatch(/inferredReturnTypes/)
+    expect(store).toMatch(/inferActionReturnTypes/)
+    expect(store).toMatch(/resolvedReturnType/)
+    expect(store).toMatch(/Array\.isArray\(value\)/)
+    expect(pageTypes).not.toMatch(/inferredReturnTypes/)
+  })
+
   it('presents page actions as a guided configuration flow', () => {
     const panel = read('src/features/web-pages/data-actions/components/PageDataActionsPanel.vue')
     const css = read('src/features/web-pages/pages.css')
@@ -146,6 +157,10 @@ describe('Page Actions architecture', () => {
     expect(panel).toMatch(/bindWorkflowReturn/)
     expect(panel).toMatch(/synchronizePageElements/)
     expect(panel).toMatch(/connectionReturnKey/)
+    expect(panel).toMatch(/connectionReturnMode/)
+    expect(panel).toMatch(/Single value/)
+    expect(panel).toMatch(/Multiple values/)
+    expect(panel).toMatch(/data-base-canvas-no-drag/)
     expect(panel).toMatch(/returnKey/)
     expect(panel).not.toMatch(/addBindingNode|addOutputBindingNode|addCollectionBindingNode/)
     expect(panel).toMatch(/filteredPaletteGroups/)
@@ -153,6 +168,8 @@ describe('Page Actions architecture', () => {
     expect(panel).not.toMatch(/Page Action Runtime|Build the dataflow/)
     expect(panel).not.toMatch(/event\.currentTarget.*closest/)
     expect(panel).toMatch(/blueprints:/)
+    expect(inspector).toMatch(/Dynamic Values/)
+    expect(inspector).toMatch(/changeElementBindingMode/)
     expect(css).toMatch(/web-page-blueprint__node-handle/)
     expect(css).toMatch(/web-page-blueprint__node-toolbar/)
     expect(css).toMatch(/web-page-blueprint__edge-toolbar/)

@@ -3,7 +3,9 @@ import { defineStore } from 'pinia'
 import {
   buildDefaultActionInput,
   createPageActionDefinition,
+  resolvePageActionResultPath,
   type PageActionDefinition,
+  type PageActionInputPrimitive,
   type PageActionRunResult,
   type PageActionRunStatus,
   type PageActionTriggerSummary,
@@ -18,6 +20,7 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
   const lastRunResult = ref<PageActionRunResult | null>(null)
   const status = ref<PageActionRunStatus>('idle')
   const error = ref<string | null>(null)
+  const inferredReturnTypes = ref<Record<string, PageActionInputPrimitive>>({})
   const isLoading = ref(false)
 
   const hasActions = computed(() => workflows.value.some((workflow) => workflow.actions.length > 0))
@@ -71,9 +74,24 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
       input,
     })
     lastRunResult.value = result
+    if (result.ok && result.data !== undefined) inferActionReturnTypes(selectedAction.value, result.data)
     status.value = result.ok ? 'success' : 'error'
     if (!result.ok) error.value = result.error ?? 'Page action failed.'
     return result
+  }
+
+  function resolvedReturnType(actionId: string, returnKey: string, declaredType: PageActionInputPrimitive | 'unknown') {
+    return inferredReturnTypes.value[`${actionId}:${returnKey}`] ?? declaredType
+  }
+
+  function inferActionReturnTypes(action: PageActionDefinition, data: unknown) {
+    const inferred = { ...inferredReturnTypes.value }
+    for (const field of action.returns) {
+      const value = resolvePageActionResultPath(data, field.key)
+      if (value === undefined) continue
+      inferred[`${action.id}:${field.key}`] = inferValueType(value)
+    }
+    inferredReturnTypes.value = inferred
   }
 
   return {
@@ -83,12 +101,23 @@ export const usePageActionsStore = defineStore('web-page-actions', () => {
     lastRunResult,
     status,
     error,
+    inferredReturnTypes,
     isLoading,
     hasActions,
     loadAvailableActions,
     selectTrigger,
     clearSelection,
     updateInput,
+    resolvedReturnType,
     runSelectedAction,
   }
 })
+
+function inferValueType(value: unknown): PageActionInputPrimitive {
+  if (Array.isArray(value)) return 'array'
+  if (typeof File !== 'undefined' && value instanceof File) return 'file'
+  if (value !== null && typeof value === 'object') return 'object'
+  if (typeof value === 'number') return 'number'
+  if (typeof value === 'boolean') return 'boolean'
+  return 'string'
+}

@@ -241,6 +241,11 @@ describe('BaseCanvas component contract', () => {
     assert.match(source, /-webkit-user-drag: none/)
   })
 
+  it('lets interactive node controls opt out of item dragging', () => {
+    const source = readBaseCanvas()
+    assert.match(source, /closest\('\[data-base-canvas-no-drag\]'\)/)
+  })
+
   it('renders alignment guide overlays during item movement', () => {
     const source = readBaseCanvas()
 

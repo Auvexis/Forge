@@ -307,6 +307,7 @@ describe("page renderer", () => {
     assert.match(html, /renderTable\(host, collection\)/);
     assert.match(html, /\[data-fabric-bound-table\]/);
     assert.match(html, /resolveScopedPath\(result, \{ item, index \}, outputBinding\.resultPath\)/);
+    assert.match(html, /scopeRoot\.textContent = stringifyOutputValue\(item\)/);
     assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
     assert.match(html, /resolveResultPath\(result, binding\.resultPath\)/);
     assert.match(html, /writeOutputTarget\(binding\.target, value\)/);

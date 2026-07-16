@@ -27,6 +27,7 @@ export interface PageBlueprintNode {
   triggerId?: string
   elementId?: string
   elementTag?: string
+  returnModes?: Record<string, 'single' | 'multiple'>
 }
 
 export interface PageBlueprintEdge {

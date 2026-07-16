@@ -350,6 +350,7 @@ function handleWheelZoom(event: WheelEvent) {
 function startItemDrag(event: PointerEvent, item: BaseCanvasItem) {
   if (event.button !== 0) return
   if (item.locked) return
+  if ((event.target as Element | null)?.closest('[data-base-canvas-no-drag]')) return
   event.preventDefault()
   const selectedItemIds = props.selection.includes(item.id) ? props.selection : [item.id]
   const draggableItemIds = selectedItemIds.filter((itemId) => {

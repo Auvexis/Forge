@@ -27,6 +27,7 @@ export type PageBlockAction =
       triggerId?: string
       elementId?: string
       elementTag?: string
+      returnModes?: Record<string, 'single' | 'multiple'>
     }
   | {
       id: string

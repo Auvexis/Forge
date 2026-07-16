@@ -130,6 +130,7 @@
           >
             <button
               v-if="nodeForItem(item.id)?.kind === 'element'"
+              data-base-canvas-no-drag
               class="web-page-blueprint__node-handle web-page-blueprint__node-handle--input"
               type="button"
               title="Bind dynamic value"
@@ -137,12 +138,13 @@
             />
             <button
               v-if="nodeForItem(item.id)?.kind !== 'workflow-action' && nodeForItem(item.id)?.kind !== 'element'"
+              data-base-canvas-no-drag
               class="web-page-blueprint__node-handle web-page-blueprint__node-handle--output"
               type="button"
               title="Output"
               @pointerdown.stop.prevent="startConnection(item.id, $event)"
             />
-            <div v-if="selected && nodeForItem(item.id)?.kind !== 'element'" class="web-page-blueprint__node-toolbar" @pointerdown.stop>
+            <div v-if="selected && nodeForItem(item.id)?.kind !== 'element'" data-base-canvas-no-drag class="web-page-blueprint__node-toolbar" @pointerdown.stop>
               <button type="button" title="Duplicate node" @click="duplicateNode(item.id)">
                 <LucideIcon name="copy" :size="12" />
               </button>
@@ -167,11 +169,26 @@
                 <div v-for="field in workflowReturns(nodeForItem(item.id))" :key="field.key">
                   <span>{{ field.label }}</span>
                   <small>{{ field.type }}</small>
+                  <span class="web-page-blueprint__return-mode" data-base-canvas-no-drag>
+                    <button
+                      type="button"
+                      :class="{ 'is-active': returnMode(nodeForItem(item.id), field) === 'single' }"
+                      title="Single value"
+                      @click.stop="setReturnMode(item.id, field.key, 'single')"
+                    >S</button>
+                    <button
+                      type="button"
+                      :class="{ 'is-active': returnMode(nodeForItem(item.id), field) === 'multiple' }"
+                      title="Multiple values"
+                      @click.stop="setReturnMode(item.id, field.key, 'multiple')"
+                    >M</button>
+                  </span>
                   <button
+                    data-base-canvas-no-drag
                     class="web-page-blueprint__pick-whip"
                     type="button"
                     :title="`Connect ${field.label}`"
-                    @pointerdown.stop.prevent="startConnection(item.id, $event, field.key)"
+                    @pointerdown.stop.prevent="startConnection(item.id, $event, field.key, returnMode(nodeForItem(item.id), field))"
                   >
                     <LucideIcon name="link-2" :size="11" />
                   </button>
@@ -254,6 +271,7 @@ const selection = ref<string[]>([])
 const selectedEdgeId = ref<string | null>(null)
 const connectionStartNodeId = ref<string | null>(null)
 const connectionReturnKey = ref<string | null>(null)
+const connectionReturnMode = ref<'single' | 'multiple'>('single')
 const connectionPointer = ref<{ x: number; y: number } | null>(null)
 const viewport = ref<BaseCanvasViewport>({ x: 72, y: 64, zoom: 1 })
 const paletteWidth = ref(260)
@@ -291,7 +309,7 @@ const previewConnectionPath = computed(() => {
   const pointer = connectionPointer.value
   const from = fromId ? nodeForItem(fromId) : null
   if (!from || !pointer) return ''
-  const startX = from.x + (from.width ?? 208)
+  const startX = returnPortX(from, connectionReturnKey.value)
   const startY = returnPortY(from, connectionReturnKey.value)
   const control = Math.max(48, Math.abs(pointer.x - startX) / 2)
   return `M ${startX} ${startY} C ${startX + control} ${startY}, ${pointer.x - control} ${pointer.y}, ${pointer.x} ${pointer.y}`
@@ -302,7 +320,7 @@ const edgeToolbarPosition = computed(() => {
   const to = nodeForItem(selectedEdge.value.to)
   if (!from || !to) return { x: 0, y: 0 }
   return {
-    x: (from.x + (from.width ?? 208) + to.x) / 2 - 14,
+    x: (returnPortX(from, selectedEdge.value.returnKey) + to.x) / 2 - 14,
     y: (returnPortY(from, selectedEdge.value.returnKey) + to.y + (nodeHeight(to) / 2)) / 2 - 14,
   }
 })
@@ -371,9 +389,15 @@ function moveBlueprintNodes(event: BaseCanvasItemsMoveEvent) {
   })
 }
 
-function startConnection(nodeId: string, event: PointerEvent, returnKey?: string) {
+function startConnection(
+  nodeId: string,
+  event: PointerEvent,
+  returnKey?: string,
+  mode: 'single' | 'multiple' = 'single',
+) {
   connectionStartNodeId.value = nodeId
   connectionReturnKey.value = returnKey ?? null
+  connectionReturnMode.value = mode
   selectedEdgeId.value = null
   connectionPointer.value = pointerWorldPoint(event)
   window.addEventListener('pointermove', moveConnectionPreview)
@@ -383,10 +407,11 @@ function startConnection(nodeId: string, event: PointerEvent, returnKey?: string
 function finishConnection(nodeId: string) {
   const from = connectionStartNodeId.value
   const returnKey = connectionReturnKey.value
+  const mode = connectionReturnMode.value
   clearConnectionPreview()
   if (!from || from === nodeId) return
   if (returnKey) {
-    bindWorkflowReturn(from, nodeId, returnKey)
+    bindWorkflowReturn(from, nodeId, returnKey, mode)
     return
   }
   if (graph.value.edges.some((edge) => edge.from === from && edge.to === nodeId)) return
@@ -425,6 +450,7 @@ function cancelConnectionPreview() {
 function clearConnectionPreview() {
   connectionStartNodeId.value = null
   connectionReturnKey.value = null
+  connectionReturnMode.value = 'single'
   connectionPointer.value = null
   window.removeEventListener('pointermove', moveConnectionPreview)
 }
@@ -649,10 +675,34 @@ function workflowReturns(node: PageBlueprintNode | null): PageActionReturnField[
   const trigger = actionsStore.workflows
     .find((workflow) => workflow.id === node.workflowId)
     ?.actions.find((candidate) => candidate.id === node.triggerId)
-  return trigger ? createPageActionDefinition(trigger).returns : []
+  if (!trigger) return []
+  const action = createPageActionDefinition(trigger)
+  return action.returns.map((field) => ({
+    ...field,
+    type: actionsStore.resolvedReturnType(action.id, field.key, field.type),
+  }))
 }
 
-function bindWorkflowReturn(sourceId: string, targetId: string, returnKey: string) {
+function returnMode(node: PageBlueprintNode | null, field: PageActionReturnField): 'single' | 'multiple' {
+  if (node?.actionId) {
+    if (bindingsStore.collectionBindingsForAction(node.actionId).some((binding) => binding.collectionPath === field.key)) return 'multiple'
+    if (bindingsStore.outputBindingsForAction(node.actionId).some((binding) => binding.resultPath === field.key)) return 'single'
+  }
+  return node?.returnModes?.[field.key] ?? (field.type === 'array' ? 'multiple' : 'single')
+}
+
+function setReturnMode(nodeId: string, returnKey: string, mode: 'single' | 'multiple') {
+  const node = nodeForItem(nodeId)
+  if (!node) return
+  patchNode(nodeId, { returnModes: { ...(node.returnModes ?? {}), [returnKey]: mode } })
+}
+
+function bindWorkflowReturn(
+  sourceId: string,
+  targetId: string,
+  returnKey: string,
+  mode: 'single' | 'multiple',
+) {
   const source = nodeForItem(sourceId)
   const target = nodeForItem(targetId)
   if (!source?.workflowId || !source.triggerId || !target?.elementId) return false
@@ -665,9 +715,20 @@ function bindWorkflowReturn(sourceId: string, targetId: string, returnKey: strin
   const field = action.returns.find((candidate) => candidate.key === returnKey)
   if (!field) return false
 
+  for (const binding of bindingsStore.outputBindingsForAction(action.id)) {
+    if (binding.resultPath === returnKey && binding.target.elementId === block.id) {
+      bindingsStore.clearOutputBinding(action.id, binding.id)
+    }
+  }
+  for (const binding of bindingsStore.collectionBindingsForAction(action.id)) {
+    if (binding.collectionPath === returnKey && binding.targetElementId === block.id) {
+      bindingsStore.clearCollectionBinding(action.id, binding.id)
+    }
+  }
+
   let bindingId = ''
   let targetProperty = ''
-  if (['header', 'section', 'div', 'footer', 'form'].includes(block.tag)) {
+  if (mode === 'multiple') {
     const binding = bindingsStore.bindCollectionToElement(action, returnKey, block.id, 'repeater')
     if (!binding) return false
     bindingId = binding.id
@@ -698,7 +759,10 @@ function bindWorkflowReturn(sourceId: string, targetId: string, returnKey: strin
     ...document.value,
     graph: {
       nodes: [...graph.value.nodes],
-      edges: [...graph.value.edges.filter((candidate) => candidate.id !== edge.id), edge],
+      edges: [...graph.value.edges.filter((candidate) =>
+        candidate.id !== edge.id
+        && !(candidate.from === sourceId && candidate.to === targetId && candidate.returnKey === returnKey),
+      ), edge],
     },
     selectedNodeIds: [sourceId],
     viewport: viewport.value,
@@ -777,7 +841,7 @@ function edgePath(edge: PageBlueprintEdge) {
   const from = graph.value.nodes.find((node) => node.id === edge.from)
   const to = graph.value.nodes.find((node) => node.id === edge.to)
   if (!from || !to) return ''
-  const startX = from.x + (from.width ?? 208)
+  const startX = returnPortX(from, edge.returnKey)
   const startY = returnPortY(from, edge.returnKey)
   const endX = to.x
   const endY = to.y + (nodeHeight(to) / 2)
@@ -788,7 +852,12 @@ function edgePath(edge: PageBlueprintEdge) {
 function returnPortY(node: PageBlueprintNode, returnKey?: string | null) {
   const returns = workflowReturns(node)
   const index = returnKey ? returns.findIndex((field) => field.key === returnKey) : -1
-  return index >= 0 ? node.y + 79 + (index * 24) : node.y + (nodeHeight(node) / 2)
+  return index >= 0 ? node.y + 96 + (index * 24) : node.y + (nodeHeight(node) / 2)
+}
+
+function returnPortX(node: PageBlueprintNode, returnKey?: string | null) {
+  const right = node.x + (node.width ?? 208)
+  return returnKey ? right - 10 : right
 }
 
 function nodeHeight(node: PageBlueprintNode) {
@@ -859,7 +928,7 @@ function synchronizePageElements(nodes: PageBlueprintNode[], edges: PageBlueprin
   return {
     nodes: nextNodes,
     edges: [
-      ...edges.filter((edge) => !bindingEdgeIds.has(edge.id) && nodeIds.has(edge.from) && nodeIds.has(edge.to) && (!edge.to.startsWith('element:') || elementIds.has(edge.to))),
+      ...edges.filter((edge) => !edge.bindingId && !bindingEdgeIds.has(edge.id) && nodeIds.has(edge.from) && nodeIds.has(edge.to) && (!edge.to.startsWith('element:') || elementIds.has(edge.to))),
       ...bindingEdges,
     ],
   }
