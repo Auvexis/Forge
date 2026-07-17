@@ -16,6 +16,14 @@
       />
       <LucideIcon v-if="icon" :name="icon" :size="13" />
       <span>{{ title }}</span>
+      <span class="web-page-blueprint-inspector-section__spacer" />
+      <span
+        v-if="$slots.actions"
+        class="web-page-blueprint-inspector-section__actions"
+        @click.stop
+      >
+        <slot name="actions" />
+      </span>
     </button>
     <Transition
       name="web-page-blueprint-inspector-collapse"

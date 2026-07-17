@@ -55,9 +55,9 @@
             <div :key="runWorkflowView" class="web-page-blueprint-inspector-stack__view">
               <template v-if="runWorkflowView === 'workflows'">
                 <BaseInspectorSection title="Published Workflows" icon="workflow">
-                  <div class="web-page-blueprint-inspector-actions">
+                  <template #actions>
                     <BaseInspectorButton label="Refresh" icon="refresh-cw" @click="loadWorkflows" />
-                  </div>
+                  </template>
                   <button
                     v-for="workflow in workflows"
                     :key="workflow.id"

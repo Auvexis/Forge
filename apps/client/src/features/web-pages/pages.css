@@ -489,6 +489,23 @@
   transition: transform 140ms ease;
 }
 
+.web-page-blueprint-inspector-section__spacer {
+  flex: 1;
+}
+
+.web-page-blueprint-inspector-section__actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-left: auto;
+}
+
+.web-page-blueprint-inspector-section__actions .web-page-blueprint-inspector-button {
+  height: 18px;
+  padding: 0 6px;
+}
+
 .web-page-blueprint-inspector-section--collapsed .web-page-blueprint-inspector-section__chevron {
   transform: rotate(-90deg);
 }
