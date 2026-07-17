@@ -646,7 +646,7 @@ function elementNodeTitle(
   element: PageBlueprintViewModel['elements'][number],
 ) {
   const label = typeof node?.label === 'string' ? node.label.trim() : ''
-  return label && label !== element.id ? label : element.label
+  return element.label || (label && label !== element.id ? label : element.id)
 }
 
 function workflowNodeId(workflowId: string) {

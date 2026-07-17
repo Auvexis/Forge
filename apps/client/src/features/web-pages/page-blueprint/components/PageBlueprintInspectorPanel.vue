@@ -360,7 +360,7 @@ const selectedElement = computed(() =>
   elementModel.value.elements.find((element) => element.id === selectedElementId.value) ?? null,
 )
 const selectedElementIcon = computed(() => selectedElement.value ? pageBlockIcon(selectedElement.value.tag) : 'box')
-const selectedElementNodeLabel = computed(() => node.value?.label ?? selectedElement.value?.label ?? '')
+const selectedElementNodeLabel = computed(() => selectedElement.value?.label || node.value?.label || '')
 const selectedElementElementId = computed(() => String(selectedElement.value?.elementId ?? selectedElement.value?.attributes.id ?? ''))
 const selectedElementFields = computed(() => {
   if (!selectedElement.value) return []
