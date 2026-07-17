@@ -1,0 +1,6 @@
+- [x] Analisar fields do Blueprint antigo
+- [x] Criar componentes base de Field
+- [x] Criar derivacao de fields em TS
+- [x] Renderizar fields nos BaseElements
+- [x] Validar type-check
+- [x] Commitar ajuste

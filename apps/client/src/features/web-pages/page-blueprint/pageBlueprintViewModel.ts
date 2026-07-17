@@ -1,15 +1,19 @@
 import type {
+  PageActionReturnField,
   PageActionCollectionBinding,
   PageActionOutputBinding,
   PageActionWorkflowSummary,
 } from '@/core/page-actions'
-import type { PageBlock, PageElementEvent } from '../types/page.types.ts'
+import type { PageBlock, PageBlockAttributes, PageBlockProps, PageElementEvent } from '../types/page.types.ts'
 
 export interface PageBlueprintElementNode {
   id: string
   label: string
   tag: string
   depth: number
+  props: PageBlockProps
+  attributes: PageBlockAttributes
+  className: string
   events: PageElementEvent[]
 }
 
@@ -18,6 +22,7 @@ export interface PageBlueprintWorkflowNode {
   label: string
   workflowName: string
   triggerName: string
+  returns: PageActionReturnField[]
   returnCount: number
   eventCount: number
 }
@@ -56,6 +61,7 @@ export function createPageBlueprintViewModel(input: {
           label: action.name,
           workflowName: workflow.name,
           triggerName: action.name,
+          returns: action.returns,
           returnCount: action.returns.length,
           eventCount: actionEventCount[actionId(workflow.id, action.id)] ?? 0,
         })),
@@ -90,6 +96,9 @@ function collectElementNodes(blocks: PageBlock[], depth = 0): PageBlueprintEleme
       label: blockLabel(block),
       tag: block.tag,
       depth,
+      props: block.props ?? {},
+      attributes: block.attributes ?? {},
+      className: block.className ?? '',
       events: block.events ?? [],
     },
     ...collectElementNodes(block.children ?? [], depth + 1),

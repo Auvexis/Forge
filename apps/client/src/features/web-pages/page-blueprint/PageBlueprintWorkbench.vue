@@ -20,7 +20,18 @@
           :accent="itemData(item).accent"
           :selected="selected"
           :show-footer="itemData(item).showFooter"
-        />
+        >
+          <BaseField
+            v-for="field in itemData(item).fields"
+            :key="field.id"
+            :label="field.label"
+            :type="field.type"
+            :value="field.value"
+            :input="field.input"
+            :output="field.output"
+            :mode="field.mode"
+          />
+        </BaseElement>
       </template>
     </BaseCanvas>
   </PageBlueprintShell>
@@ -36,8 +47,15 @@ import type {
 import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import type { PageBlock } from '../types/page.types.ts'
+import {
+  createBindingFields,
+  createElementFields,
+  createWorkflowFields,
+  type PageBlueprintField,
+} from './pageBlueprintFields.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
 import BaseElement from './components/BaseElement.vue'
+import BaseField from './components/BaseField.vue'
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 
 type PageBlueprintCanvasItemKind = 'element' | 'workflow' | 'binding' | 'empty'
@@ -51,6 +69,7 @@ interface PageBlueprintCanvasItemData {
   icon: string
   accent: string
   showFooter: boolean
+  fields: PageBlueprintField[]
 }
 
 interface PageBlueprintCanvasItem extends BaseCanvasItem {
@@ -105,7 +124,7 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
     x: 40,
     y: 40 + index * 128,
     width: 244,
-    height: 96,
+    height: nodeHeight(createElementFields(element).length),
     data: {
       kind: 'element' as const,
       title: element.label,
@@ -115,6 +134,7 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
       icon: 'box',
       accent: 'var(--fabric-blue-400)',
       showFooter: true,
+      fields: createElementFields(element),
     },
   }))
 
@@ -123,7 +143,7 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
     x: 360,
     y: 40 + index * 128,
     width: 260,
-    height: 96,
+    height: nodeHeight(createWorkflowFields(workflow).length),
     data: {
       kind: 'workflow' as const,
       title: workflow.workflowName,
@@ -133,6 +153,7 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
       icon: 'workflow',
       accent: 'var(--fabric-accent)',
       showFooter: true,
+      fields: createWorkflowFields(workflow),
     },
   }))
 
@@ -141,7 +162,7 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
     x: 704,
     y: 40 + index * 128,
     width: 272,
-    height: 108,
+    height: nodeHeight(createBindingFields(binding).length),
     data: {
       kind: 'binding' as const,
       title: binding.target,
@@ -151,6 +172,7 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
       icon: binding.mode === 'multiple' ? 'copy-plus' : 'git-branch',
       accent: 'var(--fabric-green-400)',
       showFooter: true,
+      fields: createBindingFields(binding),
     },
   }))
 
@@ -173,6 +195,11 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
       icon: 'mouse-pointer-click',
       accent: 'var(--fabric-text-muted)',
       showFooter: false,
+      fields: [{
+        id: 'hint',
+        label: 'Inspector > Advanced',
+        value: 'Add an event to start the Blueprint.',
+      }],
     },
   }]
 }
@@ -184,5 +211,9 @@ function itemData(item: BaseCanvasItem): PageBlueprintCanvasItemData {
 function shortId(id: string) {
   const segment = id.split(':').at(-1) ?? id
   return segment.length > 18 ? `${segment.slice(0, 15)}...` : segment
+}
+
+function nodeHeight(fieldCount: number) {
+  return 58 + Math.max(1, fieldCount) * 32 + 20
 }
 </script>

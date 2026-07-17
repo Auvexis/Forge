@@ -433,10 +433,10 @@
 .web-page-blueprint-element__body {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 3px;
+  gap: 0;
+  overflow: hidden;
   min-width: 0;
-  padding: 6px 8px;
+  padding: 0;
 }
 
 .web-page-blueprint-element__body span,
@@ -483,6 +483,129 @@
 .web-page-blueprint-element--selected {
   outline: 2px solid var(--fabric-blueprint-node-selected-outline, var(--fabric-accent));
   outline-offset: 0;
+}
+
+.web-page-blueprint-field {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 32px;
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--fabric-blueprint-node-divider, var(--fabric-border-subtle));
+}
+
+.web-page-blueprint-field:last-child {
+  border-bottom: 0;
+}
+
+.web-page-blueprint-field__left {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 5px;
+}
+
+.web-page-blueprint-field__label {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.web-page-blueprint-field__label strong,
+.web-page-blueprint-field__label small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-field__label strong {
+  color: var(--fabric-blueprint-node-text, var(--fabric-text-primary));
+  font-size: 10px;
+  font-weight: var(--fabric-font-medium);
+}
+
+.web-page-blueprint-field__label small {
+  color: var(--fabric-blueprint-node-muted-text, var(--fabric-text-muted));
+  font: 9px var(--fabric-font-mono);
+}
+
+.web-page-blueprint-field__right {
+  display: flex;
+  width: 112px;
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+.web-page-blueprint-field__value-row {
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.web-page-blueprint-field__value-row input {
+  width: 100%;
+  min-width: 0;
+  height: 17px;
+  padding: 0 5px;
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: 2px;
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-secondary);
+  font: 9px var(--fabric-font-mono);
+}
+
+.web-page-blueprint-pick-whip {
+  display: grid;
+  flex: none;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 2px;
+  color: var(--fabric-blueprint-node-muted-text, var(--fabric-text-muted));
+  cursor: crosshair;
+}
+
+.web-page-blueprint-pick-whip:hover {
+  color: var(--fabric-blueprint-binding-active, var(--fabric-accent));
+  background: var(--fabric-blueprint-palette-item-hover-bg, var(--fabric-bg-elevated));
+}
+
+.web-page-blueprint-field-mode {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 36px;
+  height: 17px;
+  overflow: hidden;
+  border: 1px solid var(--fabric-blueprint-node-divider, var(--fabric-border-subtle));
+  border-radius: 2px;
+}
+
+.web-page-blueprint-field-mode button {
+  display: grid;
+  place-items: center;
+  color: var(--fabric-text-muted);
+  font: 8px var(--fabric-font-mono);
+}
+
+.web-page-blueprint-field-mode button + button {
+  border-left: 1px solid var(--fabric-blueprint-node-divider, var(--fabric-border-subtle));
+}
+
+.web-page-blueprint-field-mode button:hover {
+  color: var(--fabric-text-primary);
+}
+
+.web-page-blueprint-field-mode button.is-active {
+  color: var(--fabric-text-on-accent);
+  background: var(--fabric-blueprint-binding-active, var(--fabric-accent));
 }
 
 .web-page-editor__plane {
