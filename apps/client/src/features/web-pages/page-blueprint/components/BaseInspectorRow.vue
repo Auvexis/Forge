@@ -1,13 +1,14 @@
 <template>
   <label class="web-page-blueprint-inspector-row">
-    <span>{{ label }}</span>
+    <span class="web-page-blueprint-inspector-row__label">{{ label }}</span>
     <input
       v-if="editable"
+      class="web-page-blueprint-inspector-row__control"
       :value="value"
       :placeholder="placeholder"
       @input="$emit('update:value', ($event.target as HTMLInputElement).value)"
     />
-    <code v-else>{{ value || '-' }}</code>
+    <code v-else class="web-page-blueprint-inspector-row__value">{{ value || '-' }}</code>
   </label>
 </template>
 

@@ -3,7 +3,7 @@
     <p v-if="!selectedNodeId" class="web-page-editor__empty">Select a Blueprint node.</p>
 
     <template v-else>
-      <BaseInspectorSection title="Node">
+      <BaseInspectorSection title="Node" icon="box">
         <BaseInspectorRow label="ID" :value="selectedNodeId" />
         <BaseInspectorRow label="Kind" :value="node?.kind ?? inferredKind" />
         <BaseInspectorRow
@@ -15,7 +15,7 @@
         <BaseInspectorRow v-if="node" label="Type" :value="node.type" />
       </BaseInspectorSection>
 
-      <BaseInspectorSection v-if="node" title="Fields">
+      <BaseInspectorSection v-if="node" title="Fields" icon="list-tree">
         <BaseInspectorRow
           v-for="field in node.fields"
           :key="field.id"
