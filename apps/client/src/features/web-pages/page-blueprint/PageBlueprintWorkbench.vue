@@ -42,6 +42,12 @@
       />
 
       <template #item="{ item, selected }">
+        <NodeFloatingToolbar
+          v-if="canManageNode(item)"
+          :selected="selected"
+          @duplicate="duplicateCanvasNode(item.id)"
+          @remove="deleteCanvasNode(item.id)"
+        />
         <UtilityNodeRenderer
           v-if="itemData(item).kind === 'utility' && itemData(item).utilityNode"
           :node="itemData(item).utilityNode!"
@@ -97,6 +103,7 @@ import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pag
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
 import BlueprintNodeFields from './components/BlueprintNodeFields.vue'
+import NodeFloatingToolbar from './components/NodeFloatingToolbar.vue'
 import PageBlueprintConnectionLayer, {
   type PageBlueprintConnectionNode,
 } from './components/PageBlueprintConnectionLayer.vue'
@@ -381,6 +388,24 @@ function updatePendingPointer(event: PointerEvent) {
 
 function clearPendingPointer() {
   pendingPointer.value = null
+}
+
+function canManageNode(item: BaseCanvasItem) {
+  return itemData(item).kind === 'utility' && document.value.nodes.some((node) => node.id === item.id)
+}
+
+function duplicateCanvasNode(nodeId: string) {
+  const nextNodeId = blueprintStore.duplicateNode(nodeId)
+  if (nextNodeId) selection.value = [nextNodeId]
+}
+
+function deleteCanvasNode(nodeId: string) {
+  blueprintStore.deleteNode(nodeId)
+  selection.value = selection.value.filter((id) => id !== nodeId)
+  if (pendingOutput.value?.nodeId === nodeId) {
+    pendingOutput.value = null
+    pendingPointer.value = null
+  }
 }
 
 function connectionFields(item: BaseCanvasItem) {

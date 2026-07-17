@@ -445,6 +445,50 @@
   z-index: 2;
 }
 
+.web-page-blueprint-v2__canvas .base-canvas__item:hover .web-page-blueprint-node-toolbar,
+.web-page-blueprint-node-toolbar--selected {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.web-page-blueprint-node-toolbar {
+  position: absolute;
+  right: 0;
+  top: -25px;
+  z-index: 5;
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--fabric-border);
+  border-radius: 3px;
+  background: var(--fabric-bg-elevated);
+  opacity: 0;
+  transform: translateY(3px);
+  transition: opacity 100ms ease, transform 100ms ease;
+  pointer-events: none;
+}
+
+.web-page-blueprint-node-toolbar button {
+  display: grid;
+  width: 24px;
+  height: 22px;
+  place-items: center;
+  color: var(--fabric-text-secondary);
+}
+
+.web-page-blueprint-node-toolbar button + button {
+  border-left: 1px solid var(--fabric-border-subtle);
+}
+
+.web-page-blueprint-node-toolbar button:hover {
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-surface);
+}
+
+.web-page-blueprint-node-toolbar button:last-child:hover {
+  color: var(--fabric-text-error);
+}
+
 .web-page-blueprint-v2__canvas--connecting {
   cursor: crosshair;
 }

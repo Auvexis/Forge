@@ -1,0 +1,6 @@
+- [x] Criar toolbar flutuante reutilizavel
+- [x] Adicionar duplicate/delete no store
+- [x] Ligar toolbar nos nodes persistidos
+- [x] Estilizar estados hover/selected
+- [x] Validar type-check
+- [x] Commitar ajuste

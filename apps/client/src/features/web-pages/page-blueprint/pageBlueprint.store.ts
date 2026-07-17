@@ -157,6 +157,50 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     return node.id
   }
 
+  function duplicateNode(nodeId: string) {
+    const source = document.value.nodes.find((node) => node.id === nodeId)
+    if (!source) return null
+
+    const nextNode = cloneBlueprintNode(source)
+    const sourceLayout = document.value.nodeLayouts[nodeId]
+    const nextLayout = sourceLayout
+      ? { x: sourceLayout.x + 32, y: sourceLayout.y + 32 }
+      : {
+        x: Math.round((-document.value.viewport.x + 360) / document.value.viewport.zoom),
+        y: Math.round((-document.value.viewport.y + 160) / document.value.viewport.zoom),
+      }
+
+    patchDocument({
+      nodes: [...document.value.nodes, nextNode],
+      nodeLayouts: {
+        ...document.value.nodeLayouts,
+        [nextNode.id]: nextLayout,
+      },
+    })
+
+    return nextNode.id
+  }
+
+  function deleteNode(nodeId: string) {
+    if (!document.value.nodes.some((node) => node.id === nodeId)) return
+    const nodeLayouts = { ...document.value.nodeLayouts }
+    delete nodeLayouts[nodeId]
+    const removedConnections = document.value.connections.filter((connection) =>
+      connection.from.nodeId === nodeId || connection.to.nodeId === nodeId,
+    )
+
+    patchDocument({
+      nodes: clearConnectionExpressions(
+        document.value.nodes.filter((node) => node.id !== nodeId),
+        removedConnections.map((connection) => connection.to),
+      ),
+      nodeLayouts,
+      connections: document.value.connections.filter((connection) =>
+        connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId,
+      ),
+    })
+  }
+
   function undo() {
     if (undoStack.value.length === 0) return
     redoStack.value.push(serialize(document.value))
@@ -211,10 +255,25 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     removeConnection,
     setNodeFieldMode,
     addUtilityNode,
+    duplicateNode,
+    deleteNode,
     undo,
     redo,
   }
 })
+
+function cloneBlueprintNode(source: PageBlueprintDocument['nodes'][number]): PageBlueprintDocument['nodes'][number] {
+  return {
+    ...source,
+    id: `${source.id}:copy:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
+    label: `${source.label} Copy`,
+    fields: source.fields.map((field) => ({
+      ...field,
+      expression: undefined,
+    })),
+    data: source.data ? { ...source.data } : source.data,
+  }
+}
 
 function createConnectionId(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
   return `connection:${from.nodeId}:${from.fieldId}->${to.nodeId}:${to.fieldId}`
@@ -237,6 +296,16 @@ function patchNodeField(
       fields: node.fields.map((field) => (field.id === fieldId ? { ...field, ...patch } : field)),
     }
   })
+}
+
+function clearConnectionExpressions(
+  nodes: PageBlueprintDocument['nodes'],
+  endpoints: PageBlueprintConnectionEndpoint[],
+) {
+  return endpoints.reduce(
+    (nextNodes, endpoint) => patchNodeField(nextNodes, endpoint.nodeId, endpoint.fieldId, { expression: undefined }),
+    nodes,
+  )
 }
 
 function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {
