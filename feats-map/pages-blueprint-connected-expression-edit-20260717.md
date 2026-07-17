@@ -1,0 +1,4 @@
+- [x] Editar expressao de conexao HTML
+- [x] Evitar overwrite do valor conectado
+- [x] Validar typecheck/build
+- [x] Commitar alterações

@@ -107,6 +107,7 @@ import type {
   PageBlueprintConnection,
   PageBlueprintConnectionEndpoint,
   PageBlueprintField,
+  PageBlueprintNode,
   PageBlueprintUtilityNode,
 } from './pageBlueprintSchema.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
@@ -300,7 +301,7 @@ function createCanvasItems(
       height: nodeHeight(fields.length),
       data: {
         kind: 'element' as const,
-        title: element.label,
+        title: elementNodeTitle(blueprintElement, element),
         eyebrow: element.events.length > 0 ? 'Element Event' : 'Page Element',
         detail: `${element.events.length} event(s) on ${element.tag}`,
         meta: shortId(element.id),
@@ -638,6 +639,14 @@ function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {
 
 function elementNodeId(elementId: string) {
   return `blueprint-element:${elementId}`
+}
+
+function elementNodeTitle(
+  node: PageBlueprintNode | undefined,
+  element: PageBlueprintViewModel['elements'][number],
+) {
+  const label = typeof node?.label === 'string' ? node.label.trim() : ''
+  return label && label !== element.id ? label : element.label
 }
 
 function workflowNodeId(workflowId: string) {

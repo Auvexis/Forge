@@ -899,10 +899,6 @@ function addBlueprintUtilityNode(type: PageBlueprintUtilityNodeType) {
 }
 
 function handleBlueprintNodeLabelUpdate(nodeId: string, label: string) {
-  if (nodeId.startsWith('blueprint-element:')) {
-    handleBlueprintElementPropertyUpdate(nodeId, 'label', label)
-    return
-  }
   blueprintStore.setNodeLabel(nodeId, label)
 }
 
@@ -931,6 +927,10 @@ function handleBlueprintElementPropertyUpdate(nodeId: string, property: string, 
   const blockId = nodeId.startsWith('blueprint-element:') ? nodeId.slice('blueprint-element:'.length) : nodeId
   const match = findPageBlockById(editorStore.blocks, blockId)
   if (!match) return
+
+  if (property !== 'label' && blueprintStore.setInputConnectionExpression(nodeId, property, value)) {
+    return
+  }
 
   if (property === 'elementId') {
     editorStore.patchBlock(blockId, { elementId: value })

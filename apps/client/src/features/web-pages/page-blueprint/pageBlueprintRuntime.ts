@@ -132,8 +132,8 @@ function outputTargetForField(block: PageBlock, fieldId: string): PageActionElem
 }
 
 function resultPathForConnection(connection: PageBlueprintConnection, fromField: PageBlueprintField, targetValue: unknown) {
-  const expressionPath = resultPathFromExpression(targetValue, connection.from.nodeId, connection.from.fieldId)
-    ?? resultPathFromExpression(connection.expression, connection.from.nodeId, connection.from.fieldId)
+  const expressionPath = resultPathFromExpression(connection.expression, connection.from.nodeId, connection.from.fieldId)
+    ?? resultPathFromExpression(targetValue, connection.from.nodeId, connection.from.fieldId)
   if (expressionPath !== null) return expressionPath
   if (fromField.id === 'return') return ''
   if (fromField.id.startsWith('return:')) return fromField.id.slice('return:'.length)

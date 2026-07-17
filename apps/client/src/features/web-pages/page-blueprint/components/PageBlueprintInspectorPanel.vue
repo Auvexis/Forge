@@ -14,9 +14,9 @@
           <BaseInspectorRow label="Kind" value="element" />
           <BaseInspectorRow
             label="Label"
-            :value="selectedElement.label"
+            :value="selectedElementNodeLabel"
             editable
-            @update:value="$emit('updateElementProperty', selectedElementNodeId, 'label', $event)"
+            @update:value="$emit('updateNodeLabel', selectedElementNodeId, $event)"
           />
           <BaseInspectorRow label="Type" :value="selectedElement.tag" />
         </BaseInspectorSection>
@@ -338,6 +338,7 @@ const selectedElement = computed(() =>
   elementModel.value.elements.find((element) => element.id === selectedElementId.value) ?? null,
 )
 const selectedElementIcon = computed(() => selectedElement.value ? pageBlockIcon(selectedElement.value.tag) : 'box')
+const selectedElementNodeLabel = computed(() => node.value?.label ?? selectedElement.value?.label ?? '')
 const selectedElementElementId = computed(() => String(selectedElement.value?.elementId ?? selectedElement.value?.attributes.id ?? ''))
 const selectedElementFields = computed(() => {
   if (!selectedElement.value) return []
