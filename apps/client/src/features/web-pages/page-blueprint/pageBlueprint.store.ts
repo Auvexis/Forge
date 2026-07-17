@@ -12,13 +12,13 @@ import {
 
 export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   const document = ref<PageBlueprintDocument>(createDefaultPageBlueprintDocument())
-  const savedSnapshot = ref<string>(serialize(document.value))
+  const savedSnapshot = ref<string>(serializeForDiff(document.value))
   const lastHistorySnapshot = ref<string>(serialize(document.value))
   const undoStack = ref<string[]>([])
   const redoStack = ref<string[]>([])
   let suppressHistory = false
 
-  const isDirty = computed(() => serialize(document.value) !== savedSnapshot.value)
+  const isDirty = computed(() => serializeForDiff(document.value) !== savedSnapshot.value)
   const canUndo = computed(() => undoStack.value.length > 0)
   const canRedo = computed(() => redoStack.value.length > 0)
 
@@ -26,7 +26,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     const sitesStore = useSitesStore()
     const file = sitesStore.activeSite?.files.find((item) => item.path === PAGE_BLUEPRINT_DOCUMENT_PATH && item.kind === 'file')
     const nextDocument = parsePageBlueprintDocument(file?.content)
-    const snapshot = serialize(nextDocument)
+    const snapshot = serializeForDiff(nextDocument)
 
     suppressHistory = true
     document.value = nextDocument
@@ -40,6 +40,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   function saveToActiveSite() {
     const sitesStore = useSitesStore()
     if (!sitesStore.activeSite) return false
+    const existingFile = sitesStore.activeSite.files.find((item) => item.path === PAGE_BLUEPRINT_DOCUMENT_PATH && item.kind === 'file')
+    if (existingFile && !isDirty.value) return true
 
     const nextDocument = touchDocument(document.value)
     const content = serializePageBlueprintDocument(nextDocument)
@@ -48,7 +50,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
     suppressHistory = true
     document.value = nextDocument
-    const snapshot = serialize(nextDocument)
+    const snapshot = serializeForDiff(nextDocument)
     savedSnapshot.value = snapshot
     lastHistorySnapshot.value = snapshot
     suppressHistory = false
@@ -56,7 +58,13 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   }
 
   function setViewport(viewport: BaseCanvasViewport) {
-    patchDocument({ viewport })
+    if (serializeViewport(document.value.viewport) === serializeViewport(viewport)) return
+    suppressHistory = true
+    document.value = {
+      ...document.value,
+      viewport,
+    }
+    suppressHistory = false
   }
 
   function setNodePosition(nodeId: string, position: { x: number; y: number }) {
@@ -145,4 +153,16 @@ function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {
 
 function serialize(document: PageBlueprintDocument) {
   return JSON.stringify(document)
+}
+
+function serializeForDiff(document: PageBlueprintDocument) {
+  return JSON.stringify({
+    schemaVersion: document.schemaVersion,
+    nodes: document.nodes,
+    collapsedGroups: document.collapsedGroups,
+  })
+}
+
+function serializeViewport(viewport: BaseCanvasViewport) {
+  return JSON.stringify(viewport)
 }
