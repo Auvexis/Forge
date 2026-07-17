@@ -1,0 +1,6 @@
+- [x] Criar registry de nodes utilitarios
+- [x] Criar BaseUtilityNode
+- [x] Criar Run Workflow e Transform Data
+- [x] Listar nodes no Toolbox
+- [x] Validar type-check
+- [x] Commitar ajuste
