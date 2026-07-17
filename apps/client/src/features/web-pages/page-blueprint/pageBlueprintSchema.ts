@@ -21,6 +21,14 @@ export type PageBlueprintFieldType =
 export type PageBlueprintFieldDirection = 'input' | 'output' | 'both'
 export type PageBlueprintFieldMode = 'single' | 'multiple'
 
+export interface PageBlueprintFieldSchema {
+  id: string
+  label: string
+  type?: PageBlueprintFieldType
+  mode?: PageBlueprintFieldMode
+  fields?: PageBlueprintFieldSchema[]
+}
+
 export interface PageBlueprintField {
   id: string
   label: string
@@ -31,6 +39,7 @@ export interface PageBlueprintField {
   inputConnected?: boolean
   outputConnected?: boolean
   mode?: PageBlueprintFieldMode
+  schema?: PageBlueprintFieldSchema[]
   configurable?: boolean
 }
 

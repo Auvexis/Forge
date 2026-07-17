@@ -1,5 +1,5 @@
-const BLUEPRINT_PATH_PATTERN = /utility:run-workflow:[A-Za-z0-9:_-]+\.return(?::[A-Za-z0-9_-]+)?(?:\.(?:[A-Za-z_$][\w$-]*|\d+))*/g
-const BLUEPRINT_TOKEN_PATTERN = /\{\{\s*(utility:run-workflow:[^}]+?)\s*\}\}/g
+const BLUEPRINT_PATH_PATTERN = /\b(?:utility|blueprint-element):[A-Za-z0-9:_-]+(?:\.[A-Za-z0-9:_-]+)+(?:\.(?:[A-Za-z_$][\w$-]*|\d+))*/g
+const BLUEPRINT_TOKEN_PATTERN = /\{\{\s*((?:utility|blueprint-element):[^}]+?)\s*\}\}/g
 
 export function evaluateBlueprintExpression(
   template: string,
@@ -29,14 +29,6 @@ export function normalizeBlueprintExpression(template: string) {
   return trimmed.replace(BLUEPRINT_TOKEN_PATTERN, (_, path: string) => path.trim())
 }
 
-export function resolveBlueprintRunWorkflowPath(path: string, nodeId: string, result: unknown) {
-  const prefix = `${nodeId}.return`
-  if (!path.startsWith(prefix)) return undefined
-  const remainder = path.slice(prefix.length)
-  const segments = normalizeReturnPath(remainder)
-  return resolveObjectPath(result, segments)
-}
-
 export function blueprintResultPathFromExpression(template: string, nodeId: string, fieldId: string) {
   const expression = normalizeBlueprintExpression(template)
   if (!expression) return null
@@ -48,24 +40,4 @@ export function blueprintResultPathFromExpression(template: string, nodeId: stri
   const fieldPath = fieldId.startsWith('return:') ? fieldId.slice('return:'.length) : ''
   const suffix = path.slice(prefix.length).replace(/^[:.]/, '')
   return [fieldPath, suffix].filter(Boolean).join('.')
-}
-
-function normalizeReturnPath(path: string) {
-  const normalized = path.replace(/^:/, '').replace(/^\./, '')
-  return normalized ? normalized.split('.').filter(Boolean) : []
-}
-
-function resolveObjectPath(value: unknown, segments: string[]) {
-  if (segments.length === 0) return value
-  let current = value
-  for (const segment of segments) {
-    if (current == null) return undefined
-    if (/^\d+$/.test(segment) && Array.isArray(current)) {
-      current = current[Number(segment)]
-      continue
-    }
-    if (typeof current !== 'object') return undefined
-    current = (current as Record<string, unknown>)[segment]
-  }
-  return current
 }

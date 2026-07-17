@@ -15,6 +15,7 @@ import {
   getPageBlueprintNodeDefinition,
 } from './pageBlueprintNodeRegistry.ts'
 import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
+import { createBlueprintReturnFieldsFromResult } from './pageBlueprintDataFlow.ts'
 import type {
   PageBlueprintConnectionEndpoint,
   PageBlueprintField,
@@ -366,7 +367,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   }
 
   function applyRunWorkflowTestResult(nodeId: string, result: unknown) {
-    const nextFields = [createRunWorkflowEventField(), ...createReturnFieldsFromResult(result)]
+    const nextFields = [createRunWorkflowEventField(), ...createBlueprintReturnFieldsFromResult(result)]
     const removedConnections = document.value.connections.filter((connection) =>
       (connection.from.nodeId === nodeId && connection.from.fieldId !== 'event')
         || (connection.to.nodeId === nodeId && connection.to.fieldId !== 'event'),
@@ -818,52 +819,8 @@ function clearConnectionExpressions(
   )
 }
 
-function createReturnFieldsFromResult(result: unknown): PageBlueprintField[] {
-  const isMultiple = Array.isArray(result)
-  const sample = isMultiple ? result[0] : result
-
-  if (isRecord(sample)) {
-    return Object.entries(sample).map(([key, value]) => ({
-      id: `return:${key}`,
-      label: formatFieldLabel(key),
-      type: inferFieldType(value),
-      direction: 'output',
-      mode: isMultiple ? 'multiple' : inferFieldMode(value),
-      configurable: false,
-    }))
-  }
-
-  return [{
-    id: 'return',
-    label: 'Return',
-    type: inferFieldType(result),
-    direction: 'output',
-    mode: isMultiple ? 'multiple' : 'single',
-    configurable: false,
-  }]
-}
-
-function inferFieldType(value: unknown): PageBlueprintFieldType {
-  if (Array.isArray(value)) return 'array'
-  if (value === null || value === undefined) return 'unknown'
-  if (typeof value === 'string') return 'string'
-  if (typeof value === 'number') return 'number'
-  if (typeof value === 'boolean') return 'boolean'
-  if (typeof value === 'object') return 'object'
-  return 'unknown'
-}
-
-function inferFieldMode(value: unknown): PageBlueprintFieldMode {
-  return Array.isArray(value) ? 'multiple' : 'single'
-}
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === 'object' && !Array.isArray(value))
-}
-
-function formatFieldLabel(key: string) {
-  const normalized = key.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim()
-  return normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : key
 }
 
 function elementIdFromNodeId(nodeId: string) {

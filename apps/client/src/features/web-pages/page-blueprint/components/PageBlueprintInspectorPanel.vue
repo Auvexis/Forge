@@ -308,10 +308,8 @@ import {
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlock } from '../../types/page.types.ts'
 import type { PageBlueprintDocument } from '../pageBlueprintDocument.ts'
-import {
-  evaluateBlueprintExpression,
-  resolveBlueprintRunWorkflowPath,
-} from '../pageBlueprintExpressions.ts'
+import { evaluateBlueprintExpression } from '../pageBlueprintExpressions.ts'
+import { createBlueprintDataFlowContext, resolveBlueprintDataPath } from '../pageBlueprintDataFlow.ts'
 import { createElementFields } from '../pageBlueprintFields.ts'
 import { pageBlockIcon } from '../pageBlueprintGroups.ts'
 import { createPageBlueprintViewModel } from '../pageBlueprintViewModel.ts'
@@ -462,23 +460,10 @@ function elementConnectionExpression(fieldId: string) {
 }
 
 function resolveElementExpressionValue(expression: string) {
+  const dataFlow = createBlueprintDataFlowContext(props.document)
   return evaluateBlueprintExpression(expression, (path) => {
-    const nodeId = path.match(/^(utility:run-workflow:[^.]+)\.return/)?.[1]
-    if (!nodeId) return undefined
-    const result = testResultForNode(nodeId)
-    return result === undefined ? undefined : resolveBlueprintRunWorkflowPath(path, nodeId, result)
+    return resolveBlueprintDataPath(dataFlow, path, 'test')
   })
-}
-
-function testResultForNode(nodeId: string) {
-  const sourceNode = props.document.nodes.find((candidate) => candidate.id === nodeId)
-  const json = sourceNode?.data?.testResultJson
-  if (typeof json !== 'string') return undefined
-  try {
-    return JSON.parse(json)
-  } catch {
-    return undefined
-  }
 }
 
 function stringifyInspectorValue(value: unknown) {

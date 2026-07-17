@@ -10,8 +10,12 @@ import type { PageBlueprintDocument } from './pageBlueprintDocument.ts'
 import {
   blueprintResultPathFromExpression,
   evaluateBlueprintExpression,
-  resolveBlueprintRunWorkflowPath,
 } from './pageBlueprintExpressions.ts'
+import {
+  createBlueprintDataFlowContext,
+  resolveBlueprintDataPath,
+  type PageBlueprintDataResolveMode,
+} from './pageBlueprintDataFlow.ts'
 import type { PageBlueprintConnection, PageBlueprintField, PageBlueprintNode } from './pageBlueprintSchema.ts'
 
 const BLUEPRINT_EVENT_PREFIX = 'blueprint-page-event:'
@@ -43,20 +47,19 @@ function collectBlueprintElementValues(
 ): Map<string, Array<{ fieldId: string; value: unknown }>> {
   const previewValues = new Map<string, Array<{ fieldId: string; value: unknown }>>()
   const nodes = new Map(blueprint.nodes.map((node) => [node.id, node]))
+  const dataFlow = createBlueprintDataFlowContext(blueprint)
+  const resolveMode: PageBlueprintDataResolveMode = useTestResult ? 'test' : 'empty'
 
   for (const connection of blueprint.connections) {
     const fromNode = nodes.get(connection.from.nodeId)
     const toNode = resolveRuntimeNode(nodes, connection.to.nodeId)
     if (!fromNode || !toNode) continue
-    if (fromNode.kind !== 'utility' || fromNode.type !== 'run-workflow' || toNode.kind !== 'element') continue
+    if (fromNode.kind !== 'utility' || toNode.kind !== 'element') continue
     if (connection.from.fieldId === 'event') continue
 
-    const value = evaluateBlueprintExpression(connection.expression, (path) => {
-      const nodeId = path.match(/^(utility:run-workflow:[^.]+)\.return/)?.[1]
-      if (!nodeId) return undefined
-      const result = useTestResult ? testResultForNode(nodes.get(nodeId)) : {}
-      return resolveBlueprintRunWorkflowPath(path, nodeId, result)
-    })
+    const value = evaluateBlueprintExpression(connection.expression, (path) =>
+      resolveBlueprintDataPath(dataFlow, path, resolveMode),
+    )
     if (value === undefined) continue
 
     const blockId = elementBlockId(toNode.id)
@@ -254,16 +257,6 @@ function stringifyPreviewValue(value: unknown) {
   if (typeof value === 'string') return value
   if (typeof value === 'number' || typeof value === 'boolean') return String(value)
   return JSON.stringify(value)
-}
-
-function testResultForNode(node: PageBlueprintNode | undefined) {
-  const json = node?.data?.testResultJson
-  if (typeof json !== 'string') return undefined
-  try {
-    return JSON.parse(json)
-  } catch {
-    return undefined
-  }
 }
 
 function stripBlueprintOutputBindings(bindings: Record<string, PageActionOutputBinding[]>) {
