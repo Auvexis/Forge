@@ -1,0 +1,4 @@
+- [x] Adicionar alias removeNode
+- [x] Usar action resiliente no Workbench
+- [x] Validar type-check
+- [x] Commitar ajuste

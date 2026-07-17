@@ -222,6 +222,10 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function removeNode(nodeId: string) {
+    deleteNode(nodeId)
+  }
+
   function undo() {
     if (undoStack.value.length === 0) return
     redoStack.value.push(serialize(document.value))
@@ -281,6 +285,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     addUtilityNode,
     duplicateNode,
     deleteNode,
+    removeNode,
     undo,
     redo,
   }

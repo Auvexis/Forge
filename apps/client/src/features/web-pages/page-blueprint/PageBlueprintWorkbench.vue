@@ -445,7 +445,7 @@ function duplicateCanvasNode(nodeId: string) {
 }
 
 function deleteCanvasNode(nodeId: string) {
-  blueprintStore.deleteNode(nodeId)
+  blueprintStore.removeNode?.(nodeId) ?? blueprintStore.deleteNode(nodeId)
   selection.value = selection.value.filter((id) => id !== nodeId)
   if (pendingOutput.value?.nodeId === nodeId) {
     pendingOutput.value = null
