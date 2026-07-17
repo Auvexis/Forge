@@ -69,8 +69,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
   function setNodePosition(nodeId: string, position: { x: number; y: number }) {
     patchDocument({
-      nodes: {
-        ...document.value.nodes,
+      nodeLayouts: {
+        ...document.value.nodeLayouts,
         [nodeId]: position,
       },
     })
@@ -78,8 +78,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
   function setNodePositions(positions: Record<string, { x: number; y: number }>) {
     patchDocument({
-      nodes: {
-        ...document.value.nodes,
+      nodeLayouts: {
+        ...document.value.nodeLayouts,
         ...positions,
       },
     })
@@ -158,7 +158,9 @@ function serialize(document: PageBlueprintDocument) {
 function serializeForDiff(document: PageBlueprintDocument) {
   return JSON.stringify({
     schemaVersion: document.schemaVersion,
+    nodeLayouts: document.nodeLayouts,
     nodes: document.nodes,
+    connections: document.connections,
     collapsedGroups: document.collapsedGroups,
   })
 }

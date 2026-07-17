@@ -72,7 +72,7 @@ import {
   createBindingFields,
   createElementFields,
   createWorkflowFields,
-  type PageBlueprintField,
+  type PageBlueprintDisplayField,
 } from './pageBlueprintFields.ts'
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
@@ -93,7 +93,7 @@ interface PageBlueprintCanvasItemData {
   icon: string
   accent: string
   showFooter: boolean
-  fields: PageBlueprintField[]
+  fields: PageBlueprintDisplayField[]
   elementId?: string
 }
 
@@ -129,7 +129,7 @@ const canvasItems = computed<PageBlueprintCanvasItem[]>(() => {
   const items = createCanvasItems(model.value)
   return items.map((item) => ({
     ...item,
-    ...(document.value.nodes[item.id] ?? {}),
+    ...(document.value.nodeLayouts[item.id] ?? {}),
   }))
 })
 

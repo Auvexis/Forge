@@ -4,7 +4,7 @@ import type { PageBlueprintBindingNode, PageBlueprintElementNode, PageBlueprintW
 
 export type PageBlueprintFieldMode = 'single' | 'multiple'
 
-export interface PageBlueprintField {
+export interface PageBlueprintDisplayField {
   id: string
   label: string
   type?: string
@@ -14,7 +14,7 @@ export interface PageBlueprintField {
   mode?: PageBlueprintFieldMode
 }
 
-export function createElementFields(element: PageBlueprintElementNode): PageBlueprintField[] {
+export function createElementFields(element: PageBlueprintElementNode): PageBlueprintDisplayField[] {
   const baseFields = bindableElementFields(element.tag, element.props, element.attributes, element.className)
   return baseFields.map((field) => ({
     ...field,
@@ -23,7 +23,7 @@ export function createElementFields(element: PageBlueprintElementNode): PageBlue
   }))
 }
 
-export function createWorkflowFields(workflow: PageBlueprintWorkflowNode): PageBlueprintField[] {
+export function createWorkflowFields(workflow: PageBlueprintWorkflowNode): PageBlueprintDisplayField[] {
   return workflow.returns.map((field) => ({
     id: field.key,
     label: field.label,
@@ -33,7 +33,7 @@ export function createWorkflowFields(workflow: PageBlueprintWorkflowNode): PageB
   }))
 }
 
-export function createBindingFields(binding: PageBlueprintBindingNode): PageBlueprintField[] {
+export function createBindingFields(binding: PageBlueprintBindingNode): PageBlueprintDisplayField[] {
   return [
     {
       id: 'source',
@@ -57,7 +57,7 @@ function bindableElementFields(
   props: PageBlockProps,
   attributes: PageBlockAttributes,
   className: string,
-): PageBlueprintField[] {
+): PageBlueprintDisplayField[] {
   if (tag === 'input') {
     const type = String(props.type ?? attributes.type ?? 'text')
     return [
@@ -95,7 +95,7 @@ function bindableElementFields(
   ]
 }
 
-function htmlField(id: string, label: string, type: string, value: unknown): PageBlueprintField {
+function htmlField(id: string, label: string, type: string, value: unknown): PageBlueprintDisplayField {
   return {
     id,
     label,
