@@ -344,7 +344,7 @@ function createCanvasItems(
       x: 1040,
       y: 40 + index * 148,
       width: definition?.width ?? 280,
-      height: nodeHeight(node.fields.length),
+      height: utilityNodeHeight(node.fields.length),
       data: {
         kind: 'utility' as const,
         title: node.label,
@@ -550,5 +550,9 @@ function shortId(id: string) {
 
 function nodeHeight(fieldCount: number) {
   return 58 + Math.max(1, fieldCount) * 32 + 20
+}
+
+function utilityNodeHeight(fieldCount: number) {
+  return 36 + fieldCount * 32 + (fieldCount > 0 ? 10 : 0)
 }
 </script>

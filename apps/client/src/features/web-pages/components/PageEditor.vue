@@ -326,6 +326,7 @@
 
     <AppPanel
       v-if="activePageDocument === 'blueprint'"
+      class="web-page-editor__blueprint-inspector-panel"
       :is-open="isInspectorVisible"
       title="Inspector"
       position="right"
