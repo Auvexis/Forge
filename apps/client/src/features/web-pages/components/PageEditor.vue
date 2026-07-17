@@ -630,6 +630,7 @@ const isInspectorVisible = computed(() =>
 )
 const workspacePlaneStyle = computed(() => ({}))
 const pageEditorLayoutStyle = computed(() => ({
+  '--web-page-canvas-bottom': '0px',
   ...(leftPanelWidth.value === null ? {} : { '--web-page-left-panel-width': `${leftPanelWidth.value}px` }),
   ...(rightPanelWidth.value === null ? {} : { '--web-page-right-panel-width': `${rightPanelWidth.value}px` }),
 }))

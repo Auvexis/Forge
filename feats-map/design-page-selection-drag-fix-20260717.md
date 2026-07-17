@@ -1,0 +1,5 @@
+- [x] Analisar selection overlay e drag do Design Page
+- [x] Corrigir recalculo da selection box
+- [x] Corrigir drag interno dos elementos
+- [x] Validar type-check e testes relacionados
+- [x] Commitar ajuste
