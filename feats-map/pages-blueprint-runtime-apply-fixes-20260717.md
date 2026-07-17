@@ -1,0 +1,5 @@
+- [x] Corrigir ellipsis no Inspector
+- [x] Salvar runtime quando Blueprint muda
+- [x] Aplicar fallback inicial no preview/live
+- [x] Validar build/typecheck
+- [x] Commitar alterações

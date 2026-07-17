@@ -808,6 +808,7 @@
 .web-page-blueprint-inspector-row__control,
 .web-page-blueprint-inspector-row__value {
   min-width: 0;
+  max-width: 100%;
   height: 18px;
   padding: 0 6px;
   border: 1px solid transparent;
@@ -816,6 +817,9 @@
   color: var(--fabric-text-primary);
   font: 10px var(--fabric-font-mono);
   line-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .web-page-blueprint-inspector-row__control:hover,

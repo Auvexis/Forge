@@ -1769,7 +1769,7 @@ async function saveActiveDocument() {
   }
   if (activePageDocument.value === 'blueprint') {
     blueprintStore.saveToActiveSite()
-    if (pagesStore.isDirty || editorStore.isDirty) await savePage()
+    await savePage()
     if (sitesStore.isDirty) await sitesStore.saveActiveSite()
     return
   }
@@ -1806,12 +1806,18 @@ async function savePage() {
   restoreSelection(selection, selectedBlockIds)
 }
 
-function previewPage() {
+async function previewPage() {
   if (!pagesStore.activePage) return
+  await savePage()
+  if (sitesStore.isDirty) await sitesStore.saveActiveSite()
   window.open(`${API_BASE_URL}${ENDPOINTS.PAGE_PREVIEW(pagesStore.activePage.id)}`, '_blank', 'noopener')
 }
 
-function previewCanvasPage(pageId: string) {
+async function previewCanvasPage(pageId: string) {
+  if (pageId === pagesStore.activePage?.id) {
+    await savePage()
+    if (sitesStore.isDirty) await sitesStore.saveActiveSite()
+  }
   window.open(`${API_BASE_URL}${ENDPOINTS.PAGE_PREVIEW(pageId)}`, '_blank', 'noopener')
 }
 
@@ -1833,8 +1839,10 @@ async function togglePagePublication() {
 function openLivePage() {
   const page = pagesStore.activePage
   if (!page?.siteId || !activePagePublishedAt.value) return
-  const publicId = sitesStore.activeSite?.publicId ?? page.siteId
-  window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(publicId, page.publicPath || page.slug)}`, '_blank', 'noopener')
+  void savePage().then(() => {
+    const publicId = sitesStore.activeSite?.publicId ?? page.siteId
+    window.open(`${API_BASE_URL}${ENDPOINTS.PUBLISHED_PAGE(publicId, page.publicPath || page.slug)}`, '_blank', 'noopener')
+  })
 }
 
 async function exportActiveProject() {

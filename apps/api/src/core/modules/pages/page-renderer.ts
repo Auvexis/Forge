@@ -490,6 +490,15 @@ function renderActionRuntime(page: PublishedPage, options: RenderOptions = {}): 
     `      if (value !== undefined) writeOutputTarget(binding.target, value);`,
     `    }`,
     `  }`,
+    `  function applyInitialOutputExpressions() {`,
+    `    for (const bindings of Object.values(outputBindings)) {`,
+    `      for (const binding of bindings || []) {`,
+    `        if (!binding.expression) continue;`,
+    `        const value = evaluateBlueprintExpression(binding.expression, {});`,
+    `        if (value !== undefined) writeOutputTarget(binding.target, value);`,
+    `      }`,
+    `    }`,
+    `  }`,
     `  function templateFor(element) {`,
     `    const key = element.dataset.pageActionBindingElementId || "";`,
     `    if (!repeaterTemplates.has(key)) repeaterTemplates.set(key, Array.from(element.childNodes).map((node) => node.cloneNode(true)));`,
@@ -626,6 +635,7 @@ function renderActionRuntime(page: PublishedPage, options: RenderOptions = {}): 
     `    const payload = readElementEventPayload(form, "submit");`,
     `    entries.forEach((entry) => submitAction(entry.actionId, payload, readElementScope(form)));`,
     `  });`,
+    `  applyInitialOutputExpressions();`,
     `})();`,
   ].join("\n");
 }

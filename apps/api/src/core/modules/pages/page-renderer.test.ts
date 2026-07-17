@@ -313,6 +313,8 @@ describe("page renderer", () => {
     assert.match(html, /binding\.expression \? evaluateBlueprintExpression\(binding\.expression, result\)/);
     assert.match(html, /normalizeBlueprintExpression\(template\)/);
     assert.match(html, /trimmed\.replace\(\/\\\{\\\{\\s\*\(utility:run-workflow/);
+    assert.match(html, /applyInitialOutputExpressions\(\)/);
+    assert.match(html, /evaluateBlueprintExpression\(binding\.expression, \{\}\)/);
     assert.match(html, /writeOutputTarget\(binding\.target, value\)/);
   });
 
