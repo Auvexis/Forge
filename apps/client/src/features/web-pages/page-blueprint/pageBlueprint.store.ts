@@ -160,6 +160,75 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function configureRunWorkflowNode(
+    nodeId: string,
+    config: { workflowId: string; triggerId: string; actionId?: string; label: string; detail: string },
+  ) {
+    const sourceNode = document.value.nodes.find((node) => node.id === nodeId)
+    const previousTriggerId = typeof sourceNode?.data?.triggerId === 'string' ? sourceNode.data.triggerId : ''
+    const triggerChanged = previousTriggerId !== config.triggerId
+    const removedConnections = triggerChanged
+      ? document.value.connections.filter((connection) => connection.from.nodeId === nodeId || connection.to.nodeId === nodeId)
+      : []
+
+    patchDocument({
+      nodes: clearConnectionExpressions(
+        document.value.nodes.map((node) => {
+          if (node.id !== nodeId) return node
+          const data = node.data ?? {}
+          return {
+            ...node,
+            label: config.label,
+            fields: triggerChanged ? [] : node.fields,
+            data: {
+              ...data,
+              workflowId: config.workflowId,
+              triggerId: config.triggerId,
+              actionId: config.actionId,
+              detail: config.detail,
+              input: triggerChanged ? {} : (isRecord(data.input) ? data.input : {}),
+              testResultJson: triggerChanged ? undefined : data.testResultJson,
+            },
+          }
+        }),
+        removedConnections.map((connection) => connection.to),
+      ),
+      connections: triggerChanged
+        ? document.value.connections.filter((connection) => connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId)
+        : document.value.connections,
+    })
+  }
+
+  function setRunWorkflowEventType(nodeId: string, eventType: string) {
+    patchDocument({
+      nodes: document.value.nodes.map((node) =>
+        node.id === nodeId
+          ? { ...node, data: { ...(node.data ?? {}), eventType } }
+          : node,
+      ),
+    })
+  }
+
+  function setRunWorkflowInput(nodeId: string, key: string, value: unknown) {
+    patchDocument({
+      nodes: document.value.nodes.map((node) => {
+        if (node.id !== nodeId) return node
+        const data = node.data ?? {}
+        const input = isRecord(data.input) ? data.input : {}
+        return {
+          ...node,
+          data: {
+            ...data,
+            input: {
+              ...input,
+              [key]: value,
+            },
+          },
+        }
+      }),
+    })
+  }
+
   function addNodeField(
     nodeId: string,
     field: {
@@ -212,14 +281,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
-  function applyRunWorkflowTestResult(nodeId: string, json: string) {
-    let result: unknown
-    try {
-      result = JSON.parse(json)
-    } catch {
-      return false
-    }
-
+  function applyRunWorkflowTestResult(nodeId: string, result: unknown) {
     const nextFields = createReturnFieldsFromResult(result)
     const removedConnections = document.value.connections.filter((connection) =>
       connection.from.nodeId === nodeId || connection.to.nodeId === nodeId,
@@ -234,7 +296,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
               fields: nextFields,
               data: {
                 ...(node.data ?? {}),
-                testResultJson: json,
+                testResultJson: JSON.stringify(result, null, 2),
               },
             }
             : node,
@@ -374,6 +436,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setNodeFieldMode,
     setNodeLabel,
     setNodeFieldValue,
+    configureRunWorkflowNode,
+    setRunWorkflowEventType,
+    setRunWorkflowInput,
     addNodeField,
     removeNodeField,
     applyRunWorkflowTestResult,

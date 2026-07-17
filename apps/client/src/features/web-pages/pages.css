@@ -563,6 +563,17 @@
   color: var(--fabric-text-error);
 }
 
+.web-page-blueprint-inspector-result {
+  max-height: 220px;
+  margin: 0;
+  padding: 7px 8px;
+  overflow: auto;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
+  background: color-mix(in srgb, var(--fabric-bg-canvas) 72%, transparent);
+  color: var(--fabric-text-primary);
+  font: 10px/1.45 var(--fabric-font-mono);
+}
+
 .web-page-blueprint-inspector-row {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);
