@@ -445,6 +445,33 @@
   z-index: 2;
 }
 
+.web-page-blueprint-v2__canvas--connecting {
+  cursor: crosshair;
+}
+
+.web-page-blueprint-connections {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.web-page-blueprint-connections__path {
+  fill: none;
+  stroke: var(--fabric-blueprint-binding-line, color-mix(in srgb, var(--fabric-accent) 72%, white 10%));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.6px;
+  opacity: 0.82;
+}
+
+.web-page-blueprint-connections__path--pending {
+  stroke: var(--fabric-blueprint-binding-active, var(--fabric-accent));
+  stroke-dasharray: 5 4;
+  opacity: 0.95;
+}
+
 .web-page-blueprint-element-group {
   position: absolute;
   z-index: 0;

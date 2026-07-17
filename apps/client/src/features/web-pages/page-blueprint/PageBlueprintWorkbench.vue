@@ -4,12 +4,22 @@
       v-model:selection="selection"
       v-model:viewport="viewport"
       class="web-page-blueprint-v2__canvas"
+      :class="{ 'web-page-blueprint-v2__canvas--connecting': pendingOutput }"
       :items="canvasItems"
       pattern-style="square"
       :pattern-size="24"
       :grid-size="24"
       @items-move="moveCanvasItems"
+      @pointermove="updatePendingPointer"
+      @pointerleave="clearPendingPointer"
     >
+      <PageBlueprintConnectionLayer
+        :nodes="connectionNodes"
+        :connections="document.connections"
+        :pending-output="pendingOutput"
+        :pointer="pendingPointer"
+      />
+
       <BaseElementGroup
         v-for="group in hierarchyGroups"
         :key="group.id"
@@ -86,6 +96,9 @@ import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pag
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
 import BlueprintNodeFields from './components/BlueprintNodeFields.vue'
+import PageBlueprintConnectionLayer, {
+  type PageBlueprintConnectionNode,
+} from './components/PageBlueprintConnectionLayer.vue'
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
@@ -120,6 +133,7 @@ const selection = ref<string[]>([])
 const blueprintStore = usePageBlueprintStore()
 const { document } = storeToRefs(blueprintStore)
 const pendingOutput = ref<PageBlueprintConnectionEndpoint | null>(null)
+const pendingPointer = ref<{ x: number; y: number } | null>(null)
 const viewport = computed<BaseCanvasViewport>({
   get: () => document.value.viewport,
   set: (nextViewport) => blueprintStore.setViewport(nextViewport),
@@ -156,6 +170,18 @@ const elementGroupItems = computed<PageBlueprintGroupItem[]>(() =>
 )
 
 const hierarchyGroups = computed(() => buildPageBlueprintGroups(props.blocks, elementGroupItems.value))
+const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
+  canvasItems.value
+    .filter((item) => itemData(item).kind !== 'empty')
+    .map((item) => ({
+      id: item.id,
+      x: item.x,
+      y: item.y,
+      width: item.width ?? 0,
+      fields: connectionFields(item),
+    }))
+    .filter((node) => node.width > 0 && node.fields.length > 0),
+)
 
 onBeforeUnmount(() => {
   window.removeEventListener('pointermove', moveGroupDrag)
@@ -338,6 +364,28 @@ function completeFieldConnection(nodeId: string, fieldId: string) {
   if (!pendingOutput.value) return
   blueprintStore.connectFields(pendingOutput.value, { nodeId, fieldId })
   pendingOutput.value = null
+  pendingPointer.value = null
+}
+
+function updatePendingPointer(event: PointerEvent) {
+  if (!pendingOutput.value) return
+  const canvasElement = (event.currentTarget as HTMLElement | null)
+  const rect = canvasElement?.getBoundingClientRect()
+  if (!rect) return
+  pendingPointer.value = {
+    x: (event.clientX - rect.left - viewport.value.x) / viewport.value.zoom,
+    y: (event.clientY - rect.top - viewport.value.y) / viewport.value.zoom,
+  }
+}
+
+function clearPendingPointer() {
+  pendingPointer.value = null
+}
+
+function connectionFields(item: BaseCanvasItem) {
+  const data = itemData(item)
+  if (data.utilityNode) return data.utilityNode.fields.map((field) => ({ id: field.id }))
+  return data.fields.map((field) => ({ id: field.id }))
 }
 
 function withConnectionValues(
