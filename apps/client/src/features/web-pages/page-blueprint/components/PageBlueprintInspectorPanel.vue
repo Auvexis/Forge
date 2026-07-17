@@ -97,6 +97,27 @@
             No events.
           </p>
         </BaseInspectorSection>
+
+        <BaseInspectorSection v-if="selectedElementRepeatField" title="Repeat" icon="repeat-2">
+          <BaseInspectorRow
+            label="Source"
+            :value="selectedElementRepeatField.expression ?? 'Waiting multiple connection'"
+            placeholder="array"
+          />
+          <BaseInspectorRow
+            v-if="selectedElementRepeatBinding"
+            label="Collection"
+            :value="selectedElementRepeatBinding.collectionPath || 'return'"
+          />
+          <BaseInspectorRow
+            v-if="selectedElementRepeatBinding"
+            label="Item Alias"
+            :value="selectedElementRepeatBinding.itemAlias"
+          />
+          <p v-if="!selectedElementRepeatBinding" class="web-page-blueprint-inspector-empty">
+            Connect a multiple output to repeat this element's children.
+          </p>
+        </BaseInspectorSection>
       </template>
 
       <template v-else>
@@ -312,6 +333,7 @@ import { evaluateBlueprintExpression } from '../pageBlueprintExpressions.ts'
 import { createBlueprintDataFlowContext, resolveBlueprintDataPath } from '../pageBlueprintDataFlow.ts'
 import { createElementFields } from '../pageBlueprintFields.ts'
 import { pageBlockIcon } from '../pageBlueprintGroups.ts'
+import { PAGE_BLUEPRINT_REPEAT_FIELD_ID } from '../pageBlueprintRepeaters.ts'
 import { createPageBlueprintViewModel } from '../pageBlueprintViewModel.ts'
 import BaseInspectorButton from './BaseInspectorButton.vue'
 import BaseInspectorRow from './BaseInspectorRow.vue'
@@ -363,7 +385,7 @@ const selectedElementElementId = computed(() => String(selectedElement.value?.el
 const selectedElementFields = computed(() => {
   if (!selectedElement.value) return []
   return createElementFields(selectedElement.value)
-    .filter((field) => field.id !== 'id' && field.id !== 'class')
+    .filter((field) => field.id !== 'id' && field.id !== 'class' && field.id !== PAGE_BLUEPRINT_REPEAT_FIELD_ID)
     .map((field) => {
       const expression = elementConnectionExpression(field.id)
       return {
@@ -376,6 +398,18 @@ const selectedElementFields = computed(() => {
 })
 const selectedElementEventFields = computed(() =>
   node.value?.kind === 'element' ? node.value.fields.filter((field) => field.type === 'event') : [],
+)
+const selectedElementRepeatField = computed(() => {
+  if (node.value?.kind !== 'element') return null
+  const field = node.value.fields.find((item) => item.id === PAGE_BLUEPRINT_REPEAT_FIELD_ID)
+  if (!field) return null
+  return {
+    ...field,
+    expression: elementConnectionExpression(PAGE_BLUEPRINT_REPEAT_FIELD_ID),
+  }
+})
+const selectedElementRepeatBinding = computed(() =>
+  props.document.repeatBindings.find((binding) => binding.targetNodeId === selectedElementNodeId.value) ?? null,
 )
 const runWorkflowOutputFields = computed(() =>
   node.value?.type === 'run-workflow' ? node.value.fields.filter((field) => field.id !== 'event') : [],

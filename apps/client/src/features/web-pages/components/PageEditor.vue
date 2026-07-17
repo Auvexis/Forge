@@ -213,7 +213,7 @@
         </BaseCanvas>
         <PageBlueprintWorkbench
           v-else
-          :blocks="activePreviewBlocks"
+          :blocks="editorStore.blocks"
           :workflows="pageActionsStore.workflows"
           :output-bindings="pageActionBindingsStore.outputBindingsByAction"
           :collection-bindings="pageActionBindingsStore.collectionBindingsByAction"
@@ -340,7 +340,7 @@
       @resize-reset="resetRightPanelResize"
     >
       <PageBlueprintInspectorPanel
-        :blocks="activePreviewBlocks"
+        :blocks="editorStore.blocks"
         :document="blueprintStore.document"
         :selected-node-id="blueprintSelectedNodeId"
         :workflows="pageActionsStore.workflows"

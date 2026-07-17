@@ -76,3 +76,13 @@ export interface PageBlueprintConnection {
   to: PageBlueprintConnectionEndpoint
   expression: string
 }
+
+export interface PageBlueprintRepeatBinding {
+  id: string
+  source: PageBlueprintConnectionEndpoint
+  targetNodeId: string
+  targetElementId: string
+  collectionPath: string
+  itemAlias: string
+  createdAt: string
+}

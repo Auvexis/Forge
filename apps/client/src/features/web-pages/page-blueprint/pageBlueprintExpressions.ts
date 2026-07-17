@@ -1,4 +1,4 @@
-const BLUEPRINT_PATH_PATTERN = /\b(?:utility|blueprint-element):[A-Za-z0-9:_-]+(?:\.[A-Za-z0-9:_-]+)+(?:\.(?:[A-Za-z_$][\w$-]*|\d+))*/g
+const BLUEPRINT_PATH_PATTERN = /\b(?:utility|blueprint-element):[A-Za-z0-9:_-]+(?:\.[A-Za-z0-9:_\-[\]]+)+(?:\.(?:[A-Za-z_$][\w$-]*|\d+))*/g
 const BLUEPRINT_TOKEN_PATTERN = /\{\{\s*((?:utility|blueprint-element):[^}]+?)\s*\}\}/g
 
 export function evaluateBlueprintExpression(

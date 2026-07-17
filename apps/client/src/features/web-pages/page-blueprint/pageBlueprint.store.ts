@@ -16,6 +16,14 @@ import {
 } from './pageBlueprintNodeRegistry.ts'
 import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
 import { createBlueprintReturnFieldsFromResult } from './pageBlueprintDataFlow.ts'
+import {
+  createRepeatBinding,
+  isBlueprintRepeatFieldId,
+  isBlueprintRepeatSourceField,
+  isPageBlockContainer,
+  PAGE_BLUEPRINT_REPEAT_FIELD_ID,
+  repeatBindingId,
+} from './pageBlueprintRepeaters.ts'
 import type {
   PageBlueprintConnectionEndpoint,
   PageBlueprintField,
@@ -127,10 +135,23 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     patchDocument({ collapsedGroups: groupIds })
   }
 
+  function createRepeatBindingForConnection(
+    from: PageBlueprintConnectionEndpoint,
+    to: PageBlueprintConnectionEndpoint,
+  ) {
+    if (!isBlueprintRepeatFieldId(to.fieldId)) return null
+    const sourceField = document.value.nodes
+      .find((node) => node.id === from.nodeId)
+      ?.fields.find((field) => field.id === from.fieldId)
+    if (!isBlueprintRepeatSourceField(sourceField)) return null
+    return createRepeatBinding(from, to.nodeId, elementIdFromNodeId(to.nodeId))
+  }
+
   function connectFields(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
     if (from.nodeId === to.nodeId && from.fieldId === to.fieldId) return null
 
     const expression = createConnectionExpression(from)
+    const repeatBinding = createRepeatBindingForConnection(from, to)
     const connection = {
       id: createConnectionId(from, to),
       from,
@@ -143,6 +164,14 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
         ...document.value.connections.filter((item) => !(item.to.nodeId === to.nodeId && item.to.fieldId === to.fieldId)),
         connection,
       ],
+      repeatBindings: repeatBinding
+        ? [
+          ...document.value.repeatBindings.filter((item) => item.targetNodeId !== to.nodeId),
+          repeatBinding,
+        ]
+        : isBlueprintRepeatFieldId(to.fieldId)
+          ? document.value.repeatBindings.filter((item) => item.targetNodeId !== to.nodeId)
+          : document.value.repeatBindings,
       nodes: patchNodeField(document.value.nodes, to.nodeId, to.fieldId, { expression }),
     })
 
@@ -155,6 +184,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
     patchDocument({
       connections: document.value.connections.filter((item) => item.id !== connectionId),
+      repeatBindings: document.value.repeatBindings.filter((item) => item.id !== repeatBindingId(connection.from, connection.to.nodeId)),
       nodes: patchNodeField(document.value.nodes, connection.to.nodeId, connection.to.fieldId, { expression: undefined }),
     })
   }
@@ -220,6 +250,13 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
           ? createConnectionExpression(renameEndpointNode(connection.from, nodeId, normalized))
           : connection.expression,
       })),
+      repeatBindings: document.value.repeatBindings.map((binding) => ({
+        ...binding,
+        id: repeatBindingId(renameEndpointNode(binding.source, nodeId, normalized), binding.targetNodeId === nodeId ? normalized : binding.targetNodeId),
+        source: renameEndpointNode(binding.source, nodeId, normalized),
+        targetNodeId: binding.targetNodeId === nodeId ? normalized : binding.targetNodeId,
+        targetElementId: binding.targetNodeId === nodeId ? elementIdFromNodeId(normalized) : binding.targetElementId,
+      })),
     })
 
     return true
@@ -231,6 +268,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       connections: document.value.connections.filter((connection) =>
         !(connection.to.nodeId === nodeId && connection.to.fieldId === fieldId),
       ),
+      repeatBindings: isBlueprintRepeatFieldId(fieldId)
+        ? document.value.repeatBindings.filter((binding) => binding.targetNodeId !== nodeId)
+        : document.value.repeatBindings,
     })
   }
 
@@ -362,6 +402,10 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       connections: document.value.connections.filter((connection) =>
         !((connection.from.nodeId === nodeId && connection.from.fieldId === fieldId)
           || (connection.to.nodeId === nodeId && connection.to.fieldId === fieldId)),
+      ),
+      repeatBindings: document.value.repeatBindings.filter((binding) =>
+        !(binding.source.nodeId === nodeId && binding.source.fieldId === fieldId)
+          && !(binding.targetNodeId === nodeId && fieldId === PAGE_BLUEPRINT_REPEAT_FIELD_ID),
       ),
     })
   }
@@ -507,6 +551,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       nodeLayouts,
       connections: document.value.connections.filter((connection) =>
         connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId,
+      ),
+      repeatBindings: document.value.repeatBindings.filter((binding) =>
+        binding.source.nodeId !== nodeId && binding.targetNodeId !== nodeId,
       ),
     })
   }
@@ -667,9 +714,12 @@ function mergeElementFields(existingFields: PageBlueprintField[], baseFields: Pa
 }
 
 function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
+  const repeatFields = isPageBlockContainer(block) ? [htmlElementField(PAGE_BLUEPRINT_REPEAT_FIELD_ID, 'Repeat Source', 'array', '')] : []
+
   if (block.tag === 'input') {
     const type = String(block.props?.type ?? block.attributes?.type ?? 'text')
     return [
+      ...repeatFields,
       htmlElementField('value', 'Value', 'string', block.props?.value ?? block.attributes?.value),
       ...(type === 'checkbox' ? [htmlElementField('checked', 'Checked', 'boolean', block.props?.checked ?? block.attributes?.checked)] : []),
       htmlElementField('placeholder', 'Placeholder', 'string', block.props?.placeholder ?? block.attributes?.placeholder),
@@ -679,6 +729,7 @@ function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
 
   if (block.tag === 'text' || block.tag === 'button' || block.tag === 'link') {
     return [
+      ...repeatFields,
       htmlElementField('text', 'Text', 'string', block.props?.text ?? block.props?.label),
       ...(block.tag === 'link' ? [htmlElementField('href', 'Href', 'string', block.props?.href ?? block.attributes?.href)] : []),
     ]
@@ -686,6 +737,7 @@ function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
 
   if (block.tag === 'image') {
     return [
+      ...repeatFields,
       htmlElementField('src', 'Source', 'string', block.props?.src ?? block.attributes?.src),
       htmlElementField('alt', 'Alt', 'string', block.props?.alt ?? block.attributes?.alt),
     ]
@@ -693,12 +745,14 @@ function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
 
   if (block.tag === 'video' || block.tag === 'audio' || block.tag === 'youtube') {
     return [
+      ...repeatFields,
       htmlElementField('src', 'Source', 'string', block.props?.src ?? block.attributes?.src),
       htmlElementField('title', 'Title', 'string', block.props?.title ?? block.attributes?.title),
     ]
   }
 
   return [
+    ...repeatFields,
     htmlElementField('id', 'Element ID', 'string', block.elementId ?? block.attributes?.id),
     htmlElementField('class', 'Class', 'string', block.className ?? block.attributes?.class),
   ]
@@ -715,6 +769,7 @@ function htmlElementField(
     label,
     type,
     direction: 'input',
+    mode: id === PAGE_BLUEPRINT_REPEAT_FIELD_ID ? 'multiple' : undefined,
     value: stringifyElementFieldValue(value),
     configurable: false,
   }
@@ -853,6 +908,7 @@ function serializeForDiff(document: PageBlueprintDocument) {
     nodeLayouts: document.nodeLayouts,
     nodes: document.nodes,
     connections: document.connections,
+    repeatBindings: document.repeatBindings,
     collapsedGroups: document.collapsedGroups,
   })
 }

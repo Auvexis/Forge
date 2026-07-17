@@ -6,6 +6,7 @@ import type {
   PageBlueprintFieldType,
   PageBlueprintNode,
 } from './pageBlueprintSchema.ts'
+import { PAGE_BLUEPRINT_ITEM_PATH_MARKER } from './pageBlueprintRepeaters.ts'
 
 export type PageBlueprintDataResolveMode = 'test' | 'empty'
 
@@ -99,18 +100,21 @@ export function createBlueprintReturnFieldsFromResult(result: unknown): PageBlue
   const sample = isMultiple ? result[0] : result
 
   if (isRecord(sample)) {
-    return Object.entries(sample).map(([key, value]) => ({
-      id: `return:${key}`,
-      label: formatFieldLabel(key),
-      type: inferBlueprintFieldType(value),
-      direction: 'output',
-      mode: isMultiple ? 'multiple' : inferBlueprintFieldMode(value),
-      schema: inferBlueprintFieldSchema(value),
-      configurable: false,
-    }))
+    return Object.entries(sample).flatMap(([key, value]) => {
+      const field: PageBlueprintField = {
+        id: `return:${key}`,
+        label: formatFieldLabel(key),
+        type: inferBlueprintFieldType(value),
+        direction: 'output',
+        mode: isMultiple ? 'multiple' : inferBlueprintFieldMode(value),
+        schema: inferBlueprintFieldSchema(value),
+        configurable: false,
+      }
+      return [field, ...createBlueprintItemFields(field.id, field.label, value)]
+    })
   }
 
-  return [{
+  const field: PageBlueprintField = {
     id: 'return',
     label: 'Return',
     type: inferBlueprintFieldType(result),
@@ -118,7 +122,8 @@ export function createBlueprintReturnFieldsFromResult(result: unknown): PageBlue
     mode: isMultiple ? 'multiple' : 'single',
     schema: inferBlueprintFieldSchema(result),
     configurable: false,
-  }]
+  }
+  return [field, ...createBlueprintItemFields(field.id, field.label, result)]
 }
 
 export function inferBlueprintFieldType(value: unknown): PageBlueprintFieldType {
@@ -169,9 +174,72 @@ function resolveRunWorkflowFieldValue(
   if (mode === 'empty') return undefined
   const result = testResultForNode(node)
   if (result === undefined) return undefined
+  if (field.id.includes(PAGE_BLUEPRINT_ITEM_PATH_MARKER)) {
+    return resolveBlueprintItemFieldValue(result, field.id)
+  }
   if (field.id === 'return') return result
   if (field.id.startsWith('return:')) return resolveObjectPath(result, [field.id.slice('return:'.length)])
   return resolveObjectPath(result, [field.id])
+}
+
+function createBlueprintItemFields(
+  collectionFieldId: string,
+  collectionLabel: string,
+  value: unknown,
+): PageBlueprintField[] {
+  const collection = Array.isArray(value) ? value : null
+  const sample = collection ? collection[0] : null
+  if (!isRecord(sample)) return []
+
+  return Object.entries(sample).flatMap(([key, item]) => {
+    const id = `${collectionFieldId}${PAGE_BLUEPRINT_ITEM_PATH_MARKER}.${key}`
+    const label = `${collectionLabel} / ${formatFieldLabel(key)}`
+    const field: PageBlueprintField = {
+      id,
+      label,
+      type: inferBlueprintFieldType(item),
+      direction: 'output',
+      mode: 'single',
+      schema: inferBlueprintFieldSchema(item),
+      configurable: false,
+    }
+    return [field, ...createNestedBlueprintItemFields(id, label, item)]
+  })
+}
+
+function createNestedBlueprintItemFields(
+  parentFieldId: string,
+  parentLabel: string,
+  value: unknown,
+): PageBlueprintField[] {
+  if (!isRecord(value)) return []
+  return Object.entries(value).flatMap(([key, item]) => {
+    const id = `${parentFieldId}.${key}`
+    const label = `${parentLabel} / ${formatFieldLabel(key)}`
+    const field: PageBlueprintField = {
+      id,
+      label,
+      type: inferBlueprintFieldType(item),
+      direction: 'output',
+      mode: 'single',
+      schema: inferBlueprintFieldSchema(item),
+      configurable: false,
+    }
+    return [field, ...createNestedBlueprintItemFields(id, label, item)]
+  })
+}
+
+function resolveBlueprintItemFieldValue(result: unknown, fieldId: string) {
+  const markerIndex = fieldId.indexOf(PAGE_BLUEPRINT_ITEM_PATH_MARKER)
+  const collectionFieldId = fieldId.slice(0, markerIndex)
+  const itemPath = fieldId.slice(markerIndex + PAGE_BLUEPRINT_ITEM_PATH_MARKER.length).replace(/^\./, '')
+  const collection = collectionFieldId === 'return'
+    ? result
+    : collectionFieldId.startsWith('return:')
+      ? resolveObjectPath(result, [collectionFieldId.slice('return:'.length)])
+      : resolveObjectPath(result, [collectionFieldId])
+  if (!Array.isArray(collection)) return undefined
+  return collection.map((item) => resolveObjectPath(item, itemPath ? itemPath.split('.') : []))
 }
 
 function testResultForNode(node: PageBlueprintNode) {

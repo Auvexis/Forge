@@ -1,5 +1,5 @@
 import type { BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
-import type { PageBlueprintConnection, PageBlueprintNode } from './pageBlueprintSchema.ts'
+import type { PageBlueprintConnection, PageBlueprintNode, PageBlueprintRepeatBinding } from './pageBlueprintSchema.ts'
 
 export const PAGE_BLUEPRINT_DOCUMENT_PATH = 'blueprints/project.blueprint.json'
 export const PAGE_BLUEPRINT_DOCUMENT_SCHEMA_VERSION = 1
@@ -15,6 +15,7 @@ export interface PageBlueprintDocument {
   nodeLayouts: Record<string, PageBlueprintNodeLayout>
   nodes: PageBlueprintNode[]
   connections: PageBlueprintConnection[]
+  repeatBindings: PageBlueprintRepeatBinding[]
   collapsedGroups: string[]
   updatedAt: string
 }
@@ -26,6 +27,7 @@ export function createDefaultPageBlueprintDocument(): PageBlueprintDocument {
     nodeLayouts: {},
     nodes: [],
     connections: [],
+    repeatBindings: [],
     collapsedGroups: [],
     updatedAt: new Date().toISOString(),
   }
@@ -53,6 +55,7 @@ function normalizePageBlueprintDocument(input: Partial<PageBlueprintDocument>): 
     nodeLayouts: normalizeNodeLayouts(input.nodeLayouts ?? input.nodes),
     nodes: normalizeBlueprintNodes(input.nodes),
     connections: normalizeConnections(input.connections),
+    repeatBindings: normalizeRepeatBindings(input.repeatBindings),
     collapsedGroups: Array.isArray(input.collapsedGroups) ? input.collapsedGroups.filter((id) => typeof id === 'string') : [],
     updatedAt: typeof input.updatedAt === 'string' ? input.updatedAt : new Date().toISOString(),
   }
@@ -91,6 +94,11 @@ function normalizeConnections(connections: unknown): PageBlueprintConnection[] {
   return connections.filter(isBlueprintConnection)
 }
 
+function normalizeRepeatBindings(bindings: unknown): PageBlueprintRepeatBinding[] {
+  if (!Array.isArray(bindings)) return []
+  return bindings.filter(isBlueprintRepeatBinding)
+}
+
 function isBlueprintNode(value: unknown): value is PageBlueprintNode {
   if (!value || typeof value !== 'object') return false
   const node = value as PageBlueprintNode
@@ -116,6 +124,18 @@ function isBlueprintConnection(value: unknown): value is PageBlueprintConnection
     && isConnectionEndpoint(connection.from)
     && isConnectionEndpoint(connection.to)
     && typeof connection.expression === 'string'
+}
+
+function isBlueprintRepeatBinding(value: unknown): value is PageBlueprintRepeatBinding {
+  if (!value || typeof value !== 'object') return false
+  const binding = value as PageBlueprintRepeatBinding
+  return typeof binding.id === 'string'
+    && isConnectionEndpoint(binding.source)
+    && typeof binding.targetNodeId === 'string'
+    && typeof binding.targetElementId === 'string'
+    && typeof binding.collectionPath === 'string'
+    && typeof binding.itemAlias === 'string'
+    && typeof binding.createdAt === 'string'
 }
 
 function isConnectionEndpoint(value: unknown): value is PageBlueprintConnection['from'] {

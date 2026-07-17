@@ -75,6 +75,7 @@
             :fields="itemData(item).fields"
             @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
             @pick-input="(fieldId, event) => completeFieldConnection(item.id, fieldId, event)"
+            @update-mode="(fieldId, mode) => blueprintStore.setNodeFieldMode(item.id, fieldId, mode)"
           />
         </BaseElement>
       </template>
@@ -102,6 +103,15 @@ import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } 
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
 import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
 import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
+import {
+  buildPageBlockParentMap,
+  collectionFieldIdFromItemFieldId,
+  isBlueprintItemFieldId,
+  isBlueprintRepeatFieldId,
+  isBlueprintRepeatSourceField,
+  isPageBlockDescendantOf,
+  sourceBelongsToRepeatBinding,
+} from './pageBlueprintRepeaters.ts'
 import type {
   PageBlueprintConnection,
   PageBlueprintConnectionEndpoint,
@@ -194,6 +204,7 @@ const elementGroupItems = computed<PageBlueprintGroupItem[]>(() =>
 )
 
 const hierarchyGroups = computed(() => buildPageBlueprintGroups(props.blocks, elementGroupItems.value))
+const blockParentMap = computed(() => buildPageBlockParentMap(props.blocks))
 const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
   canvasItems.value
     .filter((item) => itemData(item).kind !== 'empty')
@@ -510,6 +521,8 @@ function fieldsAreCompatible(from: PageBlueprintConnectionEndpoint, to: PageBlue
   const toField = fieldForEndpoint(to)
   if (!fromField || !toField) return true
   if (fromField.type === 'event' || toField.type === 'event') return fromField.type === toField.type
+  if (isBlueprintRepeatFieldId(to.fieldId)) return isBlueprintRepeatSourceField(fromField)
+  if (isBlueprintItemFieldId(from.fieldId)) return targetAcceptsItemField(from, to)
   return true
 }
 
@@ -525,6 +538,7 @@ function fieldsForNode(nodeId: string) {
     return data.utilityNode.fields.map((field) => ({
       id: field.id,
       type: field.type,
+      mode: field.mode,
       input: field.direction === 'input' || field.direction === 'both',
       output: field.direction === 'output' || field.direction === 'both',
     }))
@@ -532,9 +546,23 @@ function fieldsForNode(nodeId: string) {
   return data.fields.map((field) => ({
     id: field.id,
     type: field.type,
+    mode: field.mode,
     input: Boolean(field.input),
     output: Boolean(field.output),
   }))
+}
+
+function targetAcceptsItemField(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
+  if (isBlueprintRepeatFieldId(to.fieldId)) return false
+  const targetElementId = elementIdFromNodeId(to.nodeId)
+  if (!targetElementId) return false
+  const repeatBinding = document.value.repeatBindings.find((binding) =>
+    sourceBelongsToRepeatBinding(
+      { ...from, fieldId: collectionFieldIdFromItemFieldId(from.fieldId) },
+      binding,
+    ) && isPageBlockDescendantOf(blockParentMap.value, targetElementId, binding.targetElementId),
+  )
+  return Boolean(repeatBinding)
 }
 
 function withConnectionValues(
@@ -647,6 +675,10 @@ function elementNodeTitle(
 
 function workflowNodeId(workflowId: string) {
   return `blueprint-workflow:${workflowId}`
+}
+
+function elementIdFromNodeId(nodeId: string) {
+  return nodeId.startsWith('blueprint-element:') ? nodeId.slice('blueprint-element:'.length) : ''
 }
 
 function shortId(id: string) {

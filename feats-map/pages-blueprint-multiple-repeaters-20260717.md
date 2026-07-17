@@ -1,0 +1,8 @@
+- [x] Definir contrato de repeat binding
+- [x] Persistir repeat bindings no Blueprint
+- [x] Expor subfields de arrays no canvas
+- [x] Restringir conexões aos filhos compatíveis
+- [x] Aplicar repeat no runtime
+- [x] Ajustar inspector e estilos
+- [x] Validar build/typecheck
+- [x] Commitar alterações
