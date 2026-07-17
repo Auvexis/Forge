@@ -52,7 +52,7 @@ export function createPageBlueprintViewModel(input: {
   const actionEventCount = countEventsByAction(events)
 
   return {
-    elements: elements.filter((element) => element.events.length > 0),
+    elements,
     workflows: input.workflows.flatMap((workflow) =>
       workflow.actions
         .filter((action) => actionEventCount[actionId(workflow.id, action.id)])

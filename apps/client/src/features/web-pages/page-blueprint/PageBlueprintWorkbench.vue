@@ -10,6 +10,26 @@
       :grid-size="24"
       @items-move="moveCanvasItems"
     >
+      <BaseElementGroup
+        v-for="group in hierarchyGroups"
+        :key="group.id"
+        :block="group.block"
+        :label="group.label"
+        :tag="group.tag"
+        :icon="group.icon"
+        :preview="group.preview"
+        :child-count="group.childCount"
+        :color="group.color"
+        :x="group.x"
+        :y="group.y"
+        :width="group.width"
+        :height="group.height"
+        :collapsed="collapsedGroupIds.has(group.id)"
+        :selected="group.nodeIds.some((id) => selection.includes(id))"
+        @toggle="toggleGroup(group.id)"
+        @drag-start="startGroupDrag(group.nodeIds, $event)"
+      />
+
       <template #item="{ item, selected }">
         <BaseElement
           :title="itemData(item).title"
@@ -38,7 +58,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 import type {
   PageActionCollectionBinding,
   PageActionOutputBinding,
@@ -53,7 +73,9 @@ import {
   createWorkflowFields,
   type PageBlueprintField,
 } from './pageBlueprintFields.ts'
+import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
+import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
 import BaseField from './components/BaseField.vue'
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
@@ -70,6 +92,7 @@ interface PageBlueprintCanvasItemData {
   accent: string
   showFooter: boolean
   fields: PageBlueprintField[]
+  elementId?: string
 }
 
 interface PageBlueprintCanvasItem extends BaseCanvasItem {
@@ -86,6 +109,8 @@ const props = defineProps<{
 const selection = ref<string[]>([])
 const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
 const movedPositions = ref<Record<string, { x: number; y: number }>>({})
+const collapsedGroupIds = ref(new Set<string>())
+const groupDrag = ref<null | { nodeIds: string[]; pointerId: number; x: number; y: number }>(null)
 
 const model = computed(() => createPageBlueprintViewModel({
   blocks: props.blocks,
@@ -100,6 +125,26 @@ const canvasItems = computed<PageBlueprintCanvasItem[]>(() => {
     ...item,
     ...(movedPositions.value[item.id] ?? {}),
   }))
+})
+
+const elementGroupItems = computed<PageBlueprintGroupItem[]>(() =>
+  canvasItems.value
+    .filter((item) => itemData(item).kind === 'element' && itemData(item).elementId)
+    .map((item) => ({
+      id: item.id,
+      elementId: itemData(item).elementId!,
+      x: item.x,
+      y: item.y,
+      width: item.width ?? 244,
+      height: item.height ?? nodeHeight(1),
+    })),
+)
+
+const hierarchyGroups = computed(() => buildPageBlueprintGroups(props.blocks, elementGroupItems.value))
+
+onBeforeUnmount(() => {
+  window.removeEventListener('pointermove', moveGroupDrag)
+  window.removeEventListener('pointercancel', stopGroupDrag)
 })
 
 function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
@@ -118,6 +163,40 @@ function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
   movedPositions.value = nextPositions
 }
 
+function toggleGroup(groupId: string) {
+  const next = new Set(collapsedGroupIds.value)
+  next.has(groupId) ? next.delete(groupId) : next.add(groupId)
+  collapsedGroupIds.value = next
+}
+
+function startGroupDrag(nodeIds: string[], event: PointerEvent) {
+  if (event.button !== 0) return
+  selection.value = [...nodeIds]
+  groupDrag.value = { nodeIds: [...nodeIds], pointerId: event.pointerId, x: event.clientX, y: event.clientY }
+  window.addEventListener('pointermove', moveGroupDrag)
+  window.addEventListener('pointerup', stopGroupDrag, { once: true })
+  window.addEventListener('pointercancel', stopGroupDrag, { once: true })
+}
+
+function moveGroupDrag(event: PointerEvent) {
+  const drag = groupDrag.value
+  if (!drag || drag.pointerId !== event.pointerId) return
+
+  const delta = {
+    x: (event.clientX - drag.x) / viewport.value.zoom,
+    y: (event.clientY - drag.y) / viewport.value.zoom,
+  }
+
+  groupDrag.value = { ...drag, x: event.clientX, y: event.clientY }
+  moveCanvasItems({ itemIds: drag.nodeIds, delta })
+}
+
+function stopGroupDrag() {
+  groupDrag.value = null
+  window.removeEventListener('pointermove', moveGroupDrag)
+  window.removeEventListener('pointercancel', stopGroupDrag)
+}
+
 function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanvasItem[] {
   const elementItems = viewModel.elements.map((element, index) => ({
     id: `blueprint-element:${element.id}`,
@@ -128,13 +207,14 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
     data: {
       kind: 'element' as const,
       title: element.label,
-      eyebrow: 'Element Event',
+      eyebrow: element.events.length > 0 ? 'Element Event' : 'Page Element',
       detail: `${element.events.length} event(s) on ${element.tag}`,
       meta: shortId(element.id),
-      icon: 'box',
+      icon: pageBlockIcon(element.tag),
       accent: 'var(--fabric-blue-400)',
       showFooter: true,
       fields: createElementFields(element),
+      elementId: element.id,
     },
   }))
 
