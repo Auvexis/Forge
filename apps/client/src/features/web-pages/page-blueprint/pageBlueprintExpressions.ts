@@ -38,12 +38,14 @@ export function resolveBlueprintRunWorkflowPath(path: string, nodeId: string, re
 }
 
 export function blueprintResultPathFromExpression(template: string, nodeId: string, fieldId: string) {
-  const expression = unwrapBlueprintExpression(template)
+  const expression = normalizeBlueprintExpression(template)
   if (!expression) return null
   const prefix = `${nodeId}.${fieldId}`
-  if (!expression.startsWith(prefix)) return null
+  const path = [expression, ...Array.from(expression.matchAll(BLUEPRINT_PATH_PATTERN), (match) => match[0])]
+    .find((candidate) => candidate.startsWith(prefix))
+  if (!path) return null
   const fieldPath = fieldId.startsWith('return:') ? fieldId.slice('return:'.length) : ''
-  const suffix = expression.slice(prefix.length).replace(/^\./, '')
+  const suffix = path.slice(prefix.length).replace(/^[:.]/, '')
   return [fieldPath, suffix].filter(Boolean).join('.')
 }
 

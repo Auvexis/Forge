@@ -34,6 +34,13 @@ export function applyBlueprintPreviewValuesToBlocks(
   blocks: PageBlock[],
   blueprint: PageBlueprintDocument,
 ): PageBlock[] {
+  return applyPreviewValues(blocks, collectBlueprintElementValues(blueprint, true))
+}
+
+function collectBlueprintElementValues(
+  blueprint: PageBlueprintDocument,
+  useTestResult: boolean,
+): Map<string, Array<{ fieldId: string; value: unknown }>> {
   const previewValues = new Map<string, Array<{ fieldId: string; value: unknown }>>()
   const nodes = new Map(blueprint.nodes.map((node) => [node.id, node]))
 
@@ -47,8 +54,8 @@ export function applyBlueprintPreviewValuesToBlocks(
     const value = evaluateBlueprintExpression(connection.expression, (path) => {
       const nodeId = path.match(/^(utility:run-workflow:[^.]+)\.return/)?.[1]
       if (!nodeId) return undefined
-      const result = testResultForNode(nodes.get(nodeId))
-      return result === undefined ? undefined : resolveBlueprintRunWorkflowPath(path, nodeId, result)
+      const result = useTestResult ? testResultForNode(nodes.get(nodeId)) : {}
+      return resolveBlueprintRunWorkflowPath(path, nodeId, result)
     })
     if (value === undefined) continue
 
@@ -56,7 +63,7 @@ export function applyBlueprintPreviewValuesToBlocks(
     previewValues.set(blockId, [...(previewValues.get(blockId) ?? []), { fieldId: connection.to.fieldId, value }])
   }
 
-  return applyPreviewValues(blocks, previewValues)
+  return previewValues
 }
 
 function buildBlueprintRuntimeActions(
@@ -93,7 +100,10 @@ function buildBlueprintRuntimeActions(
   }
 
   return {
-    blocks: applyBlueprintEventsToBlocks(blocks, eventsByBlock),
+    blocks: applyBlueprintEventsToBlocks(
+      applyPreviewValues(blocks, collectBlueprintElementValues(blueprint, false)),
+      eventsByBlock,
+    ),
     pageActions: {
       inputBindings: pageActions?.inputBindings ?? {},
       outputBindings,
@@ -140,7 +150,7 @@ function createOutputBindingFromConnection(
   if (!fromField || !target) return null
 
   const resultPath = resultPathForConnection(connection, fromField, valueForBlockField(targetBlock, connection.to.fieldId))
-  if (!resultPath) return null
+  if (resultPath === null) return null
 
   const actionId = pageActionId(workflowId, triggerId)
   return {
@@ -181,7 +191,7 @@ function resultPathFromExpression(value: unknown, nodeId: string, fieldId: strin
   const prefix = `${nodeId}.${fieldId}`
   if (!expression.startsWith(prefix)) return null
   const fieldPath = fieldId.startsWith('return:') ? fieldId.slice('return:'.length) : ''
-  const suffix = expression.slice(prefix.length).replace(/^\./, '')
+  const suffix = expression.slice(prefix.length).replace(/^[:.]/, '')
   return [fieldPath, suffix].filter(Boolean).join('.')
 }
 

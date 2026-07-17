@@ -225,7 +225,7 @@ function getBlockText(block: PageBlock): string {
 }
 
 function isBlueprintExpression(value: string): boolean {
-  return /^\{\{\s*utility:[^}]+\s*\}\}$/.test(value.trim());
+  return /\{\{\s*utility:[^}]+\s*\}\}/.test(value.trim());
 }
 
 function collectBlockCss(block: PageBlock): string[] {

@@ -1,0 +1,5 @@
+- [x] Rastrear conexão até props do bloco
+- [x] Aplicar expressão no elemento renderizado
+- [x] Garantir preview/live após evento
+- [x] Validar build/typecheck
+- [x] Commitar alterações
