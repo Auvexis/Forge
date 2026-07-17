@@ -13,6 +13,7 @@ import {
   createUtilityNodeFromDefinition,
   getPageBlueprintNodeDefinition,
 } from './pageBlueprintNodeRegistry.ts'
+import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
 import type {
   PageBlueprintConnectionEndpoint,
   PageBlueprintField,
@@ -241,7 +242,14 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     patchDocument({
       nodes: document.value.nodes.map((node) =>
         node.id === nodeId
-          ? { ...node, data: { ...(node.data ?? {}), eventType } }
+          ? {
+            ...node,
+            fields: patchFields(node.fields, 'event', {
+              label: createBlueprintEventLabel(eventType),
+              value: eventType,
+            }),
+            data: { ...(node.data ?? {}), eventType },
+          }
           : node,
       ),
     })
@@ -574,9 +582,10 @@ function renameEndpointNode(
 function createRunWorkflowEventField(): PageBlueprintField {
   return {
     id: 'event',
-    label: 'Event',
+    label: createBlueprintEventLabel(),
     type: 'event',
     direction: 'output',
+    value: 'click',
     configurable: false,
   }
 }
@@ -584,7 +593,17 @@ function createRunWorkflowEventField(): PageBlueprintField {
 function ensureRunWorkflowEventField(fields: PageBlueprintField[]) {
   const existingEvent = fields.find((field) => field.id === 'event')
   const restFields = fields.filter((field) => field.id !== 'event')
-  return [existingEvent ? { ...createRunWorkflowEventField(), ...existingEvent } : createRunWorkflowEventField(), ...restFields]
+  return [
+    existingEvent
+      ? {
+        ...createRunWorkflowEventField(),
+        ...existingEvent,
+        label: createBlueprintEventLabel(existingEvent.value),
+        value: existingEvent.value ?? 'click',
+      }
+      : createRunWorkflowEventField(),
+    ...restFields,
+  ]
 }
 
 function patchNodeField(
@@ -600,6 +619,14 @@ function patchNodeField(
       fields: node.fields.map((field) => (field.id === fieldId ? { ...field, ...patch } : field)),
     }
   })
+}
+
+function patchFields(
+  fields: PageBlueprintField[],
+  fieldId: string,
+  patch: Partial<PageBlueprintField>,
+) {
+  return fields.map((field) => (field.id === fieldId ? { ...field, ...patch } : field))
 }
 
 function clearConnectionExpressions(
@@ -670,7 +697,7 @@ function elementLabelFromNodeId(nodeId: string) {
 }
 
 function elementEventLabel(eventType: string) {
-  return `${formatFieldLabel(eventType)} Event`
+  return createBlueprintEventLabel(eventType)
 }
 
 function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {

@@ -101,6 +101,7 @@ import {
 } from './pageBlueprintFields.ts'
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
+import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
 import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
 import type {
   PageBlueprintConnection,
@@ -576,7 +577,7 @@ function withUtilityConnectionValues(
   node: PageBlueprintUtilityNode,
   connections: PageBlueprintConnection[],
 ): PageBlueprintUtilityNode {
-  const fields = node.type === 'run-workflow' ? ensureRunWorkflowEventField(node.fields) : node.fields
+  const fields = node.type === 'run-workflow' ? ensureRunWorkflowEventField(node.fields, node.data?.eventType) : node.fields
   return {
     ...node,
     fields: fields.map((field) => {
@@ -592,13 +593,27 @@ function withUtilityConnectionValues(
   }
 }
 
-function ensureRunWorkflowEventField(fields: PageBlueprintField[]) {
+function ensureRunWorkflowEventField(fields: PageBlueprintField[], eventType: unknown) {
   const existingEvent = fields.find((field) => field.id === 'event')
   const restFields = fields.filter((field) => field.id !== 'event')
+  const normalizedEventType = typeof eventType === 'string' ? eventType : existingEvent?.value ?? 'click'
   return [
     existingEvent
-      ? { ...existingEvent, label: existingEvent.label || 'Event', type: 'event' as const, direction: 'output' as const }
-      : { id: 'event', label: 'Event', type: 'event' as const, direction: 'output' as const, configurable: false },
+      ? {
+        ...existingEvent,
+        label: createBlueprintEventLabel(normalizedEventType),
+        type: 'event' as const,
+        direction: 'output' as const,
+        value: normalizedEventType ?? 'click',
+      }
+      : {
+        id: 'event',
+        label: createBlueprintEventLabel(normalizedEventType),
+        type: 'event' as const,
+        direction: 'output' as const,
+        value: normalizedEventType ?? 'click',
+        configurable: false,
+      },
     ...restFields,
   ]
 }
@@ -606,7 +621,7 @@ function ensureRunWorkflowEventField(fields: PageBlueprintField[]) {
 function blueprintElementFields(fields: PageBlueprintField[]): PageBlueprintDisplayField[] {
   return fields.map((field) => ({
     id: field.id,
-    label: field.label,
+    label: field.type === 'event' ? createBlueprintEventLabel(field.value) : field.label,
     type: field.type,
     value: field.expression ?? field.value,
     input: field.direction === 'input' || field.direction === 'both',
