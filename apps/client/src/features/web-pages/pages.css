@@ -463,22 +463,44 @@
   margin-top: 10px;
 }
 
-.web-page-blueprint-inspector-section > header {
+.web-page-blueprint-inspector-section__header {
   display: flex;
   align-items: center;
   gap: 5px;
+  width: 100%;
   height: 23px;
   padding: 0 8px 0 6px;
+  border: 0;
   border-bottom: 1px solid var(--fabric-border-subtle);
   background: transparent;
   color: var(--fabric-text-primary);
   font-size: 10px;
   font-weight: var(--fabric-font-semibold);
+  text-align: left;
   text-transform: uppercase;
+  cursor: pointer;
+}
+
+.web-page-blueprint-inspector-section__header:hover {
+  background: color-mix(in srgb, var(--fabric-bg-elevated) 40%, transparent);
+}
+
+.web-page-blueprint-inspector-section__chevron {
+  transition: transform 140ms ease;
+}
+
+.web-page-blueprint-inspector-section--collapsed .web-page-blueprint-inspector-section__chevron {
+  transform: rotate(-90deg);
 }
 
 .web-page-blueprint-inspector-section__body {
   display: grid;
+}
+
+.web-page-blueprint-inspector-collapse-enter-active,
+.web-page-blueprint-inspector-collapse-leave-active {
+  overflow: hidden;
+  transition: height 160ms ease, opacity 120ms ease;
 }
 
 .web-page-blueprint-inspector-actions {

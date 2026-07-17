@@ -3,7 +3,7 @@
     <p v-if="!selectedNodeId" class="web-page-editor__empty">Select a Blueprint node.</p>
 
     <template v-else>
-      <BaseInspectorSection title="Node" icon="box">
+      <BaseInspectorSection v-if="node?.type !== 'run-workflow'" title="Node" icon="box">
         <BaseInspectorRow label="ID" :value="selectedNodeId" />
         <BaseInspectorRow label="Kind" :value="node?.kind ?? inferredKind" />
         <BaseInspectorRow
@@ -105,6 +105,18 @@
               </template>
 
               <template v-else>
+                <BaseInspectorSection title="Node" icon="box">
+                  <BaseInspectorRow label="ID" :value="selectedNodeId" />
+                  <BaseInspectorRow label="Kind" :value="node?.kind ?? inferredKind" />
+                  <BaseInspectorRow
+                    label="Label"
+                    :value="node?.label ?? selectedNodeId"
+                    :editable="Boolean(node)"
+                    @update:value="node && $emit('updateNodeLabel', node.id, $event)"
+                  />
+                  <BaseInspectorRow v-if="node" label="Type" :value="node.type" />
+                </BaseInspectorSection>
+
                 <BaseInspectorSection title="Source" icon="workflow">
                   <BaseInspectorRow label="Workflow" :value="selectedWorkflow?.name ?? 'None'" />
                   <BaseInspectorRow label="Trigger" :value="selectedTrigger?.name ?? 'None'" />

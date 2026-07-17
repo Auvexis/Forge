@@ -3,6 +3,7 @@
     :is="specificComponent"
     v-if="specificComponent"
     :node-id="node.id"
+    :title="node.label"
     :fields="node.fields"
     :selected="selected"
     @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"

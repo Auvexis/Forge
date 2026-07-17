@@ -1,6 +1,6 @@
 <template>
   <BaseUtilityNode
-    title="Transform Data"
+    :title="title"
     eyebrow="Data"
     icon="braces"
     accent="var(--fabric-text-error)"
@@ -22,11 +22,15 @@ import type { PageBlueprintField, PageBlueprintFieldMode } from '../pageBlueprin
 import BaseUtilityNode from './BaseUtilityNode.vue'
 import BlueprintNodeFields from './BlueprintNodeFields.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   fields: PageBlueprintField[]
   nodeId: string
+  title?: string
   selected?: boolean
-}>()
+}>(), {
+  title: 'Transform Data',
+  selected: false,
+})
 
 defineEmits<{
   pickInput: [fieldId: string, event: PointerEvent]

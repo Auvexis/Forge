@@ -1,0 +1,5 @@
+- [x] Mover Node para propriedades do Run Workflow
+- [x] Sincronizar label editado no canvas
+- [x] Ativar collapse das seções com transição
+- [x] Validar build/typecheck
+- [x] Commitar alterações

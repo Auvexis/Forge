@@ -1,6 +1,6 @@
 <template>
   <BaseUtilityNode
-    title="Run Workflow"
+    :title="title"
     eyebrow="Action"
     icon="workflow"
     accent="var(--fabric-accent)"
@@ -22,11 +22,15 @@ import type { PageBlueprintField, PageBlueprintFieldMode } from '../pageBlueprin
 import BaseUtilityNode from './BaseUtilityNode.vue'
 import BlueprintNodeFields from './BlueprintNodeFields.vue'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   fields: PageBlueprintField[]
   nodeId: string
+  title?: string
   selected?: boolean
-}>()
+}>(), {
+  title: 'Run Workflow',
+  selected: false,
+})
 
 defineEmits<{
   pickInput: [fieldId: string, event: PointerEvent]
