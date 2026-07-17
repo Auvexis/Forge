@@ -120,6 +120,16 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     return connection.id
   }
 
+  function removeConnection(connectionId: string) {
+    const connection = document.value.connections.find((item) => item.id === connectionId)
+    if (!connection) return
+
+    patchDocument({
+      connections: document.value.connections.filter((item) => item.id !== connectionId),
+      nodes: patchNodeField(document.value.nodes, connection.to.nodeId, connection.to.fieldId, { expression: undefined }),
+    })
+  }
+
   function setNodeFieldMode(nodeId: string, fieldId: string, mode: PageBlueprintFieldMode) {
     patchDocument({
       nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { mode }),
@@ -198,6 +208,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setNodePositions,
     setCollapsedGroups,
     connectFields,
+    removeConnection,
     setNodeFieldMode,
     addUtilityNode,
     undo,

@@ -18,6 +18,7 @@
         :connections="document.connections"
         :pending-output="pendingOutput"
         :pointer="pendingPointer"
+        @remove-connection="blueprintStore.removeConnection"
       />
 
       <BaseElementGroup

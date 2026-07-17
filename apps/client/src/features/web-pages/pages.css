@@ -464,12 +464,20 @@
   stroke-linejoin: round;
   stroke-width: 1.6px;
   opacity: 0.82;
+  pointer-events: stroke;
+  cursor: pointer;
+}
+
+.web-page-blueprint-connections__path:hover {
+  stroke: var(--fabric-blueprint-binding-active, var(--fabric-accent));
+  opacity: 1;
 }
 
 .web-page-blueprint-connections__path--pending {
   stroke: var(--fabric-blueprint-binding-active, var(--fabric-accent));
   stroke-dasharray: 5 4;
   opacity: 0.95;
+  pointer-events: none;
 }
 
 .web-page-blueprint-element-group {

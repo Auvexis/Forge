@@ -6,6 +6,7 @@
       class="web-page-blueprint-connections__path"
       :d="edge.path"
       vector-effect="non-scaling-stroke"
+      @dblclick="$emit('removeConnection', edge.id)"
     />
     <path
       v-if="pendingPath"
@@ -46,6 +47,10 @@ const props = withDefaults(defineProps<{
   pendingOutput: null,
   pointer: null,
 })
+
+defineEmits<{
+  removeConnection: [connectionId: string]
+}>()
 
 const nodesById = computed(() => new Map(props.nodes.map((node) => [node.id, node])))
 
