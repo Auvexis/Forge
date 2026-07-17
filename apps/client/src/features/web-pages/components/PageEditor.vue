@@ -341,6 +341,8 @@
         :selected-node-id="blueprintSelectedNodeId"
         @update-node-label="blueprintStore.setNodeLabel"
         @update-field-value="blueprintStore.setNodeFieldValue"
+        @add-node-field="blueprintStore.addNodeField"
+        @test-run-workflow="blueprintStore.applyRunWorkflowTestResult"
       />
     </AppPanel>
 

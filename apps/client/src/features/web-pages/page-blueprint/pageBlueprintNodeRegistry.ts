@@ -25,12 +25,8 @@ export const PAGE_BLUEPRINT_NODE_DEFINITIONS: PageBlueprintNodeDefinition[] = [
     icon: 'workflow',
     accent: 'var(--fabric-accent)',
     width: 280,
-    height: 148,
-    fields: [
-      { id: 'trigger', label: 'Trigger', type: 'event', direction: 'input', configurable: true },
-      { id: 'input', label: 'Input', type: 'object', direction: 'input', configurable: true },
-      { id: 'return', label: 'Return', type: 'unknown', direction: 'output', mode: 'single' },
-    ],
+    height: 110,
+    fields: [],
   },
   {
     type: 'transform-data',
@@ -40,11 +36,8 @@ export const PAGE_BLUEPRINT_NODE_DEFINITIONS: PageBlueprintNodeDefinition[] = [
     icon: 'braces',
     accent: 'var(--fabric-text-error)',
     width: 280,
-    height: 132,
-    fields: [
-      { id: 'input', label: 'Input', type: 'unknown', direction: 'input', configurable: true },
-      { id: 'output', label: 'Output', type: 'unknown', direction: 'output', mode: 'single' },
-    ],
+    height: 110,
+    fields: [],
   },
 ]
 

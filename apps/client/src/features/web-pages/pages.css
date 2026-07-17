@@ -473,6 +473,94 @@
   display: grid;
 }
 
+.web-page-blueprint-inspector-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 28px;
+  padding: 4px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
+}
+
+.web-page-blueprint-inspector-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 8px;
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--fabric-bg-elevated) 64%, transparent);
+  color: var(--fabric-text-secondary);
+  font-size: 10px;
+  font-weight: var(--fabric-font-medium);
+}
+
+.web-page-blueprint-inspector-button:hover {
+  border-color: color-mix(in srgb, var(--fabric-accent) 42%, var(--fabric-border-subtle));
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
+}
+
+.web-page-blueprint-inspector-button--danger:hover {
+  border-color: color-mix(in srgb, var(--fabric-text-error) 62%, var(--fabric-border-subtle));
+  color: var(--fabric-text-error);
+}
+
+.web-page-blueprint-inspector-textarea {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: start;
+  gap: 7px;
+  padding: 6px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
+}
+
+.web-page-blueprint-inspector-textarea > span {
+  padding-top: 3px;
+  overflow: hidden;
+  color: var(--fabric-text-secondary);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-inspector-textarea > textarea {
+  min-width: 0;
+  height: 116px;
+  resize: vertical;
+  padding: 5px 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--fabric-bg-canvas) 72%, transparent);
+  color: var(--fabric-text-primary);
+  font: 10px/1.45 var(--fabric-font-mono);
+}
+
+.web-page-blueprint-inspector-textarea > textarea:hover,
+.web-page-blueprint-inspector-textarea > textarea:focus {
+  background: var(--fabric-bg-elevated);
+}
+
+.web-page-blueprint-inspector-textarea > textarea:focus {
+  border-color: var(--fabric-accent);
+  outline: none;
+}
+
+.web-page-blueprint-inspector-empty,
+.web-page-blueprint-inspector-error {
+  margin: 0;
+  padding: 7px 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.web-page-blueprint-inspector-error {
+  color: var(--fabric-text-error);
+}
+
 .web-page-blueprint-inspector-row {
   display: grid;
   grid-template-columns: 92px minmax(0, 1fr);

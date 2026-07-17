@@ -344,7 +344,7 @@ function createCanvasItems(
       x: 1040,
       y: 40 + index * 148,
       width: definition?.width ?? 280,
-      height: definition?.height ?? nodeHeight(node.fields.length),
+      height: nodeHeight(node.fields.length),
       data: {
         kind: 'utility' as const,
         title: node.label,

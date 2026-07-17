@@ -15,7 +15,10 @@ import {
 } from './pageBlueprintNodeRegistry.ts'
 import type {
   PageBlueprintConnectionEndpoint,
+  PageBlueprintField,
+  PageBlueprintFieldDirection,
   PageBlueprintFieldMode,
+  PageBlueprintFieldType,
   PageBlueprintUtilityNodeType,
 } from './pageBlueprintSchema.ts'
 
@@ -157,6 +160,95 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function addNodeField(
+    nodeId: string,
+    field: {
+      label?: string
+      type?: PageBlueprintFieldType
+      direction?: PageBlueprintFieldDirection
+      mode?: PageBlueprintFieldMode
+      value?: string
+    } = {},
+  ) {
+    const sourceNode = document.value.nodes.find((node) => node.id === nodeId)
+    if (!sourceNode) return null
+
+    const nextField: PageBlueprintField = {
+      id: `field:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
+      label: field.label?.trim() || `Field ${sourceNode.fields.length + 1}`,
+      type: field.type ?? 'string',
+      direction: field.direction ?? 'output',
+      mode: field.mode ?? 'single',
+      value: field.value,
+      configurable: true,
+    }
+
+    patchDocument({
+      nodes: document.value.nodes.map((node) =>
+        node.id === nodeId ? { ...node, fields: [...node.fields, nextField] } : node,
+      ),
+    })
+
+    return nextField.id
+  }
+
+  function removeNodeField(nodeId: string, fieldId: string) {
+    const removedConnections = document.value.connections.filter((connection) =>
+      (connection.from.nodeId === nodeId && connection.from.fieldId === fieldId)
+        || (connection.to.nodeId === nodeId && connection.to.fieldId === fieldId),
+    )
+
+    patchDocument({
+      nodes: clearConnectionExpressions(
+        document.value.nodes.map((node) =>
+          node.id === nodeId ? { ...node, fields: node.fields.filter((field) => field.id !== fieldId) } : node,
+        ),
+        removedConnections.map((connection) => connection.to),
+      ),
+      connections: document.value.connections.filter((connection) =>
+        !((connection.from.nodeId === nodeId && connection.from.fieldId === fieldId)
+          || (connection.to.nodeId === nodeId && connection.to.fieldId === fieldId)),
+      ),
+    })
+  }
+
+  function applyRunWorkflowTestResult(nodeId: string, json: string) {
+    let result: unknown
+    try {
+      result = JSON.parse(json)
+    } catch {
+      return false
+    }
+
+    const nextFields = createReturnFieldsFromResult(result)
+    const removedConnections = document.value.connections.filter((connection) =>
+      connection.from.nodeId === nodeId || connection.to.nodeId === nodeId,
+    )
+
+    patchDocument({
+      nodes: clearConnectionExpressions(
+        document.value.nodes.map((node) =>
+          node.id === nodeId
+            ? {
+              ...node,
+              fields: nextFields,
+              data: {
+                ...(node.data ?? {}),
+                testResultJson: json,
+              },
+            }
+            : node,
+        ),
+        removedConnections.map((connection) => connection.to),
+      ),
+      connections: document.value.connections.filter((connection) =>
+        connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId,
+      ),
+    })
+
+    return true
+  }
+
   function addUtilityNode(type: PageBlueprintUtilityNodeType, position?: { x: number; y: number }) {
     const definition = getPageBlueprintNodeDefinition(type)
     if (!definition) return null
@@ -282,6 +374,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setNodeFieldMode,
     setNodeLabel,
     setNodeFieldValue,
+    addNodeField,
+    removeNodeField,
+    applyRunWorkflowTestResult,
     addUtilityNode,
     duplicateNode,
     deleteNode,
@@ -335,6 +430,54 @@ function clearConnectionExpressions(
     (nextNodes, endpoint) => patchNodeField(nextNodes, endpoint.nodeId, endpoint.fieldId, { expression: undefined }),
     nodes,
   )
+}
+
+function createReturnFieldsFromResult(result: unknown): PageBlueprintField[] {
+  const isMultiple = Array.isArray(result)
+  const sample = isMultiple ? result[0] : result
+
+  if (isRecord(sample)) {
+    return Object.entries(sample).map(([key, value]) => ({
+      id: `return:${key}`,
+      label: formatFieldLabel(key),
+      type: inferFieldType(value),
+      direction: 'output',
+      mode: isMultiple ? 'multiple' : inferFieldMode(value),
+      configurable: false,
+    }))
+  }
+
+  return [{
+    id: 'return',
+    label: 'Return',
+    type: inferFieldType(result),
+    direction: 'output',
+    mode: isMultiple ? 'multiple' : 'single',
+    configurable: false,
+  }]
+}
+
+function inferFieldType(value: unknown): PageBlueprintFieldType {
+  if (Array.isArray(value)) return 'array'
+  if (value === null || value === undefined) return 'unknown'
+  if (typeof value === 'string') return 'string'
+  if (typeof value === 'number') return 'number'
+  if (typeof value === 'boolean') return 'boolean'
+  if (typeof value === 'object') return 'object'
+  return 'unknown'
+}
+
+function inferFieldMode(value: unknown): PageBlueprintFieldMode {
+  return Array.isArray(value) ? 'multiple' : 'single'
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function formatFieldLabel(key: string) {
+  const normalized = key.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim()
+  return normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : key
 }
 
 function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {
