@@ -15,6 +15,7 @@
         :key="item.type"
         class="web-page-blueprint-toolbox__item"
         type="button"
+        @click="$emit('addUtilityNode', item.type)"
       >
         <span class="web-page-blueprint-toolbox__icon" :style="{ color: item.accent }">
           <LucideIcon :name="item.icon" :size="15" />
@@ -30,7 +31,12 @@
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import type { PageBlueprintUtilityNodeType } from '../pageBlueprintSchema.ts'
 import { pageBlueprintNodeDefinitionsByCategory } from '../pageBlueprintNodeRegistry.ts'
+
+defineEmits<{
+  addUtilityNode: [type: PageBlueprintUtilityNodeType]
+}>()
 
 const groups = pageBlueprintNodeDefinitionsByCategory()
 </script>

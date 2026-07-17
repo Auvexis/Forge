@@ -56,9 +56,13 @@ export function pageBlueprintNodeDefinitionsByCategory() {
   return [...groups.entries()].map(([category, items]) => ({ category, items }))
 }
 
+export function getPageBlueprintNodeDefinition(type: PageBlueprintUtilityNodeType) {
+  return PAGE_BLUEPRINT_NODE_DEFINITIONS.find((definition) => definition.type === type)
+}
+
 export function createUtilityNodeFromDefinition(
   definition: PageBlueprintNodeDefinition,
-  id = `utility:${definition.type}:${Date.now().toString(36)}`,
+  id = `utility:${definition.type}:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
 ): PageBlueprintUtilityNode {
   return {
     id,

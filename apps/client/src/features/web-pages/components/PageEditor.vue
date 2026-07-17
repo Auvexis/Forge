@@ -87,7 +87,7 @@
       @resize="handleLeftPanelResize"
       @resize-reset="resetLeftPanelResize"
     >
-      <PageBlueprintToolboxPanel />
+      <PageBlueprintToolboxPanel @add-utility-node="addBlueprintUtilityNode" />
     </AppPanel>
 
     <div
@@ -509,6 +509,7 @@ import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue'
 import { usePageBlueprintStore } from '../page-blueprint/pageBlueprint.store.ts'
+import type { PageBlueprintUtilityNodeType } from '../page-blueprint/pageBlueprintSchema.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
 import PageBlueprintToolboxPanel from '../page-blueprint/components/PageBlueprintToolboxPanel.vue'
 
@@ -849,6 +850,10 @@ function closeRightPanel() {
 
 function closeBlueprintToolbox() {
   isBlueprintToolboxOpen.value = false
+}
+
+function addBlueprintUtilityNode(type: PageBlueprintUtilityNodeType) {
+  blueprintStore.addUtilityNode(type)
 }
 
 function handleLeftPanelResize(size: { width: number | null }) {

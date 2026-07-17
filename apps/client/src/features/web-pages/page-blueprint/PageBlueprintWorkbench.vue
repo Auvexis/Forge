@@ -31,7 +31,13 @@
       />
 
       <template #item="{ item, selected }">
+        <UtilityNodeRenderer
+          v-if="itemData(item).kind === 'utility' && itemData(item).utilityNode"
+          :node="itemData(item).utilityNode!"
+          :selected="selected"
+        />
         <BaseElement
+          v-else
           :title="itemData(item).title"
           :eyebrow="itemData(item).eyebrow"
           :icon="itemData(item).icon"
@@ -76,13 +82,16 @@ import {
 } from './pageBlueprintFields.ts'
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
+import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
+import type { PageBlueprintUtilityNode } from './pageBlueprintSchema.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
 import BaseField from './components/BaseField.vue'
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
+import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
-type PageBlueprintCanvasItemKind = 'element' | 'workflow' | 'binding' | 'empty'
+type PageBlueprintCanvasItemKind = 'element' | 'workflow' | 'binding' | 'utility' | 'empty'
 
 interface PageBlueprintCanvasItemData {
   kind: PageBlueprintCanvasItemKind
@@ -95,6 +104,7 @@ interface PageBlueprintCanvasItemData {
   showFooter: boolean
   fields: PageBlueprintDisplayField[]
   elementId?: string
+  utilityNode?: PageBlueprintUtilityNode
 }
 
 interface PageBlueprintCanvasItem extends BaseCanvasItem {
@@ -126,7 +136,7 @@ const model = computed(() => createPageBlueprintViewModel({
 }))
 
 const canvasItems = computed<PageBlueprintCanvasItem[]>(() => {
-  const items = createCanvasItems(model.value)
+  const items = createCanvasItems(model.value, document.value.nodes.filter(isUtilityNode))
   return items.map((item) => ({
     ...item,
     ...(document.value.nodeLayouts[item.id] ?? {}),
@@ -203,7 +213,10 @@ function stopGroupDrag() {
   window.removeEventListener('pointercancel', stopGroupDrag)
 }
 
-function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanvasItem[] {
+function createCanvasItems(
+  viewModel: PageBlueprintViewModel,
+  utilityNodes: PageBlueprintUtilityNode[],
+): PageBlueprintCanvasItem[] {
   const elementItems = viewModel.elements.map((element, index) => ({
     id: `blueprint-element:${element.id}`,
     x: 40,
@@ -262,7 +275,30 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
     },
   }))
 
-  const items = [...elementItems, ...workflowItems, ...bindingItems]
+  const utilityItems = utilityNodes.map((node, index) => {
+    const definition = getPageBlueprintNodeDefinition(node.type)
+    return {
+      id: node.id,
+      x: 1040,
+      y: 40 + index * 148,
+      width: definition?.width ?? 280,
+      height: definition?.height ?? nodeHeight(node.fields.length),
+      data: {
+        kind: 'utility' as const,
+        title: node.label,
+        eyebrow: 'Utility Node',
+        detail: node.type,
+        meta: '',
+        icon: node.icon ?? definition?.icon ?? 'box',
+        accent: node.accent ?? definition?.accent ?? 'var(--fabric-accent)',
+        showFooter: false,
+        fields: [],
+        utilityNode: node,
+      },
+    }
+  })
+
+  const items = [...elementItems, ...workflowItems, ...bindingItems, ...utilityItems]
   if (items.length > 0) return items
 
   return [{
@@ -292,6 +328,10 @@ function createCanvasItems(viewModel: PageBlueprintViewModel): PageBlueprintCanv
 
 function itemData(item: BaseCanvasItem): PageBlueprintCanvasItemData {
   return item.data as PageBlueprintCanvasItemData
+}
+
+function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {
+  return Boolean(node && typeof node === 'object' && (node as PageBlueprintUtilityNode).kind === 'utility')
 }
 
 function shortId(id: string) {

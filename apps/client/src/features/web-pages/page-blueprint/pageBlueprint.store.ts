@@ -9,6 +9,11 @@ import {
   serializePageBlueprintDocument,
   type PageBlueprintDocument,
 } from './pageBlueprintDocument.ts'
+import {
+  createUtilityNodeFromDefinition,
+  getPageBlueprintNodeDefinition,
+} from './pageBlueprintNodeRegistry.ts'
+import type { PageBlueprintUtilityNodeType } from './pageBlueprintSchema.ts'
 
 export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   const document = ref<PageBlueprintDocument>(createDefaultPageBlueprintDocument())
@@ -89,6 +94,27 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     patchDocument({ collapsedGroups: groupIds })
   }
 
+  function addUtilityNode(type: PageBlueprintUtilityNodeType, position?: { x: number; y: number }) {
+    const definition = getPageBlueprintNodeDefinition(type)
+    if (!definition) return null
+
+    const node = createUtilityNodeFromDefinition(definition)
+    const fallbackPosition = {
+      x: Math.round((-document.value.viewport.x + 320) / document.value.viewport.zoom),
+      y: Math.round((-document.value.viewport.y + 120) / document.value.viewport.zoom),
+    }
+
+    patchDocument({
+      nodes: [...document.value.nodes, node],
+      nodeLayouts: {
+        ...document.value.nodeLayouts,
+        [node.id]: position ?? fallbackPosition,
+      },
+    })
+
+    return node.id
+  }
+
   function undo() {
     if (undoStack.value.length === 0) return
     redoStack.value.push(serialize(document.value))
@@ -139,6 +165,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setNodePosition,
     setNodePositions,
     setCollapsedGroups,
+    addUtilityNode,
     undo,
     redo,
   }
