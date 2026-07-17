@@ -311,6 +311,8 @@ describe("page renderer", () => {
     assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
     assert.match(html, /resolveResultPath\(result, binding\.resultPath\)/);
     assert.match(html, /binding\.expression \? evaluateBlueprintExpression\(binding\.expression, result\)/);
+    assert.match(html, /normalizeBlueprintExpression\(template\)/);
+    assert.match(html, /trimmed\.replace\(\/\\\{\\\{\\s\*\(utility:run-workflow/);
     assert.match(html, /writeOutputTarget\(binding\.target, value\)/);
   });
 

@@ -1,11 +1,12 @@
 const BLUEPRINT_PATH_PATTERN = /utility:run-workflow:[A-Za-z0-9:_-]+\.return(?::[A-Za-z0-9_-]+)?(?:\.(?:[A-Za-z_$][\w$-]*|\d+))*/g
+const BLUEPRINT_TOKEN_PATTERN = /\{\{\s*(utility:run-workflow:[^}]+?)\s*\}\}/g
 
 export function evaluateBlueprintExpression(
   template: string,
   resolvePath: (path: string) => unknown,
 ): unknown {
-  const expression = unwrapBlueprintExpression(template)
-  if (!expression) return undefined
+  const expression = normalizeBlueprintExpression(template)
+  if (!expression.trim()) return undefined
   const simpleValue = resolvePath(expression)
   if (simpleValue !== undefined) return simpleValue
 
@@ -19,6 +20,13 @@ export function evaluateBlueprintExpression(
 
 export function unwrapBlueprintExpression(template: string) {
   return template.trim().match(/^\{\{\s*(.+?)\s*\}\}$/)?.[1]?.trim() ?? ''
+}
+
+export function normalizeBlueprintExpression(template: string) {
+  const trimmed = template.trim()
+  const unwrapped = unwrapBlueprintExpression(trimmed)
+  if (unwrapped) return unwrapped
+  return trimmed.replace(BLUEPRINT_TOKEN_PATTERN, (_, path: string) => path.trim())
 }
 
 export function resolveBlueprintRunWorkflowPath(path: string, nodeId: string, result: unknown) {
