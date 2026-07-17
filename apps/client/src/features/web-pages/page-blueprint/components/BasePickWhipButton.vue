@@ -1,6 +1,9 @@
 <template>
   <button
     data-base-canvas-no-drag
+    :data-blueprint-port-node-id="nodeId"
+    :data-blueprint-port-field-id="fieldId"
+    :data-blueprint-port-side="side"
     class="web-page-blueprint-pick-whip"
     :class="{
       'web-page-blueprint-pick-whip--connected': connected,
@@ -22,11 +25,17 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 const props = withDefaults(defineProps<{
   title?: string
   icon?: string
+  nodeId?: string
+  fieldId?: string
+  side?: 'input' | 'output'
   connected?: boolean
   disconnectable?: boolean
 }>(), {
   title: 'Pick whip',
   icon: '',
+  nodeId: '',
+  fieldId: '',
+  side: 'input',
   connected: false,
   disconnectable: false,
 })

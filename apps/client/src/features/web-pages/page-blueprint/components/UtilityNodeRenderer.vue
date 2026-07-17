@@ -2,6 +2,7 @@
   <component
     :is="specificComponent"
     v-if="specificComponent"
+    :node-id="node.id"
     :fields="node.fields"
     :selected="selected"
     @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"
@@ -18,6 +19,7 @@
     :selected="selected"
   >
     <BlueprintNodeFields
+      :node-id="node.id"
       :fields="displayFields"
       @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"
       @pick-output="(fieldId, event) => $emit('pickOutput', fieldId, event)"

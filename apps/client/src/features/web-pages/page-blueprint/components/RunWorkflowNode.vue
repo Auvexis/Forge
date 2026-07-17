@@ -7,6 +7,7 @@
     :selected="selected"
   >
     <BlueprintNodeFields
+      :node-id="nodeId"
       :fields="displayFields"
       @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"
       @pick-output="(fieldId, event) => $emit('pickOutput', fieldId, event)"
@@ -23,6 +24,7 @@ import BlueprintNodeFields from './BlueprintNodeFields.vue'
 
 const props = defineProps<{
   fields: PageBlueprintField[]
+  nodeId: string
   selected?: boolean
 }>()
 

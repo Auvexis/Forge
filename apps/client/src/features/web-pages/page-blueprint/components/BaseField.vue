@@ -3,6 +3,9 @@
     <div class="web-page-blueprint-field__left">
       <BasePickWhipButton
         v-if="input"
+        :node-id="nodeId"
+        :field-id="fieldId"
+        side="input"
         :title="`Bind input for ${label}`"
         :connected="inputConnected"
         :disconnectable="inputConnected"
@@ -31,6 +34,9 @@
         />
         <BasePickWhipButton
           v-if="output"
+          :node-id="nodeId"
+          :field-id="fieldId"
+          side="output"
           :title="`Connect ${label}`"
           :connected="outputConnected"
           @pick="$emit('pickOutput', $event)"
@@ -47,6 +53,8 @@ import BasePickWhipButton from './BasePickWhipButton.vue'
 
 const props = withDefaults(defineProps<{
   label: string
+  nodeId?: string
+  fieldId?: string
   type?: string
   value?: string
   placeholder?: string
@@ -57,6 +65,8 @@ const props = withDefaults(defineProps<{
   mode?: 'single' | 'multiple'
 }>(), {
   type: '',
+  nodeId: '',
+  fieldId: '',
   value: undefined,
   placeholder: '',
   input: false,

@@ -10,12 +10,14 @@
       :pattern-size="24"
       :grid-size="24"
       @items-move="moveCanvasItems"
+      @item-drag-end="measurePorts"
       @pointermove="updatePendingPointer"
       @pointerleave="clearPendingPointer"
     >
       <PageBlueprintConnectionLayer
         :nodes="connectionNodes"
         :connections="document.connections"
+        :port-points="portPoints"
         :pending-output="pendingOutput"
         :pointer="pendingPointer"
         @remove-connection="blueprintStore.removeConnection"
@@ -67,6 +69,7 @@
           :selected="selected"
         >
           <BlueprintNodeFields
+            :node-id="item.id"
             :fields="itemData(item).fields"
             @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
             @pick-input="(fieldId, event) => completeFieldConnection(item.id, fieldId, event)"
@@ -78,7 +81,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type {
   PageActionCollectionBinding,
@@ -150,6 +153,7 @@ const { document } = storeToRefs(blueprintStore)
 const pendingOutput = ref<PageBlueprintConnectionEndpoint | null>(null)
 const pendingPointer = ref<{ x: number; y: number } | null>(null)
 const activePointerId = ref<number | null>(null)
+const portPoints = ref<Record<string, { x: number; y: number }>>({})
 const viewport = computed<BaseCanvasViewport>({
   get: () => document.value.viewport,
   set: (nextViewport) => blueprintStore.setViewport(nextViewport),
@@ -200,6 +204,10 @@ const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
     .filter((node) => node.width > 0 && node.height > 0 && node.fields.length > 0),
 )
 
+onMounted(() => {
+  void nextTick(measurePorts)
+})
+
 onBeforeUnmount(() => {
   window.removeEventListener('pointermove', moveGroupDrag)
   window.removeEventListener('pointercancel', stopGroupDrag)
@@ -211,6 +219,10 @@ onBeforeUnmount(() => {
 watch(selection, (nextSelection) => {
   emit('selectNode', nextSelection.length === 1 ? (nextSelection[0] ?? null) : null)
 })
+
+watch(canvasItems, () => {
+  void nextTick(measurePorts)
+}, { flush: 'post' })
 
 function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
   const itemsById = new Map(canvasItems.value.map((item) => [item.id, item]))
@@ -414,6 +426,27 @@ function updatePendingPointer(event: PointerEvent) {
     x: (event.clientX - rect.left - viewport.value.x) / viewport.value.zoom,
     y: (event.clientY - rect.top - viewport.value.y) / viewport.value.zoom,
   }
+}
+
+function measurePorts() {
+  const canvasElement = window.document.querySelector('.web-page-blueprint-v2__canvas')
+  const canvasRect = canvasElement?.getBoundingClientRect()
+  if (!canvasElement || !canvasRect) return
+
+  const nextPoints: Record<string, { x: number; y: number }> = {}
+  const ports = canvasElement.querySelectorAll<HTMLElement>('[data-blueprint-port-node-id][data-blueprint-port-field-id][data-blueprint-port-side]')
+  ports.forEach((port) => {
+    const nodeId = port.dataset.blueprintPortNodeId
+    const fieldId = port.dataset.blueprintPortFieldId
+    const side = port.dataset.blueprintPortSide
+    if (!nodeId || !fieldId || !side) return
+    const rect = port.getBoundingClientRect()
+    nextPoints[`${nodeId}:${fieldId}:${side}`] = {
+      x: (rect.left + rect.width / 2 - canvasRect.left - viewport.value.x) / viewport.value.zoom,
+      y: (rect.top + rect.height / 2 - canvasRect.top - viewport.value.y) / viewport.value.zoom,
+    }
+  })
+  portPoints.value = nextPoints
 }
 
 function clearPendingPointer() {

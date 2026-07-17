@@ -54,9 +54,11 @@ const OUTPUT_PORT_OFFSET_X = 9
 const props = withDefaults(defineProps<{
   nodes: PageBlueprintConnectionNode[]
   connections: PageBlueprintConnection[]
+  portPoints?: Record<string, BaseCanvasPoint>
   pendingOutput?: PageBlueprintConnectionEndpoint | null
   pointer?: BaseCanvasPoint | null
 }>(), {
+  portPoints: () => ({}),
   pendingOutput: null,
   pointer: null,
 })
@@ -89,6 +91,8 @@ const pendingPath = computed(() => {
 })
 
 function portPoint(endpoint: PageBlueprintConnectionEndpoint, side: 'input' | 'output'): BaseCanvasPoint | null {
+  const measuredPoint = props.portPoints[portKey(endpoint, side)]
+  if (measuredPoint) return measuredPoint
   const node = nodesById.value.get(endpoint.nodeId)
   if (!node) return null
   const fieldIndex = node.fields.findIndex((field) => field.id === endpoint.fieldId)
@@ -97,6 +101,10 @@ function portPoint(endpoint: PageBlueprintConnectionEndpoint, side: 'input' | 'o
     x: side === 'output' ? node.x + node.width - OUTPUT_PORT_OFFSET_X : node.x + INPUT_PORT_OFFSET_X,
     y: node.y + fieldCenterY(node, fieldIndex),
   }
+}
+
+function portKey(endpoint: PageBlueprintConnectionEndpoint, side: 'input' | 'output') {
+  return `${endpoint.nodeId}:${endpoint.fieldId}:${side}`
 }
 
 function fieldCenterY(node: PageBlueprintConnectionNode, fieldIndex: number) {

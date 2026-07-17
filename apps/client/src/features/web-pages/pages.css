@@ -1005,21 +1005,24 @@
   height: 18px;
   place-items: center;
   border-radius: 2px;
+  background: color-mix(in srgb, var(--fabric-text-muted) 7%, transparent);
   color: var(--fabric-blueprint-node-muted-text, var(--fabric-text-muted));
   cursor: crosshair;
 }
 
 .web-page-blueprint-pick-whip:hover {
   color: var(--fabric-blueprint-binding-active, var(--fabric-accent));
-  background: var(--fabric-blueprint-palette-item-hover-bg, var(--fabric-bg-elevated));
+  background: color-mix(in srgb, var(--fabric-accent) 16%, transparent);
 }
 
 .web-page-blueprint-pick-whip--connected {
   color: var(--fabric-blueprint-binding-active, var(--fabric-accent));
+  background: color-mix(in srgb, var(--fabric-accent) 11%, transparent);
 }
 
 .web-page-blueprint-pick-whip--disconnectable:hover {
   color: var(--fabric-text-error);
+  background: color-mix(in srgb, var(--fabric-text-error) 14%, transparent);
 }
 
 .web-page-blueprint-field-mode {

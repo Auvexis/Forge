@@ -2,6 +2,8 @@
   <BaseField
     v-for="field in fields"
     :key="field.id"
+    :node-id="nodeId"
+    :field-id="field.id"
     :label="field.label"
     :type="field.type"
     :value="field.value"
@@ -33,6 +35,7 @@ export interface BlueprintNodeDisplayField {
 }
 
 defineProps<{
+  nodeId: string
   fields: BlueprintNodeDisplayField[]
 }>()
 
