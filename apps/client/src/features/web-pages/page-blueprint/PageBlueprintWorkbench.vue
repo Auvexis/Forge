@@ -194,9 +194,10 @@ const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
       x: item.x,
       y: item.y,
       width: item.width ?? 0,
+      height: item.height ?? 0,
       fields: connectionFields(item),
     }))
-    .filter((node) => node.width > 0 && node.fields.length > 0),
+    .filter((node) => node.width > 0 && node.height > 0 && node.fields.length > 0),
 )
 
 onBeforeUnmount(() => {
@@ -406,9 +407,7 @@ function movePendingConnection(event: PointerEvent) {
 
 function updatePendingPointer(event: PointerEvent) {
   if (!pendingOutput.value) return
-  const canvasElement = event.currentTarget instanceof HTMLElement
-    ? event.currentTarget
-    : window.document.querySelector('.web-page-blueprint-v2__canvas')
+  const canvasElement = window.document.querySelector('.web-page-blueprint-v2__canvas')
   const rect = canvasElement?.getBoundingClientRect()
   if (!rect) return
   pendingPointer.value = {

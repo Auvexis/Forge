@@ -43,12 +43,11 @@ export interface PageBlueprintConnectionNode {
   x: number
   y: number
   width: number
+  height: number
   fields: PageBlueprintConnectionField[]
 }
 
 const HEADER_HEIGHT = 34
-const FIELD_HEIGHT = 32
-const FIELD_CENTER_Y = 16
 const INPUT_PORT_OFFSET_X = 9
 const OUTPUT_PORT_OFFSET_X = 9
 
@@ -96,8 +95,14 @@ function portPoint(endpoint: PageBlueprintConnectionEndpoint, side: 'input' | 'o
   if (fieldIndex < 0) return null
   return {
     x: side === 'output' ? node.x + node.width - OUTPUT_PORT_OFFSET_X : node.x + INPUT_PORT_OFFSET_X,
-    y: node.y + HEADER_HEIGHT + FIELD_CENTER_Y + fieldIndex * FIELD_HEIGHT,
+    y: node.y + fieldCenterY(node, fieldIndex),
   }
+}
+
+function fieldCenterY(node: PageBlueprintConnectionNode, fieldIndex: number) {
+  const bodyHeight = Math.max(0, node.height - HEADER_HEIGHT)
+  const fieldHeight = node.fields.length > 0 ? bodyHeight / node.fields.length : 0
+  return HEADER_HEIGHT + fieldHeight * fieldIndex + fieldHeight / 2
 }
 
 function midpoint(from: BaseCanvasPoint, to: BaseCanvasPoint): BaseCanvasPoint {
