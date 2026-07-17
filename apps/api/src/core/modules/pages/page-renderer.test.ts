@@ -310,6 +310,7 @@ describe("page renderer", () => {
     assert.match(html, /scopeRoot\.textContent = stringifyOutputValue\(item\)/);
     assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
     assert.match(html, /resolveResultPath\(result, binding\.resultPath\)/);
+    assert.match(html, /binding\.expression \? evaluateBlueprintExpression\(binding\.expression, result\)/);
     assert.match(html, /writeOutputTarget\(binding\.target, value\)/);
   });
 

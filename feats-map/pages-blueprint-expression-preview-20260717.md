@@ -1,0 +1,5 @@
+- [x] Separar expressao e valor resolvido no Inspector
+- [x] Suportar ternario em expressoes Blueprint
+- [x] Propagar expressao completa para runtime
+- [x] Validar build/typecheck
+- [x] Commitar alterações

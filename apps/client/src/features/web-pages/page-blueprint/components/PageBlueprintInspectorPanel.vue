@@ -23,27 +23,45 @@
 
         <BaseInspectorSection title="HTML Properties" :icon="selectedElementIcon">
           <BaseInspectorRow
-            label="Element ID"
+            :label="selectedElementElementIdExpression ? 'Element ID Expression' : 'Element ID'"
             :value="selectedElementElementIdValue"
             editable
-            @update:value="$emit('updateElementProperty', selectedElementNodeId, 'elementId', $event)"
+            @update:value="$emit('updateElementProperty', selectedElementNodeId, 'id', $event)"
+          />
+          <BaseInspectorRow
+            v-if="selectedElementElementIdExpression"
+            label="Element ID Value"
+            :value="selectedElementElementIdResolvedValue || 'No test value'"
           />
           <BaseInspectorRow label="Tag" :value="selectedElement.tag" />
           <BaseInspectorRow
-            label="Class"
+            :label="selectedElementClassExpression ? 'Class Expression' : 'Class'"
             :value="selectedElementClassValue"
             editable
             @update:value="$emit('updateElementProperty', selectedElementNodeId, 'class', $event)"
           />
           <BaseInspectorRow
+            v-if="selectedElementClassExpression"
+            label="Class Value"
+            :value="selectedElementClassResolvedValue || 'No test value'"
+          />
+          <template
             v-for="field in selectedElementFields"
             :key="field.id"
-            :label="field.label"
-            :value="field.value ?? ''"
-            :placeholder="field.type"
-            editable
-            @update:value="$emit('updateElementProperty', selectedElementNodeId, field.id, $event)"
-          />
+          >
+            <BaseInspectorRow
+              :label="field.expression ? `${field.label} Expression` : field.label"
+              :value="field.value ?? ''"
+              :placeholder="field.type"
+              editable
+              @update:value="$emit('updateElementProperty', selectedElementNodeId, field.id, $event)"
+            />
+            <BaseInspectorRow
+              v-if="field.expression"
+              :label="`${field.label} Value`"
+              :value="field.resolvedValue ?? 'No test value'"
+            />
+          </template>
         </BaseInspectorSection>
 
         <BaseInspectorSection title="Events" icon="mouse-pointer-click">
@@ -290,6 +308,10 @@ import {
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlock } from '../../types/page.types.ts'
 import type { PageBlueprintDocument } from '../pageBlueprintDocument.ts'
+import {
+  evaluateBlueprintExpression,
+  resolveBlueprintRunWorkflowPath,
+} from '../pageBlueprintExpressions.ts'
 import { createElementFields } from '../pageBlueprintFields.ts'
 import { pageBlockIcon } from '../pageBlueprintGroups.ts'
 import { createPageBlueprintViewModel } from '../pageBlueprintViewModel.ts'
@@ -344,10 +366,15 @@ const selectedElementFields = computed(() => {
   if (!selectedElement.value) return []
   return createElementFields(selectedElement.value)
     .filter((field) => field.id !== 'id' && field.id !== 'class')
-    .map((field) => ({
-      ...field,
-      value: elementConnectionExpression(field.id) ?? field.value,
-    }))
+    .map((field) => {
+      const expression = elementConnectionExpression(field.id)
+      return {
+        ...field,
+        expression,
+        value: expression ?? field.value,
+        resolvedValue: expression ? stringifyInspectorValue(resolveElementExpressionValue(expression)) : undefined,
+      }
+    })
 })
 const selectedElementEventFields = computed(() =>
   node.value?.kind === 'element' ? node.value.fields.filter((field) => field.type === 'event') : [],
@@ -434,8 +461,44 @@ function elementConnectionExpression(fieldId: string) {
   )?.expression
 }
 
-const selectedElementElementIdValue = computed(() => elementConnectionExpression('id') ?? selectedElementElementId.value)
-const selectedElementClassValue = computed(() => elementConnectionExpression('class') ?? selectedElement.value?.className ?? '')
+function resolveElementExpressionValue(expression: string) {
+  return evaluateBlueprintExpression(expression, (path) => {
+    const nodeId = path.match(/^(utility:run-workflow:[^.]+)\.return/)?.[1]
+    if (!nodeId) return undefined
+    const result = testResultForNode(nodeId)
+    return result === undefined ? undefined : resolveBlueprintRunWorkflowPath(path, nodeId, result)
+  })
+}
+
+function testResultForNode(nodeId: string) {
+  const sourceNode = props.document.nodes.find((candidate) => candidate.id === nodeId)
+  const json = sourceNode?.data?.testResultJson
+  if (typeof json !== 'string') return undefined
+  try {
+    return JSON.parse(json)
+  } catch {
+    return undefined
+  }
+}
+
+function stringifyInspectorValue(value: unknown) {
+  if (value === undefined) return ''
+  if (value === null) return 'null'
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value, null, 2)
+}
+
+const selectedElementElementIdExpression = computed(() => elementConnectionExpression('id'))
+const selectedElementClassExpression = computed(() => elementConnectionExpression('class'))
+const selectedElementElementIdValue = computed(() => selectedElementElementIdExpression.value ?? selectedElementElementId.value)
+const selectedElementClassValue = computed(() => selectedElementClassExpression.value ?? selectedElement.value?.className ?? '')
+const selectedElementElementIdResolvedValue = computed(() =>
+  selectedElementElementIdExpression.value ? stringifyInspectorValue(resolveElementExpressionValue(selectedElementElementIdExpression.value)) : '',
+)
+const selectedElementClassResolvedValue = computed(() =>
+  selectedElementClassExpression.value ? stringifyInspectorValue(resolveElementExpressionValue(selectedElementClassExpression.value)) : '',
+)
 
 function selectWorkflow(workflowId: string) {
   if (!node.value) return

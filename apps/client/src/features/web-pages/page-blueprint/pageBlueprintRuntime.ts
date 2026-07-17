@@ -7,6 +7,7 @@ import type {
   PageElementEvent,
 } from '../types/page.types.ts'
 import type { PageBlueprintDocument } from './pageBlueprintDocument.ts'
+import { blueprintResultPathFromExpression } from './pageBlueprintExpressions.ts'
 import type { PageBlueprintConnection, PageBlueprintField, PageBlueprintNode } from './pageBlueprintSchema.ts'
 
 const BLUEPRINT_EVENT_PREFIX = 'blueprint-page-event:'
@@ -113,6 +114,7 @@ function createOutputBindingFromConnection(
     id: `${BLUEPRINT_OUTPUT_PREFIX}${actionId}:${resultPath}:${target.elementId}:${target.property}`,
     actionId,
     resultPath,
+    expression: connection.expression,
     target,
     createdAt: new Date().toISOString(),
   }
@@ -132,7 +134,7 @@ function outputTargetForField(block: PageBlock, fieldId: string): PageActionElem
 }
 
 function resultPathForConnection(connection: PageBlueprintConnection, fromField: PageBlueprintField, targetValue: unknown) {
-  const expressionPath = resultPathFromExpression(connection.expression, connection.from.nodeId, connection.from.fieldId)
+  const expressionPath = blueprintResultPathFromExpression(connection.expression, connection.from.nodeId, connection.from.fieldId)
     ?? resultPathFromExpression(targetValue, connection.from.nodeId, connection.from.fieldId)
   if (expressionPath !== null) return expressionPath
   if (fromField.id === 'return') return ''

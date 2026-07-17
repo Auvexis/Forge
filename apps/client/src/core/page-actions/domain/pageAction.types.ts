@@ -67,6 +67,7 @@ export interface PageActionOutputBinding {
   id: string
   actionId: string
   resultPath: string
+  expression?: string
   target: PageActionElementBindingTarget
   createdAt: string
 }
