@@ -33,6 +33,9 @@ const GROUP_COLORS = [
   'var(--fabric-blueprint-group-accent-3, #4f9b8f)',
   'var(--fabric-blueprint-group-accent-4, #c27b48)',
 ]
+const GROUP_PADDING_X = 20
+const GROUP_HEADER_SPACE = 36
+const GROUP_BOTTOM_PADDING = 20
 
 export function buildPageBlueprintGroups(blocks: PageBlock[], items: PageBlueprintGroupItem[]): PageBlueprintGroupNode[] {
   const byElementId = new Map(items.map((item) => [item.elementId, item]))
@@ -47,10 +50,10 @@ export function buildPageBlueprintGroups(blocks: PageBlock[], items: PageBluepri
 
     if (groupItems.length < 2) return []
 
-    const minX = Math.min(...groupItems.map((item) => item.x)) - 20
-    const minY = Math.min(...groupItems.map((item) => item.y)) - 112
-    const maxX = Math.max(...groupItems.map((item) => item.x + item.width)) + 20
-    const maxY = Math.max(...groupItems.map((item) => item.y + item.height)) + 20
+    const minX = Math.min(...groupItems.map((item) => item.x)) - GROUP_PADDING_X
+    const minY = Math.min(...groupItems.map((item) => item.y)) - GROUP_HEADER_SPACE
+    const maxX = Math.max(...groupItems.map((item) => item.x + item.width)) + GROUP_PADDING_X
+    const maxY = Math.max(...groupItems.map((item) => item.y + item.height)) + GROUP_BOTTOM_PADDING
 
     return [{
       id: `group:${block.id}`,
