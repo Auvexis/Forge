@@ -342,7 +342,9 @@
         :document="blueprintStore.document"
         :selected-node-id="blueprintSelectedNodeId"
         :workflows="pageActionsStore.workflows"
-        @update-node-label="blueprintStore.setNodeLabel"
+        @update-node-label="handleBlueprintNodeLabelUpdate"
+        @update-node-id="handleBlueprintNodeIdUpdate"
+        @update-element-property="handleBlueprintElementPropertyUpdate"
         @update-field-value="blueprintStore.setNodeFieldValue"
         @add-node-field="blueprintStore.addNodeField"
         @add-element-event="blueprintStore.addElementEventField"
@@ -893,6 +895,81 @@ function closeBlueprintToolbox() {
 
 function addBlueprintUtilityNode(type: PageBlueprintUtilityNodeType) {
   blueprintStore.addUtilityNode(type)
+}
+
+function handleBlueprintNodeLabelUpdate(nodeId: string, label: string) {
+  if (nodeId.startsWith('blueprint-element:')) {
+    handleBlueprintElementPropertyUpdate(nodeId, 'label', label)
+    return
+  }
+  blueprintStore.setNodeLabel(nodeId, label)
+}
+
+function handleBlueprintNodeIdUpdate(nodeId: string, nextNodeId: string) {
+  const normalized = nextNodeId.trim()
+  if (!normalized || normalized === nodeId) return
+
+  if (nodeId.startsWith('blueprint-element:')) {
+    const currentBlockId = nodeId.slice('blueprint-element:'.length)
+    const nextBlockId = normalized.startsWith('blueprint-element:')
+      ? normalized.slice('blueprint-element:'.length)
+      : normalized
+    if (!nextBlockId || nextBlockId === currentBlockId) return
+    if (!editorStore.renameBlockId(currentBlockId, nextBlockId)) return
+    const nextBlueprintNodeId = `blueprint-element:${nextBlockId}`
+    blueprintStore.renameNodeId(nodeId, nextBlueprintNodeId)
+    blueprintSelectedNodeId.value = nextBlueprintNodeId
+    return
+  }
+
+  if (!blueprintStore.renameNodeId(nodeId, normalized)) return
+  blueprintSelectedNodeId.value = normalized
+}
+
+function handleBlueprintElementPropertyUpdate(nodeId: string, property: string, value: string) {
+  const blockId = nodeId.startsWith('blueprint-element:') ? nodeId.slice('blueprint-element:'.length) : nodeId
+  const match = findPageBlockById(editorStore.blocks, blockId)
+  if (!match) return
+
+  if (property === 'elementId') {
+    editorStore.patchBlock(blockId, { elementId: value })
+    return
+  }
+  if (property === 'class') {
+    editorStore.patchBlock(blockId, { className: value })
+    return
+  }
+  if (property === 'id') {
+    editorStore.patchBlock(blockId, { elementId: value, attributes: { ...(match.attributes ?? {}), id: value } })
+    return
+  }
+  if (property === 'label') {
+    const textLike = ['text', 'button', 'link'].includes(match.tag)
+    editorStore.patchBlock(blockId, {
+      props: {
+        ...(match.props ?? {}),
+        label: value,
+        ...(textLike ? { text: value } : {}),
+      },
+    })
+    return
+  }
+
+  editorStore.patchBlock(blockId, {
+    props: {
+      ...(match.props ?? {}),
+      [property]: value,
+    },
+  })
+}
+
+function findPageBlockById(blocks: PageBlock[], blockId: string): PageBlock | null {
+  for (const block of blocks) {
+    if (block.id === blockId) return block
+    const child = findPageBlockById(block.children ?? [], blockId)
+    if (child) return child
+  }
+  return null
 }
 
 function handleLeftPanelResize(size: { width: number | null }) {

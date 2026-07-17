@@ -151,6 +151,40 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function renameNodeId(nodeId: string, nextNodeId: string) {
+    const normalized = nextNodeId.trim()
+    if (!normalized || normalized === nodeId) return false
+    if (document.value.nodes.some((node) => node.id === normalized)) return false
+
+    const nodeLayouts = { ...document.value.nodeLayouts }
+    if (nodeLayouts[nodeId]) {
+      nodeLayouts[normalized] = nodeLayouts[nodeId]
+      delete nodeLayouts[nodeId]
+    }
+
+    patchDocument({
+      nodes: document.value.nodes.map((node) => ({
+        ...(node.id === nodeId ? { ...node, id: normalized } : node),
+        fields: node.fields.map((field) => ({
+          ...field,
+          expression: field.expression?.replaceAll(`{{ ${nodeId}.`, `{{ ${normalized}.`),
+        })),
+      })),
+      nodeLayouts,
+      connections: document.value.connections.map((connection) => ({
+        ...connection,
+        id: createConnectionId(renameEndpointNode(connection.from, nodeId, normalized), renameEndpointNode(connection.to, nodeId, normalized)),
+        from: renameEndpointNode(connection.from, nodeId, normalized),
+        to: renameEndpointNode(connection.to, nodeId, normalized),
+        expression: connection.from.nodeId === nodeId
+          ? createConnectionExpression(renameEndpointNode(connection.from, nodeId, normalized))
+          : connection.expression,
+      })),
+    })
+
+    return true
+  }
+
   function setNodeFieldValue(nodeId: string, fieldId: string, value: string) {
     patchDocument({
       nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { value, expression: undefined }),
@@ -489,6 +523,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     removeInputConnection,
     setNodeFieldMode,
     setNodeLabel,
+    renameNodeId,
     setNodeFieldValue,
     configureRunWorkflowNode,
     setRunWorkflowEventType,
@@ -526,6 +561,14 @@ function createConnectionId(from: PageBlueprintConnectionEndpoint, to: PageBluep
 
 function createConnectionExpression(from: PageBlueprintConnectionEndpoint) {
   return `{{ ${from.nodeId}.${from.fieldId} }}`
+}
+
+function renameEndpointNode(
+  endpoint: PageBlueprintConnectionEndpoint,
+  previousNodeId: string,
+  nextNodeId: string,
+): PageBlueprintConnectionEndpoint {
+  return endpoint.nodeId === previousNodeId ? { ...endpoint, nodeId: nextNodeId } : endpoint
 }
 
 function createRunWorkflowEventField(): PageBlueprintField {

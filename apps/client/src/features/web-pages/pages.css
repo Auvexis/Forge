@@ -828,6 +828,14 @@
   outline: none;
 }
 
+.web-page-blueprint-inspector-row__value--editable {
+  cursor: text;
+}
+
+.web-page-blueprint-inspector-row__value--editable:hover {
+  background: var(--fabric-bg-elevated);
+}
+
 .web-page-blueprint-v2__canvas .base-canvas__item {
   z-index: 2;
 }

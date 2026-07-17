@@ -17,7 +17,7 @@ export interface PageBlueprintDisplayField {
 }
 
 export function createElementFields(element: PageBlueprintElementNode): PageBlueprintDisplayField[] {
-  const baseFields = bindableElementFields(element.tag, element.props, element.attributes, element.className)
+  const baseFields = bindableElementFields(element.tag, element.props, element.attributes, element.className, element.elementId)
   return baseFields.map((field) => ({
     ...field,
     input: true,
@@ -59,6 +59,7 @@ function bindableElementFields(
   props: PageBlockProps,
   attributes: PageBlockAttributes,
   className: string,
+  elementId?: string,
 ): PageBlueprintDisplayField[] {
   if (tag === 'input') {
     const type = String(props.type ?? attributes.type ?? 'text')
@@ -92,7 +93,7 @@ function bindableElementFields(
   }
 
   return [
-    htmlField('id', 'Element ID', 'string', attributes.id),
+    htmlField('id', 'Element ID', 'string', elementId ?? attributes.id),
     htmlField('class', 'Class', 'string', className || attributes.class),
   ]
 }

@@ -8,6 +8,7 @@ import type { PageBlock, PageBlockAttributes, PageBlockProps, PageElementEvent }
 
 export interface PageBlueprintElementNode {
   id: string
+  elementId?: string
   label: string
   tag: string
   depth: number
@@ -93,6 +94,7 @@ function collectElementNodes(blocks: PageBlock[], depth = 0): PageBlueprintEleme
   return blocks.flatMap((block) => [
     {
       id: block.id,
+      elementId: block.elementId,
       label: blockLabel(block),
       tag: block.tag,
       depth,

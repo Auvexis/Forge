@@ -5,22 +5,44 @@
     <template v-else>
       <template v-if="selectedElement">
         <BaseInspectorSection title="Node" icon="box">
-          <BaseInspectorRow label="ID" :value="selectedNodeId" />
+          <BaseInspectorRow
+            label="ID"
+            :value="selectedElement.id"
+            editable
+            @update:value="$emit('updateNodeId', selectedElementNodeId, `blueprint-element:${$event}`)"
+          />
           <BaseInspectorRow label="Kind" value="element" />
-          <BaseInspectorRow label="Label" :value="selectedElement.label" />
+          <BaseInspectorRow
+            label="Label"
+            :value="selectedElement.label"
+            editable
+            @update:value="$emit('updateElementProperty', selectedElementNodeId, 'label', $event)"
+          />
           <BaseInspectorRow label="Type" :value="selectedElement.tag" />
         </BaseInspectorSection>
 
         <BaseInspectorSection title="HTML Properties" :icon="selectedElementIcon">
-          <BaseInspectorRow label="Element ID" :value="selectedElement.id" />
+          <BaseInspectorRow
+            label="Element ID"
+            :value="selectedElementElementIdValue"
+            editable
+            @update:value="$emit('updateElementProperty', selectedElementNodeId, 'elementId', $event)"
+          />
           <BaseInspectorRow label="Tag" :value="selectedElement.tag" />
-          <BaseInspectorRow label="Class" :value="selectedElement.className || '-'" />
+          <BaseInspectorRow
+            label="Class"
+            :value="selectedElementClassValue"
+            editable
+            @update:value="$emit('updateElementProperty', selectedElementNodeId, 'class', $event)"
+          />
           <BaseInspectorRow
             v-for="field in selectedElementFields"
             :key="field.id"
             :label="field.label"
             :value="field.value ?? ''"
             :placeholder="field.type"
+            editable
+            @update:value="$emit('updateElementProperty', selectedElementNodeId, field.id, $event)"
           />
         </BaseInspectorSection>
 
@@ -61,7 +83,12 @@
 
       <template v-else>
       <BaseInspectorSection v-if="node?.type !== 'run-workflow'" title="Node" icon="box">
-        <BaseInspectorRow label="ID" :value="selectedNodeId" />
+        <BaseInspectorRow
+          label="ID"
+          :value="selectedNodeId"
+          :editable="Boolean(node)"
+          @update:value="node && $emit('updateNodeId', node.id, $event)"
+        />
         <BaseInspectorRow label="Kind" :value="node?.kind ?? inferredKind" />
         <BaseInspectorRow
           label="Label"
@@ -163,7 +190,12 @@
 
               <template v-else>
                 <BaseInspectorSection title="Node" icon="box">
-                  <BaseInspectorRow label="ID" :value="selectedNodeId" />
+                  <BaseInspectorRow
+                    label="ID"
+                    :value="selectedNodeId"
+                    :editable="Boolean(node)"
+                    @update:value="node && $emit('updateNodeId', node.id, $event)"
+                  />
                   <BaseInspectorRow label="Kind" :value="node?.kind ?? inferredKind" />
                   <BaseInspectorRow
                     label="Label"
@@ -275,6 +307,8 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   updateNodeLabel: [nodeId: string, label: string]
+  updateNodeId: [nodeId: string, nextNodeId: string]
+  updateElementProperty: [nodeId: string, property: string, value: string]
   updateFieldValue: [nodeId: string, fieldId: string, value: string]
   addNodeField: [nodeId: string]
   addElementEvent: [nodeId: string]
@@ -304,7 +338,16 @@ const selectedElement = computed(() =>
   elementModel.value.elements.find((element) => element.id === selectedElementId.value) ?? null,
 )
 const selectedElementIcon = computed(() => selectedElement.value ? pageBlockIcon(selectedElement.value.tag) : 'box')
-const selectedElementFields = computed(() => selectedElement.value ? createElementFields(selectedElement.value) : [])
+const selectedElementElementId = computed(() => String(selectedElement.value?.elementId ?? selectedElement.value?.attributes.id ?? ''))
+const selectedElementFields = computed(() => {
+  if (!selectedElement.value) return []
+  return createElementFields(selectedElement.value)
+    .filter((field) => field.id !== 'id' && field.id !== 'class')
+    .map((field) => ({
+      ...field,
+      value: elementConnectionExpression(field.id) ?? field.value,
+    }))
+})
 const selectedElementEventFields = computed(() =>
   node.value?.kind === 'element' ? node.value.fields.filter((field) => field.type === 'event') : [],
 )
@@ -383,6 +426,15 @@ watch(node, (nextNode) => {
 function loadWorkflows() {
   emit('refreshWorkflows')
 }
+
+function elementConnectionExpression(fieldId: string) {
+  return props.document.connections.find((connection) =>
+    connection.to.nodeId === selectedElementNodeId.value && connection.to.fieldId === fieldId,
+  )?.expression
+}
+
+const selectedElementElementIdValue = computed(() => elementConnectionExpression('id') ?? selectedElementElementId.value)
+const selectedElementClassValue = computed(() => elementConnectionExpression('class') ?? selectedElement.value?.className ?? '')
 
 function selectWorkflow(workflowId: string) {
   if (!node.value) return
