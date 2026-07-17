@@ -2,7 +2,7 @@
   <section
     class="web-page-editor"
     :class="{
-      'web-page-editor--left-collapsed': !isExplorerVisible,
+      'web-page-editor--left-collapsed': !isLeftWorkspacePanelVisible,
       'web-page-editor--right-collapsed': !isInspectorVisible,
     }"
     :style="pageEditorLayoutStyle"
@@ -71,6 +71,21 @@
         @upload-asset="uploadSiteAsset"
         @delete-file="deleteCodeFile"
       />
+    </AppPanel>
+
+    <AppPanel
+      v-if="activePageDocument === 'blueprint'"
+      :is-open="isBlueprintToolboxVisible"
+      title="Toolbox"
+      position="left"
+      width="md"
+      resizable
+      resize-side="right"
+      :show-close="false"
+      @resize="handleLeftPanelResize"
+      @resize-reset="resetLeftPanelResize"
+    >
+      <PageBlueprintToolboxPanel />
     </AppPanel>
 
     <div
@@ -493,6 +508,7 @@ import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue'
 import { usePageBlueprintStore } from '../page-blueprint/pageBlueprint.store.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
+import PageBlueprintToolboxPanel from '../page-blueprint/components/PageBlueprintToolboxPanel.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -575,7 +591,10 @@ const pageDocumentTabs = [
   { id: 'blueprint', label: 'Blueprint', icon: 'workflow' },
 ]
 const isDesignDocumentActive = computed(() => activePageDocument.value === 'design')
+const isBlueprintDocumentActive = computed(() => activePageDocument.value === 'blueprint')
 const isExplorerVisible = computed(() => isDesignDocumentActive.value && isLeftPanelOpen.value)
+const isBlueprintToolboxVisible = computed(() => isBlueprintDocumentActive.value)
+const isLeftWorkspacePanelVisible = computed(() => isExplorerVisible.value || isBlueprintToolboxVisible.value)
 const isInspectorVisible = computed(() => isDesignDocumentActive.value && isRightPanelOpen.value)
 const workspacePlaneStyle = computed(() => ({}))
 const pageEditorLayoutStyle = computed(() => ({
