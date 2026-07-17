@@ -211,7 +211,7 @@
         </BaseCanvas>
         <PageBlueprintWorkbench
           v-else
-          :blocks="editorStore.blocks"
+          :blocks="activePreviewBlocks"
           :workflows="pageActionsStore.workflows"
           :output-bindings="pageActionBindingsStore.outputBindingsByAction"
           :collection-bindings="pageActionBindingsStore.collectionBindingsByAction"
@@ -338,7 +338,7 @@
       @resize-reset="resetRightPanelResize"
     >
       <PageBlueprintInspectorPanel
-        :blocks="editorStore.blocks"
+        :blocks="activePreviewBlocks"
         :document="blueprintStore.document"
         :selected-node-id="blueprintSelectedNodeId"
         :workflows="pageActionsStore.workflows"
@@ -545,7 +545,10 @@ import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue'
 import { usePageBlueprintStore } from '../page-blueprint/pageBlueprint.store.ts'
-import { applyBlueprintRuntimeToPage } from '../page-blueprint/pageBlueprintRuntime.ts'
+import {
+  applyBlueprintPreviewValuesToBlocks,
+  applyBlueprintRuntimeToPage,
+} from '../page-blueprint/pageBlueprintRuntime.ts'
 import type { PageBlueprintUtilityNodeType } from '../page-blueprint/pageBlueprintSchema.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
 import PageBlueprintInspectorPanel from '../page-blueprint/components/PageBlueprintInspectorPanel.vue'
@@ -608,6 +611,9 @@ let pagesAutosaveTimer: number | null = null
 let isHydratingPageActionBindings = false
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
+)
+const activePreviewBlocks = computed(() =>
+  applyBlueprintPreviewValuesToBlocks(editorStore.blocks, blueprintStore.document),
 )
 const hasUnsavedProjectChanges = computed(() =>
   editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty || blueprintStore.isDirty,
@@ -1140,7 +1146,7 @@ function insertImportedForm(block: PageBlock) {
 }
 
 function pageBlocks(pageId: string) {
-  return pagesStore.activePage?.id === pageId ? editorStore.blocks : (pagesStore.pageDocument(pageId)?.blocks ?? [])
+  return pagesStore.activePage?.id === pageId ? activePreviewBlocks.value : (pagesStore.pageDocument(pageId)?.blocks ?? [])
 }
 
 function pageBodyStyles(pageId: string): PageBlockStyles | undefined {

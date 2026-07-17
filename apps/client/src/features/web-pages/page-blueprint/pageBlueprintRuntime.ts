@@ -7,7 +7,11 @@ import type {
   PageElementEvent,
 } from '../types/page.types.ts'
 import type { PageBlueprintDocument } from './pageBlueprintDocument.ts'
-import { blueprintResultPathFromExpression } from './pageBlueprintExpressions.ts'
+import {
+  blueprintResultPathFromExpression,
+  evaluateBlueprintExpression,
+  resolveBlueprintRunWorkflowPath,
+} from './pageBlueprintExpressions.ts'
 import type { PageBlueprintConnection, PageBlueprintField, PageBlueprintNode } from './pageBlueprintSchema.ts'
 
 const BLUEPRINT_EVENT_PREFIX = 'blueprint-page-event:'
@@ -24,6 +28,35 @@ export function applyBlueprintRuntimeToPage(
     blocks: actions.blocks,
     pageActions: actions.pageActions,
   }
+}
+
+export function applyBlueprintPreviewValuesToBlocks(
+  blocks: PageBlock[],
+  blueprint: PageBlueprintDocument,
+): PageBlock[] {
+  const previewValues = new Map<string, Array<{ fieldId: string; value: unknown }>>()
+  const nodes = new Map(blueprint.nodes.map((node) => [node.id, node]))
+
+  for (const connection of blueprint.connections) {
+    const fromNode = nodes.get(connection.from.nodeId)
+    const toNode = nodes.get(connection.to.nodeId)
+    if (!fromNode || !toNode) continue
+    if (fromNode.kind !== 'utility' || fromNode.type !== 'run-workflow' || toNode.kind !== 'element') continue
+    if (connection.from.fieldId === 'event') continue
+
+    const value = evaluateBlueprintExpression(connection.expression, (path) => {
+      const nodeId = path.match(/^(utility:run-workflow:[^.]+)\.return/)?.[1]
+      if (!nodeId) return undefined
+      const result = testResultForNode(nodes.get(nodeId))
+      return result === undefined ? undefined : resolveBlueprintRunWorkflowPath(path, nodeId, result)
+    })
+    if (value === undefined) continue
+
+    const blockId = elementBlockId(toNode.id)
+    previewValues.set(blockId, [...(previewValues.get(blockId) ?? []), { fieldId: connection.to.fieldId, value }])
+  }
+
+  return applyPreviewValues(blocks, previewValues)
 }
 
 function buildBlueprintRuntimeActions(
@@ -169,6 +202,58 @@ function applyBlueprintEventsToBlocks(blocks: PageBlock[], eventsByBlock: Map<st
       children: applyBlueprintEventsToBlocks(block.children ?? [], eventsByBlock),
     }
   })
+}
+
+function applyPreviewValues(blocks: PageBlock[], valuesByBlock: Map<string, Array<{ fieldId: string; value: unknown }>>): PageBlock[] {
+  return blocks.map((block) => {
+    const values = valuesByBlock.get(block.id) ?? []
+    const nextBlock: PageBlock = {
+      ...block,
+      props: block.props ? { ...block.props } : undefined,
+      attributes: block.attributes ? { ...block.attributes } : undefined,
+      children: applyPreviewValues(block.children ?? [], valuesByBlock),
+    }
+    for (const item of values) applyPreviewValue(nextBlock, item.fieldId, item.value)
+    return nextBlock
+  })
+}
+
+function applyPreviewValue(block: PageBlock, fieldId: string, value: unknown) {
+  if (fieldId === 'class') {
+    block.className = stringifyPreviewValue(value)
+    return
+  }
+  if (fieldId === 'id') {
+    block.elementId = stringifyPreviewValue(value)
+    block.attributes = { ...(block.attributes ?? {}), id: stringifyPreviewValue(value) }
+    return
+  }
+  if (fieldId === 'checked') {
+    block.props = { ...(block.props ?? {}), checked: Boolean(value) }
+    return
+  }
+  block.props = {
+    ...(block.props ?? {}),
+    [fieldId]: stringifyPreviewValue(value),
+    ...(fieldId === 'text' ? { label: stringifyPreviewValue(value) } : {}),
+  }
+}
+
+function stringifyPreviewValue(value: unknown) {
+  if (value == null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value)
+}
+
+function testResultForNode(node: PageBlueprintNode | undefined) {
+  const json = node?.data?.testResultJson
+  if (typeof json !== 'string') return undefined
+  try {
+    return JSON.parse(json)
+  } catch {
+    return undefined
+  }
 }
 
 function stripBlueprintOutputBindings(bindings: Record<string, PageActionOutputBinding[]>) {
