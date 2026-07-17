@@ -37,10 +37,12 @@
       @command="handleChromeCommand"
       @toggle-autosave="setPagesAutosaveEnabled"
     />
-    <PageBlueprintDocumentTabs
-      v-model="activePageDocument"
-      :tabs="pageDocumentTabs"
-    />
+    <div class="web-page-editor__document-tabs">
+      <PageBlueprintDocumentTabs
+        v-model="activePageDocument"
+        :tabs="pageDocumentTabs"
+      />
+    </div>
     <AppPanel
       v-if="activePageDocument === 'design'"
       :is-open="isExplorerVisible"

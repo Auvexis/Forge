@@ -306,11 +306,16 @@
   height: 100%;
 }
 
-.web-page-blueprint-tabs {
+.web-page-editor__document-tabs {
   position: fixed;
   z-index: 90;
-  top: var(--fabric-space-2);
-  left: calc(var(--web-page-rail-width) + var(--web-page-left-panel-width) + var(--fabric-space-3));
+  top: calc(40px + var(--fabric-space-2));
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.web-page-blueprint-tabs {
   display: inline-grid;
   grid-auto-flow: column;
   gap: var(--fabric-space-1);
@@ -319,6 +324,7 @@
   border-radius: var(--fabric-radius-sm);
   background: var(--fabric-bg-elevated);
   box-shadow: var(--fabric-shadow-sm);
+  pointer-events: auto;
 }
 
 .web-page-blueprint-tabs__item {

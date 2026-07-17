@@ -19,10 +19,11 @@ describe('published page runtime contract', () => {
     assert.doesNotMatch(source, /eval\(/)
   })
 
-  it('submitting disables action and renders success or error', () => {
+  it('submitting tracks pending action and logs errors without rendering status', () => {
     const source = fs.readFileSync(path.resolve('../server/src/core/modules/pages/page-renderer.ts'), 'utf8')
     assert.match(source, /pendingActionId/)
-    assert.match(source, /executionId/)
-    assert.match(source, /runtimeError/)
+    assert.match(source, /console\.error\("\[Fabric Pages\] Action failed"/)
+    assert.doesNotMatch(source, /data-fabric-runtime-status/)
+    assert.doesNotMatch(source, /updateStatus/)
   })
 })
