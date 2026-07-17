@@ -369,6 +369,7 @@
   position: absolute;
   z-index: 0;
   box-sizing: border-box;
+  overflow: visible;
   border: 1px solid var(--fabric-blueprint-group-border, color-mix(in srgb, var(--fabric-accent) 30%, transparent));
   background: var(--fabric-blueprint-group-bg, color-mix(in srgb, var(--fabric-accent) 5%, transparent));
   pointer-events: none;
@@ -430,7 +431,7 @@
 
 .web-page-blueprint-element-group__preview {
   position: absolute;
-  top: 29px;
+  bottom: calc(100% + 6px);
   right: 4px;
   display: grid;
   grid-template-rows: 64px 20px;
