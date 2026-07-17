@@ -1,0 +1,4 @@
+- [x] Salvar blueprint no modo Design
+- [x] Preservar save do Blueprint
+- [x] Validar build/typecheck
+- [x] Commitar alterações

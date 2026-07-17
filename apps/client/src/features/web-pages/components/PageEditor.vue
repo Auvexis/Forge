@@ -1789,6 +1789,7 @@ async function saveActiveDocument() {
     return
   }
   if (pagesStore.isDirty || editorStore.isDirty) await savePage()
+  if (blueprintStore.isDirty) blueprintStore.saveToActiveSite()
   if (sitesStore.isDirty) await sitesStore.saveActiveSite()
 }
 
