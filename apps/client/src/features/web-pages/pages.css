@@ -817,9 +817,21 @@
   color: var(--fabric-text-primary);
   font: 10px var(--fabric-font-mono);
   line-height: 16px;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-inspector-row__value {
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+}
+
+.web-page-blueprint-inspector-row__control {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.web-page-blueprint-inspector-row__control:focus {
+  overflow-x: auto;
 }
 
 .web-page-blueprint-inspector-row__control:hover,
