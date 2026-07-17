@@ -5,6 +5,7 @@
     icon="braces"
     accent="var(--fabric-text-error)"
     :selected="selected"
+    :dimmed="dimmed"
   >
     <BlueprintNodeFields
       :node-id="nodeId"
@@ -27,9 +28,11 @@ const props = withDefaults(defineProps<{
   nodeId: string
   title?: string
   selected?: boolean
+  dimmed?: boolean
 }>(), {
   title: 'Transform Data',
   selected: false,
+  dimmed: false,
 })
 
 defineEmits<{

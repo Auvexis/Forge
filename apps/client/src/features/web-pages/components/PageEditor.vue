@@ -338,12 +338,14 @@
       @resize-reset="resetRightPanelResize"
     >
       <PageBlueprintInspectorPanel
+        :blocks="editorStore.blocks"
         :document="blueprintStore.document"
         :selected-node-id="blueprintSelectedNodeId"
         :workflows="pageActionsStore.workflows"
         @update-node-label="blueprintStore.setNodeLabel"
         @update-field-value="blueprintStore.setNodeFieldValue"
         @add-node-field="blueprintStore.addNodeField"
+        @add-element-event="blueprintStore.addElementEventField"
         @configure-run-workflow="blueprintStore.configureRunWorkflowNode"
         @update-run-workflow-event-type="blueprintStore.setRunWorkflowEventType"
         @update-run-workflow-input="blueprintStore.setRunWorkflowInput"

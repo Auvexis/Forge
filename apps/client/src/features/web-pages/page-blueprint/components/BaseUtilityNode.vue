@@ -1,7 +1,10 @@
 <template>
   <article
     class="web-page-blueprint-utility-node"
-    :class="{ 'web-page-blueprint-utility-node--selected': selected }"
+    :class="{
+      'web-page-blueprint-utility-node--selected': selected,
+      'web-page-blueprint-utility-node--dimmed': dimmed,
+    }"
     :style="{ '--web-page-blueprint-utility-accent': accent }"
   >
     <header class="web-page-blueprint-utility-node__header">
@@ -30,9 +33,11 @@ withDefaults(defineProps<{
   icon: string
   accent?: string
   selected?: boolean
+  dimmed?: boolean
 }>(), {
   eyebrow: 'Utility',
   accent: 'var(--fabric-accent)',
   selected: false,
+  dimmed: false,
 })
 </script>

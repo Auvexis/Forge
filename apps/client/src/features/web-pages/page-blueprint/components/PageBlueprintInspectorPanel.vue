@@ -3,6 +3,45 @@
     <p v-if="!selectedNodeId" class="web-page-editor__empty">Select a Blueprint node.</p>
 
     <template v-else>
+      <template v-if="selectedElement">
+        <BaseInspectorSection title="Node" icon="box">
+          <BaseInspectorRow label="ID" :value="selectedNodeId" />
+          <BaseInspectorRow label="Kind" value="element" />
+          <BaseInspectorRow label="Label" :value="selectedElement.label" />
+          <BaseInspectorRow label="Type" :value="selectedElement.tag" />
+        </BaseInspectorSection>
+
+        <BaseInspectorSection title="HTML Properties" :icon="selectedElementIcon">
+          <BaseInspectorRow label="Element ID" :value="selectedElement.id" />
+          <BaseInspectorRow label="Tag" :value="selectedElement.tag" />
+          <BaseInspectorRow label="Class" :value="selectedElement.className || '-'" />
+          <BaseInspectorRow
+            v-for="field in selectedElementFields"
+            :key="field.id"
+            :label="field.label"
+            :value="field.value ?? ''"
+            :placeholder="field.type"
+          />
+        </BaseInspectorSection>
+
+        <BaseInspectorSection title="Events" icon="mouse-pointer-click">
+          <template #actions>
+            <BaseInspectorButton label="Add Event" icon="plus" @click="$emit('addElementEvent', selectedElementNodeId)" />
+          </template>
+          <BaseInspectorRow
+            v-for="field in selectedElementEventFields"
+            :key="field.id"
+            :label="field.label"
+            :value="field.expression ?? field.value ?? 'Waiting connection'"
+            :placeholder="field.type"
+          />
+          <p v-if="selectedElementEventFields.length === 0" class="web-page-blueprint-inspector-empty">
+            No events.
+          </p>
+        </BaseInspectorSection>
+      </template>
+
+      <template v-else>
       <BaseInspectorSection v-if="node?.type !== 'run-workflow'" title="Node" icon="box">
         <BaseInspectorRow label="ID" :value="selectedNodeId" />
         <BaseInspectorRow label="Kind" :value="node?.kind ?? inferredKind" />
@@ -162,12 +201,12 @@
 
                 <BaseInspectorSection title="Outputs" icon="log-out">
                   <BaseInspectorRow
-                    v-for="field in node.fields"
+                    v-for="field in runWorkflowOutputFields"
                     :key="field.id"
                     :label="field.label"
                     :value="field.type"
                   />
-                  <p v-if="node.fields.length === 0" class="web-page-blueprint-inspector-empty">
+                  <p v-if="runWorkflowOutputFields.length === 0" class="web-page-blueprint-inspector-empty">
                     Run Test to generate outputs.
                   </p>
                 </BaseInspectorSection>
@@ -181,6 +220,7 @@
             </div>
           </Transition>
         </div>
+      </template>
       </template>
     </template>
   </div>
@@ -198,13 +238,18 @@ import {
   workflowPageActionGateway,
 } from '@/core/page-actions'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import type { PageBlock } from '../../types/page.types.ts'
 import type { PageBlueprintDocument } from '../pageBlueprintDocument.ts'
+import { createElementFields } from '../pageBlueprintFields.ts'
+import { pageBlockIcon } from '../pageBlueprintGroups.ts'
+import { createPageBlueprintViewModel } from '../pageBlueprintViewModel.ts'
 import BaseInspectorButton from './BaseInspectorButton.vue'
 import BaseInspectorRow from './BaseInspectorRow.vue'
 import BaseInspectorSection from './BaseInspectorSection.vue'
 import BaseInspectorSelect from './BaseInspectorSelect.vue'
 
 const props = defineProps<{
+  blocks: PageBlock[]
   document: PageBlueprintDocument
   selectedNodeId: string | null
   workflows: PageActionWorkflowSummary[]
@@ -214,6 +259,7 @@ const emit = defineEmits<{
   updateNodeLabel: [nodeId: string, label: string]
   updateFieldValue: [nodeId: string, fieldId: string, value: string]
   addNodeField: [nodeId: string]
+  addElementEvent: [nodeId: string]
   configureRunWorkflow: [nodeId: string, payload: RunWorkflowConfigPayload]
   updateRunWorkflowEventType: [nodeId: string, eventType: string]
   updateRunWorkflowInput: [nodeId: string, key: string, value: unknown]
@@ -222,6 +268,29 @@ const emit = defineEmits<{
 }>()
 
 const node = computed(() => props.document.nodes.find((item) => item.id === props.selectedNodeId))
+const selectedElementId = computed(() =>
+  props.selectedNodeId?.startsWith('blueprint-element:')
+    ? props.selectedNodeId.slice('blueprint-element:'.length)
+    : '',
+)
+const selectedElementNodeId = computed(() => props.selectedNodeId ?? '')
+const elementModel = computed(() => createPageBlueprintViewModel({
+  blocks: props.blocks,
+  workflows: [],
+  outputBindings: {},
+  collectionBindings: {},
+}))
+const selectedElement = computed(() =>
+  elementModel.value.elements.find((element) => element.id === selectedElementId.value) ?? null,
+)
+const selectedElementIcon = computed(() => selectedElement.value ? pageBlockIcon(selectedElement.value.tag) : 'box')
+const selectedElementFields = computed(() => selectedElement.value ? createElementFields(selectedElement.value) : [])
+const selectedElementEventFields = computed(() =>
+  node.value?.kind === 'element' ? node.value.fields.filter((field) => field.type === 'event') : [],
+)
+const runWorkflowOutputFields = computed(() =>
+  node.value?.type === 'run-workflow' ? node.value.fields.filter((field) => field.id !== 'event') : [],
+)
 const runWorkflowError = ref('')
 const runWorkflowResultJson = ref('')
 const runWorkflowStatus = ref<PageActionRunStatus>('idle')

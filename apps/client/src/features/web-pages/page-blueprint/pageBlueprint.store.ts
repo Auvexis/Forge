@@ -168,7 +168,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     const previousTriggerId = typeof sourceNode?.data?.triggerId === 'string' ? sourceNode.data.triggerId : ''
     const triggerChanged = previousTriggerId !== config.triggerId
     const removedConnections = triggerChanged
-      ? document.value.connections.filter((connection) => connection.from.nodeId === nodeId || connection.to.nodeId === nodeId)
+      ? document.value.connections.filter((connection) =>
+        (connection.from.nodeId === nodeId && connection.from.fieldId !== 'event') || connection.to.nodeId === nodeId,
+      )
       : []
 
     patchDocument({
@@ -179,7 +181,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
           return {
             ...node,
             label: config.label,
-            fields: triggerChanged ? [] : node.fields,
+            fields: triggerChanged ? [createRunWorkflowEventField()] : ensureRunWorkflowEventField(node.fields),
             data: {
               ...data,
               workflowId: config.workflowId,
@@ -194,7 +196,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
         removedConnections.map((connection) => connection.to),
       ),
       connections: triggerChanged
-        ? document.value.connections.filter((connection) => connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId)
+        ? document.value.connections.filter((connection) =>
+          !(connection.from.nodeId === nodeId && connection.from.fieldId !== 'event') && connection.to.nodeId !== nodeId,
+        )
         : document.value.connections,
     })
   }
@@ -282,9 +286,10 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   }
 
   function applyRunWorkflowTestResult(nodeId: string, result: unknown) {
-    const nextFields = createReturnFieldsFromResult(result)
+    const nextFields = [createRunWorkflowEventField(), ...createReturnFieldsFromResult(result)]
     const removedConnections = document.value.connections.filter((connection) =>
-      connection.from.nodeId === nodeId || connection.to.nodeId === nodeId,
+      (connection.from.nodeId === nodeId && connection.from.fieldId !== 'event')
+        || (connection.to.nodeId === nodeId && connection.to.fieldId !== 'event'),
     )
 
     patchDocument({
@@ -304,7 +309,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
         removedConnections.map((connection) => connection.to),
       ),
       connections: document.value.connections.filter((connection) =>
-        connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId,
+        !(connection.from.nodeId === nodeId && connection.from.fieldId !== 'event')
+          && !(connection.to.nodeId === nodeId && connection.to.fieldId !== 'event'),
       ),
     })
 
@@ -330,6 +336,42 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
 
     return node.id
+  }
+
+  function addElementEventField(nodeId: string, label = 'Click Event') {
+    const existingNode = document.value.nodes.find((node) => node.id === nodeId)
+    const nextField: PageBlueprintField = {
+      id: `event:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
+      label,
+      type: 'event',
+      direction: 'input',
+      configurable: false,
+    }
+
+    if (existingNode) {
+      patchDocument({
+        nodes: document.value.nodes.map((node) =>
+          node.id === nodeId ? { ...node, fields: [...node.fields, nextField] } : node,
+        ),
+      })
+      return nextField.id
+    }
+
+    patchDocument({
+      nodes: [
+        ...document.value.nodes,
+        {
+          id: nodeId,
+          kind: 'element',
+          type: 'page-element',
+          label: elementLabelFromNodeId(nodeId),
+          fields: [nextField],
+          data: {},
+        },
+      ],
+    })
+
+    return nextField.id
   }
 
   function duplicateNode(nodeId: string) {
@@ -443,6 +485,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     removeNodeField,
     applyRunWorkflowTestResult,
     addUtilityNode,
+    addElementEventField,
     duplicateNode,
     deleteNode,
     removeNode,
@@ -470,6 +513,22 @@ function createConnectionId(from: PageBlueprintConnectionEndpoint, to: PageBluep
 
 function createConnectionExpression(from: PageBlueprintConnectionEndpoint) {
   return `{{ ${from.nodeId}.${from.fieldId} }}`
+}
+
+function createRunWorkflowEventField(): PageBlueprintField {
+  return {
+    id: 'event',
+    label: 'Event',
+    type: 'event',
+    direction: 'output',
+    configurable: false,
+  }
+}
+
+function ensureRunWorkflowEventField(fields: PageBlueprintField[]) {
+  const existingEvent = fields.find((field) => field.id === 'event')
+  const restFields = fields.filter((field) => field.id !== 'event')
+  return [existingEvent ? { ...createRunWorkflowEventField(), ...existingEvent } : createRunWorkflowEventField(), ...restFields]
 }
 
 function patchNodeField(
@@ -543,6 +602,15 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function formatFieldLabel(key: string) {
   const normalized = key.replace(/[_-]+/g, ' ').replace(/([a-z])([A-Z])/g, '$1 $2').trim()
   return normalized ? normalized.charAt(0).toUpperCase() + normalized.slice(1) : key
+}
+
+function elementIdFromNodeId(nodeId: string) {
+  return nodeId.startsWith('blueprint-element:') ? nodeId.slice('blueprint-element:'.length) : nodeId
+}
+
+function elementLabelFromNodeId(nodeId: string) {
+  const elementId = elementIdFromNodeId(nodeId)
+  return elementId || 'Page Element'
 }
 
 function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {

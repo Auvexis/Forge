@@ -26,7 +26,13 @@ export const PAGE_BLUEPRINT_NODE_DEFINITIONS: PageBlueprintNodeDefinition[] = [
     accent: 'var(--fabric-accent)',
     width: 280,
     height: 110,
-    fields: [],
+    fields: [{
+      id: 'event',
+      label: 'Event',
+      type: 'event',
+      direction: 'output',
+      configurable: false,
+    }],
   },
   {
     type: 'transform-data',

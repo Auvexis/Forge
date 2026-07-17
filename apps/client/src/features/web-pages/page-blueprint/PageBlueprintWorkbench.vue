@@ -54,6 +54,7 @@
           v-if="itemData(item).kind === 'utility' && itemData(item).utilityNode"
           :node="itemData(item).utilityNode!"
           :selected="selected"
+          :dimmed="isNodeDimmed(item.id)"
           @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
           @pick-input="(fieldId, event) => completeFieldConnection(item.id, fieldId, event)"
           @update-mode="(fieldId, mode) => blueprintStore.setNodeFieldMode(item.id, fieldId, mode)"
@@ -67,6 +68,7 @@
           :meta="itemData(item).meta"
           :accent="itemData(item).accent"
           :selected="selected"
+          :dimmed="isNodeDimmed(item.id)"
         >
           <BlueprintNodeFields
             :node-id="item.id"
@@ -103,6 +105,7 @@ import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
 import type {
   PageBlueprintConnection,
   PageBlueprintConnectionEndpoint,
+  PageBlueprintField,
   PageBlueprintUtilityNode,
 } from './pageBlueprintSchema.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
@@ -279,25 +282,35 @@ function createCanvasItems(
   utilityNodes: PageBlueprintUtilityNode[],
   connections: PageBlueprintConnection[],
 ): PageBlueprintCanvasItem[] {
-  const elementItems = viewModel.elements.map((element, index) => ({
-    id: elementNodeId(element.id),
-    x: 40,
-    y: 40 + index * 128,
-    width: 244,
-    height: nodeHeight(createElementFields(element).length),
-    data: {
-      kind: 'element' as const,
-      title: element.label,
-      eyebrow: element.events.length > 0 ? 'Element Event' : 'Page Element',
-      detail: `${element.events.length} event(s) on ${element.tag}`,
-      meta: shortId(element.id),
-      icon: pageBlockIcon(element.tag),
-      accent: 'var(--fabric-blue-400)',
-      showFooter: true,
-      fields: withConnectionValues(elementNodeId(element.id), createElementFields(element), connections),
-      elementId: element.id,
-    },
-  }))
+  const elementItems = viewModel.elements.map((element, index) => {
+    const nodeId = elementNodeId(element.id)
+    const blueprintElement = document.value.nodes.find((node) =>
+      node.id === nodeId && node.kind === 'element',
+    )
+    const fields = [
+      ...blueprintElementFields(blueprintElement?.fields ?? []),
+      ...createElementFields(element),
+    ]
+    return {
+      id: nodeId,
+      x: 40,
+      y: 40 + index * 128,
+      width: 244,
+      height: nodeHeight(fields.length),
+      data: {
+        kind: 'element' as const,
+        title: element.label,
+        eyebrow: element.events.length > 0 ? 'Element Event' : 'Page Element',
+        detail: `${element.events.length} event(s) on ${element.tag}`,
+        meta: shortId(element.id),
+        icon: pageBlockIcon(element.tag),
+        accent: 'var(--fabric-blue-400)',
+        showFooter: true,
+        fields: withConnectionValues(nodeId, fields, connections),
+        elementId: element.id,
+      },
+    }
+  })
 
   const workflowItems = viewModel.workflows.map((workflow, index) => ({
     id: workflowNodeId(workflow.id),
@@ -339,12 +352,13 @@ function createCanvasItems(
 
   const utilityItems = utilityNodes.map((node, index) => {
     const definition = getPageBlueprintNodeDefinition(node.type)
+    const utilityNode = withUtilityConnectionValues(node, connections)
     return {
       id: node.id,
       x: 1040,
       y: 40 + index * 148,
       width: definition?.width ?? 280,
-      height: utilityNodeHeight(node.fields.length),
+      height: utilityNodeHeight(utilityNode.fields.length),
       data: {
         kind: 'utility' as const,
         title: node.label,
@@ -355,7 +369,7 @@ function createCanvasItems(
         accent: node.accent ?? definition?.accent ?? 'var(--fabric-accent)',
         showFooter: false,
         fields: [],
-        utilityNode: withUtilityConnectionValues(node, connections),
+        utilityNode,
       },
     }
   })
@@ -408,6 +422,10 @@ function completeFieldConnection(nodeId: string, fieldId: string, event: Pointer
     return
   }
   if (activePointerId.value !== event.pointerId) return
+  if (!canConnectFields(pendingOutput.value, { nodeId, fieldId })) {
+    stopPendingConnection()
+    return
+  }
   blueprintStore.connectFields(pendingOutput.value, { nodeId, fieldId })
   stopPendingConnection()
 }
@@ -471,6 +489,11 @@ function canManageNode(item: BaseCanvasItem) {
   return itemData(item).kind === 'utility' && document.value.nodes.some((node) => node.id === item.id)
 }
 
+function isNodeDimmed(nodeId: string) {
+  if (!pendingOutput.value || pendingOutput.value.nodeId === nodeId) return false
+  return !nodeHasCompatibleInput(nodeId, pendingOutput.value)
+}
+
 function duplicateCanvasNode(nodeId: string) {
   const nextNodeId = blueprintStore.duplicateNode(nodeId)
   if (nextNodeId) selection.value = [nextNodeId]
@@ -489,6 +512,47 @@ function connectionFields(item: BaseCanvasItem) {
   const data = itemData(item)
   if (data.utilityNode) return data.utilityNode.fields.map((field) => ({ id: field.id }))
   return data.fields.map((field) => ({ id: field.id }))
+}
+
+function nodeHasCompatibleInput(nodeId: string, from: PageBlueprintConnectionEndpoint) {
+  return fieldsForNode(nodeId).some((field) => field.input && fieldsAreCompatible(from, { nodeId, fieldId: field.id }))
+}
+
+function canConnectFields(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
+  if (from.nodeId === to.nodeId && from.fieldId === to.fieldId) return false
+  return fieldsAreCompatible(from, to)
+}
+
+function fieldsAreCompatible(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
+  const fromField = fieldForEndpoint(from)
+  const toField = fieldForEndpoint(to)
+  if (!fromField || !toField) return true
+  if (fromField.type === 'event' || toField.type === 'event') return fromField.type === toField.type
+  return true
+}
+
+function fieldForEndpoint(endpoint: PageBlueprintConnectionEndpoint) {
+  return fieldsForNode(endpoint.nodeId).find((field) => field.id === endpoint.fieldId) ?? null
+}
+
+function fieldsForNode(nodeId: string) {
+  const item = canvasItems.value.find((candidate) => candidate.id === nodeId)
+  if (!item) return []
+  const data = itemData(item)
+  if (data.utilityNode) {
+    return data.utilityNode.fields.map((field) => ({
+      id: field.id,
+      type: field.type,
+      input: field.direction === 'input' || field.direction === 'both',
+      output: field.direction === 'output' || field.direction === 'both',
+    }))
+  }
+  return data.fields.map((field) => ({
+    id: field.id,
+    type: field.type,
+    input: Boolean(field.input),
+    output: Boolean(field.output),
+  }))
 }
 
 function withConnectionValues(
@@ -512,9 +576,10 @@ function withUtilityConnectionValues(
   node: PageBlueprintUtilityNode,
   connections: PageBlueprintConnection[],
 ): PageBlueprintUtilityNode {
+  const fields = node.type === 'run-workflow' ? ensureRunWorkflowEventField(node.fields) : node.fields
   return {
     ...node,
-    fields: node.fields.map((field) => {
+    fields: fields.map((field) => {
       const inputConnection = connections.find((item) => item.to.nodeId === node.id && item.to.fieldId === field.id)
       const outputConnection = connections.some((item) => item.from.nodeId === node.id && item.from.fieldId === field.id)
       return {
@@ -525,6 +590,31 @@ function withUtilityConnectionValues(
       }
     }),
   }
+}
+
+function ensureRunWorkflowEventField(fields: PageBlueprintField[]) {
+  const existingEvent = fields.find((field) => field.id === 'event')
+  const restFields = fields.filter((field) => field.id !== 'event')
+  return [
+    existingEvent
+      ? { ...existingEvent, label: existingEvent.label || 'Event', type: 'event' as const, direction: 'output' as const }
+      : { id: 'event', label: 'Event', type: 'event' as const, direction: 'output' as const, configurable: false },
+    ...restFields,
+  ]
+}
+
+function blueprintElementFields(fields: PageBlueprintField[]): PageBlueprintDisplayField[] {
+  return fields.map((field) => ({
+    id: field.id,
+    label: field.label,
+    type: field.type,
+    value: field.expression ?? field.value,
+    input: field.direction === 'input' || field.direction === 'both',
+    output: field.direction === 'output' || field.direction === 'both',
+    inputConnected: field.inputConnected,
+    outputConnected: field.outputConnected,
+    mode: field.mode,
+  }))
 }
 
 function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {

@@ -5,6 +5,7 @@
     icon="workflow"
     accent="var(--fabric-accent)"
     :selected="selected"
+    :dimmed="dimmed"
   >
     <BlueprintNodeFields
       :node-id="nodeId"
@@ -27,9 +28,11 @@ const props = withDefaults(defineProps<{
   nodeId: string
   title?: string
   selected?: boolean
+  dimmed?: boolean
 }>(), {
   title: 'Run Workflow',
   selected: false,
+  dimmed: false,
 })
 
 defineEmits<{

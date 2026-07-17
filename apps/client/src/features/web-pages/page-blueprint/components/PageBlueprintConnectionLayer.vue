@@ -1,13 +1,28 @@
 <template>
   <svg class="web-page-blueprint-connections" aria-hidden="true">
-    <path
+    <g
       v-for="edge in renderedConnections"
       :key="edge.id"
-      class="web-page-blueprint-connections__path"
-      :d="edge.path"
-      vector-effect="non-scaling-stroke"
-      @dblclick="$emit('removeConnection', edge.id)"
-    />
+      class="web-page-blueprint-connections__edge"
+      :class="{ 'web-page-blueprint-connections__edge--active': activeConnectionId === edge.id }"
+      @mouseenter="activeConnectionId = edge.id"
+      @mouseleave="clearActiveConnection(edge.id)"
+      @focusin="activeConnectionId = edge.id"
+    >
+      <path
+        class="web-page-blueprint-connections__hit-path"
+        :d="edge.path"
+        vector-effect="non-scaling-stroke"
+        tabindex="0"
+        @pointerdown.stop="activeConnectionId = edge.id"
+        @dblclick.stop="$emit('removeConnection', edge.id)"
+      />
+      <path
+        class="web-page-blueprint-connections__path"
+        :d="edge.path"
+        vector-effect="non-scaling-stroke"
+      />
+    </g>
     <path
       v-if="pendingPath"
       class="web-page-blueprint-connections__path web-page-blueprint-connections__path--pending"
@@ -19,8 +34,11 @@
     v-for="edge in renderedConnections"
     :key="`${edge.id}:toolbar`"
     class="web-page-blueprint-edge-toolbar"
+    :class="{ 'web-page-blueprint-edge-toolbar--active': activeConnectionId === edge.id }"
     :style="{ transform: `translate(${edge.toolbar.x}px, ${edge.toolbar.y}px)` }"
     data-base-canvas-no-drag
+    @mouseenter="activeConnectionId = edge.id"
+    @mouseleave="clearActiveConnection(edge.id)"
   >
     <button type="button" title="Delete connection" @click.stop="$emit('removeConnection', edge.id)">
       <LucideIcon name="trash-2" :size="12" />
@@ -29,7 +47,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import type { BaseCanvasPoint } from '@/shared/base-canvas/index.ts'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlueprintConnection, PageBlueprintConnectionEndpoint } from '../pageBlueprintSchema.ts'
@@ -68,6 +86,7 @@ defineEmits<{
 }>()
 
 const nodesById = computed(() => new Map(props.nodes.map((node) => [node.id, node])))
+const activeConnectionId = ref<string | null>(null)
 
 const renderedConnections = computed(() =>
   props.connections
@@ -124,5 +143,9 @@ function connectionPath(from: BaseCanvasPoint, to: BaseCanvasPoint) {
   const distance = Math.abs(to.x - from.x)
   const handle = Math.max(48, Math.min(180, distance * 0.48))
   return `M ${from.x} ${from.y} C ${from.x + handle} ${from.y}, ${to.x - handle} ${to.y}, ${to.x} ${to.y}`
+}
+
+function clearActiveConnection(connectionId: string) {
+  if (activeConnectionId.value === connectionId) activeConnectionId.value = null
 }
 </script>

@@ -6,6 +6,7 @@
     :title="node.label"
     :fields="node.fields"
     :selected="selected"
+    :dimmed="dimmed"
     @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"
     @pick-output="(fieldId, event) => $emit('pickOutput', fieldId, event)"
     @update-mode="(fieldId, mode) => $emit('updateMode', fieldId, mode)"
@@ -18,6 +19,7 @@
     :icon="node.icon || 'box'"
     :accent="node.accent || 'var(--fabric-accent)'"
     :selected="selected"
+    :dimmed="dimmed"
   >
     <BlueprintNodeFields
       :node-id="node.id"
@@ -40,8 +42,10 @@ import TransformDataNode from './TransformDataNode.vue'
 const props = withDefaults(defineProps<{
   node: PageBlueprintUtilityNode
   selected?: boolean
+  dimmed?: boolean
 }>(), {
   selected: false,
+  dimmed: false,
 })
 
 defineEmits<{

@@ -3,7 +3,10 @@
     class="web-page-blueprint-element"
     :class="[
       `web-page-blueprint-element--${variant}`,
-      { 'web-page-blueprint-element--selected': selected },
+      {
+        'web-page-blueprint-element--selected': selected,
+        'web-page-blueprint-element--dimmed': dimmed,
+      },
     ]"
     :style="{ '--web-page-blueprint-element-accent': accent }"
   >
@@ -38,12 +41,14 @@ withDefaults(defineProps<{
   meta?: string
   accent?: string
   selected?: boolean
+  dimmed?: boolean
   variant?: 'default' | 'compact'
 }>(), {
   detail: '',
   meta: '',
   accent: 'var(--fabric-accent)',
   selected: false,
+  dimmed: false,
   variant: 'default',
 })
 </script>

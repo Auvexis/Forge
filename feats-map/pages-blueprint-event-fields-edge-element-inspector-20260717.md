@@ -1,0 +1,6 @@
+- [x] Melhorar edge e hit area
+- [x] Adicionar field Event no Run Workflow
+- [x] Destacar compatibilidade ao conectar evento
+- [x] Adicionar propriedades/eventos para BaseElement no Inspector
+- [x] Validar typecheck/build
+- [x] Commitar alterações
