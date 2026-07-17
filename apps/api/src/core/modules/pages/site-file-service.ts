@@ -2,7 +2,7 @@ import path from "node:path";
 
 import type { FabricSite, SiteFile, SiteFileKind } from "./site-types.ts";
 
-const allowedRoots = new Set(["pages", "assets", "js", "css"]);
+const allowedRoots = new Set(["pages", "assets", "js", "css", "blueprints"]);
 const allowedFileExtensions = new Set([
   ".css",
   ".js",

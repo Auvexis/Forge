@@ -1,0 +1,6 @@
+- [x] Incluir blueprint no export do projeto
+- [x] Corrigir save dirty do Blueprint
+- [x] Aplicar eventos Blueprint no preview
+- [x] Resolver expressoes dinamicas nos elementos
+- [x] Validar build/typecheck
+- [x] Commitar alterações

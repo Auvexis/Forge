@@ -545,6 +545,7 @@ import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue'
 import { usePageBlueprintStore } from '../page-blueprint/pageBlueprint.store.ts'
+import { applyBlueprintRuntimeToPage } from '../page-blueprint/pageBlueprintRuntime.ts'
 import type { PageBlueprintUtilityNodeType } from '../page-blueprint/pageBlueprintSchema.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
 import PageBlueprintInspectorPanel from '../page-blueprint/components/PageBlueprintInspectorPanel.vue'
@@ -609,13 +610,13 @@ const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
 )
 const hasUnsavedProjectChanges = computed(() =>
-  editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty,
+  editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty || blueprintStore.isDirty,
 )
 const hasCreatedProject = computed(() => Boolean(sitesStore.activeSite && pagesStore.activePage))
 const hasDraftPageWithoutProject = computed(() => Boolean(!sitesStore.activeSite && pagesStore.activePage))
 const canSaveActiveDocument = computed(() =>
   activePageDocument.value === 'blueprint'
-    ? hasCreatedProject.value && (blueprintStore.isDirty || sitesStore.isDirty)
+    ? hasCreatedProject.value && hasUnsavedProjectChanges.value
     : hasCreatedProject.value ? hasUnsavedProjectChanges.value : hasDraftPageWithoutProject.value,
 )
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
@@ -1651,6 +1652,7 @@ async function openProject(projectId: string) {
 async function exportProject(projectId: string) {
   const site = sitesStore.sites.find((item) => item.id === projectId)
   await runProjectAction(async () => {
+    if (sitesStore.activeSite?.id === projectId) await saveProjectBeforeExport()
     const zip = await sitesStore.exportSiteProject(projectId)
     downloadBlobFile(`${site?.slug ?? 'site'}.fabric-site.zip`, zip)
   })
@@ -1767,6 +1769,7 @@ async function saveActiveDocument() {
   }
   if (activePageDocument.value === 'blueprint') {
     blueprintStore.saveToActiveSite()
+    if (pagesStore.isDirty || editorStore.isDirty) await savePage()
     if (sitesStore.isDirty) await sitesStore.saveActiveSite()
     return
   }
@@ -1780,15 +1783,20 @@ async function savePage() {
   const selectedBlockIds = [...editorStore.selectedBlockIds]
   const previousSlug = pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.slug
   const nextSlug = pagesStore.activePage.slug
-  pagesStore.setActivePage({
-    ...pagesStore.activePage,
-    pageActions: {
+  const runtimePage = applyBlueprintRuntimeToPage(
+    editorStore.blocks,
+    {
       ...(pagesStore.activePage.pageActions ?? {}),
       inputBindings: pageActionBindingsStore.exportBindings(),
       outputBindings: pageActionBindingsStore.exportOutputBindings(),
       collectionBindings: pageActionBindingsStore.exportCollectionBindings(),
     },
-    blocks: editorStore.blocks,
+    blueprintStore.document,
+  )
+  pagesStore.setActivePage({
+    ...pagesStore.activePage,
+    pageActions: runtimePage.pageActions,
+    blocks: runtimePage.blocks,
   })
   await pagesStore.saveActivePage()
   if (previousSlug && previousSlug !== nextSlug && sitesStore.renamePageFiles(previousSlug, nextSlug)) {
@@ -1839,6 +1847,7 @@ async function exportActiveProject() {
 async function saveProjectBeforeExport() {
   blueprintStore.saveToActiveSite()
   if (pagesStore.isDirty || editorStore.isDirty) await savePage()
+  else if (pagesStore.activePage) await savePage()
   if (sitesStore.isDirty) await sitesStore.saveActiveSite()
 }
 

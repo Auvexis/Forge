@@ -362,6 +362,20 @@ describe("page renderer", () => {
     assert.match(html, /applyOutputBindings\(actionId, body\?\.data\?\.result\)/);
   });
 
+  it("does not render blueprint expressions as visible text", () => {
+    const html = renderPageBody([
+      {
+        id: "text_1",
+        tag: "text",
+        props: { text: "{{ utility:run-workflow:list_products.return:products.0.name }}" },
+        children: [],
+      },
+    ]);
+
+    assert.doesNotMatch(html, /utility:run-workflow:list_products/);
+    assert.match(html, /data-page-action-binding-element-id="text_1"><\/span>/);
+  });
+
   it("never renders script from page content", () => {
     const html = renderPublishedPage(
       publishedPage({

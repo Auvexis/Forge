@@ -46,6 +46,21 @@ describe("SiteProjectArchiveService", () => {
     assert.equal(archive.assets[0]?.base64, Buffer.from("png").toString("base64"));
   });
 
+  it("exports project files as zip entries", () => {
+    const sites = new SiteService({ profileId: "profile_a" });
+    const site = sites.createSite({ name: "Marketing" });
+    sites.createProjectFile(site.id, {
+      path: "blueprints/project.blueprint.json",
+      kind: "file",
+      content: "{\"schemaVersion\":1}",
+    });
+
+    const zip = new SiteProjectArchiveService({ assetStorageRoot }).exportSiteZip("profile_a", site.id);
+
+    assert.match(zip.toString("utf8"), /blueprints\/project\.blueprint\.json/);
+    assert.match(zip.toString("utf8"), /\{"schemaVersion":1\}/);
+  });
+
   it("imports into the active profile with a new id and resolved slug", () => {
     const sites = new SiteService({ profileId: "profile_a" });
     const site = sites.createSite({ name: "Marketing" });

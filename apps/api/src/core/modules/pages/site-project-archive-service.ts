@@ -80,6 +80,12 @@ export class SiteProjectArchiveService {
         path: "fabric-project.json",
         content: Buffer.from(JSON.stringify(archive, null, 2), "utf8"),
       },
+      ...archive.files
+        .filter((file) => file.kind === "file")
+        .map((file) => ({
+          path: file.path,
+          content: Buffer.from(file.content ?? "", "utf8"),
+        })),
       ...archive.assets.map((asset) => ({
         path: asset.path,
         content: Buffer.from(asset.base64, "base64"),

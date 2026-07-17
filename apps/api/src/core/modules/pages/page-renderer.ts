@@ -218,9 +218,14 @@ function renderAttributes(block: PageBlock, options: RenderOptions): string {
 function getBlockText(block: PageBlock): string {
   const props = block.props ?? {};
   if (block.tag === "text" || block.tag === "button" || block.tag === "link") {
-    return escapeHtml(String(props.text ?? ""));
+    const text = String(props.text ?? "");
+    return isBlueprintExpression(text) ? "" : escapeHtml(text);
   }
   return "";
+}
+
+function isBlueprintExpression(value: string): boolean {
+  return /^\{\{\s*utility:[^}]+\s*\}\}$/.test(value.trim());
 }
 
 function collectBlockCss(block: PageBlock): string[] {
