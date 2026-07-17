@@ -79,6 +79,15 @@
         />
       </section>
 
+      <section v-if="resolvedShowBlueprintToolboxControl" class="base-rail__group" aria-label="Blueprint">
+        <BaseRailItem
+          icon="blocks"
+          :active="!!isBlueprintToolboxOpen"
+          title="Toolbox"
+          @click="$emit('command', 'view.blueprint-toolbox')"
+        />
+      </section>
+
       <section class="base-rail__group" aria-label="Edit">
         <BaseRailButtonToggleItem
           :model-value="!!isAutosaveEnabled"
@@ -120,7 +129,9 @@ const props = defineProps<{
   isAutosaveEnabled?: boolean
   isExplorerOpen?: boolean
   isInspectorOpen?: boolean
+  isBlueprintToolboxOpen?: boolean
   showPanelControls?: boolean
+  showBlueprintToolboxControl?: boolean
   canSave?: boolean
   canUseProjectActions?: boolean
 }>()
@@ -144,6 +155,7 @@ export type PageChromeCommand =
   | 'view.switch'
   | 'view.left-panel'
   | 'view.right-panel'
+  | 'view.blueprint-toolbox'
 
 const menus: Array<{
   id: string
@@ -204,6 +216,7 @@ const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send')
 const resolvedCanSave = computed(() => props.canSave ?? Boolean(props.isDirty))
 const resolvedCanUseProjectActions = computed(() => props.canUseProjectActions ?? true)
 const resolvedShowPanelControls = computed(() => props.showPanelControls ?? true)
+const resolvedShowBlueprintToolboxControl = computed(() => props.showBlueprintToolboxControl ?? false)
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
   items: menu.items.map((item) => {

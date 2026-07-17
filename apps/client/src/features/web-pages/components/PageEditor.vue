@@ -28,7 +28,9 @@
       :is-autosave-enabled="isPagesAutosaveEnabled"
       :is-explorer-open="isExplorerVisible"
       :is-inspector-open="isInspectorVisible"
+      :is-blueprint-toolbox-open="isBlueprintToolboxVisible"
       :show-panel-controls="activePageDocument === 'design'"
+      :show-blueprint-toolbox-control="activePageDocument === 'blueprint'"
       :can-save="canSaveActiveDocument"
       :can-use-project-actions="hasCreatedProject"
       @command="handleChromeCommand"
@@ -81,7 +83,7 @@
       width="md"
       resizable
       resize-side="right"
-      :show-close="false"
+      @close="closeBlueprintToolbox"
       @resize="handleLeftPanelResize"
       @resize-reset="resetLeftPanelResize"
     >
@@ -526,6 +528,7 @@ const PAGE_CANVAS_HEIGHT = typeof window === 'undefined' ? 900 : window.innerHei
 const PAGE_CANVAS_GAP = 80
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
+const isBlueprintToolboxOpen = ref(true)
 const leftPanelWidth = ref<number | null>(null)
 const rightPanelWidth = ref<number | null>(null)
 const isPageSwitcherOpen = ref(false)
@@ -593,7 +596,7 @@ const pageDocumentTabs = [
 const isDesignDocumentActive = computed(() => activePageDocument.value === 'design')
 const isBlueprintDocumentActive = computed(() => activePageDocument.value === 'blueprint')
 const isExplorerVisible = computed(() => isDesignDocumentActive.value && isLeftPanelOpen.value)
-const isBlueprintToolboxVisible = computed(() => isBlueprintDocumentActive.value)
+const isBlueprintToolboxVisible = computed(() => isBlueprintDocumentActive.value && isBlueprintToolboxOpen.value)
 const isLeftWorkspacePanelVisible = computed(() => isExplorerVisible.value || isBlueprintToolboxVisible.value)
 const isInspectorVisible = computed(() => isDesignDocumentActive.value && isRightPanelOpen.value)
 const workspacePlaneStyle = computed(() => ({}))
@@ -842,6 +845,10 @@ function closeLeftPanel() {
 
 function closeRightPanel() {
   isRightPanelOpen.value = false
+}
+
+function closeBlueprintToolbox() {
+  isBlueprintToolboxOpen.value = false
 }
 
 function handleLeftPanelResize(size: { width: number | null }) {
@@ -1351,6 +1358,7 @@ function handleChromeCommand(command: PageChromeCommand) {
   if (command === 'view.switch') void openPageSwitcher()
   if (command === 'view.left-panel') toggleLeftPanel()
   if (command === 'view.right-panel') toggleRightPanel()
+  if (command === 'view.blueprint-toolbox') toggleBlueprintToolbox()
 }
 
 function setPagesAutosaveEnabled(enabled: boolean) {
@@ -1751,6 +1759,11 @@ function toggleLeftPanel() {
 function toggleRightPanel() {
   if (!isDesignDocumentActive.value) return
   isRightPanelOpen.value = !isRightPanelOpen.value
+}
+
+function toggleBlueprintToolbox() {
+  if (!isBlueprintDocumentActive.value) return
+  isBlueprintToolboxOpen.value = !isBlueprintToolboxOpen.value
 }
 
 function defaultBodyStyles(): PageBlockStyles {
