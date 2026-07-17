@@ -94,7 +94,6 @@ import { BaseCanvas } from '@/shared/base-canvas/components.ts'
 import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import type { PageBlock } from '../types/page.types.ts'
 import {
-  createBindingFields,
   createElementFields,
   createWorkflowFields,
   type PageBlueprintDisplayField,
@@ -121,7 +120,7 @@ import PageBlueprintConnectionLayer, {
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
-type PageBlueprintCanvasItemKind = 'element' | 'workflow' | 'binding' | 'utility' | 'empty'
+type PageBlueprintCanvasItemKind = 'element' | 'workflow' | 'utility' | 'empty'
 
 interface PageBlueprintCanvasItemData {
   kind: PageBlueprintCanvasItemKind
@@ -333,25 +332,6 @@ function createCanvasItems(
     },
   }))
 
-  const bindingItems = viewModel.bindings.map((binding, index) => ({
-    id: bindingNodeId(binding.id),
-    x: 704,
-    y: 40 + index * 128,
-    width: 272,
-    height: nodeHeight(createBindingFields(binding).length),
-    data: {
-      kind: 'binding' as const,
-      title: binding.target,
-      eyebrow: binding.mode === 'multiple' ? 'Multiple Return Binding' : 'Single Return Binding',
-      detail: binding.source,
-      meta: binding.actionId,
-      icon: binding.mode === 'multiple' ? 'copy-plus' : 'git-branch',
-      accent: 'var(--fabric-green-400)',
-      showFooter: true,
-      fields: withConnectionValues(bindingNodeId(binding.id), createBindingFields(binding), connections),
-    },
-  }))
-
   const utilityItems = utilityNodes.map((node, index) => {
     const definition = getPageBlueprintNodeDefinition(node.type)
     const utilityNode = withUtilityConnectionValues(node, connections)
@@ -376,7 +356,7 @@ function createCanvasItems(
     }
   })
 
-  const items = [...elementItems, ...workflowItems, ...bindingItems, ...utilityItems]
+  const items = [...elementItems, ...workflowItems, ...utilityItems]
   if (items.length > 0) return items
 
   return [{
@@ -667,10 +647,6 @@ function elementNodeTitle(
 
 function workflowNodeId(workflowId: string) {
   return `blueprint-workflow:${workflowId}`
-}
-
-function bindingNodeId(bindingId: string) {
-  return `blueprint-binding:${bindingId}`
 }
 
 function shortId(id: string) {
