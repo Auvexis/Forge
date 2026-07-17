@@ -346,6 +346,8 @@
         @update-field-value="blueprintStore.setNodeFieldValue"
         @add-node-field="blueprintStore.addNodeField"
         @add-element-event="blueprintStore.addElementEventField"
+        @update-element-event-type="blueprintStore.setElementEventType"
+        @remove-element-event="blueprintStore.removeNodeField"
         @configure-run-workflow="blueprintStore.configureRunWorkflowNode"
         @update-run-workflow-event-type="blueprintStore.setRunWorkflowEventType"
         @update-run-workflow-input="blueprintStore.setRunWorkflowInput"

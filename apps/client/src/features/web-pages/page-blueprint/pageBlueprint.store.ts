@@ -338,13 +338,14 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     return node.id
   }
 
-  function addElementEventField(nodeId: string, label = 'Click Event') {
+  function addElementEventField(nodeId: string, eventType = 'click') {
     const existingNode = document.value.nodes.find((node) => node.id === nodeId)
     const nextField: PageBlueprintField = {
       id: `event:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
-      label,
+      label: elementEventLabel(eventType),
       type: 'event',
       direction: 'input',
+      value: eventType,
       configurable: false,
     }
 
@@ -372,6 +373,17 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
 
     return nextField.id
+  }
+
+  function setElementEventType(nodeId: string, fieldId: string, eventType: string) {
+    patchDocument({
+      nodes: patchNodeField(document.value.nodes, nodeId, fieldId, {
+        label: elementEventLabel(eventType),
+        type: 'event',
+        direction: 'input',
+        value: eventType,
+      }),
+    })
   }
 
   function duplicateNode(nodeId: string) {
@@ -486,6 +498,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     applyRunWorkflowTestResult,
     addUtilityNode,
     addElementEventField,
+    setElementEventType,
     duplicateNode,
     deleteNode,
     removeNode,
@@ -611,6 +624,10 @@ function elementIdFromNodeId(nodeId: string) {
 function elementLabelFromNodeId(nodeId: string) {
   const elementId = elementIdFromNodeId(nodeId)
   return elementId || 'Page Element'
+}
+
+function elementEventLabel(eventType: string) {
+  return `${formatFieldLabel(eventType)} Event`
 }
 
 function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {

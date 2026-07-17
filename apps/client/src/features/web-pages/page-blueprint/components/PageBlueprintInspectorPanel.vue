@@ -28,13 +28,31 @@
           <template #actions>
             <BaseInspectorButton label="Add Event" icon="plus" @click="$emit('addElementEvent', selectedElementNodeId)" />
           </template>
-          <BaseInspectorRow
+          <div
             v-for="field in selectedElementEventFields"
             :key="field.id"
-            :label="field.label"
-            :value="field.expression ?? field.value ?? 'Waiting connection'"
-            :placeholder="field.type"
-          />
+            class="web-page-blueprint-inspector-event"
+          >
+            <BaseInspectorSelect
+              label="Type"
+              :model-value="field.value ?? 'click'"
+              :options="elementEventTypeOptions"
+              @update:model-value="$emit('updateElementEventType', selectedElementNodeId, field.id, $event)"
+            />
+            <BaseInspectorRow
+              label="Connection"
+              :value="field.expression ?? 'Waiting connection'"
+              placeholder="event"
+            />
+            <div class="web-page-blueprint-inspector-actions">
+              <BaseInspectorButton
+                label="Remove"
+                icon="trash-2"
+                variant="danger"
+                @click="$emit('removeElementEvent', selectedElementNodeId, field.id)"
+              />
+            </div>
+          </div>
           <p v-if="selectedElementEventFields.length === 0" class="web-page-blueprint-inspector-empty">
             No events.
           </p>
@@ -260,6 +278,8 @@ const emit = defineEmits<{
   updateFieldValue: [nodeId: string, fieldId: string, value: string]
   addNodeField: [nodeId: string]
   addElementEvent: [nodeId: string]
+  updateElementEventType: [nodeId: string, fieldId: string, eventType: string]
+  removeElementEvent: [nodeId: string, fieldId: string]
   configureRunWorkflow: [nodeId: string, payload: RunWorkflowConfigPayload]
   updateRunWorkflowEventType: [nodeId: string, eventType: string]
   updateRunWorkflowInput: [nodeId: string, key: string, value: unknown]
@@ -299,6 +319,13 @@ const runWorkflowView = ref<RunWorkflowInspectorView>('workflows')
 const eventTypeOptions = [
   { label: 'Click', value: 'click' },
   { label: 'Change', value: 'change' },
+  { label: 'Submit', value: 'submit' },
+  { label: 'Mount', value: 'mount' },
+]
+const elementEventTypeOptions = [
+  { label: 'Click', value: 'click' },
+  { label: 'Change', value: 'change' },
+  { label: 'Input', value: 'input' },
   { label: 'Submit', value: 'submit' },
   { label: 'Mount', value: 'mount' },
 ]

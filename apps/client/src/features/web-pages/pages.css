@@ -541,6 +541,15 @@
   border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
 }
 
+.web-page-blueprint-inspector-event {
+  display: grid;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 80%, transparent);
+}
+
+.web-page-blueprint-inspector-event:last-child {
+  border-bottom: 0;
+}
+
 .web-page-blueprint-inspector-stack {
   min-width: 0;
   overflow: hidden;
