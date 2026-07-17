@@ -52,8 +52,8 @@
           v-if="itemData(item).kind === 'utility' && itemData(item).utilityNode"
           :node="itemData(item).utilityNode!"
           :selected="selected"
-          @pick-output="startFieldConnection(item.id, $event)"
-          @pick-input="completeFieldConnection(item.id, $event)"
+          @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
+          @pick-input="(fieldId, event) => completeFieldConnection(item.id, fieldId, event)"
           @update-mode="(fieldId, mode) => blueprintStore.setNodeFieldMode(item.id, fieldId, mode)"
         />
         <BaseElement
@@ -65,12 +65,11 @@
           :meta="itemData(item).meta"
           :accent="itemData(item).accent"
           :selected="selected"
-          :show-footer="itemData(item).showFooter"
         >
           <BlueprintNodeFields
             :fields="itemData(item).fields"
-            @pick-output="startFieldConnection(item.id, $event)"
-            @pick-input="completeFieldConnection(item.id, $event)"
+            @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
+            @pick-input="(fieldId, event) => completeFieldConnection(item.id, fieldId, event)"
           />
         </BaseElement>
       </template>
@@ -79,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import type {
   PageActionCollectionBinding,
@@ -98,7 +97,11 @@ import {
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
 import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
-import type { PageBlueprintConnection, PageBlueprintConnectionEndpoint, PageBlueprintUtilityNode } from './pageBlueprintSchema.ts'
+import type {
+  PageBlueprintConnection,
+  PageBlueprintConnectionEndpoint,
+  PageBlueprintUtilityNode,
+} from './pageBlueprintSchema.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
@@ -137,11 +140,16 @@ const props = defineProps<{
   collectionBindings: Record<string, PageActionCollectionBinding[]>
 }>()
 
+const emit = defineEmits<{
+  selectNode: [nodeId: string | null]
+}>()
+
 const selection = ref<string[]>([])
 const blueprintStore = usePageBlueprintStore()
 const { document } = storeToRefs(blueprintStore)
 const pendingOutput = ref<PageBlueprintConnectionEndpoint | null>(null)
 const pendingPointer = ref<{ x: number; y: number } | null>(null)
+const activePointerId = ref<number | null>(null)
 const viewport = computed<BaseCanvasViewport>({
   get: () => document.value.viewport,
   set: (nextViewport) => blueprintStore.setViewport(nextViewport),
@@ -194,6 +202,13 @@ const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
 onBeforeUnmount(() => {
   window.removeEventListener('pointermove', moveGroupDrag)
   window.removeEventListener('pointercancel', stopGroupDrag)
+  window.removeEventListener('pointermove', movePendingConnection)
+  window.removeEventListener('pointerup', cancelPendingConnection)
+  window.removeEventListener('pointercancel', cancelPendingConnection)
+})
+
+watch(selection, (nextSelection) => {
+  emit('selectNode', nextSelection.length === 1 ? (nextSelection[0] ?? null) : null)
 })
 
 function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
@@ -327,7 +342,7 @@ function createCanvasItems(
         accent: node.accent ?? definition?.accent ?? 'var(--fabric-accent)',
         showFooter: false,
         fields: [],
-        utilityNode: node,
+        utilityNode: withUtilityConnectionValues(node, connections),
       },
     }
   })
@@ -364,20 +379,36 @@ function itemData(item: BaseCanvasItem): PageBlueprintCanvasItemData {
   return item.data as PageBlueprintCanvasItemData
 }
 
-function startFieldConnection(nodeId: string, fieldId: string) {
+function startFieldConnection(nodeId: string, fieldId: string, event: PointerEvent) {
+  if (event.button !== 0) return
   pendingOutput.value = { nodeId, fieldId }
+  activePointerId.value = event.pointerId
+  updatePendingPointer(event)
+  window.addEventListener('pointermove', movePendingConnection)
+  window.addEventListener('pointerup', cancelPendingConnection, { once: true })
+  window.addEventListener('pointercancel', cancelPendingConnection, { once: true })
 }
 
-function completeFieldConnection(nodeId: string, fieldId: string) {
-  if (!pendingOutput.value) return
+function completeFieldConnection(nodeId: string, fieldId: string, event: PointerEvent) {
+  if (!pendingOutput.value) {
+    blueprintStore.removeInputConnection(nodeId, fieldId)
+    return
+  }
+  if (activePointerId.value !== event.pointerId) return
   blueprintStore.connectFields(pendingOutput.value, { nodeId, fieldId })
-  pendingOutput.value = null
-  pendingPointer.value = null
+  stopPendingConnection()
+}
+
+function movePendingConnection(event: PointerEvent) {
+  if (activePointerId.value !== event.pointerId) return
+  updatePendingPointer(event)
 }
 
 function updatePendingPointer(event: PointerEvent) {
   if (!pendingOutput.value) return
-  const canvasElement = (event.currentTarget as HTMLElement | null)
+  const canvasElement = event.currentTarget instanceof HTMLElement
+    ? event.currentTarget
+    : window.document.querySelector('.web-page-blueprint-v2__canvas')
   const rect = canvasElement?.getBoundingClientRect()
   if (!rect) return
   pendingPointer.value = {
@@ -388,6 +419,20 @@ function updatePendingPointer(event: PointerEvent) {
 
 function clearPendingPointer() {
   pendingPointer.value = null
+}
+
+function cancelPendingConnection(event?: PointerEvent) {
+  if (event && activePointerId.value !== event.pointerId) return
+  stopPendingConnection()
+}
+
+function stopPendingConnection() {
+  pendingOutput.value = null
+  pendingPointer.value = null
+  activePointerId.value = null
+  window.removeEventListener('pointermove', movePendingConnection)
+  window.removeEventListener('pointerup', cancelPendingConnection)
+  window.removeEventListener('pointercancel', cancelPendingConnection)
 }
 
 function canManageNode(item: BaseCanvasItem) {
@@ -420,9 +465,34 @@ function withConnectionValues(
   connections: PageBlueprintConnection[],
 ): PageBlueprintDisplayField[] {
   return fields.map((field) => {
-    const connection = connections.find((item) => item.to.nodeId === nodeId && item.to.fieldId === field.id)
-    return connection ? { ...field, value: connection.expression } : field
+    const inputConnection = connections.find((item) => item.to.nodeId === nodeId && item.to.fieldId === field.id)
+    const outputConnection = connections.some((item) => item.from.nodeId === nodeId && item.from.fieldId === field.id)
+    return {
+      ...field,
+      value: inputConnection?.expression ?? field.value,
+      inputConnected: Boolean(inputConnection),
+      outputConnected: outputConnection,
+    }
   })
+}
+
+function withUtilityConnectionValues(
+  node: PageBlueprintUtilityNode,
+  connections: PageBlueprintConnection[],
+): PageBlueprintUtilityNode {
+  return {
+    ...node,
+    fields: node.fields.map((field) => {
+      const inputConnection = connections.find((item) => item.to.nodeId === node.id && item.to.fieldId === field.id)
+      const outputConnection = connections.some((item) => item.from.nodeId === node.id && item.from.fieldId === field.id)
+      return {
+        ...field,
+        expression: inputConnection?.expression ?? field.expression,
+        inputConnected: Boolean(inputConnection),
+        outputConnected: outputConnection,
+      }
+    }),
+  }
 }
 
 function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {

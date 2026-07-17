@@ -7,9 +7,11 @@
     :value="field.value"
     :input="field.input"
     :output="field.output"
+    :input-connected="field.inputConnected"
+    :output-connected="field.outputConnected"
     :mode="field.mode"
-    @pick-input="$emit('pickInput', field.id)"
-    @pick-output="$emit('pickOutput', field.id)"
+    @pick-input="$emit('pickInput', field.id, $event)"
+    @pick-output="$emit('pickOutput', field.id, $event)"
     @update:mode="$emit('updateMode', field.id, $event)"
   />
 </template>
@@ -25,6 +27,8 @@ export interface BlueprintNodeDisplayField {
   value?: string
   input?: boolean
   output?: boolean
+  inputConnected?: boolean
+  outputConnected?: boolean
   mode?: PageBlueprintFieldMode
 }
 
@@ -33,8 +37,8 @@ defineProps<{
 }>()
 
 defineEmits<{
-  pickInput: [fieldId: string]
-  pickOutput: [fieldId: string]
+  pickInput: [fieldId: string, event: PointerEvent]
+  pickOutput: [fieldId: string, event: PointerEvent]
   updateMode: [fieldId: string, mode: PageBlueprintFieldMode]
 }>()
 </script>

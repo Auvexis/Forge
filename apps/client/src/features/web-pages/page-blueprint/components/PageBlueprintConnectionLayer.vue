@@ -15,11 +15,23 @@
       vector-effect="non-scaling-stroke"
     />
   </svg>
+  <div
+    v-for="edge in renderedConnections"
+    :key="`${edge.id}:toolbar`"
+    class="web-page-blueprint-edge-toolbar"
+    :style="{ transform: `translate(${edge.toolbar.x}px, ${edge.toolbar.y}px)` }"
+    data-base-canvas-no-drag
+  >
+    <button type="button" title="Delete connection" @click.stop="$emit('removeConnection', edge.id)">
+      <LucideIcon name="trash-2" :size="12" />
+    </button>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BaseCanvasPoint } from '@/shared/base-canvas/index.ts'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlueprintConnection, PageBlueprintConnectionEndpoint } from '../pageBlueprintSchema.ts'
 
 export interface PageBlueprintConnectionField {
@@ -37,6 +49,8 @@ export interface PageBlueprintConnectionNode {
 const HEADER_HEIGHT = 34
 const FIELD_HEIGHT = 32
 const FIELD_CENTER_Y = 16
+const INPUT_PORT_OFFSET_X = 9
+const OUTPUT_PORT_OFFSET_X = 9
 
 const props = withDefaults(defineProps<{
   nodes: PageBlueprintConnectionNode[]
@@ -63,9 +77,10 @@ const renderedConnections = computed(() =>
       return {
         id: connection.id,
         path: connectionPath(from, to),
+        toolbar: midpoint(from, to),
       }
     })
-    .filter((edge): edge is { id: string; path: string } => Boolean(edge)),
+    .filter((edge): edge is { id: string; path: string; toolbar: BaseCanvasPoint } => Boolean(edge)),
 )
 
 const pendingPath = computed(() => {
@@ -80,8 +95,15 @@ function portPoint(endpoint: PageBlueprintConnectionEndpoint, side: 'input' | 'o
   const fieldIndex = node.fields.findIndex((field) => field.id === endpoint.fieldId)
   if (fieldIndex < 0) return null
   return {
-    x: side === 'output' ? node.x + node.width : node.x,
+    x: side === 'output' ? node.x + node.width - OUTPUT_PORT_OFFSET_X : node.x + INPUT_PORT_OFFSET_X,
     y: node.y + HEADER_HEIGHT + FIELD_CENTER_Y + fieldIndex * FIELD_HEIGHT,
+  }
+}
+
+function midpoint(from: BaseCanvasPoint, to: BaseCanvasPoint): BaseCanvasPoint {
+  return {
+    x: (from.x + to.x) / 2,
+    y: (from.y + to.y) / 2,
   }
 }
 

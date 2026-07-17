@@ -28,6 +28,8 @@ export interface PageBlueprintField {
   direction: PageBlueprintFieldDirection
   value?: string
   expression?: string
+  inputConnected?: boolean
+  outputConnected?: boolean
   mode?: PageBlueprintFieldMode
   configurable?: boolean
 }

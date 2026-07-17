@@ -11,6 +11,8 @@ export interface PageBlueprintDisplayField {
   value?: string
   input?: boolean
   output?: boolean
+  inputConnected?: boolean
+  outputConnected?: boolean
   mode?: PageBlueprintFieldMode
 }
 

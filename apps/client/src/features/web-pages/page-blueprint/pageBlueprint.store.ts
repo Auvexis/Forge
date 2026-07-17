@@ -130,9 +130,30 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function removeInputConnection(nodeId: string, fieldId: string) {
+    const connection = document.value.connections.find((item) => item.to.nodeId === nodeId && item.to.fieldId === fieldId)
+    if (!connection) return
+    removeConnection(connection.id)
+  }
+
   function setNodeFieldMode(nodeId: string, fieldId: string, mode: PageBlueprintFieldMode) {
     patchDocument({
       nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { mode }),
+    })
+  }
+
+  function setNodeLabel(nodeId: string, label: string) {
+    patchDocument({
+      nodes: document.value.nodes.map((node) => (node.id === nodeId ? { ...node, label } : node)),
+    })
+  }
+
+  function setNodeFieldValue(nodeId: string, fieldId: string, value: string) {
+    patchDocument({
+      nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { value, expression: undefined }),
+      connections: document.value.connections.filter((connection) =>
+        !(connection.to.nodeId === nodeId && connection.to.fieldId === fieldId),
+      ),
     })
   }
 
@@ -253,7 +274,10 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setCollapsedGroups,
     connectFields,
     removeConnection,
+    removeInputConnection,
     setNodeFieldMode,
+    setNodeLabel,
+    setNodeFieldValue,
     addUtilityNode,
     duplicateNode,
     deleteNode,

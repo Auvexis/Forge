@@ -4,8 +4,8 @@
     v-if="specificComponent"
     :fields="node.fields"
     :selected="selected"
-    @pick-input="$emit('pickInput', $event)"
-    @pick-output="$emit('pickOutput', $event)"
+    @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"
+    @pick-output="(fieldId, event) => $emit('pickOutput', fieldId, event)"
     @update-mode="(fieldId, mode) => $emit('updateMode', fieldId, mode)"
   />
 
@@ -19,8 +19,8 @@
   >
     <BlueprintNodeFields
       :fields="displayFields"
-      @pick-input="$emit('pickInput', $event)"
-      @pick-output="$emit('pickOutput', $event)"
+      @pick-input="(fieldId, event) => $emit('pickInput', fieldId, event)"
+      @pick-output="(fieldId, event) => $emit('pickOutput', fieldId, event)"
       @update-mode="(fieldId, mode) => $emit('updateMode', fieldId, mode)"
     />
   </BaseUtilityNode>
@@ -42,8 +42,8 @@ const props = withDefaults(defineProps<{
 })
 
 defineEmits<{
-  pickInput: [fieldId: string]
-  pickOutput: [fieldId: string]
+  pickInput: [fieldId: string, event: PointerEvent]
+  pickOutput: [fieldId: string, event: PointerEvent]
   updateMode: [fieldId: string, mode: PageBlueprintFieldMode]
 }>()
 
@@ -60,6 +60,8 @@ const displayFields = computed(() => props.node.fields.map((field) => ({
   value: field.expression ?? field.value,
   input: field.direction === 'input' || field.direction === 'both',
   output: field.direction === 'output' || field.direction === 'both',
+  inputConnected: field.inputConnected,
+  outputConnected: field.outputConnected,
   mode: field.mode,
 })))
 

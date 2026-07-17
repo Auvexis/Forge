@@ -86,6 +86,13 @@
           title="Toolbox"
           @click="$emit('command', 'view.blueprint-toolbox')"
         />
+        <BaseRailItem
+          v-if="resolvedShowBlueprintInspectorControl"
+          icon="pencil"
+          :active="!!isInspectorOpen"
+          title="Inspector"
+          @click="$emit('command', 'view.right-panel')"
+        />
       </section>
 
       <section class="base-rail__group" aria-label="Edit">
@@ -132,6 +139,7 @@ const props = defineProps<{
   isBlueprintToolboxOpen?: boolean
   showPanelControls?: boolean
   showBlueprintToolboxControl?: boolean
+  showBlueprintInspectorControl?: boolean
   canSave?: boolean
   canUseProjectActions?: boolean
 }>()
@@ -217,6 +225,7 @@ const resolvedCanSave = computed(() => props.canSave ?? Boolean(props.isDirty))
 const resolvedCanUseProjectActions = computed(() => props.canUseProjectActions ?? true)
 const resolvedShowPanelControls = computed(() => props.showPanelControls ?? true)
 const resolvedShowBlueprintToolboxControl = computed(() => props.showBlueprintToolboxControl ?? false)
+const resolvedShowBlueprintInspectorControl = computed(() => props.showBlueprintInspectorControl ?? false)
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
   items: menu.items.map((item) => {

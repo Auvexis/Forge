@@ -3,9 +3,10 @@
     <div class="web-page-blueprint-field__left">
       <BasePickWhipButton
         v-if="input"
-        icon="radio-receiver"
         :title="`Bind input for ${label}`"
-        @pick="$emit('pickInput', $event)"
+        :connected="inputConnected"
+        :disconnectable="inputConnected"
+        @release="$emit('pickInput', $event)"
       />
       <span class="web-page-blueprint-field__label">
         <strong>{{ label }}</strong>
@@ -31,6 +32,7 @@
         <BasePickWhipButton
           v-if="output"
           :title="`Connect ${label}`"
+          :connected="outputConnected"
           @pick="$emit('pickOutput', $event)"
         />
       </div>
@@ -50,6 +52,8 @@ const props = withDefaults(defineProps<{
   placeholder?: string
   input?: boolean
   output?: boolean
+  inputConnected?: boolean
+  outputConnected?: boolean
   mode?: 'single' | 'multiple'
 }>(), {
   type: '',
@@ -57,6 +61,8 @@ const props = withDefaults(defineProps<{
   placeholder: '',
   input: false,
   output: false,
+  inputConnected: false,
+  outputConnected: false,
   mode: undefined,
 })
 

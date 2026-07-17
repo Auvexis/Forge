@@ -441,6 +441,74 @@
   font-size: 10px;
 }
 
+.web-page-blueprint-inspector {
+  display: grid;
+  align-content: start;
+  gap: var(--fabric-space-2);
+  width: 100%;
+  height: 100%;
+  padding: var(--fabric-space-2);
+  overflow: auto;
+  background: var(--fabric-bg-surface);
+}
+
+.web-page-blueprint-inspector-section {
+  display: grid;
+  border: 1px solid var(--fabric-border-subtle);
+  border-radius: 3px;
+  background: var(--fabric-bg-base);
+}
+
+.web-page-blueprint-inspector-section > header {
+  height: 24px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--fabric-border-subtle);
+  color: var(--fabric-text-secondary);
+  font-size: 10px;
+  font-weight: var(--fabric-font-semibold);
+  line-height: 24px;
+  text-transform: uppercase;
+}
+
+.web-page-blueprint-inspector-row {
+  display: grid;
+  grid-template-columns: 82px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
+  padding: 3px 8px;
+  border-bottom: 1px solid var(--fabric-border-subtle);
+}
+
+.web-page-blueprint-inspector-row:last-child {
+  border-bottom: 0;
+}
+
+.web-page-blueprint-inspector-row > span {
+  overflow: hidden;
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-inspector-row input,
+.web-page-blueprint-inspector-row code {
+  min-width: 0;
+  height: 19px;
+  padding: 0 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
+  font: 10px var(--fabric-font-mono);
+}
+
+.web-page-blueprint-inspector-row input:focus {
+  border-color: var(--fabric-accent);
+  outline: none;
+}
+
 .web-page-blueprint-v2__canvas .base-canvas__item {
   z-index: 2;
 }
@@ -462,7 +530,7 @@
   border: 1px solid var(--fabric-border);
   border-radius: 3px;
   background: var(--fabric-bg-elevated);
-  opacity: 0;
+  opacity: 0.28;
   transform: translateY(3px);
   transition: opacity 100ms ease, transform 100ms ease;
   pointer-events: none;
@@ -522,6 +590,38 @@
   stroke-dasharray: 5 4;
   opacity: 0.95;
   pointer-events: none;
+}
+
+.web-page-blueprint-edge-toolbar {
+  position: absolute;
+  z-index: 3;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  margin: -11px 0 0 -11px;
+  border: 1px solid var(--fabric-border);
+  border-radius: 3px;
+  background: var(--fabric-bg-elevated);
+  opacity: 0;
+  pointer-events: auto;
+}
+
+.web-page-blueprint-edge-toolbar:hover {
+  opacity: 1;
+}
+
+.web-page-blueprint-edge-toolbar button {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  color: var(--fabric-text-secondary);
+}
+
+.web-page-blueprint-edge-toolbar button:hover {
+  color: var(--fabric-text-error);
+  background: var(--fabric-bg-surface);
 }
 
 .web-page-blueprint-element-group {
@@ -646,7 +746,7 @@
 .web-page-blueprint-element {
   position: relative;
   display: grid;
-  grid-template-rows: 34px minmax(0, 1fr) 20px;
+  grid-template-rows: 34px minmax(0, 1fr);
   width: 100%;
   height: 100%;
   padding: 0;
@@ -737,29 +837,6 @@
 .web-page-blueprint-element__body code {
   color: var(--fabric-blueprint-node-muted-text, var(--fabric-text-muted));
   font-size: 10px;
-}
-
-.web-page-blueprint-element__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 7px;
-  border-top: 1px solid var(--fabric-blueprint-node-divider, var(--fabric-border-subtle));
-  color: var(--fabric-blueprint-node-muted-text, var(--fabric-text-muted));
-  font-size: 9px;
-}
-
-.web-page-blueprint-element__footer span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.web-page-blueprint-element__port-dot {
-  width: 5px;
-  height: 5px;
-  border: 1px solid currentColor;
-  border-radius: 50%;
 }
 
 .web-page-blueprint-element--selected {
@@ -935,6 +1012,14 @@
 .web-page-blueprint-pick-whip:hover {
   color: var(--fabric-blueprint-binding-active, var(--fabric-accent));
   background: var(--fabric-blueprint-palette-item-hover-bg, var(--fabric-bg-elevated));
+}
+
+.web-page-blueprint-pick-whip--connected {
+  color: var(--fabric-blueprint-binding-active, var(--fabric-accent));
+}
+
+.web-page-blueprint-pick-whip--disconnectable:hover {
+  color: var(--fabric-text-error);
 }
 
 .web-page-blueprint-field-mode {

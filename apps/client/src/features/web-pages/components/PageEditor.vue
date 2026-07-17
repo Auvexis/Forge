@@ -31,6 +31,7 @@
       :is-blueprint-toolbox-open="isBlueprintToolboxVisible"
       :show-panel-controls="activePageDocument === 'design'"
       :show-blueprint-toolbox-control="activePageDocument === 'blueprint'"
+      :show-blueprint-inspector-control="activePageDocument === 'blueprint'"
       :can-save="canSaveActiveDocument"
       :can-use-project-actions="hasCreatedProject"
       @command="handleChromeCommand"
@@ -214,6 +215,7 @@
           :workflows="pageActionsStore.workflows"
           :output-bindings="pageActionBindingsStore.outputBindingsByAction"
           :collection-bindings="pageActionBindingsStore.collectionBindingsByAction"
+          @select-node="blueprintSelectedNodeId = $event"
         />
         <PageSelectionGroupOverlay
           v-if="activePageDocument === 'design'"
@@ -320,6 +322,26 @@
         />
       </template>
       <p v-if="editorStore.selectedTarget.type === 'none'" class="web-page-editor__empty">Select a page, body, or block.</p>
+    </AppPanel>
+
+    <AppPanel
+      v-if="activePageDocument === 'blueprint'"
+      :is-open="isInspectorVisible"
+      title="Inspector"
+      position="right"
+      width="md"
+      resizable
+      resize-side="left"
+      @close="closeRightPanel"
+      @resize="handleRightPanelResize"
+      @resize-reset="resetRightPanelResize"
+    >
+      <PageBlueprintInspectorPanel
+        :document="blueprintStore.document"
+        :selected-node-id="blueprintSelectedNodeId"
+        @update-node-label="blueprintStore.setNodeLabel"
+        @update-field-value="blueprintStore.setNodeFieldValue"
+      />
     </AppPanel>
 
     <PageSwitcherModal
@@ -511,6 +533,7 @@ import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue
 import { usePageBlueprintStore } from '../page-blueprint/pageBlueprint.store.ts'
 import type { PageBlueprintUtilityNodeType } from '../page-blueprint/pageBlueprintSchema.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
+import PageBlueprintInspectorPanel from '../page-blueprint/components/PageBlueprintInspectorPanel.vue'
 import PageBlueprintToolboxPanel from '../page-blueprint/components/PageBlueprintToolboxPanel.vue'
 
 const route = useRoute()
@@ -530,6 +553,7 @@ const PAGE_CANVAS_GAP = 80
 const isLeftPanelOpen = ref(true)
 const isRightPanelOpen = ref(true)
 const isBlueprintToolboxOpen = ref(true)
+const blueprintSelectedNodeId = ref<string | null>(null)
 const leftPanelWidth = ref<number | null>(null)
 const rightPanelWidth = ref<number | null>(null)
 const isPageSwitcherOpen = ref(false)
@@ -599,7 +623,9 @@ const isBlueprintDocumentActive = computed(() => activePageDocument.value === 'b
 const isExplorerVisible = computed(() => isDesignDocumentActive.value && isLeftPanelOpen.value)
 const isBlueprintToolboxVisible = computed(() => isBlueprintDocumentActive.value && isBlueprintToolboxOpen.value)
 const isLeftWorkspacePanelVisible = computed(() => isExplorerVisible.value || isBlueprintToolboxVisible.value)
-const isInspectorVisible = computed(() => isDesignDocumentActive.value && isRightPanelOpen.value)
+const isInspectorVisible = computed(() =>
+  (isDesignDocumentActive.value || isBlueprintDocumentActive.value) && isRightPanelOpen.value,
+)
 const workspacePlaneStyle = computed(() => ({}))
 const pageEditorLayoutStyle = computed(() => ({
   ...(leftPanelWidth.value === null ? {} : { '--web-page-left-panel-width': `${leftPanelWidth.value}px` }),
@@ -1762,7 +1788,7 @@ function toggleLeftPanel() {
 }
 
 function toggleRightPanel() {
-  if (!isDesignDocumentActive.value) return
+  if (!isDesignDocumentActive.value && !isBlueprintDocumentActive.value) return
   isRightPanelOpen.value = !isRightPanelOpen.value
 }
 

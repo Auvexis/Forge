@@ -1,0 +1,8 @@
+- [x] Corrigir drag do pick whip
+- [x] Alinhar edges aos ports
+- [x] Adicionar toolbar da edge
+- [x] Atualizar icones de link
+- [x] Ajustar BaseElement/BaseUtilityNode
+- [x] Criar Inspector Blueprint
+- [x] Validar type-check
+- [x] Commitar ajuste
