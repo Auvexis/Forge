@@ -46,7 +46,7 @@ function collectBlueprintElementValues(
 
   for (const connection of blueprint.connections) {
     const fromNode = nodes.get(connection.from.nodeId)
-    const toNode = nodes.get(connection.to.nodeId)
+    const toNode = resolveRuntimeNode(nodes, connection.to.nodeId)
     if (!fromNode || !toNode) continue
     if (fromNode.kind !== 'utility' || fromNode.type !== 'run-workflow' || toNode.kind !== 'element') continue
     if (connection.from.fieldId === 'event') continue
@@ -81,7 +81,7 @@ function buildBlueprintRuntimeActions(
 
   for (const connection of blueprint.connections) {
     const fromNode = nodes.get(connection.from.nodeId)
-    const toNode = nodes.get(connection.to.nodeId)
+    const toNode = resolveRuntimeNode(nodes, connection.to.nodeId)
     if (!fromNode || !toNode) continue
 
     if (fromNode.kind === 'utility' && fromNode.type === 'run-workflow' && connection.from.fieldId === 'event' && toNode.kind === 'element') {
@@ -307,6 +307,20 @@ function pageActionId(workflowId: string, triggerId: string) {
 
 function elementBlockId(nodeId: string) {
   return nodeId.startsWith('blueprint-element:') ? nodeId.slice('blueprint-element:'.length) : nodeId
+}
+
+function resolveRuntimeNode(nodes: Map<string, PageBlueprintNode>, nodeId: string): PageBlueprintNode | null {
+  const node = nodes.get(nodeId)
+  if (node) return node
+  if (!nodeId.startsWith('blueprint-element:')) return null
+  return {
+    id: nodeId,
+    kind: 'element',
+    type: 'page-element',
+    label: elementBlockId(nodeId),
+    fields: [],
+    data: {},
+  }
 }
 
 function blockLabel(block: PageBlock, fallback: string) {

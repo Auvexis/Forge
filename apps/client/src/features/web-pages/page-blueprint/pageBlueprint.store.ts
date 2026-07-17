@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
+import type { PageBlock } from '../types/page.types.ts'
 import { useSitesStore } from '../stores/sites.store.ts'
 import {
   createDefaultPageBlueprintDocument,
@@ -78,6 +79,29 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       viewport,
     }
     suppressHistory = false
+  }
+
+  function syncPageElementNodes(blocks: PageBlock[]) {
+    const pageBlocks = flattenPageBlocks(blocks)
+    if (pageBlocks.length === 0) return false
+
+    const blocksByNodeId = new Map(pageBlocks.map((block) => [elementNodeIdFromBlockId(block.id), block]))
+    const existingNodeIds = new Set(document.value.nodes.map((node) => node.id))
+    const nextNodes = document.value.nodes.map((node) => {
+      const block = blocksByNodeId.get(node.id)
+      if (node.kind !== 'element' || !block) return node
+      return syncElementNode(node, block)
+    })
+
+    for (const block of pageBlocks) {
+      const nodeId = elementNodeIdFromBlockId(block.id)
+      if (existingNodeIds.has(nodeId)) continue
+      nextNodes.push(createElementNodeFromBlock(block))
+    }
+
+    if (JSON.stringify(nextNodes) === JSON.stringify(document.value.nodes)) return false
+    patchDerivedDocument({ nodes: nextNodes })
+    return true
   }
 
   function setNodePosition(nodeId: string, position: { x: number; y: number }) {
@@ -514,6 +538,19 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     lastHistorySnapshot.value = serialize(nextDocument)
   }
 
+  function patchDerivedDocument(patch: Partial<PageBlueprintDocument>) {
+    const nextDocument = {
+      ...document.value,
+      ...patch,
+      updatedAt: new Date().toISOString(),
+    }
+    if (serialize(nextDocument) === serialize(document.value)) return
+    suppressHistory = true
+    document.value = nextDocument
+    lastHistorySnapshot.value = serialize(nextDocument)
+    suppressHistory = false
+  }
+
   function recordHistory() {
     if (suppressHistory) return
     const currentSnapshot = serialize(document.value)
@@ -537,6 +574,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     loadFromActiveSite,
     saveToActiveSite,
     setViewport,
+    syncPageElementNodes,
     setNodePosition,
     setNodePositions,
     setCollapsedGroups,
@@ -576,6 +614,132 @@ function cloneBlueprintNode(source: PageBlueprintDocument['nodes'][number]): Pag
     })),
     data: source.data ? { ...source.data } : source.data,
   }
+}
+
+function createElementNodeFromBlock(block: PageBlock): PageBlueprintDocument['nodes'][number] {
+  return {
+    id: elementNodeIdFromBlockId(block.id),
+    kind: 'element',
+    type: 'page-element',
+    label: blockLabelFromBlock(block),
+    fields: createElementFieldsFromBlock(block),
+    data: {
+      elementId: block.id,
+      tag: block.tag,
+    },
+  }
+}
+
+function syncElementNode(
+  node: PageBlueprintDocument['nodes'][number],
+  block: PageBlock,
+): PageBlueprintDocument['nodes'][number] {
+  return {
+    ...node,
+    kind: 'element',
+    type: 'page-element',
+    label: blockLabelFromBlock(block),
+    fields: mergeElementFields(node.fields, createElementFieldsFromBlock(block)),
+    data: {
+      ...(node.data ?? {}),
+      elementId: block.id,
+      tag: block.tag,
+    },
+  }
+}
+
+function mergeElementFields(existingFields: PageBlueprintField[], baseFields: PageBlueprintField[]) {
+  const baseIds = new Set(baseFields.map((field) => field.id))
+  const existingById = new Map(existingFields.map((field) => [field.id, field]))
+  const eventFields = existingFields.filter((field) => isElementEventField(field))
+  const customFields = existingFields.filter((field) => !baseIds.has(field.id) && !isElementEventField(field))
+
+  return [
+    ...eventFields,
+    ...baseFields.map((field) => ({
+      ...field,
+      expression: existingById.get(field.id)?.expression,
+      mode: existingById.get(field.id)?.mode ?? field.mode,
+    })),
+    ...customFields,
+  ]
+}
+
+function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
+  if (block.tag === 'input') {
+    const type = String(block.props?.type ?? block.attributes?.type ?? 'text')
+    return [
+      htmlElementField('value', 'Value', 'string', block.props?.value ?? block.attributes?.value),
+      ...(type === 'checkbox' ? [htmlElementField('checked', 'Checked', 'boolean', block.props?.checked ?? block.attributes?.checked)] : []),
+      htmlElementField('placeholder', 'Placeholder', 'string', block.props?.placeholder ?? block.attributes?.placeholder),
+      htmlElementField('type', 'Type', 'string', type),
+    ]
+  }
+
+  if (block.tag === 'text' || block.tag === 'button' || block.tag === 'link') {
+    return [
+      htmlElementField('text', 'Text', 'string', block.props?.text ?? block.props?.label),
+      ...(block.tag === 'link' ? [htmlElementField('href', 'Href', 'string', block.props?.href ?? block.attributes?.href)] : []),
+    ]
+  }
+
+  if (block.tag === 'image') {
+    return [
+      htmlElementField('src', 'Source', 'string', block.props?.src ?? block.attributes?.src),
+      htmlElementField('alt', 'Alt', 'string', block.props?.alt ?? block.attributes?.alt),
+    ]
+  }
+
+  if (block.tag === 'video' || block.tag === 'audio' || block.tag === 'youtube') {
+    return [
+      htmlElementField('src', 'Source', 'string', block.props?.src ?? block.attributes?.src),
+      htmlElementField('title', 'Title', 'string', block.props?.title ?? block.attributes?.title),
+    ]
+  }
+
+  return [
+    htmlElementField('id', 'Element ID', 'string', block.elementId ?? block.attributes?.id),
+    htmlElementField('class', 'Class', 'string', block.className ?? block.attributes?.class),
+  ]
+}
+
+function htmlElementField(
+  id: string,
+  label: string,
+  type: PageBlueprintFieldType,
+  value: unknown,
+): PageBlueprintField {
+  return {
+    id,
+    label,
+    type,
+    direction: 'input',
+    value: stringifyElementFieldValue(value),
+    configurable: false,
+  }
+}
+
+function isElementEventField(field: PageBlueprintField) {
+  return field.type === 'event' || field.id.startsWith('event:')
+}
+
+function flattenPageBlocks(blocks: PageBlock[]): PageBlock[] {
+  return blocks.flatMap((block) => [block, ...flattenPageBlocks(block.children ?? [])])
+}
+
+function elementNodeIdFromBlockId(blockId: string) {
+  return `blueprint-element:${blockId}`
+}
+
+function blockLabelFromBlock(block: PageBlock) {
+  return String(block.props?.text ?? block.props?.label ?? block.elementId ?? block.id)
+}
+
+function stringifyElementFieldValue(value: unknown) {
+  if (value === undefined || value === null) return ''
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value)
 }
 
 function createConnectionId(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {

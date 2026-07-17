@@ -1,0 +1,5 @@
+- [x] Sincronizar elementos como nodes reais
+- [x] Preservar eventos e conexões existentes
+- [x] Manter grupos por hierarquia
+- [x] Validar build/typecheck
+- [x] Commitar alterações

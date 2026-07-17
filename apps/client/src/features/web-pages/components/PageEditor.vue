@@ -1096,6 +1096,15 @@ watch(
 )
 
 watch(
+  () => editorStore.blocks,
+  (blocks) => {
+    if (!pagesStore.activePage) return
+    blueprintStore.syncPageElementNodes(blocks)
+  },
+  { deep: true, immediate: true },
+)
+
+watch(
   () => [
     pageActionBindingsStore.bindingsByAction,
     pageActionBindingsStore.outputBindingsByAction,

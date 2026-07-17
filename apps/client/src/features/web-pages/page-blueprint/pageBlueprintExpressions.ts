@@ -41,8 +41,9 @@ export function blueprintResultPathFromExpression(template: string, nodeId: stri
   const expression = normalizeBlueprintExpression(template)
   if (!expression) return null
   const prefix = `${nodeId}.${fieldId}`
-  const path = [expression, ...Array.from(expression.matchAll(BLUEPRINT_PATH_PATTERN), (match) => match[0])]
-    .find((candidate) => candidate.startsWith(prefix))
+  const matchedPaths = Array.from(expression.matchAll(BLUEPRINT_PATH_PATTERN), (match) => match[0])
+    .filter((candidate) => candidate.startsWith(prefix))
+  const path = matchedPaths.at(-1) ?? (expression.startsWith(prefix) ? expression : '')
   if (!path) return null
   const fieldPath = fieldId.startsWith('return:') ? fieldId.slice('return:'.length) : ''
   const suffix = path.slice(prefix.length).replace(/^[:.]/, '')

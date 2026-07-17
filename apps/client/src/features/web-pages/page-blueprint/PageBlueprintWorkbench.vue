@@ -289,10 +289,10 @@ function createCanvasItems(
     const blueprintElement = document.value.nodes.find((node) =>
       node.id === nodeId && node.kind === 'element',
     )
-    const fields = [
-      ...blueprintElementFields(blueprintElement?.fields ?? []),
-      ...createElementFields(element),
-    ]
+    const fields = mergeElementFields(
+      blueprintElementFields(blueprintElement?.fields ?? []),
+      createElementFields(element),
+    )
     return {
       id: nodeId,
       x: 40,
@@ -631,6 +631,22 @@ function blueprintElementFields(fields: PageBlueprintField[]): PageBlueprintDisp
     outputConnected: field.outputConnected,
     mode: field.mode,
   }))
+}
+
+function mergeElementFields(
+  persistedFields: PageBlueprintDisplayField[],
+  dynamicFields: PageBlueprintDisplayField[],
+): PageBlueprintDisplayField[] {
+  const dynamicIds = new Set(dynamicFields.map((field) => field.id))
+  const persistedById = new Map(persistedFields.map((field) => [field.id, field]))
+  const customFields = persistedFields.filter((field) => !dynamicIds.has(field.id))
+  return [
+    ...customFields,
+    ...dynamicFields.map((field) => ({
+      ...field,
+      mode: persistedById.get(field.id)?.mode ?? field.mode,
+    })),
+  ]
 }
 
 function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {
