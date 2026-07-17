@@ -12,7 +12,7 @@
         :active-project="sitesStore.activeSite"
         :projects="sitesStore.sites"
         :is-open="isOpenProjectModalOpen"
-        :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
+        :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty || blueprintStore.isDirty"
         :is-saving="pagesStore.isSaving || sitesStore.isSaving"
         @open="openProjectFromTopbar"
         @select-project="openProject"
@@ -20,10 +20,10 @@
     </Teleport>
 
     <PageChromeToolbar
-      :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty"
+      :is-dirty="editorStore.isDirty || pagesStore.isDirty || sitesStore.isDirty || blueprintStore.isDirty"
       :is-saving="pagesStore.isSaving || sitesStore.isSaving"
-      :can-undo="editorStore.canUndo"
-      :can-redo="editorStore.canRedo"
+      :can-undo="activePageDocument === 'blueprint' ? blueprintStore.canUndo : editorStore.canUndo"
+      :can-redo="activePageDocument === 'blueprint' ? blueprintStore.canRedo : editorStore.canRedo"
       :published-at="activePagePublishedAt"
       :is-autosave-enabled="isPagesAutosaveEnabled"
       :is-explorer-open="isExplorerVisible"
@@ -491,6 +491,7 @@ import PageChromeToolbar, { type PageChromeCommand } from './PageChromeToolbar.v
 import PageSelectionGroupOverlay from './PageSelectionGroupOverlay.vue'
 import PageProjectTopbarDropdown from './PageProjectTopbarDropdown.vue'
 import PageBlueprintWorkbench from '../page-blueprint/PageBlueprintWorkbench.vue'
+import { usePageBlueprintStore } from '../page-blueprint/pageBlueprint.store.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
 
 const route = useRoute()
@@ -500,6 +501,7 @@ const editorStore = usePageEditorStore()
 const pageActionBindingsStore = usePageActionBindingsStore()
 const pageActionsStore = usePageActionsStore()
 const sitesStore = useSitesStore()
+const blueprintStore = usePageBlueprintStore()
 const { confirm } = useConfirm()
 const INITIAL_CANVAS_TOP_OFFSET = 120
 const PAGE_CANVAS_X = 120
@@ -554,7 +556,9 @@ const hasUnsavedProjectChanges = computed(() =>
 const hasCreatedProject = computed(() => Boolean(sitesStore.activeSite && pagesStore.activePage))
 const hasDraftPageWithoutProject = computed(() => Boolean(!sitesStore.activeSite && pagesStore.activePage))
 const canSaveActiveDocument = computed(() =>
-  hasCreatedProject.value ? hasUnsavedProjectChanges.value : hasDraftPageWithoutProject.value,
+  activePageDocument.value === 'blueprint'
+    ? hasCreatedProject.value && (blueprintStore.isDirty || sitesStore.isDirty)
+    : hasCreatedProject.value ? hasUnsavedProjectChanges.value : hasDraftPageWithoutProject.value,
 )
 const blockInspectorTabs: BaseSegmentedSelectOption[] = [
   { value: 'content', label: 'Content', title: 'Content', icon: 'sliders-horizontal' },
@@ -891,6 +895,7 @@ async function openRouteProject(projectId: unknown) {
 
 function clearActiveProject() {
   sitesStore.setActiveSite(null)
+  blueprintStore.loadFromActiveSite()
   pagesStore.setActiveSiteId(null)
   pagesStore.setActivePage(null)
   pagesStore.pages = []
@@ -902,6 +907,7 @@ function clearActiveProject() {
 
 async function loadProject(projectId: string) {
   const site = await sitesStore.openSite(projectId)
+  blueprintStore.loadFromActiveSite()
   pagesStore.setActiveSiteId(site.id)
   const pages = await pagesStore.listPages()
   await pagesStore.loadPageDocuments()
@@ -1569,11 +1575,19 @@ function handleKeyboardShortcuts(event: KeyboardEvent) {
 }
 
 function undoPageEdit() {
+  if (activePageDocument.value === 'blueprint') {
+    blueprintStore.undo()
+    return
+  }
   if (activeCodeFile.value || !editorStore.canUndo) return
   editorStore.undo()
 }
 
 function redoPageEdit() {
+  if (activePageDocument.value === 'blueprint') {
+    blueprintStore.redo()
+    return
+  }
   if (activeCodeFile.value || !editorStore.canRedo) return
   editorStore.redo()
 }
@@ -1601,6 +1615,11 @@ async function saveActiveDocument() {
   }
   if (activeCodeFile.value) {
     await sitesStore.saveActiveSite()
+    return
+  }
+  if (activePageDocument.value === 'blueprint') {
+    blueprintStore.saveToActiveSite()
+    if (sitesStore.isDirty) await sitesStore.saveActiveSite()
     return
   }
   if (pagesStore.isDirty || editorStore.isDirty) await savePage()
@@ -1670,6 +1689,7 @@ async function exportActiveProject() {
 }
 
 async function saveProjectBeforeExport() {
+  blueprintStore.saveToActiveSite()
   if (pagesStore.isDirty || editorStore.isDirty) await savePage()
   if (sitesStore.isDirty) await sitesStore.saveActiveSite()
 }

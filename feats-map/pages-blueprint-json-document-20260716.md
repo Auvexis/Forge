@@ -1,0 +1,7 @@
+- [x] Analisar export e Workflow Editor
+- [x] Definir documento JSON da Blueprint
+- [x] Persistir arquivo no projeto
+- [x] Usar posicoes e viewport do documento
+- [x] Adicionar undo redo da Blueprint
+- [x] Validar type-check
+- [x] Commitar ajuste

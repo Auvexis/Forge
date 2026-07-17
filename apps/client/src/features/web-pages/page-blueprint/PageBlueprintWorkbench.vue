@@ -59,6 +59,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue'
+import { storeToRefs } from 'pinia'
 import type {
   PageActionCollectionBinding,
   PageActionOutputBinding,
@@ -74,6 +75,7 @@ import {
   type PageBlueprintField,
 } from './pageBlueprintFields.ts'
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
+import { usePageBlueprintStore } from './pageBlueprint.store.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
@@ -107,9 +109,13 @@ const props = defineProps<{
 }>()
 
 const selection = ref<string[]>([])
-const viewport = ref<BaseCanvasViewport>({ x: 0, y: 0, zoom: 1 })
-const movedPositions = ref<Record<string, { x: number; y: number }>>({})
-const collapsedGroupIds = ref(new Set<string>())
+const blueprintStore = usePageBlueprintStore()
+const { document } = storeToRefs(blueprintStore)
+const viewport = computed<BaseCanvasViewport>({
+  get: () => document.value.viewport,
+  set: (nextViewport) => blueprintStore.setViewport(nextViewport),
+})
+const collapsedGroupIds = computed(() => new Set(document.value.collapsedGroups))
 const groupDrag = ref<null | { nodeIds: string[]; pointerId: number; x: number; y: number }>(null)
 
 const model = computed(() => createPageBlueprintViewModel({
@@ -123,7 +129,7 @@ const canvasItems = computed<PageBlueprintCanvasItem[]>(() => {
   const items = createCanvasItems(model.value)
   return items.map((item) => ({
     ...item,
-    ...(movedPositions.value[item.id] ?? {}),
+    ...(document.value.nodes[item.id] ?? {}),
   }))
 })
 
@@ -149,7 +155,7 @@ onBeforeUnmount(() => {
 
 function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
   const itemsById = new Map(canvasItems.value.map((item) => [item.id, item]))
-  const nextPositions = { ...movedPositions.value }
+  const nextPositions: Record<string, { x: number; y: number }> = {}
 
   for (const itemId of event.itemIds) {
     const item = itemsById.get(itemId)
@@ -160,13 +166,13 @@ function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
     }
   }
 
-  movedPositions.value = nextPositions
+  blueprintStore.setNodePositions(nextPositions)
 }
 
 function toggleGroup(groupId: string) {
-  const next = new Set(collapsedGroupIds.value)
+  const next = new Set(document.value.collapsedGroups)
   next.has(groupId) ? next.delete(groupId) : next.add(groupId)
-  collapsedGroupIds.value = next
+  blueprintStore.setCollapsedGroups([...next])
 }
 
 function startGroupDrag(nodeIds: string[], event: PointerEvent) {
