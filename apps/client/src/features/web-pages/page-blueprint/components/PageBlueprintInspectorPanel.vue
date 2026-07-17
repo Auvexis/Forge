@@ -15,7 +15,7 @@
         <BaseInspectorRow v-if="node" label="Type" :value="node.type" />
       </BaseInspectorSection>
 
-      <BaseInspectorSection v-if="node" title="Fields" icon="list-tree">
+      <BaseInspectorSection v-if="node && node.type !== 'run-workflow'" title="Fields" icon="list-tree">
         <div v-if="node.type === 'transform-data'" class="web-page-blueprint-inspector-actions">
           <BaseInspectorButton label="Add Field" icon="plus" @click="$emit('addNodeField', node.id)" />
         </div>
@@ -34,69 +34,141 @@
       </BaseInspectorSection>
 
       <template v-if="node?.type === 'run-workflow'">
-        <BaseInspectorSection title="Workflow" icon="workflow">
-          <div class="web-page-blueprint-inspector-actions">
-            <BaseInspectorButton label="Refresh" icon="refresh-cw" @click="loadWorkflows" />
-          </div>
-          <BaseInspectorSelect
-            label="Workflow"
-            :model-value="runWorkflowData.workflowId"
-            placeholder="Choose workflow"
-            :options="workflowOptions"
-            @update:model-value="selectWorkflow"
-          />
-          <BaseInspectorSelect
-            label="Trigger"
-            :model-value="runWorkflowData.triggerId"
-            placeholder="Choose trigger"
-            :options="triggerOptions"
-            @update:model-value="selectTrigger"
-          />
-        </BaseInspectorSection>
+        <div class="web-page-blueprint-inspector-stack">
+          <header class="web-page-blueprint-inspector-stack__nav">
+            <button
+              v-if="runWorkflowView !== 'workflows'"
+              class="web-page-blueprint-inspector-stack__back"
+              type="button"
+              aria-label="Back"
+              @click="goBackRunWorkflowView"
+            >
+              <LucideIcon name="chevron-left" :size="14" />
+            </button>
+            <div>
+              <strong>{{ runWorkflowViewTitle }}</strong>
+              <small>{{ runWorkflowViewSubtitle }}</small>
+            </div>
+          </header>
 
-        <BaseInspectorSection v-if="activeAction" title="Properties" icon="sliders-horizontal">
-          <BaseInspectorSelect
-            label="Event"
-            :model-value="runWorkflowData.eventType"
-            :options="eventTypeOptions"
-            @update:model-value="updateRunWorkflowEventType"
-          />
-          <BaseInspectorRow label="Action" :value="activeAction.name" />
-          <BaseInspectorRow label="Trigger Type" :value="activeAction.triggerType" />
-        </BaseInspectorSection>
+          <Transition :name="runWorkflowTransition" mode="out-in">
+            <div :key="runWorkflowView" class="web-page-blueprint-inspector-stack__view">
+              <template v-if="runWorkflowView === 'workflows'">
+                <BaseInspectorSection title="Published Workflows" icon="workflow">
+                  <div class="web-page-blueprint-inspector-actions">
+                    <BaseInspectorButton label="Refresh" icon="refresh-cw" @click="loadWorkflows" />
+                  </div>
+                  <button
+                    v-for="workflow in workflows"
+                    :key="workflow.id"
+                    class="web-page-blueprint-inspector-choice"
+                    type="button"
+                    @click="selectWorkflow(workflow.id)"
+                  >
+                    <span>
+                      <strong>{{ workflow.name }}</strong>
+                      <small>{{ workflow.actions.length }} triggers</small>
+                    </span>
+                    <LucideIcon name="chevron-right" :size="14" />
+                  </button>
+                  <p v-if="workflows.length === 0" class="web-page-blueprint-inspector-empty">
+                    No published workflows.
+                  </p>
+                </BaseInspectorSection>
+              </template>
 
-        <BaseInspectorSection v-if="activeAction" title="Parameters" icon="list-plus">
-          <BaseInspectorRow
-            v-for="input in activeAction.inputs"
-            :key="input.key"
-            :label="input.label"
-            :value="stringifyInputValue(runWorkflowInput[input.key])"
-            :placeholder="input.type"
-            editable
-            @update:value="updateRunWorkflowInput(input.key, $event, input.type)"
-          />
-          <p v-if="activeAction.inputs.length === 0" class="web-page-blueprint-inspector-empty">
-            No parameters.
-          </p>
-        </BaseInspectorSection>
+              <template v-else-if="runWorkflowView === 'triggers'">
+                <BaseInspectorSection title="Triggers" icon="git-branch">
+                  <button
+                    v-for="trigger in selectedWorkflow?.actions ?? []"
+                    :key="trigger.id"
+                    class="web-page-blueprint-inspector-choice"
+                    type="button"
+                    @click="selectTrigger(trigger.id)"
+                  >
+                    <span>
+                      <strong>{{ trigger.name }}</strong>
+                      <small>{{ trigger.type }}</small>
+                    </span>
+                    <LucideIcon name="chevron-right" :size="14" />
+                  </button>
+                  <p v-if="!selectedWorkflow" class="web-page-blueprint-inspector-empty">
+                    Choose a workflow first.
+                  </p>
+                  <p
+                    v-else-if="selectedWorkflow.actions.length === 0"
+                    class="web-page-blueprint-inspector-empty"
+                  >
+                    No triggers.
+                  </p>
+                </BaseInspectorSection>
+              </template>
 
-        <BaseInspectorSection v-if="activeAction" title="Test Run" icon="play">
-          <div class="web-page-blueprint-inspector-actions">
-            <BaseInspectorButton
-              :label="runWorkflowStatus === 'running' ? 'Running' : 'Test Run'"
-              :icon="runWorkflowStatus === 'running' ? 'loader-circle' : 'play'"
-              @click="testRunWorkflow"
-            />
-          </div>
-          <p v-if="runWorkflowError" class="web-page-blueprint-inspector-error">{{ runWorkflowError }}</p>
-          <pre v-if="runWorkflowResultJson" class="web-page-blueprint-inspector-result">{{ runWorkflowResultJson }}</pre>
-        </BaseInspectorSection>
+              <template v-else>
+                <BaseInspectorSection title="Source" icon="workflow">
+                  <BaseInspectorRow label="Workflow" :value="selectedWorkflow?.name ?? 'None'" />
+                  <BaseInspectorRow label="Trigger" :value="selectedTrigger?.name ?? 'None'" />
+                  <BaseInspectorRow label="Trigger Type" :value="activeAction?.triggerType ?? '-'" />
+                </BaseInspectorSection>
 
-        <BaseInspectorSection v-else title="Test Run" icon="play">
-          <p class="web-page-blueprint-inspector-empty">
-            Choose a workflow and trigger first.
-          </p>
-        </BaseInspectorSection>
+                <BaseInspectorSection v-if="activeAction" title="Properties" icon="sliders-horizontal">
+                  <BaseInspectorSelect
+                    label="Event"
+                    :model-value="runWorkflowData.eventType"
+                    :options="eventTypeOptions"
+                    @update:model-value="updateRunWorkflowEventType"
+                  />
+                  <BaseInspectorRow label="Action" :value="activeAction.name" />
+                </BaseInspectorSection>
+
+                <BaseInspectorSection v-if="activeAction" title="Parameters" icon="list-plus">
+                  <BaseInspectorRow
+                    v-for="input in activeAction.inputs"
+                    :key="input.key"
+                    :label="input.label"
+                    :value="stringifyInputValue(runWorkflowInput[input.key])"
+                    :placeholder="input.type"
+                    editable
+                    @update:value="updateRunWorkflowInput(input.key, $event, input.type)"
+                  />
+                  <p v-if="activeAction.inputs.length === 0" class="web-page-blueprint-inspector-empty">
+                    No parameters.
+                  </p>
+                </BaseInspectorSection>
+
+                <BaseInspectorSection v-if="activeAction" title="Test Run" icon="play">
+                  <div class="web-page-blueprint-inspector-actions">
+                    <BaseInspectorButton
+                      :label="runWorkflowStatus === 'running' ? 'Running' : 'Test Run'"
+                      :icon="runWorkflowStatus === 'running' ? 'loader-circle' : 'play'"
+                      @click="testRunWorkflow"
+                    />
+                  </div>
+                  <p v-if="runWorkflowError" class="web-page-blueprint-inspector-error">{{ runWorkflowError }}</p>
+                  <pre v-if="runWorkflowResultJson" class="web-page-blueprint-inspector-result">{{ runWorkflowResultJson }}</pre>
+                </BaseInspectorSection>
+
+                <BaseInspectorSection title="Outputs" icon="log-out">
+                  <BaseInspectorRow
+                    v-for="field in node.fields"
+                    :key="field.id"
+                    :label="field.label"
+                    :value="field.type"
+                  />
+                  <p v-if="node.fields.length === 0" class="web-page-blueprint-inspector-empty">
+                    Run Test to generate outputs.
+                  </p>
+                </BaseInspectorSection>
+
+                <BaseInspectorSection v-if="!activeAction" title="Properties" icon="sliders-horizontal">
+                  <p class="web-page-blueprint-inspector-empty">
+                    Choose a trigger first.
+                  </p>
+                </BaseInspectorSection>
+              </template>
+            </div>
+          </Transition>
+        </div>
       </template>
     </template>
   </div>
@@ -110,10 +182,10 @@ import {
   type PageActionDefinition,
   type PageActionInputField,
   type PageActionRunStatus,
-  type PageActionTriggerSummary,
   type PageActionWorkflowSummary,
   workflowPageActionGateway,
 } from '@/core/page-actions'
+import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlueprintDocument } from '../pageBlueprintDocument.ts'
 import BaseInspectorButton from './BaseInspectorButton.vue'
 import BaseInspectorRow from './BaseInspectorRow.vue'
@@ -141,19 +213,14 @@ const node = computed(() => props.document.nodes.find((item) => item.id === prop
 const runWorkflowError = ref('')
 const runWorkflowResultJson = ref('')
 const runWorkflowStatus = ref<PageActionRunStatus>('idle')
+const runWorkflowTransition = ref('web-page-blueprint-inspector-slide-forward')
+const runWorkflowView = ref<RunWorkflowInspectorView>('workflows')
 const eventTypeOptions = [
   { label: 'Click', value: 'click' },
   { label: 'Change', value: 'change' },
   { label: 'Submit', value: 'submit' },
   { label: 'Mount', value: 'mount' },
 ]
-
-watch(node, (nextNode) => {
-  runWorkflowError.value = ''
-  runWorkflowStatus.value = 'idle'
-  const savedJson = nextNode?.data?.testResultJson
-  runWorkflowResultJson.value = typeof savedJson === 'string' ? savedJson : ''
-}, { immediate: true })
 
 onMounted(loadWorkflows)
 
@@ -163,10 +230,6 @@ const inferredKind = computed(() => {
   if (props.selectedNodeId?.startsWith('blueprint-binding:')) return 'binding'
   return 'node'
 })
-const workflowOptions = computed(() => props.workflows.map((workflow) => ({
-  label: workflow.name,
-  value: workflow.id,
-})))
 const runWorkflowData = computed(() => {
   const data = node.value?.data ?? {}
   return {
@@ -179,10 +242,6 @@ const runWorkflowData = computed(() => {
 const selectedWorkflow = computed(() =>
   props.workflows.find((workflow) => workflow.id === runWorkflowData.value.workflowId) ?? null,
 )
-const triggerOptions = computed(() => (selectedWorkflow.value?.actions ?? []).map((trigger) => ({
-  label: trigger.name,
-  value: trigger.id,
-})))
 const selectedTrigger = computed(() =>
   selectedWorkflow.value?.actions.find((trigger) => trigger.id === runWorkflowData.value.triggerId) ?? null,
 )
@@ -193,6 +252,25 @@ const runWorkflowInput = computed(() => ({
   ...(activeAction.value ? buildDefaultActionInput(activeAction.value.inputs) : {}),
   ...runWorkflowData.value.input,
 }))
+const runWorkflowViewTitle = computed(() => {
+  if (runWorkflowView.value === 'triggers') return 'Choose Trigger'
+  if (runWorkflowView.value === 'properties') return 'Run Workflow'
+  return 'Choose Workflow'
+})
+const runWorkflowViewSubtitle = computed(() => {
+  if (runWorkflowView.value === 'triggers') return selectedWorkflow.value?.name ?? 'Select a workflow first'
+  if (runWorkflowView.value === 'properties') return selectedTrigger.value?.name ?? 'Configure action'
+  return 'Published workflow source'
+})
+
+watch(node, (nextNode) => {
+  runWorkflowError.value = ''
+  runWorkflowStatus.value = 'idle'
+  const savedJson = nextNode?.data?.testResultJson
+  runWorkflowResultJson.value = typeof savedJson === 'string' ? savedJson : ''
+  runWorkflowTransition.value = 'web-page-blueprint-inspector-slide-forward'
+  runWorkflowView.value = getInitialRunWorkflowView()
+}, { immediate: true })
 
 function loadWorkflows() {
   emit('refreshWorkflows')
@@ -207,6 +285,7 @@ function selectWorkflow(workflowId: string) {
     label: workflow?.name ?? 'Run Workflow',
     detail: workflow ? 'Choose a trigger' : 'Choose a published trigger',
   })
+  navigateRunWorkflowView('triggers', 'forward')
 }
 
 function selectTrigger(triggerId: string) {
@@ -219,6 +298,29 @@ function selectTrigger(triggerId: string) {
     label: trigger?.workflowName ?? selectedWorkflow.value?.name ?? 'Run Workflow',
     detail: trigger ? `${trigger.name} / ${trigger.type}` : 'Choose a trigger',
   })
+  navigateRunWorkflowView('properties', 'forward')
+}
+
+function goBackRunWorkflowView() {
+  if (runWorkflowView.value === 'properties') {
+    navigateRunWorkflowView('triggers', 'backward')
+    return
+  }
+  if (runWorkflowView.value === 'triggers') navigateRunWorkflowView('workflows', 'backward')
+}
+
+function navigateRunWorkflowView(view: RunWorkflowInspectorView, direction: 'forward' | 'backward') {
+  runWorkflowTransition.value = direction === 'forward'
+    ? 'web-page-blueprint-inspector-slide-forward'
+    : 'web-page-blueprint-inspector-slide-backward'
+  runWorkflowView.value = view
+}
+
+function getInitialRunWorkflowView(): RunWorkflowInspectorView {
+  if (node.value?.type !== 'run-workflow') return 'workflows'
+  if (runWorkflowData.value.workflowId && runWorkflowData.value.triggerId) return 'properties'
+  if (runWorkflowData.value.workflowId) return 'triggers'
+  return 'workflows'
 }
 
 function updateRunWorkflowEventType(eventType: string) {
@@ -280,4 +382,6 @@ interface RunWorkflowConfigPayload {
   label: string
   detail: string
 }
+
+type RunWorkflowInspectorView = 'workflows' | 'triggers' | 'properties'
 </script>

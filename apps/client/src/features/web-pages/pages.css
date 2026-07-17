@@ -448,13 +448,19 @@
   width: 100%;
   height: 100%;
   overflow: auto;
-  padding: 6px 0;
+  padding: 8px 0 14px;
   background: var(--fabric-bg-base);
 }
 
 .web-page-blueprint-inspector-section {
   display: block;
   border-top: 1px solid var(--fabric-border-subtle);
+}
+
+.web-page-blueprint-inspector-section + .web-page-blueprint-inspector-section,
+.web-page-blueprint-inspector-section + .web-page-blueprint-inspector-stack,
+.web-page-blueprint-inspector-stack + .web-page-blueprint-inspector-section {
+  margin-top: 10px;
 }
 
 .web-page-blueprint-inspector-section > header {
@@ -464,7 +470,7 @@
   height: 23px;
   padding: 0 8px 0 6px;
   border-bottom: 1px solid var(--fabric-border-subtle);
-  background: color-mix(in srgb, var(--fabric-bg-elevated) 62%, transparent);
+  background: transparent;
   color: var(--fabric-text-primary);
   font-size: 10px;
   font-weight: var(--fabric-font-semibold);
@@ -482,6 +488,144 @@
   min-height: 28px;
   padding: 4px 8px;
   border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
+}
+
+.web-page-blueprint-inspector-stack {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.web-page-blueprint-inspector-stack__nav {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  min-height: 34px;
+  padding: 0 8px;
+  border-top: 1px solid var(--fabric-border-subtle);
+  border-bottom: 1px solid var(--fabric-border-subtle);
+}
+
+.web-page-blueprint-inspector-stack__nav > div {
+  display: grid;
+  min-width: 0;
+}
+
+.web-page-blueprint-inspector-stack__nav strong,
+.web-page-blueprint-inspector-stack__nav small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-inspector-stack__nav strong {
+  color: var(--fabric-text-primary);
+  font-size: 11px;
+  font-weight: var(--fabric-font-semibold);
+}
+
+.web-page-blueprint-inspector-stack__nav small {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.web-page-blueprint-inspector-stack__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  margin-right: 6px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--fabric-text-secondary);
+}
+
+.web-page-blueprint-inspector-stack__back:hover {
+  border-color: var(--fabric-border-subtle);
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-primary);
+}
+
+.web-page-blueprint-inspector-stack__view {
+  display: block;
+  min-width: 0;
+  padding-top: 10px;
+}
+
+.web-page-blueprint-inspector-stack__view > .web-page-blueprint-inspector-section + .web-page-blueprint-inspector-section {
+  margin-top: 12px;
+}
+
+.web-page-blueprint-inspector-slide-forward-enter-active,
+.web-page-blueprint-inspector-slide-forward-leave-active,
+.web-page-blueprint-inspector-slide-backward-enter-active,
+.web-page-blueprint-inspector-slide-backward-leave-active {
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.web-page-blueprint-inspector-slide-forward-enter-from {
+  opacity: 0;
+  transform: translateX(22px);
+}
+
+.web-page-blueprint-inspector-slide-forward-leave-to {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+.web-page-blueprint-inspector-slide-backward-enter-from {
+  opacity: 0;
+  transform: translateX(-16px);
+}
+
+.web-page-blueprint-inspector-slide-backward-leave-to {
+  opacity: 0;
+  transform: translateX(22px);
+}
+
+.web-page-blueprint-inspector-choice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 16px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 38px;
+  padding: 5px 8px;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-border-subtle) 70%, transparent);
+  background: transparent;
+  color: var(--fabric-text-secondary);
+  text-align: left;
+}
+
+.web-page-blueprint-inspector-choice:hover {
+  background: color-mix(in srgb, var(--fabric-bg-elevated) 54%, transparent);
+  color: var(--fabric-text-primary);
+}
+
+.web-page-blueprint-inspector-choice > span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.web-page-blueprint-inspector-choice strong,
+.web-page-blueprint-inspector-choice small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-inspector-choice strong {
+  color: var(--fabric-text-primary);
+  font-size: 11px;
+  font-weight: var(--fabric-font-semibold);
+}
+
+.web-page-blueprint-inspector-choice small {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
 }
 
 .web-page-blueprint-inspector-button {
