@@ -977,6 +977,11 @@
   gap: 3px;
 }
 
+.web-page-blueprint-field__right--inline {
+  width: auto;
+  justify-content: center;
+}
+
 .web-page-blueprint-field__value-row {
   display: flex;
   width: 100%;
@@ -984,6 +989,10 @@
   align-items: center;
   justify-content: flex-end;
   gap: 4px;
+}
+
+.web-page-blueprint-field__right--inline .web-page-blueprint-field__value-row {
+  width: auto;
 }
 
 .web-page-blueprint-field__value-row input {

@@ -1,0 +1,3 @@
+- [x] Ajustar row sem value
+- [x] Validar type-check
+- [x] Commitar ajuste

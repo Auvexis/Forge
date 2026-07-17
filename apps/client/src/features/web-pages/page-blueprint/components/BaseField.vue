@@ -17,13 +17,18 @@
       </span>
     </div>
 
-    <div class="web-page-blueprint-field__right">
+    <div class="web-page-blueprint-field__right" :class="{ 'web-page-blueprint-field__right--inline': !hasValue }">
       <BaseFieldModeToggle
-        v-if="mode"
+        v-if="mode && hasValue"
         :model-value="mode"
         @update:model-value="$emit('update:mode', $event)"
       />
       <div v-if="hasValue || output" class="web-page-blueprint-field__value-row">
+        <BaseFieldModeToggle
+          v-if="mode && !hasValue"
+          :model-value="mode"
+          @update:model-value="$emit('update:mode', $event)"
+        />
         <input
           v-if="hasValue"
           data-base-canvas-no-drag
