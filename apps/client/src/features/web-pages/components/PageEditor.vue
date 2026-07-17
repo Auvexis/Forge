@@ -2,8 +2,8 @@
   <section
     class="web-page-editor"
     :class="{
-      'web-page-editor--left-collapsed': !isLeftPanelOpen,
-      'web-page-editor--right-collapsed': !isRightPanelOpen,
+      'web-page-editor--left-collapsed': !isExplorerVisible,
+      'web-page-editor--right-collapsed': !isInspectorVisible,
     }"
     :style="pageEditorLayoutStyle"
   >
@@ -26,8 +26,9 @@
       :can-redo="editorStore.canRedo"
       :published-at="activePagePublishedAt"
       :is-autosave-enabled="isPagesAutosaveEnabled"
-      :is-explorer-open="isLeftPanelOpen"
-      :is-inspector-open="isRightPanelOpen"
+      :is-explorer-open="isExplorerVisible"
+      :is-inspector-open="isInspectorVisible"
+      :show-panel-controls="activePageDocument === 'design'"
       :can-save="canSaveActiveDocument"
       :can-use-project-actions="hasCreatedProject"
       @command="handleChromeCommand"
@@ -38,7 +39,8 @@
       :tabs="pageDocumentTabs"
     />
     <AppPanel
-      :is-open="isLeftPanelOpen"
+      v-if="activePageDocument === 'design'"
+      :is-open="isExplorerVisible"
       title="Explorer"
       position="left"
       width="md"
@@ -233,7 +235,8 @@
     </div>
 
     <AppPanel
-      :is-open="isRightPanelOpen"
+      v-if="activePageDocument === 'design'"
+      :is-open="isInspectorVisible"
       title="Inspector"
       position="right"
       width="md"
@@ -567,6 +570,9 @@ const pageDocumentTabs = [
   { id: 'design', label: 'Design', icon: 'layout-template' },
   { id: 'blueprint', label: 'Blueprint', icon: 'workflow' },
 ]
+const isDesignDocumentActive = computed(() => activePageDocument.value === 'design')
+const isExplorerVisible = computed(() => isDesignDocumentActive.value && isLeftPanelOpen.value)
+const isInspectorVisible = computed(() => isDesignDocumentActive.value && isRightPanelOpen.value)
 const workspacePlaneStyle = computed(() => ({}))
 const pageEditorLayoutStyle = computed(() => ({
   ...(leftPanelWidth.value === null ? {} : { '--web-page-left-panel-width': `${leftPanelWidth.value}px` }),
@@ -1699,10 +1705,12 @@ function deleteGroupSelection() {
 }
 
 function toggleLeftPanel() {
+  if (!isDesignDocumentActive.value) return
   isLeftPanelOpen.value = !isLeftPanelOpen.value
 }
 
 function toggleRightPanel() {
+  if (!isDesignDocumentActive.value) return
   isRightPanelOpen.value = !isRightPanelOpen.value
 }
 

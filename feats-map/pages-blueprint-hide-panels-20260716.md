@@ -1,0 +1,5 @@
+- [x] Analisar rail e paineis
+- [x] Ocultar Explorer e Inspector no Blueprint
+- [x] Ocultar botoes do rail no Blueprint
+- [x] Validar type-check
+- [x] Commitar ajuste

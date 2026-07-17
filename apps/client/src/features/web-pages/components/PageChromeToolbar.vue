@@ -64,7 +64,7 @@
         />
       </section>
 
-      <section class="base-rail__group" aria-label="Panels">
+      <section v-if="resolvedShowPanelControls" class="base-rail__group" aria-label="Panels">
         <BaseRailItem
           icon="layout-dashboard"
           :active="!!isExplorerOpen"
@@ -120,6 +120,7 @@ const props = defineProps<{
   isAutosaveEnabled?: boolean
   isExplorerOpen?: boolean
   isInspectorOpen?: boolean
+  showPanelControls?: boolean
   canSave?: boolean
   canUseProjectActions?: boolean
 }>()
@@ -202,6 +203,7 @@ const publishCommandLabel = computed(() => (props.publishedAt ? 'Unpublish' : 'P
 const publishCommandIcon = computed(() => (props.publishedAt ? 'radio' : 'send'))
 const resolvedCanSave = computed(() => props.canSave ?? Boolean(props.isDirty))
 const resolvedCanUseProjectActions = computed(() => props.canUseProjectActions ?? true)
+const resolvedShowPanelControls = computed(() => props.showPanelControls ?? true)
 const resolvedMenus = computed(() => menus.map((menu) => ({
   ...menu,
   items: menu.items.map((item) => {
