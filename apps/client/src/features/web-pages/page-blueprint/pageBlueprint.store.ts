@@ -13,7 +13,11 @@ import {
   createUtilityNodeFromDefinition,
   getPageBlueprintNodeDefinition,
 } from './pageBlueprintNodeRegistry.ts'
-import type { PageBlueprintUtilityNodeType } from './pageBlueprintSchema.ts'
+import type {
+  PageBlueprintConnectionEndpoint,
+  PageBlueprintFieldMode,
+  PageBlueprintUtilityNodeType,
+} from './pageBlueprintSchema.ts'
 
 export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   const document = ref<PageBlueprintDocument>(createDefaultPageBlueprintDocument())
@@ -94,6 +98,34 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     patchDocument({ collapsedGroups: groupIds })
   }
 
+  function connectFields(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
+    if (from.nodeId === to.nodeId && from.fieldId === to.fieldId) return null
+
+    const expression = createConnectionExpression(from)
+    const connection = {
+      id: createConnectionId(from, to),
+      from,
+      to,
+      expression,
+    }
+
+    patchDocument({
+      connections: [
+        ...document.value.connections.filter((item) => !(item.to.nodeId === to.nodeId && item.to.fieldId === to.fieldId)),
+        connection,
+      ],
+      nodes: patchNodeField(document.value.nodes, to.nodeId, to.fieldId, { expression }),
+    })
+
+    return connection.id
+  }
+
+  function setNodeFieldMode(nodeId: string, fieldId: string, mode: PageBlueprintFieldMode) {
+    patchDocument({
+      nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { mode }),
+    })
+  }
+
   function addUtilityNode(type: PageBlueprintUtilityNodeType, position?: { x: number; y: number }) {
     const definition = getPageBlueprintNodeDefinition(type)
     if (!definition) return null
@@ -165,11 +197,36 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setNodePosition,
     setNodePositions,
     setCollapsedGroups,
+    connectFields,
+    setNodeFieldMode,
     addUtilityNode,
     undo,
     redo,
   }
 })
+
+function createConnectionId(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
+  return `connection:${from.nodeId}:${from.fieldId}->${to.nodeId}:${to.fieldId}`
+}
+
+function createConnectionExpression(from: PageBlueprintConnectionEndpoint) {
+  return `{{ ${from.nodeId}.${from.fieldId} }}`
+}
+
+function patchNodeField(
+  nodes: PageBlueprintDocument['nodes'],
+  nodeId: string,
+  fieldId: string,
+  patch: Partial<PageBlueprintDocument['nodes'][number]['fields'][number]>,
+) {
+  return nodes.map((node) => {
+    if (node.id !== nodeId) return node
+    return {
+      ...node,
+      fields: node.fields.map((field) => (field.id === fieldId ? { ...field, ...patch } : field)),
+    }
+  })
+}
 
 function touchDocument(document: PageBlueprintDocument): PageBlueprintDocument {
   return {

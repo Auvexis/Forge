@@ -35,6 +35,9 @@
           v-if="itemData(item).kind === 'utility' && itemData(item).utilityNode"
           :node="itemData(item).utilityNode!"
           :selected="selected"
+          @pick-output="startFieldConnection(item.id, $event)"
+          @pick-input="completeFieldConnection(item.id, $event)"
+          @update-mode="(fieldId, mode) => blueprintStore.setNodeFieldMode(item.id, fieldId, mode)"
         />
         <BaseElement
           v-else
@@ -47,15 +50,10 @@
           :selected="selected"
           :show-footer="itemData(item).showFooter"
         >
-          <BaseField
-            v-for="field in itemData(item).fields"
-            :key="field.id"
-            :label="field.label"
-            :type="field.type"
-            :value="field.value"
-            :input="field.input"
-            :output="field.output"
-            :mode="field.mode"
+          <BlueprintNodeFields
+            :fields="itemData(item).fields"
+            @pick-output="startFieldConnection(item.id, $event)"
+            @pick-input="completeFieldConnection(item.id, $event)"
           />
         </BaseElement>
       </template>
@@ -83,11 +81,11 @@ import {
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
 import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
-import type { PageBlueprintUtilityNode } from './pageBlueprintSchema.ts'
+import type { PageBlueprintConnection, PageBlueprintConnectionEndpoint, PageBlueprintUtilityNode } from './pageBlueprintSchema.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
-import BaseField from './components/BaseField.vue'
+import BlueprintNodeFields from './components/BlueprintNodeFields.vue'
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
@@ -121,6 +119,7 @@ const props = defineProps<{
 const selection = ref<string[]>([])
 const blueprintStore = usePageBlueprintStore()
 const { document } = storeToRefs(blueprintStore)
+const pendingOutput = ref<PageBlueprintConnectionEndpoint | null>(null)
 const viewport = computed<BaseCanvasViewport>({
   get: () => document.value.viewport,
   set: (nextViewport) => blueprintStore.setViewport(nextViewport),
@@ -136,7 +135,7 @@ const model = computed(() => createPageBlueprintViewModel({
 }))
 
 const canvasItems = computed<PageBlueprintCanvasItem[]>(() => {
-  const items = createCanvasItems(model.value, document.value.nodes.filter(isUtilityNode))
+  const items = createCanvasItems(model.value, document.value.nodes.filter(isUtilityNode), document.value.connections)
   return items.map((item) => ({
     ...item,
     ...(document.value.nodeLayouts[item.id] ?? {}),
@@ -216,9 +215,10 @@ function stopGroupDrag() {
 function createCanvasItems(
   viewModel: PageBlueprintViewModel,
   utilityNodes: PageBlueprintUtilityNode[],
+  connections: PageBlueprintConnection[],
 ): PageBlueprintCanvasItem[] {
   const elementItems = viewModel.elements.map((element, index) => ({
-    id: `blueprint-element:${element.id}`,
+    id: elementNodeId(element.id),
     x: 40,
     y: 40 + index * 128,
     width: 244,
@@ -232,13 +232,13 @@ function createCanvasItems(
       icon: pageBlockIcon(element.tag),
       accent: 'var(--fabric-blue-400)',
       showFooter: true,
-      fields: createElementFields(element),
+      fields: withConnectionValues(elementNodeId(element.id), createElementFields(element), connections),
       elementId: element.id,
     },
   }))
 
   const workflowItems = viewModel.workflows.map((workflow, index) => ({
-    id: `blueprint-workflow:${workflow.id}`,
+    id: workflowNodeId(workflow.id),
     x: 360,
     y: 40 + index * 128,
     width: 260,
@@ -252,12 +252,12 @@ function createCanvasItems(
       icon: 'workflow',
       accent: 'var(--fabric-accent)',
       showFooter: true,
-      fields: createWorkflowFields(workflow),
+      fields: withConnectionValues(workflowNodeId(workflow.id), createWorkflowFields(workflow), connections),
     },
   }))
 
   const bindingItems = viewModel.bindings.map((binding, index) => ({
-    id: `blueprint-binding:${binding.id}`,
+    id: bindingNodeId(binding.id),
     x: 704,
     y: 40 + index * 128,
     width: 272,
@@ -271,7 +271,7 @@ function createCanvasItems(
       icon: binding.mode === 'multiple' ? 'copy-plus' : 'git-branch',
       accent: 'var(--fabric-green-400)',
       showFooter: true,
-      fields: createBindingFields(binding),
+      fields: withConnectionValues(bindingNodeId(binding.id), createBindingFields(binding), connections),
     },
   }))
 
@@ -330,8 +330,41 @@ function itemData(item: BaseCanvasItem): PageBlueprintCanvasItemData {
   return item.data as PageBlueprintCanvasItemData
 }
 
+function startFieldConnection(nodeId: string, fieldId: string) {
+  pendingOutput.value = { nodeId, fieldId }
+}
+
+function completeFieldConnection(nodeId: string, fieldId: string) {
+  if (!pendingOutput.value) return
+  blueprintStore.connectFields(pendingOutput.value, { nodeId, fieldId })
+  pendingOutput.value = null
+}
+
+function withConnectionValues(
+  nodeId: string,
+  fields: PageBlueprintDisplayField[],
+  connections: PageBlueprintConnection[],
+): PageBlueprintDisplayField[] {
+  return fields.map((field) => {
+    const connection = connections.find((item) => item.to.nodeId === nodeId && item.to.fieldId === field.id)
+    return connection ? { ...field, value: connection.expression } : field
+  })
+}
+
 function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {
   return Boolean(node && typeof node === 'object' && (node as PageBlueprintUtilityNode).kind === 'utility')
+}
+
+function elementNodeId(elementId: string) {
+  return `blueprint-element:${elementId}`
+}
+
+function workflowNodeId(workflowId: string) {
+  return `blueprint-workflow:${workflowId}`
+}
+
+function bindingNodeId(bindingId: string) {
+  return `blueprint-binding:${bindingId}`
 }
 
 function shortId(id: string) {
