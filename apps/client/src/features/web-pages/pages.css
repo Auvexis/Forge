@@ -455,7 +455,7 @@
 .web-page-blueprint-node-toolbar {
   position: absolute;
   right: 0;
-  top: -25px;
+  top: -23px;
   z-index: 5;
   display: flex;
   overflow: hidden;
