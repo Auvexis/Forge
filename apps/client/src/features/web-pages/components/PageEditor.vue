@@ -352,6 +352,7 @@
         @add-element-event="blueprintStore.addElementEventField"
         @update-element-event-type="blueprintStore.setElementEventType"
         @remove-element-event="blueprintStore.removeNodeField"
+        @set-element-repeat-enabled="blueprintStore.setElementRepeatEnabled"
         @configure-run-workflow="blueprintStore.configureRunWorkflowNode"
         @update-run-workflow-event-type="blueprintStore.setRunWorkflowEventType"
         @update-run-workflow-input="blueprintStore.setRunWorkflowInput"

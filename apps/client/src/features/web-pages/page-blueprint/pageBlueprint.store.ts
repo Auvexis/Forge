@@ -511,6 +511,55 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function setElementRepeatEnabled(nodeId: string, enabled: boolean) {
+    const existingNode = document.value.nodes.find((node) => node.id === nodeId)
+    if (!existingNode) return false
+    const tag = typeof existingNode.data?.tag === 'string' ? existingNode.data.tag : ''
+    if (enabled && !isPageBlockContainer({ tag })) return false
+
+    const hasRepeatField = existingNode.fields.some((field) => isBlueprintRepeatFieldId(field.id))
+    if (enabled && hasRepeatField) {
+      patchDocument({
+        nodes: document.value.nodes.map((node) =>
+          node.id === nodeId ? { ...node, data: { ...(node.data ?? {}), repeatEnabled: true } } : node,
+        ),
+      })
+      return true
+    }
+
+    if (enabled) {
+      patchDocument({
+        nodes: document.value.nodes.map((node) =>
+          node.id === nodeId
+            ? {
+              ...node,
+              fields: [...node.fields, createRepeatField()],
+              data: { ...(node.data ?? {}), repeatEnabled: true },
+            }
+            : node,
+        ),
+      })
+      return true
+    }
+
+    patchDocument({
+      nodes: document.value.nodes.map((node) =>
+        node.id === nodeId
+          ? {
+            ...node,
+            fields: node.fields.filter((field) => !isBlueprintRepeatFieldId(field.id)),
+            data: { ...(node.data ?? {}), repeatEnabled: false },
+          }
+          : node,
+      ),
+      connections: document.value.connections.filter((connection) =>
+        !(connection.to.nodeId === nodeId && isBlueprintRepeatFieldId(connection.to.fieldId)),
+      ),
+      repeatBindings: document.value.repeatBindings.filter((binding) => binding.targetNodeId !== nodeId),
+    })
+    return true
+  }
+
   function duplicateNode(nodeId: string) {
     const source = document.value.nodes.find((node) => node.id === nodeId)
     if (!source) return null
@@ -643,6 +692,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     addUtilityNode,
     addElementEventField,
     setElementEventType,
+    setElementRepeatEnabled,
     duplicateNode,
     deleteNode,
     removeNode,
@@ -682,12 +732,15 @@ function syncElementNode(
   node: PageBlueprintDocument['nodes'][number],
   block: PageBlock,
 ): PageBlueprintDocument['nodes'][number] {
+  const mergedFields = mergeElementFields(node.fields, createElementFieldsFromBlock(block))
   return {
     ...node,
     kind: 'element',
     type: 'page-element',
     label: blockLabelFromBlock(block),
-    fields: mergeElementFields(node.fields, createElementFieldsFromBlock(block)),
+    fields: isPageBlockContainer(block) && shouldKeepRepeatField(node)
+      ? ensureRepeatField(mergedFields)
+      : mergedFields.filter((field) => !isBlueprintRepeatFieldId(field.id)),
     data: {
       ...(node.data ?? {}),
       elementId: block.id,
@@ -714,12 +767,9 @@ function mergeElementFields(existingFields: PageBlueprintField[], baseFields: Pa
 }
 
 function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
-  const repeatFields = isPageBlockContainer(block) ? [htmlElementField(PAGE_BLUEPRINT_REPEAT_FIELD_ID, 'Repeat Source', 'array', '')] : []
-
   if (block.tag === 'input') {
     const type = String(block.props?.type ?? block.attributes?.type ?? 'text')
     return [
-      ...repeatFields,
       htmlElementField('value', 'Value', 'string', block.props?.value ?? block.attributes?.value),
       ...(type === 'checkbox' ? [htmlElementField('checked', 'Checked', 'boolean', block.props?.checked ?? block.attributes?.checked)] : []),
       htmlElementField('placeholder', 'Placeholder', 'string', block.props?.placeholder ?? block.attributes?.placeholder),
@@ -729,7 +779,6 @@ function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
 
   if (block.tag === 'text' || block.tag === 'button' || block.tag === 'link') {
     return [
-      ...repeatFields,
       htmlElementField('text', 'Text', 'string', block.props?.text ?? block.props?.label),
       ...(block.tag === 'link' ? [htmlElementField('href', 'Href', 'string', block.props?.href ?? block.attributes?.href)] : []),
     ]
@@ -737,7 +786,6 @@ function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
 
   if (block.tag === 'image') {
     return [
-      ...repeatFields,
       htmlElementField('src', 'Source', 'string', block.props?.src ?? block.attributes?.src),
       htmlElementField('alt', 'Alt', 'string', block.props?.alt ?? block.attributes?.alt),
     ]
@@ -745,17 +793,36 @@ function createElementFieldsFromBlock(block: PageBlock): PageBlueprintField[] {
 
   if (block.tag === 'video' || block.tag === 'audio' || block.tag === 'youtube') {
     return [
-      ...repeatFields,
       htmlElementField('src', 'Source', 'string', block.props?.src ?? block.attributes?.src),
       htmlElementField('title', 'Title', 'string', block.props?.title ?? block.attributes?.title),
     ]
   }
 
   return [
-    ...repeatFields,
     htmlElementField('id', 'Element ID', 'string', block.elementId ?? block.attributes?.id),
     htmlElementField('class', 'Class', 'string', block.className ?? block.attributes?.class),
   ]
+}
+
+function createRepeatField(): PageBlueprintField {
+  return {
+    id: PAGE_BLUEPRINT_REPEAT_FIELD_ID,
+    label: 'Repeat Source',
+    type: 'array',
+    direction: 'input',
+    mode: 'multiple',
+    value: '',
+    configurable: false,
+  }
+}
+
+function ensureRepeatField(fields: PageBlueprintField[]) {
+  return fields.some((field) => isBlueprintRepeatFieldId(field.id)) ? fields : [...fields, createRepeatField()]
+}
+
+function shouldKeepRepeatField(node: PageBlueprintDocument['nodes'][number]) {
+  return node.data?.repeatEnabled === true
+    || node.fields.some((field) => isBlueprintRepeatFieldId(field.id) && Boolean(field.expression))
 }
 
 function htmlElementField(

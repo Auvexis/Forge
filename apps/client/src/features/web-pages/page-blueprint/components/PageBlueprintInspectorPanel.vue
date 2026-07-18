@@ -98,8 +98,24 @@
           </p>
         </BaseInspectorSection>
 
-        <BaseInspectorSection v-if="selectedElementRepeatField" title="Repeat" icon="repeat-2">
+        <BaseInspectorSection v-if="selectedElementCanRepeat" title="Repeat" icon="repeat-2">
+          <template #actions>
+            <BaseInspectorButton
+              v-if="!selectedElementRepeatField"
+              label="Enable"
+              icon="plus"
+              @click="$emit('setElementRepeatEnabled', selectedElementNodeId, true)"
+            />
+            <BaseInspectorButton
+              v-else
+              label="Disable"
+              icon="trash-2"
+              variant="danger"
+              @click="$emit('setElementRepeatEnabled', selectedElementNodeId, false)"
+            />
+          </template>
           <BaseInspectorRow
+            v-if="selectedElementRepeatField"
             label="Source"
             :value="selectedElementRepeatField.expression ?? 'Waiting multiple connection'"
             placeholder="array"
@@ -115,7 +131,7 @@
             :value="selectedElementRepeatBinding.itemAlias"
           />
           <p v-if="!selectedElementRepeatBinding" class="web-page-blueprint-inspector-empty">
-            Connect a multiple output to repeat this element's children.
+            {{ selectedElementRepeatField ? "Connect a multiple output to repeat this element's children." : 'Enable repeat to show the input field on the Blueprint node.' }}
           </p>
         </BaseInspectorSection>
       </template>
@@ -333,7 +349,7 @@ import { evaluateBlueprintExpression } from '../pageBlueprintExpressions.ts'
 import { createBlueprintDataFlowContext, resolveBlueprintDataPath } from '../pageBlueprintDataFlow.ts'
 import { createElementFields } from '../pageBlueprintFields.ts'
 import { pageBlockIcon } from '../pageBlueprintGroups.ts'
-import { PAGE_BLUEPRINT_REPEAT_FIELD_ID } from '../pageBlueprintRepeaters.ts'
+import { isPageBlockContainer, PAGE_BLUEPRINT_REPEAT_FIELD_ID } from '../pageBlueprintRepeaters.ts'
 import { createPageBlueprintViewModel } from '../pageBlueprintViewModel.ts'
 import BaseInspectorButton from './BaseInspectorButton.vue'
 import BaseInspectorRow from './BaseInspectorRow.vue'
@@ -356,6 +372,7 @@ const emit = defineEmits<{
   addElementEvent: [nodeId: string]
   updateElementEventType: [nodeId: string, fieldId: string, eventType: string]
   removeElementEvent: [nodeId: string, fieldId: string]
+  setElementRepeatEnabled: [nodeId: string, enabled: boolean]
   configureRunWorkflow: [nodeId: string, payload: RunWorkflowConfigPayload]
   updateRunWorkflowEventType: [nodeId: string, eventType: string]
   updateRunWorkflowInput: [nodeId: string, key: string, value: unknown]
@@ -399,6 +416,7 @@ const selectedElementFields = computed(() => {
 const selectedElementEventFields = computed(() =>
   node.value?.kind === 'element' ? node.value.fields.filter((field) => field.type === 'event') : [],
 )
+const selectedElementCanRepeat = computed(() => Boolean(selectedElement.value && isPageBlockContainer(selectedElement.value)))
 const selectedElementRepeatField = computed(() => {
   if (node.value?.kind !== 'element') return null
   const field = node.value.fields.find((item) => item.id === PAGE_BLUEPRINT_REPEAT_FIELD_ID)

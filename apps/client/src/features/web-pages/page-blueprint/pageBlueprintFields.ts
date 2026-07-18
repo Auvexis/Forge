@@ -1,7 +1,6 @@
 import type { PageActionReturnField } from '@/core/page-actions'
 import type { PageBlockAttributes, PageBlockProps } from '../types/page.types.ts'
 import type { PageBlueprintBindingNode, PageBlueprintElementNode, PageBlueprintWorkflowNode } from './pageBlueprintViewModel.ts'
-import { isPageBlockContainer, PAGE_BLUEPRINT_REPEAT_FIELD_ID } from './pageBlueprintRepeaters.ts'
 
 export type PageBlueprintFieldMode = 'single' | 'multiple'
 
@@ -62,14 +61,9 @@ function bindableElementFields(
   className: string,
   elementId?: string,
 ): PageBlueprintDisplayField[] {
-  const repeatFields = isPageBlockContainer({ tag })
-    ? [htmlField(PAGE_BLUEPRINT_REPEAT_FIELD_ID, 'Repeat Source', 'array', '')]
-    : []
-
   if (tag === 'input') {
     const type = String(props.type ?? attributes.type ?? 'text')
     return [
-      ...repeatFields,
       htmlField('value', 'Value', 'string', props.value ?? attributes.value),
       ...(type === 'checkbox' ? [htmlField('checked', 'Checked', 'boolean', props.checked ?? attributes.checked)] : []),
       htmlField('placeholder', 'Placeholder', 'string', props.placeholder ?? attributes.placeholder),
@@ -79,7 +73,6 @@ function bindableElementFields(
 
   if (tag === 'text' || tag === 'button' || tag === 'link') {
     return [
-      ...repeatFields,
       htmlField('text', 'Text', 'string', props.text ?? props.label),
       ...(tag === 'link' ? [htmlField('href', 'Href', 'string', props.href ?? attributes.href)] : []),
     ]
@@ -87,7 +80,6 @@ function bindableElementFields(
 
   if (tag === 'image') {
     return [
-      ...repeatFields,
       htmlField('src', 'Source', 'string', props.src ?? attributes.src),
       htmlField('alt', 'Alt', 'string', props.alt ?? attributes.alt),
     ]
@@ -95,14 +87,12 @@ function bindableElementFields(
 
   if (tag === 'video' || tag === 'audio' || tag === 'youtube') {
     return [
-      ...repeatFields,
       htmlField('src', 'Source', 'string', props.src ?? attributes.src),
       htmlField('title', 'Title', 'string', props.title ?? attributes.title),
     ]
   }
 
   return [
-    ...repeatFields,
     htmlField('id', 'Element ID', 'string', elementId ?? attributes.id),
     htmlField('class', 'Class', 'string', className || attributes.class),
   ]
@@ -114,7 +104,6 @@ function htmlField(id: string, label: string, type: string, value: unknown): Pag
     label,
     type,
     value: stringifyFieldValue(value),
-    mode: id === PAGE_BLUEPRINT_REPEAT_FIELD_ID ? 'multiple' : undefined,
   }
 }
 

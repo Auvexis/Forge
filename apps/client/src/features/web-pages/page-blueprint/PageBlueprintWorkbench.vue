@@ -96,7 +96,6 @@ import type { BaseCanvasItem, BaseCanvasItemsMoveEvent, BaseCanvasViewport } fro
 import type { PageBlock } from '../types/page.types.ts'
 import {
   createElementFields,
-  createWorkflowFields,
   type PageBlueprintDisplayField,
 } from './pageBlueprintFields.ts'
 import { buildPageBlueprintGroups, pageBlockIcon, type PageBlueprintGroupItem } from './pageBlueprintGroups.ts'
@@ -130,7 +129,7 @@ import PageBlueprintConnectionLayer, {
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
-type PageBlueprintCanvasItemKind = 'element' | 'workflow' | 'utility' | 'empty'
+type PageBlueprintCanvasItemKind = 'element' | 'utility' | 'empty'
 
 interface PageBlueprintCanvasItemData {
   kind: PageBlueprintCanvasItemKind
@@ -324,25 +323,6 @@ function createCanvasItems(
     }
   })
 
-  const workflowItems = viewModel.workflows.map((workflow, index) => ({
-    id: workflowNodeId(workflow.id),
-    x: 360,
-    y: 40 + index * 128,
-    width: 260,
-    height: nodeHeight(createWorkflowFields(workflow).length),
-    data: {
-      kind: 'workflow' as const,
-      title: workflow.workflowName,
-      eyebrow: 'Published Workflow',
-      detail: `${workflow.triggerName} - ${workflow.returnCount} return field(s)`,
-      meta: `${workflow.eventCount} event(s)`,
-      icon: 'workflow',
-      accent: 'var(--fabric-accent)',
-      showFooter: true,
-      fields: withConnectionValues(workflowNodeId(workflow.id), createWorkflowFields(workflow), connections),
-    },
-  }))
-
   const utilityItems = utilityNodes.map((node, index) => {
     const definition = getPageBlueprintNodeDefinition(node.type)
     const utilityNode = withUtilityConnectionValues(node, connections)
@@ -367,7 +347,7 @@ function createCanvasItems(
     }
   })
 
-  const items = [...elementItems, ...workflowItems, ...utilityItems]
+  const items = [...elementItems, ...utilityItems]
   if (items.length > 0) return items
 
   return [{
@@ -521,8 +501,9 @@ function fieldsAreCompatible(from: PageBlueprintConnectionEndpoint, to: PageBlue
   const toField = fieldForEndpoint(to)
   if (!fromField || !toField) return true
   if (fromField.type === 'event' || toField.type === 'event') return fromField.type === toField.type
-  if (isBlueprintRepeatFieldId(to.fieldId)) return isBlueprintRepeatSourceField(fromField)
   if (isBlueprintItemFieldId(from.fieldId)) return targetAcceptsItemField(from, to)
+  if (isBlueprintRepeatSourceField(fromField)) return isBlueprintRepeatFieldId(to.fieldId)
+  if (isBlueprintRepeatFieldId(to.fieldId)) return isBlueprintRepeatSourceField(fromField)
   return true
 }
 
@@ -671,10 +652,6 @@ function elementNodeTitle(
 ) {
   const label = typeof node?.label === 'string' ? node.label.trim() : ''
   return element.label || (label && label !== element.id ? label : element.id)
-}
-
-function workflowNodeId(workflowId: string) {
-  return `blueprint-workflow:${workflowId}`
 }
 
 function elementIdFromNodeId(nodeId: string) {
