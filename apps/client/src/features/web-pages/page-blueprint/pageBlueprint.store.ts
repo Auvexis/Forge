@@ -11,6 +11,14 @@ import {
   type PageBlueprintDocument,
 } from './pageBlueprintDocument.ts'
 import {
+  componentIdFromNodeId,
+  componentNodeId,
+  componentPortTarget,
+  createComponentNodeFields,
+  createPageComponentFromNodeSelection,
+  syncComponentNodeFields,
+} from './pageBlueprintComponents.ts'
+import {
   createUtilityNodeFromDefinition,
   getPageBlueprintNodeDefinition,
 } from './pageBlueprintNodeRegistry.ts'
@@ -30,6 +38,7 @@ import type {
   PageBlueprintFieldDirection,
   PageBlueprintFieldMode,
   PageBlueprintFieldType,
+  PageBlueprintComponentNode,
   PageBlueprintUtilityNodeType,
 } from './pageBlueprintSchema.ts'
 
@@ -108,8 +117,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       nextNodes.push(createElementNodeFromBlock(block))
     }
 
-    if (JSON.stringify(nextNodes) === JSON.stringify(document.value.nodes)) return false
-    patchDerivedDocument({ nodes: nextNodes })
+    const syncedNodes = syncComponentNodeFields({ ...document.value, nodes: nextNodes })
+    if (JSON.stringify(syncedNodes) === JSON.stringify(document.value.nodes)) return false
+    patchDerivedDocument({ nodes: syncedNodes })
     return true
   }
 
@@ -151,7 +161,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     if (from.nodeId === to.nodeId && from.fieldId === to.fieldId) return null
 
     const expression = createConnectionExpression(from)
-    const repeatBinding = createRepeatBindingForConnection(from, to)
+    const resolvedTo = resolveComponentPortEndpoint(to)
+    const repeatBinding = createRepeatBindingForConnection(from, resolvedTo)
     const connection = {
       id: createConnectionId(from, to),
       from,
@@ -166,13 +177,17 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       ],
       repeatBindings: repeatBinding
         ? [
-          ...document.value.repeatBindings.filter((item) => item.targetNodeId !== to.nodeId),
+          ...document.value.repeatBindings.filter((item) => item.targetNodeId !== resolvedTo.nodeId),
           repeatBinding,
         ]
-        : isBlueprintRepeatFieldId(to.fieldId)
-          ? document.value.repeatBindings.filter((item) => item.targetNodeId !== to.nodeId)
+        : isBlueprintRepeatFieldId(resolvedTo.fieldId)
+          ? document.value.repeatBindings.filter((item) => item.targetNodeId !== resolvedTo.nodeId)
           : document.value.repeatBindings,
-      nodes: patchNodeField(document.value.nodes, to.nodeId, to.fieldId, { expression }),
+      nodes: patchConnectedTargetField(
+        patchNodeField(document.value.nodes, to.nodeId, to.fieldId, { expression }),
+        to,
+        { expression },
+      ),
     })
 
     return connection.id
@@ -181,11 +196,16 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   function removeConnection(connectionId: string) {
     const connection = document.value.connections.find((item) => item.id === connectionId)
     if (!connection) return
+    const resolvedTo = resolveComponentPortEndpoint(connection.to)
 
     patchDocument({
       connections: document.value.connections.filter((item) => item.id !== connectionId),
-      repeatBindings: document.value.repeatBindings.filter((item) => item.id !== repeatBindingId(connection.from, connection.to.nodeId)),
-      nodes: patchNodeField(document.value.nodes, connection.to.nodeId, connection.to.fieldId, { expression: undefined }),
+      repeatBindings: document.value.repeatBindings.filter((item) => item.id !== repeatBindingId(connection.from, resolvedTo.nodeId)),
+      nodes: patchConnectedTargetField(
+        patchNodeField(document.value.nodes, connection.to.nodeId, connection.to.fieldId, { expression: undefined }),
+        connection.to,
+        { expression: undefined },
+      ),
     })
   }
 
@@ -203,7 +223,11 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       connections: document.value.connections.map((item) =>
         item.id === connection.id ? { ...item, expression } : item,
       ),
-      nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { expression }),
+      nodes: patchConnectedTargetField(
+        patchNodeField(document.value.nodes, nodeId, fieldId, { expression }),
+        { nodeId, fieldId },
+        { expression },
+      ),
     })
 
     return true
@@ -216,6 +240,10 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   }
 
   function setNodeLabel(nodeId: string, label: string) {
+    if (nodeId.startsWith('blueprint-component:')) {
+      setComponentName(componentIdFromNodeId(nodeId), label)
+      return
+    }
     patchDocument({
       nodes: document.value.nodes.map((node) => (node.id === nodeId ? { ...node, label } : node)),
     })
@@ -232,16 +260,14 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       delete nodeLayouts[nodeId]
     }
 
-    patchDocument({
-      nodes: document.value.nodes.map((node) => ({
+    const renamedNodes = document.value.nodes.map((node) => ({
         ...(node.id === nodeId ? { ...node, id: normalized } : node),
         fields: node.fields.map((field) => ({
           ...field,
           expression: field.expression?.replaceAll(`{{ ${nodeId}.`, `{{ ${normalized}.`),
         })),
-      })),
-      nodeLayouts,
-      connections: document.value.connections.map((connection) => ({
+      }))
+    const renamedConnections = document.value.connections.map((connection) => ({
         ...connection,
         id: createConnectionId(renameEndpointNode(connection.from, nodeId, normalized), renameEndpointNode(connection.to, nodeId, normalized)),
         from: renameEndpointNode(connection.from, nodeId, normalized),
@@ -249,14 +275,28 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
         expression: connection.from.nodeId === nodeId
           ? createConnectionExpression(renameEndpointNode(connection.from, nodeId, normalized))
           : connection.expression,
-      })),
-      repeatBindings: document.value.repeatBindings.map((binding) => ({
+      }))
+    const renamedRepeatBindings = document.value.repeatBindings.map((binding) => ({
         ...binding,
         id: repeatBindingId(renameEndpointNode(binding.source, nodeId, normalized), binding.targetNodeId === nodeId ? normalized : binding.targetNodeId),
         source: renameEndpointNode(binding.source, nodeId, normalized),
         targetNodeId: binding.targetNodeId === nodeId ? normalized : binding.targetNodeId,
         targetElementId: binding.targetNodeId === nodeId ? elementIdFromNodeId(normalized) : binding.targetElementId,
-      })),
+      }))
+    const renamedComponents = document.value.components.map((component) => ({
+        ...component,
+        rootNodeId: component.rootNodeId === nodeId ? normalized : component.rootNodeId,
+        nodeIds: component.nodeIds.map((item) => item === nodeId ? normalized : item),
+        props: component.props.map((port) => ({ ...port, target: renameEndpointNode(port.target, nodeId, normalized) })),
+        events: component.events.map((port) => ({ ...port, target: renameEndpointNode(port.target, nodeId, normalized) })),
+      }))
+
+    patchDocument({
+      nodes: syncComponentNodeFields({ ...document.value, nodes: renamedNodes, components: renamedComponents }),
+      nodeLayouts,
+      connections: renamedConnections,
+      repeatBindings: renamedRepeatBindings,
+      components: renamedComponents,
     })
 
     return true
@@ -264,7 +304,11 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
   function setNodeFieldValue(nodeId: string, fieldId: string, value: string) {
     patchDocument({
-      nodes: patchNodeField(document.value.nodes, nodeId, fieldId, { value, expression: undefined }),
+      nodes: patchConnectedTargetField(
+        patchNodeField(document.value.nodes, nodeId, fieldId, { value, expression: undefined }),
+        { nodeId, fieldId },
+        { value, expression: undefined },
+      ),
       connections: document.value.connections.filter((connection) =>
         !(connection.to.nodeId === nodeId && connection.to.fieldId === fieldId),
       ),
@@ -564,6 +608,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     const source = document.value.nodes.find((node) => node.id === nodeId)
     if (!source) return null
 
+    if (source.kind === 'component') return duplicateComponentNode(source as PageBlueprintComponentNode)
+
     const nextNode = cloneBlueprintNode(source)
     const sourceLayout = document.value.nodeLayouts[nodeId]
     const nextLayout = sourceLayout
@@ -584,6 +630,48 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     return nextNode.id
   }
 
+  function duplicateComponentNode(source: PageBlueprintComponentNode) {
+    const sourceComponent = document.value.components.find((component) => component.id === source.componentId)
+    if (!sourceComponent) return null
+
+    const now = new Date().toISOString()
+    const nextComponent = {
+      ...sourceComponent,
+      id: `page-component:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
+      name: `${sourceComponent.name} Copy`,
+      props: sourceComponent.props.map((port) => ({ ...port })),
+      events: sourceComponent.events.map((port) => ({ ...port })),
+      createdAt: now,
+      updatedAt: now,
+    }
+    const nextNode: PageBlueprintComponentNode = {
+      ...source,
+      id: componentNodeId(nextComponent.id),
+      componentId: nextComponent.id,
+      label: nextComponent.name,
+      fields: createComponentNodeFields(nextComponent),
+      data: source.data ? { ...source.data } : source.data,
+    }
+    const sourceLayout = document.value.nodeLayouts[source.id]
+    const nextLayout = sourceLayout
+      ? { x: sourceLayout.x + 32, y: sourceLayout.y + 32 }
+      : {
+        x: Math.round((-document.value.viewport.x + 360) / document.value.viewport.zoom),
+        y: Math.round((-document.value.viewport.y + 160) / document.value.viewport.zoom),
+      }
+
+    patchDocument({
+      components: [...document.value.components, nextComponent],
+      nodes: [...document.value.nodes, nextNode],
+      nodeLayouts: {
+        ...document.value.nodeLayouts,
+        [nextNode.id]: nextLayout,
+      },
+    })
+
+    return nextNode.id
+  }
+
   function deleteNode(nodeId: string) {
     if (!document.value.nodes.some((node) => node.id === nodeId)) return
     const nodeLayouts = { ...document.value.nodeLayouts }
@@ -591,13 +679,18 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     const removedConnections = document.value.connections.filter((connection) =>
       connection.from.nodeId === nodeId || connection.to.nodeId === nodeId,
     )
+    const removedTargets = removedConnections.flatMap((connection) => [
+      connection.to,
+      componentPortTarget(document.value, connection.to.nodeId, connection.to.fieldId),
+    ].filter((endpoint): endpoint is PageBlueprintConnectionEndpoint => Boolean(endpoint)))
 
     patchDocument({
       nodes: clearConnectionExpressions(
         document.value.nodes.filter((node) => node.id !== nodeId),
-        removedConnections.map((connection) => connection.to),
+        removedTargets,
       ),
       nodeLayouts,
+      components: document.value.components.filter((component) => componentNodeId(component.id) !== nodeId),
       connections: document.value.connections.filter((connection) =>
         connection.from.nodeId !== nodeId && connection.to.nodeId !== nodeId,
       ),
@@ -609,6 +702,76 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
   function removeNode(nodeId: string) {
     deleteNode(nodeId)
+  }
+
+  function createComponentFromSelection(nodeIds: string[], blocks: PageBlock[]) {
+    const result = createPageComponentFromNodeSelection({
+      document: document.value,
+      blocks,
+      nodeIds,
+    })
+    if (!result) return null
+
+    patchDocument({
+      components: [...document.value.components, result.component],
+      nodes: [...document.value.nodes, result.node],
+      nodeLayouts: {
+        ...document.value.nodeLayouts,
+        [result.node.id]: result.layout,
+      },
+    })
+
+    return result.node.id
+  }
+
+  function setComponentName(componentId: string, name: string) {
+    const normalized = name.trim()
+    if (!normalized) return
+    const now = new Date().toISOString()
+    patchDocument({
+      components: document.value.components.map((component) =>
+        component.id === componentId ? { ...component, name: normalized, updatedAt: now } : component,
+      ),
+      nodes: document.value.nodes.map((node) =>
+        node.kind === 'component' && componentIdFromNodeId(node.id) === componentId
+          ? { ...node, label: normalized }
+          : node,
+      ),
+    })
+  }
+
+  function setComponentPortLabel(componentId: string, portId: string, label: string) {
+    const normalized = label.trim()
+    if (!normalized) return
+    const now = new Date().toISOString()
+    const nextComponents = document.value.components.map((component) =>
+      component.id === componentId
+        ? {
+          ...component,
+          props: component.props.map((port) => port.id === portId ? { ...port, label: normalized } : port),
+          events: component.events.map((port) => port.id === portId ? { ...port, label: normalized } : port),
+          updatedAt: now,
+        }
+        : component,
+    )
+
+    patchDocument({
+      components: nextComponents,
+      nodes: syncComponentNodeFields({ ...document.value, components: nextComponents }),
+    })
+  }
+
+  function patchConnectedTargetField(
+    nodes: PageBlueprintDocument['nodes'],
+    endpoint: PageBlueprintConnectionEndpoint,
+    patch: Partial<PageBlueprintField>,
+  ) {
+    const target = componentPortTarget(document.value, endpoint.nodeId, endpoint.fieldId)
+    return target ? patchNodeField(nodes, target.nodeId, target.fieldId, patch) : nodes
+  }
+
+  function resolveComponentPortEndpoint(endpoint: PageBlueprintConnectionEndpoint) {
+    return componentPortTarget(document.value, endpoint.nodeId, endpoint.fieldId) ?? endpoint
   }
 
   function undo() {
@@ -693,6 +856,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     addElementEventField,
     setElementEventType,
     setElementRepeatEnabled,
+    createComponentFromSelection,
+    setComponentName,
+    setComponentPortLabel,
     duplicateNode,
     deleteNode,
     removeNode,
@@ -974,6 +1140,7 @@ function serializeForDiff(document: PageBlueprintDocument) {
     schemaVersion: document.schemaVersion,
     nodeLayouts: document.nodeLayouts,
     nodes: document.nodes,
+    components: document.components,
     connections: document.connections,
     repeatBindings: document.repeatBindings,
     collapsedGroups: document.collapsedGroups,

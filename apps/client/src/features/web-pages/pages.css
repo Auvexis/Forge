@@ -379,6 +379,32 @@
   background: var(--fabric-bg-surface);
 }
 
+.web-page-blueprint-toolbox__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  height: 26px;
+  border-bottom: 1px solid var(--fabric-border-subtle);
+}
+
+.web-page-blueprint-toolbox__tab {
+  display: grid;
+  place-items: center;
+  border-bottom: 2px solid transparent;
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.web-page-blueprint-toolbox__tab:hover {
+  color: var(--fabric-text-primary);
+  background: color-mix(in srgb, var(--fabric-bg-elevated) 52%, transparent);
+}
+
+.web-page-blueprint-toolbox__tab.is-active {
+  border-bottom-color: var(--fabric-accent);
+  color: var(--fabric-text-primary);
+  background: var(--fabric-bg-base);
+}
+
 .web-page-blueprint-toolbox__group {
   display: grid;
   gap: var(--fabric-space-1);
@@ -445,6 +471,13 @@
 }
 
 .web-page-blueprint-toolbox__item small {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.web-page-blueprint-toolbox__empty {
+  margin: 0;
+  padding: var(--fabric-space-2);
   color: var(--fabric-text-muted);
   font-size: 10px;
 }
@@ -1105,6 +1138,57 @@
   color: var(--fabric-text-secondary);
   font: 9px var(--fabric-font-ui);
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-component-group {
+  position: absolute;
+  z-index: 0;
+  box-sizing: border-box;
+  overflow: visible;
+  border: 1px solid color-mix(in srgb, var(--fabric-accent) 48%, transparent);
+  background: color-mix(in srgb, var(--fabric-accent) 6%, transparent);
+  pointer-events: none;
+}
+
+.web-page-blueprint-component-group.is-selected {
+  border-color: color-mix(in srgb, var(--fabric-accent) 76%, transparent);
+}
+
+.web-page-blueprint-component-group > header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: 3px 14px minmax(90px, auto) auto;
+  align-items: center;
+  gap: 5px;
+  min-width: 230px;
+  height: 25px;
+  padding: 0 7px 0 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--fabric-accent) 34%, transparent);
+  background: var(--fabric-blueprint-group-header-bg, var(--fabric-blueprint-header-bg));
+  color: var(--fabric-text-secondary);
+  pointer-events: auto;
+  cursor: move;
+}
+
+.web-page-blueprint-component-group__accent {
+  width: 3px;
+  height: 100%;
+  background: var(--fabric-accent);
+}
+
+.web-page-blueprint-component-group header strong {
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.web-page-blueprint-component-group header small {
+  color: var(--fabric-text-muted);
+  font: 9px var(--fabric-font-mono);
   white-space: nowrap;
 }
 

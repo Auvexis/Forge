@@ -11,6 +11,7 @@ import {
   blueprintResultPathFromExpression,
   evaluateBlueprintExpression,
 } from './pageBlueprintExpressions.ts'
+import { componentPortTarget } from './pageBlueprintComponents.ts'
 import {
   createBlueprintDataFlowContext,
   resolveBlueprintDataPath,
@@ -68,7 +69,7 @@ function collectBlueprintElementValues(
   const dataFlow = createBlueprintDataFlowContext(blueprint)
   const resolveMode: PageBlueprintDataResolveMode = useTestResult ? 'test' : 'empty'
 
-  for (const connection of blueprint.connections) {
+  for (const connection of resolveComponentConnectionTargets(blueprint)) {
     const fromNode = nodes.get(connection.from.nodeId)
     const toNode = resolveRuntimeNode(nodes, connection.to.nodeId)
     if (!fromNode || !toNode) continue
@@ -98,7 +99,8 @@ function buildBlueprintRuntimeActions(
   visitBlocks(blocks, (block) => blockMap.set(block.id, block))
 
   const nodes = new Map(blueprint.nodes.map((node) => [node.id, node]))
-  const repeatBindings = collectRepeatBindings(blueprint)
+  const runtimeConnections = resolveComponentConnectionTargets(blueprint)
+  const repeatBindings = collectRepeatBindings(blueprint, runtimeConnections)
   const parents = buildPageBlockParentMap(blocks)
   const eventsByBlock = new Map<string, PageElementEvent[]>()
   const outputBindings: Record<string, PageActionOutputBinding[]> = stripBlueprintOutputBindings(pageActions?.outputBindings ?? {})
@@ -112,7 +114,7 @@ function buildBlueprintRuntimeActions(
     collectionBindings[binding.actionId] = [...(collectionBindings[binding.actionId] ?? []), binding]
   }
 
-  for (const connection of blueprint.connections) {
+  for (const connection of runtimeConnections) {
     const fromNode = nodes.get(connection.from.nodeId)
     const toNode = resolveRuntimeNode(nodes, connection.to.nodeId)
     if (!fromNode || !toNode) continue
@@ -331,12 +333,13 @@ function applyPreviewValues(blocks: PageBlock[], valuesByBlock: Map<string, Arra
 }
 
 function applyPreviewRepeaters(blocks: PageBlock[], blueprint: PageBlueprintDocument): PageBlock[] {
-  const repeatBindings = collectRepeatBindings(blueprint)
+  const runtimeConnections = resolveComponentConnectionTargets(blueprint)
+  const repeatBindings = collectRepeatBindings(blueprint, runtimeConnections)
   if (repeatBindings.length === 0) return blocks
 
   const nodes = new Map(blueprint.nodes.map((node) => [node.id, node]))
   const dataFlow = createBlueprintDataFlowContext(blueprint)
-  const scopedConnections = blueprint.connections.filter((connection) => isBlueprintItemFieldId(connection.from.fieldId))
+  const scopedConnections = runtimeConnections.filter((connection) => isBlueprintItemFieldId(connection.from.fieldId))
 
   const repeatBlock = (block: PageBlock): PageBlock => {
     const repeatBinding = repeatBindings.find((binding) => binding.targetElementId === block.id)
@@ -468,14 +471,24 @@ function stripBlueprintCollectionBindings(bindings: Record<string, PageActionCol
   return next
 }
 
-function collectRepeatBindings(blueprint: PageBlueprintDocument): PageBlueprintRepeatBinding[] {
+function collectRepeatBindings(
+  blueprint: PageBlueprintDocument,
+  connections = resolveComponentConnectionTargets(blueprint),
+): PageBlueprintRepeatBinding[] {
   const explicitBindings = blueprint.repeatBindings ?? []
   const explicitIds = new Set(explicitBindings.map((binding) => binding.id))
-  const derivedBindings = blueprint.connections
+  const derivedBindings = connections
     .filter((connection) => isBlueprintRepeatFieldId(connection.to.fieldId))
     .map((connection) => createRepeatBinding(connection.from, connection.to.nodeId, elementBlockId(connection.to.nodeId)))
     .filter((binding) => !explicitIds.has(binding.id))
   return [...explicitBindings, ...derivedBindings]
+}
+
+function resolveComponentConnectionTargets(blueprint: PageBlueprintDocument): PageBlueprintConnection[] {
+  return blueprint.connections.map((connection) => {
+    const target = componentPortTarget(blueprint, connection.to.nodeId, connection.to.fieldId)
+    return target ? { ...connection, to: target } : connection
+  })
 }
 
 function visitBlocks(blocks: PageBlock[], visitor: (block: PageBlock) => void) {

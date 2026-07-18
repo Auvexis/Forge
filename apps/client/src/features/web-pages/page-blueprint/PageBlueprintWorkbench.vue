@@ -55,6 +55,19 @@
         @drag-start="startGroupDrag(group.nodeIds, $event)"
       />
 
+      <BaseComponentGroup
+        v-for="group in componentGroups"
+        :key="group.id"
+        :name="group.name"
+        :child-count="group.childCount"
+        :x="group.x"
+        :y="group.y"
+        :width="group.width"
+        :height="group.height"
+        :selected="group.nodeIds.some((id) => selection.includes(id))"
+        @drag-start="startGroupDrag(group.nodeIds, $event)"
+      />
+
       <template #item="{ item, selected }">
         <NodeFloatingToolbar
           v-if="canManageNode(item)"
@@ -65,6 +78,17 @@
         <UtilityNodeRenderer
           v-if="itemData(item).kind === 'utility' && itemData(item).utilityNode"
           :node="itemData(item).utilityNode!"
+          :selected="selected"
+          :dimmed="isNodeDimmed(item.id)"
+          @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
+          @pick-input="(fieldId, event) => completeFieldConnection(item.id, fieldId, event)"
+          @update-mode="(fieldId, mode) => blueprintStore.setNodeFieldMode(item.id, fieldId, mode)"
+        />
+        <PageComponentNode
+          v-else-if="itemData(item).kind === 'component' && itemData(item).componentNode"
+          :node-id="item.id"
+          :title="itemData(item).componentNode!.label"
+          :fields="itemData(item).componentNode!.fields"
           :selected="selected"
           :dimmed="isNodeDimmed(item.id)"
           @pick-output="(fieldId, event) => startFieldConnection(item.id, fieldId, event)"
@@ -128,13 +152,17 @@ import type {
   PageBlueprintConnectionEndpoint,
   PageBlueprintField,
   PageBlueprintNode,
+  PageBlueprintComponent,
+  PageBlueprintComponentNode,
   PageBlueprintUtilityNode,
 } from './pageBlueprintSchema.ts'
 import { createPageBlueprintViewModel, type PageBlueprintViewModel } from './pageBlueprintViewModel.ts'
+import BaseComponentGroup from './components/BaseComponentGroup.vue'
 import BaseElementGroup from './components/BaseElementGroup.vue'
 import BaseElement from './components/BaseElement.vue'
 import BlueprintNodeFields from './components/BlueprintNodeFields.vue'
 import NodeFloatingToolbar from './components/NodeFloatingToolbar.vue'
+import PageComponentNode from './components/PageComponentNode.vue'
 import PageBlueprintConnectionLayer, {
   type PageBlueprintConnectionNode,
 } from './components/PageBlueprintConnectionLayer.vue'
@@ -142,7 +170,7 @@ import PageBlueprintSelectionBox from './components/PageBlueprintSelectionBox.vu
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
-type PageBlueprintCanvasItemKind = 'element' | 'utility' | 'empty'
+type PageBlueprintCanvasItemKind = 'element' | 'utility' | 'component' | 'empty'
 
 interface PageBlueprintCanvasItemData {
   kind: PageBlueprintCanvasItemKind
@@ -156,6 +184,7 @@ interface PageBlueprintCanvasItemData {
   fields: PageBlueprintDisplayField[]
   elementId?: string
   utilityNode?: PageBlueprintUtilityNode
+  componentNode?: PageBlueprintComponentNode
 }
 
 interface PageBlueprintCanvasItem extends BaseCanvasItem {
@@ -217,6 +246,7 @@ const elementGroupItems = computed<PageBlueprintGroupItem[]>(() =>
 )
 
 const hierarchyGroups = computed(() => buildPageBlueprintGroups(props.blocks, elementGroupItems.value))
+const componentGroups = computed(() => buildComponentGroups(document.value.components, canvasItems.value))
 const blockParentMap = computed(() => buildPageBlockParentMap(props.blocks))
 const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
   canvasItems.value
@@ -361,7 +391,29 @@ function createCanvasItems(
     }
   })
 
-  const items = [...elementItems, ...utilityItems]
+  const componentItems = document.value.nodes
+    .filter((node): node is PageBlueprintComponentNode => node.kind === 'component')
+    .map((node, index) => ({
+      id: node.id,
+      x: 700,
+      y: 60 + index * 168,
+      width: 300,
+      height: componentNodeHeight(node.fields.length),
+      data: {
+        kind: 'component' as const,
+        title: node.label,
+        eyebrow: 'Page Component',
+        detail: `${node.fields.length} exposed field(s)`,
+        meta: '',
+        icon: node.icon ?? 'component',
+        accent: node.accent ?? 'var(--fabric-accent)',
+        showFooter: false,
+        fields: [],
+        componentNode: withComponentConnectionValues(node, connections),
+      },
+    }))
+
+  const items = [...elementItems, ...utilityItems, ...componentItems]
   if (items.length > 0) return items
 
   return [{
@@ -473,7 +525,8 @@ function stopPendingConnection() {
 }
 
 function canManageNode(item: BaseCanvasItem) {
-  return itemData(item).kind === 'utility' && document.value.nodes.some((node) => node.id === item.id)
+  const data = itemData(item)
+  return (data.kind === 'utility' || data.kind === 'component') && document.value.nodes.some((node) => node.id === item.id)
 }
 
 function isNodeDimmed(nodeId: string) {
@@ -518,7 +571,11 @@ function deleteSelection() {
 
 function createComponentFromSelection() {
   if (selection.value.length < 2) return
-  emit('createComponent', [...selection.value])
+  const componentNodeId = blueprintStore.createComponentFromSelection(selection.value, props.blocks)
+  if (componentNodeId) {
+    selection.value = [componentNodeId]
+    emit('createComponent', [componentNodeId])
+  }
 }
 
 function canManageNodeId(nodeId: string) {
@@ -529,6 +586,7 @@ function canManageNodeId(nodeId: string) {
 function connectionFields(item: BaseCanvasItem) {
   const data = itemData(item)
   if (data.utilityNode) return data.utilityNode.fields.map((field) => ({ id: field.id }))
+  if (data.componentNode) return data.componentNode.fields.map((field) => ({ id: field.id }))
   return data.fields.map((field) => ({ id: field.id }))
 }
 
@@ -562,6 +620,15 @@ function fieldsForNode(nodeId: string) {
   const data = itemData(item)
   if (data.utilityNode) {
     return data.utilityNode.fields.map((field) => ({
+      id: field.id,
+      type: field.type,
+      mode: field.mode,
+      input: field.direction === 'input' || field.direction === 'both',
+      output: field.direction === 'output' || field.direction === 'both',
+    }))
+  }
+  if (data.componentNode) {
+    return data.componentNode.fields.map((field) => ({
       id: field.id,
       type: field.type,
       mode: field.mode,
@@ -616,6 +683,25 @@ function withUtilityConnectionValues(
   return {
     ...node,
     fields: fields.map((field) => {
+      const inputConnection = connections.find((item) => item.to.nodeId === node.id && item.to.fieldId === field.id)
+      const outputConnection = connections.some((item) => item.from.nodeId === node.id && item.from.fieldId === field.id)
+      return {
+        ...field,
+        expression: inputConnection?.expression ?? field.expression,
+        inputConnected: Boolean(inputConnection),
+        outputConnected: outputConnection,
+      }
+    }),
+  }
+}
+
+function withComponentConnectionValues(
+  node: PageBlueprintComponentNode,
+  connections: PageBlueprintConnection[],
+): PageBlueprintComponentNode {
+  return {
+    ...node,
+    fields: node.fields.map((field) => {
       const inputConnection = connections.find((item) => item.to.nodeId === node.id && item.to.fieldId === field.id)
       const outputConnection = connections.some((item) => item.from.nodeId === node.id && item.from.fieldId === field.id)
       return {
@@ -687,6 +773,32 @@ function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {
   return Boolean(node && typeof node === 'object' && (node as PageBlueprintUtilityNode).kind === 'utility')
 }
 
+function buildComponentGroups(components: PageBlueprintComponent[], items: PageBlueprintCanvasItem[]) {
+  const itemsById = new Map(items.map((item) => [item.id, item]))
+  return components.flatMap((component) => {
+    const childItems = component.nodeIds
+      .map((nodeId) => itemsById.get(nodeId))
+      .filter((item): item is PageBlueprintCanvasItem => Boolean(item))
+    if (childItems.length < 2) return []
+
+    const minX = Math.min(...childItems.map((item) => item.x)) - 26
+    const minY = Math.min(...childItems.map((item) => item.y)) - 40
+    const maxX = Math.max(...childItems.map((item) => item.x + (item.width ?? 240))) + 26
+    const maxY = Math.max(...childItems.map((item) => item.y + (item.height ?? 90))) + 28
+
+    return [{
+      id: component.id,
+      name: component.name,
+      nodeIds: component.nodeIds,
+      childCount: childItems.length,
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    }]
+  })
+}
+
 function elementNodeId(elementId: string) {
   return `blueprint-element:${elementId}`
 }
@@ -714,5 +826,9 @@ function nodeHeight(fieldCount: number) {
 
 function utilityNodeHeight(fieldCount: number) {
   return 36 + fieldCount * 32 + (fieldCount > 0 ? 10 : 0)
+}
+
+function componentNodeHeight(fieldCount: number) {
+  return 40 + Math.max(1, fieldCount) * 32 + 10
 }
 </script>

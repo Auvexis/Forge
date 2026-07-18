@@ -90,7 +90,12 @@
       @resize="handleLeftPanelResize"
       @resize-reset="resetLeftPanelResize"
     >
-      <PageBlueprintToolboxPanel @add-utility-node="addBlueprintUtilityNode" />
+      <PageBlueprintToolboxPanel
+        :components="blueprintStore.document.components"
+        @add-utility-node="addBlueprintUtilityNode"
+        @create-component-from-root="createBlueprintComponentFromRoot"
+        @select-component="selectBlueprintComponent"
+      />
     </AppPanel>
 
     <div
@@ -218,6 +223,7 @@
           :output-bindings="pageActionBindingsStore.outputBindingsByAction"
           :collection-bindings="pageActionBindingsStore.collectionBindingsByAction"
           @select-node="blueprintSelectedNodeId = $event"
+          @create-component="blueprintSelectedNodeId = $event[0] ?? null"
         />
         <PageSelectionGroupOverlay
           v-if="activePageDocument === 'design'"
@@ -353,6 +359,8 @@
         @update-element-event-type="blueprintStore.setElementEventType"
         @remove-element-event="blueprintStore.removeNodeField"
         @set-element-repeat-enabled="blueprintStore.setElementRepeatEnabled"
+        @update-component-name="blueprintStore.setComponentName"
+        @update-component-port-label="blueprintStore.setComponentPortLabel"
         @configure-run-workflow="blueprintStore.configureRunWorkflowNode"
         @update-run-workflow-event-type="blueprintStore.setRunWorkflowEventType"
         @update-run-workflow-input="blueprintStore.setRunWorkflowInput"
@@ -552,6 +560,7 @@ import {
   applyBlueprintPreviewValuesToBlocks,
   applyBlueprintRuntimeToPage,
 } from '../page-blueprint/pageBlueprintRuntime.ts'
+import { componentNodeId } from '../page-blueprint/pageBlueprintComponents.ts'
 import type { PageBlueprintUtilityNodeType } from '../page-blueprint/pageBlueprintSchema.ts'
 import PageBlueprintDocumentTabs from '../page-blueprint/components/PageBlueprintDocumentTabs.vue'
 import PageBlueprintInspectorPanel from '../page-blueprint/components/PageBlueprintInspectorPanel.vue'
@@ -905,6 +914,17 @@ function closeBlueprintToolbox() {
 
 function addBlueprintUtilityNode(type: PageBlueprintUtilityNodeType) {
   blueprintStore.addUtilityNode(type)
+}
+
+function createBlueprintComponentFromRoot() {
+  const selectedNodeId = blueprintSelectedNodeId.value
+  if (!selectedNodeId) return
+  const componentNode = blueprintStore.createComponentFromSelection([selectedNodeId], editorStore.blocks)
+  if (componentNode) blueprintSelectedNodeId.value = componentNode
+}
+
+function selectBlueprintComponent(componentId: string) {
+  blueprintSelectedNodeId.value = componentNodeId(componentId)
 }
 
 function handleBlueprintNodeLabelUpdate(nodeId: string, label: string) {

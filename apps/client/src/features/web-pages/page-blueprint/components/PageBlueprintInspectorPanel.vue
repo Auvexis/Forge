@@ -3,7 +3,15 @@
     <p v-if="!selectedNodeId" class="web-page-editor__empty">Select a Blueprint node.</p>
 
     <template v-else>
-      <template v-if="selectedElement">
+      <PageBlueprintComponentInspector
+        v-if="selectedComponent && selectedComponentNode"
+        :component="selectedComponent"
+        :node="selectedComponentNode"
+        @update-name="updateComponentName"
+        @update-port-label="updateComponentPortLabel"
+      />
+
+      <template v-else-if="selectedElement">
         <BaseInspectorSection title="Node" icon="box">
           <BaseInspectorRow
             label="ID"
@@ -351,10 +359,13 @@ import { createElementFields } from '../pageBlueprintFields.ts'
 import { pageBlockIcon } from '../pageBlueprintGroups.ts'
 import { isPageBlockContainer, PAGE_BLUEPRINT_REPEAT_FIELD_ID } from '../pageBlueprintRepeaters.ts'
 import { createPageBlueprintViewModel } from '../pageBlueprintViewModel.ts'
+import { componentIdFromNodeId } from '../pageBlueprintComponents.ts'
+import type { PageBlueprintComponentNode } from '../pageBlueprintSchema.ts'
 import BaseInspectorButton from './BaseInspectorButton.vue'
 import BaseInspectorRow from './BaseInspectorRow.vue'
 import BaseInspectorSection from './BaseInspectorSection.vue'
 import BaseInspectorSelect from './BaseInspectorSelect.vue'
+import PageBlueprintComponentInspector from './PageBlueprintComponentInspector.vue'
 
 const props = defineProps<{
   blocks: PageBlock[]
@@ -373,6 +384,8 @@ const emit = defineEmits<{
   updateElementEventType: [nodeId: string, fieldId: string, eventType: string]
   removeElementEvent: [nodeId: string, fieldId: string]
   setElementRepeatEnabled: [nodeId: string, enabled: boolean]
+  updateComponentName: [componentId: string, name: string]
+  updateComponentPortLabel: [componentId: string, portId: string, label: string]
   configureRunWorkflow: [nodeId: string, payload: RunWorkflowConfigPayload]
   updateRunWorkflowEventType: [nodeId: string, eventType: string]
   updateRunWorkflowInput: [nodeId: string, key: string, value: unknown]
@@ -381,6 +394,13 @@ const emit = defineEmits<{
 }>()
 
 const node = computed(() => props.document.nodes.find((item) => item.id === props.selectedNodeId))
+const selectedComponentNode = computed(() =>
+  node.value?.kind === 'component' ? node.value as PageBlueprintComponentNode : null,
+)
+const selectedComponent = computed(() => {
+  const componentId = selectedComponentNode.value?.componentId ?? (props.selectedNodeId ? componentIdFromNodeId(props.selectedNodeId) : '')
+  return props.document.components.find((component) => component.id === componentId) ?? null
+})
 const selectedElementId = computed(() =>
   props.selectedNodeId?.startsWith('blueprint-element:')
     ? props.selectedNodeId.slice('blueprint-element:'.length)
@@ -503,6 +523,14 @@ watch(node, (nextNode) => {
 
 function loadWorkflows() {
   emit('refreshWorkflows')
+}
+
+function updateComponentName(componentId: string, name: string) {
+  emit('updateComponentName', componentId, name)
+}
+
+function updateComponentPortLabel(componentId: string, portId: string, label: string) {
+  emit('updateComponentPortLabel', componentId, portId, label)
 }
 
 function elementConnectionExpression(fieldId: string) {

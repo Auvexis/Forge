@@ -1,4 +1,4 @@
-export type PageBlueprintNodeKind = 'element' | 'utility'
+export type PageBlueprintNodeKind = 'element' | 'utility' | 'component'
 
 export type PageBlueprintUtilityNodeType =
   | 'run-workflow'
@@ -41,6 +41,7 @@ export interface PageBlueprintField {
   mode?: PageBlueprintFieldMode
   schema?: PageBlueprintFieldSchema[]
   configurable?: boolean
+  data?: Record<string, unknown>
 }
 
 export interface PageBlueprintNode {
@@ -65,6 +66,12 @@ export interface PageBlueprintUtilityNode extends PageBlueprintNode {
   type: PageBlueprintUtilityNodeType
 }
 
+export interface PageBlueprintComponentNode extends PageBlueprintNode {
+  kind: 'component'
+  type: 'page-component'
+  componentId: string
+}
+
 export interface PageBlueprintConnectionEndpoint {
   nodeId: string
   fieldId: string
@@ -85,4 +92,24 @@ export interface PageBlueprintRepeatBinding {
   collectionPath: string
   itemAlias: string
   createdAt: string
+}
+
+export interface PageBlueprintComponentPort {
+  id: string
+  label: string
+  type?: PageBlueprintFieldType
+  mode?: PageBlueprintFieldMode
+  target: PageBlueprintConnectionEndpoint
+}
+
+export interface PageBlueprintComponent {
+  id: string
+  name: string
+  rootNodeId: string
+  rootElementId?: string
+  nodeIds: string[]
+  props: PageBlueprintComponentPort[]
+  events: PageBlueprintComponentPort[]
+  createdAt: string
+  updatedAt: string
 }
