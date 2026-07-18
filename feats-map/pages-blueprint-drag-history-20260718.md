@@ -1,0 +1,5 @@
+- [x] Criar batch de history
+- [x] Aplicar movimento sem snapshots intermediários
+- [x] Commitar no release do drag
+- [x] Validar build/typecheck
+- [x] Commitar alterações

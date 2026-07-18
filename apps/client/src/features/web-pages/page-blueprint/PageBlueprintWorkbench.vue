@@ -10,7 +10,8 @@
       :pattern-size="24"
       :grid-size="24"
       @items-move="moveCanvasItems"
-      @item-drag-end="measurePorts"
+      @item-drag-start="startCanvasDragHistory"
+      @item-drag-end="finishCanvasDragHistory"
       @pointermove="updatePendingPointer"
       @pointerleave="clearPendingPointer"
     >
@@ -30,6 +31,8 @@
         :grid-size="24"
         :snap-to-grid="true"
         @selection-move="moveCanvasItems"
+        @selection-drag-start="startCanvasDragHistory"
+        @selection-drag-end="finishCanvasDragHistory"
         @duplicate-selection="duplicateSelection"
         @delete-selection="deleteSelection"
         @create-component="createComponentFromSelection"
@@ -295,7 +298,7 @@ function moveCanvasItems(event: BaseCanvasItemsMoveEvent) {
     }
   }
 
-  blueprintStore.setNodePositions(nextPositions)
+  blueprintStore.setNodePositions(nextPositions, { history: false })
 }
 
 function toggleGroup(groupId: string) {
@@ -306,6 +309,7 @@ function toggleGroup(groupId: string) {
 
 function startGroupDrag(nodeIds: string[], event: PointerEvent) {
   if (event.button !== 0) return
+  startCanvasDragHistory()
   selection.value = [...nodeIds]
   groupDrag.value = { nodeIds: [...nodeIds], pointerId: event.pointerId, x: event.clientX, y: event.clientY }
   window.addEventListener('pointermove', moveGroupDrag)
@@ -330,6 +334,16 @@ function stopGroupDrag() {
   groupDrag.value = null
   window.removeEventListener('pointermove', moveGroupDrag)
   window.removeEventListener('pointercancel', stopGroupDrag)
+  finishCanvasDragHistory()
+}
+
+function startCanvasDragHistory() {
+  blueprintStore.beginHistoryBatch()
+}
+
+function finishCanvasDragHistory() {
+  blueprintStore.commitHistoryBatch()
+  void nextTick(measurePorts)
 }
 
 function createCanvasItems(

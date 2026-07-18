@@ -49,6 +49,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   const undoStack = ref<string[]>([])
   const redoStack = ref<string[]>([])
   let suppressHistory = false
+  let historyBatchSnapshot: string | null = null
 
   const isDirty = computed(() => serializeForDiff(document.value) !== savedSnapshot.value)
   const canUndo = computed(() => undoStack.value.length > 0)
@@ -158,22 +159,22 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     return true
   }
 
-  function setNodePosition(nodeId: string, position: { x: number; y: number }) {
-    patchDocument({
+  function setNodePosition(nodeId: string, position: { x: number; y: number }, options: { history?: boolean } = {}) {
+    patchNodeLayout({
       nodeLayouts: {
         ...document.value.nodeLayouts,
         [nodeId]: position,
       },
-    })
+    }, options)
   }
 
-  function setNodePositions(positions: Record<string, { x: number; y: number }>) {
-    patchDocument({
+  function setNodePositions(positions: Record<string, { x: number; y: number }>, options: { history?: boolean } = {}) {
+    patchNodeLayout({
       nodeLayouts: {
         ...document.value.nodeLayouts,
         ...positions,
       },
-    })
+    }, options)
   }
 
   function setCollapsedGroups(groupIds: string[]) {
@@ -739,6 +740,23 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     deleteNode(nodeId)
   }
 
+  function beginHistoryBatch() {
+    historyBatchSnapshot ??= serialize(document.value)
+  }
+
+  function commitHistoryBatch() {
+    const snapshot = historyBatchSnapshot
+    historyBatchSnapshot = null
+    if (!snapshot) return
+
+    const currentSnapshot = serialize(document.value)
+    if (currentSnapshot === snapshot) return
+
+    pushUndoSnapshot(snapshot)
+    redoStack.value = []
+    lastHistorySnapshot.value = currentSnapshot
+  }
+
   function createComponentFromSelection(nodeIds: string[], blocks: PageBlock[]) {
     const result = createPageComponentFromNodeSelection({
       document: document.value,
@@ -828,9 +846,17 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       updatedAt: new Date().toISOString(),
     }
     if (serialize(nextDocument) === serialize(document.value)) return
-    recordHistory()
+    if (historyBatchSnapshot === null) recordHistory()
     document.value = nextDocument
     lastHistorySnapshot.value = serialize(nextDocument)
+  }
+
+  function patchNodeLayout(patch: Partial<PageBlueprintDocument>, options: { history?: boolean }) {
+    if (options.history === false) {
+      patchDerivedDocument(patch)
+      return
+    }
+    patchDocument(patch)
   }
 
   function patchDerivedDocument(patch: Partial<PageBlueprintDocument>) {
@@ -848,10 +874,13 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
   function recordHistory() {
     if (suppressHistory) return
-    const currentSnapshot = serialize(document.value)
-    undoStack.value.push(currentSnapshot)
-    if (undoStack.value.length > 50) undoStack.value.shift()
+    pushUndoSnapshot(serialize(document.value))
     redoStack.value = []
+  }
+
+  function pushUndoSnapshot(snapshot: string) {
+    undoStack.value.push(snapshot)
+    if (undoStack.value.length > 50) undoStack.value.shift()
   }
 
   function applySnapshot(snapshot: string) {
@@ -891,6 +920,8 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     addElementEventField,
     setElementEventType,
     setElementRepeatEnabled,
+    beginHistoryBatch,
+    commitHistoryBatch,
     createComponentFromSelection,
     setComponentName,
     setComponentPortLabel,
