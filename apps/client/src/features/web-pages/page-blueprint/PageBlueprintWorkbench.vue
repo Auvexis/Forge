@@ -23,6 +23,18 @@
         @remove-connection="blueprintStore.removeConnection"
       />
 
+      <PageBlueprintSelectionBox
+        :items="canvasItems"
+        :selection="selection"
+        :viewport="viewport"
+        :grid-size="24"
+        :snap-to-grid="true"
+        @selection-move="moveCanvasItems"
+        @duplicate-selection="duplicateSelection"
+        @delete-selection="deleteSelection"
+        @create-component="createComponentFromSelection"
+      />
+
       <BaseElementGroup
         v-for="group in hierarchyGroups"
         :key="group.id"
@@ -126,6 +138,7 @@ import NodeFloatingToolbar from './components/NodeFloatingToolbar.vue'
 import PageBlueprintConnectionLayer, {
   type PageBlueprintConnectionNode,
 } from './components/PageBlueprintConnectionLayer.vue'
+import PageBlueprintSelectionBox from './components/PageBlueprintSelectionBox.vue'
 import PageBlueprintShell from './components/PageBlueprintShell.vue'
 import UtilityNodeRenderer from './components/UtilityNodeRenderer.vue'
 
@@ -158,6 +171,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   selectNode: [nodeId: string | null]
+  createComponent: [nodeIds: string[]]
 }>()
 
 const selection = ref<string[]>([])
@@ -472,6 +486,15 @@ function duplicateCanvasNode(nodeId: string) {
   if (nextNodeId) selection.value = [nextNodeId]
 }
 
+function duplicateSelection() {
+  const nextSelection = selection.value
+    .filter((nodeId) => canManageNodeId(nodeId))
+    .map((nodeId) => blueprintStore.duplicateNode(nodeId))
+    .filter((nodeId): nodeId is string => Boolean(nodeId))
+
+  if (nextSelection.length > 0) selection.value = nextSelection
+}
+
 function deleteCanvasNode(nodeId: string) {
   blueprintStore.removeNode?.(nodeId) ?? blueprintStore.deleteNode(nodeId)
   selection.value = selection.value.filter((id) => id !== nodeId)
@@ -479,6 +502,28 @@ function deleteCanvasNode(nodeId: string) {
     pendingOutput.value = null
     pendingPointer.value = null
   }
+}
+
+function deleteSelection() {
+  const manageableNodeIds = selection.value.filter((nodeId) => canManageNodeId(nodeId))
+  manageableNodeIds.forEach((nodeId) => {
+    blueprintStore.removeNode?.(nodeId) ?? blueprintStore.deleteNode(nodeId)
+  })
+  selection.value = selection.value.filter((nodeId) => !manageableNodeIds.includes(nodeId))
+  if (pendingOutput.value && manageableNodeIds.includes(pendingOutput.value.nodeId)) {
+    pendingOutput.value = null
+    pendingPointer.value = null
+  }
+}
+
+function createComponentFromSelection() {
+  if (selection.value.length < 2) return
+  emit('createComponent', [...selection.value])
+}
+
+function canManageNodeId(nodeId: string) {
+  const item = canvasItems.value.find((candidate) => candidate.id === nodeId)
+  return Boolean(item && canManageNode(item))
 }
 
 function connectionFields(item: BaseCanvasItem) {
