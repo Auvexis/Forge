@@ -1,0 +1,5 @@
+- [x] Filtrar grupos automáticos
+- [x] Evitar grupos aninhados
+- [x] Limpar element nodes órfãos
+- [x] Validar build/typecheck
+- [x] Commitar alterações

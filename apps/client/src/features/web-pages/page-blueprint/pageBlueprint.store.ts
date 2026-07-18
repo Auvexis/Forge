@@ -101,11 +101,13 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
   function syncPageElementNodes(blocks: PageBlock[]) {
     const pageBlocks = flattenPageBlocks(blocks)
-    if (pageBlocks.length === 0) return false
-
     const blocksByNodeId = new Map(pageBlocks.map((block) => [elementNodeIdFromBlockId(block.id), block]))
-    const existingNodeIds = new Set(document.value.nodes.map((node) => node.id))
-    const nextNodes = document.value.nodes.map((node) => {
+    const liveElementNodeIds = new Set(blocksByNodeId.keys())
+    const retainedNodes = document.value.nodes.filter((node) =>
+      node.kind !== 'element' || liveElementNodeIds.has(node.id),
+    )
+    const existingNodeIds = new Set(retainedNodes.map((node) => node.id))
+    const nextNodes = retainedNodes.map((node) => {
       const block = blocksByNodeId.get(node.id)
       if (node.kind !== 'element' || !block) return node
       return syncElementNode(node, block)
@@ -117,9 +119,42 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       nextNodes.push(createElementNodeFromBlock(block))
     }
 
-    const syncedNodes = syncComponentNodeFields({ ...document.value, nodes: nextNodes })
-    if (JSON.stringify(syncedNodes) === JSON.stringify(document.value.nodes)) return false
-    patchDerivedDocument({ nodes: syncedNodes })
+    const nextComponents = cleanupComponents(document.value.components, new Set(nextNodes.map((node) => node.id)))
+    const componentNodeIds = new Set(nextComponents.map((component) => componentNodeId(component.id)))
+    const syncedNodes = syncComponentNodeFields({
+      ...document.value,
+      components: nextComponents,
+      nodes: nextNodes.filter((node) => node.kind !== 'component' || componentNodeIds.has(node.id)),
+    })
+    const validNodeIds = new Set(syncedNodes.map((node) => node.id))
+    const validFieldIds = new Map(syncedNodes.map((node) => [node.id, new Set(node.fields.map((field) => field.id))]))
+    const nextConnections = document.value.connections.filter((connection) =>
+      endpointExists(connection.from, validNodeIds, validFieldIds)
+        && endpointExists(connection.to, validNodeIds, validFieldIds),
+    )
+    const nextRepeatBindings = document.value.repeatBindings.filter((binding) =>
+      endpointExists(binding.source, validNodeIds, validFieldIds) && validNodeIds.has(binding.targetNodeId),
+    )
+    const nextNodeLayouts = Object.fromEntries(
+      Object.entries(document.value.nodeLayouts).filter(([nodeId]) => validNodeIds.has(nodeId)),
+    )
+
+    const nextPatch = {
+      nodes: syncedNodes,
+      components: nextComponents,
+      connections: nextConnections,
+      repeatBindings: nextRepeatBindings,
+      nodeLayouts: nextNodeLayouts,
+    }
+    if (JSON.stringify(nextPatch) === JSON.stringify({
+      nodes: document.value.nodes,
+      components: document.value.components,
+      connections: document.value.connections,
+      repeatBindings: document.value.repeatBindings,
+      nodeLayouts: document.value.nodeLayouts,
+    })) return false
+
+    patchDerivedDocument(nextPatch)
     return true
   }
 
@@ -1105,6 +1140,28 @@ function clearConnectionExpressions(
     (nextNodes, endpoint) => patchNodeField(nextNodes, endpoint.nodeId, endpoint.fieldId, { expression: undefined }),
     nodes,
   )
+}
+
+function cleanupComponents(
+  components: PageBlueprintDocument['components'],
+  validNodeIds: Set<string>,
+): PageBlueprintDocument['components'] {
+  return components
+    .map((component) => ({
+      ...component,
+      nodeIds: component.nodeIds.filter((nodeId) => validNodeIds.has(nodeId)),
+      props: component.props.filter((port) => validNodeIds.has(port.target.nodeId)),
+      events: component.events.filter((port) => validNodeIds.has(port.target.nodeId)),
+    }))
+    .filter((component) => component.nodeIds.length > 0)
+}
+
+function endpointExists(
+  endpoint: PageBlueprintConnectionEndpoint,
+  validNodeIds: Set<string>,
+  validFieldIds: Map<string, Set<string>>,
+) {
+  return validNodeIds.has(endpoint.nodeId) && Boolean(validFieldIds.get(endpoint.nodeId)?.has(endpoint.fieldId))
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
