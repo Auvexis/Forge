@@ -89,6 +89,7 @@ export interface PageBlueprintRepeatBinding {
   source: PageBlueprintConnectionEndpoint
   targetNodeId: string
   targetElementId: string
+  targetMode?: 'children' | 'self'
   collectionPath: string
   itemAlias: string
   createdAt: string

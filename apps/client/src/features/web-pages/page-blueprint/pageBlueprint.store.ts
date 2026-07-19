@@ -181,13 +181,19 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   function createRepeatBindingForConnection(
     from: PageBlueprintConnectionEndpoint,
     to: PageBlueprintConnectionEndpoint,
+    originalTo: PageBlueprintConnectionEndpoint = to,
   ) {
     if (!isBlueprintRepeatFieldId(to.fieldId)) return null
     const sourceField = document.value.nodes
       .find((node) => node.id === from.nodeId)
       ?.fields.find((field) => field.id === from.fieldId)
     if (!isBlueprintRepeatSourceField(sourceField)) return null
-    return createRepeatBinding(from, to.nodeId, elementIdFromNodeId(to.nodeId))
+    return createRepeatBinding(
+      from,
+      to.nodeId,
+      elementIdFromNodeId(to.nodeId),
+      originalTo.nodeId.startsWith('blueprint-component:') ? 'self' : 'children',
+    )
   }
 
   function connectFields(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
@@ -195,7 +201,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
     const expression = createConnectionExpression(from)
     const resolvedTo = resolveComponentPortEndpoint(to)
-    const repeatBinding = createRepeatBindingForConnection(from, resolvedTo)
+    const repeatBinding = createRepeatBindingForConnection(from, resolvedTo, to)
     const connection = {
       id: createConnectionId(from, to),
       from,

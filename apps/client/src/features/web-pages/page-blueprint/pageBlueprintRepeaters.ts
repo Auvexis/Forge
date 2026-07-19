@@ -48,6 +48,7 @@ export function createRepeatBinding(
   source: PageBlueprintConnectionEndpoint,
   targetNodeId: string,
   targetElementId: string,
+  targetMode: PageBlueprintRepeatBinding['targetMode'] = 'children',
 ): PageBlueprintRepeatBinding {
   return {
     id: repeatBindingId(source, targetNodeId),
@@ -57,6 +58,7 @@ export function createRepeatBinding(
     },
     targetNodeId,
     targetElementId,
+    targetMode,
     collectionPath: collectionPathFromFieldId(source.fieldId),
     itemAlias: 'item',
     createdAt: new Date().toISOString(),
