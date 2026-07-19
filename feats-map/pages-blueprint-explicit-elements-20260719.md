@@ -1,0 +1,7 @@
+- [x] Adicionar grupos ao JSON
+- [x] Enviar elementos pelo Tree
+- [x] Criar grupos explicitos
+- [x] Remover grupos automaticos
+- [x] Adicionar Tree de componentes/grupos
+- [x] Validar build/typecheck
+- [x] Commitar alteracoes

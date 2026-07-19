@@ -69,6 +69,8 @@
         @duplicate-page="duplicatePageFromTree"
         @delete-block="deleteBlockFromTree"
         @duplicate-block="duplicateBlockFromTree"
+        @send-to-blueprint="sendBlocksToBlueprint"
+        @send-to-blueprint-group="sendBlocksToBlueprintGroup"
         @move-block="moveBlockFromTree"
         @open-file="openCodeFile"
         @create-file="createCodeFile"
@@ -92,6 +94,7 @@
     >
       <PageBlueprintToolboxPanel
         :components="blueprintStore.document.components"
+        :blueprint-groups="blueprintStore.document.groups"
         @add-utility-node="addBlueprintUtilityNode"
         @create-component-from-root="createBlueprintComponentFromRoot"
         @select-component="selectBlueprintComponent"
@@ -1431,6 +1434,19 @@ function deleteBlockFromTree(blockId: string) {
 
 function duplicateBlockFromTree(blockId: string) {
   editorStore.duplicateBlock(blockId)
+}
+
+function sendBlocksToBlueprint(blockIds: string[]) {
+  const nodeIds = blueprintStore.sendElementsToBlueprint(blockIds, editorStore.blocks)
+  if (nodeIds.length > 0) {
+    blueprintSelectedNodeId.value = nodeIds.at(-1) ?? null
+    activePageDocument.value = 'blueprint'
+  }
+}
+
+function sendBlocksToBlueprintGroup(blockIds: string[]) {
+  const groupId = blueprintStore.sendElementsToBlueprintAsGroup(blockIds, editorStore.blocks)
+  if (groupId) activePageDocument.value = 'blueprint'
 }
 
 function moveBlockFromTree(payload: { targetId: string; position: InsertPosition; draggedId: string }) {

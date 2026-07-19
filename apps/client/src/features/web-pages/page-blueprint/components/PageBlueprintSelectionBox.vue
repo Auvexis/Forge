@@ -17,6 +17,15 @@
       <button
         class="web-page-blueprint-selection-box__button"
         type="button"
+        title="Create group"
+        @click.stop="$emit('createGroup')"
+      >
+        <LucideIcon name="group" :size="13" />
+        <span>Group</span>
+      </button>
+      <button
+        class="web-page-blueprint-selection-box__button"
+        type="button"
         title="Create component"
         @click.stop="$emit('createComponent')"
       >
@@ -62,6 +71,7 @@ const props = withDefaults(defineProps<{
 })
 
 const emit = defineEmits<{
+  createGroup: []
   createComponent: []
   duplicateSelection: []
   deleteSelection: []

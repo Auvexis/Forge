@@ -39,6 +39,7 @@ import type {
   PageBlueprintFieldMode,
   PageBlueprintFieldType,
   PageBlueprintComponentNode,
+  PageBlueprintGroup,
   PageBlueprintUtilityNodeType,
 } from './pageBlueprintSchema.ts'
 
@@ -107,20 +108,14 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     const retainedNodes = document.value.nodes.filter((node) =>
       node.kind !== 'element' || liveElementNodeIds.has(node.id),
     )
-    const existingNodeIds = new Set(retainedNodes.map((node) => node.id))
     const nextNodes = retainedNodes.map((node) => {
       const block = blocksByNodeId.get(node.id)
       if (node.kind !== 'element' || !block) return node
       return syncElementNode(node, block)
     })
 
-    for (const block of pageBlocks) {
-      const nodeId = elementNodeIdFromBlockId(block.id)
-      if (existingNodeIds.has(nodeId)) continue
-      nextNodes.push(createElementNodeFromBlock(block))
-    }
-
     const nextComponents = cleanupComponents(document.value.components, new Set(nextNodes.map((node) => node.id)))
+    const nextGroups = cleanupGroups(document.value.groups, new Set(nextNodes.map((node) => node.id)))
     const componentNodeIds = new Set(nextComponents.map((component) => componentNodeId(component.id)))
     const syncedNodes = syncComponentNodeFields({
       ...document.value,
@@ -143,6 +138,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     const nextPatch = {
       nodes: syncedNodes,
       components: nextComponents,
+      groups: nextGroups,
       connections: nextConnections,
       repeatBindings: nextRepeatBindings,
       nodeLayouts: nextNodeLayouts,
@@ -150,6 +146,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     if (JSON.stringify(nextPatch) === JSON.stringify({
       nodes: document.value.nodes,
       components: document.value.components,
+      groups: document.value.groups,
       connections: document.value.connections,
       repeatBindings: document.value.repeatBindings,
       nodeLayouts: document.value.nodeLayouts,
@@ -740,6 +737,40 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     deleteNode(nodeId)
   }
 
+  function sendElementsToBlueprint(blockIds: string[], blocks: PageBlock[]) {
+    const nextNodes = ensureElementNodes(document.value.nodes, blockIds, blocks, false)
+    const nodeIds = blockIds
+      .map(elementNodeIdFromBlockId)
+      .filter((nodeId) => nextNodes.some((node) => node.id === nodeId))
+    if (JSON.stringify(nextNodes) !== JSON.stringify(document.value.nodes)) {
+      patchDocument({ nodes: syncComponentNodeFields({ ...document.value, nodes: nextNodes }) })
+    }
+    return nodeIds
+  }
+
+  function sendElementsToBlueprintAsGroup(blockIds: string[], blocks: PageBlock[]) {
+    const nodeIds = sendElementsToBlueprint(blockIds, blocks)
+    return createGroupFromSelection(nodeIds.length ? nodeIds : blockIds.map(elementNodeIdFromBlockId))
+  }
+
+  function createGroupFromSelection(nodeIds: string[]) {
+    const uniqueNodeIds = [...new Set(nodeIds)].filter((nodeId) =>
+      document.value.nodes.some((node) => node.id === nodeId),
+    )
+    if (uniqueNodeIds.length < 2) return null
+
+    const now = new Date().toISOString()
+    const group: PageBlueprintGroup = {
+      id: `blueprint-group:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
+      name: `Group ${document.value.groups.length + 1}`,
+      nodeIds: uniqueNodeIds,
+      createdAt: now,
+      updatedAt: now,
+    }
+    patchDocument({ groups: [...document.value.groups, group] })
+    return group.id
+  }
+
   function beginHistoryBatch() {
     historyBatchSnapshot ??= serialize(document.value)
   }
@@ -758,8 +789,17 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   }
 
   function createComponentFromSelection(nodeIds: string[], blocks: PageBlock[]) {
+    const blockIds = nodeIds
+      .map((nodeId) => elementIdFromNodeId(nodeId))
+      .filter(Boolean)
+    const sourceDocument = blockIds.length > 0
+      ? {
+        ...document.value,
+        nodes: ensureElementNodes(document.value.nodes, blockIds, blocks, nodeIds.length === 1),
+      }
+      : document.value
     const result = createPageComponentFromNodeSelection({
-      document: document.value,
+      document: sourceDocument,
       blocks,
       nodeIds,
     })
@@ -767,7 +807,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
     patchDocument({
       components: [...document.value.components, result.component],
-      nodes: [...document.value.nodes, result.node],
+      nodes: [...sourceDocument.nodes, result.node],
       nodeLayouts: {
         ...document.value.nodeLayouts,
         [result.node.id]: result.layout,
@@ -922,6 +962,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     setElementRepeatEnabled,
     beginHistoryBatch,
     commitHistoryBatch,
+    sendElementsToBlueprint,
+    sendElementsToBlueprintAsGroup,
+    createGroupFromSelection,
     createComponentFromSelection,
     setComponentName,
     setComponentPortLabel,
@@ -944,6 +987,30 @@ function cloneBlueprintNode(source: PageBlueprintDocument['nodes'][number]): Pag
     })),
     data: source.data ? { ...source.data } : source.data,
   }
+}
+
+function ensureElementNodes(
+  nodes: PageBlueprintDocument['nodes'],
+  blockIds: string[],
+  blocks: PageBlock[],
+  includeDescendants: boolean,
+) {
+  const requestedBlockIds = new Set(blockIds)
+  const selectedBlocks = flattenPageBlocks(blocks).filter((block) => requestedBlockIds.has(block.id))
+  const blocksToAdd = includeDescendants
+    ? selectedBlocks.flatMap((block) => flattenPageBlocks([block]))
+    : selectedBlocks
+  const existingNodeIds = new Set(nodes.map((node) => node.id))
+  const nextNodes = [...nodes]
+
+  for (const block of blocksToAdd) {
+    const nodeId = elementNodeIdFromBlockId(block.id)
+    if (existingNodeIds.has(nodeId)) continue
+    nextNodes.push(createElementNodeFromBlock(block))
+    existingNodeIds.add(nodeId)
+  }
+
+  return nextNodes
 }
 
 function createElementNodeFromBlock(block: PageBlock): PageBlueprintDocument['nodes'][number] {
@@ -1187,6 +1254,18 @@ function cleanupComponents(
     .filter((component) => component.nodeIds.length > 0)
 }
 
+function cleanupGroups(
+  groups: PageBlueprintDocument['groups'],
+  validNodeIds: Set<string>,
+): PageBlueprintDocument['groups'] {
+  return groups
+    .map((group) => ({
+      ...group,
+      nodeIds: group.nodeIds.filter((nodeId) => validNodeIds.has(nodeId)),
+    }))
+    .filter((group) => group.nodeIds.length >= 2)
+}
+
 function endpointExists(
   endpoint: PageBlueprintConnectionEndpoint,
   validNodeIds: Set<string>,
@@ -1229,6 +1308,7 @@ function serializeForDiff(document: PageBlueprintDocument) {
     nodeLayouts: document.nodeLayouts,
     nodes: document.nodes,
     components: document.components,
+    groups: document.groups,
     connections: document.connections,
     repeatBindings: document.repeatBindings,
     collapsedGroups: document.collapsedGroups,

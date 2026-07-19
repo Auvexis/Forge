@@ -25,6 +25,8 @@
         @duplicate-page="$emit('duplicate-page', $event)"
         @delete-block="$emit('delete-block', $event)"
         @duplicate-block="$emit('duplicate-block', $event)"
+        @send-to-blueprint="$emit('send-to-blueprint', $event)"
+        @send-to-blueprint-group="$emit('send-to-blueprint-group', $event)"
         @move-block="$emit('move-block', $event)"
       />
 
@@ -78,6 +80,8 @@ defineEmits<{
   'duplicate-page': [pageId: string]
   'delete-block': [blockId: string]
   'duplicate-block': [blockId: string]
+  'send-to-blueprint': [blockIds: string[]]
+  'send-to-blueprint-group': [blockIds: string[]]
   'move-block': [payload: { targetId: string; position: InsertPosition; draggedId: string }]
   'open-file': [file: SiteFile]
   'create-file': [path: string]

@@ -113,3 +113,12 @@ export interface PageBlueprintComponent {
   createdAt: string
   updatedAt: string
 }
+
+export interface PageBlueprintGroup {
+  id: string
+  name: string
+  nodeIds: string[]
+  parentId?: string
+  createdAt: string
+  updatedAt: string
+}

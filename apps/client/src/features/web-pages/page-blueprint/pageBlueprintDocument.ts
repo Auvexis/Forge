@@ -2,6 +2,7 @@ import type { BaseCanvasViewport } from '@/shared/base-canvas/index.ts'
 import type {
   PageBlueprintComponent,
   PageBlueprintConnection,
+  PageBlueprintGroup,
   PageBlueprintNode,
   PageBlueprintRepeatBinding,
 } from './pageBlueprintSchema.ts'
@@ -20,6 +21,7 @@ export interface PageBlueprintDocument {
   nodeLayouts: Record<string, PageBlueprintNodeLayout>
   nodes: PageBlueprintNode[]
   components: PageBlueprintComponent[]
+  groups: PageBlueprintGroup[]
   connections: PageBlueprintConnection[]
   repeatBindings: PageBlueprintRepeatBinding[]
   collapsedGroups: string[]
@@ -33,6 +35,7 @@ export function createDefaultPageBlueprintDocument(): PageBlueprintDocument {
     nodeLayouts: {},
     nodes: [],
     components: [],
+    groups: [],
     connections: [],
     repeatBindings: [],
     collapsedGroups: [],
@@ -62,6 +65,7 @@ function normalizePageBlueprintDocument(input: Partial<PageBlueprintDocument>): 
     nodeLayouts: normalizeNodeLayouts(input.nodeLayouts ?? input.nodes),
     nodes: normalizeBlueprintNodes(input.nodes),
     components: normalizeComponents(input.components),
+    groups: normalizeGroups(input.groups),
     connections: normalizeConnections(input.connections),
     repeatBindings: normalizeRepeatBindings(input.repeatBindings),
     collapsedGroups: Array.isArray(input.collapsedGroups) ? input.collapsedGroups.filter((id) => typeof id === 'string') : [],
@@ -114,6 +118,14 @@ function normalizeComponents(components: unknown): PageBlueprintComponent[] {
 function normalizeRepeatBindings(bindings: unknown): PageBlueprintRepeatBinding[] {
   if (!Array.isArray(bindings)) return []
   return bindings.filter(isBlueprintRepeatBinding)
+}
+
+function normalizeGroups(groups: unknown): PageBlueprintGroup[] {
+  if (!Array.isArray(groups)) return []
+  return groups.filter(isBlueprintGroup).map((group) => ({
+    ...group,
+    nodeIds: group.nodeIds.filter((nodeId) => typeof nodeId === 'string'),
+  }))
 }
 
 function isBlueprintNode(value: unknown): value is PageBlueprintNode {
@@ -175,6 +187,16 @@ function isBlueprintComponentPort(value: unknown): value is PageBlueprintCompone
   return typeof port.id === 'string'
     && typeof port.label === 'string'
     && isConnectionEndpoint(port.target)
+}
+
+function isBlueprintGroup(value: unknown): value is PageBlueprintGroup {
+  if (!value || typeof value !== 'object') return false
+  const group = value as PageBlueprintGroup
+  return typeof group.id === 'string'
+    && typeof group.name === 'string'
+    && Array.isArray(group.nodeIds)
+    && typeof group.createdAt === 'string'
+    && typeof group.updatedAt === 'string'
 }
 
 function isConnectionEndpoint(value: unknown): value is PageBlueprintConnection['from'] {

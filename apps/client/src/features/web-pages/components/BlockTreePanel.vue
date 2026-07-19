@@ -48,6 +48,8 @@
             @add-page="$emit('add-page')"
             @delete-block="$emit('delete-block', $event)"
             @duplicate-block="$emit('duplicate-block', $event)"
+            @send-to-blueprint="$emit('send-to-blueprint', $event)"
+            @send-to-blueprint-group="$emit('send-to-blueprint-group', $event)"
             @move-block="$emit('move-block', $event)"
           />
         </div>
@@ -121,6 +123,17 @@
                 <LucideIcon name="ellipsis" :size="14" />
               </button>
             </template>
+            <AppDropdownItem
+              label="Send to Blueprint"
+              icon="send"
+              @click="$emit('send-to-blueprint', actionBlockIds(block.id))"
+            />
+            <AppDropdownItem
+              v-if="hasMultipleActionSelection(block.id)"
+              label="Send to Blueprint as Group"
+              icon="group"
+              @click="$emit('send-to-blueprint-group', actionBlockIds(block.id))"
+            />
             <AppDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-block', block.id)" />
             <AppDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-block', block.id)" />
           </AppDropdownMenu>
@@ -139,6 +152,8 @@
           @add-page="$emit('add-page')"
           @delete-block="$emit('delete-block', $event)"
           @duplicate-block="$emit('duplicate-block', $event)"
+          @send-to-blueprint="$emit('send-to-blueprint', $event)"
+          @send-to-blueprint-group="$emit('send-to-blueprint-group', $event)"
           @move-block="$emit('move-block', $event)"
         />
       </div>
@@ -182,6 +197,8 @@ const emit = defineEmits<{
   'duplicate-page': [pageId: string]
   'delete-block': [blockId: string]
   'duplicate-block': [blockId: string]
+  'send-to-blueprint': [blockIds: string[]]
+  'send-to-blueprint-group': [blockIds: string[]]
   'move-block': [payload: { targetId: string; position: InsertPosition; draggedId: string }]
 }>()
 
@@ -212,6 +229,16 @@ function selectTreeBlock(event: MouseEvent, blockId: string) {
     return
   }
   emit('select', blockId)
+}
+
+function actionBlockIds(blockId: string) {
+  return props.selectedBlockIds.includes(blockId) && props.selectedBlockIds.length > 1
+    ? props.selectedBlockIds
+    : [blockId]
+}
+
+function hasMultipleActionSelection(blockId: string) {
+  return actionBlockIds(blockId).length > 1
 }
 
 function startBlockIdEdit(blockId: string) {

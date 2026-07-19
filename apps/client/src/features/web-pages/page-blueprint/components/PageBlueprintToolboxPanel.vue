@@ -21,7 +21,7 @@
 
     <template v-if="activeTab === 'utilities'">
       <section
-        v-for="group in groups"
+        v-for="group in utilityGroups"
         :key="group.category"
         class="web-page-blueprint-toolbox__group"
       >
@@ -52,7 +52,7 @@
       <section class="web-page-blueprint-toolbox__group">
         <header>
           <span>Page Components</span>
-          <small>{{ components.length }}</small>
+          <small>{{ components.length + blueprintGroups.length }}</small>
         </header>
 
         <button
@@ -66,6 +66,21 @@
           <span>
             <strong>Create From Root</strong>
             <small>Use the selected root element or node selection.</small>
+          </span>
+        </button>
+
+        <button
+          v-for="group in blueprintGroups"
+          :key="group.id"
+          class="web-page-blueprint-toolbox__item"
+          type="button"
+        >
+          <span class="web-page-blueprint-toolbox__icon">
+            <LucideIcon name="group" :size="15" />
+          </span>
+          <span>
+            <strong>{{ group.name }}</strong>
+            <small>{{ group.nodeIds.length }} grouped nodes</small>
           </span>
         </button>
 
@@ -85,8 +100,8 @@
           </span>
         </button>
 
-        <p v-if="components.length === 0" class="web-page-blueprint-toolbox__empty">
-          No page components.
+        <p v-if="components.length === 0 && blueprintGroups.length === 0" class="web-page-blueprint-toolbox__empty">
+          No page components or groups.
         </p>
       </section>
     </template>
@@ -96,11 +111,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { PageBlueprintComponent, PageBlueprintUtilityNodeType } from '../pageBlueprintSchema.ts'
+import type { PageBlueprintComponent, PageBlueprintGroup, PageBlueprintUtilityNodeType } from '../pageBlueprintSchema.ts'
 import { pageBlueprintNodeDefinitionsByCategory } from '../pageBlueprintNodeRegistry.ts'
 
 defineProps<{
   components: PageBlueprintComponent[]
+  blueprintGroups: PageBlueprintGroup[]
 }>()
 
 defineEmits<{
@@ -110,5 +126,5 @@ defineEmits<{
 }>()
 
 const activeTab = ref<'utilities' | 'components'>('utilities')
-const groups = pageBlueprintNodeDefinitionsByCategory()
+const utilityGroups = pageBlueprintNodeDefinitionsByCategory()
 </script>
