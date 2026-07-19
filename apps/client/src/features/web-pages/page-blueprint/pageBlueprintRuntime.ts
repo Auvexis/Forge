@@ -174,7 +174,6 @@ function createCollectionBindingFromRepeatBinding(
     actionId,
     collectionPath: repeatBinding.collectionPath,
     targetElementId: repeatBinding.targetElementId,
-    targetMode: repeatBinding.targetMode,
     itemAlias: repeatBinding.itemAlias || 'item',
     mode: 'repeater',
     createdAt: new Date().toISOString(),
@@ -342,15 +341,13 @@ function applyPreviewRepeaters(blocks: PageBlock[], blueprint: PageBlueprintDocu
   const dataFlow = createBlueprintDataFlowContext(blueprint)
   const scopedConnections = runtimeConnections.filter((connection) => isBlueprintItemFieldId(connection.from.fieldId))
 
-  const repeatBlocks = (items: PageBlock[]): PageBlock[] => items.flatMap(repeatBlock)
-
-  const repeatBlock = (block: PageBlock): PageBlock[] => {
+  const repeatBlock = (block: PageBlock): PageBlock => {
     const repeatBinding = repeatBindings.find((binding) => binding.targetElementId === block.id)
     if (!repeatBinding) {
-      return [{
+      return {
         ...block,
-        children: repeatBlocks(block.children ?? []),
-      }]
+        children: (block.children ?? []).map(repeatBlock),
+      }
     }
 
     const collection = resolveBlueprintDataPath(
@@ -359,16 +356,10 @@ function applyPreviewRepeaters(blocks: PageBlock[], blueprint: PageBlueprintDocu
       'test',
     )
     if (!Array.isArray(collection)) {
-      return [{
+      return {
         ...block,
-        children: repeatBlocks(block.children ?? []),
-      }]
-    }
-
-    if (repeatBinding.targetMode === 'self') {
-      return collection.map((item, index) =>
-        clonePreviewRepeatBlock(block, index, item, repeatBinding, nodes, scopedConnections),
-      )
+        children: (block.children ?? []).map(repeatBlock),
+      }
     }
 
     const children = collection.flatMap((item, index) =>
@@ -381,10 +372,10 @@ function applyPreviewRepeaters(blocks: PageBlock[], blueprint: PageBlueprintDocu
         scopedConnections,
       )),
     )
-    return [{ ...block, children }]
+    return { ...block, children }
   }
 
-  return repeatBlocks(blocks)
+  return blocks.map(repeatBlock)
 }
 
 function clonePreviewRepeatBlock(

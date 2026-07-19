@@ -94,7 +94,6 @@ export interface PageActionCollectionBinding {
   actionId: string
   collectionPath: string
   targetElementId: string
-  targetMode?: 'children' | 'self'
   itemAlias: string
   mode?: 'repeater' | 'table'
   createdAt: string

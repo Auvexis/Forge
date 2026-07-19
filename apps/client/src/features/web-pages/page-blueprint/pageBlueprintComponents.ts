@@ -10,6 +10,7 @@ import type {
 import { PAGE_BLUEPRINT_REPEAT_FIELD_ID } from './pageBlueprintRepeaters.ts'
 
 export const PAGE_BLUEPRINT_COMPONENT_NODE_PREFIX = 'blueprint-component:'
+export const PAGE_BLUEPRINT_COMPONENT_REPEAT_OUTPUT_FIELD_ID = 'repeat:output'
 
 export function createPageComponentFromNodeSelection(input: {
   document: PageBlueprintDocument
@@ -73,6 +74,7 @@ export function componentIdFromNodeId(nodeId: string) {
 export function createComponentNodeFields(component: PageBlueprintComponent): PageBlueprintField[] {
   return [
     componentRepeatField(),
+    componentRepeatOutputField(),
     ...component.events.map((event) => componentPortField(event, 'event')),
     ...component.props.map((prop) => componentPortField(prop, 'prop')),
   ]
@@ -85,12 +87,6 @@ export function componentPortTarget(
 ) {
   const componentId = componentIdFromNodeId(nodeId)
   const component = document.components.find((item) => item.id === componentId)
-  if (component && fieldId === PAGE_BLUEPRINT_REPEAT_FIELD_ID) {
-    return {
-      nodeId: component.rootNodeId,
-      fieldId: PAGE_BLUEPRINT_REPEAT_FIELD_ID,
-    }
-  }
   const port = component
     ? [...component.props, ...component.events].find((item) => item.id === fieldId)
     : null
@@ -170,6 +166,17 @@ function componentRepeatField(): PageBlueprintField {
     direction: 'input',
     mode: 'multiple',
     configurable: true,
+  }
+}
+
+function componentRepeatOutputField(): PageBlueprintField {
+  return {
+    id: PAGE_BLUEPRINT_COMPONENT_REPEAT_OUTPUT_FIELD_ID,
+    label: 'Repeat',
+    type: 'array',
+    direction: 'output',
+    mode: 'multiple',
+    configurable: false,
   }
 }
 

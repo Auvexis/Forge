@@ -14,6 +14,7 @@ import {
   componentIdFromNodeId,
   componentNodeId,
   componentPortTarget,
+  PAGE_BLUEPRINT_COMPONENT_REPEAT_OUTPUT_FIELD_ID,
   createComponentNodeFields,
   createPageComponentFromNodeSelection,
   syncComponentNodeFields,
@@ -181,19 +182,24 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
   function createRepeatBindingForConnection(
     from: PageBlueprintConnectionEndpoint,
     to: PageBlueprintConnectionEndpoint,
-    originalTo: PageBlueprintConnectionEndpoint = to,
   ) {
     if (!isBlueprintRepeatFieldId(to.fieldId)) return null
+    if (to.nodeId.startsWith('blueprint-component:')) return null
+    const repeatSource = resolveRepeatSourceEndpoint(from)
+    if (!repeatSource) return null
     const sourceField = document.value.nodes
-      .find((node) => node.id === from.nodeId)
-      ?.fields.find((field) => field.id === from.fieldId)
+      .find((node) => node.id === repeatSource.nodeId)
+      ?.fields.find((field) => field.id === repeatSource.fieldId)
     if (!isBlueprintRepeatSourceField(sourceField)) return null
-    return createRepeatBinding(
-      from,
-      to.nodeId,
-      elementIdFromNodeId(to.nodeId),
-      originalTo.nodeId.startsWith('blueprint-component:') ? 'self' : 'children',
+    return createRepeatBinding(repeatSource, to.nodeId, elementIdFromNodeId(to.nodeId))
+  }
+
+  function resolveRepeatSourceEndpoint(from: PageBlueprintConnectionEndpoint): PageBlueprintConnectionEndpoint | null {
+    if (from.fieldId !== PAGE_BLUEPRINT_COMPONENT_REPEAT_OUTPUT_FIELD_ID) return from
+    const sourceConnection = document.value.connections.find((connection) =>
+      connection.to.nodeId === from.nodeId && connection.to.fieldId === PAGE_BLUEPRINT_REPEAT_FIELD_ID,
     )
+    return sourceConnection?.from ?? null
   }
 
   function connectFields(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
@@ -201,7 +207,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
 
     const expression = createConnectionExpression(from)
     const resolvedTo = resolveComponentPortEndpoint(to)
-    const repeatBinding = createRepeatBindingForConnection(from, resolvedTo, to)
+    const repeatBinding = createRepeatBindingForConnection(from, resolvedTo)
     const connection = {
       id: createConnectionId(from, to),
       from,
@@ -221,7 +227,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
         ]
         : isBlueprintRepeatFieldId(resolvedTo.fieldId)
           ? document.value.repeatBindings.filter((item) => item.targetNodeId !== resolvedTo.nodeId)
-          : document.value.repeatBindings,
+          : updateRepeatBindingsForComponentSource(document.value.repeatBindings, to, from),
       nodes: patchConnectedTargetField(
         patchNodeField(document.value.nodes, to.nodeId, to.fieldId, { expression }),
         to,
@@ -230,6 +236,36 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
 
     return connection.id
+  }
+
+  function updateRepeatBindingsForComponentSource(
+    repeatBindings: PageBlueprintDocument['repeatBindings'],
+    to: PageBlueprintConnectionEndpoint,
+    from: PageBlueprintConnectionEndpoint,
+  ) {
+    if (!to.nodeId.startsWith('blueprint-component:') || to.fieldId !== PAGE_BLUEPRINT_REPEAT_FIELD_ID) return repeatBindings
+    const sourceField = document.value.nodes
+      .find((node) => node.id === from.nodeId)
+      ?.fields.find((field) => field.id === from.fieldId)
+    if (!isBlueprintRepeatSourceField(sourceField)) return repeatBindings
+
+    const componentRepeatConnections = document.value.connections.filter((connection) =>
+      connection.from.nodeId === to.nodeId
+        && connection.from.fieldId === PAGE_BLUEPRINT_COMPONENT_REPEAT_OUTPUT_FIELD_ID
+        && isBlueprintRepeatFieldId(resolveComponentPortEndpoint(connection.to).fieldId),
+    )
+    if (componentRepeatConnections.length === 0) return repeatBindings
+
+    const nextBindings = repeatBindings.filter((binding) =>
+      !componentRepeatConnections.some((connection) => binding.targetNodeId === resolveComponentPortEndpoint(connection.to).nodeId),
+    )
+    for (const connection of componentRepeatConnections) {
+      const target = resolveComponentPortEndpoint(connection.to)
+      const targetElementId = elementIdFromNodeId(target.nodeId)
+      if (!targetElementId) continue
+      nextBindings.push(createRepeatBinding(from, target.nodeId, targetElementId))
+    }
+    return nextBindings
   }
 
   function removeConnection(connectionId: string) {
