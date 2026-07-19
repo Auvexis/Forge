@@ -540,12 +540,12 @@ function deleteCanvasNode(nodeId: string) {
 }
 
 function deleteSelection() {
-  const manageableNodeIds = selection.value.filter((nodeId) => canManageNodeId(nodeId))
-  manageableNodeIds.forEach((nodeId) => {
+  const deletableNodeIds = selection.value.filter((nodeId) => canDeleteNodeId(nodeId))
+  deletableNodeIds.forEach((nodeId) => {
     blueprintStore.removeNode?.(nodeId) ?? blueprintStore.deleteNode(nodeId)
   })
-  selection.value = selection.value.filter((nodeId) => !manageableNodeIds.includes(nodeId))
-  if (pendingOutput.value && manageableNodeIds.includes(pendingOutput.value.nodeId)) {
+  selection.value = selection.value.filter((nodeId) => !deletableNodeIds.includes(nodeId))
+  if (pendingOutput.value && deletableNodeIds.includes(pendingOutput.value.nodeId)) {
     pendingOutput.value = null
     pendingPointer.value = null
   }
@@ -567,6 +567,10 @@ function createGroupFromSelection() {
 function canManageNodeId(nodeId: string) {
   const item = canvasItems.value.find((candidate) => candidate.id === nodeId)
   return Boolean(item && canManageNode(item))
+}
+
+function canDeleteNodeId(nodeId: string) {
+  return document.value.nodes.some((node) => node.id === nodeId)
 }
 
 function connectionFields(item: BaseCanvasItem) {

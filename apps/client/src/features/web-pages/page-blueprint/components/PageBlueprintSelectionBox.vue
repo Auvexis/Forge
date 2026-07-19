@@ -43,7 +43,7 @@
       <button
         class="web-page-blueprint-selection-box__button web-page-blueprint-selection-box__button--danger"
         type="button"
-        title="Delete selected utility nodes"
+        title="Delete selected nodes"
         @click.stop="$emit('deleteSelection')"
       >
         <LucideIcon name="trash-2" :size="13" />

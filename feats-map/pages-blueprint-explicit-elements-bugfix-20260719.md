@@ -1,0 +1,4 @@
+- [x] Revisar fluxo explicito do Blueprint
+- [x] Permitir remover element nodes enviados explicitamente
+- [x] Validar typecheck/build
+- [x] Commitar correcao
