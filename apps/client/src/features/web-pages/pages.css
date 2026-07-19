@@ -384,40 +384,6 @@
   gap: var(--fabric-space-1);
 }
 
-.web-page-blueprint-toolbox-tabs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  min-height: 28px;
-  border-bottom: 1px solid var(--fabric-border-subtle);
-}
-
-.web-page-blueprint-toolbox-tabs__item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  min-width: 0;
-  border-bottom: 2px solid transparent;
-  color: var(--fabric-text-muted);
-  font-size: 10px;
-}
-
-.web-page-blueprint-toolbox-tabs__item:hover {
-  color: var(--fabric-text-primary);
-  background: color-mix(in srgb, var(--fabric-bg-elevated) 52%, transparent);
-}
-
-.web-page-blueprint-toolbox-tabs__item.is-active {
-  border-bottom-color: var(--fabric-accent);
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-base);
-}
-
-.web-page-blueprint-toolbox-tabs__item small {
-  font: 10px var(--fabric-font-mono);
-  color: var(--fabric-text-muted);
-}
-
 .web-page-blueprint-toolbox__group > header {
   display: flex;
   align-items: center;
@@ -491,78 +457,12 @@
 }
 
 .web-page-blueprint-components-tree {
-  display: grid;
-  align-content: start;
-  gap: 1px;
   min-width: 0;
 }
 
-.web-page-blueprint-components-tree__section {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 24px;
-  padding: 8px 4px 2px;
-  color: var(--fabric-text-muted);
-  font-size: 10px;
-  text-transform: uppercase;
-}
-
-.web-page-blueprint-components-tree__section small {
-  font: 10px var(--fabric-font-mono);
-}
-
-.web-page-blueprint-components-tree__item {
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  align-items: center;
-  gap: 6px;
-  min-height: 30px;
-  padding: 3px 6px;
-  border-radius: 3px;
-  color: var(--fabric-text-secondary);
-  text-align: left;
-}
-
-.web-page-blueprint-components-tree__item:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-hover);
-}
-
-.web-page-blueprint-components-tree__item--action {
+.web-page-blueprint-components-tree__action {
+  width: 100%;
   margin-bottom: 4px;
-  border: 1px solid var(--fabric-border-subtle);
-  background: var(--fabric-bg-base);
-}
-
-.web-page-blueprint-components-tree__icon {
-  display: grid;
-  width: 18px;
-  height: 18px;
-  place-items: center;
-  color: var(--fabric-accent);
-}
-
-.web-page-blueprint-components-tree__main {
-  display: grid;
-  min-width: 0;
-}
-
-.web-page-blueprint-components-tree__main strong,
-.web-page-blueprint-components-tree__main small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.web-page-blueprint-components-tree__main strong {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.web-page-blueprint-components-tree__main small {
-  color: var(--fabric-text-muted);
-  font: 9px var(--fabric-font-mono);
 }
 
 .web-page-blueprint-inspector {

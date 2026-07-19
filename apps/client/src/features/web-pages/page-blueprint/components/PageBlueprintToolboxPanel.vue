@@ -1,6 +1,10 @@
 <template>
   <div class="web-page-blueprint-toolbox">
-    <BlueprintToolboxTabs v-model="activeTab" :tabs="tabs" />
+    <BaseSegmentedSelect
+      v-model="activeTab"
+      :options="tabs"
+      aria-label="Blueprint toolbox sections"
+    />
 
     <template v-if="activeTab === 'utilities'">
       <section
@@ -44,11 +48,11 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlueprintComponent, PageBlueprintGroup, PageBlueprintUtilityNodeType } from '../pageBlueprintSchema.ts'
 import { pageBlueprintNodeDefinitionsByCategory } from '../pageBlueprintNodeRegistry.ts'
 import BlueprintComponentsTree from './BlueprintComponentsTree.vue'
-import BlueprintToolboxTabs from './BlueprintToolboxTabs.vue'
 
 const props = defineProps<{
   components: PageBlueprintComponent[]
@@ -63,8 +67,8 @@ defineEmits<{
 
 const activeTab = ref<'utilities' | 'components'>('utilities')
 const utilityGroups = pageBlueprintNodeDefinitionsByCategory()
-const tabs = computed(() => [
-  { id: 'utilities', label: 'Utilities', icon: 'blocks', count: utilityGroups.reduce((sum, group) => sum + group.items.length, 0) },
-  { id: 'components', label: 'Components', icon: 'component', count: props.components.length + props.blueprintGroups.length },
+const tabs = computed<BaseSegmentedSelectOption[]>(() => [
+  { value: 'utilities', label: `Utilities ${utilityGroups.reduce((sum, group) => sum + group.items.length, 0)}`, icon: 'blocks' },
+  { value: 'components', label: `Components ${props.components.length + props.blueprintGroups.length}`, icon: 'component' },
 ])
 </script>
