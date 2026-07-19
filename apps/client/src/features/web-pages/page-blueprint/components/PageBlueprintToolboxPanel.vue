@@ -39,8 +39,9 @@
       <BlueprintComponentsTree
         :components="components"
         :groups="blueprintGroups"
-        @create-component-from-root="$emit('createComponentFromRoot')"
+        :nodes="nodes"
         @select-component="$emit('selectComponent', $event)"
+        @select-node="$emit('selectNode', $event)"
       />
     </template>
   </div>
@@ -50,25 +51,31 @@
 import { computed, ref } from 'vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import type { PageBlueprintComponent, PageBlueprintGroup, PageBlueprintUtilityNodeType } from '../pageBlueprintSchema.ts'
+import type {
+  PageBlueprintComponent,
+  PageBlueprintGroup,
+  PageBlueprintNode,
+  PageBlueprintUtilityNodeType,
+} from '../pageBlueprintSchema.ts'
 import { pageBlueprintNodeDefinitionsByCategory } from '../pageBlueprintNodeRegistry.ts'
 import BlueprintComponentsTree from './BlueprintComponentsTree.vue'
 
-const props = defineProps<{
+defineProps<{
   components: PageBlueprintComponent[]
   blueprintGroups: PageBlueprintGroup[]
+  nodes: PageBlueprintNode[]
 }>()
 
 defineEmits<{
   addUtilityNode: [type: PageBlueprintUtilityNodeType]
-  createComponentFromRoot: []
   selectComponent: [componentId: string]
+  selectNode: [nodeId: string]
 }>()
 
 const activeTab = ref<'utilities' | 'components'>('utilities')
 const utilityGroups = pageBlueprintNodeDefinitionsByCategory()
 const tabs = computed<BaseSegmentedSelectOption[]>(() => [
-  { value: 'utilities', label: `Utilities ${utilityGroups.reduce((sum, group) => sum + group.items.length, 0)}`, icon: 'blocks' },
-  { value: 'components', label: `Components ${props.components.length + props.blueprintGroups.length}`, icon: 'component' },
+  { value: 'utilities', label: 'Utilities', icon: 'blocks' },
+  { value: 'components', label: 'Components', icon: 'component' },
 ])
 </script>

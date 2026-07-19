@@ -95,9 +95,10 @@
       <PageBlueprintToolboxPanel
         :components="blueprintStore.document.components"
         :blueprint-groups="blueprintStore.document.groups"
+        :nodes="blueprintStore.document.nodes"
         @add-utility-node="addBlueprintUtilityNode"
-        @create-component-from-root="createBlueprintComponentFromRoot"
         @select-component="selectBlueprintComponent"
+        @select-node="blueprintSelectedNodeId = $event"
       />
     </AppPanel>
 
@@ -917,13 +918,6 @@ function closeBlueprintToolbox() {
 
 function addBlueprintUtilityNode(type: PageBlueprintUtilityNodeType) {
   blueprintStore.addUtilityNode(type)
-}
-
-function createBlueprintComponentFromRoot() {
-  const selectedNodeId = blueprintSelectedNodeId.value
-  if (!selectedNodeId) return
-  const componentNode = blueprintStore.createComponentFromSelection([selectedNodeId], editorStore.blocks)
-  if (componentNode) blueprintSelectedNodeId.value = componentNode
 }
 
 function selectBlueprintComponent(componentId: string) {

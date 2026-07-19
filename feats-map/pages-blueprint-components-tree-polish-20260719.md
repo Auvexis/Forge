@@ -1,0 +1,6 @@
+- [x] Remover contadores das abas
+- [x] Remover Create From Root
+- [x] Renderizar filhos na tree
+- [x] Copiar expand/collapse e menu da Design Tree
+- [x] Validar build/typecheck
+- [x] Commitar alteracoes

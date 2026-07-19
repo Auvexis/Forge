@@ -460,11 +460,6 @@
   min-width: 0;
 }
 
-.web-page-blueprint-components-tree__action {
-  width: 100%;
-  margin-bottom: 4px;
-}
-
 .web-page-blueprint-inspector {
   display: block;
   width: 100%;
