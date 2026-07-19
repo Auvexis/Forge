@@ -1,0 +1,4 @@
+- [x] Suportar props HTML em output bindings
+- [x] Ajustar escopo de componente repeat
+- [x] Validar build/typecheck
+- [x] Commitar alteracoes

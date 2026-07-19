@@ -244,7 +244,7 @@ function createScopedOutputBindingFromConnection(
     sourceBelongsToRepeatBinding(
       { ...connection.from, fieldId: collectionFieldIdFromItemFieldId(connection.from.fieldId) },
       binding,
-    ) && isPageBlockDescendantOf(parents, elementBlockId(elementNode.id), binding.targetElementId),
+    ) && isSameOrDescendant(parents, elementBlockId(elementNode.id), binding.targetElementId),
   )
   if (!repeatBinding) return null
 
@@ -277,7 +277,23 @@ function outputTargetForField(block: PageBlock, fieldId: string): PageActionElem
   if (fieldId === 'text' || fieldId === 'label') {
     return { elementId: block.id, property: 'text', label: blockLabel(block, 'Text') }
   }
+  if (fieldId === 'src') {
+    return { elementId: block.id, property: 'src', label: blockLabel(block, 'Source') }
+  }
+  if (fieldId === 'alt') {
+    return { elementId: block.id, property: 'alt', label: blockLabel(block, 'Alt') }
+  }
+  if (fieldId === 'class') {
+    return { elementId: block.id, property: 'class', label: blockLabel(block, 'Class') }
+  }
+  if (fieldId === 'id') {
+    return { elementId: block.id, property: 'id', label: blockLabel(block, 'Element ID') }
+  }
   return null
+}
+
+function isSameOrDescendant(parents: Map<string, string | null>, childId: string, ancestorId: string) {
+  return childId === ancestorId || isPageBlockDescendantOf(parents, childId, ancestorId)
 }
 
 function resultPathForConnection(connection: PageBlueprintConnection, fromField: PageBlueprintField, targetValue: unknown) {

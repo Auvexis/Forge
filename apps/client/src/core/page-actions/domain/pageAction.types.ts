@@ -1,7 +1,7 @@
 export type PageActionTriggerType = 'manual' | 'form' | 'webhook'
 export type PageActionInputPrimitive = 'string' | 'number' | 'boolean' | 'object' | 'array' | 'file'
 export type PageActionRunStatus = 'idle' | 'running' | 'success' | 'error'
-export type PageActionBindableElementProperty = 'value' | 'checked' | 'text'
+export type PageActionBindableElementProperty = 'value' | 'checked' | 'text' | 'src' | 'alt' | 'class' | 'id'
 
 export interface PageActionInputField {
   key: string

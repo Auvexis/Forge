@@ -62,7 +62,7 @@ export interface PageBlock {
   children?: PageBlock[]
 }
 
-export type PageActionBindableElementProperty = 'value' | 'checked' | 'text'
+export type PageActionBindableElementProperty = 'value' | 'checked' | 'text' | 'src' | 'alt' | 'class' | 'id'
 
 export interface PageActionElementBindingTarget {
   elementId: string
