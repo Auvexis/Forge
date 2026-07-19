@@ -1,0 +1,4 @@
+- [x] Identificar bloqueio de conexao
+- [x] Resolver target interno do componente
+- [x] Validar build/typecheck
+- [x] Commitar correcao

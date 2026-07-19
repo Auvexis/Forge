@@ -121,6 +121,7 @@ import {
 } from './pageBlueprintFields.ts'
 import { pageBlockIcon } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
+import { componentPortTarget } from './pageBlueprintComponents.ts'
 import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
 import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
 import {
@@ -646,7 +647,8 @@ function fieldsForNode(nodeId: string) {
 
 function targetAcceptsItemField(from: PageBlueprintConnectionEndpoint, to: PageBlueprintConnectionEndpoint) {
   if (isBlueprintRepeatFieldId(to.fieldId)) return false
-  const targetElementId = elementIdFromNodeId(to.nodeId)
+  const resolvedTarget = componentPortTarget(document.value, to.nodeId, to.fieldId) ?? to
+  const targetElementId = elementIdFromNodeId(resolvedTarget.nodeId)
   if (!targetElementId) return false
   const repeatBinding = document.value.repeatBindings.find((binding) =>
     sourceBelongsToRepeatBinding(
