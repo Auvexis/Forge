@@ -30,10 +30,12 @@
         :viewport="viewport"
         :grid-size="24"
         :snap-to-grid="true"
+        :can-ungroup="Boolean(selectedGroupId)"
         @selection-move="moveCanvasItems"
         @selection-drag-start="startCanvasDragHistory"
         @selection-drag-end="finishCanvasDragHistory"
         @create-group="createGroupFromSelection"
+        @ungroup="ungroupSelection"
         @duplicate-selection="duplicateSelection"
         @delete-selection="deleteSelection"
         @create-component="createComponentFromSelection"
@@ -42,7 +44,10 @@
       <BaseComponentGroup
         v-for="group in canvasGroups"
         :key="group.id"
+        :id="group.id"
         :name="group.name"
+        :kind="group.kind"
+        :color="group.color"
         :child-count="group.childCount"
         :x="group.x"
         :y="group.y"
@@ -50,6 +55,8 @@
         :height="group.height"
         :selected="group.nodeIds.some((id) => selection.includes(id))"
         @drag-start="startGroupDrag(group.nodeIds, $event)"
+        @rename="renameCanvasGroup(group.id, $event)"
+        @update-color="blueprintStore.setGroupColor(group.id, $event)"
       />
 
       <template #item="{ item, selected }">
@@ -121,7 +128,7 @@ import {
 } from './pageBlueprintFields.ts'
 import { pageBlockIcon } from './pageBlueprintGroups.ts'
 import { usePageBlueprintStore } from './pageBlueprint.store.ts'
-import { componentPortTarget } from './pageBlueprintComponents.ts'
+import { componentIdFromNodeId, componentPortTarget } from './pageBlueprintComponents.ts'
 import { createBlueprintEventLabel } from './pageBlueprintEventLabels.ts'
 import { getPageBlueprintNodeDefinition } from './pageBlueprintNodeRegistry.ts'
 import {
@@ -221,6 +228,10 @@ const canvasGroups = computed(() => [
   ...buildSavedGroups(document.value.groups, canvasItems.value),
   ...buildComponentGroups(document.value.components, canvasItems.value),
 ])
+const selectedGroupId = computed(() => {
+  const selected = [...selection.value].sort().join('\u0000')
+  return document.value.groups.find((group) => [...group.nodeIds].sort().join('\u0000') === selected)?.id ?? null
+})
 const blockParentMap = computed(() => buildPageBlockParentMap(props.blocks))
 const connectionNodes = computed<PageBlueprintConnectionNode[]>(() =>
   canvasItems.value
@@ -574,6 +585,19 @@ function createGroupFromSelection() {
   blueprintStore.createGroupFromSelection(selection.value)
 }
 
+function ungroupSelection() {
+  if (!selectedGroupId.value) return
+  blueprintStore.deleteGroup(selectedGroupId.value)
+}
+
+function renameCanvasGroup(groupId: string, name: string) {
+  if (groupId.startsWith('blueprint-group:')) {
+    blueprintStore.setGroupName(groupId, name)
+    return
+  }
+  blueprintStore.setComponentName(componentIdFromNodeId(groupId), name)
+}
+
 function canManageNodeId(nodeId: string) {
   const item = canvasItems.value.find((candidate) => candidate.id === nodeId)
   return Boolean(item && canManageNode(item))
@@ -778,6 +802,7 @@ function buildComponentGroups(components: PageBlueprintComponent[], items: PageB
   return buildGroupFrames(components.map((component) => ({
     id: component.id,
     name: component.name,
+    kind: 'component' as const,
     nodeIds: component.nodeIds,
   })), items)
 }
@@ -786,11 +811,13 @@ function buildSavedGroups(groups: PageBlueprintGroup[], items: PageBlueprintCanv
   return buildGroupFrames(groups.map((group) => ({
     id: group.id,
     name: group.name,
+    kind: 'group' as const,
+    color: group.color,
     nodeIds: group.nodeIds,
   })), items)
 }
 
-function buildGroupFrames(groups: Array<{ id: string; name: string; nodeIds: string[] }>, items: PageBlueprintCanvasItem[]) {
+function buildGroupFrames(groups: Array<{ id: string; name: string; kind: 'group' | 'component'; color?: string; nodeIds: string[] }>, items: PageBlueprintCanvasItem[]) {
   const itemsById = new Map(items.map((item) => [item.id, item]))
   return groups.flatMap((group) => {
     const childItems = group.nodeIds
@@ -806,6 +833,8 @@ function buildGroupFrames(groups: Array<{ id: string; name: string; nodeIds: str
     return [{
       id: group.id,
       name: group.name,
+      kind: group.kind,
+      color: group.color ?? 'var(--fabric-accent)',
       nodeIds: group.nodeIds,
       childCount: childItems.length,
       x: minX,

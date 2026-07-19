@@ -1,23 +1,6 @@
 <template>
   <div class="web-page-blueprint-toolbox">
-    <nav class="web-page-blueprint-toolbox__tabs" aria-label="Blueprint toolbox sections">
-      <button
-        class="web-page-blueprint-toolbox__tab"
-        :class="{ 'is-active': activeTab === 'utilities' }"
-        type="button"
-        @click="activeTab = 'utilities'"
-      >
-        Utilities
-      </button>
-      <button
-        class="web-page-blueprint-toolbox__tab"
-        :class="{ 'is-active': activeTab === 'components' }"
-        type="button"
-        @click="activeTab = 'components'"
-      >
-        Components
-      </button>
-    </nav>
+    <BlueprintToolboxTabs v-model="activeTab" :tabs="tabs" />
 
     <template v-if="activeTab === 'utilities'">
       <section
@@ -49,72 +32,25 @@
     </template>
 
     <template v-else>
-      <section class="web-page-blueprint-toolbox__group">
-        <header>
-          <span>Page Components</span>
-          <small>{{ components.length + blueprintGroups.length }}</small>
-        </header>
-
-        <button
-          class="web-page-blueprint-toolbox__item"
-          type="button"
-          @click="$emit('createComponentFromRoot')"
-        >
-          <span class="web-page-blueprint-toolbox__icon">
-            <LucideIcon name="component" :size="15" />
-          </span>
-          <span>
-            <strong>Create From Root</strong>
-            <small>Use the selected root element or node selection.</small>
-          </span>
-        </button>
-
-        <button
-          v-for="group in blueprintGroups"
-          :key="group.id"
-          class="web-page-blueprint-toolbox__item"
-          type="button"
-        >
-          <span class="web-page-blueprint-toolbox__icon">
-            <LucideIcon name="group" :size="15" />
-          </span>
-          <span>
-            <strong>{{ group.name }}</strong>
-            <small>{{ group.nodeIds.length }} grouped nodes</small>
-          </span>
-        </button>
-
-        <button
-          v-for="component in components"
-          :key="component.id"
-          class="web-page-blueprint-toolbox__item"
-          type="button"
-          @click="$emit('selectComponent', component.id)"
-        >
-          <span class="web-page-blueprint-toolbox__icon">
-            <LucideIcon name="component" :size="15" />
-          </span>
-          <span>
-            <strong>{{ component.name }}</strong>
-            <small>{{ component.nodeIds.length }} nodes / {{ component.props.length }} props</small>
-          </span>
-        </button>
-
-        <p v-if="components.length === 0 && blueprintGroups.length === 0" class="web-page-blueprint-toolbox__empty">
-          No page components or groups.
-        </p>
-      </section>
+      <BlueprintComponentsTree
+        :components="components"
+        :groups="blueprintGroups"
+        @create-component-from-root="$emit('createComponentFromRoot')"
+        @select-component="$emit('selectComponent', $event)"
+      />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlueprintComponent, PageBlueprintGroup, PageBlueprintUtilityNodeType } from '../pageBlueprintSchema.ts'
 import { pageBlueprintNodeDefinitionsByCategory } from '../pageBlueprintNodeRegistry.ts'
+import BlueprintComponentsTree from './BlueprintComponentsTree.vue'
+import BlueprintToolboxTabs from './BlueprintToolboxTabs.vue'
 
-defineProps<{
+const props = defineProps<{
   components: PageBlueprintComponent[]
   blueprintGroups: PageBlueprintGroup[]
 }>()
@@ -127,4 +63,8 @@ defineEmits<{
 
 const activeTab = ref<'utilities' | 'components'>('utilities')
 const utilityGroups = pageBlueprintNodeDefinitionsByCategory()
+const tabs = computed(() => [
+  { id: 'utilities', label: 'Utilities', icon: 'blocks', count: utilityGroups.reduce((sum, group) => sum + group.items.length, 0) },
+  { id: 'components', label: 'Components', icon: 'component', count: props.components.length + props.blueprintGroups.length },
+])
 </script>

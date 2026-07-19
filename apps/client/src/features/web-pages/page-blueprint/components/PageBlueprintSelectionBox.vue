@@ -15,6 +15,16 @@
       </span>
       <div class="web-page-blueprint-selection-box__divider" />
       <button
+        v-if="canUngroup"
+        class="web-page-blueprint-selection-box__button"
+        type="button"
+        title="Ungroup"
+        @click.stop="$emit('ungroup')"
+      >
+        <LucideIcon name="ungroup" :size="13" />
+        <span>Ungroup</span>
+      </button>
+      <button
         class="web-page-blueprint-selection-box__button"
         type="button"
         title="Create group"
@@ -65,13 +75,16 @@ const props = withDefaults(defineProps<{
   viewport: BaseCanvasViewport
   gridSize?: number
   snapToGrid?: boolean
+  canUngroup?: boolean
 }>(), {
   gridSize: 24,
   snapToGrid: true,
+  canUngroup: false,
 })
 
 const emit = defineEmits<{
   createGroup: []
+  ungroup: []
   createComponent: []
   duplicateSelection: []
   deleteSelection: []

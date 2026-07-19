@@ -125,6 +125,7 @@ function normalizeGroups(groups: unknown): PageBlueprintGroup[] {
   return groups.filter(isBlueprintGroup).map((group) => ({
     ...group,
     nodeIds: group.nodeIds.filter((nodeId) => typeof nodeId === 'string'),
+    color: typeof group.color === 'string' ? group.color : undefined,
   }))
 }
 

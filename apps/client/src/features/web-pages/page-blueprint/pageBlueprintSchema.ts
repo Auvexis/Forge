@@ -119,6 +119,7 @@ export interface PageBlueprintGroup {
   name: string
   nodeIds: string[]
   parentId?: string
+  color?: string
   createdAt: string
   updatedAt: string
 }

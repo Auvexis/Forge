@@ -1765,6 +1765,10 @@ function handleKeyboardShortcuts(event: KeyboardEvent) {
   }
   if (event.key.toLowerCase() === 'b') {
     event.preventDefault()
+    if (isBlueprintDocumentActive.value) {
+      toggleBlueprintToolbox()
+      return
+    }
     toggleLeftPanel()
     return
   }

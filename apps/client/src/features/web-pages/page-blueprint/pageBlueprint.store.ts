@@ -806,11 +806,38 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
       id: `blueprint-group:${Date.now().toString(36)}:${Math.random().toString(36).slice(2, 7)}`,
       name: `Group ${document.value.groups.length + 1}`,
       nodeIds: uniqueNodeIds,
+      color: '#8b6fd6',
       createdAt: now,
       updatedAt: now,
     }
     patchDocument({ groups: [...document.value.groups, group] })
     return group.id
+  }
+
+  function deleteGroup(groupId: string) {
+    patchDocument({ groups: document.value.groups.filter((group) => group.id !== groupId) })
+  }
+
+  function setGroupName(groupId: string, name: string) {
+    const normalized = name.trim()
+    if (!normalized) return
+    const now = new Date().toISOString()
+    patchDocument({
+      groups: document.value.groups.map((group) =>
+        group.id === groupId ? { ...group, name: normalized, updatedAt: now } : group,
+      ),
+    })
+  }
+
+  function setGroupColor(groupId: string, color: string) {
+    const normalized = color.trim()
+    if (!normalized) return
+    const now = new Date().toISOString()
+    patchDocument({
+      groups: document.value.groups.map((group) =>
+        group.id === groupId ? { ...group, color: normalized, updatedAt: now } : group,
+      ),
+    })
   }
 
   function beginHistoryBatch() {
@@ -1007,6 +1034,9 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     sendElementsToBlueprint,
     sendElementsToBlueprintAsGroup,
     createGroupFromSelection,
+    deleteGroup,
+    setGroupName,
+    setGroupColor,
     createComponentFromSelection,
     setComponentName,
     setComponentPortLabel,
