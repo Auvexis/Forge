@@ -224,8 +224,12 @@ function togglePage(pageId: string) {
 }
 
 function selectTreeBlock(event: MouseEvent, blockId: string) {
-  if (event.ctrlKey || event.metaKey || event.shiftKey) {
+  if (event.shiftKey) {
     editorStore.selectBlockRange(blockId)
+    return
+  }
+  if (event.ctrlKey || event.metaKey) {
+    editorStore.toggleBlockSelection(blockId)
     return
   }
   emit('select', blockId)

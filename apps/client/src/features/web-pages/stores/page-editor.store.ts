@@ -5,6 +5,7 @@ import {
   deleteBlock as deleteTreeBlock,
   duplicateBlock as duplicateTreeBlock,
   findBlock as findTreeBlock,
+  flattenBlocks,
   insertBlock as insertTreeBlock,
   type InsertPosition,
   moveBlock as moveTreeBlock,
@@ -76,7 +77,21 @@ export const usePageEditorStore = defineStore('web-page-editor', () => {
   }
 
   function selectBlockRange(blockId: string) {
-    toggleBlockSelection(blockId)
+    const blockIds = flattenBlocks(blocks.value).map((block) => block.id)
+    const targetIndex = blockIds.indexOf(blockId)
+    if (targetIndex === -1) return
+
+    const anchorId = selectedBlockId.value ?? selectedBlockIds.value.at(0) ?? blockId
+    const anchorIndex = blockIds.indexOf(anchorId)
+    if (anchorIndex === -1) {
+      selectBlock(blockId)
+      return
+    }
+
+    const [start, end] = anchorIndex < targetIndex
+      ? [anchorIndex, targetIndex]
+      : [targetIndex, anchorIndex]
+    selectBlocks(blockIds.slice(start, end + 1))
   }
 
   function toggleBlockSelection(blockId: string) {

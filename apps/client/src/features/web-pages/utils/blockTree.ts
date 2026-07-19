@@ -85,6 +85,10 @@ export function findBlock(
   return null
 }
 
+export function flattenBlocks(tree: PageBlock[]): PageBlock[] {
+  return tree.flatMap((block) => [block, ...flattenBlocks(block.children ?? [])])
+}
+
 export function blockDisplayName(block: PageBlock): string {
   return String(block.props?.text ?? block.props?.label ?? block.props?.name ?? block.props?.alt ?? block.id)
 }

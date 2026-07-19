@@ -4,7 +4,7 @@
     :class="{ 'web-page-blueprint-node-toolbar--selected': selected }"
     data-base-canvas-no-drag
   >
-    <button type="button" title="Duplicate node" @click.stop="$emit('duplicate')">
+    <button v-if="canDuplicate" type="button" title="Duplicate node" @click.stop="$emit('duplicate')">
       <LucideIcon name="copy" :size="13" />
     </button>
     <button type="button" title="Delete node" @click.stop="$emit('remove')">
@@ -18,8 +18,10 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 withDefaults(defineProps<{
   selected?: boolean
+  canDuplicate?: boolean
 }>(), {
   selected: false,
+  canDuplicate: true,
 })
 
 defineEmits<{

@@ -107,6 +107,29 @@ describe('page editor store', () => {
     assert.equal(store.selectedTarget.type, 'block')
   })
 
+  it('selects a contiguous block range from the tree order', () => {
+    const store = usePageEditorStore()
+
+    store.setBlocks([
+      {
+        id: 'container_1',
+        tag: 'div',
+        styles: {},
+        children: [
+          { id: 'title_1', tag: 'h1', styles: {}, children: [] },
+          { id: 'button_1', tag: 'button', styles: {}, children: [] },
+        ],
+      },
+      { id: 'footer_1', tag: 'footer', styles: {}, children: [] },
+    ])
+
+    store.selectBlock('title_1')
+    store.selectBlockRange('footer_1')
+
+    assert.deepEqual(store.selectedBlockIds, ['title_1', 'button_1', 'footer_1'])
+    assert.equal(store.selectedBlockId, 'footer_1')
+  })
+
   it('clears block actions when patching action to undefined', () => {
     const store = usePageEditorStore()
     store.setBlocks([

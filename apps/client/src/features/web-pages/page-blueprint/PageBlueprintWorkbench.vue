@@ -54,8 +54,9 @@
 
       <template #item="{ item, selected }">
         <NodeFloatingToolbar
-          v-if="canManageNode(item)"
+          v-if="canDeleteNode(item)"
           :selected="selected"
+          :can-duplicate="canDuplicateNode(item)"
           @duplicate="duplicateCanvasNode(item.id)"
           @remove="deleteCanvasNode(item.id)"
         />
@@ -507,8 +508,16 @@ function stopPendingConnection() {
 }
 
 function canManageNode(item: BaseCanvasItem) {
+  return canDuplicateNode(item)
+}
+
+function canDuplicateNode(item: BaseCanvasItem) {
   const data = itemData(item)
   return (data.kind === 'utility' || data.kind === 'component') && document.value.nodes.some((node) => node.id === item.id)
+}
+
+function canDeleteNode(item: BaseCanvasItem) {
+  return document.value.nodes.some((node) => node.id === item.id)
 }
 
 function isNodeDimmed(nodeId: string) {
