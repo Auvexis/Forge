@@ -29,15 +29,15 @@ test('workflow editor status bar opens global dev chat and central workflow bott
   assert.match(source, /toggleBottomPanel\('timeline'\)/)
   assert.match(source, /toggleBottomPanel\('tree'\)/)
   assert.match(source, /toggleBottomPanel\('variables'\)/)
-  assert.match(source, /showInspector = !showInspector/)
+  assert.match(source, /function toggleInspectorPanel\(\)/)
   assert.match(source, /workflow-workbench__bottom-panel/)
 })
 
 test('workflow editor opens the inspector from the rail instead of the status bar', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
-  assert.match(source, /workflow-tool-rail__button[\s\S]*title="Inspector"[\s\S]*showInspector = !showInspector/)
-  assert.match(source, /<LucideIcon name="test-tube-diagonal" :size="18" \/>/)
+  assert.match(source, /<BaseRailItem[\s\S]*title="Inspector"[\s\S]*@click="toggleInspectorPanel"/)
+  assert.match(source, /icon="test-tube-diagonal"/)
 })
 
 test('workflow editor status bar tracks active panel state from the local bottom panel', () => {
@@ -46,7 +46,7 @@ test('workflow editor status bar tracks active panel state from the local bottom
   assert.match(source, /isDevChatOpen/)
   assert.match(source, /isExecutionPanelOpen/)
   assert.match(source, /agentPanelUi\.isOpen/)
-  assert.match(source, /isBottomPanelOpen = ref\(true\)/)
+  assert.match(source, /isBottomPanelOpen = ref\(false\)/)
   assert.match(source, /activeBottomPanelView = ref<WorkflowBottomPanelView>\('timeline'\)/)
   assert.match(source, /toggleChatPanel/)
   assert.match(source, /toggleExecutionPanel/)
