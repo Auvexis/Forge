@@ -1,6 +1,11 @@
 <template>
   <div class="web-page-tree__node">
-    <div class="web-page-tree__item" role="treeitem" @click="selectItem">
+    <div
+      class="web-page-tree__item"
+      :class="{ 'web-page-tree__item--selected': selected }"
+      role="treeitem"
+      @click="selectItem"
+    >
       <button
         type="button"
         class="web-page-tree__collapse"
@@ -15,8 +20,15 @@
       </span>
 
       <span class="web-page-tree__main">
-        <span class="web-page-tree__name">{{ item.label }}</span>
-        <span class="web-page-tree__id">{{ item.detail }}</span>
+        <span class="web-page-tree__name">{{ item.name }}</span>
+        <button
+          type="button"
+          class="web-page-tree__id"
+          @mousedown.stop
+          @click.stop="selectItem"
+        >
+          {{ item.treeId }}
+        </button>
       </span>
 
       <span class="web-page-tree__status" aria-hidden="true"></span>
@@ -28,8 +40,8 @@
             </button>
           </template>
           <AppDropdownItem
-            :label="item.componentId ? 'Select Component' : 'Select Node'"
-            :icon="item.componentId ? 'component' : 'mouse-pointer-2'"
+            label="Select"
+            icon="mouse-pointer-2"
             :disabled="!item.componentId && !item.nodeId"
             @click="selectItem"
           />
@@ -43,6 +55,7 @@
         :key="child.id"
         :item="child"
         :expanded="expanded"
+        :selected-node-id="selectedNodeId"
         @toggle="$emit('toggle', $event)"
         @select-node="$emit('selectNode', $event)"
         @select-component="$emit('selectComponent', $event)"
@@ -61,6 +74,7 @@ import type { BlueprintComponentsTreeItemModel } from './blueprintComponentsTree
 const props = defineProps<{
   item: BlueprintComponentsTreeItemModel
   expanded: Record<string, boolean>
+  selectedNodeId?: string | null
 }>()
 
 const emit = defineEmits<{
@@ -70,6 +84,7 @@ const emit = defineEmits<{
 }>()
 
 const isExpanded = computed(() => props.expanded[props.item.id] !== false)
+const selected = computed(() => Boolean(props.item.nodeId && props.item.nodeId === props.selectedNodeId))
 
 function selectItem() {
   if (props.item.componentId) {

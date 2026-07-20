@@ -40,6 +40,8 @@
         :components="components"
         :groups="blueprintGroups"
         :nodes="nodes"
+        :blocks="blocks"
+        :selected-node-id="selectedNodeId"
         @select-component="$emit('selectComponent', $event)"
         @select-node="$emit('selectNode', $event)"
       />
@@ -51,6 +53,7 @@
 import { computed, ref } from 'vue'
 import BaseSegmentedSelect, { type BaseSegmentedSelectOption } from '@/shared/components/base/BaseSegmentedSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import type { PageBlock } from '../../types/page.types.ts'
 import type {
   PageBlueprintComponent,
   PageBlueprintGroup,
@@ -64,6 +67,8 @@ defineProps<{
   components: PageBlueprintComponent[]
   blueprintGroups: PageBlueprintGroup[]
   nodes: PageBlueprintNode[]
+  blocks: PageBlock[]
+  selectedNodeId?: string | null
 }>()
 
 defineEmits<{

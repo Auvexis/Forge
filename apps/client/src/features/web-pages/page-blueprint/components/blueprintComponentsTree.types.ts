@@ -1,7 +1,7 @@
 export interface BlueprintComponentsTreeItemModel {
   id: string
-  label: string
-  detail: string
+  name: string
+  treeId: string
   icon: string
   accent?: string
   kind: 'group' | 'component' | 'node'

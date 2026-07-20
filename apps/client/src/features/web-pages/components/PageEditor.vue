@@ -96,6 +96,8 @@
         :components="blueprintStore.document.components"
         :blueprint-groups="blueprintStore.document.groups"
         :nodes="blueprintStore.document.nodes"
+        :blocks="editorStore.blocks"
+        :selected-node-id="blueprintSelectedNodeId"
         @add-utility-node="addBlueprintUtilityNode"
         @select-component="selectBlueprintComponent"
         @select-node="blueprintSelectedNodeId = $event"
