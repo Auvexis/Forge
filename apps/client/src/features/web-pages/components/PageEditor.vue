@@ -420,6 +420,9 @@
             <p>Select a project from your workspace.</p>
           </div>
           <BaseInput v-model="projectSearch" icon-left="search" placeholder="Search projects" />
+          <BaseButton variant="ghost" icon-left="plus" @click="openNewProjectFromOpenModal">
+            New Project
+          </BaseButton>
           <BaseButton variant="ghost" size="icon" icon-left="x" title="Close" @click="closeProjectModals" />
         </header>
         <div class="web-page-project-modal__list">
@@ -1634,6 +1637,11 @@ function openNewProjectModal(options: { saveAfterCreate?: boolean } = {}) {
   newProjectSlug.value = ''
   pendingCreateProjectSave.value = options.saveAfterCreate === true
   isNewProjectModalOpen.value = true
+}
+
+function openNewProjectFromOpenModal() {
+  isOpenProjectModalOpen.value = false
+  openNewProjectModal()
 }
 
 async function openOpenProjectModal() {

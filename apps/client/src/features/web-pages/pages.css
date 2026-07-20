@@ -309,7 +309,7 @@
 .web-page-editor__document-tabs {
   position: fixed;
   z-index: 90;
-  top: calc(40px + var(--fabric-space-2));
+  top: calc(40px + var(--fabric-space-2) + 25px);
   left: 50%;
   transform: translateX(-50%);
   pointer-events: none;

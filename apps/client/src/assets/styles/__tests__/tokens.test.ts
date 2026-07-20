@@ -43,6 +43,7 @@ describe('component semantic color tokens', () => {
     '--fabric-app-popover-bg',
     '--fabric-app-dropdown-item-hover-bg',
     '--fabric-notification-panel-bg',
+    '--fabric-notification-trigger-badge-text',
     '--fabric-data-table-bg',
     '--fabric-code-block-bg',
     '--fabric-app-shell-bg',

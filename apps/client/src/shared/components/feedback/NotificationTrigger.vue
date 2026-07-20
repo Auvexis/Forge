@@ -53,10 +53,10 @@ const ariaLabel = computed(() =>
   min-width: var(--fabric-space-4);
   height: var(--fabric-space-4);
   padding: 0 var(--fabric-space-1);
-  border: 1px solid var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-notification-trigger-badge-border);
   border-radius: var(--fabric-radius-full);
-  background: var(--fabric-bg-inverse);
-  color: var(--fabric-text-inverse);
+  background: var(--fabric-notification-trigger-badge-bg);
+  color: var(--fabric-notification-trigger-badge-text);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-bold);
   line-height: var(--fabric-space-4);

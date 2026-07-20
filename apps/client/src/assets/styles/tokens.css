@@ -598,6 +598,9 @@
   --fabric-notification-panel-border: var(--fabric-border);
   --fabric-notification-panel-item-bg: var(--fabric-bg-surface);
   --fabric-notification-panel-item-unread-bg: var(--fabric-bg-muted);
+  --fabric-notification-trigger-badge-bg: var(--fabric-bg-inverse);
+  --fabric-notification-trigger-badge-text: var(--fabric-text-inverse);
+  --fabric-notification-trigger-badge-border: var(--fabric-bg-surface);
   --fabric-app-toaster-bg: var(--fabric-bg-overlay);
   --fabric-app-toaster-border: var(--fabric-border);
   --fabric-app-toaster-text: var(--fabric-text-primary);

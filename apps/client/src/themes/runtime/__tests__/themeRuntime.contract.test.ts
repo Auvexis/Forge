@@ -65,6 +65,7 @@ describe('theme runtime contract', () => {
       'guideBook.bg',
       'jsonViewer.key.text',
       'notificationPanel.bg',
+      'notificationTrigger.badge.text',
       'profileSwitcher.hover.bg',
       'sidebarGlobalPanel.bg',
       'startGuide.bg',
