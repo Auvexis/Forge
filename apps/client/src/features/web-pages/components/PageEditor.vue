@@ -1059,6 +1059,11 @@ watch(
   { immediate: true },
 )
 
+watch(activePageDocument, () => {
+  leftPanelWidth.value = null
+  rightPanelWidth.value = null
+})
+
 watch(
   () => [editorStore.blocks, pagesStore.activePage, sitesStore.activeSite, blueprintStore.document],
   () => schedulePagesAutosave(),
