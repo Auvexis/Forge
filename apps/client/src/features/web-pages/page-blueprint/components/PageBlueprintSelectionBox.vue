@@ -25,6 +25,7 @@
         <span>Ungroup</span>
       </button>
       <button
+        v-if="canCreateGroup"
         class="web-page-blueprint-selection-box__button"
         type="button"
         title="Create group"
@@ -76,10 +77,14 @@ const props = withDefaults(defineProps<{
   gridSize?: number
   snapToGrid?: boolean
   canUngroup?: boolean
+  canCreateGroup?: boolean
+  hidden?: boolean
 }>(), {
   gridSize: 24,
   snapToGrid: true,
   canUngroup: false,
+  canCreateGroup: true,
+  hidden: false,
 })
 
 const emit = defineEmits<{
@@ -107,7 +112,7 @@ const activeSelectionDrag = ref<{
 } | null>(null)
 
 const selectedItems = computed(() => props.items.filter((item) => props.selection.includes(item.id)))
-const showBox = computed(() => selectedItems.value.length >= 2)
+const showBox = computed(() => !props.hidden && selectedItems.value.length >= 2)
 const toolbarScale = computed(() => {
   const zoom = props.viewport.zoom || 1
   return Math.min(2, Math.max(1, 1 / zoom))

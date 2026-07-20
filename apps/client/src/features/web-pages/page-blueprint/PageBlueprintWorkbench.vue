@@ -31,6 +31,8 @@
         :grid-size="24"
         :snap-to-grid="true"
         :can-ungroup="Boolean(selectedGroupId)"
+        :can-create-group="!selectedGroupId"
+        :hidden="Boolean(groupDrag)"
         @selection-move="moveCanvasItems"
         @selection-drag-start="startCanvasDragHistory"
         @selection-drag-end="finishCanvasDragHistory"
@@ -145,7 +147,6 @@ import type {
   PageBlueprintConnectionEndpoint,
   PageBlueprintField,
   PageBlueprintNode,
-  PageBlueprintComponent,
   PageBlueprintComponentNode,
   PageBlueprintGroup,
   PageBlueprintUtilityNode,
@@ -224,10 +225,7 @@ const canvasItems = computed<PageBlueprintCanvasItem[]>(() => {
   }))
 })
 
-const canvasGroups = computed(() => [
-  ...buildSavedGroups(document.value.groups, canvasItems.value),
-  ...buildComponentGroups(document.value.components, canvasItems.value),
-])
+const canvasGroups = computed(() => buildSavedGroups(document.value.groups, canvasItems.value))
 const selectedGroupId = computed(() => {
   const selected = [...selection.value].sort().join('\u0000')
   return document.value.groups.find((group) => [...group.nodeIds].sort().join('\u0000') === selected)?.id ?? null
@@ -582,6 +580,7 @@ function createComponentFromSelection() {
 }
 
 function createGroupFromSelection() {
+  if (selectedGroupId.value) return
   blueprintStore.createGroupFromSelection(selection.value)
 }
 
@@ -796,15 +795,6 @@ function mergeElementFields(
 
 function isUtilityNode(node: unknown): node is PageBlueprintUtilityNode {
   return Boolean(node && typeof node === 'object' && (node as PageBlueprintUtilityNode).kind === 'utility')
-}
-
-function buildComponentGroups(components: PageBlueprintComponent[], items: PageBlueprintCanvasItem[]) {
-  return buildGroupFrames(components.map((component) => ({
-    id: component.id,
-    name: component.name,
-    kind: 'component' as const,
-    nodeIds: component.nodeIds,
-  })), items)
 }
 
 function buildSavedGroups(groups: PageBlueprintGroup[], items: PageBlueprintCanvasItem[]) {

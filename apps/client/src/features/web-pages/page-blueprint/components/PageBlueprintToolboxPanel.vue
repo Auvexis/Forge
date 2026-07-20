@@ -1,56 +1,60 @@
 <template>
   <div class="web-page-blueprint-toolbox">
-    <BaseSegmentedSelect
-      v-model="activeTab"
-      :options="tabs"
-      aria-label="Blueprint toolbox sections"
-    />
-
-    <template v-if="activeTab === 'utilities'">
-      <section
-        v-for="group in utilityGroups"
-        :key="group.category"
-        class="web-page-blueprint-toolbox__group"
-      >
-        <header>
-          <span>{{ group.category }}</span>
-          <small>{{ group.items.length }}</small>
-        </header>
-
-        <button
-          v-for="item in group.items"
-          :key="item.type"
-          class="web-page-blueprint-toolbox__item"
-          type="button"
-          @click="$emit('addUtilityNode', item.type)"
-        >
-          <span class="web-page-blueprint-toolbox__icon" :style="{ color: item.accent }">
-            <LucideIcon :name="item.icon" :size="15" />
-          </span>
-          <span>
-            <strong>{{ item.label }}</strong>
-            <small>{{ item.description }}</small>
-          </span>
-        </button>
-      </section>
-    </template>
-
-    <template v-else>
-      <BlueprintComponentsTree
-        :components="components"
-        :groups="blueprintGroups"
-        :nodes="nodes"
-        :blocks="blocks"
-        :selected-node-id="selectedNodeId"
-        @select-component="$emit('selectComponent', $event)"
-        @select-node="$emit('selectNode', $event)"
-        @rename-group="(groupId, name) => $emit('renameGroup', groupId, name)"
-        @rename-group-id="(groupId, nextGroupId) => $emit('renameGroupId', groupId, nextGroupId)"
-        @rename-component="(componentId, name) => $emit('renameComponent', componentId, name)"
-        @rename-node-label="(nodeId, label) => $emit('renameNodeLabel', nodeId, label)"
-        @rename-node-id="(nodeId, nextNodeId) => $emit('renameNodeId', nodeId, nextNodeId)"
+    <div class="web-page-blueprint-toolbox__header">
+      <BaseSegmentedSelect
+        v-model="activeTab"
+        :options="tabs"
+        aria-label="Blueprint toolbox sections"
       />
-    </template>
+    </div>
+
+    <div class="web-page-blueprint-toolbox__main">
+      <template v-if="activeTab === 'utilities'">
+        <section
+          v-for="group in utilityGroups"
+          :key="group.category"
+          class="web-page-blueprint-toolbox__group"
+        >
+          <header>
+            <span>{{ group.category }}</span>
+            <small>{{ group.items.length }}</small>
+          </header>
+
+          <button
+            v-for="item in group.items"
+            :key="item.type"
+            class="web-page-blueprint-toolbox__item"
+            type="button"
+            @click="$emit('addUtilityNode', item.type)"
+          >
+            <span class="web-page-blueprint-toolbox__icon" :style="{ color: item.accent }">
+              <LucideIcon :name="item.icon" :size="15" />
+            </span>
+            <span>
+              <strong>{{ item.label }}</strong>
+              <small>{{ item.description }}</small>
+            </span>
+          </button>
+        </section>
+      </template>
+
+      <template v-else>
+        <BlueprintComponentsTree
+          :components="components"
+          :groups="blueprintGroups"
+          :nodes="nodes"
+          :blocks="blocks"
+          :selected-node-id="selectedNodeId"
+          @select-component="$emit('selectComponent', $event)"
+          @select-node="$emit('selectNode', $event)"
+          @rename-group="(groupId, name) => $emit('renameGroup', groupId, name)"
+          @rename-group-id="(groupId, nextGroupId) => $emit('renameGroupId', groupId, nextGroupId)"
+          @rename-component="(componentId, name) => $emit('renameComponent', componentId, name)"
+          @rename-node-label="(nodeId, label) => $emit('renameNodeLabel', nodeId, label)"
+          @rename-node-id="(nodeId, nextNodeId) => $emit('renameNodeId', nodeId, nextNodeId)"
+        />
+      </template>
+    </div>
   </div>
 </template>
 
