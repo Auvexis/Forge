@@ -1,0 +1,6 @@
+- [x] Criar BaseWebPageTree
+- [x] Copiar CSS web-page-tree
+- [x] Usar base no Components Toolbox
+- [x] Remover tree item custom
+- [x] Validar build/typecheck
+- [x] Commitar alteracoes

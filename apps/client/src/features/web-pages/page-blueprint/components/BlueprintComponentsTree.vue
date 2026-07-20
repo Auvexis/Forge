@@ -1,44 +1,23 @@
 <template>
-  <nav class="web-page-tree" role="tree">
-    <section v-if="groups.length" class="web-page-tree__section">
-      <span>Groups</span>
-      <LucideIcon name="list-filter" :size="14" />
-    </section>
-    <BlueprintComponentsTreeItem
-      v-for="group in groupItems"
-      :key="group.id"
-      :item="group"
-      :expanded="expanded"
-      :selected-node-id="selectedNodeId"
-      @toggle="toggleItem"
-      @select-node="$emit('selectNode', $event)"
-      @select-component="$emit('selectComponent', $event)"
+  <div>
+    <BaseWebPageTree
+      :sections="sections"
+      :selected-item-ids="selectedNodeId ? [selectedNodeId] : []"
+      @select="selectTreeItem"
+      @action="selectTreeItem($event.item)"
     />
-
-    <section v-if="components.length" class="web-page-tree__section">
-      <span>Components</span>
-      <LucideIcon name="list-filter" :size="14" />
-    </section>
-    <BlueprintComponentsTreeItem
-      v-for="component in componentItems"
-      :key="component.id"
-      :item="component"
-      :expanded="expanded"
-      :selected-node-id="selectedNodeId"
-      @toggle="toggleItem"
-      @select-node="$emit('selectNode', $event)"
-      @select-component="$emit('selectComponent', $event)"
-    />
-
     <p v-if="components.length === 0 && groups.length === 0" class="web-page-blueprint-toolbox__empty">
       No page components or groups.
     </p>
-  </nav>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { computed } from 'vue'
+import BaseWebPageTree, {
+  type BaseWebPageTreeItem,
+  type BaseWebPageTreeSection,
+} from '../../components/BaseWebPageTree.vue'
 import type { PageBlock } from '../../types/page.types.ts'
 import { blockDisplayName } from '../../utils/blockTree.ts'
 import type {
@@ -47,8 +26,6 @@ import type {
   PageBlueprintGroup,
   PageBlueprintNode,
 } from '../pageBlueprintSchema.ts'
-import BlueprintComponentsTreeItem from './BlueprintComponentsTreeItem.vue'
-import type { BlueprintComponentsTreeItemModel } from './blueprintComponentsTree.types.ts'
 
 const props = defineProps<{
   components: PageBlueprintComponent[]
@@ -58,12 +35,11 @@ const props = defineProps<{
   selectedNodeId?: string | null
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   selectComponent: [componentId: string]
   selectNode: [nodeId: string]
 }>()
 
-const expanded = ref<Record<string, boolean>>({})
 const nodesById = computed(() => new Map(props.nodes.map((node) => [node.id, node])))
 const elementNodesByElementId = computed(() => {
   const entries = props.nodes.flatMap((node) => {
@@ -73,43 +49,43 @@ const elementNodesByElementId = computed(() => {
   return new Map(entries)
 })
 
-const groupItems = computed<BlueprintComponentsTreeItemModel[]>(() =>
-  props.groups.map((group) => ({
-    id: group.id,
-    name: group.name,
-    treeId: group.id,
-    icon: 'group',
-    accent: group.color ?? '#8b6fd6',
-    kind: 'group',
-    children: nodesToTreeItems(group.nodeIds, new Set([group.id])),
-  })),
-)
-
-const componentItems = computed<BlueprintComponentsTreeItemModel[]>(() =>
-  props.components.map((component) => ({
-    id: component.id,
-    name: component.name,
-    treeId: component.id,
-    icon: 'component',
-    kind: 'component',
-    componentId: component.id,
-    nodeId: componentNodeId(component.id),
-    children: nodesToTreeItems(component.nodeIds, new Set([component.id])),
-  })),
-)
-
-function toggleItem(itemId: string) {
-  expanded.value = {
-    ...expanded.value,
-    [itemId]: expanded.value[itemId] === false,
-  }
-}
+const sections = computed<BaseWebPageTreeSection[]>(() => [
+  {
+    id: 'groups',
+    label: 'Groups',
+    icon: 'list-filter',
+    items: props.groups.map((group) => ({
+      id: group.id,
+      name: group.name,
+      treeId: group.id,
+      icon: 'group',
+      accent: group.color ?? '#8b6fd6',
+      actions: selectActions(),
+      data: { kind: 'group' },
+      children: nodesToTreeItems(group.nodeIds, new Set([group.id])),
+    })),
+  },
+  {
+    id: 'components',
+    label: 'Components',
+    icon: 'list-filter',
+    items: props.components.map((component) => ({
+      id: componentNodeId(component.id),
+      name: component.name,
+      treeId: component.id,
+      icon: 'component',
+      actions: selectActions(),
+      data: { kind: 'component', componentId: component.id, nodeId: componentNodeId(component.id) },
+      children: nodesToTreeItems(component.nodeIds, new Set([component.id])),
+    })),
+  },
+])
 
 function nodesToTreeItems(nodeIds: string[], visitedComponentIds: Set<string>) {
   const uniqueNodeIds = [...new Set(nodeIds)]
   const allowedNodeIds = new Set(uniqueNodeIds)
   const blockItems = blockTreeItems(props.blocks, allowedNodeIds, visitedComponentIds)
-  const blockNodeIds = new Set(flattenItems(blockItems).map((item) => item.nodeId).filter(Boolean))
+  const blockNodeIds = new Set(flattenItems(blockItems).map((item) => item.data?.nodeId).filter(Boolean))
   const looseItems = uniqueNodeIds
     .filter((nodeId) => !blockNodeIds.has(nodeId))
     .map((nodeId) => nodesById.value.get(nodeId))
@@ -123,7 +99,7 @@ function blockTreeItems(
   blocks: PageBlock[],
   allowedNodeIds: Set<string>,
   visitedComponentIds: Set<string>,
-): BlueprintComponentsTreeItemModel[] {
+): BaseWebPageTreeItem[] {
   return blocks.flatMap((block) => {
     const children = blockTreeItems(block.children ?? [], allowedNodeIds, visitedComponentIds)
     const node = elementNodesByElementId.value.get(block.id)
@@ -135,8 +111,8 @@ function blockTreeItems(
       treeId: block.id,
       icon: iconForBlock(block),
       accent: node.accent,
-      kind: 'node' as const,
-      nodeId: node.id,
+      actions: selectActions(),
+      data: { kind: 'node', nodeId: node.id },
       children,
     }]
   })
@@ -145,7 +121,7 @@ function blockTreeItems(
 function nodeToTreeItem(
   node: PageBlueprintNode,
   visitedComponentIds: Set<string>,
-): BlueprintComponentsTreeItemModel {
+): BaseWebPageTreeItem {
   const componentNode = node.kind === 'component' ? node as PageBlueprintComponentNode : null
   const component = componentNode
     ? props.components.find((item) => item.id === componentNode.componentId)
@@ -158,9 +134,12 @@ function nodeToTreeItem(
     treeId: node.id,
     icon: iconForNode(node),
     accent: node.accent,
-    kind: node.kind === 'component' && component ? 'component' : 'node',
-    nodeId: node.id,
-    componentId: component?.id,
+    actions: selectActions(),
+    data: {
+      kind: node.kind === 'component' && component ? 'component' : 'node',
+      nodeId: node.id,
+      componentId: component?.id,
+    },
     children: component && canRenderComponentChildren
       ? nodesToTreeItems(component.nodeIds, nextVisitedComponentIds)
       : [],
@@ -198,8 +177,22 @@ function componentNodeId(componentId: string) {
   return `blueprint-component:${componentId}`
 }
 
-function flattenItems(items: BlueprintComponentsTreeItemModel[]): BlueprintComponentsTreeItemModel[] {
-  return items.flatMap((item) => [item, ...flattenItems(item.children)])
+function flattenItems(items: BaseWebPageTreeItem[]): BaseWebPageTreeItem[] {
+  return items.flatMap((item) => [item, ...flattenItems(item.children ?? [])])
+}
+
+function selectActions() {
+  return [{ id: 'select', label: 'Select', icon: 'mouse-pointer-2' }]
+}
+
+function selectTreeItem(item: BaseWebPageTreeItem) {
+  const componentId = item.data?.componentId
+  if (typeof componentId === 'string') {
+    emit('selectComponent', componentId)
+    return
+  }
+  const nodeId = item.data?.nodeId
+  if (typeof nodeId === 'string') emit('selectNode', nodeId)
 }
 
 </script>
