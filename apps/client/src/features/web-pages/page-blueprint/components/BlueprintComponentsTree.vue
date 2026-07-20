@@ -5,6 +5,7 @@
       :selected-item-ids="selectedNodeId ? [selectedNodeId] : []"
       @select="selectTreeItem"
       @action="selectTreeItem($event.item)"
+      @rename="renameTreeItem"
     />
     <p v-if="components.length === 0 && groups.length === 0" class="web-page-blueprint-toolbox__empty">
       No page components or groups.
@@ -38,6 +39,11 @@ const props = defineProps<{
 const emit = defineEmits<{
   selectComponent: [componentId: string]
   selectNode: [nodeId: string]
+  renameGroup: [groupId: string, name: string]
+  renameGroupId: [groupId: string, nextGroupId: string]
+  renameComponent: [componentId: string, name: string]
+  renameNodeLabel: [nodeId: string, label: string]
+  renameNodeId: [nodeId: string, nextNodeId: string]
 }>()
 
 const nodesById = computed(() => new Map(props.nodes.map((node) => [node.id, node])))
@@ -61,7 +67,7 @@ const sections = computed<BaseWebPageTreeSection[]>(() => [
       icon: 'group',
       accent: group.color ?? '#8b6fd6',
       actions: selectActions(),
-      data: { kind: 'group' },
+      data: { kind: 'group', groupId: group.id },
       children: nodesToTreeItems(group.nodeIds, new Set([group.id])),
     })),
   },
@@ -74,6 +80,7 @@ const sections = computed<BaseWebPageTreeSection[]>(() => [
       name: component.name,
       treeId: component.id,
       icon: 'component',
+      editableTreeId: false,
       actions: selectActions(),
       data: { kind: 'component', componentId: component.id, nodeId: componentNodeId(component.id) },
       children: nodesToTreeItems(component.nodeIds, new Set([component.id])),
@@ -112,6 +119,8 @@ function blockTreeItems(
       icon: iconForBlock(block),
       accent: node.accent,
       actions: selectActions(),
+      editableName: true,
+      editableTreeId: true,
       data: { kind: 'node', nodeId: node.id },
       children,
     }]
@@ -135,6 +144,8 @@ function nodeToTreeItem(
     icon: iconForNode(node),
     accent: node.accent,
     actions: selectActions(),
+    editableName: true,
+    editableTreeId: true,
     data: {
       kind: node.kind === 'component' && component ? 'component' : 'node',
       nodeId: node.id,
@@ -193,6 +204,29 @@ function selectTreeItem(item: BaseWebPageTreeItem) {
   }
   const nodeId = item.data?.nodeId
   if (typeof nodeId === 'string') emit('selectNode', nodeId)
+}
+
+function renameTreeItem(payload: { item: BaseWebPageTreeItem; field: 'name' | 'treeId'; value: string }) {
+  const { item, field, value } = payload
+  const kind = item.data?.kind
+  if (kind === 'group') {
+    const groupId = item.data?.groupId
+    if (typeof groupId !== 'string') return
+    if (field === 'name') emit('renameGroup', groupId, value)
+    else emit('renameGroupId', groupId, value)
+    return
+  }
+
+  const componentId = item.data?.componentId
+  if (kind === 'component' && typeof componentId === 'string') {
+    if (field === 'name') emit('renameComponent', componentId, value)
+    return
+  }
+
+  const nodeId = item.data?.nodeId
+  if (typeof nodeId !== 'string') return
+  if (field === 'name') emit('renameNodeLabel', nodeId, value)
+  else emit('renameNodeId', nodeId, value)
 }
 
 </script>

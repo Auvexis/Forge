@@ -44,6 +44,11 @@
         :selected-node-id="selectedNodeId"
         @select-component="$emit('selectComponent', $event)"
         @select-node="$emit('selectNode', $event)"
+        @rename-group="(groupId, name) => $emit('renameGroup', groupId, name)"
+        @rename-group-id="(groupId, nextGroupId) => $emit('renameGroupId', groupId, nextGroupId)"
+        @rename-component="(componentId, name) => $emit('renameComponent', componentId, name)"
+        @rename-node-label="(nodeId, label) => $emit('renameNodeLabel', nodeId, label)"
+        @rename-node-id="(nodeId, nextNodeId) => $emit('renameNodeId', nodeId, nextNodeId)"
       />
     </template>
   </div>
@@ -75,6 +80,11 @@ defineEmits<{
   addUtilityNode: [type: PageBlueprintUtilityNodeType]
   selectComponent: [componentId: string]
   selectNode: [nodeId: string]
+  renameGroup: [groupId: string, name: string]
+  renameGroupId: [groupId: string, nextGroupId: string]
+  renameComponent: [componentId: string, name: string]
+  renameNodeLabel: [nodeId: string, label: string]
+  renameNodeId: [nodeId: string, nextNodeId: string]
 }>()
 
 const activeTab = ref<'utilities' | 'components'>('utilities')

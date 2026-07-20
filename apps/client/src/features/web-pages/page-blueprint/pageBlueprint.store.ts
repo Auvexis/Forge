@@ -829,6 +829,20 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     })
   }
 
+  function renameGroupId(groupId: string, nextGroupId: string) {
+    const normalized = nextGroupId.trim()
+    if (!normalized || normalized === groupId) return false
+    if (document.value.groups.some((group) => group.id === normalized)) return false
+    const now = new Date().toISOString()
+    patchDocument({
+      groups: document.value.groups.map((group) =>
+        group.id === groupId ? { ...group, id: normalized, updatedAt: now } : group,
+      ),
+      collapsedGroups: document.value.collapsedGroups.map((id) => id === groupId ? normalized : id),
+    })
+    return true
+  }
+
   function setGroupColor(groupId: string, color: string) {
     const normalized = color.trim()
     if (!normalized) return
@@ -1036,6 +1050,7 @@ export const usePageBlueprintStore = defineStore('web-page-blueprint', () => {
     createGroupFromSelection,
     deleteGroup,
     setGroupName,
+    renameGroupId,
     setGroupColor,
     createComponentFromSelection,
     setComponentName,

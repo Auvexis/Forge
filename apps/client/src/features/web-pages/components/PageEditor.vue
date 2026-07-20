@@ -101,6 +101,11 @@
         @add-utility-node="addBlueprintUtilityNode"
         @select-component="selectBlueprintComponent"
         @select-node="blueprintSelectedNodeId = $event"
+        @rename-group="blueprintStore.setGroupName"
+        @rename-group-id="blueprintStore.renameGroupId"
+        @rename-component="blueprintStore.setComponentName"
+        @rename-node-label="handleBlueprintNodeLabelUpdate"
+        @rename-node-id="handleBlueprintNodeIdUpdate"
       />
     </AppPanel>
 

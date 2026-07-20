@@ -20,20 +20,20 @@
         :key="item.id"
         :item="item"
         :collapsed-item-ids="collapsedItemIds"
-        :selected-item-ids="selectedItemIds"
+        :selected-item-ids="selectedItemIds ?? []"
         @toggle="toggleItem"
         @select="$emit('select', $event)"
         @action="$emit('action', $event)"
+        @rename="$emit('rename', $event)"
       />
     </template>
   </nav>
 </template>
 
 <script setup lang="ts">
-import { computed, defineComponent, h, ref, resolveComponent, type PropType } from 'vue'
+import { ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
+import BaseWebPageTreeNode from './BaseWebPageTreeNode.vue'
 
 export interface BaseWebPageTreeAction {
   id: string
@@ -51,6 +51,8 @@ export interface BaseWebPageTreeItem {
   accent?: string
   children?: BaseWebPageTreeItem[]
   actions?: BaseWebPageTreeAction[]
+  editableName?: boolean
+  editableTreeId?: boolean
   data?: Record<string, unknown>
 }
 
@@ -71,6 +73,7 @@ defineProps<{
 defineEmits<{
   select: [item: BaseWebPageTreeItem]
   action: [payload: { actionId: string; item: BaseWebPageTreeItem }]
+  rename: [payload: { item: BaseWebPageTreeItem; field: 'name' | 'treeId'; value: string }]
   sectionAction: [actionId: string]
 }>()
 
@@ -82,123 +85,9 @@ function toggleItem(itemId: string) {
     [itemId]: !collapsedItemIds.value[itemId],
   }
 }
-
-const BaseWebPageTreeNode = defineComponent({
-  name: 'BaseWebPageTreeNode',
-  props: {
-    item: {
-      type: Object as PropType<BaseWebPageTreeItem>,
-      required: true,
-    },
-    collapsedItemIds: {
-      type: Object as PropType<Record<string, boolean>>,
-      required: true,
-    },
-    selectedItemIds: {
-      type: Array as PropType<string[]>,
-      default: () => [],
-    },
-  },
-  emits: {
-    toggle: (_itemId: string) => true,
-    select: (_item: BaseWebPageTreeItem) => true,
-    action: (_payload: { actionId: string; item: BaseWebPageTreeItem }) => true,
-  },
-  setup(props, { emit }) {
-    const children = computed(() => props.item.children ?? [])
-    const actions = computed(() => props.item.actions ?? [])
-    const isCollapsed = computed(() => Boolean(props.collapsedItemIds[props.item.id]))
-    const isSelected = computed(() => props.selectedItemIds.includes(props.item.id))
-
-    function selectItem() {
-      emit('select', props.item)
-    }
-
-    return () => h('div', { class: 'web-page-tree__node' }, [
-      h('div', {
-        class: [
-          'web-page-tree__item',
-          { 'web-page-tree__item--selected': isSelected.value },
-        ],
-        role: 'treeitem',
-        onClick: selectItem,
-      }, [
-        h('button', {
-          type: 'button',
-          class: 'web-page-tree__collapse',
-          disabled: children.value.length === 0,
-          onClick: (event: MouseEvent) => {
-            event.stopPropagation()
-            emit('toggle', props.item.id)
-          },
-        }, [
-          h(LucideIcon, {
-            name: isCollapsed.value ? 'chevron-right' : 'chevron-down',
-            size: 14,
-          }),
-        ]),
-        h('span', {
-          class: 'web-page-tree__icon',
-          style: props.item.accent ? { color: props.item.accent } : undefined,
-        }, [
-          h(LucideIcon, { name: props.item.icon, size: 15 }),
-        ]),
-        h('span', { class: 'web-page-tree__main' }, [
-          h('span', { class: 'web-page-tree__name' }, props.item.name),
-          h('button', {
-            type: 'button',
-            class: 'web-page-tree__id',
-            title: props.item.treeId,
-            onMousedown: (event: MouseEvent) => event.stopPropagation(),
-            onClick: (event: MouseEvent) => {
-              event.stopPropagation()
-              selectItem()
-            },
-          }, props.item.treeId ?? props.item.id),
-        ]),
-        h('span', { class: 'web-page-tree__status', 'aria-hidden': 'true' }),
-        h('span', {
-          class: 'web-page-tree__action-menu',
-          onClick: (event: MouseEvent) => event.stopPropagation(),
-        }, [
-          h(AppDropdownMenu, { position: 'bottom-end', offset: 4 }, {
-            trigger: () => h('button', {
-              type: 'button',
-              class: 'web-page-tree__row-action',
-            }, [
-              h(LucideIcon, { name: 'ellipsis', size: 14 }),
-            ]),
-            default: () => actions.value.map((action) =>
-              h(AppDropdownItem, {
-                label: action.label,
-                icon: action.icon,
-                danger: action.danger,
-                disabled: action.disabled,
-                onClick: () => emit('action', { actionId: action.id, item: props.item }),
-              }),
-            ),
-          }),
-        ]),
-      ]),
-      children.value.length && !isCollapsed.value
-        ? h('div', { class: 'web-page-tree__children', role: 'group' }, children.value.map((child) =>
-            h(resolveComponent('BaseWebPageTreeNode'), {
-              key: child.id,
-              item: child,
-              collapsedItemIds: props.collapsedItemIds,
-              selectedItemIds: props.selectedItemIds,
-              onToggle: (itemId: string) => emit('toggle', itemId),
-              onSelect: (item: BaseWebPageTreeItem) => emit('select', item),
-              onAction: (payload: { actionId: string; item: BaseWebPageTreeItem }) => emit('action', payload),
-            }),
-          ))
-        : null,
-    ])
-  },
-})
 </script>
 
-<style scoped>
+<style>
 .web-page-tree__item {
   position: relative;
   display: grid;
@@ -312,16 +201,23 @@ const BaseWebPageTreeNode = defineComponent({
 
 .web-page-tree__tag,
 .web-page-tree__id,
-.web-page-tree__id-input {
+.web-page-tree__id-input,
+.web-page-tree__name-input {
   overflow: hidden;
-  color: var(--fabric-text-muted);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.web-page-tree__tag,
 .web-page-tree__id,
 .web-page-tree__id-input {
+  color: var(--fabric-text-muted);
+}
+
+.web-page-tree__id,
+.web-page-tree__id-input,
+.web-page-tree__name-input {
   min-width: 0;
   height: 20px;
   padding: 0 var(--fabric-space-1);
@@ -331,7 +227,8 @@ const BaseWebPageTreeNode = defineComponent({
 }
 
 .web-page-tree__id:hover,
-.web-page-tree__id-input {
+.web-page-tree__id-input,
+.web-page-tree__name-input {
   border-color: var(--fabric-border);
   background: var(--fabric-bg-surface);
 }
@@ -350,6 +247,11 @@ const BaseWebPageTreeNode = defineComponent({
   font-size: var(--fabric-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.web-page-tree__name-input {
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xs);
 }
 
 .web-page-tree__collapse,
