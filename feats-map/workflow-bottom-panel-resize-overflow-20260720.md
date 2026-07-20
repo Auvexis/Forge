@@ -1,0 +1,3 @@
+- [x] Mapear resize do bottom panel
+- [x] Corrigir limite de altura
+- [x] Validar contrato local

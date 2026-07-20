@@ -554,10 +554,13 @@ function startBottomPanelResize(event: MouseEvent) {
 
 function resizeBottomPanel(event: MouseEvent) {
   const nextHeight = bottomPanelResizeStart.value.height + bottomPanelResizeStart.value.y - event.clientY
-  workflowBottomPanelHeight.value = Math.min(
-    window.innerHeight - 120,
-    Math.max(180, Math.round(nextHeight)),
-  )
+  workflowBottomPanelHeight.value = clampBottomPanelHeight(nextHeight)
+}
+
+function clampBottomPanelHeight(height: number) {
+  const canvasHeight = canvasRef.value?.$el?.closest('.workflow-workbench__canvas')?.clientHeight
+  const maxHeight = Math.max(180, (canvasHeight ?? window.innerHeight) - 120)
+  return Math.min(maxHeight, Math.max(180, Math.round(height)))
 }
 
 function stopBottomPanelResize() {
@@ -1278,6 +1281,7 @@ watch(
   z-index: var(--fabric-z-raised);
   min-height: 180px;
   max-height: calc(100% - 120px);
+  overflow: hidden;
   border-top: 1px solid var(--fabric-workbench-border);
   background: var(--fabric-workbench-panel-bg);
 }
