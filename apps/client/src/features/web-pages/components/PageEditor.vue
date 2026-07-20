@@ -631,6 +631,7 @@ const pageCanvasOffsets = ref<Record<string, { x: number; y: number }>>({})
 const pageCanvasContextMenu = ref<BaseCanvasContextMenuEvent | null>(null)
 const pageDropIndex = ref<number | null>(null)
 let pagesAutosaveTimer: number | null = null
+let isPagesAutosaving = false
 let isHydratingPageActionBindings = false
 const activePagePublishedAt = computed(
   () => pagesStore.pages.find((page) => page.id === pagesStore.activePage?.id)?.publishedAt ?? null,
@@ -1550,11 +1551,25 @@ function setPagesAutosaveEnabled(enabled: boolean) {
 }
 
 function schedulePagesAutosave() {
-  if (!isPagesAutosaveEnabled.value || !sitesStore.activeSite || !hasUnsavedProjectChanges.value) return
+  if (!isPagesAutosaveEnabled.value || !sitesStore.activeSite || !hasUnsavedProjectChanges.value || isPagesAutosaving) return
   if (pagesAutosaveTimer) window.clearTimeout(pagesAutosaveTimer)
   pagesAutosaveTimer = window.setTimeout(() => {
-    void saveProjectBeforeExport()
+    pagesAutosaveTimer = null
+    void savePagesAutosave()
   }, 1500)
+}
+
+async function savePagesAutosave() {
+  if (!isPagesAutosaveEnabled.value || !sitesStore.activeSite || !hasUnsavedProjectChanges.value || isPagesAutosaving) return
+  isPagesAutosaving = true
+  try {
+    if (blueprintStore.isDirty) blueprintStore.saveToActiveSite()
+    if (pagesStore.isDirty || editorStore.isDirty) await savePage()
+    if (sitesStore.isDirty) await sitesStore.saveActiveSite()
+  } finally {
+    isPagesAutosaving = false
+    if (hasUnsavedProjectChanges.value) schedulePagesAutosave()
+  }
 }
 
 function pagesAutosaveStorageKey(siteId: string) {

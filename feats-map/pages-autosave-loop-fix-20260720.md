@@ -1,0 +1,5 @@
+- [x] Separar fluxo do autosave
+- [x] Evitar save sem dirty
+- [x] Evitar autosave concorrente
+- [x] Validar testes/build
+- [x] Commitar alteracoes

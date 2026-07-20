@@ -221,9 +221,23 @@ describe('page chrome contract', () => {
     assert.match(source, /isAutosaveEnabled/)
     assert.match(source, /toggle-autosave/)
     assert.match(editor, /schedulePagesAutosave/)
+    assert.match(editor, /savePagesAutosave/)
     assert.match(editor, /setPagesAutosaveEnabled/)
     assert.match(editor, /:is-autosave-enabled="isPagesAutosaveEnabled"/)
     assert.match(editor, /@toggle-autosave="setPagesAutosaveEnabled"/)
+  })
+
+  it('pages autosave saves only dirty stores instead of forcing export saves', () => {
+    const editor = read('src/features/web-pages/components/PageEditor.vue')
+    const autosave = editor.match(/async function savePagesAutosave\(\) \{[\s\S]*?\n\}/)?.[0] ?? ''
+    const scheduler = editor.match(/function schedulePagesAutosave\(\) \{[\s\S]*?\n\}/)?.[0] ?? ''
+
+    assert.match(scheduler, /savePagesAutosave\(\)/)
+    assert.doesNotMatch(scheduler, /saveProjectBeforeExport/)
+    assert.match(autosave, /blueprintStore\.isDirty/)
+    assert.match(autosave, /pagesStore\.isDirty \|\| editorStore\.isDirty/)
+    assert.match(autosave, /sitesStore\.isDirty/)
+    assert.doesNotMatch(autosave, /else if \(pagesStore\.activePage\) await savePage\(\)/)
   })
 
   it('page badge exposes direct preview and delete buttons', () => {
