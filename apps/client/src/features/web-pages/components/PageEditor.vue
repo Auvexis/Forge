@@ -1060,7 +1060,7 @@ watch(
 )
 
 watch(
-  () => [editorStore.blocks, pagesStore.activePage, sitesStore.activeSite],
+  () => [editorStore.blocks, pagesStore.activePage, sitesStore.activeSite, blueprintStore.document],
   () => schedulePagesAutosave(),
   { deep: true },
 )

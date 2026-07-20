@@ -222,6 +222,7 @@ describe('page chrome contract', () => {
     assert.match(source, /toggle-autosave/)
     assert.match(editor, /schedulePagesAutosave/)
     assert.match(editor, /savePagesAutosave/)
+    assert.match(editor, /blueprintStore\.document/)
     assert.match(editor, /setPagesAutosaveEnabled/)
     assert.match(editor, /:is-autosave-enabled="isPagesAutosaveEnabled"/)
     assert.match(editor, /@toggle-autosave="setPagesAutosaveEnabled"/)

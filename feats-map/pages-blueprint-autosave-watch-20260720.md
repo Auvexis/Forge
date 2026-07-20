@@ -1,0 +1,5 @@
+- [x] Observar blueprint no autosave
+- [x] Manter protecao contra loop
+- [x] Atualizar contrato
+- [x] Validar build/typecheck
+- [x] Commitar alteracoes
