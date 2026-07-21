@@ -1,0 +1,3 @@
+- [x] Remove directory from agent panel page
+- [x] Keep page layout as aside and chat
+- [x] Validate and commit

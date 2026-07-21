@@ -3,6 +3,15 @@ import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
 describe('agent panel modal contract', () => {
+  it('keeps the standalone agent panel page focused on chat sessions and chat', () => {
+    const page = readFileSync('src/app/pages/AgentPanelPage.vue', 'utf8')
+
+    assert.doesNotMatch(page, /AgentDirectoryList/)
+    assert.match(page, /AgentSessionList/)
+    assert.match(page, /AgentChatView/)
+    assert.match(page, /grid-template-columns:\s*300px\s+minmax\(0,\s*1fr\)/)
+  })
+
   it('mounts the global agent panel as a BaseModal overlay instead of a page route', () => {
     const app = readFileSync('src/app/App.vue', 'utf8')
     const router = readFileSync('src/app/router.ts', 'utf8')
