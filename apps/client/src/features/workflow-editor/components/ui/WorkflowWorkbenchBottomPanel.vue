@@ -1430,10 +1430,6 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.workflow-variables__prop-row:hover {
-  background: color-mix(in srgb, var(--fabric-button-ghost-hover) 64%, transparent);
-}
-
 .workflow-variables__prop-row > span {
   color: var(--fabric-text-muted);
   font-size: 11px;

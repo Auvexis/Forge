@@ -1,0 +1,2 @@
+- [x] Remove variables property row hover background
+- [x] Validate and commit
