@@ -1462,17 +1462,17 @@ onBeforeUnmount(() => {
 .workflow-variables__prop-row :deep(.base-textarea-container),
 .workflow-variables__search :deep(.base-input-container) {
   min-height: 22px;
-  border-color: transparent;
+  border-color: var(--fabric-workflow-variables-field-border);
   border-radius: 2px;
-  background: transparent;
+  background: var(--fabric-workflow-variables-field-bg);
 }
 
 .workflow-variables__prop-row:hover :deep(.base-input-container),
 .workflow-variables__prop-row:hover :deep(.base-select-container),
 .workflow-variables__prop-row:hover :deep(.base-textarea-container),
 .workflow-variables__search:hover :deep(.base-input-container) {
-  border-color: var(--fabric-border-muted);
-  background: var(--fabric-bg-surface);
+  border-color: var(--fabric-workflow-variables-field-hover-border);
+  background: var(--fabric-workflow-variables-field-hover-bg);
 }
 
 .workflow-variables__prop-row :deep(.base-input-container:focus-within),
@@ -1480,8 +1480,8 @@ onBeforeUnmount(() => {
 .workflow-variables__prop-row :deep(.base-select-container:focus-within),
 .workflow-variables__prop-row :deep(.base-textarea-container:focus-within),
 .workflow-variables__search :deep(.base-input-container:focus-within) {
-  border-color: var(--fabric-border-brand);
-  background: var(--fabric-bg-surface);
+  border-color: var(--fabric-workflow-variables-field-focus-border);
+  background: var(--fabric-workflow-variables-field-focus-bg);
 }
 
 .workflow-variables__prop-row :deep(.base-input),

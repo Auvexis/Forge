@@ -11,6 +11,10 @@ const lightTheme = readFileSync(
   fileURLToPath(new URL('../../../../../themes/json/light.json', import.meta.url)),
   'utf8',
 )
+const darkTheme = readFileSync(
+  fileURLToPath(new URL('../../../../../themes/json/dark.json', import.meta.url)),
+  'utf8',
+)
 const workflowPageSource = readFileSync(
   fileURLToPath(new URL('../../../../../app/pages/WorkflowEditorPage.vue', import.meta.url)),
   'utf8',
@@ -214,6 +218,13 @@ test('workflow bottom panel renders the selected view without internal tabs', ()
   assert.match(source, /BaseTextarea/)
   assert.match(source, /workflow-variables__editor/)
   assert.match(source, /workflow-variables__row/)
+  assert.match(source, /--fabric-workflow-variables-field-border/)
+  assert.match(source, /--fabric-workflow-variables-field-focus-border/)
+  assert.doesNotMatch(source, /workflow-variables__prop-row :deep\(\.base-input-container\)[\s\S]*border-color: transparent/)
+  assert.match(lightTheme, /"workflowVariables\.field\.border"/)
+  assert.match(lightTheme, /"workflowVariables\.field\.focus\.border"/)
+  assert.match(darkTheme, /"workflowVariables\.field\.border"/)
+  assert.match(darkTheme, /"workflowVariables\.field\.focus\.border"/)
   assert.match(workflowPageSource, /const isVariablesPanelOpen = computed/)
   assert.match(workflowPageSource, /:active="isVariablesPanelOpen"/)
   assert.match(workflowPageSource, /@click="toggleBottomPanel\('variables'\)"/)
