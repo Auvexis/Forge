@@ -79,11 +79,11 @@ const handleClick = (e: MouseEvent) => {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   width: 100%;
-  min-height: 24px;
-  padding: 3px 6px;
-  border-radius: 2px;
+  min-height: 30px;
+  padding: 5px 8px;
+  border-radius: 6px;
   background-color: transparent;
   color: var(--fabric-text-primary);
   text-align: left;
@@ -93,7 +93,7 @@ const handleClick = (e: MouseEvent) => {
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     color var(--fabric-duration-fast) var(--fabric-ease-standard);
   user-select: none;
-  font-size: 12px;
+  font-size: 13px;
   font-family: inherit;
 }
 
@@ -134,7 +134,7 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item__label {
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.2;
   white-space: nowrap;
   overflow: hidden;
@@ -142,13 +142,13 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item__hint {
-  font-size: var(--fabric-text-xs);
+  font-size: 11px;
   color: var(--fabric-text-muted);
 }
 
 .app-dropdown-item__shortcut {
   flex-shrink: 0;
-  font-size: var(--fabric-text-xs);
+  font-size: 11px;
   font-family: var(--fabric-font-mono);
   color: var(--fabric-text-muted);
   letter-spacing: 0.05em;

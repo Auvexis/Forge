@@ -1,0 +1,3 @@
+- [x] Mapear DropdownMenu e DropdownItem
+- [x] Ajustar escala e estilo macOS
+- [x] Validar contratos

@@ -75,17 +75,17 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 .app-dropdown-menu {
   display: flex;
   flex-direction: column;
-  min-width: 180px;
-  border: 1px solid var(--fabric-border-strong);
-  border-radius: 2px;
+  min-width: 200px;
+  border: 1px solid color-mix(in srgb, var(--fabric-border-strong) 76%, transparent);
+  border-radius: 8px;
   background: var(--fabric-bg-surface);
-  box-shadow: none;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
   overflow: hidden;
 }
 
 .app-dropdown-menu__header {
-  height: 24px;
-  padding: 0 8px;
+  height: 28px;
+  padding: 0 10px;
   margin-bottom: 0;
   border-bottom: 1px solid var(--fabric-border-muted);
   background: var(--fabric-workbench-panel-header-bg, var(--fabric-bg-elevated));
@@ -104,8 +104,8 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 .app-dropdown-menu__items {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: 3px;
+  gap: 2px;
+  padding: 5px;
 }
 
 .app-dropdown-menu__fixed {
