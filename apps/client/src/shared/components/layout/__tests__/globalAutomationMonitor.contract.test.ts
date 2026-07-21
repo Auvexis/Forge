@@ -12,6 +12,9 @@ const paletteSource = readFileSync(
 )
 const apiSource = readFileSync(fileURLToPath(new URL('../../../../core/api/workflows.api.ts', import.meta.url)), 'utf8')
 const baseModalSource = readFileSync(fileURLToPath(new URL('../../base/BaseModal.vue', import.meta.url)), 'utf8')
+const runsViewSource = readFileSync(fileURLToPath(new URL('../../execution/ExecutionRunsView.vue', import.meta.url)), 'utf8')
+const lightThemeSource = readFileSync(fileURLToPath(new URL('../../../../themes/json/light.json', import.meta.url)), 'utf8')
+const darkThemeSource = readFileSync(fileURLToPath(new URL('../../../../themes/json/dark.json', import.meta.url)), 'utf8')
 
 describe('global automation monitor shell', () => {
   it('replaces the old production monitor component with a BaseModal global monitor', () => {
@@ -79,6 +82,8 @@ describe('global automation monitor shell', () => {
     assert.match(source, /:runs="activeTriggerRuns"/)
     assert.match(source, /:workflow="selectedWorkflow\.workflow"/)
     assert.match(source, /executionTriggerId/)
+    assert.doesNotMatch(source, /gam-run-result-panel/)
+    assert.doesNotMatch(runsViewSource, /execution-runs-view__header/)
   })
 
   it('surfaces final result summaries for finished runs and keeps full JSON in run detail', () => {
@@ -91,6 +96,20 @@ describe('global automation monitor shell', () => {
     assert.match(source, /Executed steps result/)
     assert.match(source, /gam-run-result/)
     assert.match(source, /ExecutionRunExplorer/)
+  })
+
+  it('uses JSON theme tokens for the professional monitor shell and runs list', () => {
+    const source = readFileSync(monitorPath, 'utf8')
+
+    assert.match(source, /--fabric-automation-monitor-bg/)
+    assert.match(source, /--fabric-automation-monitor-tab-active-indicator/)
+    assert.match(runsViewSource, /--fabric-execution-runs-bg/)
+    assert.match(runsViewSource, /--fabric-execution-runs-status-success-bg/)
+    assert.match(lightThemeSource, /"automationMonitor\.bg"/)
+    assert.match(lightThemeSource, /"executionRuns\.bg"/)
+    assert.match(darkThemeSource, /"automationMonitor\.bg"/)
+    assert.match(darkThemeSource, /"executionRuns\.bg"/)
+    assert.doesNotMatch(source, /color-mix/)
   })
 })
 

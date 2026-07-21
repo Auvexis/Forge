@@ -124,14 +124,6 @@
             </BaseButton>
           </div>
 
-          <section v-if="activeRunResultSummary" class="gam-run-result-panel">
-            <span>
-              <small>{{ activeRunResultSummary.label }}</small>
-              <strong>{{ activeRunResultSummary.summary }}</strong>
-            </span>
-            <small>Open a run to inspect the full JSON result.</small>
-          </section>
-
           <div class="gam-execution-body">
             <ExecutionRunExplorer
               :runs="activeTriggerRuns"
@@ -274,15 +266,6 @@ const triggerTabs = computed(() => {
 const activeTriggerRuns = computed(
   () => triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)?.runs ?? [],
 )
-
-const activeRunResultSummary = computed(() => {
-  const run = activeTriggerRuns.value.find((item) => item.context.resultSource)
-  if (!run) return null
-  return {
-    label: workflowResultLabel(run),
-    summary: workflowResultSummary(run),
-  }
-})
 
 function workflowKey(workflow: ProductionWorkflowStatus): string {
   return `${workflow.profileId ?? 'global'}:${workflow.id}`
@@ -439,9 +422,9 @@ watch(triggerTabs, (next) => {
 
 <style scoped>
 :deep(.base-modal-container) {
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-automation-monitor-modal-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-automation-monitor-modal-bg);
 }
 
 .gam-shell {
@@ -451,8 +434,8 @@ watch(triggerTabs, (next) => {
   min-height: 0;
   overflow: hidden;
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-automation-monitor-bg);
+  color: var(--fabric-automation-monitor-text);
   transition: grid-template-columns var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
@@ -465,8 +448,8 @@ watch(triggerTabs, (next) => {
   flex-direction: column;
   min-height: 0;
   min-width: 0;
-  border-right: 1px solid var(--fabric-border);
-  background: color-mix(in srgb, var(--fabric-bg-surface) 82%, var(--fabric-bg-base));
+  border-right: 1px solid var(--fabric-automation-monitor-sidebar-border);
+  background: var(--fabric-automation-monitor-sidebar-bg);
   transition: background var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 
@@ -482,7 +465,7 @@ watch(triggerTabs, (next) => {
   gap: var(--fabric-space-3);
   min-height: 72px;
   padding: 0 var(--fabric-space-5);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-automation-monitor-header-border);
 }
 
 .gam-title {
@@ -500,7 +483,7 @@ watch(triggerTabs, (next) => {
   grid-row: 1 / span 2;
   place-items: center;
   border: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-automation-monitor-icon-text);
 }
 
 .gam-header-actions {
@@ -528,7 +511,7 @@ watch(triggerTabs, (next) => {
 
 .gam-eyebrow {
   display: block;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-muted-text);
   font-size: 10px;
   line-height: 1.2;
   text-transform: uppercase;
@@ -538,7 +521,7 @@ watch(triggerTabs, (next) => {
   width: 38px;
   height: 38px;
   border-radius: var(--fabric-radius-md);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-icon-button-text);
 }
 
 .gam-profile-trigger {
@@ -546,6 +529,7 @@ watch(triggerTabs, (next) => {
   height: 34px;
   justify-content: flex-start;
   border-radius: var(--fabric-radius-full);
+  background: var(--fabric-automation-monitor-profile-trigger-bg);
 }
 
 .gam-profile-trigger :deep(.base-button__label) {
@@ -556,7 +540,7 @@ watch(triggerTabs, (next) => {
 
 .gam-main-meta,
 .gam-workflow small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-meta-text);
   font-size: var(--fabric-text-xs);
 }
 
@@ -580,18 +564,19 @@ watch(triggerTabs, (next) => {
   justify-content: stretch;
   border-radius: var(--fabric-radius-md);
   background: transparent;
+  color: var(--fabric-automation-monitor-workflow-text);
   padding: 0;
 }
 
 .gam-workflow:hover,
 .gam-workflow:active {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
+  background: var(--fabric-automation-monitor-workflow-hover-bg);
+  color: var(--fabric-automation-monitor-workflow-hover-text);
 }
 
 .gam-workflow--active {
-  background: var(--fabric-button-ghost-active);
-  color: var(--fabric-button-ghost-active-text);
+  background: var(--fabric-automation-monitor-workflow-active-bg);
+  color: var(--fabric-automation-monitor-workflow-active-text);
 }
 
 .gam-workflow :deep(.base-button__label) {
@@ -646,7 +631,7 @@ watch(triggerTabs, (next) => {
 .gam-workflow__copy small span + span::before {
   content: "/";
   margin-right: var(--fabric-space-2);
-  color: var(--fabric-border-strong);
+  color: var(--fabric-automation-monitor-workflow-divider);
 }
 
 .gam-run-result {
@@ -654,7 +639,7 @@ watch(triggerTabs, (next) => {
   min-width: 0;
   align-items: center;
   gap: var(--fabric-space-1);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-muted-text);
   font-size: 10px;
 }
 
@@ -669,7 +654,7 @@ watch(triggerTabs, (next) => {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-automation-monitor-bg);
 }
 
 .gam-main-title {
@@ -706,13 +691,13 @@ watch(triggerTabs, (next) => {
 }
 
 .gam-main-meta small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-meta-text);
   font-size: 10px;
   line-height: 1;
 }
 
 .gam-main-meta strong {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-automation-monitor-meta-value-text);
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-base);
   font-weight: var(--fabric-font-medium);
@@ -726,63 +711,34 @@ watch(triggerTabs, (next) => {
   justify-content: center;
   gap: var(--fabric-space-2);
   height: 100%;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-empty-text);
   font-size: var(--fabric-text-sm);
 }
 
 .gam-tabs {
   display: flex;
-  min-height: 36px;
-  border-bottom: 1px solid var(--fabric-border);
+  min-height: 30px;
+  border-bottom: 1px solid var(--fabric-automation-monitor-tabs-border);
+  background: var(--fabric-automation-monitor-tabs-bg);
   overflow-x: auto;
-  padding: var(--fabric-space-1);
-}
-
-.gam-run-result-panel {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--fabric-space-3);
-  min-height: 44px;
-  padding: var(--fabric-space-2) var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
-  color: var(--fabric-text-muted);
-}
-
-.gam-run-result-panel span {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
-
-.gam-run-result-panel small {
-  color: var(--fabric-text-muted);
-  font-size: 10px;
-}
-
-.gam-run-result-panel strong {
-  overflow: hidden;
-  color: var(--fabric-text-primary);
-  font-size: var(--fabric-text-xs);
-  font-weight: var(--fabric-font-medium);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding: 0 var(--fabric-space-1);
 }
 
 .gam-tab {
   position: relative;
   z-index: 1;
   min-width: 50px;
-  height: 100%;
-  border-radius: var(--fabric-radius-sm);
+  height: 30px;
+  border-radius: 0;
+  border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-automation-monitor-tab-text);
 }
 
 .gam-tab:hover,
 .gam-tab:active {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
+  background: var(--fabric-automation-monitor-tab-hover-bg);
+  color: var(--fabric-automation-monitor-tab-hover-text);
 }
 
 .gam-tab :deep(.base-button__label) {
@@ -793,8 +749,9 @@ watch(triggerTabs, (next) => {
 }
 
 .gam-tab--active {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-button-ghost-active);
+  border-bottom-color: var(--fabric-automation-monitor-tab-active-indicator);
+  color: var(--fabric-automation-monitor-tab-active-text);
+  background: var(--fabric-automation-monitor-tab-active-bg);
 }
 
 .gam-tab span {
