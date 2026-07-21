@@ -1,0 +1,2 @@
+- [x] Stack commit field labels
+- [x] Validate and commit

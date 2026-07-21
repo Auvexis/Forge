@@ -263,7 +263,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
           </BaseButton>
 
           <div class="workflow-git-modal__commit-box">
-            <div class="workflow-git-modal__field-row">
+            <div class="workflow-git-modal__field">
               <span>Summary</span>
               <BaseInput
                 v-model="summary"
@@ -271,7 +271,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
                 type="text"
               />
             </div>
-            <div class="workflow-git-modal__field-row workflow-git-modal__field-row--stacked">
+            <div class="workflow-git-modal__field">
               <span>Description</span>
               <BaseTextarea
                 v-model="description"
@@ -394,7 +394,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 .workflow-git-modal__repo-field span,
 .workflow-git-modal__version-select span,
-.workflow-git-modal__field-row > span {
+.workflow-git-modal__field > span {
   display: block;
   color: var(--fabric-workflow-git-text-muted);
   font-size: 11px;
@@ -582,20 +582,11 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   border-top: 1px solid var(--fabric-workflow-git-commit-divider);
 }
 
-.workflow-git-modal__field-row {
-  display: grid;
-  grid-template-columns: 74px minmax(0, 1fr);
-  align-items: center;
-  gap: 8px;
-  min-height: 26px;
-}
-
-.workflow-git-modal__field-row--stacked {
-  align-items: start;
-}
-
-.workflow-git-modal__field-row--stacked > span {
-  padding-top: 8px;
+.workflow-git-modal__field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 5px;
 }
 
 .workflow-git-modal__summary-input :deep(.base-input) {
