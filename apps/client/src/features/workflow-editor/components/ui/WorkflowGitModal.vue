@@ -8,8 +8,11 @@ import {
 } from '@/core/api/workflows.api'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import { buildWorkflowJsonDiff, type WorkflowGitDiffLine } from '@/features/workflow-editor/utils/workflowGitDiff'
+import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 
 const props = defineProps<{
@@ -185,21 +188,21 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   <BaseModal :is-open="isOpen" max-width="1180px" height="760px" @close="emit('close')">
     <section class="workflow-git-modal" aria-label="Workflow git">
       <header class="workflow-git-modal__topbar">
-        <div class="workflow-git-modal__repo-card">
+        <div class="workflow-git-modal__repo-field">
           <LucideIcon name="book-marked" :size="15" />
           <div>
             <span>Current repository</span>
             <strong>{{ workflow.metadata.name }}</strong>
           </div>
         </div>
-        <div class="workflow-git-modal__repo-card">
+        <div class="workflow-git-modal__repo-field">
           <LucideIcon name="git-branch" :size="15" />
           <div>
             <span>Current branch</span>
             <strong>{{ branchLabel }}</strong>
           </div>
         </div>
-        <div class="workflow-git-modal__repo-card">
+        <div class="workflow-git-modal__repo-field">
           <LucideIcon name="git-commit-horizontal" :size="15" />
           <div>
             <span>Last commit</span>
@@ -247,53 +250,60 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             <span>Changes</span>
             <strong>{{ changedFileCount }}</strong>
           </div>
-          <button
+          <BaseButton
             class="workflow-git-modal__file"
             type="button"
+            variant="ghost"
+            size="sm"
             :class="{ 'workflow-git-modal__file--active': changedFileCount > 0 }"
           >
             <LucideIcon name="file-json" :size="14" />
             <span>workflow.json</span>
             <small>{{ changedLines.length }}</small>
-          </button>
+          </BaseButton>
 
           <div class="workflow-git-modal__commit-box">
-            <label>
+            <div class="workflow-git-modal__field-row">
               <span>Summary</span>
-              <input
+              <BaseInput
                 v-model="summary"
                 class="workflow-git-modal__summary-input"
                 type="text"
-                placeholder="Commit summary"
-              >
-            </label>
-            <label>
+              />
+            </div>
+            <div class="workflow-git-modal__field-row workflow-git-modal__field-row--stacked">
               <span>Description</span>
-              <textarea
+              <BaseTextarea
                 v-model="description"
                 class="workflow-git-modal__description-input"
-                rows="4"
-                placeholder="Optional details"
+                :rows="4"
               />
-            </label>
-            <button
+            </div>
+            <BaseButton
               class="workflow-git-modal__commit-button"
               type="button"
+              icon-left="check"
+              variant="primary"
+              size="md"
+              full-width
+              :loading="isCommitting"
               :disabled="!canCommit"
               @click="requestCommit"
             >
-              <LucideIcon name="check" :size="14" />
-              <span>Commit to workflow.json</span>
-            </button>
-            <button
+              Commit to workflow.json
+            </BaseButton>
+            <BaseButton
               class="workflow-git-modal__restore-button"
               type="button"
+              icon-left="rotate-ccw"
+              variant="outline"
+              size="md"
+              full-width
               :disabled="!canRestore"
               @click="requestRestore"
             >
-              <LucideIcon name="rotate-ccw" :size="14" />
-              <span>Restore version</span>
-            </button>
+              Restore version
+            </BaseButton>
           </div>
         </aside>
 
@@ -351,46 +361,53 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 <style scoped>
 .workflow-git-modal {
+  --workflow-git-surface-canvas: var(--fabric-bg-base);
+  --workflow-git-surface-panel: var(--fabric-bg-surface);
+  --workflow-git-surface-header: var(--fabric-bg-overlay);
+  --workflow-git-surface-raised: var(--fabric-input-bg);
+  --workflow-git-accent: var(--fabric-blue-400);
+
   min-height: 0;
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: var(--fabric-bg-base);
+  overflow: hidden;
+  background: var(--workflow-git-surface-canvas);
   color: var(--fabric-text-primary);
 }
 
 .workflow-git-modal__topbar {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: minmax(170px, 1fr) minmax(150px, 0.8fr) minmax(130px, 0.7fr) minmax(220px, 1.2fr) 32px;
-  gap: var(--fabric-space-3);
-  padding: var(--fabric-space-3);
+  grid-template-columns: minmax(190px, 1fr) minmax(150px, 0.7fr) minmax(130px, 0.6fr) minmax(280px, 1.35fr);
+  gap: 1px;
+  min-height: 38px;
+  padding: 1px;
   border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-border);
 }
 
-.workflow-git-modal__repo-card,
+.workflow-git-modal__repo-field,
 .workflow-git-modal__version-select {
   min-width: 0;
-  height: 46px;
+  height: 36px;
   display: flex;
   align-items: center;
-  gap: var(--fabric-space-2);
-  padding: 0 var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
+  gap: 8px;
+  padding: 0 10px;
+  background: var(--workflow-git-surface-header);
 }
 
-.workflow-git-modal__repo-card span,
+.workflow-git-modal__repo-field span,
 .workflow-git-modal__version-select span,
-.workflow-git-modal__commit-box label span {
+.workflow-git-modal__field-row > span {
   display: block;
   color: var(--fabric-text-muted);
   font-size: 11px;
+  line-height: 1;
 }
 
-.workflow-git-modal__repo-card strong {
+.workflow-git-modal__repo-field strong {
   display: block;
   overflow: hidden;
   color: var(--fabric-text-primary);
@@ -410,20 +427,21 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 .workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger) {
   width: 100%;
-  height: 20px;
-  min-height: 20px;
+  height: 22px;
+  min-height: 22px;
   justify-content: space-between;
-  border: 0;
-  border-radius: var(--fabric-radius-sm);
+  border: 1px solid transparent;
+  border-radius: 2px;
   background: transparent;
-  padding: 0;
+  padding: 0 4px;
   color: var(--fabric-text-primary);
   font-size: 12px;
   font-weight: var(--fabric-font-semibold);
 }
 
 .workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger:hover) {
-  background: transparent;
+  border-color: var(--fabric-border-muted);
+  background: var(--workflow-git-surface-raised);
   color: var(--fabric-text-primary);
 }
 
@@ -438,7 +456,8 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   right: 0;
   width: 330px;
   max-height: 360px;
-  border-radius: var(--fabric-radius-md);
+  border-color: var(--fabric-border-strong);
+  border-radius: 2px;
   background: var(--fabric-bg-elevated);
 }
 
@@ -485,38 +504,38 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   min-height: 0;
   flex: 1;
   display: grid;
-  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-columns: 268px minmax(0, 1fr);
 }
 
 .workflow-git-modal__sidebar {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-2);
-  padding: var(--fabric-space-3);
+  gap: 8px;
+  padding: 8px;
   border-right: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  background: var(--workflow-git-surface-panel);
 }
 
 .workflow-git-modal__section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 34px;
-  padding: 0 var(--fabric-space-2);
-  border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  height: 24px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--fabric-border);
+  background: var(--workflow-git-surface-header);
   color: var(--fabric-text-primary);
   font-size: 12px;
+  font-weight: var(--fabric-font-semibold);
 }
 
 .workflow-git-modal__section-header strong {
-  min-width: 20px;
-  height: 18px;
+  min-width: 18px;
+  height: 16px;
   display: inline-grid;
   place-items: center;
-  border-radius: 999px;
+  border-radius: 2px;
   background: transparent;
   color: var(--fabric-text-muted);
   font-size: 10px;
@@ -526,20 +545,26 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   display: grid;
   grid-template-columns: 16px minmax(0, 1fr) 28px;
   align-items: center;
-  gap: var(--fabric-space-2);
-  min-height: 34px;
-  padding: 0 var(--fabric-space-2);
+  justify-content: stretch;
+  gap: 6px;
+  width: 100%;
+  min-height: 26px;
+  padding: 0 8px;
   border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: 2px;
   background: transparent;
   color: var(--fabric-text-secondary);
   text-align: left;
 }
 
+.workflow-git-modal__file :deep(.base-button__label) {
+  display: contents;
+}
+
 .workflow-git-modal__file--active,
 .workflow-git-modal__file:hover {
-  border-color: var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-color: var(--fabric-border-muted);
+  background: var(--fabric-button-ghost-active);
   color: var(--fabric-text-primary);
 }
 
@@ -558,58 +583,53 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   margin-top: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-2);
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--fabric-border);
 }
 
-.workflow-git-modal__summary-input,
-.workflow-git-modal__description-input {
-  width: 100%;
-  margin-top: 5px;
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
-  font: inherit;
-  font-size: 12px;
+.workflow-git-modal__field-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 26px;
 }
 
-.workflow-git-modal__summary-input {
-  height: 34px;
-  padding: 0 var(--fabric-space-2);
+.workflow-git-modal__field-row--stacked {
+  align-items: start;
 }
 
-.workflow-git-modal__description-input {
+.workflow-git-modal__field-row--stacked > span {
+  padding-top: 8px;
+}
+
+.workflow-git-modal__summary-input :deep(.base-input) {
+  height: 24px;
+  font-family: var(--fabric-font-mono);
+  font-size: 11px;
+}
+
+.workflow-git-modal__description-input :deep(.base-textarea) {
   min-height: 74px;
-  resize: vertical;
-  padding: var(--fabric-space-2);
-}
-
-.workflow-git-modal__summary-input:focus,
-.workflow-git-modal__description-input:focus {
-  outline: 0;
-  border-color: var(--fabric-focus-ring);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--fabric-focus-ring) 28%, transparent);
+  font-family: var(--fabric-font-mono);
+  font-size: 11px;
+  line-height: 1.35;
 }
 
 .workflow-git-modal__commit-button,
 .workflow-git-modal__restore-button {
-  height: 34px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--fabric-space-2);
-  border-radius: var(--fabric-radius-sm);
+  height: 28px;
+  border-radius: 2px;
   font-size: 12px;
-  font-weight: var(--fabric-font-semibold);
 }
 
-.workflow-git-modal__commit-button {
-  background: var(--fabric-button-primary-bg);
-  color: var(--fabric-button-primary-text);
-}
-
-.workflow-git-modal__commit-button:hover:not(:disabled) {
-  background: var(--fabric-button-primary-hover);
+.workflow-git-modal__commit-button :deep(.base-button__label),
+.workflow-git-modal__restore-button :deep(.base-button__label) {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .workflow-git-modal__restore-button {
@@ -638,14 +658,14 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 
 .workflow-git-modal__filebar {
   flex: 0 0 auto;
-  height: 42px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--fabric-space-3);
-  padding: 0 var(--fabric-space-3);
+  gap: 12px;
+  padding: 0 10px;
   border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  background: var(--workflow-git-surface-header);
 }
 
 .workflow-git-modal__filebar > div,
@@ -661,12 +681,12 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 }
 
 .workflow-git-modal__stat {
-  min-width: 42px;
-  height: 22px;
+  min-width: 38px;
+  height: 20px;
   display: inline-grid;
   place-items: center;
   border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: 2px;
   font-family: var(--fabric-font-mono);
   font-size: 11px;
 }
@@ -694,7 +714,7 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   flex: 1;
   overflow: auto;
   padding: 8px 0;
-  background: var(--fabric-bg-base);
+  background: var(--workflow-git-surface-canvas);
   font-family: var(--fabric-font-mono);
   font-size: 11px;
   line-height: 1.55;
