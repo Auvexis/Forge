@@ -70,5 +70,6 @@ describe('base surface density', () => {
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*padding: 0;/)
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*border: 0;/)
     assert.match(appDropdownMenuSource, /content-class="app-popover-content--dropdown"/)
+    assert.doesNotMatch(appDropdownMenuSource, /\.app-dropdown-menu\s*\{[\s\S]*border-radius:/)
   })
 })
