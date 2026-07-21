@@ -104,11 +104,15 @@ defineOptions({ inheritAttrs: false })
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--fabric-space-2);
-  border-radius: var(--fabric-radius-sm);
+  gap: 6px;
+  border-radius: 2px;
   font-family: inherit;
   font-weight: var(--fabric-font-medium);
-  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
+  line-height: 1;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
   user-select: none;
 }
 
@@ -124,34 +128,34 @@ defineOptions({ inheritAttrs: false })
 
 /* ── Sizes ─────────────────────────────────────── */
 .base-button--sm {
-  height: 28px;
-  padding: 0 var(--fabric-space-3);
+  height: 24px;
+  padding: 0 8px;
   font-size: var(--fabric-text-xs);
 }
 
 .base-button--md {
-  height: 36px;
-  padding: 0 var(--fabric-space-4);
-  font-size: var(--fabric-text-sm);
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
 }
 
 .base-button--lg {
-  height: 44px;
-  padding: 0 var(--fabric-space-6);
-  font-size: var(--fabric-text-base);
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
 }
 
 .base-button--icon {
-  width: 36px;
-  height: 36px;
+  width: 28px;
+  height: 28px;
   padding: 0;
 }
 
 .base-button--checkbox {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   padding: 0;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: 2px;
   font-size: var(--fabric-text-xs);
 }
 
@@ -210,7 +214,7 @@ defineOptions({ inheritAttrs: false })
 .base-button--ghost:hover {
   background-color: var(--fabric-button-ghost-hover);
   color: var(--fabric-button-ghost-text);
-  border-color: transparent;
+  border-color: var(--fabric-border-muted);
 }
 .base-button--ghost:active {
   background-color: var(--fabric-button-ghost-active);

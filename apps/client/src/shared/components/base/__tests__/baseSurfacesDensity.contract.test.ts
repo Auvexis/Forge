@@ -11,6 +11,22 @@ const baseMiniMenuSource = readFileSync(
   fileURLToPath(new URL('../BaseMiniMenu.vue', import.meta.url)),
   'utf8',
 )
+const baseInputSource = readFileSync(
+  fileURLToPath(new URL('../BaseInput.vue', import.meta.url)),
+  'utf8',
+)
+const baseButtonSource = readFileSync(
+  fileURLToPath(new URL('../BaseButton.vue', import.meta.url)),
+  'utf8',
+)
+const baseSelectSource = readFileSync(
+  fileURLToPath(new URL('../BaseSelect.vue', import.meta.url)),
+  'utf8',
+)
+const baseSegmentedSelectSource = readFileSync(
+  fileURLToPath(new URL('../BaseSegmentedSelect.vue', import.meta.url)),
+  'utf8',
+)
 
 describe('base surface density', () => {
   it('keeps BaseModal flat and tool-like instead of card-heavy', () => {
@@ -29,5 +45,15 @@ describe('base surface density', () => {
     assert.match(baseMiniMenuSource, /\.bmm-body\s*\{[\s\S]*padding: var\(--fabric-space-3\);/)
     assert.match(baseMiniMenuSource, /\.bmm-footer\s*\{[\s\S]*padding: var\(--fabric-space-2\) var\(--fabric-space-3\);/)
     assert.match(baseMiniMenuSource, /\.bmm-dialog\s*\{[\s\S]*box-shadow: none;/)
+  })
+
+  it('keeps shared form controls compact for professional panels', () => {
+    assert.match(baseInputSource, /\.base-input\s*\{[\s\S]*height: 26px;/)
+    assert.match(baseInputSource, /\.base-input-container\s*\{[\s\S]*border-radius: 2px;/)
+    assert.match(baseButtonSource, /\.base-button--md\s*\{[\s\S]*height: 28px;/)
+    assert.match(baseButtonSource, /\.base-button--icon\s*\{[\s\S]*width: 28px;[\s\S]*height: 28px;/)
+    assert.match(baseSelectSource, /\.base-select-container\s*\{[\s\S]*min-height: 26px;/)
+    assert.match(baseSelectSource, /\.base-select-dropdown\s*\{[\s\S]*box-shadow: none;/)
+    assert.match(baseSegmentedSelectSource, /\.base-segmented-select__option\s*\{[\s\S]*height: 22px;/)
   })
 })

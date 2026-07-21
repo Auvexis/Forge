@@ -111,7 +111,7 @@ defineOptions({ inheritAttrs: false })
 .base-input-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-1);
+  gap: 3px;
   width: 100%;
 }
 
@@ -119,6 +119,7 @@ defineOptions({ inheritAttrs: false })
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
   color: var(--fabric-text-secondary);
+  line-height: 1.1;
 }
 
 .required {
@@ -131,13 +132,21 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   background-color: var(--fabric-input-bg);
   border: 1px solid var(--fabric-input-border);
-  border-radius: var(--fabric-radius-sm, 6px);
-  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
+  border-radius: 2px;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard);
   width: 100%;
+}
+
+.base-input-container:hover:not(.base-input-container--disabled) {
+  background-color: var(--fabric-bg-surface);
+  border-color: var(--fabric-border-muted);
 }
 
 .base-input-container:focus-within {
   border-color: var(--fabric-input-border-focus);
+  background-color: var(--fabric-bg-surface);
 }
 
 .base-input-container--error {
@@ -156,13 +165,14 @@ defineOptions({ inheritAttrs: false })
 .base-input {
   flex: 1;
   width: 100%;
-  height: 36px;
+  height: 26px;
   background: transparent;
   border: none;
   outline: none;
   color: var(--fabric-input-text);
-  font-size: var(--fabric-text-sm);
-  padding: 0 var(--fabric-space-3);
+  font-size: 12px;
+  padding: 0 8px;
+  line-height: 1.2;
 }
 
 .base-input::placeholder {
@@ -170,11 +180,11 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-input.has-left-icon {
-  padding-left: 36px;
+  padding-left: 28px;
 }
 
 .base-input.has-right-icon {
-  padding-right: 36px;
+  padding-right: 28px;
 }
 
 .base-input__icon {
@@ -183,7 +193,7 @@ defineOptions({ inheritAttrs: false })
   align-items: center;
   justify-content: center;
   color: var(--fabric-text-secondary);
-  width: 36px;
+  width: 28px;
   height: 100%;
   pointer-events: none;
 }

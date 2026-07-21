@@ -50,22 +50,22 @@ defineEmits<{
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
-  gap: var(--fabric-space-1);
-  padding: var(--fabric-space-1);
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-base);
+  gap: 1px;
+  padding: 2px;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 2px;
+  background: var(--fabric-bg-overlay);
 }
 
 .base-segmented-select__option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--fabric-space-1);
+  gap: 4px;
   min-width: 0;
-  height: 30px;
-  padding: 0 var(--fabric-space-2);
-  border-radius: var(--fabric-radius-sm);
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 2px;
   color: var(--fabric-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
@@ -75,12 +75,13 @@ defineEmits<{
 }
 
 .base-segmented-select__option:hover {
+  background: var(--fabric-button-ghost-hover);
   color: var(--fabric-text-primary);
 }
 
 .base-segmented-select__option--active {
   background: var(--fabric-button-ghost-active);
-  box-shadow: inset 0 0 0 1px var(--fabric-border-strong);
+  box-shadow: inset 0 -1px 0 var(--fabric-accent);
   color: var(--fabric-text-primary);
 }
 

@@ -74,12 +74,22 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 .app-dropdown-menu {
   display: flex;
   flex-direction: column;
+  min-width: 180px;
+  border: 1px solid var(--fabric-border-strong);
+  border-radius: 2px;
+  background: var(--fabric-bg-surface);
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .app-dropdown-menu__header {
-  padding: var(--fabric-space-2) var(--fabric-space-3);
-  margin-bottom: var(--fabric-space-1);
-  border-bottom: 1px solid var(--fabric-border);
+  height: 24px;
+  padding: 0 8px;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--fabric-border-muted);
+  background: var(--fabric-workbench-panel-header-bg, var(--fabric-bg-elevated));
+  display: flex;
+  align-items: center;
 }
 
 .app-dropdown-menu__title {
@@ -93,7 +103,8 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 .app-dropdown-menu__items {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
+  padding: 3px;
 }
 
 .app-dropdown-menu__fixed {

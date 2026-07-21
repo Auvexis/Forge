@@ -86,7 +86,7 @@ defineOptions({ inheritAttrs: false })
 .base-textarea-wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--fabric-space-1);
+  gap: 3px;
   width: 100%;
 }
 
@@ -94,6 +94,7 @@ defineOptions({ inheritAttrs: false })
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
   color: var(--fabric-text-secondary);
+  line-height: 1.1;
 }
 
 .required {
@@ -105,13 +106,21 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   background-color: var(--fabric-bg-overlay);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
-  transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
+  border-radius: 2px;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    border-color var(--fabric-duration-fast) var(--fabric-ease-standard);
   width: 100%;
 }
 
+.base-textarea-container:hover:not(.base-textarea-container--disabled) {
+  background-color: var(--fabric-bg-surface);
+  border-color: var(--fabric-border-muted);
+}
+
 .base-textarea-container:focus-within {
-  border-color: var(--fabric-border-strong);
+  background-color: var(--fabric-bg-surface);
+  border-color: var(--fabric-border-brand);
 }
 
 .base-textarea-container--error {
@@ -130,15 +139,15 @@ defineOptions({ inheritAttrs: false })
 .base-textarea {
   flex: 1;
   width: 100%;
-  min-height: 80px;
+  min-height: 64px;
   background: transparent;
   border: none;
   outline: none;
   color: var(--fabric-text-primary);
-  font-size: var(--fabric-text-sm);
-  padding: var(--fabric-space-2) var(--fabric-space-3);
+  font-size: 12px;
+  padding: 6px 8px;
   resize: vertical;
-  line-height: 1.5;
+  line-height: 1.35;
   font-family: inherit;
 }
 
