@@ -189,7 +189,6 @@ function handleAction(action: ProfileDropdownAction) {
   min-height: 58px;
   padding: 10px;
   border-bottom: 1px solid var(--fabric-base-profile-dropdown-divider);
-  background: var(--fabric-base-profile-dropdown-header-bg);
 }
 
 .base-profile-dropdown__avatar {

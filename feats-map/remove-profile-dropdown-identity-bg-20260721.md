@@ -1,0 +1,2 @@
+- [x] Remove identity background
+- [x] Validate and commit
