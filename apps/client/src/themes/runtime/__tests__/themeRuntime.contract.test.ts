@@ -82,6 +82,7 @@ describe('theme runtime contract', () => {
       'workflowTimeline.tooltip.bg',
       'workflowTimeline.tooltip.border',
       'workflowTimeline.trail',
+      'topbar.notificationBadge.text',
       'executionPanel.bg',
     ]) {
       assert.equal(typeof darkTheme.tokens[tokenName], 'string')

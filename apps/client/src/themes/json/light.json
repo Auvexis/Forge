@@ -41,6 +41,7 @@
     "topbar.kbd.bg": "transparent",
     "topbar.button.bg": "rgba(255, 250, 244, 0.08)",
     "topbar.button.text": "var(--fabric-text-chrome)",
+    "topbar.notificationBadge.text": "var(--fabric-text-chrome)",
     "button.primary.bg": "#24211f",
     "button.primary.text": "#ffffff",
     "button.primary.border": "#24211f",

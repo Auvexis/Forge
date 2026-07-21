@@ -144,6 +144,7 @@
   
   --fabric-topbar-button-bg: rgba(255, 250, 244, 0.08);
   --fabric-topbar-button-text: var(--fabric-text-chrome);
+  --fabric-topbar-notification-badge-text: var(--fabric-text-chrome);
 
   /* ── Buttons ─────────────────────────────────────────────── */
   /* Primary */
@@ -716,6 +717,7 @@
   --fabric-topbar-search-hover-text: var(--fabric-text-chrome);
   --fabric-topbar-search-hover-bg: var(--fabric-bg-chrome-hover);
   --fabric-topbar-kbd-bg: transparent;
+  --fabric-topbar-notification-badge-text: var(--fabric-text-chrome);
 
   /* Buttons */
   --fabric-button-primary-bg: var(--fabric-gray-900);

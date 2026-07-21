@@ -348,7 +348,7 @@ function handleProfileDropdownAction(
   right: calc(-1 * 2px);
   min-width: var(--fabric-space-4);
   height: var(--fabric-space-4);
-  color: var(--fabric-text-inverse);
+  color: var(--fabric-topbar-notification-badge-text);
   font-size: 5px;
   font-weight: var(--fabric-font-bold);
   text-align: center;

@@ -20,6 +20,7 @@ describe('layout color tokens', () => {
     '--fabric-topbar-search-hover-text',
     '--fabric-topbar-search-hover-bg',
     '--fabric-topbar-kbd-bg',
+    '--fabric-topbar-notification-badge-text',
   ]
 
   it('defines sidebar and topbar color tokens for dark and light themes', () => {
