@@ -184,6 +184,8 @@ test('workflow editor commits workflow git snapshots manually from the git modal
 
 test('workflow git modal uses BaseModal and exposes commit UI', () => {
   const source = read('src/features/workflow-editor/components/ui/WorkflowGitModal.vue')
+  const lightTheme = read('src/themes/json/light.json')
+  const darkTheme = read('src/themes/json/dark.json')
 
   assert.match(source, /BaseModal/)
   assert.match(source, /BaseInput/)
@@ -197,6 +199,17 @@ test('workflow git modal uses BaseModal and exposes commit UI', () => {
   assert.doesNotMatch(source, /<input/)
   assert.doesNotMatch(source, /<textarea/)
   assert.doesNotMatch(source, /<button/)
+  assert.match(source, /--fabric-workflow-git-bg/)
+  assert.match(source, /--fabric-workflow-git-line-added-bg/)
+  assert.match(source, /--fabric-workflow-git-syntax-key/)
+  assert.doesNotMatch(source, /#[0-9a-fA-F]{3,8}/)
+  assert.doesNotMatch(source, /rgba\(/)
+  assert.match(lightTheme, /"workflowGit\.bg"/)
+  assert.match(lightTheme, /"workflowGit\.line\.added\.bg"/)
+  assert.match(lightTheme, /"workflowGit\.syntax\.key"/)
+  assert.match(darkTheme, /"workflowGit\.bg"/)
+  assert.match(darkTheme, /"workflowGit\.line\.added\.bg"/)
+  assert.match(darkTheme, /"workflowGit\.syntax\.key"/)
   assert.match(source, /defineEmits/)
   assert.match(source, /\(e: 'commit', message: string\): void/)
   assert.match(source, /buildWorkflowJsonDiff/)

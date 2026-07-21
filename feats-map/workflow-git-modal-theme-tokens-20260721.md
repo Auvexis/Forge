@@ -1,0 +1,3 @@
+- [x] Add workflow git JSON tokens
+- [x] Replace modal CSS aliases
+- [x] Validate and commit
