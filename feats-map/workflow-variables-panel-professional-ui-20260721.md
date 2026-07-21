@@ -1,0 +1,4 @@
+- [x] Ler skill professional software UI
+- [x] Usar componentes base
+- [x] Compactar layout Variables
+- [x] Validar frontend

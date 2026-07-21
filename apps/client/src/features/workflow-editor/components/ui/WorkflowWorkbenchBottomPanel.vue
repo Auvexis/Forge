@@ -5,6 +5,9 @@ import { pluginsApi } from '@/core/api/plugins.api'
 import { workflowNodesApi } from '@/core/api/workflowNodes.api'
 import { useExecutionStore } from '../../stores/execution.store'
 import { useWorkflowStore } from '../../stores/workflow.store'
+import BaseInput from '@/shared/components/base/BaseInput.vue'
+import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { NodeExecutionStatus } from '@/core/types/execution.types'
 import type { PluginSummary } from '@/core/types/plugin.types'
@@ -125,6 +128,7 @@ const variableDraft = ref<WorkflowVariable>({
 const variableDraftValue = ref('')
 const variableError = ref('')
 const variableTypes: WorkflowVariable['type'][] = ['string', 'number', 'boolean', 'object', 'array', 'secret']
+const variableTypeOptions = variableTypes.map((type) => ({ value: type, label: type }))
 const filteredWorkflowVariables = computed(() => {
   const query = variableSearch.value.trim().toLowerCase()
   if (!query) return workflowVariables.value
@@ -1187,48 +1191,44 @@ onBeforeUnmount(() => {
 
     <div v-else class="workflow-bottom-panel__view workflow-variables">
       <aside class="workflow-variables__editor" aria-label="Workflow variable editor">
-        <div class="workflow-variables__editor-head">
-          <LucideIcon :name="isEditingVariable ? 'pencil' : 'plus'" :size="14" />
+        <div class="workflow-variables__section-header">
+          <LucideIcon name="chevron-down" :size="12" />
           <strong>{{ isEditingVariable ? 'Edit variable' : 'New variable' }}</strong>
         </div>
 
-        <label class="workflow-variables__field">
+        <div class="workflow-variables__prop-row">
           <span>Name</span>
-          <input v-model="variableDraft.name" placeholder="customer_id" spellcheck="false" />
-        </label>
+          <BaseInput v-model="variableDraft.name" placeholder="customer_id" spellcheck="false" />
+        </div>
 
-        <label class="workflow-variables__field">
+        <div class="workflow-variables__prop-row">
           <span>Type</span>
-          <select v-model="variableDraft.type">
-            <option v-for="type in variableTypes" :key="type" :value="type">{{ type }}</option>
-          </select>
-        </label>
+          <BaseSelect v-model="variableDraft.type" :options="variableTypeOptions" />
+        </div>
 
-        <label class="workflow-variables__field workflow-variables__field--wide">
-          <span>Default value</span>
-          <textarea
+        <div class="workflow-variables__prop-row workflow-variables__prop-row--textarea">
+          <span>Value</span>
+          <BaseTextarea
             v-model="variableDraftValue"
             :placeholder="variableDraft.type === 'object' ? '{ }' : variableDraft.type === 'array' ? '[ ]' : 'Value'"
-            rows="4"
+            :rows="3"
             spellcheck="false"
           />
-        </label>
+        </div>
 
-        <label class="workflow-variables__field workflow-variables__field--wide">
-          <span>Description</span>
-          <input v-model="variableDraft.description" placeholder="Used by prompts, code, and conditions" />
-        </label>
+        <div class="workflow-variables__prop-row">
+          <span>Desc</span>
+          <BaseInput v-model="variableDraft.description" placeholder="Optional" />
+        </div>
 
         <p v-if="variableError" class="workflow-variables__error">{{ variableError }}</p>
 
         <div class="workflow-variables__editor-actions">
-          <button type="button" class="workflow-variables__button workflow-variables__button--primary" @click="saveVariable">
+          <button type="button" class="workflow-variables__icon-button workflow-variables__icon-button--primary" :title="isEditingVariable ? 'Save variable' : 'Add variable'" @click="saveVariable">
             <LucideIcon name="check" :size="13" />
-            <span>{{ isEditingVariable ? 'Save' : 'Add' }}</span>
           </button>
-          <button type="button" class="workflow-variables__button" @click="resetVariableDraft">
+          <button type="button" class="workflow-variables__icon-button" title="Reset variable draft" @click="resetVariableDraft">
             <LucideIcon name="rotate-ccw" :size="13" />
-            <span>Reset</span>
           </button>
         </div>
       </aside>
@@ -1237,7 +1237,7 @@ onBeforeUnmount(() => {
         <div class="workflow-variables__toolbar">
           <div class="workflow-variables__search">
             <LucideIcon name="search" :size="13" />
-            <input v-model="variableSearch" placeholder="Search variables" spellcheck="false" />
+            <BaseInput v-model="variableSearch" placeholder="Search" spellcheck="false" />
           </div>
           <code>{{ workflowVariables.length }} local</code>
         </div>
@@ -1380,7 +1380,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-variables {
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 272px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
 }
 
@@ -1391,125 +1391,172 @@ onBeforeUnmount(() => {
 }
 
 .workflow-variables__editor {
-  display: grid;
-  grid-template-rows: 30px auto auto auto auto minmax(0, auto) 30px;
-  gap: 8px;
-  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
   border-right: 1px solid var(--fabric-workbench-border);
   background: var(--fabric-workflow-timeline-entry-bg, var(--fabric-workbench-panel-bg));
 }
 
-.workflow-variables__editor-head,
+.workflow-variables__section-header,
 .workflow-variables__toolbar,
 .workflow-variables__editor-actions,
 .workflow-variables__actions,
 .workflow-variables__identity,
 .workflow-variables__search,
-.workflow-variables__button,
+.workflow-variables__icon-button,
 .workflow-variables__actions button,
 .workflow-variables__icon {
   display: flex;
   align-items: center;
 }
 
-.workflow-variables__editor-head {
-  gap: 8px;
+.workflow-variables__section-header {
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
   color: var(--fabric-text-primary);
+  font-weight: 650;
   font-size: var(--fabric-text-xs);
 }
 
-.workflow-variables__field {
+.workflow-variables__prop-row {
   display: grid;
-  gap: 4px;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  min-height: 24px;
+  padding: 1px 8px;
+  gap: 8px;
   min-width: 0;
 }
 
-.workflow-variables__field span {
+.workflow-variables__prop-row:hover {
+  background: color-mix(in srgb, var(--fabric-button-ghost-hover) 64%, transparent);
+}
+
+.workflow-variables__prop-row > span {
   color: var(--fabric-text-muted);
-  font-size: 10px;
-  font-weight: 650;
-  text-transform: uppercase;
+  font-size: 11px;
+  white-space: nowrap;
 }
 
-.workflow-variables__field input,
-.workflow-variables__field select,
-.workflow-variables__field textarea,
-.workflow-variables__search input {
-  width: 100%;
-  min-width: 0;
-  border: 1px solid var(--fabric-border-muted);
-  border-radius: 4px;
+.workflow-variables__prop-row--textarea {
+  align-items: start;
+  min-height: 72px;
+  padding-top: 3px;
+}
+
+.workflow-variables__prop-row--textarea > span {
+  padding-top: 5px;
+}
+
+.workflow-variables__prop-row :deep(.base-input-wrapper),
+.workflow-variables__prop-row :deep(.base-select-wrapper),
+.workflow-variables__prop-row :deep(.base-textarea-wrapper),
+.workflow-variables__search :deep(.base-input-wrapper) {
+  gap: 0;
+}
+
+.workflow-variables__prop-row :deep(.base-input-container),
+.workflow-variables__prop-row :deep(.base-select-container),
+.workflow-variables__prop-row :deep(.base-textarea-container),
+.workflow-variables__search :deep(.base-input-container) {
+  min-height: 22px;
+  border-color: transparent;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.workflow-variables__prop-row:hover :deep(.base-input-container),
+.workflow-variables__prop-row:hover :deep(.base-select-container),
+.workflow-variables__prop-row:hover :deep(.base-textarea-container),
+.workflow-variables__search:hover :deep(.base-input-container) {
+  border-color: var(--fabric-border-muted);
   background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
-  font: inherit;
-  outline: none;
 }
 
-.workflow-variables__field input,
-.workflow-variables__field select,
-.workflow-variables__search input {
-  height: 28px;
-  padding: 0 8px;
+.workflow-variables__prop-row :deep(.base-input-container:focus-within),
+.workflow-variables__prop-row :deep(.base-select-container--open),
+.workflow-variables__prop-row :deep(.base-select-container:focus-within),
+.workflow-variables__prop-row :deep(.base-textarea-container:focus-within),
+.workflow-variables__search :deep(.base-input-container:focus-within) {
+  border-color: var(--fabric-border-brand);
+  background: var(--fabric-bg-surface);
 }
 
-.workflow-variables__field textarea {
-  min-height: 68px;
-  max-height: 90px;
-  padding: 7px 8px;
+.workflow-variables__prop-row :deep(.base-input),
+.workflow-variables__prop-row :deep(.base-select-trigger),
+.workflow-variables__search :deep(.base-input) {
+  height: 20px;
+  padding: 0 6px;
+  font-size: 11px;
+}
+
+.workflow-variables__prop-row :deep(.base-select-trigger) {
+  padding-right: 24px;
+}
+
+.workflow-variables__prop-row :deep(.base-select__icon) {
+  width: 24px;
+}
+
+.workflow-variables__prop-row :deep(.base-textarea) {
+  min-height: 62px;
+  max-height: 62px;
+  padding: 4px 6px;
+  font-family: var(--fabric-font-mono);
+  font-size: 11px;
+  line-height: 1.3;
   resize: none;
 }
 
-.workflow-variables__field input:focus,
-.workflow-variables__field select:focus,
-.workflow-variables__field textarea:focus,
-.workflow-variables__search:focus-within {
-  border-color: var(--fabric-border-brand);
-}
-
 .workflow-variables__error {
-  margin: 0;
+  min-height: 20px;
+  margin: 2px 8px 0 76px;
   color: var(--fabric-status-error-text, var(--fabric-red-400));
   font-size: 11px;
 }
 
 .workflow-variables__editor-actions {
+  margin-top: auto;
+  justify-content: flex-end;
   gap: 6px;
+  height: 30px;
+  padding: 3px 8px 0;
+  border-top: 1px solid var(--fabric-border-muted);
 }
 
-.workflow-variables__button {
+.workflow-variables__icon-button {
   justify-content: center;
-  gap: 6px;
-  height: 28px;
-  padding: 0 10px;
-  border: 1px solid var(--fabric-border-muted);
-  border-radius: 4px;
-  background: var(--fabric-bg-surface);
+  width: 24px;
+  height: 24px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  background: transparent;
   color: var(--fabric-text-secondary);
-  font-size: 11px;
 }
 
-.workflow-variables__button:hover,
+.workflow-variables__icon-button:hover,
 .workflow-variables__actions button:hover {
   background: var(--fabric-button-ghost-hover);
   color: var(--fabric-text-primary);
 }
 
-.workflow-variables__button--primary {
-  border-color: var(--fabric-border-brand);
-  background: var(--fabric-accent);
-  color: var(--fabric-accent-foreground, #fff);
+.workflow-variables__icon-button--primary {
+  color: var(--fabric-accent);
 }
 
 .workflow-variables__list {
   display: grid;
-  grid-template-rows: 34px minmax(0, 1fr);
+  grid-template-rows: 28px minmax(0, 1fr);
 }
 
 .workflow-variables__toolbar {
   justify-content: space-between;
-  gap: 10px;
-  padding: 0 10px;
+  gap: 8px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--fabric-border-muted);
+  background: var(--fabric-workflow-timeline-header-bg, var(--fabric-workbench-panel-header-bg));
 }
 
 .workflow-variables__toolbar code {
@@ -1520,20 +1567,17 @@ onBeforeUnmount(() => {
 
 .workflow-variables__search {
   gap: 6px;
-  width: min(360px, 100%);
-  height: 26px;
-  padding: 0 8px;
-  border: 1px solid var(--fabric-border-muted);
-  border-radius: 4px;
-  background: var(--fabric-bg-surface);
+  width: min(300px, 100%);
+  height: 22px;
   color: var(--fabric-text-muted);
 }
 
-.workflow-variables__search input {
-  height: 24px;
-  padding: 0;
-  border: 0;
-  background: transparent;
+.workflow-variables__search :deep(.base-input.has-left-icon) {
+  padding-left: 26px;
+}
+
+.workflow-variables__search :deep(.base-input__icon) {
+  width: 26px;
 }
 
 .workflow-variables__rows {
@@ -1543,11 +1587,11 @@ onBeforeUnmount(() => {
 
 .workflow-variables__row {
   display: grid;
-  grid-template-columns: minmax(180px, 1fr) 72px minmax(180px, 260px) minmax(120px, 1fr) 62px;
+  grid-template-columns: minmax(160px, 1fr) 64px minmax(170px, 240px) minmax(110px, 1fr) 56px;
   align-items: center;
-  gap: 10px;
-  min-height: 46px;
-  padding: 0 10px;
+  gap: 8px;
+  min-height: 28px;
+  padding: 0 8px;
   border-bottom: 1px solid var(--fabric-border-muted);
   color: var(--fabric-text-secondary);
   font-size: var(--fabric-text-xs);
@@ -1559,7 +1603,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-variables__identity {
-  gap: 8px;
+  gap: 6px;
   min-width: 0;
 }
 
@@ -1584,11 +1628,8 @@ onBeforeUnmount(() => {
 
 .workflow-variables__icon {
   justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: 1px solid var(--fabric-border-muted);
-  border-radius: 4px;
-  background: var(--fabric-bg-elevated);
+  width: 16px;
+  height: 16px;
   color: var(--fabric-text-muted);
 }
 
@@ -1609,10 +1650,10 @@ onBeforeUnmount(() => {
 
 .workflow-variables__actions button {
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 2px;
   color: var(--fabric-text-muted);
 }
 
@@ -1631,11 +1672,11 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .workflow-variables {
-    grid-template-columns: 260px minmax(0, 1fr);
+    grid-template-columns: 240px minmax(0, 1fr);
   }
 
   .workflow-variables__row {
-    grid-template-columns: minmax(150px, 1fr) 66px minmax(150px, 220px) 62px;
+    grid-template-columns: minmax(140px, 1fr) 60px minmax(140px, 210px) 56px;
   }
 
   .workflow-variables__preview {
