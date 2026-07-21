@@ -1,0 +1,3 @@
+- [x] Remove directory from global panel
+- [x] Delete unused directory logic
+- [x] Validate and commit

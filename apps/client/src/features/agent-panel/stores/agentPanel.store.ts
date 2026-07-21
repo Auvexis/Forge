@@ -43,8 +43,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
   const activeAssistantStreamId = ref('')
   const approvalPendingId = ref('')
   const agentScope = ref<AgentPanelScope>('global')
-  const agentSearch = ref('')
-  const directoryCollapsed = ref(false)
   const devSessionContext = ref<AgentPanelDevSessionContext | null>(null)
   let activeStreamAbortController: AbortController | null = null
 
@@ -52,19 +50,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     () => agents.value.find((agent) => agent.key === selectedAgentKey.value) ?? null,
   )
   const selectedExecutionMode = computed(() => selectedAgent.value?.executionMode ?? 'loop')
-  const filteredAgents = computed(() => {
-    const query = agentSearch.value.trim().toLowerCase()
-    if (!query) return agents.value
-    return agents.value.filter((agent) =>
-      [
-        agent.name,
-        agent.workflowName,
-        agent.profileId,
-        agent.chatTitle,
-        agent.chatSlug,
-      ].some((value) => value.toLowerCase().includes(query)),
-    )
-  })
   const selectedSession = computed(
     () => sessions.value.find((session) => session.id === selectedSessionId.value) ?? null,
   )
@@ -101,15 +86,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
       loading.value = false
     }
     if (!directoryError.value && selectedAgentKey.value) await loadSessions(selectedAgentKey.value)
-  }
-
-  async function selectAgent(agentKey: string) {
-    clearChatError()
-    selectedAgentKey.value = agentKey
-    selectedSessionId.value = ''
-    draftSessionOpen.value = false
-    messages.value = []
-    await loadSessions(agentKey)
   }
 
   async function setSelectedExecutionMode(mode: 'loop' | 'plan') {
@@ -174,11 +150,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   const createSession = openDraftSession
 
-  async function setAgentScope(scope: AgentPanelScope) {
-    if (agentScope.value === scope && agents.value.length) return
-    await loadAgents(scope)
-  }
-
   function prepareDevSession(input: Omit<AgentPanelDevSessionContext, 'scope'> & { scope?: 'dev-session' }) {
     devSessionContext.value = { scope: 'dev-session', ...input }
     selectedAgentKey.value = ''
@@ -189,10 +160,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   function clearDevSessionContext() {
     devSessionContext.value = null
-  }
-
-  function toggleDirectoryCollapsed() {
-    directoryCollapsed.value = !directoryCollapsed.value
   }
 
   async function deleteSession(
@@ -861,7 +828,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
 
   return {
     agents,
-    filteredAgents,
     sessions,
     messages,
     selectedAgentKey,
@@ -874,8 +840,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     directoryError,
     chatError,
     agentScope,
-    agentSearch,
-    directoryCollapsed,
     devSessionContext,
     approvalPendingId,
     selectedAgent,
@@ -883,10 +847,8 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     selectedSession,
     hasOpenChat,
     loadAgents,
-    setAgentScope,
     prepareDevSession,
     clearDevSessionContext,
-    selectAgent,
     setSelectedExecutionMode,
     loadSessions,
     selectSession,
@@ -894,7 +856,6 @@ export const useAgentPanelStore = defineStore('agent-panel', () => {
     openDraftSession,
     createSession,
     deleteSession,
-    toggleDirectoryCollapsed,
     appendPendingAssistantMessage,
     appendOptimisticUserMessage,
     appendStreamingAssistantMessage,

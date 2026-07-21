@@ -19,7 +19,8 @@ describe('agent panel modal contract', () => {
 
     assert.match(app, /AppGlobalAgentPanel/)
     assert.match(modal, /BaseModal/)
-    assert.match(modal, /AgentDirectoryList/)
+    assert.doesNotMatch(modal, /AgentDirectoryList/)
+    assert.match(modal, /AgentSessionList/)
     assert.match(modal, /AgentChatView/)
     assert.doesNotMatch(router, /AgentPanelPage/)
     assert.doesNotMatch(router, /path:\s*['"]\/agents['"]/)
@@ -30,12 +31,11 @@ describe('agent panel modal contract', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const sessions = readFileSync('src/features/agent-panel/components/AgentSessionList.vue', 'utf8')
 
-    assert.match(modal, /AgentDirectoryList/)
+    assert.doesNotMatch(modal, /AgentDirectoryList/)
     assert.match(modal, /AgentSessionList/)
-    assert.match(modal, /global-agent-panel--history-collapsed/)
-    assert.match(modal, /agentStore\.directoryCollapsed/)
-    assert.match(modal, /grid-template-columns:\s*68px\s+256px\s+minmax\(0,\s*1fr\)/)
-    assert.match(modal, /grid-template-columns:\s*68px\s+0\s+minmax\(0,\s*1fr\)/)
+    assert.doesNotMatch(modal, /global-agent-panel--history-collapsed/)
+    assert.doesNotMatch(modal, /directoryCollapsed/)
+    assert.match(modal, /grid-template-columns:\s*300px\s+minmax\(0,\s*1fr\)/)
     assert.match(sessions, /sessionGroups/)
     assert.match(sessions, /createdAt/)
     assert.match(sessions, /agent-session-list__new/)
@@ -45,16 +45,10 @@ describe('agent panel modal contract', () => {
     assert.match(chat, /deleteSession/)
   })
 
-  it('agent and session lists expose expected actions', () => {
-    const directory = readFileSync(
-      'src/features/agent-panel/components/AgentDirectoryList.vue',
-      'utf8',
-    )
+  it('agent chat and session lists expose expected actions', () => {
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 
-    assert.match(directory, /agent\.emoji/)
-    assert.match(directory, /agent\.workflowName/)
     assert.match(chat, /openDraftSession/)
     assert.match(chat, /deleteSession/)
     assert.match(store, /loadSessions/)
@@ -81,34 +75,6 @@ describe('agent panel modal contract', () => {
     assert.match(sessions, /document\.removeEventListener\('pointerdown', handleDocumentPointerDown/)
     assert.match(sessions, /menuRef\.value\?\.contains\(target\)/)
     assert.match(sessions, /menuTriggerRef\.value\?\.contains\(target\)/)
-  })
-
-  it('confirms protected profile switches and preserves the current profile on cancel', () => {
-    const directory = readFileSync(
-      'src/features/agent-panel/components/AgentDirectoryList.vue',
-      'utf8',
-    )
-
-    assert.match(directory, /ProfilePasswordConfirmationDialog/)
-    assert.match(directory, /BaseDropdownSelect/)
-    assert.match(directory, /profileSelectOptions/)
-    assert.match(directory, /selectedProfileValue/)
-    assert.match(directory, /pendingProfile/)
-    assert.match(directory, /profile\.passwordProtected/)
-    assert.match(directory, /profile\.id === profileStore\.currentProfile\?\.id/)
-    assert.match(directory, /confirmProtectedProfile\(password: string\)/)
-    assert.match(directory, /profileStore\.switchProfile\(profile\.id, password\)/)
-    assert.match(directory, /cancelProtectedProfile/)
-    assert.doesNotMatch(directory, /profileMenuOpen/)
-  })
-
-  it('keeps an empty agent directory visually blank', () => {
-    const directory = readFileSync(
-      'src/features/agent-panel/components/AgentDirectoryList.vue',
-      'utf8',
-    )
-
-    assert.doesNotMatch(directory, />\s*0\s*<\/div>/)
   })
 
   it('chat view renders messages and sends through the agent panel api', () => {
@@ -187,14 +153,11 @@ describe('agent panel modal contract', () => {
   })
 
   it('uses theme tokens and renders message identity with timestamps', () => {
-    const directory = readFileSync(
-      'src/features/agent-panel/components/AgentDirectoryList.vue',
-      'utf8',
-    )
+    const sessions = readFileSync('src/features/agent-panel/components/AgentSessionList.vue', 'utf8')
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
 
-    assert.doesNotMatch(`${directory}\n${chat}`, /#[0-9a-fA-F]{3,8}/)
-    assert.doesNotMatch(`${directory}\n${chat}`, /rgba?\(/)
+    assert.doesNotMatch(`${sessions}\n${chat}`, /#[0-9a-fA-F]{3,8}/)
+    assert.doesNotMatch(`${sessions}\n${chat}`, /rgba?\(/)
     assert.match(chat, /formatMessageTime/)
     assert.match(chat, /messageDisplayName/)
     assert.match(chat, /messageAvatar/)
@@ -202,15 +165,9 @@ describe('agent panel modal contract', () => {
   })
 
   it('keeps chat execution errors out of the agents list and avoids nested buttons', () => {
-    const directory = readFileSync(
-      'src/features/agent-panel/components/AgentDirectoryList.vue',
-      'utf8',
-    )
     const chat = readFileSync('src/features/agent-panel/components/AgentChatView.vue', 'utf8')
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 
-    assert.match(directory, /directoryError/)
-    assert.doesNotMatch(directory, /store\.error/)
     assert.doesNotMatch(chat, /store\.chatError/)
     assert.match(store, /directoryError/)
     assert.match(store, /chatError/)
@@ -221,7 +178,7 @@ describe('agent panel modal contract', () => {
     const store = readFileSync('src/features/agent-panel/stores/agentPanel.store.ts', 'utf8')
 
     assert.match(store, /function clearChatError/)
-    assert.match(store, /selectAgent[\s\S]*clearChatError\(\)/)
+    assert.match(store, /loadAgents[\s\S]*clearChatError\(\)/)
     assert.match(store, /loadSessions[\s\S]*clearChatError\(\)/)
     assert.match(store, /selectSession[\s\S]*clearChatError\(\)/)
     assert.match(store, /openDraftSession[\s\S]*clearChatError\(\)/)

@@ -1,11 +1,6 @@
 <template>
   <BaseModal :is-open="ui.isOpen" max-width="1380px" height="86vh" @close="closePanel">
-    <section
-      class="global-agent-panel"
-      :class="{ 'global-agent-panel--history-collapsed': agentStore.directoryCollapsed }"
-      aria-label="Global agent panel"
-    >
-      <AgentDirectoryList />
+    <section class="global-agent-panel" aria-label="Global agent panel">
       <AgentSessionList />
       <AgentChatView />
     </section>
@@ -15,7 +10,6 @@
 <script setup lang="ts">
 import { watch } from 'vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
-import AgentDirectoryList from '@/features/agent-panel/components/AgentDirectoryList.vue'
 import AgentSessionList from '@/features/agent-panel/components/AgentSessionList.vue'
 import AgentChatView from '@/features/agent-panel/components/AgentChatView.vue'
 import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
@@ -69,36 +63,18 @@ watch(
 
 .global-agent-panel {
   display: grid;
-  grid-template-columns: 68px 256px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
   min-height: 0;
   height: 100%;
   overflow: hidden;
   border-radius: var(--fabric-radius-md);
   background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
-  transition: grid-template-columns var(--fabric-duration-base) var(--fabric-ease-standard);
-}
-
-.global-agent-panel--history-collapsed {
-  grid-template-columns: 68px 0 minmax(0, 1fr);
-}
-
-.global-agent-panel--history-collapsed :deep(.agent-session-list) {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
-  border-right: 0;
-  padding-inline: 0;
-  pointer-events: none;
 }
 
 @media (max-width: 820px) {
   .global-agent-panel {
-    grid-template-columns: 60px minmax(220px, 36vw) minmax(0, 1fr);
-  }
-
-  .global-agent-panel--history-collapsed {
-    grid-template-columns: 60px 0 minmax(0, 1fr);
+    grid-template-columns: minmax(220px, 36vw) minmax(0, 1fr);
   }
 }
 </style>
