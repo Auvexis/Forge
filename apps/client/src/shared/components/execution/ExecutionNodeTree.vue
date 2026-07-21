@@ -148,7 +148,8 @@ function activate(node: ExecutionRunTreeNode) {
   min-height: 36px;
   margin-left: var(--fabric-space-2);
   padding: var(--fabric-space-2);
-  border-radius: var(--fabric-radius-sm);
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 2px;
 }
 .execution-node-tree__group {
   display: inline-flex;
@@ -192,7 +193,7 @@ function activate(node: ExecutionRunTreeNode) {
   color: var(--fabric-status-error-text);
 }
 .execution-node-tree__row--error {
-  background-color: color-mix(in srgb, var(--fabric-status-error-bg) 58%, transparent);
+  background-color: var(--fabric-status-error-bg);
 }
 .execution-node-tree__row--running,
 .execution-node-tree__row--retrying,
