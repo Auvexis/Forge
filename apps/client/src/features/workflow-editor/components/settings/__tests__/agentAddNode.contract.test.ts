@@ -308,6 +308,7 @@ test('workflow canvas exposes center and drop coordinate add node actions', () =
   assert.match(baseCanvas, /addLogicNodeAtScreenPoint/)
   assert.match(baseCanvas, /addPluginNodeAtScreenPoint/)
   assert.match(baseCanvas, /screenToCanvasWorld/)
+  assert.match(baseCanvas, /if \(type === 'trigger'\) return \{ type: 'manual' \}/)
   assert.match(canvas, /handleGlobalAddNodeDrop/)
 })
 
