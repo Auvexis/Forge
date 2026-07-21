@@ -9,7 +9,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { NodeExecutionStatus } from '@/core/types/execution.types'
 import type { PluginSummary } from '@/core/types/plugin.types'
 import type { WorkflowNodeCatalogItem } from '@/core/types/workflow-node-catalog.types'
-import type { WorkflowNode } from '@/core/types/workflow.types'
+import type { WorkflowNode, WorkflowVariable } from '@/core/types/workflow.types'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
@@ -114,6 +114,28 @@ const workflowNodePresentationKey = computed(() =>
 )
 
 const workflowVariables = computed(() => workflowStore.activeWorkflow?.variables ?? [])
+const variableSearch = ref('')
+const editingVariableName = ref<string | null>(null)
+const variableDraft = ref<WorkflowVariable>({
+  name: '',
+  type: 'string',
+  defaultValue: '',
+  description: '',
+})
+const variableDraftValue = ref('')
+const variableError = ref('')
+const variableTypes: WorkflowVariable['type'][] = ['string', 'number', 'boolean', 'object', 'array', 'secret']
+const filteredWorkflowVariables = computed(() => {
+  const query = variableSearch.value.trim().toLowerCase()
+  if (!query) return workflowVariables.value
+  return workflowVariables.value.filter((variable) =>
+    [variable.name, variable.type, variable.description ?? '', previewVariable(variable), variableToken(variable)]
+      .join(' ')
+      .toLowerCase()
+      .includes(query),
+  )
+})
+const isEditingVariable = computed(() => editingVariableName.value !== null)
 const workflowEdges = computed(() => workflowStore.activeWorkflow?.edges ?? [])
 const latestNodeEvent = computed(() => [...executionStore.timeline].reverse().find((event) => event.nodeId))
 const hoveredTimelineNodeId = ref<string | null>(null)
@@ -152,6 +174,118 @@ function nodePluginId(node: WorkflowNode): string | undefined {
     return node.trigger?.type === 'plugin' ? node.trigger.pluginId : undefined
   }
   return 'pluginId' in node && typeof node.pluginId === 'string' ? node.pluginId : undefined
+}
+
+function resetVariableDraft() {
+  editingVariableName.value = null
+  variableDraft.value = {
+    name: '',
+    type: 'string',
+    defaultValue: '',
+    description: '',
+  }
+  variableDraftValue.value = ''
+  variableError.value = ''
+}
+
+function editVariable(variable: WorkflowVariable) {
+  editingVariableName.value = variable.name
+  variableDraft.value = {
+    name: variable.name,
+    type: variable.type,
+    defaultValue: variable.defaultValue,
+    description: variable.description ?? '',
+  }
+  variableDraftValue.value = formatVariableValue(variable.defaultValue, variable.type)
+  variableError.value = ''
+}
+
+function saveVariable() {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+  const name = variableDraft.value.name.trim()
+  if (!/^[A-Za-z_$][\w$]*$/.test(name)) {
+    variableError.value = 'Use a valid variable name.'
+    return
+  }
+
+  const variables = workflow.variables ?? []
+  const duplicate = variables.some(
+    (variable) => variable.name === name && variable.name !== editingVariableName.value,
+  )
+  if (duplicate) {
+    variableError.value = 'A variable with this name already exists.'
+    return
+  }
+
+  const parsed = parseVariableValue(variableDraftValue.value, variableDraft.value.type)
+  if (!parsed.ok) {
+    variableError.value = parsed.error
+    return
+  }
+
+  const nextVariable: WorkflowVariable = {
+    name,
+    type: variableDraft.value.type,
+    defaultValue: parsed.value,
+    description: variableDraft.value.description?.trim() || undefined,
+  }
+  const nextVariables = variables.filter((variable) => variable.name !== editingVariableName.value)
+  nextVariables.push(nextVariable)
+  workflow.variables = nextVariables.sort((left, right) => left.name.localeCompare(right.name))
+  resetVariableDraft()
+}
+
+function removeVariable(name: string) {
+  const workflow = workflowStore.activeWorkflow
+  if (!workflow) return
+  workflow.variables = (workflow.variables ?? []).filter((variable) => variable.name !== name)
+  if (editingVariableName.value === name) resetVariableDraft()
+}
+
+function parseVariableValue(value: string, type: WorkflowVariable['type']):
+  | { ok: true; value: unknown }
+  | { ok: false; error: string } {
+  const trimmed = value.trim()
+  if (type === 'number') {
+    if (trimmed === '' || Number.isNaN(Number(trimmed))) return { ok: false, error: 'Enter a valid number.' }
+    return { ok: true, value: Number(trimmed) }
+  }
+  if (type === 'boolean') return { ok: true, value: trimmed === 'true' }
+  if (type === 'object' || type === 'array') {
+    try {
+      const parsed = JSON.parse(trimmed || (type === 'array' ? '[]' : '{}'))
+      if (type === 'array' && !Array.isArray(parsed)) return { ok: false, error: 'Array value must be valid JSON array.' }
+      if (type === 'object' && (Array.isArray(parsed) || parsed === null || typeof parsed !== 'object')) {
+        return { ok: false, error: 'Object value must be valid JSON object.' }
+      }
+      return { ok: true, value: parsed }
+    } catch {
+      return { ok: false, error: 'Enter valid JSON.' }
+    }
+  }
+  return { ok: true, value }
+}
+
+function formatVariableValue(value: unknown, type: WorkflowVariable['type']) {
+  if (value === undefined || value === null) return type === 'array' ? '[]' : type === 'object' ? '{}' : ''
+  if (type === 'object' || type === 'array') return JSON.stringify(value, null, 2)
+  return String(value)
+}
+
+function previewVariable(variable: WorkflowVariable): string {
+  if (variable.type === 'secret') return '********'
+  if (variable.defaultValue === undefined || variable.defaultValue === '') return 'empty'
+  if (typeof variable.defaultValue === 'object') return JSON.stringify(variable.defaultValue)
+  return String(variable.defaultValue)
+}
+
+function variableToken(variable: WorkflowVariable): string {
+  return `{{ variables.${variable.name} }}`
+}
+
+function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
+  event.dataTransfer?.setData('text/plain', variableToken(variable))
 }
 
 function presentationForNode(
@@ -1051,19 +1185,102 @@ onBeforeUnmount(() => {
 
     <ExecutionBottomPanel v-else-if="activeView === 'execution'" />
 
-    <div v-else class="workflow-bottom-panel__view">
-      <div v-if="workflowVariables.length" class="workflow-bottom-panel__rows">
-        <div
-          v-for="variable in workflowVariables"
-          :key="variable.name"
-          class="workflow-bottom-panel__row"
-        >
-          <LucideIcon name="tag" :size="14" />
-          <span>{{ variable.name }}</span>
-          <code>{{ variable.type }}</code>
+    <div v-else class="workflow-bottom-panel__view workflow-variables">
+      <aside class="workflow-variables__editor" aria-label="Workflow variable editor">
+        <div class="workflow-variables__editor-head">
+          <LucideIcon :name="isEditingVariable ? 'pencil' : 'plus'" :size="14" />
+          <strong>{{ isEditingVariable ? 'Edit variable' : 'New variable' }}</strong>
         </div>
-      </div>
-      <div v-else class="workflow-bottom-panel__empty">No workflow variables.</div>
+
+        <label class="workflow-variables__field">
+          <span>Name</span>
+          <input v-model="variableDraft.name" placeholder="customer_id" spellcheck="false" />
+        </label>
+
+        <label class="workflow-variables__field">
+          <span>Type</span>
+          <select v-model="variableDraft.type">
+            <option v-for="type in variableTypes" :key="type" :value="type">{{ type }}</option>
+          </select>
+        </label>
+
+        <label class="workflow-variables__field workflow-variables__field--wide">
+          <span>Default value</span>
+          <textarea
+            v-model="variableDraftValue"
+            :placeholder="variableDraft.type === 'object' ? '{ }' : variableDraft.type === 'array' ? '[ ]' : 'Value'"
+            rows="4"
+            spellcheck="false"
+          />
+        </label>
+
+        <label class="workflow-variables__field workflow-variables__field--wide">
+          <span>Description</span>
+          <input v-model="variableDraft.description" placeholder="Used by prompts, code, and conditions" />
+        </label>
+
+        <p v-if="variableError" class="workflow-variables__error">{{ variableError }}</p>
+
+        <div class="workflow-variables__editor-actions">
+          <button type="button" class="workflow-variables__button workflow-variables__button--primary" @click="saveVariable">
+            <LucideIcon name="check" :size="13" />
+            <span>{{ isEditingVariable ? 'Save' : 'Add' }}</span>
+          </button>
+          <button type="button" class="workflow-variables__button" @click="resetVariableDraft">
+            <LucideIcon name="rotate-ccw" :size="13" />
+            <span>Reset</span>
+          </button>
+        </div>
+      </aside>
+
+      <section class="workflow-variables__list" aria-label="Workflow variables">
+        <div class="workflow-variables__toolbar">
+          <div class="workflow-variables__search">
+            <LucideIcon name="search" :size="13" />
+            <input v-model="variableSearch" placeholder="Search variables" spellcheck="false" />
+          </div>
+          <code>{{ workflowVariables.length }} local</code>
+        </div>
+
+        <div v-if="filteredWorkflowVariables.length" class="workflow-variables__rows">
+          <article
+            v-for="variable in filteredWorkflowVariables"
+            :key="variable.name"
+            class="workflow-variables__row"
+            draggable="true"
+            @dragstart="onVariableDragStart($event, variable)"
+          >
+            <div class="workflow-variables__identity">
+              <span class="workflow-variables__icon">
+                <LucideIcon name="tag" :size="14" />
+              </span>
+              <div>
+                <strong>{{ variable.name }}</strong>
+                <small>{{ variable.description || 'No description' }}</small>
+              </div>
+            </div>
+
+            <code class="workflow-variables__type">{{ variable.type }}</code>
+            <code class="workflow-variables__token">{{ variableToken(variable) }}</code>
+            <span class="workflow-variables__preview">{{ previewVariable(variable) }}</span>
+
+            <div class="workflow-variables__actions">
+              <button type="button" title="Edit variable" @click="editVariable(variable)">
+                <LucideIcon name="pencil" :size="13" />
+              </button>
+              <button type="button" title="Delete variable" @click="removeVariable(variable.name)">
+                <LucideIcon name="trash-2" :size="13" />
+              </button>
+            </div>
+          </article>
+        </div>
+
+        <div v-else class="workflow-variables__empty">
+          <LucideIcon name="tags" :size="18" />
+          <strong>{{ workflowVariables.length ? 'No variables match the search.' : 'No workflow variables yet.' }}</strong>
+          <span>Create one on the left and use its token in nodes.</span>
+        </div>
+      </section>
     </div>
   </section>
 </template>
@@ -1160,6 +1377,270 @@ onBeforeUnmount(() => {
   padding: 0 10px;
   color: var(--fabric-text-muted);
   font-size: var(--fabric-text-xs);
+}
+
+.workflow-variables {
+  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.workflow-variables__editor,
+.workflow-variables__list {
+  min-width: 0;
+  min-height: 0;
+}
+
+.workflow-variables__editor {
+  display: grid;
+  grid-template-rows: 30px auto auto auto auto minmax(0, auto) 30px;
+  gap: 8px;
+  padding: 10px;
+  border-right: 1px solid var(--fabric-workbench-border);
+  background: var(--fabric-workflow-timeline-entry-bg, var(--fabric-workbench-panel-bg));
+}
+
+.workflow-variables__editor-head,
+.workflow-variables__toolbar,
+.workflow-variables__editor-actions,
+.workflow-variables__actions,
+.workflow-variables__identity,
+.workflow-variables__search,
+.workflow-variables__button,
+.workflow-variables__actions button,
+.workflow-variables__icon {
+  display: flex;
+  align-items: center;
+}
+
+.workflow-variables__editor-head {
+  gap: 8px;
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xs);
+}
+
+.workflow-variables__field {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.workflow-variables__field span {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+  font-weight: 650;
+  text-transform: uppercase;
+}
+
+.workflow-variables__field input,
+.workflow-variables__field select,
+.workflow-variables__field textarea,
+.workflow-variables__search input {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 4px;
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-primary);
+  font: inherit;
+  outline: none;
+}
+
+.workflow-variables__field input,
+.workflow-variables__field select,
+.workflow-variables__search input {
+  height: 28px;
+  padding: 0 8px;
+}
+
+.workflow-variables__field textarea {
+  min-height: 68px;
+  max-height: 90px;
+  padding: 7px 8px;
+  resize: none;
+}
+
+.workflow-variables__field input:focus,
+.workflow-variables__field select:focus,
+.workflow-variables__field textarea:focus,
+.workflow-variables__search:focus-within {
+  border-color: var(--fabric-border-brand);
+}
+
+.workflow-variables__error {
+  margin: 0;
+  color: var(--fabric-status-error-text, var(--fabric-red-400));
+  font-size: 11px;
+}
+
+.workflow-variables__editor-actions {
+  gap: 6px;
+}
+
+.workflow-variables__button {
+  justify-content: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 4px;
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-secondary);
+  font-size: 11px;
+}
+
+.workflow-variables__button:hover,
+.workflow-variables__actions button:hover {
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
+}
+
+.workflow-variables__button--primary {
+  border-color: var(--fabric-border-brand);
+  background: var(--fabric-accent);
+  color: var(--fabric-accent-foreground, #fff);
+}
+
+.workflow-variables__list {
+  display: grid;
+  grid-template-rows: 34px minmax(0, 1fr);
+}
+
+.workflow-variables__toolbar {
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--fabric-border-muted);
+}
+
+.workflow-variables__toolbar code {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.workflow-variables__search {
+  gap: 6px;
+  width: min(360px, 100%);
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 4px;
+  background: var(--fabric-bg-surface);
+  color: var(--fabric-text-muted);
+}
+
+.workflow-variables__search input {
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.workflow-variables__rows {
+  min-height: 0;
+  overflow: auto;
+}
+
+.workflow-variables__row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) 72px minmax(180px, 260px) minmax(120px, 1fr) 62px;
+  align-items: center;
+  gap: 10px;
+  min-height: 46px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--fabric-border-muted);
+  color: var(--fabric-text-secondary);
+  font-size: var(--fabric-text-xs);
+}
+
+.workflow-variables__row:hover {
+  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-text-primary);
+}
+
+.workflow-variables__identity {
+  gap: 8px;
+  min-width: 0;
+}
+
+.workflow-variables__identity div {
+  display: grid;
+  min-width: 0;
+}
+
+.workflow-variables__identity strong,
+.workflow-variables__identity small,
+.workflow-variables__token,
+.workflow-variables__preview {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workflow-variables__identity small {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.workflow-variables__icon {
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--fabric-border-muted);
+  border-radius: 4px;
+  background: var(--fabric-bg-elevated);
+  color: var(--fabric-text-muted);
+}
+
+.workflow-variables__type,
+.workflow-variables__token {
+  color: var(--fabric-text-muted);
+  font-size: 10px;
+}
+
+.workflow-variables__preview {
+  color: var(--fabric-text-secondary);
+}
+
+.workflow-variables__actions {
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.workflow-variables__actions button {
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--fabric-text-muted);
+}
+
+.workflow-variables__empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 6px;
+  color: var(--fabric-text-muted);
+  font-size: var(--fabric-text-xs);
+}
+
+.workflow-variables__empty strong {
+  color: var(--fabric-text-secondary);
+}
+
+@media (max-width: 900px) {
+  .workflow-variables {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+
+  .workflow-variables__row {
+    grid-template-columns: minmax(150px, 1fr) 66px minmax(150px, 220px) 62px;
+  }
+
+  .workflow-variables__preview {
+    display: none;
+  }
 }
 
 .workflow-timeline__stats {
