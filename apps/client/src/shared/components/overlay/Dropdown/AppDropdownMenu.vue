@@ -3,6 +3,7 @@
     ref="popoverRef"
     :position="position"
     :offset="offset"
+    content-class="app-popover-content--dropdown"
     @open="emit('open')"
     @close="emit('close')"
   >

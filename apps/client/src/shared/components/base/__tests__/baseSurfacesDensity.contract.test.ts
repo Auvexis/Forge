@@ -27,6 +27,14 @@ const baseSegmentedSelectSource = readFileSync(
   fileURLToPath(new URL('../BaseSegmentedSelect.vue', import.meta.url)),
   'utf8',
 )
+const appPopoverSource = readFileSync(
+  fileURLToPath(new URL('../../overlay/AppPopover.vue', import.meta.url)),
+  'utf8',
+)
+const appDropdownMenuSource = readFileSync(
+  fileURLToPath(new URL('../../overlay/Dropdown/AppDropdownMenu.vue', import.meta.url)),
+  'utf8',
+)
 
 describe('base surface density', () => {
   it('keeps BaseModal flat and tool-like instead of card-heavy', () => {
@@ -55,5 +63,12 @@ describe('base surface density', () => {
     assert.match(baseSelectSource, /\.base-select-container\s*\{[\s\S]*min-height: 26px;/)
     assert.match(baseSelectSource, /\.base-select-dropdown\s*\{[\s\S]*box-shadow: none;/)
     assert.match(baseSegmentedSelectSource, /\.base-segmented-select__option\s*\{[\s\S]*height: 22px;/)
+  })
+
+  it('keeps dropdown popovers from rendering duplicate wrapper chrome', () => {
+    assert.match(appPopoverSource, /contentClass/)
+    assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*padding: 0;/)
+    assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*border: 0;/)
+    assert.match(appDropdownMenuSource, /content-class="app-popover-content--dropdown"/)
   })
 })

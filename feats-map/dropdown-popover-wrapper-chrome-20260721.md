@@ -1,0 +1,3 @@
+- [x] Mapear AppPopover wrapper
+- [x] Remover chrome duplicado em DropdownMenu
+- [x] Validar contratos

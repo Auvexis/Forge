@@ -12,7 +12,7 @@
           v-if="isOpen"
           ref="contentRef"
           class="app-popover-content"
-          :class="[`app-popover--${position}`]"
+          :class="[`app-popover--${position}`, contentClass]"
           :style="contentStyle"
         >
           <slot></slot>
@@ -38,10 +38,12 @@ const props = withDefaults(
       | 'left'
       | 'right'
     offset?: number
+    contentClass?: string
   }>(),
   {
     position: 'bottom-start',
     offset: 8,
+    contentClass: '',
   },
 )
 
@@ -178,6 +180,15 @@ defineExpose({ open, close, toggle, isOpen })
   border-radius: var(--fabric-radius-sm);
   margin-top: 1px;
   background-color: var(--fabric-bg-surface);
+}
+
+.app-popover-content--dropdown {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  margin-top: 0;
+  background: transparent;
 }
 
 .app-popover--bottom-start {
