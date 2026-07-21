@@ -168,13 +168,13 @@ function handleAction(action: ProfileDropdownAction) {
 }
 
 .base-profile-dropdown :deep(.app-dropdown-menu) {
-  width: 260px;
+  width: 284px;
   overflow: hidden;
-  border: 1px solid var(--fabric-base-profile-dropdown-border);
-  border-radius: 2px;
+  border: 1px solid color-mix(in srgb, var(--fabric-base-profile-dropdown-border) 78%, transparent);
+  border-radius: 10px;
   background: var(--fabric-base-profile-dropdown-bg);
   color: var(--fabric-base-profile-dropdown-text);
-  box-shadow: none;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26);
 }
 
 .base-profile-dropdown__identity,
@@ -185,9 +185,9 @@ function handleAction(action: ProfileDropdownAction) {
 .base-profile-dropdown__identity {
   flex-direction: row;
   align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  padding: 8px;
+  gap: 10px;
+  min-height: 58px;
+  padding: 10px;
   border-bottom: 1px solid var(--fabric-base-profile-dropdown-divider);
   background: var(--fabric-base-profile-dropdown-header-bg);
 }
@@ -200,10 +200,10 @@ function handleAction(action: ProfileDropdownAction) {
   height: 28px;
   flex: 0 0 28px;
   border: 1px solid var(--fabric-base-profile-dropdown-avatar-border);
-  border-radius: 3px;
+  border-radius: 8px;
   background: var(--fabric-base-profile-dropdown-avatar-bg);
   color: var(--fabric-base-profile-dropdown-avatar-text);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1;
 }
 
@@ -225,7 +225,7 @@ function handleAction(action: ProfileDropdownAction) {
 }
 
 .base-profile-dropdown__name {
-  max-width: 196px;
+  max-width: 218px;
   overflow: hidden;
   color: var(--fabric-base-profile-dropdown-text);
   font-size: var(--fabric-text-sm);
@@ -236,8 +236,8 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__section {
   flex-direction: column;
-  gap: 1px;
-  padding: 4px;
+  gap: 2px;
+  padding: 5px;
   border-bottom: 1px solid var(--fabric-base-profile-dropdown-divider);
 }
 
@@ -264,11 +264,11 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__item {
   align-items: center;
-  gap: 8px;
-  min-height: 24px;
-  padding: 0 6px;
-  border-radius: 2px;
-  font-size: 12px;
+  gap: 9px;
+  min-height: 30px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 13px;
   font-weight: var(--fabric-font-medium);
 }
 
@@ -294,10 +294,10 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__auvexis-account {
   align-items: center;
-  gap: 8px;
-  min-height: 32px;
-  padding: 3px 6px;
-  border-radius: 2px;
+  gap: 9px;
+  min-height: 38px;
+  padding: 5px 8px;
+  border-radius: 6px;
 }
 
 .base-profile-dropdown__auvexis-avatar,
@@ -312,8 +312,8 @@ function handleAction(action: ProfileDropdownAction) {
 }
 
 .base-profile-dropdown__auvexis-avatar {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   overflow: hidden;
 }
 
@@ -349,17 +349,17 @@ function handleAction(action: ProfileDropdownAction) {
 
 .base-profile-dropdown__connect {
   align-items: center;
-  gap: 8px;
-  min-height: 34px;
-  padding: 4px 6px;
+  gap: 9px;
+  min-height: 42px;
+  padding: 6px 8px;
   border: 1px solid var(--fabric-base-profile-dropdown-connect-border);
-  border-radius: 2px;
+  border-radius: 8px;
   background: var(--fabric-base-profile-dropdown-connect-bg);
 }
 
 .base-profile-dropdown__connect-icon {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
 }
 
 .base-profile-dropdown__connect-copy span {

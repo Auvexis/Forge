@@ -1,0 +1,3 @@
+- [x] Mapear BaseProfileDropdown
+- [x] Ajustar estilo macOS
+- [x] Validar contratos
