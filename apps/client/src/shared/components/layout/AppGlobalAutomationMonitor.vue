@@ -548,11 +548,11 @@ watch(triggerTabs, (next) => {
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: var(--fabric-space-2);
+  gap: 1px;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  padding: var(--fabric-space-2);
+  padding: var(--fabric-space-1);
 }
 
 .gam-workflow {
@@ -560,9 +560,10 @@ watch(triggerTabs, (next) => {
   z-index: 1;
   width: 100%;
   height: auto;
-  min-height: 64px;
+  min-height: 46px;
   justify-content: stretch;
-  border-radius: var(--fabric-radius-md);
+  border-bottom: 1px solid var(--fabric-automation-monitor-sidebar-border);
+  border-radius: 2px;
   background: transparent;
   color: var(--fabric-automation-monitor-workflow-text);
   padding: 0;
@@ -585,8 +586,8 @@ watch(triggerTabs, (next) => {
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
   align-items: center;
-  gap: var(--fabric-space-2);
-  padding: var(--fabric-space-2);
+  gap: 4px;
+  padding: 6px 8px;
   text-align: left;
 }
 
@@ -605,15 +606,16 @@ watch(triggerTabs, (next) => {
 
 .gam-workflow__title :deep(.base-badge) {
   flex: 0 0 auto;
-  height: 18px;
-  padding-inline: var(--fabric-space-2);
+  height: 16px;
+  padding-inline: 6px;
   font-size: 10px;
 }
 
 .gam-workflow__copy strong {
   min-width: 0;
-  font-size: var(--fabric-text-sm);
+  font-size: 12px;
   font-weight: var(--fabric-font-semibold);
+  line-height: 1.15;
 }
 
 .gam-workflow__copy small {
@@ -641,6 +643,7 @@ watch(triggerTabs, (next) => {
   gap: var(--fabric-space-1);
   color: var(--fabric-automation-monitor-muted-text);
   font-size: 10px;
+  line-height: 1.15;
 }
 
 .gam-run-result > span {

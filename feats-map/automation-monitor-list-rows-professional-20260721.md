@@ -1,0 +1,2 @@
+- [x] Square workflow and run rows
+- [x] Validate and commit
