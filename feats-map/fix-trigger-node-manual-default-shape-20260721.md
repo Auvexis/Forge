@@ -1,0 +1,3 @@
+- [x] Fix Trigger default data shape
+- [x] Normalize affected workflows
+- [x] Validate and commit

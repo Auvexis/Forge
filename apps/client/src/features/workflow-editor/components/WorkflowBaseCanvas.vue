@@ -720,7 +720,7 @@ function defaultNodeName(type: WorkflowNodeType, id: string) {
 }
 
 function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
-  if (type === 'trigger') return { type: 'manual' }
+  if (type === 'trigger') return { trigger: { type: 'manual' } }
   if (type === 'http') return { url: 'https://api.example.com', method: 'GET' }
   if (type === 'code') return { language: 'javascript', script: 'return { status: "ok" };' }
   if (type === 'if') return { condition: 'true' }

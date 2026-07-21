@@ -56,6 +56,28 @@ function serializeForDiff(workflow: WorkflowItem): string {
   })
 }
 
+function normalizeWorkflowTriggerNodes(workflow: WorkflowItem): WorkflowItem {
+  const nodes = { ...workflow.nodes }
+  let changed = false
+
+  for (const [id, node] of Object.entries(nodes)) {
+    const rawNode = node as any
+    if (rawNode.type !== 'manual') continue
+
+    nodes[id] = {
+      ...rawNode,
+      type: 'trigger',
+      trigger: {
+        ...(rawNode.trigger ?? {}),
+        type: 'manual',
+      },
+    } as WorkflowNode
+    changed = true
+  }
+
+  return changed ? { ...workflow, nodes } : workflow
+}
+
 export const useWorkflowStore = defineStore('workflow', () => {
   const toast = useToast()
   const activeWorkflow = ref<WorkflowItem | null>(null)
@@ -89,6 +111,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
   )
 
   function setActiveWorkflow(workflow: WorkflowItem) {
+    workflow = normalizeWorkflowTriggerNodes(workflow)
     const snapshot = serializeForDiff(workflow)
     suppressHistory = true
     activeWorkflow.value = workflow
@@ -198,7 +221,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
     try {
       autosaveStatus.value = options.autosave ? 'saving' : autosaveStatus.value
-      const workflow = activeWorkflow.value
+      const workflow = normalizeWorkflowTriggerNodes(activeWorkflow.value)
+      activeWorkflow.value = workflow
       if (_serverUpdatedAt.value && !workflow.metadata.id.startsWith('draft_')) {
         const serverWorkflow = await workflowsApi.getById(workflow.metadata.id)
         if (
@@ -226,11 +250,12 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const savedWorkflow = await saveApi.execute(activeWorkflow.value.metadata.id, updatedWorkflow)
 
       suppressHistory = true
-      activeWorkflow.value = savedWorkflow
-      const savedSnapshot = serializeForDiff(savedWorkflow)
+      const normalizedSavedWorkflow = normalizeWorkflowTriggerNodes(savedWorkflow)
+      activeWorkflow.value = normalizedSavedWorkflow
+      const savedSnapshot = serializeForDiff(normalizedSavedWorkflow)
       _savedSnapshot.value = savedSnapshot
-      _lastHistorySnapshot.value = JSON.stringify(savedWorkflow)
-      _serverUpdatedAt.value = savedWorkflow.metadata.updatedAt
+      _lastHistorySnapshot.value = JSON.stringify(normalizedSavedWorkflow)
+      _serverUpdatedAt.value = normalizedSavedWorkflow.metadata.updatedAt
       suppressHistory = false
       autosaveStatus.value = options.autosave ? 'saved' : 'idle'
       if (options.autosave) lastAutosavedAt.value = Date.now()
@@ -264,8 +289,8 @@ export const useWorkflowStore = defineStore('workflow', () => {
       const parsed = JSON.parse(raw) as { workflow?: WorkflowItem }
       if (!parsed.workflow) return false
       suppressHistory = true
-      activeWorkflow.value = parsed.workflow
-      _lastHistorySnapshot.value = JSON.stringify(parsed.workflow)
+      activeWorkflow.value = normalizeWorkflowTriggerNodes(parsed.workflow)
+      _lastHistorySnapshot.value = JSON.stringify(activeWorkflow.value)
       undoStack.value = []
       redoStack.value = []
       graphUpdateTrigger.value++
@@ -278,7 +303,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
 
   function applySnapshot(snapshot: string) {
     suppressHistory = true
-    activeWorkflow.value = JSON.parse(snapshot) as WorkflowItem
+    activeWorkflow.value = normalizeWorkflowTriggerNodes(JSON.parse(snapshot) as WorkflowItem)
     _lastHistorySnapshot.value = JSON.stringify(activeWorkflow.value)
     graphUpdateTrigger.value++
     suppressHistory = false
