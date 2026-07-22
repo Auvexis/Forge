@@ -25,7 +25,9 @@ describe('home page contract', () => {
     assert.equal(existsSync(resolve(root, 'features/home/components/HomeWelcome.vue')), true)
 
     const appPage = read('app/pages/HomePage.vue')
+    const page = read('features/home/HomePage.vue')
     assert.match(appPage, /@\/features\/home\/HomePage\.vue/)
+    assert.match(page, /WelcomeProfileGuide/)
   })
 
   it('renders a flat software welcome page without IDE chrome', () => {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import WelcomeProfileGuide from '@/shared/guides/guides/WelcomeProfileGuide.vue'
 import HomeWelcome from './components/HomeWelcome.vue'
 
 const router = useRouter()
@@ -27,4 +28,5 @@ function openTarget(panelId: string) {
 
 <template>
   <HomeWelcome @open-target="openTarget" />
+  <WelcomeProfileGuide />
 </template>
