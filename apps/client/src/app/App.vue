@@ -277,8 +277,11 @@ onUnmounted(() => {
 
 .app-route-frame {
   display: flex;
+  width: 100%;
+  height: 100%;
   flex: 1;
   min-width: 0;
   min-height: 0;
+  overflow: hidden;
 }
 </style>
