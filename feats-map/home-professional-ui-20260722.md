@@ -1,0 +1,4 @@
+- [x] Refactor home shell
+- [x] Remove landing layout
+- [x] Update contracts
+- [x] Run checks
