@@ -24,15 +24,18 @@ describe('welcome profile guide contract', () => {
     assert.match(guide, /markGuideSkipped/)
   })
 
-  it('renders with its own flat fullscreen shell', () => {
+  it('renders with its own flat modal shell', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
     assert.match(guide, /<Teleport to="body">/)
+    assert.match(guide, /class="welcome-profile-guide__panel"/)
     assert.match(guide, /class="welcome-profile-guide__header"/)
     assert.match(guide, /class="welcome-profile-guide__body"/)
     assert.match(guide, /class="welcome-profile-guide__footer"/)
     assert.match(guide, /position: fixed;/)
     assert.match(guide, /inset: 0;/)
+    assert.match(guide, /width: min\(980px, 100%\);/)
+    assert.match(guide, /height: min\(720px, calc\(100vh - 64px\)\);/)
     assert.match(guide, /background: var\(--fabric-bg-base\);/)
     assert.doesNotMatch(guide, /GuideModal/)
     assert.doesNotMatch(guide, /border-top: 1px solid var\(--fabric-border\)/)
@@ -44,6 +47,9 @@ describe('welcome profile guide contract', () => {
     assert.match(guide, /const isLastStep = computed\(\(\) => flow\.isLastStep\.value\)/)
     assert.match(guide, /v-if="!isLastStep"/)
     assert.doesNotMatch(guide, /v-if="!flow\.isLastStep"/)
+    assert.doesNotMatch(guide, /activeStepNumber/)
+    assert.doesNotMatch(guide, /stepCount/)
+    assert.doesNotMatch(guide, /\{\{ activeStepNumber \}\} \/ \{\{ stepCount \}\}/)
   })
 
   it('supports English, Portuguese, Spanish, and French copy through BaseSegmentedSelect', () => {
@@ -87,6 +93,10 @@ describe('welcome profile guide contract', () => {
   it('uses varied content layouts and the shared theme selector', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
+    assert.match(guide, /<Transition name="welcome-profile-guide-step" mode="out-in">/)
+    assert.match(guide, /:key="activeStep"/)
+    assert.match(guide, /welcome-profile-guide-step-enter-from/)
+    assert.match(guide, /welcome-profile-guide-step-leave-to/)
     assert.match(guide, /type WelcomeGuideLayout = 'center' \| 'media-left' \| 'media-right' \| 'media-top' \| 'media-bottom'/)
     assert.match(guide, /workflow: 'media-left'/)
     assert.match(guide, /pages: 'media-right'/)

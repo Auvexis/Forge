@@ -228,8 +228,6 @@ const isOpen = ref(false)
 const activeLang = ref<WelcomeGuideLang>('en')
 
 const currentProfileId = computed(() => profileStore.currentProfile?.id ?? null)
-const activeStepNumber = computed(() => flow.stepIndex.value + 1)
-const stepCount = computed(() => flow.stepCount.value)
 const isFirstStep = computed(() => flow.isFirstStep.value)
 const isLastStep = computed(() => flow.isLastStep.value)
 const activeStep = computed<WelcomeGuideStep>(() => flow.activeStep.value ?? 'welcome')
@@ -297,77 +295,81 @@ function handleThemeChange(value: ThemeMode) {
 <template>
   <Teleport to="body">
     <Transition name="welcome-profile-guide-fade">
-      <section v-if="isOpen" class="welcome-profile-guide" role="dialog" aria-modal="true">
-        <header class="welcome-profile-guide__header">
-          <div class="welcome-profile-guide__header-title">
-            <h2>{{ title }}</h2>
-            <span>{{ activeStepNumber }} / {{ stepCount }}</span>
-          </div>
-
-          <BaseSegmentedSelect
-            class="welcome-profile-guide__language"
-            :model-value="activeLang"
-            :options="languageOptions"
-            aria-label="Guide language"
-            @update:model-value="setLanguage"
-          />
-        </header>
-
-        <main class="welcome-profile-guide__body">
-          <div
-            class="welcome-profile-guide__step"
-            :class="[
-              `welcome-profile-guide__step--${stepLayout}`,
-              `welcome-profile-guide__step--${activeStep}`,
-            ]"
-          >
-            <div v-if="activeStep === 'welcome'" class="welcome-profile-guide__welcome-mark">
-              <img src="/favicon.svg" alt="Fabric" />
+      <div v-if="isOpen" class="welcome-profile-guide">
+        <section class="welcome-profile-guide__panel" role="dialog" aria-modal="true">
+          <header class="welcome-profile-guide__header">
+            <div class="welcome-profile-guide__header-title">
+              <h2>{{ title }}</h2>
             </div>
 
-            <div
-              v-else-if="stepLayout === 'media-left' || stepLayout === 'media-top'"
-              class="welcome-profile-guide__media-slot"
-            >
-              <LucideIcon :name="stepIcons[activeStep] ?? 'sparkles'" :size="34" />
-            </div>
-
-            <div class="welcome-profile-guide__copy">
-              <h3>{{ stepCopy.heading }}</h3>
-              <p>{{ stepCopy.body }}</p>
-            </div>
-
-            <BaseThemeSelect
-              v-if="activeStep === 'theme'"
-              class="welcome-profile-guide__theme-select"
-              :model-value="themeValue"
-              @update:model-value="handleThemeChange"
+            <BaseSegmentedSelect
+              class="welcome-profile-guide__language"
+              :model-value="activeLang"
+              :options="languageOptions"
+              aria-label="Guide language"
+              @update:model-value="setLanguage"
             />
+          </header>
 
-            <div
-              v-else-if="stepLayout === 'media-right' || stepLayout === 'media-bottom'"
-              class="welcome-profile-guide__media-slot"
-            >
-              <LucideIcon :name="stepIcons[activeStep] ?? 'sparkles'" :size="34" />
+          <main class="welcome-profile-guide__body">
+            <Transition name="welcome-profile-guide-step" mode="out-in">
+              <div
+                :key="activeStep"
+                class="welcome-profile-guide__step"
+                :class="[
+                  `welcome-profile-guide__step--${stepLayout}`,
+                  `welcome-profile-guide__step--${activeStep}`,
+                ]"
+              >
+                <div v-if="activeStep === 'welcome'" class="welcome-profile-guide__welcome-mark">
+                  <img src="/favicon.svg" alt="Fabric" />
+                </div>
+
+                <div
+                  v-else-if="stepLayout === 'media-left' || stepLayout === 'media-top'"
+                  class="welcome-profile-guide__media-slot"
+                >
+                  <LucideIcon :name="stepIcons[activeStep] ?? 'sparkles'" :size="34" />
+                </div>
+
+                <div class="welcome-profile-guide__copy">
+                  <h3>{{ stepCopy.heading }}</h3>
+                  <p>{{ stepCopy.body }}</p>
+                </div>
+
+                <BaseThemeSelect
+                  v-if="activeStep === 'theme'"
+                  class="welcome-profile-guide__theme-select"
+                  :model-value="themeValue"
+                  @update:model-value="handleThemeChange"
+                />
+
+                <div
+                  v-else-if="stepLayout === 'media-right' || stepLayout === 'media-bottom'"
+                  class="welcome-profile-guide__media-slot"
+                >
+                  <LucideIcon :name="stepIcons[activeStep] ?? 'sparkles'" :size="34" />
+                </div>
+              </div>
+            </Transition>
+          </main>
+
+          <footer class="welcome-profile-guide__footer">
+            <BaseButton variant="ghost" @click="skip">{{ guideCopy.actions.skip }}</BaseButton>
+            <div class="welcome-profile-guide__step-actions">
+              <BaseButton variant="secondary" :disabled="isFirstStep" @click="flow.back">
+                {{ guideCopy.actions.back }}
+              </BaseButton>
+              <BaseButton v-if="!isLastStep" variant="primary" @click="flow.next">
+                {{ guideCopy.actions.next }}
+              </BaseButton>
+              <BaseButton v-else variant="primary" @click="complete">
+                {{ guideCopy.actions.done }}
+              </BaseButton>
             </div>
-          </div>
-        </main>
-
-        <footer class="welcome-profile-guide__footer">
-          <BaseButton variant="ghost" @click="skip">{{ guideCopy.actions.skip }}</BaseButton>
-          <div class="welcome-profile-guide__step-actions">
-            <BaseButton variant="secondary" :disabled="isFirstStep" @click="flow.back">
-              {{ guideCopy.actions.back }}
-            </BaseButton>
-            <BaseButton v-if="!isLastStep" variant="primary" @click="flow.next">
-              {{ guideCopy.actions.next }}
-            </BaseButton>
-            <BaseButton v-else variant="primary" @click="complete">
-              {{ guideCopy.actions.done }}
-            </BaseButton>
-          </div>
-        </footer>
-      </section>
+          </footer>
+        </section>
+      </div>
     </Transition>
   </Teleport>
 </template>
@@ -377,11 +379,22 @@ function handleThemeChange(value: ThemeMode) {
   position: fixed;
   inset: 0;
   z-index: 100000;
+  display: grid;
+  place-items: center;
+  padding: var(--fabric-space-8);
+  background: color-mix(in srgb, var(--fabric-bg-base) 82%, transparent);
+  color: var(--fabric-text-primary);
+}
+
+.welcome-profile-guide__panel {
   display: flex;
+  width: min(980px, 100%);
+  height: min(720px, calc(100vh - 64px));
   min-width: 0;
+  min-height: 0;
   flex-direction: column;
   background: var(--fabric-bg-base);
-  color: var(--fabric-text-primary);
+  box-shadow: 0 22px 80px color-mix(in srgb, #000 45%, transparent);
 }
 
 .welcome-profile-guide__header,
@@ -418,6 +431,7 @@ function handleThemeChange(value: ThemeMode) {
 
 .welcome-profile-guide__body {
   display: flex;
+  position: relative;
   min-height: 0;
   flex: 1;
   align-items: center;
@@ -427,7 +441,7 @@ function handleThemeChange(value: ThemeMode) {
 
 .welcome-profile-guide__step {
   display: flex;
-  width: min(900px, 100%);
+  width: min(820px, 100%);
   align-items: center;
   justify-content: center;
   gap: clamp(32px, 6vw, 72px);
@@ -518,7 +532,32 @@ function handleThemeChange(value: ThemeMode) {
   opacity: 0;
 }
 
+.welcome-profile-guide-step-enter-active,
+.welcome-profile-guide-step-leave-active {
+  transition:
+    opacity var(--fabric-duration-base) var(--fabric-ease-standard),
+    transform var(--fabric-duration-base) var(--fabric-ease-standard);
+}
+
+.welcome-profile-guide-step-enter-from {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.welcome-profile-guide-step-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
 @media (max-width: 780px) {
+  .welcome-profile-guide {
+    padding: var(--fabric-space-3);
+  }
+
+  .welcome-profile-guide__panel {
+    height: min(720px, calc(100vh - 24px));
+  }
+
   .welcome-profile-guide__header,
   .welcome-profile-guide__footer {
     align-items: stretch;
