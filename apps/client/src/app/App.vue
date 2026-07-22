@@ -77,7 +77,7 @@
     <!-- Main Content Area -->
     <router-view v-slot="{ Component }">
       <transition name="fade" mode="out-in">
-        <div :key="route.fullPath" class="app-route-frame">
+        <div :key="routeSectionKey" class="app-route-frame">
           <component :is="Component" />
         </div>
       </transition>
@@ -158,6 +158,7 @@ const activeSidebarWidth = computed(() =>
   sidebarWidthForState(false, { expandedPx: 288 }),
 )
 const activeSidebarPageLabel = computed(() => sidebarPageLabelForPath(route.path))
+const routeSectionKey = computed(() => route.path.split('/').filter(Boolean)[0] ?? 'home')
 
 function openGlobalCommandPalette() {
   void commandPaletteStore.open({ routePath: route.path })
