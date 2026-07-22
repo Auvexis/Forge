@@ -87,6 +87,7 @@ defineEmits<{
   min-height: 100%;
   flex: 1;
   flex-direction: column;
+  padding: var(--fabric-space-8);
   overflow-y: auto;
   background: var(--fabric-bg-base);
   color: var(--fabric-text-primary);
@@ -99,7 +100,7 @@ defineEmits<{
   justify-content: flex-start;
   align-items: center;
   gap: var(--fabric-space-8);
-  padding: var(--fabric-space-8) var(--fabric-space-5) var(--fabric-space-10);
+  padding: 0 0 var(--fabric-space-10);
   text-align: left;
 }
 
@@ -171,7 +172,7 @@ defineEmits<{
   display: flex;
   gap: var(--fabric-space-10);
   width: 100%;
-  padding: var(--fabric-space-10) var(--fabric-space-5) var(--fabric-space-8);
+  padding: var(--fabric-space-10) 0 0;
 }
 
 .home-welcome__editor {
@@ -224,9 +225,12 @@ defineEmits<{
 }
 
 @media (max-width: 620px) {
+  .home-welcome {
+    padding: var(--fabric-space-4);
+  }
+
   .home-welcome__intro {
     min-height: auto;
-    padding-inline: var(--fabric-space-4);
   }
 
   .home-welcome h1 {
