@@ -112,14 +112,6 @@ export const sidebarActivityItems: SidebarActivityItem[] = [
     hintId: 'search',
   },
   {
-    id: 'docs',
-    label: 'Guide Book',
-    description: 'Browse and replay Fabric guides for tools, pages, and workflows.',
-    icon: 'book-open',
-    hintId: 'docs',
-    intent: { type: 'guide-book.open' },
-  },
-  {
     id: 'settings',
     label: 'Settings',
     description: 'Manage preferences, credentials, environment variables, and connections.',

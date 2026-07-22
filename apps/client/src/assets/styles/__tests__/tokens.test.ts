@@ -49,7 +49,6 @@ describe('component semantic color tokens', () => {
     '--fabric-code-block-bg',
     '--fabric-app-shell-bg',
     '--fabric-app-panel-bg',
-    '--fabric-start-guide-bg',
     '--fabric-base-canvas-bg',
     '--fabric-base-canvas-ruler-z',
     '--fabric-base-canvas-selection-bg',

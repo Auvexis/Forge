@@ -308,9 +308,6 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
   if (type === 'plugin-installer.open') {
     window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
   }
-  if (type === 'guide-book.open') {
-    window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
-  }
   if (type === 'universe.enter') appUiStore.enterUniverseMode()
   if (type === 'universe.exit') appUiStore.quitUniverseMode()
   if (type === 'plugin.open') {

@@ -18,9 +18,9 @@ describe('external plugin installer modal contract', () => {
   it('keeps source inputs on the left and manifest preview states on the right', () => {
     assert.match(installerSource, /Repository URL/)
     assert.match(installerSource, /Extracted folder/)
-    assert.match(installerSource, /type="file"/)
-    assert.match(installerSource, /webkitdirectory/)
-    assert.match(installerSource, /@drop\.prevent="handleFolderDrop"/)
+    assert.match(installerSource, /BaseFileDropzone/)
+    assert.match(installerSource, /directory/)
+    assert.match(installerSource, /@select="previewUpload"/)
     assert.match(installerSource, /watch\(repositoryUrl/)
     assert.match(installerSource, /v-if="loading"/)
     assert.match(installerSource, /v-else-if="preview\?\.manifest"/)
@@ -41,16 +41,8 @@ describe('external plugin installer modal contract', () => {
     assert.doesNotMatch(appSource, /openPanel\(\{\s*title: 'Plugin Installer'/)
   })
 
-  it('auto-opens its start guide through the shared tutorial utility', () => {
-    const registrySource = readFileSync(
-      resolve(currentDir, '../../../../shared/start-guide/startGuide.registry.ts'),
-      'utf8',
-    )
-
-    assert.match(installerSource, /useStartGuide/)
-    assert.match(installerSource, /watch\(\s*\(\) => props\.isOpen/)
-    assert.match(installerSource, /openIfNeeded\('plugin-external-installer'\)/)
-    assert.match(registrySource, /'plugin-external-installer'/)
-    assert.match(registrySource, /category: 'plugins'/)
+  it('does not depend on the legacy start-guide registry', () => {
+    assert.doesNotMatch(installerSource, /useStartGuide/)
+    assert.doesNotMatch(installerSource, /openIfNeeded\('plugin-external-installer'\)/)
   })
 })

@@ -41,11 +41,6 @@ export const sidebarHintById = {
     description: 'View workflow executions, active runs, and recent errors.',
     position: 'right',
   },
-  docs: {
-    title: 'Guide Book',
-    description: 'Browse and replay Fabric guides for tools, pages, and workflows.',
-    position: 'right',
-  },
   settings: {
     title: 'Settings',
     description: 'Manage preferences, credentials, environment variables, and connections.',

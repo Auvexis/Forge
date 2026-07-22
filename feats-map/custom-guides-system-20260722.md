@@ -1,0 +1,5 @@
+- [x] Add custom guide base
+- [x] Remove legacy start-guide
+- [x] Update app integrations
+- [x] Update contracts
+- [x] Run checks

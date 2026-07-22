@@ -202,7 +202,6 @@ import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
-import { useStartGuide } from '@/shared/start-guide/useStartGuide'
 import {
   buildPluginInstallTargetOptions,
   describePluginInstallTarget,
@@ -227,7 +226,6 @@ const emit = defineEmits<{
 
 const repositoryUrl = ref('')
 const profileStore = useProfileStore()
-const startGuide = useStartGuide()
 const installTarget = ref('profile:default')
 const preview = ref<ExternalPluginPreview | null>(null)
 const result = ref<ExternalPluginInstallResult | null>(null)
@@ -273,13 +271,6 @@ onMounted(async () => {
     await profileStore.loadProfiles()
   }
 })
-
-watch(
-  () => props.isOpen,
-  (isOpen) => {
-    if (isOpen) startGuide.openIfNeeded('plugin-external-installer')
-  },
-)
 
 watch(
   () => profileStore.currentProfile?.id,

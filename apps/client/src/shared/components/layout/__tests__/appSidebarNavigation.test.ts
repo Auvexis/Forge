@@ -13,9 +13,9 @@ import {
 } from '../appSidebarNavigation.ts'
 
 describe('app sidebar navigation', () => {
-  it('groups core suite areas into apps and spaces', () => {
+  it('groups core suite areas into apps and labs', () => {
     const apps = sidebarSections.find((section) => section.label === 'Apps')
-    const spaces = sidebarSections.find((section) =>
+    const labs = sidebarSections.find((section) =>
       section.items.some((item) => item.id === 'universe'),
     )
 
@@ -24,11 +24,11 @@ describe('app sidebar navigation', () => {
       true,
     )
     assert.equal(
-      apps?.items.some((item) => item.id === 'pages'),
+      labs?.items.some((item) => item.id === 'pages'),
       true,
     )
     assert.equal(
-      spaces?.items.some((item) => item.id === 'universe'),
+      labs?.items.some((item) => item.id === 'universe'),
       true,
     )
   })
@@ -61,15 +61,8 @@ describe('app sidebar navigation', () => {
   it('keeps bottom activity actions compact and professional', () => {
     assert.deepEqual(
       sidebarActivityItems.map((item) => item.id),
-      ['search', 'monitor', 'docs', 'settings'],
+      ['search', 'settings'],
     )
-  })
-
-  it('opens the guide book from the docs activity item', () => {
-    const docs = sidebarActivityItems.find((item) => item.id === 'docs')
-
-    assert.equal(docs?.label, 'Guide Book')
-    assert.deepEqual(docs?.intent, { type: 'guide-book.open' })
   })
 
   it('keeps media assets out of navigation metadata', () => {

@@ -95,19 +95,6 @@
       </BaseTopbarButton>
 
       <BaseTopbarButton
-        class="app-topbar__action-button"
-        type="button"
-        height="40px"
-        aria-label="Open guide book"
-        @click="$emit('open-docs')"
-      >
-        <template #left>
-          <LucideIcon name="book-open" :size="18" />
-        </template>
-        <span>Guide</span>
-      </BaseTopbarButton>
-
-      <BaseTopbarButton
         class="app-topbar__action-button app-topbar__command"
         type="button"
         height="40px"
@@ -150,7 +137,6 @@ const emit = defineEmits<{
   (e: 'toggle-sidebar'): void
   (e: 'open-command-palette'): void
   (e: 'open-settings'): void
-  (e: 'open-docs'): void
   (e: 'switch-profile'): void
   (e: 'logout'): void
 }>()

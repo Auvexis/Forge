@@ -68,7 +68,6 @@
         @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed"
         @open-command-palette="openGlobalCommandPalette"
         @open-settings="settingsStore.toggle()"
-        @open-docs="startGuide.openGuideBook()"
         @switch-profile="hasEnteredProfile = false"
         @logout="hasEnteredProfile = false"
       />
@@ -88,8 +87,6 @@
       <AppGlobalAutomationMonitor />
       <AppGlobalAgentPanel />
       <GlobalNotificationPanel />
-      <StartGuideHost />
-      <GuideBookHost />
       <ExternalPluginInstaller
         :is-open="isPluginInstallerOpen"
         @close="isPluginInstallerOpen = false"
@@ -124,9 +121,6 @@ import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.sto
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
-import { useStartGuide } from '@/shared/start-guide/useStartGuide'
-import StartGuideHost from '@/shared/start-guide/StartGuideHost.vue'
-import GuideBookHost from '@/shared/start-guide/GuideBookHost.vue'
 import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
 import ProfileSelectionPage from '@/features/profiles/components/ProfileSelectionPage.vue'
 import ProfileSettingsPanel from '@/features/profiles/components/ProfileSettingsPanel.vue'
@@ -149,7 +143,6 @@ const appUiStore = useAppUiStore()
 const agentPanelUi = useAgentPanelUiStore()
 const agentPanelStore = useAgentPanelStore()
 const commandPaletteStore = useCommandPaletteStore()
-const startGuide = useStartGuide()
 const route = useRoute()
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'fabric:app-sidebar-collapsed'
 const isPublicRoute = computed(() => route.meta.public === true)
@@ -205,7 +198,6 @@ function handleUiIntent(event: Event) {
     agentPanelStore.clearDevSessionContext()
     agentPanelUi.open()
   }
-  if (intent?.type === 'guide-book.open') startGuide.openGuideBook()
 }
 
 function handleProfileIntent() {
