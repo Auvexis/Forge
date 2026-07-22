@@ -1,0 +1,5 @@
+- [x] Inspect app layout routing
+- [x] Identify blank main trigger
+- [x] Apply focused fix
+- [x] Add/update contract
+- [x] Run checks

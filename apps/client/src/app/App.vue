@@ -77,7 +77,9 @@
     <!-- Main Content Area -->
     <router-view v-slot="{ Component }">
       <transition name="fade" mode="out-in">
-        <component :is="Component" />
+        <div :key="route.fullPath" class="app-route-frame">
+          <component :is="Component" />
+        </div>
       </transition>
     </router-view>
 
@@ -270,5 +272,12 @@ onUnmounted(() => {
 .app-sidebar-universe-leave-to {
   opacity: 0;
   transform: translateX(calc(-1 * var(--fabric-active-sidebar-width)));
+}
+
+.app-route-frame {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
 }
 </style>
