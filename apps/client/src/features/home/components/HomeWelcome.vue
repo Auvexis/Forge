@@ -23,12 +23,6 @@ defineEmits<{
         </div>
 
         <div class="home-welcome__quick-actions" aria-label="Quick actions">
-          <BaseButton variant="link" icon-left="workflow" @click="$emit('openTarget', 'workflows')">
-            Workflow Editor
-          </BaseButton>
-          <BaseButton variant="link" icon-left="panel-top" @click="$emit('openTarget', 'pages')">
-            Pages Editor
-          </BaseButton>
           <BaseButton variant="link" icon-left="activity" @click="$emit('openTarget', 'monitoring')">
             Monitoring
           </BaseButton>
@@ -53,10 +47,10 @@ defineEmits<{
           </div>
           <p>Create and edit visual automations, connect plugins, test executions, and publish workflows.</p>
           <div class="home-welcome__editor-actions">
-            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'workflows')">
+            <BaseButton variant="link" size="sm" icon-left="plus" @click="$emit('openTarget', 'workflows')">
               Create New Workflow
             </BaseButton>
-            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'workflows')">
+            <BaseButton variant="link" size="sm" icon-left="workflow" @click="$emit('openTarget', 'workflows')">
               Open Workflow Editor
             </BaseButton>
           </div>
@@ -73,10 +67,10 @@ defineEmits<{
           </div>
           <p>Build profile-scoped pages and forms connected to workflows, actions, and runtime data.</p>
           <div class="home-welcome__editor-actions">
-            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'pages')">
+            <BaseButton variant="link" size="sm" icon-left="plus" @click="$emit('openTarget', 'pages')">
               Create Pages Project
             </BaseButton>
-            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'pages')">
+            <BaseButton variant="link" size="sm" icon-left="panel-top" @click="$emit('openTarget', 'pages')">
               Open Pages Editor
             </BaseButton>
           </div>
@@ -167,7 +161,7 @@ defineEmits<{
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--fabric-space-2);
+  gap: var(--fabric-space-3);
 }
 
 .home-welcome__editors {
