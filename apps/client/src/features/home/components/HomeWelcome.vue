@@ -23,19 +23,19 @@ defineEmits<{
         </div>
 
         <div class="home-welcome__quick-actions" aria-label="Quick actions">
-          <BaseButton variant="primary" icon-left="workflow" @click="$emit('openTarget', 'workflows')">
+          <BaseButton variant="link" icon-left="workflow" @click="$emit('openTarget', 'workflows')">
             Workflow Editor
           </BaseButton>
-          <BaseButton variant="secondary" icon-left="panel-top" @click="$emit('openTarget', 'pages')">
+          <BaseButton variant="link" icon-left="panel-top" @click="$emit('openTarget', 'pages')">
             Pages Editor
           </BaseButton>
-          <BaseButton variant="secondary" icon-left="activity" @click="$emit('openTarget', 'monitoring')">
+          <BaseButton variant="link" icon-left="activity" @click="$emit('openTarget', 'monitoring')">
             Monitoring
           </BaseButton>
-          <BaseButton variant="secondary" icon-left="package" @click="$emit('openTarget', 'plugins')">
+          <BaseButton variant="link" icon-left="package" @click="$emit('openTarget', 'plugins')">
             Plugin Installer
           </BaseButton>
-          <BaseButton variant="secondary" icon-left="settings" @click="$emit('openTarget', 'settings')">
+          <BaseButton variant="link" icon-left="settings" @click="$emit('openTarget', 'settings')">
             Settings
           </BaseButton>
         </div>
@@ -53,10 +53,10 @@ defineEmits<{
           </div>
           <p>Create and edit visual automations, connect plugins, test executions, and publish workflows.</p>
           <div class="home-welcome__editor-actions">
-            <BaseButton variant="primary" size="sm" @click="$emit('openTarget', 'workflows')">
+            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'workflows')">
               Create New Workflow
             </BaseButton>
-            <BaseButton variant="secondary" size="sm" @click="$emit('openTarget', 'workflows')">
+            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'workflows')">
               Open Workflow Editor
             </BaseButton>
           </div>
@@ -73,10 +73,10 @@ defineEmits<{
           </div>
           <p>Build profile-scoped pages and forms connected to workflows, actions, and runtime data.</p>
           <div class="home-welcome__editor-actions">
-            <BaseButton variant="primary" size="sm" @click="$emit('openTarget', 'pages')">
+            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'pages')">
               Create Pages Project
             </BaseButton>
-            <BaseButton variant="secondary" size="sm" @click="$emit('openTarget', 'pages')">
+            <BaseButton variant="link" size="sm" @click="$emit('openTarget', 'pages')">
               Open Pages Editor
             </BaseButton>
           </div>
@@ -165,7 +165,8 @@ defineEmits<{
 .home-welcome__quick-actions,
 .home-welcome__editor-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: var(--fabric-space-2);
 }
 
