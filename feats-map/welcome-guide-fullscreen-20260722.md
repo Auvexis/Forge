@@ -1,0 +1,5 @@
+- [x] Make guide fullscreen
+- [x] Add custom header
+- [x] Add custom footer
+- [x] Update contracts
+- [x] Run checks

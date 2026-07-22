@@ -3,7 +3,6 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import GuideModal from '../components/GuideModal.vue'
 import { useGuideFlow } from '../composables/useGuideFlow'
 import {
   hasCompletedGuide,
@@ -18,11 +17,11 @@ const GUIDE_SCOPE = 'profile'
 const guideSteps = ['welcome', 'shortcuts', 'start'] as const
 type WelcomeGuideLang = 'en' | 'pt' | 'es' | 'fr'
 
-const languageOptions: Array<{ value: WelcomeGuideLang; label: string; shortLabel: string }> = [
-  { value: 'en', label: 'English', shortLabel: 'EN' },
-  { value: 'pt', label: 'Portuguese', shortLabel: 'PT' },
-  { value: 'es', label: 'Spanish', shortLabel: 'ES' },
-  { value: 'fr', label: 'French', shortLabel: 'FR' },
+const languageOptions: Array<{ value: WelcomeGuideLang; label: string; flag: string }> = [
+  { value: 'en', label: 'English', flag: '🇺🇸' },
+  { value: 'pt', label: 'Portuguese', flag: '🇧🇷' },
+  { value: 'es', label: 'Spanish', flag: '🇪🇸' },
+  { value: 'fr', label: 'French', flag: '🇫🇷' },
 ]
 
 const copy = {
@@ -207,124 +206,157 @@ function openTarget(target: 'workflows' | 'pages') {
 </script>
 
 <template>
-  <GuideModal :open="isOpen" :title="title" @close="skip">
-    <section class="welcome-profile-guide">
-      <div class="welcome-profile-guide__step-count">
-        <span>{{ activeStepNumber }} / {{ stepCount }}</span>
-        <div class="welcome-profile-guide__language" aria-label="Guide language">
-          <button
-            v-for="option in languageOptions"
-            :key="option.value"
-            type="button"
-            class="welcome-profile-guide__language-option"
-            :class="{ 'is-active': activeLang === option.value }"
-            :aria-pressed="activeLang === option.value"
-            :title="option.label"
-            @click="activeLang = option.value"
-          >
-            {{ option.shortLabel }}
-          </button>
-        </div>
-      </div>
+  <Teleport to="body">
+    <Transition name="welcome-profile-guide-fade">
+      <section v-if="isOpen" class="welcome-profile-guide" role="dialog" aria-modal="true">
+        <header class="welcome-profile-guide__header">
+          <div class="welcome-profile-guide__header-title">
+            <h2>{{ title }}</h2>
+            <span>{{ activeStepNumber }} / {{ stepCount }}</span>
+          </div>
 
-      <div v-if="flow.is('welcome')" class="welcome-profile-guide__step">
-        <span class="welcome-profile-guide__icon">
-          <LucideIcon name="home" :size="22" />
-        </span>
-        <h3>{{ guideCopy.welcome.heading }}</h3>
-        <p>{{ guideCopy.welcome.body }}</p>
-      </div>
+          <div class="welcome-profile-guide__language" aria-label="Guide language">
+            <BaseButton
+              v-for="option in languageOptions"
+              :key="option.value"
+              type="button"
+              variant="link"
+              class="welcome-profile-guide__language-option"
+              :class="{ 'is-active': activeLang === option.value }"
+              :aria-pressed="activeLang === option.value"
+              :title="option.label"
+              @click="activeLang = option.value"
+            >
+              <span>{{ option.flag }}</span>
+              <span>{{ option.label }}</span>
+            </BaseButton>
+          </div>
+        </header>
 
-      <div v-else-if="flow.is('shortcuts')" class="welcome-profile-guide__step">
-        <span class="welcome-profile-guide__icon">
-          <LucideIcon name="panel-top" :size="22" />
-        </span>
-        <h3>{{ guideCopy.shortcuts.heading }}</h3>
-        <p>{{ guideCopy.shortcuts.body }}</p>
-      </div>
+        <main class="welcome-profile-guide__body">
+          <div v-if="flow.is('welcome')" class="welcome-profile-guide__step">
+            <span class="welcome-profile-guide__icon">
+              <LucideIcon name="home" :size="22" />
+            </span>
+            <h3>{{ guideCopy.welcome.heading }}</h3>
+            <p>{{ guideCopy.welcome.body }}</p>
+          </div>
 
-      <div v-else class="welcome-profile-guide__step">
-        <span class="welcome-profile-guide__icon">
-          <LucideIcon name="workflow" :size="22" />
-        </span>
-        <h3>{{ guideCopy.start.heading }}</h3>
-        <p>{{ guideCopy.start.body }}</p>
-        <div class="welcome-profile-guide__start-actions">
-          <BaseButton variant="link" icon-left="workflow" @click="openTarget('workflows')">
-            {{ guideCopy.start.workflow }}
-          </BaseButton>
-          <BaseButton variant="link" icon-left="panel-top" @click="openTarget('pages')">
-            {{ guideCopy.start.pages }}
-          </BaseButton>
-        </div>
-      </div>
+          <div v-else-if="flow.is('shortcuts')" class="welcome-profile-guide__step">
+            <span class="welcome-profile-guide__icon">
+              <LucideIcon name="panel-top" :size="22" />
+            </span>
+            <h3>{{ guideCopy.shortcuts.heading }}</h3>
+            <p>{{ guideCopy.shortcuts.body }}</p>
+          </div>
 
-      <footer class="welcome-profile-guide__actions">
-        <BaseButton variant="ghost" @click="skip">{{ guideCopy.actions.skip }}</BaseButton>
-        <div class="welcome-profile-guide__step-actions">
-          <BaseButton variant="secondary" :disabled="isFirstStep" @click="flow.back">
-            {{ guideCopy.actions.back }}
-          </BaseButton>
-          <BaseButton v-if="!isLastStep" variant="primary" @click="flow.next">
-            {{ guideCopy.actions.next }}
-          </BaseButton>
-          <BaseButton v-else variant="primary" @click="complete">
-            {{ guideCopy.actions.done }}
-          </BaseButton>
-        </div>
-      </footer>
-    </section>
-  </GuideModal>
+          <div v-else class="welcome-profile-guide__step">
+            <span class="welcome-profile-guide__icon">
+              <LucideIcon name="workflow" :size="22" />
+            </span>
+            <h3>{{ guideCopy.start.heading }}</h3>
+            <p>{{ guideCopy.start.body }}</p>
+            <div class="welcome-profile-guide__start-actions">
+              <BaseButton variant="link" icon-left="workflow" @click="openTarget('workflows')">
+                {{ guideCopy.start.workflow }}
+              </BaseButton>
+              <BaseButton variant="link" icon-left="panel-top" @click="openTarget('pages')">
+                {{ guideCopy.start.pages }}
+              </BaseButton>
+            </div>
+          </div>
+        </main>
+
+        <footer class="welcome-profile-guide__footer">
+          <BaseButton variant="ghost" @click="skip">{{ guideCopy.actions.skip }}</BaseButton>
+          <div class="welcome-profile-guide__step-actions">
+            <BaseButton variant="secondary" :disabled="isFirstStep" @click="flow.back">
+              {{ guideCopy.actions.back }}
+            </BaseButton>
+            <BaseButton v-if="!isLastStep" variant="primary" @click="flow.next">
+              {{ guideCopy.actions.next }}
+            </BaseButton>
+            <BaseButton v-else variant="primary" @click="complete">
+              {{ guideCopy.actions.done }}
+            </BaseButton>
+          </div>
+        </footer>
+      </section>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
 .welcome-profile-guide {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
   min-width: 0;
+  flex-direction: column;
+  background: var(--fabric-bg-base);
+  color: var(--fabric-text-primary);
 }
 
-.welcome-profile-guide__step-count {
+.welcome-profile-guide__header,
+.welcome-profile-guide__footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--fabric-space-4);
+  min-height: 72px;
+  padding: 0 var(--fabric-space-8);
+}
+
+.welcome-profile-guide__header-title {
+  display: flex;
+  align-items: baseline;
   gap: var(--fabric-space-3);
-  padding: var(--fabric-space-3) var(--fabric-space-5) 0;
+  min-width: 0;
+}
+
+.welcome-profile-guide__header-title h2 {
+  margin: 0;
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xl);
+}
+
+.welcome-profile-guide__header-title span {
   color: var(--fabric-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
 .welcome-profile-guide__language {
-  display: inline-flex;
-  gap: 2px;
+  display: flex;
+  align-items: center;
+  gap: var(--fabric-space-4);
 }
 
 .welcome-profile-guide__language-option {
-  height: 24px;
-  min-width: 30px;
-  padding: 0 6px;
-  border: 1px solid transparent;
-  border-radius: var(--fabric-radius-sm);
-  background: transparent;
   color: var(--fabric-text-muted);
-  cursor: pointer;
-  font: inherit;
-  font-weight: var(--fabric-font-semibold);
 }
 
-.welcome-profile-guide__language-option:hover,
 .welcome-profile-guide__language-option.is-active {
-  border-color: var(--fabric-border);
-  background: var(--fabric-bg-base);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-accent);
+}
+
+.welcome-profile-guide__body {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--fabric-space-8);
 }
 
 .welcome-profile-guide__step {
   display: flex;
-  min-height: 260px;
+  width: min(680px, 100%);
   flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: var(--fabric-space-3);
-  padding: var(--fabric-space-6) var(--fabric-space-5);
+  align-items: center;
+  gap: var(--fabric-space-4);
+  text-align: center;
 }
 
 .welcome-profile-guide__icon {
@@ -332,10 +364,7 @@ function openTarget(target: 'workflows' | 'pages') {
   place-items: center;
   width: 42px;
   height: 42px;
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
   color: var(--fabric-accent);
-  background: var(--fabric-bg-base);
 }
 
 .welcome-profile-guide h3,
@@ -355,22 +384,39 @@ function openTarget(target: 'workflows' | 'pages') {
 }
 
 .welcome-profile-guide__start-actions,
-.welcome-profile-guide__step-actions,
-.welcome-profile-guide__actions {
+.welcome-profile-guide__step-actions {
   display: flex;
   gap: var(--fabric-space-2);
 }
 
 .welcome-profile-guide__start-actions {
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   margin-top: var(--fabric-space-2);
 }
 
-.welcome-profile-guide__actions {
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--fabric-space-4) var(--fabric-space-5);
-  border-top: 1px solid var(--fabric-border);
+.welcome-profile-guide-fade-enter-active,
+.welcome-profile-guide-fade-leave-active {
+  transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.welcome-profile-guide-fade-enter-from,
+.welcome-profile-guide-fade-leave-to {
+  opacity: 0;
+}
+
+@media (max-width: 780px) {
+  .welcome-profile-guide__header,
+  .welcome-profile-guide__footer {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    padding: var(--fabric-space-4);
+  }
+
+  .welcome-profile-guide__language {
+    flex-wrap: wrap;
+    gap: var(--fabric-space-3);
+  }
 }
 </style>

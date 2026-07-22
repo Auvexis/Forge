@@ -24,6 +24,20 @@ describe('welcome profile guide contract', () => {
     assert.match(guide, /markGuideSkipped/)
   })
 
+  it('renders with its own flat fullscreen shell', () => {
+    const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
+
+    assert.match(guide, /<Teleport to="body">/)
+    assert.match(guide, /class="welcome-profile-guide__header"/)
+    assert.match(guide, /class="welcome-profile-guide__body"/)
+    assert.match(guide, /class="welcome-profile-guide__footer"/)
+    assert.match(guide, /position: fixed;/)
+    assert.match(guide, /inset: 0;/)
+    assert.match(guide, /background: var\(--fabric-bg-base\);/)
+    assert.doesNotMatch(guide, /GuideModal/)
+    assert.doesNotMatch(guide, /border-top: 1px solid var\(--fabric-border\)/)
+  })
+
   it('unwraps guide flow state for navigation buttons', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
@@ -36,12 +50,14 @@ describe('welcome profile guide contract', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
     assert.match(guide, /type WelcomeGuideLang = 'en' \| 'pt' \| 'es' \| 'fr'/)
-    assert.match(guide, /label: 'English'/)
-    assert.match(guide, /label: 'Portuguese'/)
-    assert.match(guide, /label: 'Spanish'/)
-    assert.match(guide, /label: 'French'/)
+    assert.match(guide, /label: 'English', flag: '🇺🇸'/)
+    assert.match(guide, /label: 'Portuguese', flag: '🇧🇷'/)
+    assert.match(guide, /label: 'Spanish', flag: '🇪🇸'/)
+    assert.match(guide, /label: 'French', flag: '🇫🇷'/)
     assert.match(guide, /welcome-profile-guide__language/)
     assert.match(guide, /activeLang = option\.value/)
+    assert.match(guide, /\{\{ option\.flag \}\}/)
+    assert.match(guide, /\{\{ option\.label \}\}/)
   })
 
   it('opens once from Home when the current profile has not completed it', () => {
