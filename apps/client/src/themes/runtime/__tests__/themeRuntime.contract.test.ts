@@ -105,12 +105,14 @@ describe('theme runtime contract', () => {
   it('builds settings preview cards from JSON theme tokens', () => {
     const preview = read('src/themes/runtime/theme.preview.ts')
     const settings = read('src/shared/components/layout/AppGlobalSettings.vue')
+    const themeSelect = read('src/shared/components/base/BaseThemeSelect.vue')
 
     assert.match(preview, /getFabricThemePreviewCards/)
     assert.match(preview, /getFabricTheme\(themeIdForType\('dark'\)\)/)
     assert.match(preview, /getFabricTheme\(themeIdForType\('light'\)\)/)
     assert.match(preview, /resolveThemeToken/)
-    assert.match(settings, /getFabricThemePreviewCards\(\)/)
+    assert.match(settings, /BaseThemeSelect/)
+    assert.match(themeSelect, /getFabricThemePreviewCards\(\)/)
     assert.doesNotMatch(settings, /accentColor: '#/)
   })
 

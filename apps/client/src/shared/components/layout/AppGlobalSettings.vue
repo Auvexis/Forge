@@ -499,52 +499,7 @@
                 </div>
               </div>
 
-              <div class="gs-theme-grid">
-                <button
-                  v-for="theme in themeCards"
-                  :key="theme.value"
-                  class="gs-theme-card"
-                  :class="{ 'gs-theme-card--selected': theme.value === themeValue }"
-                  :style="{
-                    '--theme-bg': theme.bgColor,
-                    '--theme-surface': theme.surfaceColor,
-                    '--theme-component': theme.componentColor,
-                    '--theme-border': theme.borderColor,
-                    '--theme-accent': theme.accentColor,
-                    '--theme-muted': theme.mutedColor,
-                  }"
-                  type="button"
-                  @click="handleThemeChange(theme.value)"
-                >
-                  <span class="gs-theme-preview">
-                    <span class="gs-theme-window">
-                      <span class="gs-theme-toolbar">
-                        <span class="gs-theme-toolbar__group">
-                          <span class="gs-theme-pill gs-theme-pill--small" />
-                          <span class="gs-theme-pill gs-theme-pill--small" />
-                        </span>
-                        <span class="gs-theme-pill gs-theme-pill--center" />
-                        <span class="gs-theme-toolbar__group">
-                          <span class="gs-theme-dot" />
-                          <span class="gs-theme-dot gs-theme-dot--accent" />
-                          <span class="gs-theme-dot" />
-                        </span>
-                      </span>
-                      <span class="gs-theme-body">
-                        <span class="gs-theme-line gs-theme-line--title" />
-                        <span class="gs-theme-line gs-theme-line--wide" />
-                        <span class="gs-theme-row-preview">
-                          <span class="gs-theme-line gs-theme-line--compact gs-theme-line--accent" />
-                          <span class="gs-theme-line gs-theme-line--compact" />
-                          <span class="gs-theme-line gs-theme-line--compact" />
-                        </span>
-                        <span class="gs-theme-action" />
-                      </span>
-                    </span>
-                  </span>
-                  <span class="gs-theme-label">{{ theme.label }}</span>
-                </button>
-              </div>
+              <BaseThemeSelect :model-value="themeValue" @update:model-value="handleThemeChange" />
             </div>
 
             <div class="gs-pref-row">
@@ -604,13 +559,13 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseThemeSelect from '@/shared/components/base/BaseThemeSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
 import AuvexisAccountSettings from '@/shared/components/layout/AuvexisAccountSettings.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
-import { getFabricThemePreviewCards } from '@/themes/runtime/theme.preview'
 
 const toast = useToast()
 
@@ -862,8 +817,6 @@ async function handleTestConnection(pluginId: string) {
 
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
-const themeCards = getFabricThemePreviewCards()
-
 const logRetentionOptions = [
   { value: '7', label: '7 days' },
   { value: '30', label: '30 days' },
@@ -871,7 +824,10 @@ const logRetentionOptions = [
   { value: '0', label: 'Keep forever' },
 ]
 
-const themeValue = computed(() => String(store.settings.theme ?? 'dark'))
+const themeValue = computed<ThemeMode>(() => {
+  const theme = String(store.settings.theme ?? 'dark')
+  return theme === 'light' || theme === 'system' ? theme : 'dark'
+})
 const logRetentionValue = computed(() => String(store.settings.log_retention_days ?? '30'))
 const publicUrlDraft = ref('')
 const isSavingPublicUrl = ref(false)

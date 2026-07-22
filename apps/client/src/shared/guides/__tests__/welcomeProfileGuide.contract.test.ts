@@ -46,18 +46,17 @@ describe('welcome profile guide contract', () => {
     assert.doesNotMatch(guide, /v-if="!flow\.isLastStep"/)
   })
 
-  it('supports English, Portuguese, Spanish, and French copy', () => {
+  it('supports English, Portuguese, Spanish, and French copy through BaseSegmentedSelect', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
     assert.match(guide, /type WelcomeGuideLang = 'en' \| 'pt' \| 'es' \| 'fr'/)
-    assert.match(guide, /label: 'English', flag: '🇺🇸'/)
-    assert.match(guide, /label: 'Portuguese', flag: '🇧🇷'/)
-    assert.match(guide, /label: 'Spanish', flag: '🇪🇸'/)
-    assert.match(guide, /label: 'French', flag: '🇫🇷'/)
-    assert.match(guide, /welcome-profile-guide__language/)
-    assert.match(guide, /activeLang = option\.value/)
-    assert.match(guide, /\{\{ option\.flag \}\}/)
-    assert.match(guide, /\{\{ option\.label \}\}/)
+    assert.match(guide, /BaseSegmentedSelect/)
+    assert.match(guide, /label: 'EN', title: 'English', emojiIcon: '🇺🇸'/)
+    assert.match(guide, /label: 'PT', title: 'Portuguese', emojiIcon: '🇧🇷'/)
+    assert.match(guide, /label: 'ES', title: 'Spanish', emojiIcon: '🇪🇸'/)
+    assert.match(guide, /label: 'FR', title: 'French', emojiIcon: '🇫🇷'/)
+    assert.match(guide, /@update:model-value="setLanguage"/)
+    assert.doesNotMatch(guide, /welcome-profile-guide__language-option/)
   })
 
   it('opens once from Home when the current profile has not completed it', () => {
@@ -72,15 +71,28 @@ describe('welcome profile guide contract', () => {
     assert.match(guide, /scopeId: currentProfileId\.value/)
   })
 
-  it('keeps the first guide small and action-oriented', () => {
+  it('presents six welcome steps without reward side effects', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
-    assert.match(guide, /'welcome', 'shortcuts', 'start'/)
-    assert.match(guide, /Fabric starts from Home/)
-    assert.match(guide, /Your quick panels are already wired/)
-    assert.match(guide, /Choose where to begin/)
-    assert.match(guide, /Open Workflow Editor/)
-    assert.match(guide, /Open Pages Editor/)
+    assert.match(guide, /'welcome', 'workflow', 'pages', 'theme', 'plugins', 'monitoring'/)
+    assert.match(guide, /src="\/favicon\.svg"/)
+    assert.match(guide, /alt="Fabric"/)
+    assert.match(guide, /Build automations visually/)
+    assert.match(guide, /Create workflow-connected pages/)
+    assert.match(guide, /Plugin Installer/)
+    assert.match(guide, /Monitoring Panel/)
     assert.doesNotMatch(guide, /useGuideReward|claimGuideReward/)
+  })
+
+  it('uses varied content layouts and the shared theme selector', () => {
+    const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
+
+    assert.match(guide, /type WelcomeGuideLayout = 'center' \| 'media-left' \| 'media-right' \| 'media-top' \| 'media-bottom'/)
+    assert.match(guide, /workflow: 'media-left'/)
+    assert.match(guide, /pages: 'media-right'/)
+    assert.match(guide, /plugins: 'media-top'/)
+    assert.match(guide, /monitoring: 'media-bottom'/)
+    assert.match(guide, /BaseThemeSelect/)
+    assert.match(guide, /handleThemeChange/)
   })
 })

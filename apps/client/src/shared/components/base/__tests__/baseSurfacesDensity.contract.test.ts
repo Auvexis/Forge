@@ -27,6 +27,10 @@ const baseSegmentedSelectSource = readFileSync(
   fileURLToPath(new URL('../BaseSegmentedSelect.vue', import.meta.url)),
   'utf8',
 )
+const baseThemeSelectSource = readFileSync(
+  fileURLToPath(new URL('../BaseThemeSelect.vue', import.meta.url)),
+  'utf8',
+)
 const appPopoverSource = readFileSync(
   fileURLToPath(new URL('../../overlay/AppPopover.vue', import.meta.url)),
   'utf8',
@@ -71,6 +75,16 @@ describe('base surface density', () => {
     assert.match(baseButtonSource, /\.base-button--link\s*\{[\s\S]*color: var\(--fabric-accent\);/)
     assert.match(baseButtonSource, /\.base-button--link:hover\s*\{[\s\S]*background-color: transparent;/)
     assert.match(baseButtonSource, /\.base-button--link:hover\s*\{[\s\S]*text-decoration: underline;/)
+  })
+
+  it('supports compact emoji segmented options and reusable theme previews', () => {
+    assert.match(baseSegmentedSelectSource, /emojiIcon\?: string/)
+    assert.match(baseSegmentedSelectSource, /base-segmented-select__emoji-icon/)
+    assert.match(baseThemeSelectSource, /getFabricThemePreviewCards/)
+    assert.match(baseThemeSelectSource, /base-theme-grid/)
+    assert.match(baseThemeSelectSource, /base-theme-card--selected/)
+    assert.match(baseThemeSelectSource, /base-theme-preview/)
+    assert.match(baseThemeSelectSource, /'update:modelValue': \[value: ThemeMode\]/)
   })
 
   it('keeps dropdown popovers from rendering duplicate wrapper chrome', () => {

@@ -12,6 +12,9 @@
       @click="$emit('update:modelValue', option.value)"
     >
       <LucideIcon v-if="option.icon" :name="option.icon" :size="iconSize" />
+      <span v-else-if="option.emojiIcon" class="base-segmented-select__emoji-icon">
+        {{ option.emojiIcon }}
+      </span>
       <span v-if="option.label" class="base-segmented-select__label">{{ option.label }}</span>
     </button>
   </div>
@@ -25,6 +28,7 @@ export interface BaseSegmentedSelectOption {
   label?: string
   title?: string
   icon?: string
+  emojiIcon?: string
 }
 
 withDefaults(
@@ -94,5 +98,10 @@ defineEmits<{
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.base-segmented-select__emoji-icon {
+  flex: 0 0 auto;
+  line-height: 1;
 }
 </style>

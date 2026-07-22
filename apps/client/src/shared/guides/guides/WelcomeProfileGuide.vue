@@ -1,49 +1,86 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseSegmentedSelect, {
+  type BaseSegmentedSelectOption,
+} from '@/shared/components/base/BaseSegmentedSelect.vue'
+import BaseThemeSelect from '@/shared/components/base/BaseThemeSelect.vue'
+import { useTheme, type ThemeMode } from '@/shared/composables/useTheme'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useProfileStore } from '@/shared/stores/profile.store'
 import { useGuideFlow } from '../composables/useGuideFlow'
 import {
   hasCompletedGuide,
   markGuideCompleted,
   markGuideSkipped,
 } from '../composables/useGuideProgress'
-import { useProfileStore } from '@/shared/stores/profile.store'
 
 const GUIDE_ID = 'welcome-profile'
 const GUIDE_VERSION = 1
 const GUIDE_SCOPE = 'profile'
-const guideSteps = ['welcome', 'shortcuts', 'start'] as const
+const guideSteps = ['welcome', 'workflow', 'pages', 'theme', 'plugins', 'monitoring'] as const
+type WelcomeGuideStep = (typeof guideSteps)[number]
 type WelcomeGuideLang = 'en' | 'pt' | 'es' | 'fr'
+type WelcomeGuideLayout = 'center' | 'media-left' | 'media-right' | 'media-top' | 'media-bottom'
 
-const languageOptions: Array<{ value: WelcomeGuideLang; label: string; flag: string }> = [
-  { value: 'en', label: 'English', flag: '🇺🇸' },
-  { value: 'pt', label: 'Portuguese', flag: '🇧🇷' },
-  { value: 'es', label: 'Spanish', flag: '🇪🇸' },
-  { value: 'fr', label: 'French', flag: '🇫🇷' },
+const languageOptions: BaseSegmentedSelectOption[] = [
+  { value: 'en', label: 'EN', title: 'English', emojiIcon: '🇺🇸' },
+  { value: 'pt', label: 'PT', title: 'Portuguese', emojiIcon: '🇧🇷' },
+  { value: 'es', label: 'ES', title: 'Spanish', emojiIcon: '🇪🇸' },
+  { value: 'fr', label: 'FR', title: 'French', emojiIcon: '🇫🇷' },
 ]
+
+const stepLayouts: Record<WelcomeGuideStep, WelcomeGuideLayout> = {
+  welcome: 'center',
+  workflow: 'media-left',
+  pages: 'media-right',
+  theme: 'media-bottom',
+  plugins: 'media-top',
+  monitoring: 'media-bottom',
+}
+
+const stepIcons: Partial<Record<WelcomeGuideStep, string>> = {
+  workflow: 'workflow',
+  pages: 'panel-top',
+  plugins: 'plug',
+  monitoring: 'activity',
+}
 
 const copy = {
   en: {
     titles: {
       welcome: 'Welcome to Fabric',
-      shortcuts: 'Workspace shortcuts',
-      start: 'Start building',
+      workflow: 'Workflow Editor',
+      pages: 'Pages Editor',
+      theme: 'Choose a Theme',
+      plugins: 'Plugin Installer',
+      monitoring: 'Monitoring Panel',
     },
-    welcome: {
-      heading: 'Fabric starts from Home.',
-      body: 'Use Home as your profile workspace: open editors, jump into panels, and keep the main tools close without hunting through menus.',
-    },
-    shortcuts: {
-      heading: 'Your quick panels are already wired.',
-      body: 'Monitoring, Plugin Installer, and Settings are available from the Home shortcuts. Guides will use this same lightweight flow.',
-    },
-    start: {
-      heading: 'Choose where to begin.',
-      body: 'Start with automations in the Workflow Editor, or build a workflow-connected surface in Pages.',
-      workflow: 'Open Workflow Editor',
-      pages: 'Open Pages Editor',
+    steps: {
+      welcome: {
+        heading: 'Fabric is your profile workspace.',
+        body: 'Start from Home to open editors, manage panels, and keep your most important tools close.',
+      },
+      workflow: {
+        heading: 'Build automations visually.',
+        body: 'Use the Workflow Editor to connect nodes, run executions, and iterate on automations without leaving the workspace.',
+      },
+      pages: {
+        heading: 'Create workflow-connected pages.',
+        body: 'Pages Editor helps you compose interfaces that can talk to workflows, forms, data, and actions.',
+      },
+      theme: {
+        heading: 'Pick the interface theme.',
+        body: 'Choose the visual mode that feels best for long sessions. You can change it later in Settings.',
+      },
+      plugins: {
+        heading: 'Install the integrations you need.',
+        body: 'Plugin Installer is where Fabric grows new capabilities, from services and tools to custom workflow actions.',
+      },
+      monitoring: {
+        heading: 'Watch what Fabric is doing.',
+        body: 'Monitoring Panel keeps executions, activity, and system feedback visible while you build and run.',
+      },
     },
     actions: {
       skip: 'Skip',
@@ -55,22 +92,37 @@ const copy = {
   pt: {
     titles: {
       welcome: 'Bem-vindo ao Fabric',
-      shortcuts: 'Atalhos do workspace',
-      start: 'Comece a criar',
+      workflow: 'Workflow Editor',
+      pages: 'Pages Editor',
+      theme: 'Escolha um Tema',
+      plugins: 'Plugin Installer',
+      monitoring: 'Monitoring Panel',
     },
-    welcome: {
-      heading: 'O Fabric começa pela Home.',
-      body: 'Use a Home como workspace do profile: abra editores, acesse paineis e mantenha as ferramentas principais por perto.',
-    },
-    shortcuts: {
-      heading: 'Seus paineis rapidos ja estao conectados.',
-      body: 'Monitoring, Plugin Installer e Settings ficam disponiveis pelos atalhos da Home. Os guias usam esse mesmo fluxo leve.',
-    },
-    start: {
-      heading: 'Escolha por onde comecar.',
-      body: 'Comece com automacoes no Workflow Editor ou crie uma superficie conectada a workflows no Pages.',
-      workflow: 'Abrir Workflow Editor',
-      pages: 'Abrir Pages Editor',
+    steps: {
+      welcome: {
+        heading: 'Fabric e o workspace do seu profile.',
+        body: 'Comece pela Home para abrir editores, gerenciar paineis e manter as ferramentas importantes por perto.',
+      },
+      workflow: {
+        heading: 'Construa automacoes visualmente.',
+        body: 'Use o Workflow Editor para conectar nodes, executar fluxos e iterar em automacoes sem sair do workspace.',
+      },
+      pages: {
+        heading: 'Crie paginas conectadas a workflows.',
+        body: 'O Pages Editor ajuda a montar interfaces que conversam com workflows, forms, dados e acoes.',
+      },
+      theme: {
+        heading: 'Escolha o tema da interface.',
+        body: 'Selecione o modo visual mais confortavel para sessoes longas. Voce pode mudar depois em Settings.',
+      },
+      plugins: {
+        heading: 'Instale as integracoes que voce precisa.',
+        body: 'O Plugin Installer e onde o Fabric ganha novas capacidades, de servicos e ferramentas a acoes customizadas.',
+      },
+      monitoring: {
+        heading: 'Acompanhe o que o Fabric esta fazendo.',
+        body: 'O Monitoring Panel mostra execucoes, atividade e feedback do sistema enquanto voce cria e roda.',
+      },
     },
     actions: {
       skip: 'Pular',
@@ -82,22 +134,37 @@ const copy = {
   es: {
     titles: {
       welcome: 'Bienvenido a Fabric',
-      shortcuts: 'Atajos del workspace',
-      start: 'Empieza a crear',
+      workflow: 'Workflow Editor',
+      pages: 'Pages Editor',
+      theme: 'Elige un Tema',
+      plugins: 'Plugin Installer',
+      monitoring: 'Monitoring Panel',
     },
-    welcome: {
-      heading: 'Fabric empieza en Home.',
-      body: 'Usa Home como workspace del perfil: abre editores, accede a paneles y manten las herramientas principales cerca.',
-    },
-    shortcuts: {
-      heading: 'Tus paneles rapidos ya estan conectados.',
-      body: 'Monitoring, Plugin Installer y Settings estan disponibles desde los atajos de Home. Las guias usan este mismo flujo ligero.',
-    },
-    start: {
-      heading: 'Elige por donde empezar.',
-      body: 'Empieza con automatizaciones en Workflow Editor o crea una superficie conectada a workflows en Pages.',
-      workflow: 'Abrir Workflow Editor',
-      pages: 'Abrir Pages Editor',
+    steps: {
+      welcome: {
+        heading: 'Fabric es tu workspace de perfil.',
+        body: 'Empieza desde Home para abrir editores, gestionar paneles y mantener cerca tus herramientas principales.',
+      },
+      workflow: {
+        heading: 'Construye automatizaciones visualmente.',
+        body: 'Usa Workflow Editor para conectar nodes, ejecutar flujos e iterar automatizaciones sin salir del workspace.',
+      },
+      pages: {
+        heading: 'Crea paginas conectadas a workflows.',
+        body: 'Pages Editor te ayuda a componer interfaces que hablan con workflows, formularios, datos y acciones.',
+      },
+      theme: {
+        heading: 'Elige el tema de la interfaz.',
+        body: 'Selecciona el modo visual mas comodo para sesiones largas. Puedes cambiarlo luego en Settings.',
+      },
+      plugins: {
+        heading: 'Instala las integraciones que necesitas.',
+        body: 'Plugin Installer es donde Fabric suma capacidades, desde servicios y herramientas hasta acciones custom.',
+      },
+      monitoring: {
+        heading: 'Observa lo que Fabric esta haciendo.',
+        body: 'Monitoring Panel muestra ejecuciones, actividad y feedback del sistema mientras creas y ejecutas.',
+      },
     },
     actions: {
       skip: 'Saltar',
@@ -109,22 +176,37 @@ const copy = {
   fr: {
     titles: {
       welcome: 'Bienvenue dans Fabric',
-      shortcuts: 'Raccourcis du workspace',
-      start: 'Commencer a creer',
+      workflow: 'Workflow Editor',
+      pages: 'Pages Editor',
+      theme: 'Choisir un Theme',
+      plugins: 'Plugin Installer',
+      monitoring: 'Monitoring Panel',
     },
-    welcome: {
-      heading: 'Fabric commence dans Home.',
-      body: 'Utilisez Home comme workspace de profil: ouvrez les editeurs, accedez aux panneaux et gardez les outils principaux a portee.',
-    },
-    shortcuts: {
-      heading: 'Vos panneaux rapides sont deja connectes.',
-      body: 'Monitoring, Plugin Installer et Settings sont disponibles depuis les raccourcis Home. Les guides utilisent ce meme flux leger.',
-    },
-    start: {
-      heading: 'Choisissez par ou commencer.',
-      body: 'Commencez avec des automatisations dans Workflow Editor ou creez une surface connectee aux workflows dans Pages.',
-      workflow: 'Ouvrir Workflow Editor',
-      pages: 'Ouvrir Pages Editor',
+    steps: {
+      welcome: {
+        heading: 'Fabric est votre workspace de profil.',
+        body: 'Commencez depuis Home pour ouvrir les editeurs, gerer les panneaux et garder les outils importants a portee.',
+      },
+      workflow: {
+        heading: 'Construisez des automatisations visuellement.',
+        body: 'Utilisez Workflow Editor pour connecter des nodes, lancer des executions et iterer sans quitter le workspace.',
+      },
+      pages: {
+        heading: 'Creez des pages connectees aux workflows.',
+        body: 'Pages Editor aide a composer des interfaces connectees aux workflows, formulaires, donnees et actions.',
+      },
+      theme: {
+        heading: "Choisissez le theme de l'interface.",
+        body: 'Selectionnez le mode visuel le plus confortable pour les longues sessions. Vous pourrez le changer dans Settings.',
+      },
+      plugins: {
+        heading: 'Installez les integrations necessaires.',
+        body: 'Plugin Installer permet a Fabric de gagner des capacites, des services et outils aux actions personnalisees.',
+      },
+      monitoring: {
+        heading: 'Suivez ce que Fabric fait.',
+        body: 'Monitoring Panel montre les executions, activites et retours du systeme pendant que vous construisez.',
+      },
     },
     actions: {
       skip: 'Ignorer',
@@ -134,16 +216,14 @@ const copy = {
     },
   },
 } satisfies Record<WelcomeGuideLang, {
-  titles: Record<(typeof guideSteps)[number], string>
-  welcome: { heading: string; body: string }
-  shortcuts: { heading: string; body: string }
-  start: { heading: string; body: string; workflow: string; pages: string }
+  titles: Record<WelcomeGuideStep, string>
+  steps: Record<WelcomeGuideStep, { heading: string; body: string }>
   actions: { skip: string; back: string; next: string; done: string }
 }>
 
-const router = useRouter()
 const profileStore = useProfileStore()
 const flow = useGuideFlow(guideSteps)
+const { mode, setMode } = useTheme()
 const isOpen = ref(false)
 const activeLang = ref<WelcomeGuideLang>('en')
 
@@ -152,8 +232,12 @@ const activeStepNumber = computed(() => flow.stepIndex.value + 1)
 const stepCount = computed(() => flow.stepCount.value)
 const isFirstStep = computed(() => flow.isFirstStep.value)
 const isLastStep = computed(() => flow.isLastStep.value)
+const activeStep = computed<WelcomeGuideStep>(() => flow.activeStep.value ?? 'welcome')
 const guideCopy = computed(() => copy[activeLang.value])
-const title = computed(() => guideCopy.value.titles[flow.activeStep.value ?? 'welcome'])
+const title = computed(() => guideCopy.value.titles[activeStep.value])
+const stepCopy = computed(() => guideCopy.value.steps[activeStep.value])
+const stepLayout = computed(() => stepLayouts[activeStep.value])
+const themeValue = computed<ThemeMode>(() => mode.value)
 
 onMounted(async () => {
   if (!profileStore.currentProfile && !profileStore.isLoading) {
@@ -161,6 +245,12 @@ onMounted(async () => {
   }
   openIfNeeded()
 })
+
+function setLanguage(value: string) {
+  if (value === 'en' || value === 'pt' || value === 'es' || value === 'fr') {
+    activeLang.value = value
+  }
+}
 
 function openIfNeeded() {
   if (!currentProfileId.value) return
@@ -199,9 +289,8 @@ function complete() {
   isOpen.value = false
 }
 
-function openTarget(target: 'workflows' | 'pages') {
-  complete()
-  void router.push(target === 'workflows' ? '/workflows' : '/pages')
+function handleThemeChange(value: ThemeMode) {
+  setMode(value)
 }
 </script>
 
@@ -215,54 +304,51 @@ function openTarget(target: 'workflows' | 'pages') {
             <span>{{ activeStepNumber }} / {{ stepCount }}</span>
           </div>
 
-          <div class="welcome-profile-guide__language" aria-label="Guide language">
-            <BaseButton
-              v-for="option in languageOptions"
-              :key="option.value"
-              type="button"
-              variant="link"
-              class="welcome-profile-guide__language-option"
-              :class="{ 'is-active': activeLang === option.value }"
-              :aria-pressed="activeLang === option.value"
-              :title="option.label"
-              @click="activeLang = option.value"
-            >
-              <span>{{ option.flag }}</span>
-              <span>{{ option.label }}</span>
-            </BaseButton>
-          </div>
+          <BaseSegmentedSelect
+            class="welcome-profile-guide__language"
+            :model-value="activeLang"
+            :options="languageOptions"
+            aria-label="Guide language"
+            @update:model-value="setLanguage"
+          />
         </header>
 
         <main class="welcome-profile-guide__body">
-          <div v-if="flow.is('welcome')" class="welcome-profile-guide__step">
-            <span class="welcome-profile-guide__icon">
-              <LucideIcon name="home" :size="22" />
-            </span>
-            <h3>{{ guideCopy.welcome.heading }}</h3>
-            <p>{{ guideCopy.welcome.body }}</p>
-          </div>
+          <div
+            class="welcome-profile-guide__step"
+            :class="[
+              `welcome-profile-guide__step--${stepLayout}`,
+              `welcome-profile-guide__step--${activeStep}`,
+            ]"
+          >
+            <div v-if="activeStep === 'welcome'" class="welcome-profile-guide__welcome-mark">
+              <img src="/favicon.svg" alt="Fabric" />
+            </div>
 
-          <div v-else-if="flow.is('shortcuts')" class="welcome-profile-guide__step">
-            <span class="welcome-profile-guide__icon">
-              <LucideIcon name="panel-top" :size="22" />
-            </span>
-            <h3>{{ guideCopy.shortcuts.heading }}</h3>
-            <p>{{ guideCopy.shortcuts.body }}</p>
-          </div>
+            <div
+              v-else-if="stepLayout === 'media-left' || stepLayout === 'media-top'"
+              class="welcome-profile-guide__media-slot"
+            >
+              <LucideIcon :name="stepIcons[activeStep] ?? 'sparkles'" :size="34" />
+            </div>
 
-          <div v-else class="welcome-profile-guide__step">
-            <span class="welcome-profile-guide__icon">
-              <LucideIcon name="workflow" :size="22" />
-            </span>
-            <h3>{{ guideCopy.start.heading }}</h3>
-            <p>{{ guideCopy.start.body }}</p>
-            <div class="welcome-profile-guide__start-actions">
-              <BaseButton variant="link" icon-left="workflow" @click="openTarget('workflows')">
-                {{ guideCopy.start.workflow }}
-              </BaseButton>
-              <BaseButton variant="link" icon-left="panel-top" @click="openTarget('pages')">
-                {{ guideCopy.start.pages }}
-              </BaseButton>
+            <div class="welcome-profile-guide__copy">
+              <h3>{{ stepCopy.heading }}</h3>
+              <p>{{ stepCopy.body }}</p>
+            </div>
+
+            <BaseThemeSelect
+              v-if="activeStep === 'theme'"
+              class="welcome-profile-guide__theme-select"
+              :model-value="themeValue"
+              @update:model-value="handleThemeChange"
+            />
+
+            <div
+              v-else-if="stepLayout === 'media-right' || stepLayout === 'media-bottom'"
+              class="welcome-profile-guide__media-slot"
+            >
+              <LucideIcon :name="stepIcons[activeStep] ?? 'sparkles'" :size="34" />
             </div>
           </div>
         </main>
@@ -327,24 +413,13 @@ function openTarget(target: 'workflows' | 'pages') {
 }
 
 .welcome-profile-guide__language {
-  display: flex;
-  align-items: center;
-  gap: var(--fabric-space-4);
-}
-
-.welcome-profile-guide__language-option {
-  color: var(--fabric-text-muted);
-}
-
-.welcome-profile-guide__language-option.is-active {
-  color: var(--fabric-accent);
+  flex: 0 0 auto;
 }
 
 .welcome-profile-guide__body {
   display: flex;
   min-height: 0;
   flex: 1;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: var(--fabric-space-8);
@@ -352,19 +427,64 @@ function openTarget(target: 'workflows' | 'pages') {
 
 .welcome-profile-guide__step {
   display: flex;
-  width: min(680px, 100%);
-  flex-direction: column;
+  width: min(900px, 100%);
   align-items: center;
-  gap: var(--fabric-space-4);
+  justify-content: center;
+  gap: clamp(32px, 6vw, 72px);
+}
+
+.welcome-profile-guide__step--center,
+.welcome-profile-guide__step--media-top,
+.welcome-profile-guide__step--media-bottom {
+  flex-direction: column;
   text-align: center;
 }
 
-.welcome-profile-guide__icon {
+.welcome-profile-guide__step--media-left,
+.welcome-profile-guide__step--media-right {
+  flex-direction: row;
+}
+
+.welcome-profile-guide__copy {
+  display: flex;
+  max-width: 470px;
+  flex-direction: column;
+  gap: var(--fabric-space-3);
+}
+
+.welcome-profile-guide__step--center .welcome-profile-guide__copy,
+.welcome-profile-guide__step--media-top .welcome-profile-guide__copy,
+.welcome-profile-guide__step--media-bottom .welcome-profile-guide__copy {
+  align-items: center;
+}
+
+.welcome-profile-guide__welcome-mark {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
-  color: var(--fabric-accent);
+  width: 112px;
+  height: 112px;
+}
+
+.welcome-profile-guide__welcome-mark img {
+  display: block;
+  width: 82px;
+  height: 82px;
+}
+
+.welcome-profile-guide__media-slot {
+  display: grid;
+  place-items: center;
+  width: min(340px, 42vw);
+  aspect-ratio: 16 / 10;
+  background:
+    linear-gradient(90deg, transparent 0 48%, color-mix(in srgb, var(--fabric-border-muted) 36%, transparent) 48% 52%, transparent 52%),
+    linear-gradient(180deg, transparent 0 48%, color-mix(in srgb, var(--fabric-border-muted) 36%, transparent) 48% 52%, transparent 52%),
+    var(--fabric-bg-surface);
+  color: var(--fabric-text-muted);
+}
+
+.welcome-profile-guide__theme-select {
+  width: min(492px, 100%);
 }
 
 .welcome-profile-guide h3,
@@ -375,24 +495,17 @@ function openTarget(target: 'workflows' | 'pages') {
 .welcome-profile-guide h3 {
   color: var(--fabric-text-primary);
   font-size: var(--fabric-text-xl);
+  line-height: 1.25;
 }
 
 .welcome-profile-guide p {
-  max-width: 560px;
   color: var(--fabric-text-secondary);
   line-height: 1.6;
 }
 
-.welcome-profile-guide__start-actions,
 .welcome-profile-guide__step-actions {
   display: flex;
   gap: var(--fabric-space-2);
-}
-
-.welcome-profile-guide__start-actions {
-  flex-direction: column;
-  align-items: center;
-  margin-top: var(--fabric-space-2);
 }
 
 .welcome-profile-guide-fade-enter-active,
@@ -408,15 +521,29 @@ function openTarget(target: 'workflows' | 'pages') {
 @media (max-width: 780px) {
   .welcome-profile-guide__header,
   .welcome-profile-guide__footer {
-    align-items: flex-start;
+    align-items: stretch;
     flex-direction: column;
     justify-content: center;
     padding: var(--fabric-space-4);
   }
 
-  .welcome-profile-guide__language {
-    flex-wrap: wrap;
-    gap: var(--fabric-space-3);
+  .welcome-profile-guide__body {
+    padding: var(--fabric-space-5);
+  }
+
+  .welcome-profile-guide__step,
+  .welcome-profile-guide__step--media-left,
+  .welcome-profile-guide__step--media-right {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .welcome-profile-guide__copy {
+    align-items: center;
+  }
+
+  .welcome-profile-guide__media-slot {
+    width: min(300px, 100%);
   }
 }
 </style>
