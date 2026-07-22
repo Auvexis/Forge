@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import HomeWorkspaceHub from './components/HomeWorkspaceHub.vue'
+import HomeWelcome from './components/HomeWelcome.vue'
 
 const router = useRouter()
 
@@ -26,5 +26,5 @@ function openTarget(panelId: string) {
 </script>
 
 <template>
-  <HomeWorkspaceHub @open-target="openTarget" />
+  <HomeWelcome @open-target="openTarget" />
 </template>

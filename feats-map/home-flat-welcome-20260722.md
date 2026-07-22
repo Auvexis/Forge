@@ -1,0 +1,4 @@
+- [x] Replace IDE mock
+- [x] Build flat welcome sections
+- [x] Update contracts
+- [x] Run checks

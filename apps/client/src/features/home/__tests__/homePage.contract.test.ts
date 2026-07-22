@@ -22,25 +22,27 @@ describe('home page contract', () => {
 
   it('keeps home UI inside the home feature folder', () => {
     assert.equal(existsSync(resolve(root, 'features/home/HomePage.vue')), true)
-    assert.equal(existsSync(resolve(root, 'features/home/components/HomeWorkspaceHub.vue')), true)
+    assert.equal(existsSync(resolve(root, 'features/home/components/HomeWelcome.vue')), true)
 
     const appPage = read('app/pages/HomePage.vue')
     assert.match(appPage, /@\/features\/home\/HomePage\.vue/)
   })
 
-  it('renders a professional software workspace instead of a SaaS landing page', () => {
+  it('renders a flat software welcome page without IDE chrome', () => {
     const page = read('features/home/HomePage.vue')
-    const hub = read('features/home/components/HomeWorkspaceHub.vue')
+    const welcome = read('features/home/components/HomeWelcome.vue')
 
-    assert.match(page, /HomeWorkspaceHub/)
-    assert.match(hub, /home-workspace__toolbar/)
-    assert.match(hub, /home-workspace__browser/)
-    assert.match(hub, /home-workspace__viewer/)
-    assert.match(hub, /home-workspace__inspector/)
-    assert.match(hub, /home-workspace__timeline/)
-    assert.match(hub, /home-workspace__status/)
-    assert.doesNotMatch(hub, /home-hero/)
-    assert.doesNotMatch(hub, /home-product/)
+    assert.match(page, /HomeWelcome/)
+    assert.match(welcome, /home-welcome__intro/)
+    assert.match(welcome, /home-welcome__quick-actions/)
+    assert.match(welcome, /home-welcome__editors/)
+    assert.match(welcome, /Workflow Editor/)
+    assert.match(welcome, /Pages Editor/)
+    assert.match(welcome, /Create New Workflow/)
+    assert.match(welcome, /Create Pages Project/)
+    assert.doesNotMatch(welcome, /home-workspace/)
+    assert.doesNotMatch(welcome, /home-workspace__timeline/)
+    assert.doesNotMatch(welcome, /home-card|card/)
   })
 
   it('opens editors by route and panels by shared UI intents', () => {
