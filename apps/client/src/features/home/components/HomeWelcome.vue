@@ -5,12 +5,14 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 defineEmits<{
   openTarget: [target: string]
 }>()
+
+const showMediaSlots = false
 </script>
 
 <template>
   <main class="home-welcome">
     <section class="home-welcome__intro" aria-labelledby="home-title">
-      <div class="home-welcome__media-slot" aria-hidden="true" />
+      <div v-if="showMediaSlots" class="home-welcome__media-slot" aria-hidden="true" />
 
       <div class="home-welcome__intro-main">
         <div class="home-welcome__intro-copy">
@@ -38,7 +40,7 @@ defineEmits<{
 
     <section class="home-welcome__editors" aria-label="Editors">
       <article class="home-welcome__editor">
-        <div class="home-welcome__editor-media-slot" aria-hidden="true" />
+        <div v-if="showMediaSlots" class="home-welcome__editor-media-slot" aria-hidden="true" />
 
         <div class="home-welcome__editor-copy">
           <div class="home-welcome__editor-title">
@@ -58,7 +60,7 @@ defineEmits<{
       </article>
 
       <article class="home-welcome__editor">
-        <div class="home-welcome__editor-media-slot" aria-hidden="true" />
+        <div v-if="showMediaSlots" class="home-welcome__editor-media-slot" aria-hidden="true" />
 
         <div class="home-welcome__editor-copy">
           <div class="home-welcome__editor-title">
@@ -96,11 +98,11 @@ defineEmits<{
 .home-welcome__intro {
   display: flex;
   width: 100%;
-  min-height: 420px;
+  min-height: 220px;
   justify-content: flex-start;
   align-items: center;
   gap: var(--fabric-space-8);
-  padding: 0 0 var(--fabric-space-10);
+  padding: var(--fabric-space-4) 0 var(--fabric-space-8);
   text-align: left;
 }
 
@@ -172,7 +174,7 @@ defineEmits<{
   display: flex;
   gap: var(--fabric-space-10);
   width: 100%;
-  padding: var(--fabric-space-10) 0 0;
+  padding: var(--fabric-space-8) 0 0;
 }
 
 .home-welcome__editor {

@@ -1,0 +1,4 @@
+- [x] Hide empty media slots
+- [x] Tighten home spacing
+- [x] Update contract
+- [x] Run checks
