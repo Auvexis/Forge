@@ -27,17 +27,15 @@ describe('welcome profile guide contract', () => {
   it('renders with its own flat modal shell', () => {
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
 
-    assert.match(guide, /<Teleport to="body">/)
-    assert.match(guide, /class="welcome-profile-guide__panel"/)
+    assert.match(guide, /BaseModal/)
+    assert.match(guide, /<BaseModal :is-open="isOpen" max-width="980px" height="min\(720px, calc\(100vh - 64px\)\)" @close="skip">/)
     assert.match(guide, /class="welcome-profile-guide__header"/)
     assert.match(guide, /class="welcome-profile-guide__body"/)
     assert.match(guide, /class="welcome-profile-guide__footer"/)
-    assert.match(guide, /position: fixed;/)
-    assert.match(guide, /inset: 0;/)
-    assert.match(guide, /width: min\(980px, 100%\);/)
-    assert.match(guide, /height: min\(720px, calc\(100vh - 64px\)\);/)
-    assert.match(guide, /background: var\(--fabric-bg-base\);/)
     assert.doesNotMatch(guide, /GuideModal/)
+    assert.doesNotMatch(guide, /<Teleport to="body">/)
+    assert.doesNotMatch(guide, /position: fixed;/)
+    assert.doesNotMatch(guide, /welcome-profile-guide__panel/)
     assert.doesNotMatch(guide, /border-top: 1px solid var\(--fabric-border\)/)
   })
 

@@ -1,0 +1,4 @@
+- [x] Replace custom shell with BaseModal
+- [x] Keep step content animation
+- [x] Update contracts
+- [x] Run checks
