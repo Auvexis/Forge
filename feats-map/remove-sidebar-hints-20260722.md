@@ -1,0 +1,4 @@
+- [x] Remove sidebar hint data
+- [x] Remove hint wrappers from sidebar
+- [x] Update contracts
+- [x] Run checks

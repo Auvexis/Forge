@@ -24,11 +24,7 @@
               >
                 <span class="sidebar-section__label">{{ section.label }}</span>
                 <div class="sidebar-section__items">
-                  <AppHint
-                    v-for="item in section.items"
-                    :key="item.id"
-                    :hint="hintFor(item.hintId ?? item.id)"
-                  >
+                  <template v-for="item in section.items" :key="item.id">
                     <router-link
                       v-if="item.route"
                       :to="item.route"
@@ -51,7 +47,7 @@
                       <LucideIcon :name="item.icon" :size="18" />
                       <span class="suite-nav-link__label">{{ item.label }}</span>
                     </button>
-                  </AppHint>
+                  </template>
                 </div>
               </section>
             </AppSidebar>
@@ -110,7 +106,6 @@ import { useRoute, useRouter } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
-import AppHint from '@/shared/components/hints/AppHint.vue'
 import AppToaster from '@/shared/components/feedback/AppToaster.vue'
 import GlobalNotificationPanel from '@/shared/components/feedback/GlobalNotificationPanel.vue'
 import AppConfirmPanel from '@/shared/components/layout/AppConfirmPanel.vue'
@@ -135,7 +130,6 @@ import {
   type SidebarNavIntent,
   type SidebarNavItem,
 } from '@/shared/components/layout/appSidebarNavigation'
-import { sidebarHintById } from '@/shared/components/layout/sidebarHints'
 import AppGlobalAutomationMonitor, {
   isAutomationMonitorOpen,
   toggleAutomationMonitor,
@@ -171,10 +165,6 @@ function openHome() {
 function handleSidebarNavClick(item: SidebarNavItem) {
   if (item.id === 'universe') appUiStore.enterUniverseMode()
   dispatchSidebarNavIntent(item)
-}
-
-function hintFor(id: string) {
-  return sidebarHintById[id as keyof typeof sidebarHintById]
 }
 
 function isSidebarNavItemActive(item: SidebarNavItem) {

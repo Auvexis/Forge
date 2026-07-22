@@ -72,6 +72,13 @@ describe('app sidebar navigation', () => {
     assert.doesNotMatch(source, /\.(gif|png|jpe?g|webp)['"]/)
   })
 
+  it('keeps sidebar hint metadata out of navigation', () => {
+    const source = readFileSync(new URL('../appSidebarNavigation.ts', import.meta.url), 'utf8')
+
+    assert.doesNotMatch(source, /hintId/)
+    assert.doesNotMatch(source, /sidebarHint/)
+  })
+
   it('returns the active sidebar width token for expanded and collapsed states', () => {
     assert.equal(sidebarWidthForState(false), 'var(--fabric-sidebar-expanded)')
     assert.equal(sidebarWidthForState(true), 'var(--fabric-sidebar-width)')
