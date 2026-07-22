@@ -65,6 +65,14 @@ describe('base surface density', () => {
     assert.match(baseSegmentedSelectSource, /\.base-segmented-select__option\s*\{[\s\S]*height: 22px;/)
   })
 
+  it('supports a text-only BaseButton link variant', () => {
+    assert.match(baseButtonSource, /export type ButtonVariant = [^\n]*'link'/)
+    assert.match(baseButtonSource, /\.base-button--link\s*\{[\s\S]*background-color: transparent;/)
+    assert.match(baseButtonSource, /\.base-button--link\s*\{[\s\S]*color: var\(--fabric-accent\);/)
+    assert.match(baseButtonSource, /\.base-button--link:hover\s*\{[\s\S]*background-color: transparent;/)
+    assert.match(baseButtonSource, /\.base-button--link:hover\s*\{[\s\S]*text-decoration: underline;/)
+  })
+
   it('keeps dropdown popovers from rendering duplicate wrapper chrome', () => {
     assert.match(appPopoverSource, /contentClass/)
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*padding: 0;/)

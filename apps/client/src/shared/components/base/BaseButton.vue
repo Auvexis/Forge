@@ -59,7 +59,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import AppHint from '@/shared/components/hints/AppHint.vue'
 import type { ButtonHint } from '@/shared/components/hints/AppHint.types'
 
-export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dashed'
+export type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'dashed' | 'link'
 export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon' | 'checkbox'
 
 const props = withDefaults(
@@ -249,6 +249,26 @@ defineOptions({ inheritAttrs: false })
 .base-button--dashed:active {
   background-color: var(--fabric-button-outline-active);
   color: var(--fabric-button-outline-active-text);
+}
+
+/* Link */
+.base-button--link {
+  height: auto;
+  padding: 0;
+  border: 0;
+  background-color: transparent;
+  color: var(--fabric-accent);
+  text-decoration: none;
+  text-underline-offset: 3px;
+}
+.base-button--link:hover {
+  background-color: transparent;
+  color: var(--fabric-accent);
+  text-decoration: underline;
+}
+.base-button--link:active {
+  background-color: transparent;
+  color: var(--fabric-accent);
 }
 
 .base-button__icon-left,
