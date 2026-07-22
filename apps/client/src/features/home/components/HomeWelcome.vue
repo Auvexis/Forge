@@ -5,80 +5,80 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 defineEmits<{
   openTarget: [target: string]
 }>()
-
-const showMediaSlots = false
 </script>
 
 <template>
   <main class="home-welcome">
-    <section class="home-welcome__intro" aria-labelledby="home-title">
-      <div v-if="showMediaSlots" class="home-welcome__media-slot" aria-hidden="true" />
+    <div class="home-welcome__sections">
+      <section class="home-welcome__intro" aria-labelledby="home-title">
+        <div class="home-welcome__media-slot" aria-hidden="true" />
 
-      <div class="home-welcome__intro-main">
-        <div class="home-welcome__intro-copy">
-          <p class="home-welcome__eyebrow">Fabric</p>
-          <h1 id="home-title">Your automation workspace.</h1>
-          <p>
-            Build workflows, create pages, install plugins, monitor production, and configure your
-            profile from one place.
-          </p>
-        </div>
-
-        <div class="home-welcome__quick-actions" aria-label="Quick actions">
-          <BaseButton variant="link" icon-left="activity" @click="$emit('openTarget', 'monitoring')">
-            Monitoring
-          </BaseButton>
-          <BaseButton variant="link" icon-left="package" @click="$emit('openTarget', 'plugins')">
-            Plugin Installer
-          </BaseButton>
-          <BaseButton variant="link" icon-left="settings" @click="$emit('openTarget', 'settings')">
-            Settings
-          </BaseButton>
-        </div>
-      </div>
-    </section>
-
-    <section class="home-welcome__editors" aria-label="Editors">
-      <article class="home-welcome__editor">
-        <div v-if="showMediaSlots" class="home-welcome__editor-media-slot" aria-hidden="true" />
-
-        <div class="home-welcome__editor-copy">
-          <div class="home-welcome__editor-title">
-            <LucideIcon name="workflow" :size="18" />
-            <h2>Workflow Editor</h2>
+        <div class="home-welcome__intro-main">
+          <div class="home-welcome__intro-copy">
+            <p class="home-welcome__eyebrow">Fabric</p>
+            <h1 id="home-title">Your automation workspace.</h1>
+            <p>
+              Build workflows, create pages, install plugins, monitor production, and configure your
+              profile from one place.
+            </p>
           </div>
-          <p>Create and edit visual automations, connect plugins, test executions, and publish workflows.</p>
-          <div class="home-welcome__editor-actions">
-            <BaseButton variant="link" size="sm" icon-left="plus" @click="$emit('openTarget', 'workflows')">
-              Create New Workflow
+
+          <div class="home-welcome__quick-actions" aria-label="Quick actions">
+            <BaseButton variant="link" icon-left="activity" @click="$emit('openTarget', 'monitoring')">
+              Monitoring
             </BaseButton>
-            <BaseButton variant="link" size="sm" icon-left="workflow" @click="$emit('openTarget', 'workflows')">
-              Open Workflow Editor
+            <BaseButton variant="link" icon-left="package" @click="$emit('openTarget', 'plugins')">
+              Plugin Installer
+            </BaseButton>
+            <BaseButton variant="link" icon-left="settings" @click="$emit('openTarget', 'settings')">
+              Settings
             </BaseButton>
           </div>
         </div>
-      </article>
+      </section>
 
-      <article class="home-welcome__editor">
-        <div v-if="showMediaSlots" class="home-welcome__editor-media-slot" aria-hidden="true" />
+      <section class="home-welcome__editors" aria-label="Editors">
+        <article class="home-welcome__editor">
+          <div class="home-welcome__editor-media-slot" aria-hidden="true" />
 
-        <div class="home-welcome__editor-copy">
-          <div class="home-welcome__editor-title">
-            <LucideIcon name="panel-top" :size="18" />
-            <h2>Pages Editor</h2>
+          <div class="home-welcome__editor-copy">
+            <div class="home-welcome__editor-title">
+              <LucideIcon name="workflow" :size="18" />
+              <h2>Workflow Editor</h2>
+            </div>
+            <p>Create and edit visual automations, connect plugins, test executions, and publish workflows.</p>
+            <div class="home-welcome__editor-actions">
+              <BaseButton variant="link" size="sm" icon-left="plus" @click="$emit('openTarget', 'workflows')">
+                Create New Workflow
+              </BaseButton>
+              <BaseButton variant="link" size="sm" icon-left="workflow" @click="$emit('openTarget', 'workflows')">
+                Open Workflow Editor
+              </BaseButton>
+            </div>
           </div>
-          <p>Build profile-scoped pages and forms connected to workflows, actions, and runtime data.</p>
-          <div class="home-welcome__editor-actions">
-            <BaseButton variant="link" size="sm" icon-left="plus" @click="$emit('openTarget', 'pages')">
-              Create Pages Project
-            </BaseButton>
-            <BaseButton variant="link" size="sm" icon-left="panel-top" @click="$emit('openTarget', 'pages')">
-              Open Pages Editor
-            </BaseButton>
+        </article>
+
+        <article class="home-welcome__editor">
+          <div class="home-welcome__editor-media-slot" aria-hidden="true" />
+
+          <div class="home-welcome__editor-copy">
+            <div class="home-welcome__editor-title">
+              <LucideIcon name="panel-top" :size="18" />
+              <h2>Pages Editor</h2>
+            </div>
+            <p>Build profile-scoped pages and forms connected to workflows, actions, and runtime data.</p>
+            <div class="home-welcome__editor-actions">
+              <BaseButton variant="link" size="sm" icon-left="plus" @click="$emit('openTarget', 'pages')">
+                Create Pages Project
+              </BaseButton>
+              <BaseButton variant="link" size="sm" icon-left="panel-top" @click="$emit('openTarget', 'pages')">
+                Open Pages Editor
+              </BaseButton>
+            </div>
           </div>
-        </div>
-      </article>
-    </section>
+        </article>
+      </section>
+    </div>
   </main>
 </template>
 
@@ -89,20 +89,27 @@ const showMediaSlots = false
   min-height: 100%;
   flex: 1;
   flex-direction: column;
-  padding: var(--fabric-space-8);
   overflow-y: auto;
   background: var(--fabric-bg-base);
   color: var(--fabric-text-primary);
 }
 
+.home-welcome__sections {
+  display: flex;
+  width: 100%;
+  min-height: 100%;
+  flex-direction: column;
+  padding: var(--fabric-space-8);
+}
+
 .home-welcome__intro {
   display: flex;
   width: 100%;
-  min-height: 220px;
+  min-height: 420px;
   justify-content: flex-start;
   align-items: center;
   gap: var(--fabric-space-8);
-  padding: var(--fabric-space-4) 0 var(--fabric-space-8);
+  padding: 0 0 var(--fabric-space-10);
   text-align: left;
 }
 
@@ -174,7 +181,7 @@ const showMediaSlots = false
   display: flex;
   gap: var(--fabric-space-10);
   width: 100%;
-  padding: var(--fabric-space-8) 0 0;
+  padding: var(--fabric-space-10) 0 0;
 }
 
 .home-welcome__editor {
@@ -227,7 +234,7 @@ const showMediaSlots = false
 }
 
 @media (max-width: 620px) {
-  .home-welcome {
+  .home-welcome__sections {
     padding: var(--fabric-space-4);
   }
 
