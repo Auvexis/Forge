@@ -1,6 +1,11 @@
 import type { AppHintContent } from '@/shared/components/hints/AppHint.types'
 
 export const sidebarHintById = {
+  home: {
+    title: 'Home',
+    description: 'Start from Fabric workspace shortcuts and product previews.',
+    position: 'right',
+  },
   workflows: {
     title: 'Workflows',
     description: 'Create, edit, and manage your automated workflows visually.',

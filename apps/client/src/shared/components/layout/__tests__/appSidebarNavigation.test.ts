@@ -20,6 +20,10 @@ describe('app sidebar navigation', () => {
     )
 
     assert.equal(
+      apps?.items.some((item) => item.id === 'home'),
+      true,
+    )
+    assert.equal(
       apps?.items.some((item) => item.id === 'workflows'),
       true,
     )
@@ -44,6 +48,7 @@ describe('app sidebar navigation', () => {
   it('provides routes for each visible suite navigation item', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
+    assert.equal(items.find((item) => item.id === 'home')?.route, '/home')
     assert.equal(items.find((item) => item.id === 'workflows')?.route, '/workflows')
     assert.equal(items.find((item) => item.id === 'pages')?.route, '/pages')
     assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')
@@ -95,6 +100,7 @@ describe('app sidebar navigation', () => {
   })
 
   it('uses the active page label in the sidebar header', () => {
+    assert.equal(sidebarPageLabelForPath('/home'), 'Home')
     assert.equal(sidebarPageLabelForPath('/workflows'), 'Workflow')
     assert.equal(sidebarPageLabelForPath('/workflows/example-id'), 'Workflow')
     assert.equal(sidebarPageLabelForPath('/pages'), 'Pages')

@@ -8,8 +8,13 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      redirect: '/home',
+    },
+    {
+      path: '/home',
       name: 'home',
-      redirect: '/workflows',
+      component: () => import('@/app/pages/HomePage.vue'),
+      meta: { title: 'Home' },
     },
     {
       path: '/workflows',

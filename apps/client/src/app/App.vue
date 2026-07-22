@@ -198,6 +198,7 @@ function handleUiIntent(event: Event) {
     agentPanelStore.clearDevSessionContext()
     agentPanelUi.open()
   }
+  if (intent?.type === 'settings.open') settingsStore.open()
 }
 
 function handleProfileIntent() {

@@ -1,0 +1,5 @@
+- [x] Add home feature folder
+- [x] Add /home route
+- [x] Add sidebar entry
+- [x] Add contract tests
+- [x] Run checks
