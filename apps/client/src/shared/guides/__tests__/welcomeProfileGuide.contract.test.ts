@@ -24,6 +24,26 @@ describe('welcome profile guide contract', () => {
     assert.match(guide, /markGuideSkipped/)
   })
 
+  it('unwraps guide flow state for navigation buttons', () => {
+    const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
+
+    assert.match(guide, /const isLastStep = computed\(\(\) => flow\.isLastStep\.value\)/)
+    assert.match(guide, /v-if="!isLastStep"/)
+    assert.doesNotMatch(guide, /v-if="!flow\.isLastStep"/)
+  })
+
+  it('supports English, Portuguese, Spanish, and French copy', () => {
+    const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
+
+    assert.match(guide, /type WelcomeGuideLang = 'en' \| 'pt' \| 'es' \| 'fr'/)
+    assert.match(guide, /label: 'English'/)
+    assert.match(guide, /label: 'Portuguese'/)
+    assert.match(guide, /label: 'Spanish'/)
+    assert.match(guide, /label: 'French'/)
+    assert.match(guide, /welcome-profile-guide__language/)
+    assert.match(guide, /activeLang = option\.value/)
+  })
+
   it('opens once from Home when the current profile has not completed it', () => {
     const home = read('features/home/HomePage.vue')
     const guide = read('shared/guides/guides/WelcomeProfileGuide.vue')
