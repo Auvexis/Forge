@@ -34,6 +34,8 @@ describe('home page contract', () => {
 
     assert.match(page, /HomeWelcome/)
     assert.match(welcome, /home-welcome__intro/)
+    assert.match(welcome, /home-welcome__media-slot/)
+    assert.match(welcome, /home-welcome__editor-media-slot/)
     assert.match(welcome, /home-welcome__quick-actions/)
     assert.match(welcome, /home-welcome__editors/)
     assert.match(welcome, /Workflow Editor/)
@@ -43,11 +45,13 @@ describe('home page contract', () => {
     assert.doesNotMatch(welcome, /home-workspace/)
     assert.doesNotMatch(welcome, /home-workspace__timeline/)
     assert.doesNotMatch(welcome, /home-card|card/)
+    assert.doesNotMatch(welcome, /home-welcome__flow-node|home-welcome__page-hero/)
   })
 
   it('opens editors by route and panels by shared UI intents', () => {
     const page = read('features/home/HomePage.vue')
     const app = read('app/App.vue')
+    const topbar = read('shared/components/layout/AppTopbar.vue')
 
     assert.match(page, /panelId === 'workflows'/)
     assert.match(page, /router\.push\('\/workflows'\)/)
@@ -57,5 +61,8 @@ describe('home page contract', () => {
     assert.match(page, /plugins: \{ type: 'plugin-installer\.open' \}/)
     assert.match(page, /settings: \{ type: 'settings\.open' \}/)
     assert.match(app, /intent\?\.type === 'settings\.open'/)
+    assert.match(app, /@open-home="openHome"/)
+    assert.match(topbar, /open-home/)
+    assert.match(topbar, /aria-label="Open home"/)
   })
 })

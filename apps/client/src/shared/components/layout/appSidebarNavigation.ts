@@ -37,16 +37,6 @@ export const sidebarSections: SidebarSection[] = [
     label: 'Apps',
     items: [
       {
-        id: 'home',
-        label: 'Home',
-        pageLabel: 'Home',
-        description: 'Start from Fabric workspace shortcuts and product previews.',
-        icon: 'home',
-        accent: '#60a5fa',
-        hintId: 'home',
-        route: '/home',
-      },
-      {
         id: 'workflows',
         label: 'Workflows',
         pageLabel: 'Workflow',
@@ -162,6 +152,8 @@ export function sidebarWidthForState(
 }
 
 export function sidebarPageLabelForPath(path: string): string {
+  if (path === '/home') return 'Home'
+
   const items = sidebarSections.flatMap((section) => section.items)
   const activeItem = items
     .filter((item) => item.route && path.startsWith(item.route))

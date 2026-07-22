@@ -66,6 +66,7 @@
         :sidebar-collapsed="isSidebarCollapsed"
         :page-label="activeSidebarPageLabel"
         @toggle-sidebar="isSidebarCollapsed = !isSidebarCollapsed"
+        @open-home="openHome"
         @open-command-palette="openGlobalCommandPalette"
         @open-settings="settingsStore.toggle()"
         @switch-profile="hasEnteredProfile = false"
@@ -103,7 +104,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import AppShell from '@/shared/components/layout/AppShell.vue'
 import AppSidebar from '@/shared/components/layout/AppSidebar.vue'
 import AppTopbar from '@/shared/components/layout/AppTopbar.vue'
@@ -144,6 +145,7 @@ const agentPanelUi = useAgentPanelUiStore()
 const agentPanelStore = useAgentPanelStore()
 const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
+const router = useRouter()
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'fabric:app-sidebar-collapsed'
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(readStoredSidebarCollapsed())
@@ -157,6 +159,10 @@ const activeSidebarPageLabel = computed(() => sidebarPageLabelForPath(route.path
 
 function openGlobalCommandPalette() {
   void commandPaletteStore.open({ routePath: route.path })
+}
+
+function openHome() {
+  if (route.path !== '/home') void router.push('/home')
 }
 
 function handleSidebarNavClick(item: SidebarNavItem) {

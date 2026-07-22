@@ -20,10 +20,6 @@ describe('app sidebar navigation', () => {
     )
 
     assert.equal(
-      apps?.items.some((item) => item.id === 'home'),
-      true,
-    )
-    assert.equal(
       apps?.items.some((item) => item.id === 'workflows'),
       true,
     )
@@ -48,7 +44,7 @@ describe('app sidebar navigation', () => {
   it('provides routes for each visible suite navigation item', () => {
     const items = sidebarSections.flatMap((section) => section.items)
 
-    assert.equal(items.find((item) => item.id === 'home')?.route, '/home')
+    assert.equal(items.find((item) => item.id === 'home'), undefined)
     assert.equal(items.find((item) => item.id === 'workflows')?.route, '/workflows')
     assert.equal(items.find((item) => item.id === 'pages')?.route, '/pages')
     assert.equal(items.find((item) => item.id === 'universe')?.route, '/universe')

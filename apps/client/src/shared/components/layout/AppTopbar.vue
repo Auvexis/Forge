@@ -13,6 +13,18 @@
           <LucideIcon name="grip" :size="25" />
         </template>
       </BaseTopbarButton>
+      <BaseTopbarButton
+        class="app-topbar__icon-button"
+        type="button"
+        width="40px"
+        height="40px"
+        aria-label="Open home"
+        @click="$emit('open-home')"
+      >
+        <template #left>
+          <LucideIcon name="home" :size="18" />
+        </template>
+      </BaseTopbarButton>
       <div class="app-topbar__route-slot">
         <div id="fabric-topbar-left" class="app-topbar__portal" />
         <slot name="left"></slot>
@@ -135,6 +147,7 @@ withDefaults(
 
 const emit = defineEmits<{
   (e: 'toggle-sidebar'): void
+  (e: 'open-home'): void
   (e: 'open-command-palette'): void
   (e: 'open-settings'): void
   (e: 'switch-profile'): void
