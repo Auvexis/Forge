@@ -82,7 +82,11 @@ defineEmits<{
 
 <style scoped>
 .home-welcome {
+  display: flex;
+  width: 100%;
   min-height: 100%;
+  flex: 1;
+  flex-direction: column;
   overflow-y: auto;
   background: var(--fabric-bg-base);
   color: var(--fabric-text-primary);
@@ -90,12 +94,11 @@ defineEmits<{
 
 .home-welcome__intro {
   display: flex;
-  width: min(980px, 100%);
+  width: 100%;
   min-height: 420px;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: var(--fabric-space-8);
-  margin: 0 auto;
   padding: var(--fabric-space-8) var(--fabric-space-5) var(--fabric-space-10);
   text-align: left;
 }
@@ -167,8 +170,7 @@ defineEmits<{
 .home-welcome__editors {
   display: flex;
   gap: var(--fabric-space-10);
-  width: min(980px, 100%);
-  margin: 0 auto;
+  width: 100%;
   padding: var(--fabric-space-10) var(--fabric-space-5) var(--fabric-space-8);
 }
 
