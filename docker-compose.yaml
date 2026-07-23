@@ -1,4 +1,22 @@
 services:
+  fabric-gateway:
+    build:
+      context: ./apps/gateway
+      dockerfile: Dockerfile
+    container_name: fabric-gateway
+    ports:
+      - "23800:23800"
+    environment:
+      - FABRIC_API_ORIGIN=http://fabric-server:23801
+      - FABRIC_CLIENT_ORIGIN=http://fabric-client:23802
+      - FABRIC_GATEWAY_PORT=23800
+    depends_on:
+      fabric-server:
+        condition: service_healthy
+      fabric-client:
+        condition: service_started
+    restart: always
+
   fabric-server:
     build:
       context: ./apps/api
@@ -8,7 +26,7 @@ services:
       - "23801:23801"
     environment:
       - FABRIC_HOME=/app/.fabric
-      - FABRIC_PUBLIC_URL=${FABRIC_PUBLIC_URL:-}
+      - FABRIC_PUBLIC_URL=${FABRIC_PUBLIC_URL:-http://localhost:23800}
       - FABRIC_PUBLIC_URL_LOCKED=${FABRIC_PUBLIC_URL_LOCKED:-false}
     volumes:
       - fabric_data:/app/.fabric

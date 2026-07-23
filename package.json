@@ -8,14 +8,16 @@
   },
   "private": true,
   "scripts": {
-    "dev": "concurrently -n api,client -c blue,green \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/client\"",
+    "dev": "concurrently -n api,client,gateway -c blue,green,magenta \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/client\" \"npm run dev --workspace apps/gateway\"",
     "dev:api": "npm run dev --workspace apps/api",
     "dev:client": "npm run dev --workspace apps/client",
+    "dev:gateway": "npm run dev --workspace apps/gateway",
     "build": "npm run build --workspaces"
   },
   "workspaces": [
     "apps/api",
-    "apps/client"
+    "apps/client",
+    "apps/gateway"
   ],
   "repository": {
     "type": "git",

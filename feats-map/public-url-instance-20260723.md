@@ -5,3 +5,7 @@
 - [x] Ajustar frontend para confirmar restart
 - [x] Ajustar Docker/env para URL pública única
 - [x] Rodar testes focados
+- [x] Criar gateway oficial de porta unica
+- [x] Adicionar scripts dev para gateway
+- [x] Ajustar Docker para expor gateway
+- [x] Testar regras de roteamento do gateway
