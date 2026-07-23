@@ -1,7 +1,7 @@
 import type Database from "better-sqlite3";
 
 export async function up(db: Database.Database): Promise<void> {
-  const value = process.env.PUBLIC_URL?.trim();
+  const value = process.env.FABRIC_PUBLIC_URL?.trim() || process.env.PUBLIC_URL?.trim();
   if (!value) return;
 
   db.prepare(
