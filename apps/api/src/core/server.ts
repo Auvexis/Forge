@@ -22,6 +22,7 @@ import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runti
 import { fabricHomePaths } from "./runtime/fabric-home.ts";
 import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
 import { activeProfileRuntime } from "./profiles/active-profile-runtime.ts";
+import { PublicUrlService } from "./modules/app/public-url-service.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
@@ -54,7 +55,11 @@ await fastify.register(multipart, {
 await fastify.register(formbody);
 
 await fastify.register(cors, {
-  origin: [CLIENT_ORIGIN],
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const allowedOrigins = PublicUrlService.allowedOrigins([CLIENT_ORIGIN]);
+    callback(null, allowedOrigins.includes(origin.replace(/\/+$/, "")));
+  },
   methods: ["*"],
   credentials: true,
 });
@@ -64,6 +69,7 @@ for (const line of formatRuntimeDiagnostics(fabricHomePaths)) {
 }
 
 await activeProfileRuntime.start();
+PublicUrlService.applyPendingOnStartup();
 
 fastify.register(rootRoutes);
 fastify.register(appRoutes, { profileStore: activeProfileRuntime.profileStore });

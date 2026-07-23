@@ -1,6 +1,7 @@
 import type { FastifyInstance, FastifyReply } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
 import { AppRepository } from "../modules/app/app-repository.ts";
+import { PublicUrlService } from "../modules/app/public-url-service.ts";
 import { ProfileStore } from "../profiles/profile-store.ts";
 import { fabricHomePaths } from "../runtime/fabric-home.ts";
 import { z } from "zod";
@@ -23,17 +24,12 @@ export default async function appRoutes(fastify: FastifyInstance, options: AppRo
    * Exposes public backend configuration (e.g., PUBLIC_URL)
    */
   fastify.get("/app/info", async (_req, reply) => {
-    const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
-    const configuredPublicUrl = AppRepository.getSetting("public_url");
-    const PUBLIC_URL =
-      (typeof configuredPublicUrl === "string" && configuredPublicUrl.trim())
-        ? configuredPublicUrl.trim()
-        : process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
+    const publicUrlConfig = PublicUrlService.getConfig();
     return sendResponse(reply, {
       status_code: 200,
       message: "App info fetched successfully",
       error: null,
-      data: { publicUrl: PUBLIC_URL, currentProfile: profileStore.getCurrentProfile() },
+      data: { ...publicUrlConfig, currentProfile: profileStore.getCurrentProfile() },
     });
   });
 
@@ -45,6 +41,9 @@ export default async function appRoutes(fastify: FastifyInstance, options: AppRo
    */
   fastify.get("/app/settings", async (_req, reply) => {
     const data = AppRepository.getAllSettings();
+    data.public_url = PublicUrlService.getSettingsValue();
+    data.public_url_restart_required = PublicUrlService.getConfig().restartRequired;
+    data.public_url_locked = PublicUrlService.getConfig().locked;
     return sendResponse(reply, {
       status_code: 200,
       message: "Settings fetched successfully",
@@ -70,6 +69,25 @@ export default async function appRoutes(fastify: FastifyInstance, options: AppRo
         error: validation.error.issues.map((e) => e.message).join(", "),
         data: null,
       });
+    }
+
+    if (key === PublicUrlService.settingKey) {
+      try {
+        const result = PublicUrlService.savePending(validation.data.value);
+        return sendResponse(reply, {
+          status_code: 200,
+          message: "Public URL saved. Restart Fabric to apply it.",
+          error: null,
+          data: result,
+        });
+      } catch (error: any) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: error.message,
+          error: error.message,
+          data: null,
+        });
+      }
     }
 
     AppRepository.setSetting(key, validation.data.value);

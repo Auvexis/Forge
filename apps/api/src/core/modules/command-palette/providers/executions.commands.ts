@@ -1,4 +1,5 @@
 import { AppRepository } from "../../app/app-repository.ts";
+import { PublicUrlService } from "../../app/public-url-service.ts";
 import { CancellationRegistry } from "../../workflows/cancellation-registry.ts";
 import { WorkflowRepository } from "../../workflows/repository.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
@@ -18,17 +19,11 @@ interface ExecutionCommandServices {
   setSetting: (key: string, value: unknown) => void;
 }
 
-function resolvePublicUrl(): string {
-  const configured = AppRepository.getSetting("public_url");
-  if (typeof configured === "string" && configured.trim()) return configured.trim();
-  return process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 23801}`;
-}
-
 const defaultExecutionServices: ExecutionCommandServices = {
   getWorkflowById: WorkflowRepository.getWorkflowById,
   deleteWorkflowExecutions: WorkflowRepository.deleteWorkflowExecutions,
   cancelExecution: CancellationRegistry.cancel,
-  getPublicUrl: resolvePublicUrl,
+  getPublicUrl: PublicUrlService.getPublicUrl.bind(PublicUrlService),
   getSetting: AppRepository.getSetting.bind(AppRepository),
   setSetting: AppRepository.setSetting.bind(AppRepository),
 };

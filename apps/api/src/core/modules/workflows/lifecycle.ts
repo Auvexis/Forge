@@ -3,7 +3,7 @@ import type { PluginTriggerRuntimeContext } from "./plugin-trigger-runtime.ts";
 import { PluginManager } from "../plugins/manager.ts";
 import { CredentialStore } from "../plugins/credential-store.ts";
 import { Vault } from "../plugins/vault.ts";
-import { AppRepository } from "../app/app-repository.ts";
+import { PublicUrlService } from "../app/public-url-service.ts";
 import {
   getTriggerWebhookPath,
   listPluginTriggers,
@@ -11,19 +11,9 @@ import {
 } from "./workflow-triggers.ts";
 import { PluginTriggerRuntime } from "./plugin-trigger-runtime.ts";
 
-const SERVER_PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
-
 export interface WorkflowLifecycleOptions {
   mode?: "prod" | "test";
   profileId?: string;
-}
-
-function resolvePublicUrl(): string {
-  const configuredPublicUrl = AppRepository.getSetting("public_url");
-  if (typeof configuredPublicUrl === "string" && configuredPublicUrl.trim()) {
-    return configuredPublicUrl.trim();
-  }
-  return process.env.PUBLIC_URL || `http://localhost:${SERVER_PORT}`;
 }
 
 function buildPluginEventUrl(
@@ -34,9 +24,9 @@ function buildPluginEventUrl(
   const trigger = entry.trigger;
   const suffix = `plugin-events/${encodeURIComponent(workflow.metadata.id)}/${encodeURIComponent(entry.id)}/${encodeURIComponent(trigger.pluginId ?? "")}/${encodeURIComponent(trigger.triggerName ?? "")}`;
   if (options.profileId) {
-    return `${resolvePublicUrl()}/p/${encodeURIComponent(options.profileId)}/${suffix}`;
+    return `${PublicUrlService.getPublicUrl()}/p/${encodeURIComponent(options.profileId)}/${suffix}`;
   }
-  return `${resolvePublicUrl()}/${suffix}`;
+  return `${PublicUrlService.getPublicUrl()}/${suffix}`;
 }
 
 async function buildTriggerContext(

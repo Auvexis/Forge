@@ -27,6 +27,7 @@ import { CancellationRegistry } from "../modules/workflows/cancellation-registry
 import { PendingWebhookResponseRegistry } from "../modules/workflows/pending-webhook-registry.ts";
 import { Scheduler } from "../modules/scheduler/scheduler.ts";
 import { PluginManager } from "../modules/plugins/manager.ts";
+import { PublicUrlService } from "../modules/app/public-url-service.ts";
 import { TriggerListenerRegistry } from "../modules/workflows/trigger-listener-registry.ts";
 import { WorkflowLifecycleManager } from "../modules/workflows/lifecycle.ts";
 import { devWorkflowSessionRuntime } from "../modules/workflows/dev-session/runtime.ts";
@@ -204,6 +205,11 @@ function listCallableWorkflowSummaries(): CallableWorkflowSummary[] {
       };
     })
     .filter((workflow) => workflow.triggers.length > 0);
+}
+
+function resolveClientOrigin(): string {
+  const publicUrl = PublicUrlService.getConfig();
+  return publicUrl.source === "default" ? CLIENT_ORIGIN : publicUrl.publicUrl;
 }
 
 // ──────────── Safe SSE serializer ────────────
@@ -593,7 +599,7 @@ export default async function workflowsRoutes(
 
   // Form Trigger routes are owned by the forms module.
   registerFormRoutes(fastify, {
-    clientOrigin: CLIENT_ORIGIN,
+    clientOrigin: resolveClientOrigin(),
     sendResponse,
     profileScopeRunner,
   });

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { AppRepository } from "../../app/app-repository.ts";
+import { PublicUrlService } from "../../app/public-url-service.ts";
 import { Scheduler } from "../../scheduler/scheduler.ts";
 import { CancellationRegistry } from "../../workflows/cancellation-registry.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
@@ -61,12 +61,6 @@ const workflowPickPayloadSchema = z.object({
   workflowId: z.string().trim().min(1),
 });
 
-function resolvePublicUrl(): string {
-  const configured = AppRepository.getSetting("public_url");
-  if (typeof configured === "string" && configured.trim()) return configured.trim();
-  return process.env.PUBLIC_URL || `http://localhost:${process.env.PORT || 23801}`;
-}
-
 const defaultWorkflowServices: WorkflowCommandServices = {
   listWorkflows: WorkflowRepository.getWorkflows,
   getWorkflowById: WorkflowRepository.getWorkflowById,
@@ -80,7 +74,7 @@ const defaultWorkflowServices: WorkflowCommandServices = {
   deactivateWorkflow: WorkflowLifecycleManager.deactivate,
   cancelExecution: CancellationRegistry.cancel,
   resyncScheduler: Scheduler.resync.bind(Scheduler),
-  getPublicUrl: resolvePublicUrl,
+  getPublicUrl: PublicUrlService.getPublicUrl.bind(PublicUrlService),
 };
 
 function workflowServices(context: CommandExecutionContext): WorkflowCommandServices {
