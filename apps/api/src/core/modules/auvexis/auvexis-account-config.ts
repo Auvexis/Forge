@@ -13,6 +13,7 @@ const DEFAULT_REDIRECT_URI =
 export function loadAuvexisAccountConfig(
   env: NodeJS.ProcessEnv = process.env,
   localTokenEncryptionSecret?: string,
+  defaultRedirectUri = DEFAULT_REDIRECT_URI,
 ): AuvexisAccountConfig {
   const tokenEncryptionSecret =
     env.AUVEXIS_TOKEN_ENCRYPTION_SECRET ?? localTokenEncryptionSecret;
@@ -28,6 +29,6 @@ export function loadAuvexisAccountConfig(
     clientId: env.AUVEXIS_CLIENT_ID ?? DEFAULT_CLIENT_ID,
     tokenEncryptionSecret,
     baseUrl: env.AUVEXIS_ACCOUNTS_URL ?? DEFAULT_BASE_URL,
-    redirectUri: env.AUVEXIS_REDIRECT_URI ?? DEFAULT_REDIRECT_URI,
+    redirectUri: env.AUVEXIS_REDIRECT_URI ?? defaultRedirectUri,
   };
 }

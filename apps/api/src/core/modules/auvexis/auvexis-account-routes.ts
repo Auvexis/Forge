@@ -19,6 +19,7 @@ import {
 } from "./auvexis-account-link-service.ts";
 import { loadOrCreateAuvexisLocalSecret } from "./auvexis-local-secret.ts";
 import { createAuvexisAccountStorage } from "./auvexis-account-storage.ts";
+import { PublicUrlService } from "../app/public-url-service.ts";
 
 interface ApiResponse<T> {
   status_code: number;
@@ -90,7 +91,7 @@ export default async function auvexisAccountRoutes(
 
     const result = await service.completeCallback({
       profileId,
-      callbackUrl: absoluteRequestUrl(request.url, request.headers.host),
+      callbackUrl: absoluteRequestUrl(request.url, request.headers),
       state,
     });
     if (prefersHtml(request.headers.accept)) {
@@ -193,6 +194,7 @@ function createDefaultService(
   const config = loadAuvexisAccountConfig(
     process.env,
     loadOrCreateAuvexisLocalSecret({ fabricHome }),
+    `${PublicUrlService.getPublicUrl()}/auvexis/account/connect/callback`,
   );
   const paths = resolveProfilePaths({
     fabricHome,
@@ -364,9 +366,17 @@ function isStringRecord(value: unknown): value is Record<string, string> {
 
 function absoluteRequestUrl(
   requestUrl: string,
-  host: string | undefined,
+  headers: Record<string, string | string[] | undefined>,
 ): string {
-  return new URL(requestUrl, `http://${host ?? "127.0.0.1:23801"}`).toString();
+  const forwardedHost = firstHeader(headers["x-forwarded-host"]);
+  const forwardedProto = firstHeader(headers["x-forwarded-proto"]);
+  const host = forwardedHost || firstHeader(headers.host) || "127.0.0.1:23801";
+  const proto = forwardedProto || "http";
+  return new URL(requestUrl, `${proto}://${host}`).toString();
+}
+
+function firstHeader(value: string | string[] | undefined): string | undefined {
+  return Array.isArray(value) ? value[0] : value;
 }
 
 function prefersHtml(acceptHeader: string | undefined): boolean {

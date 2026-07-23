@@ -17,8 +17,8 @@ function proxyHttp(req: http.IncomingMessage, res: http.ServerResponse): void {
   const target = targetOrigin(requestUrl.pathname, req.headers.accept);
   const headers = { ...req.headers };
   headers.host = target.host;
-  headers["x-forwarded-host"] = req.headers.host ?? "";
-  headers["x-forwarded-proto"] = "http";
+  headers["x-forwarded-host"] = req.headers["x-forwarded-host"] ?? req.headers.host ?? "";
+  headers["x-forwarded-proto"] = req.headers["x-forwarded-proto"] ?? "http";
 
   const proxyReq = http.request(
     {
@@ -56,8 +56,8 @@ function proxyUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffe
         Object.entries({
           ...req.headers,
           host: target.host,
-          "x-forwarded-host": req.headers.host ?? "",
-          "x-forwarded-proto": "http",
+          "x-forwarded-host": req.headers["x-forwarded-host"] ?? req.headers.host ?? "",
+          "x-forwarded-proto": req.headers["x-forwarded-proto"] ?? "http",
         })
           .map(([key, value]) => `${key}: ${Array.isArray(value) ? value.join(", ") : value ?? ""}`)
           .join("\r\n") +

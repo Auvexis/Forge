@@ -30,6 +30,19 @@ describe("Auvexis account config", () => {
     assert.equal(config.tokenEncryptionSecret, "y".repeat(32));
   });
 
+  it("accepts a runtime default redirect URI from the public URL service", () => {
+    const config = loadAuvexisAccountConfig(
+      {},
+      "z".repeat(32),
+      "https://fabric.example/auvexis/account/connect/callback",
+    );
+
+    assert.equal(
+      config.redirectUri,
+      "https://fabric.example/auvexis/account/connect/callback",
+    );
+  });
+
   it("requires either env secret or local installation secret", () => {
     assert.throws(() => loadAuvexisAccountConfig({}), /local Auvexis token secret/);
   });
