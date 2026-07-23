@@ -1,0 +1,7 @@
+- [x] Mapear configuração atual de Public URL
+- [ ] Criar serviço central de Public URL
+- [ ] Validar e salvar Public URL com restart pendente
+- [ ] Aplicar URL pública em OAuth, forms e comandos
+- [ ] Ajustar frontend para confirmar restart
+- [ ] Ajustar Docker/env para URL pública única
+- [ ] Rodar testes focados
