@@ -17,7 +17,8 @@ function buildUrl(
   path: string,
   params?: Record<string, string | number | boolean | undefined>,
 ): string {
-  const url = new URL(`${API_BASE_URL}${path}`)
+  const baseUrl = API_BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost')
+  const url = new URL(`${API_BASE_URL}${path}`, baseUrl)
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

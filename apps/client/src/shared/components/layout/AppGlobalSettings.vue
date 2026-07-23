@@ -529,11 +529,13 @@
                 <BaseInput
                   v-model="publicUrlDraft"
                   placeholder="https://example.ngrok-free.app"
+                  :disabled="publicUrlLocked"
                   style="flex: 1"
                 />
                 <BaseButton
                   variant="primary"
                   :loading="isSavingPublicUrl"
+                  :disabled="publicUrlLocked"
                   @click="handlePublicUrlSave"
                 >
                   Save
@@ -565,9 +567,11 @@ import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
 import AuvexisAccountSettings from '@/shared/components/layout/AuvexisAccountSettings.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
+import { useConfirm } from '@/shared/composables/useConfirm'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
 const toast = useToast()
+const { confirm } = useConfirm()
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -829,8 +833,15 @@ const themeValue = computed<ThemeMode>(() => {
   return theme === 'light' || theme === 'system' ? theme : 'dark'
 })
 const logRetentionValue = computed(() => String(store.settings.log_retention_days ?? '30'))
+const publicUrlLocked = computed(() => store.settings.public_url_locked === true)
 const publicUrlDraft = ref('')
 const isSavingPublicUrl = ref(false)
+
+interface PublicUrlSaveResult {
+  publicUrl: string
+  pendingPublicUrl: string
+  restartRequired: true
+}
 
 watch(
   () => store.settings.public_url,
@@ -853,7 +864,23 @@ async function handleLogRetentionChange(value: string | number) {
 async function handlePublicUrlSave() {
   isSavingPublicUrl.value = true
   try {
-    await store.saveSetting('public_url', publicUrlDraft.value.trim())
+    const result = await store.saveSetting<PublicUrlSaveResult>('public_url', publicUrlDraft.value.trim())
+    store.settings.public_url_restart_required = result.restartRequired
+    if (result.restartRequired) {
+      const restartNow = await confirm({
+        title: 'Restart required',
+        message:
+          'Fabric needs to restart to apply the new public URL. After restarting, open Fabric from the configured public URL.',
+        confirmText: 'Restart now',
+        cancelText: 'Later',
+        variant: 'warning',
+      })
+      if (restartNow) {
+        toast.info('Restart Fabric', 'Restart the Fabric process or Docker container to apply the public URL.')
+      }
+    }
+  } catch (err: any) {
+    toast.error('Public URL not saved', err?.message ?? 'Could not save the public URL.')
   } finally {
     isSavingPublicUrl.value = false
   }

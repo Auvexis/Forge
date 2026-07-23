@@ -15,6 +15,8 @@ export interface GlobalVariable {
 export interface AppSettings {
   theme?: string
   public_url?: string
+  public_url_restart_required?: boolean
+  public_url_locked?: boolean
   [key: string]: unknown
 }
 
@@ -102,12 +104,13 @@ export const useSettingsStore = defineStore('settings', () => {
     }
   }
 
-  async function saveSetting(key: string, value: unknown) {
-    await apiRequest(`/app/settings/${encodeURIComponent(key)}`, {
+  async function saveSetting<T = unknown>(key: string, value: unknown): Promise<T> {
+    const result = await apiRequest<T>(`/app/settings/${encodeURIComponent(key)}`, {
       method: 'PUT',
       body: { value },
     })
     settings.value[key] = value
+    return result
   }
 
   // ── Credentials ───────────────────────────────────────────────────────────

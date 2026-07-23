@@ -8,6 +8,8 @@ services:
       - "23801:23801"
     environment:
       - FABRIC_HOME=/app/.fabric
+      - FABRIC_PUBLIC_URL=${FABRIC_PUBLIC_URL:-}
+      - FABRIC_PUBLIC_URL_LOCKED=${FABRIC_PUBLIC_URL_LOCKED:-false}
     volumes:
       - fabric_data:/app/.fabric
     healthcheck:
@@ -22,7 +24,7 @@ services:
       context: ./apps/client
       dockerfile: Dockerfile
       args:
-        VITE_API_URL: http://localhost:23801
+        VITE_API_URL: ""
     container_name: fabric-client
     ports:
       - "23802:23802"

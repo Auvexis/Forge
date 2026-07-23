@@ -2,6 +2,6 @@
 - [x] Criar serviço central de Public URL
 - [x] Validar e salvar Public URL com restart pendente
 - [x] Aplicar URL pública em OAuth, forms e comandos
-- [ ] Ajustar frontend para confirmar restart
-- [ ] Ajustar Docker/env para URL pública única
-- [ ] Rodar testes focados
+- [x] Ajustar frontend para confirmar restart
+- [x] Ajustar Docker/env para URL pública única
+- [x] Rodar testes focados
