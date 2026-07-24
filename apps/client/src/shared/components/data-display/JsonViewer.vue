@@ -49,7 +49,7 @@ const copy = async () => {
 
 <style scoped>
 .json-viewer {
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-json-viewer-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -77,7 +77,7 @@ const copy = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--fabric-json-viewer-toggle-radius);
 }
 .json-viewer__copy:hover {
   color: var(--fabric-text-primary);

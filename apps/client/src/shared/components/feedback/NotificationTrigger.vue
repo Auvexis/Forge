@@ -54,7 +54,7 @@ const ariaLabel = computed(() =>
   height: var(--fabric-space-4);
   padding: 0 var(--fabric-space-1);
   border: 1px solid var(--fabric-notification-trigger-badge-border);
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-notification-trigger-badge-radius);
   background: var(--fabric-notification-trigger-badge-bg);
   color: var(--fabric-notification-trigger-badge-text);
   font-size: var(--fabric-text-xs);

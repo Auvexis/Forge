@@ -102,7 +102,7 @@ defineExpose({ open, close, isOpen })
   position: fixed;
   z-index: var(--fabric-z-modal);
   min-width: 220px;
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-app-context-menu-radius);
   padding: var(--fabric-space-2);
   transform-origin: top left;
 }

@@ -102,7 +102,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   width: 30px;
   height: 30px;
   padding: 0;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-profile-switcher-avatar-radius);
 }
 
 .profile-switcher__trigger {
@@ -137,7 +137,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-profile-switcher-avatar-radius);
   background: var(--fabric-bg-base);
   font-size: 17px;
   line-height: 1;

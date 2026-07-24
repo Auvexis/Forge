@@ -139,7 +139,7 @@ onUnmounted(() => {
 }
 
 .base-dropdown-select__trigger {
-  border-radius: 2px;
+  border-radius: var(--fabric-base-dropdown-select-radius);
 }
 
 .base-dropdown-select__menu {
@@ -152,7 +152,7 @@ onUnmounted(() => {
   gap: 1px;
   overflow-y: auto;
   border: 1px solid var(--fabric-border-strong);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-dropdown-select-menu-radius);
   background: var(--fabric-bg-surface);
   padding: 3px;
   box-shadow: none;

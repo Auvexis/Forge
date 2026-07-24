@@ -37,7 +37,7 @@
   gap: 10px;
   padding: 7px 8px;
   border: 0;
-  border-radius: 5px;
+  border-radius: var(--fabric-global-settings-form-control-radius);
   background: transparent;
   color: var(--fabric-text-muted);
   font-size: 12px;
@@ -107,7 +107,7 @@
   height: 34px;
   padding: 8px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--fabric-global-settings-nav-item-radius);
   background: transparent;
   color: var(--fabric-button-ghost-text);
   cursor: pointer;
@@ -139,7 +139,7 @@
 
 .gs-scroll-area::-webkit-scrollbar-thumb {
   background: var(--fabric-scrollbar-thumb);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-global-settings-card-radius);
 }
 
 .gs-scroll-area::-webkit-scrollbar-thumb:hover {
@@ -180,7 +180,7 @@
 .gs-code {
   padding: 2px 5px;
   border: 1px solid var(--fabric-border);
-  border-radius: 4px;
+  border-radius: var(--fabric-global-settings-nav-item-radius);
   background: var(--fabric-bg-surface);
   color: var(--fabric-text-secondary);
   font-family: var(--fabric-font-mono);
@@ -376,7 +376,7 @@
   justify-content: center;
   padding: 14px 10px;
   border: 1px solid transparent;
-  border-radius: 8px;
+  border-radius: var(--fabric-global-settings-account-shell-radius);
   background: transparent;
   cursor: pointer;
   transition:

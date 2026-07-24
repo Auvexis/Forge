@@ -47,7 +47,7 @@ describe('base surface density', () => {
     assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*background: var\(--fabric-base-modal-bg\);/)
     assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border: 1px solid var\(--fabric-base-modal-border\);/)
     assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*box-shadow: none;/)
-    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border-radius: 2px;/)
+    assert.match(baseModalSource, /\.base-modal-container\s*\{[\s\S]*border-radius: var\(--fabric-base-modal-radius\);/)
     assert.match(baseModalSource, /\.base-modal-window-enter-from \.base-modal-container\s*\{[\s\S]*translateY\(6px\) scale\(0\.992\)/)
     assert.doesNotMatch(baseModalSource, /translateY\(100vh\)/)
   })
@@ -61,7 +61,7 @@ describe('base surface density', () => {
 
   it('keeps shared form controls compact for professional panels', () => {
     assert.match(baseInputSource, /\.base-input\s*\{[\s\S]*height: 26px;/)
-    assert.match(baseInputSource, /\.base-input-container\s*\{[\s\S]*border-radius: 2px;/)
+    assert.match(baseInputSource, /\.base-input-container\s*\{[\s\S]*border-radius: var\(--fabric-base-input-radius\);/)
     assert.match(baseButtonSource, /\.base-button--md\s*\{[\s\S]*height: 28px;/)
     assert.match(baseButtonSource, /\.base-button--icon\s*\{[\s\S]*width: 28px;[\s\S]*height: 28px;/)
     assert.match(baseSelectSource, /\.base-select-container\s*\{[\s\S]*min-height: 26px;/)
@@ -92,6 +92,6 @@ describe('base surface density', () => {
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*padding: 0;/)
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*border: 0;/)
     assert.match(appDropdownMenuSource, /content-class="app-popover-content--dropdown"/)
-    assert.doesNotMatch(appDropdownMenuSource, /\.app-dropdown-menu\s*\{[\s\S]*border-radius:/)
+    assert.match(appDropdownMenuSource, /\.app-dropdown-menu\s*\{[\s\S]*border-radius: var\(--fabric-app-dropdown-menu-radius\);/)
   })
 })

@@ -79,7 +79,7 @@ const panelStore = useSidebarPanelStore()
   justify-content: center;
   width: 24px;
   height: 24px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-sidebar-global-panel-radius);
   color: var(--fabric-text-muted);
   cursor: pointer;
   background: transparent;
@@ -112,6 +112,6 @@ const panelStore = useSidebarPanelStore()
 }
 .sidebar-panel__content::-webkit-scrollbar-thumb {
   background: var(--fabric-border);
-  border-radius: 4px;
+  border-radius: var(--fabric-sidebar-global-panel-item-radius);
 }
 </style>

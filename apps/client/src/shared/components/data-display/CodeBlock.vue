@@ -46,7 +46,7 @@ const copy = async () => {
 
 <style scoped>
 .code-block {
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-code-block-radius);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -75,7 +75,7 @@ const copy = async () => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: var(--fabric-code-block-copy-radius);
 }
 .code-block__copy:hover {
   color: var(--fabric-text-primary);

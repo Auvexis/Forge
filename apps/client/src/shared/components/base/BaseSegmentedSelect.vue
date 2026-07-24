@@ -57,7 +57,7 @@ defineEmits<{
   gap: 1px;
   padding: 2px;
   border: 1px solid var(--fabric-border-muted);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-segmented-select-radius);
   background: var(--fabric-bg-overlay);
 }
 
@@ -69,7 +69,7 @@ defineEmits<{
   min-width: 0;
   height: 22px;
   padding: 0 6px;
-  border-radius: 2px;
+  border-radius: var(--fabric-base-segmented-select-option-radius);
   color: var(--fabric-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);

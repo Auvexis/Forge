@@ -104,7 +104,7 @@ const themeCards = getFabricThemePreviewCards()
   padding: 6px;
   overflow: hidden;
   border: 1px solid var(--fabric-border);
-  border-radius: 11px;
+  border-radius: var(--fabric-base-theme-select-card-radius);
   background: transparent;
   transition:
     border-color var(--fabric-duration-base) var(--fabric-ease-standard),
@@ -117,7 +117,7 @@ const themeCards = getFabricThemePreviewCards()
   height: 100%;
   overflow: hidden;
   border: 1px solid var(--theme-border);
-  border-radius: 8px;
+  border-radius: var(--fabric-base-theme-select-preview-radius);
   background: var(--theme-bg);
 }
 
@@ -147,7 +147,7 @@ const themeCards = getFabricThemePreviewCards()
 }
 
 .base-theme-pill {
-  border-radius: 999px;
+  border-radius: var(--fabric-base-theme-select-pill-radius);
   background: color-mix(in srgb, var(--theme-muted) 58%, transparent);
 }
 
@@ -165,7 +165,7 @@ const themeCards = getFabricThemePreviewCards()
 .base-theme-dot {
   width: 6px;
   height: 6px;
-  border-radius: 50%;
+  border-radius: var(--fabric-base-theme-select-dot-radius);
   background: var(--theme-muted);
 }
 
@@ -187,7 +187,7 @@ const themeCards = getFabricThemePreviewCards()
 
 .base-theme-line {
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--fabric-base-theme-select-pill-radius);
   background: var(--theme-component);
 }
 
@@ -220,7 +220,7 @@ const themeCards = getFabricThemePreviewCards()
   right: 11px;
   width: 17px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: var(--fabric-base-theme-select-action-radius);
   background: var(--theme-accent);
 }
 

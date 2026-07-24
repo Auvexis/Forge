@@ -271,7 +271,7 @@ onMounted(() => {
   height: 78px;
   overflow: hidden;
   border: 3px solid var(--fabric-bg-base);
-  border-radius: 50%;
+  border-radius: var(--fabric-auvexis-account-settings-avatar-radius);
   background: var(--fabric-bg-surface);
   box-shadow: 0 0 0 1px var(--fabric-border);
   color: var(--fabric-text-muted);
@@ -429,7 +429,7 @@ onMounted(() => {
   padding: 0 12px;
   overflow: hidden;
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-auvexis-account-settings-card-radius);
   background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
   font-size: 13px;
@@ -482,7 +482,7 @@ onMounted(() => {
   min-height: 25px;
   padding: 2px 9px;
   border: 1px solid;
-  border-radius: 999px;
+  border-radius: var(--fabric-auvexis-account-settings-pill-radius);
   font-size: var(--fabric-text-xs);
   font-weight: 700;
   line-height: 1;
@@ -492,7 +492,7 @@ onMounted(() => {
 .auvexis-settings__badge-icon {
   width: 14px;
   height: 14px;
-  border-radius: 999px;
+  border-radius: var(--fabric-auvexis-account-settings-pill-radius);
   object-fit: cover;
 }
 
@@ -507,7 +507,7 @@ onMounted(() => {
   gap: 6px;
   padding: 10px 12px;
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-auvexis-account-settings-card-radius);
   background: var(--fabric-bg-overlay);
   box-shadow: var(--fabric-shadow-lg);
   color: var(--fabric-text-secondary);

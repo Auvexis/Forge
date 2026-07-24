@@ -301,7 +301,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-panel-radius);
   color: var(--fabric-text-secondary);
   transition: background-color var(--fabric-duration-fast);
 }

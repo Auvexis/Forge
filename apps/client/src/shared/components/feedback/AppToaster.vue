@@ -68,7 +68,7 @@ const getIcon = (variant: ToastVariant) => {
   width: 380px;
   max-width: calc(100vw - var(--fabric-space-8));
   padding: var(--fabric-space-4);
-  border-radius: var(--fabric-radius-lg);
+  border-radius: var(--fabric-app-toaster-radius);
   border-top-left-radius: var(--fabric-radius-sm);
   border-bottom-left-radius: var(--fabric-radius-sm);
   pointer-events: auto; /* Re-enable clicks on the toast */
@@ -85,7 +85,7 @@ const getIcon = (variant: ToastVariant) => {
   top: 6px;
   bottom: 6px;
   width: 3px;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-app-toaster-close-radius);
   height: calc(100% - 12px);
 }
 
@@ -155,7 +155,7 @@ const getIcon = (variant: ToastVariant) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-toaster-action-radius);
   margin: -4px -4px 0 0;
   transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
 }

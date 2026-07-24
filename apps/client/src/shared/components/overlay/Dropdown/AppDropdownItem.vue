@@ -83,7 +83,7 @@ const handleClick = (e: MouseEvent) => {
   width: 100%;
   min-height: 30px;
   padding: 5px 8px;
-  border-radius: 6px;
+  border-radius: var(--fabric-app-dropdown-item-radius);
   background-color: transparent;
   color: var(--fabric-text-primary);
   text-align: left;

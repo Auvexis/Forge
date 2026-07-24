@@ -138,7 +138,7 @@ onUnmounted(() => {
   flex-direction: column;
   width: 100%;
   max-height: 90vh;
-  border-radius: var(--fabric-radius-lg);
+  border-radius: var(--fabric-app-dialog-radius);
   overflow: hidden;
   box-shadow: var(--fabric-shadow-xl);
 }
@@ -192,7 +192,7 @@ onUnmounted(() => {
   justify-content: center;
   width: 32px;
   height: 32px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-dialog-close-radius);
   color: var(--fabric-text-secondary);
   transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   margin: -4px -8px 0 0; /* optical alignment */

@@ -253,7 +253,7 @@
                     width: 40px;
                     height: 40px;
                     object-fit: contain;
-                    border-radius: 8px;
+                    border-radius: var(--fabric-global-settings-preview-radius);
                     margin-bottom: 0.75rem;
                   "
                 />
@@ -267,7 +267,7 @@
                     justify-content: center;
                     background: var(--fabric-bg-surface);
                     border: 1px solid var(--fabric-border);
-                    border-radius: 8px;
+                    border-radius: var(--fabric-global-settings-preview-radius);
                     margin-bottom: 0.75rem;
                   "
                 >
@@ -330,7 +330,7 @@
                 <!-- OAuth Redirect URL Block -->
                 <div
                   v-if="selectedPluginForMenu.auth_type === 'oauth2' && pluginStatus?.oauth_redirect_uri"
-                  style="display: flex; flex-direction: column; gap: var(--fabric-space-2); padding: var(--fabric-space-3); background: var(--fabric-bg-surface); border-radius: var(--fabric-radius-md); border: 1px solid var(--fabric-border); margin-bottom: var(--fabric-space-2);"
+                  style="display: flex; flex-direction: column; gap: var(--fabric-space-2); padding: var(--fabric-space-3); background: var(--fabric-bg-surface); border-radius: var(--fabric-global-settings-inline-card-radius); border: 1px solid var(--fabric-border); margin-bottom: var(--fabric-space-2);"
                 >
                   <span style="font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-text-primary);">OAuth Redirect URL</span>
                   <BaseInput
@@ -346,7 +346,7 @@
                   </p>
                   <div
                     v-if="pluginStatus.oauth_public_url_required"
-                    style="display: flex; align-items: flex-start; gap: var(--fabric-space-2); padding: var(--fabric-space-2); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--fabric-radius-md); background: rgba(234, 179, 8, 0.08); color: rgb(234, 179, 8); font-size: var(--fabric-text-xs); line-height: 1.4;"
+                    style="display: flex; align-items: flex-start; gap: var(--fabric-space-2); padding: var(--fabric-space-2); border: 1px solid rgba(234, 179, 8, 0.25); border-radius: var(--fabric-global-settings-inline-card-radius); background: rgba(234, 179, 8, 0.08); color: rgb(234, 179, 8); font-size: var(--fabric-text-xs); line-height: 1.4;"
                   >
                     <LucideIcon name="circle-alert" :size="14" style="flex: 0 0 auto; margin-top: 1px;" />
                     <span>

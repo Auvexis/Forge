@@ -49,7 +49,7 @@ defineEmits<{
   width: var(--fabric-base-rail-item-width, 100%);
   height: var(--fabric-base-rail-item-height, 36px);
   border: 1px solid transparent;
-  border-radius: 0;
+  border-radius: var(--fabric-base-rail-button-toggle-item-radius);
   background: var(--fabric-workbench-rail-button-bg, transparent);
   color: var(--fabric-workbench-rail-button-text, var(--fabric-text-muted));
   cursor: pointer;
@@ -82,7 +82,7 @@ defineEmits<{
   width: 10px;
   height: 5px;
   border: 1px solid currentColor;
-  border-radius: 999px;
+  border-radius: var(--fabric-base-rail-button-toggle-item-active-radius);
   content: '';
 }
 
@@ -92,7 +92,7 @@ defineEmits<{
   bottom: 6px;
   width: 3px;
   height: 3px;
-  border-radius: 999px;
+  border-radius: var(--fabric-base-rail-button-toggle-item-active-radius);
   background: currentColor;
   content: '';
 }

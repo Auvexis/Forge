@@ -248,7 +248,7 @@ function isFiniteNumber(value: unknown): value is number {
   flex-direction: column;
   gap: 8px;
   border: 1px solid var(--fabric-border-subtle);
-  border-radius: 8px;
+  border-radius: var(--fabric-base-floating-window-radius);
   background: color-mix(in srgb, var(--fabric-bg-surface) 94%, transparent);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
   padding: 10px;
@@ -299,7 +299,7 @@ function isFiniteNumber(value: unknown): value is number {
   height: 24px;
   flex: 0 0 auto;
   border: 1px solid var(--fabric-border-subtle);
-  border-radius: 6px;
+  border-radius: var(--fabric-base-floating-window-handle-radius);
   background: var(--fabric-bg-elevated);
   color: var(--fabric-text-primary);
   cursor: pointer;

@@ -171,7 +171,7 @@ function handleAction(action: ProfileDropdownAction) {
   width: 284px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--fabric-base-profile-dropdown-border) 78%, transparent);
-  border-radius: 10px;
+  border-radius: var(--fabric-base-profile-dropdown-radius);
   background: var(--fabric-base-profile-dropdown-bg);
   color: var(--fabric-base-profile-dropdown-text);
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.26);
@@ -199,7 +199,7 @@ function handleAction(action: ProfileDropdownAction) {
   height: 28px;
   flex: 0 0 28px;
   border: 1px solid var(--fabric-base-profile-dropdown-avatar-border);
-  border-radius: 8px;
+  border-radius: var(--fabric-base-profile-dropdown-action-radius);
   background: var(--fabric-base-profile-dropdown-avatar-bg);
   color: var(--fabric-base-profile-dropdown-avatar-text);
   font-size: 16px;
@@ -266,7 +266,7 @@ function handleAction(action: ProfileDropdownAction) {
   gap: 9px;
   min-height: 30px;
   padding: 0 8px;
-  border-radius: 6px;
+  border-radius: var(--fabric-base-profile-dropdown-item-radius);
   font-size: 13px;
   font-weight: var(--fabric-font-medium);
 }
@@ -296,7 +296,7 @@ function handleAction(action: ProfileDropdownAction) {
   gap: 9px;
   min-height: 38px;
   padding: 5px 8px;
-  border-radius: 6px;
+  border-radius: var(--fabric-base-profile-dropdown-item-radius);
 }
 
 .base-profile-dropdown__auvexis-avatar,
@@ -305,7 +305,7 @@ function handleAction(action: ProfileDropdownAction) {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-base-profile-dropdown-badge-radius);
   background: var(--fabric-base-profile-dropdown-accent-bg);
   color: var(--fabric-base-profile-dropdown-accent-text);
 }
@@ -352,7 +352,7 @@ function handleAction(action: ProfileDropdownAction) {
   min-height: 42px;
   padding: 6px 8px;
   border: 1px solid var(--fabric-base-profile-dropdown-connect-border);
-  border-radius: 8px;
+  border-radius: var(--fabric-base-profile-dropdown-trigger-radius);
   background: var(--fabric-base-profile-dropdown-connect-bg);
 }
 

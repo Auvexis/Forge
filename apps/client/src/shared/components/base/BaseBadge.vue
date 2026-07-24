@@ -42,7 +42,7 @@ defineOptions({ inheritAttrs: false })
   gap: var(--fabric-space-1);
   font-family: var(--fabric-font-sans);
   font-weight: var(--fabric-font-medium);
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-base-badge-radius);
   white-space: nowrap;
   user-select: none;
 }

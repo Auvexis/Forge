@@ -75,7 +75,7 @@ onUnmounted(() => {
   color: var(--fabric-base-modal-text);
   border: 1px solid var(--fabric-base-modal-border);
   box-shadow: none;
-  border-radius: 2px;
+  border-radius: var(--fabric-base-modal-radius);
   outline: 1px solid var(--fabric-base-modal-inner-border);
   outline-offset: -2px;
 }

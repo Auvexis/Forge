@@ -149,7 +149,7 @@ function activate(node: ExecutionRunTreeNode) {
   margin-left: var(--fabric-space-2);
   padding: var(--fabric-space-2);
   border: 1px solid var(--fabric-border-muted);
-  border-radius: 2px;
+  border-radius: var(--fabric-execution-node-tree-row-radius);
 }
 .execution-node-tree__group {
   display: inline-flex;

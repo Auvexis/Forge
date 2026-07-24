@@ -142,7 +142,7 @@ onBeforeUnmount(() => {
   padding: var(--fabric-space-2);
   background: var(--fabric-bg-surface);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-lg);
+  border-radius: var(--fabric-app-hint-radius);
   box-shadow: var(--fabric-shadow-lg);
   pointer-events: none;
 }
@@ -155,7 +155,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: var(--fabric-bg-base);
   border: 1px solid var(--fabric-border-subtle);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-app-hint-preview-radius);
 }
 
 .app-hint__image {

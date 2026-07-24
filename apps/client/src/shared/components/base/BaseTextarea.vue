@@ -106,7 +106,7 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   background-color: var(--fabric-bg-overlay);
   border: 1px solid var(--fabric-border);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-textarea-radius);
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard);

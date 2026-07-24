@@ -306,13 +306,13 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: 160px;
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
-  background: #111112;
+  border: 1px solid var(--fabric-base-code-editor-border);
+  border-radius: var(--fabric-base-code-editor-radius);
+  background: var(--fabric-base-code-editor-bg);
 }
 
 .base-code-editor--light .base-code-editor__surface {
-  background: #ffffff;
+  background: var(--fabric-base-code-editor-bg);
 }
 
 .base-code-editor__surface:focus-within {

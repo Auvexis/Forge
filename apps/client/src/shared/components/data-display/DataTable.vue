@@ -71,7 +71,7 @@ const formatValue = (val: any) => {
 
 <style scoped>
 .data-table-wrapper {
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-data-table-radius);
   overflow-x: auto;
 }
 

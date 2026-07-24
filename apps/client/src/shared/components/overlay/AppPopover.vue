@@ -177,7 +177,7 @@ defineExpose({ open, close, toggle, isOpen })
   min-width: 200px;
   padding: var(--fabric-space-2);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-popover-radius);
   margin-top: 1px;
   background-color: var(--fabric-bg-surface);
 }
@@ -186,7 +186,7 @@ defineExpose({ open, close, toggle, isOpen })
   min-width: 0;
   padding: 0;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--fabric-app-popover-edge-radius);
   margin-top: 0;
   background: transparent;
 }

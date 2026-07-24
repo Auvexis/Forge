@@ -59,6 +59,18 @@ describe('component semantic color tokens', () => {
     '--fabric-workflow-edge-stroke',
     '--fabric-workflow-edge-toolbar-bg',
     '--fabric-workflow-edge-label-bg',
+    '--fabric-base-input-radius',
+    '--fabric-base-select-radius',
+    '--fabric-base-modal-radius',
+    '--fabric-base-code-editor-radius',
+    '--fabric-base-code-editor-bg',
+    '--fabric-base-code-editor-text',
+    '--fabric-base-code-editor-header-bg',
+    '--fabric-base-code-editor-line-number-text',
+    '--fabric-app-confirm-panel-radius',
+    '--fabric-app-dropdown-menu-radius',
+    '--fabric-app-dropdown-item-radius',
+    '--fabric-execution-node-tree-row-radius',
   ]
 
   it('defines component-specific aliases as CSS fallbacks for JSON themes', () => {

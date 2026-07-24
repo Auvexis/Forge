@@ -132,7 +132,7 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   background-color: var(--fabric-input-bg);
   border: 1px solid var(--fabric-input-border);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-input-radius);
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard);

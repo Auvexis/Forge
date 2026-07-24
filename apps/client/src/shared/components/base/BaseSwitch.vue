@@ -95,7 +95,7 @@ defineOptions({ inheritAttrs: false })
   left: 0;
   right: 0;
   bottom: 0;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-base-switch-track-radius);
   background-color: var(--fabric-bg-muted);
   transition: background-color var(--fabric-duration-fast) var(--fabric-ease-standard);
   border: 1px solid var(--fabric-border-strong);
@@ -107,7 +107,7 @@ defineOptions({ inheritAttrs: false })
   left: 3px;
   width: 14px;
   height: 14px;
-  border-radius: 50%;
+  border-radius: var(--fabric-base-switch-thumb-radius);
   background-color: var(--fabric-text-inverse);
   transition: transform var(--fabric-duration-fast) var(--fabric-ease-standard);
   transform: translateY(-50%);

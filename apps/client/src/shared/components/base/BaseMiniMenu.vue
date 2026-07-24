@@ -77,7 +77,7 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   width: 100%;
   background: var(--fabric-bg-surface);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-base-mini-menu-radius);
   box-shadow: none;
   display: flex;
   flex-direction: column;
@@ -106,7 +106,7 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   width: 18px;
   height: 18px;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: var(--fabric-base-mini-menu-logo-radius);
 }
 
 .bmm-body {

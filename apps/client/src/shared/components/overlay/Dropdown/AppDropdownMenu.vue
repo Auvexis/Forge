@@ -77,6 +77,7 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   flex-direction: column;
   min-width: 200px;
   border: 1px solid color-mix(in srgb, var(--fabric-border-strong) 76%, transparent);
+  border-radius: var(--fabric-app-dropdown-menu-radius);
   background: var(--fabric-bg-surface);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
   overflow: hidden;

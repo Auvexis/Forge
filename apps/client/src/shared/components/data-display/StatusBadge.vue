@@ -62,14 +62,14 @@ withDefaults(
   font-size: 10px;
   font-weight: var(--fabric-font-semibold);
   padding: 2px 7px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-status-badge-radius);
   border: 1px solid;
   white-space: nowrap;
   line-height: 1.4;
 }
 
 .status-badge--pill {
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-status-badge-dot-radius);
 }
 
 .status-badge--success {

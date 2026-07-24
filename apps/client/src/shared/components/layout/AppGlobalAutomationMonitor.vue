@@ -423,7 +423,7 @@ watch(triggerTabs, (next) => {
 <style scoped>
 :deep(.base-modal-container) {
   border: 1px solid var(--fabric-automation-monitor-modal-border);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-automation-monitor-panel-radius);
   background: var(--fabric-automation-monitor-modal-bg);
 }
 
@@ -433,7 +433,7 @@ watch(triggerTabs, (next) => {
   height: 100%;
   min-height: 0;
   overflow: hidden;
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-automation-monitor-panel-radius);
   background: var(--fabric-automation-monitor-bg);
   color: var(--fabric-automation-monitor-text);
   transition: grid-template-columns var(--fabric-duration-base) var(--fabric-ease-standard);
@@ -520,7 +520,7 @@ watch(triggerTabs, (next) => {
 .gam-icon-btn {
   width: 38px;
   height: 38px;
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-automation-monitor-panel-radius);
   color: var(--fabric-automation-monitor-icon-button-text);
 }
 
@@ -528,7 +528,7 @@ watch(triggerTabs, (next) => {
   width: 150px;
   height: 34px;
   justify-content: flex-start;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-automation-monitor-status-radius);
   background: var(--fabric-automation-monitor-profile-trigger-bg);
 }
 
@@ -563,7 +563,7 @@ watch(triggerTabs, (next) => {
   min-height: 46px;
   justify-content: stretch;
   border-bottom: 1px solid var(--fabric-automation-monitor-sidebar-border);
-  border-radius: 2px;
+  border-radius: var(--fabric-automation-monitor-workflow-radius);
   background: transparent;
   color: var(--fabric-automation-monitor-workflow-text);
   padding: 0;
@@ -690,7 +690,7 @@ watch(triggerTabs, (next) => {
   gap: 1px;
   padding: 4px 10px;
   border: 0;
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-automation-monitor-status-radius);
 }
 
 .gam-main-meta small {
@@ -732,7 +732,7 @@ watch(triggerTabs, (next) => {
   z-index: 1;
   min-width: 50px;
   height: 30px;
-  border-radius: 0;
+  border-radius: var(--fabric-automation-monitor-edge-radius);
   border-bottom: 2px solid transparent;
   background: transparent;
   color: var(--fabric-automation-monitor-tab-text);

@@ -33,7 +33,7 @@ const emit = defineEmits<{
   gap: 8px;
   padding: 10px;
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-md);
+  border-radius: var(--fabric-base-preset-card-radius);
   background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
   text-align: left;
@@ -57,7 +57,7 @@ const emit = defineEmits<{
   display: block;
   width: 100%;
   height: 26px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-base-preset-card-preview-radius);
   border: 1px solid var(--fabric-border);
   flex-shrink: 0;
 }

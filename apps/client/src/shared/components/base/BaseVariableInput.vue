@@ -196,7 +196,7 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   background-color: var(--fabric-input-bg);
   border: 1px solid var(--fabric-input-border);
-  border-radius: var(--fabric-radius-sm, 6px);
+  border-radius: var(--fabric-base-variable-input-radius);
   transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   width: 100%;
 }

@@ -105,7 +105,7 @@ defineOptions({ inheritAttrs: false })
   align-items: center;
   justify-content: center;
   gap: 6px;
-  border-radius: 2px;
+  border-radius: var(--fabric-base-button-radius);
   font-family: inherit;
   font-weight: var(--fabric-font-medium);
   line-height: 1;
@@ -155,7 +155,7 @@ defineOptions({ inheritAttrs: false })
   width: 22px;
   height: 22px;
   padding: 0;
-  border-radius: 2px;
+  border-radius: var(--fabric-base-button-radius);
   font-size: var(--fabric-text-xs);
 }
 

@@ -143,7 +143,7 @@ const panelStyle = computed(() => ({
   width: 26px;
   height: 26px;
   border: 0;
-  border-radius: 4px;
+  border-radius: var(--fabric-workbench-bottom-panel-radius);
   background: transparent;
   color: var(--fabric-panel-close-color, var(--fabric-text-muted));
   cursor: pointer;

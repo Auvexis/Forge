@@ -208,7 +208,7 @@ defineOptions({ inheritAttrs: false })
   position: relative;
   background-color: var(--fabric-bg-overlay);
   border: 1px solid var(--fabric-border);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-select-radius);
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard);
@@ -285,7 +285,7 @@ defineOptions({ inheritAttrs: false })
   overflow-y: auto;
   background-color: var(--fabric-bg-surface);
   border: 1px solid var(--fabric-border-strong);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-select-menu-radius);
   box-shadow: none;
   gap: 1px;
   z-index: 50;
@@ -304,7 +304,7 @@ defineOptions({ inheritAttrs: false })
   padding: 0 8px;
   font-size: 12px;
   color: var(--fabric-text-primary);
-  border-radius: 2px;
+  border-radius: var(--fabric-base-select-option-radius);
   background: transparent;
   cursor: pointer;
   transition:

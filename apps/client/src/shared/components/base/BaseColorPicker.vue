@@ -62,7 +62,7 @@ const safeColorValue = computed(() => {
   height: 32px;
   padding: 3px 8px 3px 3px;
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-base-color-picker-radius);
   background: var(--fabric-bg-surface);
   transition: border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
               box-shadow var(--fabric-duration-fast) var(--fabric-ease-standard);
@@ -88,7 +88,7 @@ const safeColorValue = computed(() => {
   width: 22px;
   height: 22px;
   cursor: pointer;
-  border-radius: calc(var(--fabric-radius-sm) - 2px);
+  border-radius: var(--fabric-base-color-picker-swatch-radius);
   overflow: hidden;
 }
 

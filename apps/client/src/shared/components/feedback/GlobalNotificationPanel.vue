@@ -220,7 +220,7 @@ function labelFromIdentifier(identifier: string) {
   padding: var(--fabric-space-4);
   border: 1px solid var(--fabric-border);
   border-top: 0;
-  border-radius: 0 0 var(--fabric-radius-sm) var(--fabric-radius-sm);
+  border-radius: var(--fabric-notification-panel-header-radius);
   background: var(--fabric-bg-surface);
   box-shadow: var(--fabric-shadow-xl);
   color: var(--fabric-text-primary);
@@ -283,7 +283,7 @@ function labelFromIdentifier(identifier: string) {
   overflow: hidden;
   padding: var(--fabric-space-1);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-notification-panel-action-radius);
   background: var(--fabric-bg-base);
 }
 
@@ -318,7 +318,7 @@ function labelFromIdentifier(identifier: string) {
   flex: 0 0 auto;
   padding: var(--fabric-space-2) var(--fabric-space-3);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-notification-panel-item-radius);
   background: var(--fabric-bg-surface);
   color: var(--fabric-text-secondary);
   font: inherit;

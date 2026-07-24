@@ -90,7 +90,7 @@ const iconName = computed(() => {
   max-width: 420px;
   background: var(--fabric-bg-surface);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-confirm-panel-icon-radius);
   padding: var(--fabric-space-5);
   box-shadow:
     0 24px 48px rgba(0, 0, 0, 0.4),
@@ -107,7 +107,7 @@ const iconName = computed(() => {
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-confirm-panel-close-radius);
   flex-shrink: 0;
 }
 
@@ -154,7 +154,7 @@ const iconName = computed(() => {
   justify-content: center;
   width: 26px;
   height: 26px;
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-app-confirm-panel-radius);
   border: none;
   background: transparent;
   color: var(--fabric-text-muted);

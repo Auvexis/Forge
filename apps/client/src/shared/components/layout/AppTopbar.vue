@@ -297,7 +297,7 @@ function handleProfileDropdownAction(
   height: 28px;
   flex: 0 0 28px;
   border: 1px solid var(--fabric-topbar-search-border);
-  border-radius: var(--fabric-radius-full);
+  border-radius: var(--fabric-app-topbar-avatar-radius);
   background: var(--fabric-topbar-button-bg);
   color: var(--fabric-topbar-button-text);
   font-size: 15px;

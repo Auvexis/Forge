@@ -51,7 +51,7 @@ withDefaults(
   width: var(--fabric-base-rail-item-width, 100%);
   height: var(--fabric-base-rail-item-height, 36px);
   border: 1px solid transparent;
-  border-radius: 0;
+  border-radius: var(--fabric-base-rail-item-radius);
   background: var(--fabric-workbench-rail-button-bg, transparent);
   color: var(--fabric-workbench-rail-button-text, var(--fabric-text-muted));
   cursor: pointer;
@@ -73,7 +73,7 @@ withDefaults(
   left: 0;
   width: 2px;
   height: 22px;
-  border-radius: 0 999px 999px 0;
+  border-radius: var(--fabric-base-rail-item-active-radius);
   background: var(--fabric-workbench-rail-button-active-indicator, var(--fabric-accent));
   content: '';
 }
@@ -101,7 +101,7 @@ withDefaults(
   right: 7px;
   width: 6px;
   height: 6px;
-  border-radius: 999px;
+  border-radius: var(--fabric-base-rail-item-badge-radius);
   background: var(--fabric-workbench-rail-button-dirty-indicator, var(--fabric-amber-500));
   content: '';
 }

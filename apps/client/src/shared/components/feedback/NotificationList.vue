@@ -163,7 +163,7 @@ function formatDate(value: string) {
   align-items: center;
   width: 100%;
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-notification-list-action-radius);
   background: var(--fabric-bg-surface);
   color: var(--fabric-text-primary);
   transition:
@@ -216,7 +216,7 @@ function formatDate(value: string) {
   display: inline-flex;
   align-items: center;
   gap: var(--fabric-space-1);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-notification-list-item-radius);
   color: var(--fabric-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);

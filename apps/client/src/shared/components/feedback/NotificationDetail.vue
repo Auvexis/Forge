@@ -173,7 +173,7 @@ function formatDate(value: string) {
   overflow: auto;
   padding: var(--fabric-space-3);
   border: 1px solid var(--fabric-border);
-  border-radius: var(--fabric-radius-sm);
+  border-radius: var(--fabric-notification-detail-preview-radius);
   background: var(--fabric-bg-base);
   color: var(--fabric-text-secondary);
   font-family: var(--fabric-font-mono);
