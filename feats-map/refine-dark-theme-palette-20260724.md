@@ -1,0 +1,3 @@
+- [x] Revisar contrato do tema dark
+- [x] Ajustar paleta do dark.json
+- [x] Rodar contratos de tema
