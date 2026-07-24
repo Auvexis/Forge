@@ -1,8 +1,8 @@
 services:
   fabric-gateway:
     build:
-      context: ./apps/gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/gateway/Dockerfile
     container_name: fabric-gateway
     ports:
       - "23800:23800"
@@ -19,8 +19,8 @@ services:
 
   fabric-server:
     build:
-      context: ./apps/api
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/api/Dockerfile
     container_name: fabric-server
     ports:
       - "23801:23801"
@@ -39,8 +39,8 @@ services:
 
   fabric-client:
     build:
-      context: ./apps/client
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/client/Dockerfile
       args:
         VITE_API_URL: ""
     container_name: fabric-client
