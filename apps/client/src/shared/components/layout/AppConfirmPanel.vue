@@ -52,7 +52,9 @@ const iconName = computed(() => {
             </BaseButton>
 
             <BaseButton
-              :variant="variant === 'danger' ? 'danger' : variant === 'warning' ? 'outline' : 'primary'"
+              :variant="
+                variant === 'danger' ? 'danger' : variant === 'warning' ? 'outline' : 'primary'
+              "
               @click="_resolve(true)"
             >
               {{ confirmText }}
@@ -112,21 +114,18 @@ const iconName = computed(() => {
 }
 
 .acp-icon--danger {
-  background: rgba(239, 68, 68, 0.12);
   color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid #f87171;
 }
 
 .acp-icon--warning {
-  background: rgba(245, 158, 11, 0.12);
   color: #fbbf24;
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  border: 1px solid #fbbf24;
 }
 
 .acp-icon--primary {
-  background: rgba(99, 102, 241, 0.12);
   color: var(--fabric-app-confirm-panel-accent);
-  border: 1px solid rgba(99, 102, 241, 0.25);
+  border: 1px solid var(--fabric-app-confirm-panel-accent);
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────────── */

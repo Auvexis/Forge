@@ -76,7 +76,8 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   display: flex;
   flex-direction: column;
   min-width: 200px;
-  border: 1px solid color-mix(in srgb, var(--fabric-app-dropdown-menu-border-strong) 76%, transparent);
+  border: 1px solid
+    color-mix(in srgb, var(--fabric-app-dropdown-menu-border-strong) 76%, transparent);
   border-radius: var(--fabric-app-dropdown-menu-radius);
   background: var(--fabric-app-dropdown-menu-bg-surface);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
@@ -111,6 +112,6 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 .app-dropdown-menu__fixed {
   display: flex;
   flex-direction: column;
-  padding-bottom: 0;
+  padding: 3px;
 }
 </style>

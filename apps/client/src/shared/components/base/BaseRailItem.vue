@@ -83,18 +83,6 @@ withDefaults(
   opacity: 0.42;
 }
 
-.base-rail-item--primary {
-  color: var(--fabric-base-rail-item-workbench-rail-button-primary-text);
-}
-
-.base-rail-item--run {
-  color: var(--fabric-base-rail-item-workbench-rail-button-run-text);
-}
-
-.base-rail-item--danger {
-  color: var(--fabric-base-rail-item-workbench-rail-button-danger-text);
-}
-
 .base-rail-item--dirty::after {
   position: absolute;
   top: 6px;
