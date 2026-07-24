@@ -1,0 +1,4 @@
+- [x] Preservar ajustes locais do light
+- [x] Igualar headers aos paineis
+- [x] Arredondar componentes do light
+- [x] Rodar contratos de tema
