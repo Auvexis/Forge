@@ -1,0 +1,3 @@
+- [x] Remover paineis pretos do light
+- [x] Manter paleta clara neutra
+- [x] Rodar contratos de tema
