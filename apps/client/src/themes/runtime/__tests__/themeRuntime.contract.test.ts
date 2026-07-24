@@ -17,6 +17,7 @@ describe('theme runtime contract', () => {
     assert.deepEqual(jsonEntries.filter((entry) => entry.endsWith('.ts')), [])
     assert.ok(jsonEntries.includes('dark.json'))
     assert.ok(jsonEntries.includes('light.json'))
+    assert.ok(jsonEntries.includes('template.json'))
     assert.ok(runtimeEntries.some((entry) => entry.endsWith('.ts')))
   })
 
@@ -99,6 +100,21 @@ describe('theme runtime contract', () => {
       assert.equal(typeof darkTheme.tokens[tokenName], 'string')
       assert.equal(typeof lightTheme.tokens[tokenName], 'string')
     }
+  })
+
+  it('keeps the theme template aligned with built-in theme tokens', () => {
+    const darkTheme = JSON.parse(read('src/themes/json/dark.json')) as { tokens: Record<string, string> }
+    const lightTheme = JSON.parse(read('src/themes/json/light.json')) as { tokens: Record<string, string> }
+    const templateTheme = JSON.parse(read('src/themes/json/template.json')) as {
+      id: string
+      name: string
+      tokens: Record<string, string>
+    }
+
+    assert.equal(templateTheme.id, 'fabric.custom-template')
+    assert.equal(templateTheme.name, 'Fabric Custom Template')
+    assert.deepEqual(Object.keys(templateTheme.tokens).sort(), Object.keys(lightTheme.tokens).sort())
+    assert.deepEqual(Object.keys(templateTheme.tokens).sort(), Object.keys(darkTheme.tokens).sort())
   })
 
   it('loads JSON themes through a runtime registry and applies them from useTheme', () => {
