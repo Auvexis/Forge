@@ -179,16 +179,19 @@ defineExpose({ open, close, toggle, isOpen })
   border: 1px solid var(--fabric-app-popover-border);
   border-radius: var(--fabric-app-popover-radius);
   margin-top: 1px;
-  background-color: var(--fabric-app-popover-bg-surface);
+  background-color: var(--fabric-app-popover-bg);
+  color: var(--fabric-app-popover-text);
+  box-shadow: var(--fabric-app-popover-shadow);
 }
 
 .app-popover-content--dropdown {
   min-width: 0;
   padding: 0;
-  border: 0;
+  border: var(--fabric-app-popover-dropdown-border);
   border-radius: var(--fabric-app-popover-edge-radius);
   margin-top: 0;
-  background: transparent;
+  background: var(--fabric-app-popover-dropdown-bg);
+  box-shadow: var(--fabric-app-popover-dropdown-shadow);
 }
 
 .app-popover--bottom-start {
