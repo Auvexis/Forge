@@ -192,7 +192,7 @@ function formatDate(value: string) {
 .notification-list__item--deleting {
   opacity: 0;
   pointer-events: none;
-  transform: translateX(var(--fabric-space-8);
+  transform: translateX(var(--fabric-space-8));
 }
 
 .notification-list__open {
@@ -261,7 +261,7 @@ function formatDate(value: string) {
   margin-right: var(--fabric-space-2);
   opacity: 0;
   pointer-events: none;
-  transform: translateX(var(--fabric-space-1);
+  transform: translateX(var(--fabric-space-1));
   transition:
     opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
     transform var(--fabric-duration-fast) var(--fabric-ease-standard);
@@ -290,11 +290,11 @@ function formatDate(value: string) {
 
 .notification-list-enter-from {
   opacity: 0;
-  transform: translateY(var(--fabric-space-2);
+  transform: translateY(var(--fabric-space-2));
 }
 
 .notification-list-leave-to {
   opacity: 0;
-  transform: translateX(var(--fabric-space-8);
+  transform: translateX(var(--fabric-space-8));
 }
 </style>

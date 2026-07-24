@@ -179,7 +179,7 @@ const iconName = computed(() => {
   font-size: var(--fabric-text-sm);
   color: var(--fabric-app-confirm-panel-text-secondary);
   line-height: 1.55;
-  padding-left: calc(36px + var(--fabric-space-3);
+  padding-left: calc(36px + var(--fabric-space-3));
 }
 
 /* ── Actions ─────────────────────────────────────────────────────────────────── */

@@ -259,11 +259,11 @@ onBeforeUnmount(() => {
 /* ── Widths (for left/right) ───────────────────── */
 .app-panel--right.app-panel--md,
 .app-panel--left.app-panel--md {
-  width: var(--app-panel-resized-width, var(--fabric-app-panel-panel-width);
+  width: var(--app-panel-resized-width, var(--fabric-app-panel-panel-width));
 }
 .app-panel--right.app-panel--lg,
 .app-panel--left.app-panel--lg {
-  width: var(--app-panel-resized-width, var(--fabric-app-panel-panel-width-wide);
+  width: var(--app-panel-resized-width, var(--fabric-app-panel-panel-width-wide));
 }
 .app-panel--right.app-panel--xl,
 .app-panel--left.app-panel--xl {

@@ -238,7 +238,7 @@ onUnmounted(() => {
 .base-dropdown-select-up-enter-from,
 .base-dropdown-select-up-leave-to {
   opacity: 0;
-  transform: translateY(var(--fabric-space-2);
+  transform: translateY(var(--fabric-space-2));
 }
 
 .base-dropdown-select-down-enter-from,

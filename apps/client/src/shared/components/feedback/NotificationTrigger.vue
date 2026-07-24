@@ -48,8 +48,8 @@ const ariaLabel = computed(() =>
 
 .notification-trigger__badge {
   position: absolute;
-  top: calc(-1 * var(--fabric-space-1);
-  right: calc(-1 * var(--fabric-space-1);
+  top: calc(-1 * var(--fabric-space-1));
+  right: calc(-1 * var(--fabric-space-1));
   min-width: var(--fabric-space-4);
   height: var(--fabric-space-4);
   padding: 0 var(--fabric-space-1);

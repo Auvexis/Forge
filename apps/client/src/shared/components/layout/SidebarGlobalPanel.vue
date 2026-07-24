@@ -37,7 +37,7 @@ const panelStore = useSidebarPanelStore()
   position: absolute;
   top: 0;
   bottom: 0;
-  left: var(--fabric-active-sidebar-width, var(--fabric-sidebar-width);
+  left: var(--fabric-active-sidebar-width, var(--fabric-sidebar-width));
   background-color: var(--fabric-sidebar-global-panel-bg-surface);
   border-right: 1px solid var(--fabric-sidebar-global-panel-border);
   z-index: var(--fabric-z-raised);

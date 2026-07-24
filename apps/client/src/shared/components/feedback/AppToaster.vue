@@ -66,7 +66,7 @@ const getIcon = (variant: ToastVariant) => {
   align-items: flex-start;
   gap: var(--fabric-space-3);
   width: 380px;
-  max-width: calc(100vw - var(--fabric-space-8);
+  max-width: calc(100vw - var(--fabric-space-8));
   padding: var(--fabric-space-4);
   border-radius: var(--fabric-app-toaster-radius);
   border-top-left-radius: var(--fabric-radius-sm);

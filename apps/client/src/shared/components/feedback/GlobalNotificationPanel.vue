@@ -254,7 +254,7 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__body {
   position: relative;
   min-height: 0;
-  max-height: calc(100vh - var(--fabric-space-16);
+  max-height: calc(100vh - var(--fabric-space-16));
   overflow: visible;
 }
 

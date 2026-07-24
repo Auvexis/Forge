@@ -17,7 +17,7 @@ defineProps<{
   position: relative;
   display: flex;
   flex-direction: column;
-  width: var(--fabric-active-sidebar-width, var(--fabric-sidebar-expanded);
+  width: var(--fabric-active-sidebar-width, var(--fabric-sidebar-expanded));
   height: 100%;
   min-height: 0;
   border-right-width: 0;
