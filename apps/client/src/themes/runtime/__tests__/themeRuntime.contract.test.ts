@@ -27,6 +27,12 @@ describe('theme runtime contract', () => {
     for (const tokenName of [
       'accent',
       'bg.canvas',
+      'radius.xs',
+      'radius.sm',
+      'radius.md',
+      'radius.lg',
+      'radius.xl',
+      'radius.full',
       'button.danger.bg',
       'button.outline.bg',
       'baseBadge.neutral.bg',

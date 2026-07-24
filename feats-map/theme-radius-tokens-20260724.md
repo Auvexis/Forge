@@ -5,3 +5,4 @@
 - [x] Adicionar tokens do BaseCodeEditor
 - [x] Rodar testes focados
 - [x] Completar BaseTopbarButton
+- [x] Sincronizar radius globais nos temas JSON
