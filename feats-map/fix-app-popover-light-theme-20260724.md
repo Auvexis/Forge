@@ -1,0 +1,3 @@
+- [x] Corrigir bg/text do AppPopover
+- [x] Adicionar tokens do trigger
+- [x] Rodar contratos de tema

@@ -169,6 +169,17 @@ defineExpose({ open, close, toggle, isOpen })
   cursor: pointer;
   height: 100%;
   width: 100%;
+  border-radius: var(--fabric-app-popover-trigger-radius);
+  background: var(--fabric-app-popover-trigger-bg);
+  color: var(--fabric-app-popover-trigger-text);
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-out),
+    color var(--fabric-duration-fast) var(--fabric-ease-out);
+}
+
+.app-popover-trigger:hover {
+  background: var(--fabric-app-popover-trigger-hover-bg);
+  color: var(--fabric-app-popover-trigger-hover-text);
 }
 
 .app-popover-content {
@@ -191,6 +202,7 @@ defineExpose({ open, close, toggle, isOpen })
   border-radius: var(--fabric-app-popover-edge-radius);
   margin-top: 0;
   background: var(--fabric-app-popover-dropdown-bg);
+  color: var(--fabric-app-popover-dropdown-text);
   box-shadow: var(--fabric-app-popover-dropdown-shadow);
 }
 
