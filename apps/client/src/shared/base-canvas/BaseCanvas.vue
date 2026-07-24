@@ -99,17 +99,17 @@ const props = withDefaults(defineProps<{
   snapToGrid: true,
   gridSize: 16,
   marqueeSelection: true,
-  marqueeBg: 'var(--fabric-base-canvas-selection-bg, rgba(59, 130, 246, 0.12))',
+  marqueeBg: 'var(--fabric-base-canvas-selection-bg)',
   marqueeBorderStyle: 'dashed',
-  marqueeBorderColor: 'var(--fabric-base-canvas-selection-border, rgba(96, 165, 250, 0.85))',
-  backgroundColor: 'var(--fabric-base-canvas-bg, #0b0b0d)',
-  patternColor: 'var(--fabric-base-canvas-grid, rgba(255, 255, 255, 0.08))',
+  marqueeBorderColor: 'var(--fabric-base-canvas-selection-border)',
+  backgroundColor: 'var(--fabric-base-canvas-bg)',
+  patternColor: 'var(--fabric-base-canvas-grid)',
   patternStyle: 'dot',
   patternSize: 16,
   rulers: false,
   rulersBg: 'var(--fabric-base-canvas-ruler-bg)',
-  rulersText: 'var(--fabric-base-canvas-ruler-text, rgba(255, 255, 255, 0.54))',
-  rulersLines: 'var(--fabric-base-canvas-ruler-lines, rgba(255, 255, 255, 0.2))',
+  rulersText: 'var(--fabric-base-canvas-ruler-text)',
+  rulersLines: 'var(--fabric-base-canvas-ruler-lines)',
   contextMenu: true,
   minZoom: 0.2,
   maxZoom: 3,
@@ -576,8 +576,8 @@ function handleKeyUp(event: KeyboardEvent) {
   position: absolute;
   z-index: 20;
   pointer-events: none;
-  background: var(--fabric-base-canvas-alignment-guide-bg, #3b82f6);
-  box-shadow: 0 0 0 1px var(--fabric-base-canvas-alignment-guide-shadow, color-mix(in srgb, #3b82f6 20%, transparent));
+  background: var(--fabric-base-canvas-alignment-guide-bg);
+  box-shadow: 0 0 0 1px var(--fabric-base-canvas-alignment-guide-shadow);
 }
 
 .base-canvas__alignment-guide--x {

@@ -25,6 +25,11 @@ function componentPrefixFromPath(relativePath: string) {
   return name.charAt(0).toLowerCase() + name.slice(1)
 }
 
+function cssPrefixFromPath(relativePath: string) {
+  if (relativePath.endsWith('features/command-palette/command-palette.css')) return 'commandPalette'
+  return ''
+}
+
 function isVisualToken(varName: string) {
   const includePrefixes = [
     'bg-',
@@ -194,6 +199,28 @@ describe('theme runtime contract', () => {
     for (const relativePath of readFilesRecursive('src').filter((entry) => entry.endsWith('.vue'))) {
       const source = read(relativePath)
       const componentPrefix = tokenNameToCssVar(`${componentPrefixFromPath(relativePath)}.`).replace(/-$/, '')
+
+      for (const match of source.matchAll(/var\(--fabric-([a-z0-9-]+)/g)) {
+        const varName = match[1]
+        const cssVar = `--fabric-${varName}`
+        if (isVisualToken(varName) && !cssVar.startsWith(componentPrefix)) {
+          genericUsages.push(`${relativePath}: ${cssVar}`)
+        }
+      }
+    }
+
+    assert.deepEqual(genericUsages, [])
+  })
+
+  it('keeps shared feature CSS visual styles behind theme tokens', () => {
+    const genericUsages: string[] = []
+    const cssFiles = readFilesRecursive('src').filter((entry) => entry.endsWith('.css'))
+
+    for (const relativePath of cssFiles) {
+      const cssPrefix = cssPrefixFromPath(relativePath)
+      if (!cssPrefix) continue
+      const source = read(relativePath)
+      const componentPrefix = tokenNameToCssVar(`${cssPrefix}.`).replace(/-$/, '')
 
       for (const match of source.matchAll(/var\(--fabric-([a-z0-9-]+)/g)) {
         const varName = match[1]
