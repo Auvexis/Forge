@@ -1,0 +1,3 @@
+- [x] Resolver variaveis dos temas
+- [x] Remover var() de dark e light
+- [x] Rodar contratos de tema

@@ -193,6 +193,17 @@ describe('theme runtime contract', () => {
     assert.deepEqual(Object.keys(templateTheme.tokens).sort(), Object.keys(darkTheme.tokens).sort())
   })
 
+  it('keeps built-in theme JSON values materialized without CSS var references', () => {
+    for (const themeName of ['dark', 'light']) {
+      const theme = JSON.parse(read(`src/themes/json/${themeName}.json`)) as { tokens: Record<string, string> }
+      const variableTokens = Object.entries(theme.tokens)
+        .filter(([, value]) => value.includes('var('))
+        .map(([tokenName]) => tokenName)
+
+      assert.deepEqual(variableTokens, [])
+    }
+  })
+
   it('keeps Vue visual styles behind component theme tokens', () => {
     const genericUsages: string[] = []
 
