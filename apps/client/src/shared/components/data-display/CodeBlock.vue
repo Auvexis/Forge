@@ -57,19 +57,19 @@ const copy = async () => {
   align-items: center;
   justify-content: space-between;
   padding: var(--fabric-space-1) var(--fabric-space-3);
-  background-color: var(--fabric-bg-elevated);
-  border-bottom: 1px solid var(--fabric-border);
+  background-color: var(--fabric-code-block-bg-elevated);
+  border-bottom: 1px solid var(--fabric-code-block-border);
 }
 
 .code-block__lang {
   font-size: var(--fabric-text-xs);
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-code-block-text-secondary);
   text-transform: uppercase;
 }
 
 .code-block__copy {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-code-block-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
@@ -78,8 +78,8 @@ const copy = async () => {
   border-radius: var(--fabric-code-block-copy-radius);
 }
 .code-block__copy:hover {
-  color: var(--fabric-text-primary);
-  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-code-block-text-primary);
+  background-color: var(--fabric-code-block-bg-muted);
 }
 
 .code-block__body {
@@ -92,7 +92,7 @@ pre {
   margin: 0;
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-code-block-text-primary);
   line-height: 1.5;
 }
 </style>

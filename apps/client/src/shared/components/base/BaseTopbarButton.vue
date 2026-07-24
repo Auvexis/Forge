@@ -53,7 +53,7 @@ defineOptions({ inheritAttrs: false })
   padding: 0;
   border: 1px solid transparent;
   border-radius: var(--fabric-base-topbar-button-radius);
-  color: var(--fabric-topbar-search-text);
+  color: var(--fabric-base-topbar-button-topbar-search-text);
   background: transparent;
   font: inherit;
   font-weight: var(--fabric-font-medium);
@@ -65,12 +65,12 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-topbar-button:hover {
-  color: var(--fabric-topbar-search-hover-text);
-  background: var(--fabric-topbar-search-hover-bg);
+  color: var(--fabric-base-topbar-button-topbar-search-hover-text);
+  background: var(--fabric-base-topbar-button-topbar-search-hover-bg);
 }
 
 .base-topbar-button:active {
-  background: var(--fabric-bg-chrome-elevated);
+  background: var(--fabric-base-topbar-button-bg-chrome-elevated);
 }
 
 .base-topbar-button:disabled {

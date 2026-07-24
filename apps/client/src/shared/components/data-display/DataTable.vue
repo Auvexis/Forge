@@ -84,12 +84,12 @@ const formatValue = (val: any) => {
 .data-table th,
 .data-table td {
   padding: var(--fabric-space-3) var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-data-table-border);
 }
 
 .data-table th {
-  background-color: var(--fabric-bg-elevated);
-  color: var(--fabric-text-secondary);
+  background-color: var(--fabric-data-table-bg-elevated);
+  color: var(--fabric-data-table-text-secondary);
   font-weight: var(--fabric-font-medium);
   letter-spacing: 0.02em;
   text-transform: uppercase;
@@ -102,7 +102,7 @@ const formatValue = (val: any) => {
 }
 
 .data-table tbody tr:hover {
-  background-color: var(--fabric-bg-overlay);
+  background-color: var(--fabric-data-table-bg-overlay);
   cursor: pointer;
 }
 
@@ -113,6 +113,6 @@ const formatValue = (val: any) => {
 .data-table__empty {
   text-align: center;
   padding: var(--fabric-space-10) !important;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-data-table-text-muted);
 }
 </style>

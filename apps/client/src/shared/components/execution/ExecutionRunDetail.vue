@@ -30,13 +30,13 @@ watch(() => props.detail.id, () => { selectedNodeId.value = props.detail.roots[0
 </template>
 
 <style scoped>
-.execution-run-detail { height: 100%; min-height: 0; display: flex; flex-direction: column; background-color: var(--fabric-bg-surface); }
-.execution-run-detail__header { min-height: 48px; display: flex; align-items: center; gap: var(--fabric-space-3); padding: 0 var(--fabric-space-3); border-bottom: 1px solid var(--fabric-border); }
+.execution-run-detail { height: 100%; min-height: 0; display: flex; flex-direction: column; background-color: var(--fabric-execution-run-detail-bg-surface); }
+.execution-run-detail__header { min-height: 48px; display: flex; align-items: center; gap: var(--fabric-space-3); padding: 0 var(--fabric-space-3); border-bottom: 1px solid var(--fabric-execution-run-detail-border); }
 .execution-run-detail__header > div { display: grid; gap: 1px; }
-.execution-run-detail__header strong { color: var(--fabric-text-primary); font-size: var(--fabric-text-sm); }
-.execution-run-detail__header small, .execution-run-detail__header > span { color: var(--fabric-text-muted); font-size: var(--fabric-text-xs); }
+.execution-run-detail__header strong { color: var(--fabric-execution-run-detail-text-primary); font-size: var(--fabric-text-sm); }
+.execution-run-detail__header small, .execution-run-detail__header > span { color: var(--fabric-execution-run-detail-text-muted); font-size: var(--fabric-text-xs); }
 .execution-run-detail__header > span { margin-left: auto; }
 .execution-run-detail__body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(240px, 40%) minmax(0, 1fr); }
-.execution-run-detail__tree { min-height: 0; overflow: auto; padding: var(--fabric-space-3); border-right: 1px solid var(--fabric-border); background-color: var(--fabric-bg-base); }
-@media (max-width: 720px) { .execution-run-detail__body { grid-template-columns: 1fr; } .execution-run-detail__tree { max-height: 42%; border-right: 0; border-bottom: 1px solid var(--fabric-border); } }
+.execution-run-detail__tree { min-height: 0; overflow: auto; padding: var(--fabric-space-3); border-right: 1px solid var(--fabric-execution-run-detail-border); background-color: var(--fabric-execution-run-detail-bg-base); }
+@media (max-width: 720px) { .execution-run-detail__body { grid-template-columns: 1fr; } .execution-run-detail__tree { max-height: 42%; border-right: 0; border-bottom: 1px solid var(--fabric-execution-run-detail-border); } }
 </style>

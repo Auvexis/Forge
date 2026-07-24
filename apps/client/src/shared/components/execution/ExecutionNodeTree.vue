@@ -121,7 +121,7 @@ function activate(node: ExecutionRunTreeNode) {
   top: 18px;
   left: calc(-1 * var(--fabric-space-3));
   width: calc(var(--fabric-space-3) + var(--fabric-space-2));
-  border-top: 1px solid var(--fabric-border-strong);
+  border-top: 1px solid var(--fabric-execution-node-tree-border-strong);
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch::after {
@@ -130,7 +130,7 @@ function activate(node: ExecutionRunTreeNode) {
   top: 0;
   left: calc(-1 * var(--fabric-space-3));
   height: 18px;
-  border-left: 1px solid var(--fabric-border-strong);
+  border-left: 1px solid var(--fabric-execution-node-tree-border-strong);
 }
 
 .execution-node-tree--nested > .execution-node-tree__branch--first::after {
@@ -148,7 +148,7 @@ function activate(node: ExecutionRunTreeNode) {
   min-height: 36px;
   margin-left: var(--fabric-space-2);
   padding: var(--fabric-space-2);
-  border: 1px solid var(--fabric-border-muted);
+  border: 1px solid var(--fabric-execution-node-tree-border-muted);
   border-radius: var(--fabric-execution-node-tree-row-radius);
 }
 .execution-node-tree__group {
@@ -159,7 +159,7 @@ function activate(node: ExecutionRunTreeNode) {
   gap: var(--fabric-space-2);
   margin-left: var(--fabric-space-2);
   padding: 0 var(--fabric-space-2);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-execution-node-tree-text-muted);
   font-family: var(--fabric-font-mono);
   font-size: 9px;
   text-transform: uppercase;
@@ -179,29 +179,29 @@ function activate(node: ExecutionRunTreeNode) {
   grid-template-columns: 24px minmax(0, 1fr) auto;
 }
 .execution-node-tree__row--active {
-  background-color: var(--fabric-button-ghost-active);
+  background-color: var(--fabric-execution-node-tree-button-ghost-active);
 }
 .execution-node-tree__row--success {
-  border-left: 2px solid var(--fabric-status-success-border);
+  border-left: 2px solid var(--fabric-execution-node-tree-status-success-border);
 }
 .execution-node-tree__row--failed,
 .execution-node-tree__row--error {
-  border-left: 2px solid var(--fabric-status-error-border);
+  border-left: 2px solid var(--fabric-execution-node-tree-status-error-border);
 }
 .execution-node-tree__row--failed .execution-node-tree__name,
 .execution-node-tree__row--error .execution-node-tree__name {
-  color: var(--fabric-status-error-text);
+  color: var(--fabric-execution-node-tree-status-error-text);
 }
 .execution-node-tree__row--error {
-  background-color: var(--fabric-status-error-bg);
+  background-color: var(--fabric-execution-node-tree-status-error-bg);
 }
 .execution-node-tree__row--running,
 .execution-node-tree__row--retrying,
 .execution-node-tree__row--waiting {
-  border-left: 2px solid var(--fabric-border-brand);
+  border-left: 2px solid var(--fabric-execution-node-tree-border-brand);
 }
 .execution-node-tree__chevron {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-execution-node-tree-text-muted);
   transition: transform var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 .execution-node-tree__chevron.is-open {
@@ -221,18 +221,18 @@ function activate(node: ExecutionRunTreeNode) {
 .execution-node-tree__name {
   min-width: 0;
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-execution-node-tree-text-primary);
   font-size: var(--fabric-text-xs);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 .execution-node-tree__row code {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-execution-node-tree-text-muted);
   font-family: var(--fabric-font-mono);
   font-size: 9px;
 }
 .execution-node-tree__error-label {
-  color: var(--fabric-status-error-text);
+  color: var(--fabric-execution-node-tree-status-error-text);
   font-family: var(--fabric-font-mono);
   font-size: 9px;
 }

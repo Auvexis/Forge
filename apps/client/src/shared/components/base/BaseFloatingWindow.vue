@@ -247,9 +247,9 @@ function isFiniteNumber(value: unknown): value is number {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  border: 1px solid var(--fabric-border-subtle);
+  border: 1px solid var(--fabric-base-floating-window-border-subtle);
   border-radius: var(--fabric-base-floating-window-radius);
-  background: color-mix(in srgb, var(--fabric-bg-surface) 94%, transparent);
+  background: color-mix(in srgb, var(--fabric-base-floating-window-bg-surface) 94%, transparent);
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
   padding: 10px;
 }
@@ -276,13 +276,13 @@ function isFiniteNumber(value: unknown): value is number {
 }
 
 .base-floating-window__title :deep(strong) {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-floating-window-text-primary);
   font-size: 12px;
 }
 
 .base-floating-window__title :deep(small) {
   overflow: hidden;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-floating-window-text-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -298,10 +298,10 @@ function isFiniteNumber(value: unknown): value is number {
   width: 24px;
   height: 24px;
   flex: 0 0 auto;
-  border: 1px solid var(--fabric-border-subtle);
+  border: 1px solid var(--fabric-base-floating-window-border-subtle);
   border-radius: var(--fabric-base-floating-window-handle-radius);
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-base-floating-window-bg-elevated);
+  color: var(--fabric-base-floating-window-text-primary);
   cursor: pointer;
   font-size: 15px;
   line-height: 1;
@@ -321,8 +321,8 @@ function isFiniteNumber(value: unknown): value is number {
   width: 18px;
   height: 18px;
   border: 0;
-  border-right: 2px solid var(--fabric-border-strong);
-  border-bottom: 2px solid var(--fabric-border-strong);
+  border-right: 2px solid var(--fabric-base-floating-window-border-strong);
+  border-bottom: 2px solid var(--fabric-base-floating-window-border-strong);
   background: transparent;
   cursor: nwse-resize;
   opacity: 0.7;

@@ -73,38 +73,38 @@ withDefaults(
 }
 
 .status-badge--success {
-  background: var(--fabric-status-success-bg);
-  border-color: var(--fabric-status-success-border);
-  color: var(--fabric-status-success-text);
+  background: var(--fabric-status-badge-status-success-bg);
+  border-color: var(--fabric-status-badge-status-success-border);
+  color: var(--fabric-status-badge-status-success-text);
 }
 
 .status-badge--running {
-  background: var(--fabric-status-running-bg);
-  border-color: var(--fabric-status-running-border);
-  color: var(--fabric-status-running-text);
+  background: var(--fabric-status-badge-status-running-bg);
+  border-color: var(--fabric-status-badge-status-running-border);
+  color: var(--fabric-status-badge-status-running-text);
 }
 
 .status-badge--error {
-  background: var(--fabric-status-error-bg);
-  border-color: var(--fabric-status-error-border);
-  color: var(--fabric-status-error-text);
+  background: var(--fabric-status-badge-status-error-bg);
+  border-color: var(--fabric-status-badge-status-error-border);
+  color: var(--fabric-status-badge-status-error-text);
 }
 
 .status-badge--draft {
-  background: var(--fabric-status-draft-bg);
-  border-color: var(--fabric-status-draft-border);
-  color: var(--fabric-status-draft-text);
+  background: var(--fabric-status-badge-status-draft-bg);
+  border-color: var(--fabric-status-badge-status-draft-border);
+  color: var(--fabric-status-badge-status-draft-text);
 }
 
 .status-badge--inactive {
-  background: var(--fabric-status-inactive-bg);
-  border-color: var(--fabric-status-inactive-border);
-  color: var(--fabric-status-inactive-text);
+  background: var(--fabric-status-badge-status-inactive-bg);
+  border-color: var(--fabric-status-badge-status-inactive-border);
+  color: var(--fabric-status-badge-status-inactive-text);
 }
 
 .status-badge--neutral {
-  background: var(--fabric-bg-muted);
-  border-color: var(--fabric-border);
-  color: var(--fabric-text-muted);
+  background: var(--fabric-status-badge-bg-muted);
+  border-color: var(--fabric-status-badge-border);
+  color: var(--fabric-status-badge-text-muted);
 }
 </style>

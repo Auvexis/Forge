@@ -52,8 +52,8 @@ withDefaults(
   height: var(--fabric-base-rail-item-height, 36px);
   border: 1px solid transparent;
   border-radius: var(--fabric-base-rail-item-radius);
-  background: var(--fabric-workbench-rail-button-bg, transparent);
-  color: var(--fabric-workbench-rail-button-text, var(--fabric-text-muted));
+  background: var(--fabric-base-rail-item-workbench-rail-button-bg);
+  color: var(--fabric-base-rail-item-workbench-rail-button-text);
   cursor: pointer;
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -64,8 +64,8 @@ withDefaults(
 .base-rail-item:hover:not(:disabled),
 .base-rail-item--active {
   border-color: transparent;
-  background: var(--fabric-workbench-rail-button-hover-bg, var(--fabric-button-ghost-hover));
-  color: var(--fabric-workbench-rail-button-hover-text, var(--fabric-text-primary));
+  background: var(--fabric-base-rail-item-workbench-rail-button-hover-bg);
+  color: var(--fabric-base-rail-item-workbench-rail-button-hover-text);
 }
 
 .base-rail-item--active::before {
@@ -74,7 +74,7 @@ withDefaults(
   width: 2px;
   height: 22px;
   border-radius: var(--fabric-base-rail-item-active-radius);
-  background: var(--fabric-workbench-rail-button-active-indicator, var(--fabric-accent));
+  background: var(--fabric-base-rail-item-workbench-rail-button-active-indicator);
   content: '';
 }
 
@@ -84,15 +84,15 @@ withDefaults(
 }
 
 .base-rail-item--primary {
-  color: var(--fabric-workbench-rail-button-primary-text, var(--fabric-accent));
+  color: var(--fabric-base-rail-item-workbench-rail-button-primary-text);
 }
 
 .base-rail-item--run {
-  color: var(--fabric-workbench-rail-button-run-text, var(--fabric-green-500));
+  color: var(--fabric-base-rail-item-workbench-rail-button-run-text);
 }
 
 .base-rail-item--danger {
-  color: var(--fabric-workbench-rail-button-danger-text, var(--fabric-red-500));
+  color: var(--fabric-base-rail-item-workbench-rail-button-danger-text);
 }
 
 .base-rail-item--dirty::after {
@@ -102,7 +102,7 @@ withDefaults(
   width: 6px;
   height: 6px;
   border-radius: var(--fabric-base-rail-item-badge-radius);
-  background: var(--fabric-workbench-rail-button-dirty-indicator, var(--fabric-amber-500));
+  background: var(--fabric-base-rail-item-workbench-rail-button-dirty-indicator);
   content: '';
 }
 

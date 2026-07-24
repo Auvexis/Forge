@@ -68,43 +68,43 @@ defineOptions({ inheritAttrs: false })
 
 /* Default (Muted) */
 .base-badge--default {
-  background-color: var(--fabric-bg-muted);
-  color: var(--fabric-text-primary);
-  border: 1px solid var(--fabric-border-strong);
+  background-color: var(--fabric-base-badge-bg-muted);
+  color: var(--fabric-base-badge-text-primary);
+  border: 1px solid var(--fabric-base-badge-border-strong);
 }
 
 /* Brand */
 .base-badge--brand {
-  background-color: var(--fabric-accent-subtle);
-  color: var(--fabric-brand-300);
-  border: 1px solid var(--fabric-border-brand);
+  background-color: var(--fabric-base-badge-accent-subtle);
+  color: var(--fabric-base-badge-brand300);
+  border: 1px solid var(--fabric-base-badge-border-brand);
 }
 
 /* Success */
 .base-badge--success {
-  background-color: var(--fabric-status-success-bg);
-  color: var(--fabric-status-success-text);
-  border: 1px solid var(--fabric-status-success-border);
+  background-color: var(--fabric-base-badge-status-success-bg);
+  color: var(--fabric-base-badge-status-success-text);
+  border: 1px solid var(--fabric-base-badge-status-success-border);
 }
 
 /* Warning */
 .base-badge--warning {
-  background-color: var(--fabric-status-running-bg);
-  color: var(--fabric-status-running-text);
-  border: 1px solid var(--fabric-status-running-border);
+  background-color: var(--fabric-base-badge-status-running-bg);
+  color: var(--fabric-base-badge-status-running-text);
+  border: 1px solid var(--fabric-base-badge-status-running-border);
 }
 
 /* Error */
 .base-badge--error {
-  background-color: var(--fabric-status-error-bg);
-  color: var(--fabric-status-error-text);
-  border: 1px solid var(--fabric-status-error-border);
+  background-color: var(--fabric-base-badge-status-error-bg);
+  color: var(--fabric-base-badge-status-error-text);
+  border: 1px solid var(--fabric-base-badge-status-error-border);
 }
 
 /* Outline */
 .base-badge--outline {
   background-color: transparent;
-  color: var(--fabric-text-secondary);
-  border: 1px solid var(--fabric-border-strong);
+  color: var(--fabric-base-badge-text-secondary);
+  border: 1px solid var(--fabric-base-badge-border-strong);
 }
 </style>

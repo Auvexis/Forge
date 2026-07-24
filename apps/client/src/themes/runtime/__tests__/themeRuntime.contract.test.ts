@@ -9,6 +9,77 @@ function read(relativePath: string) {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
+function readFilesRecursive(relativePath: string): string[] {
+  return readdirSync(resolve(root, relativePath), { withFileTypes: true }).flatMap((entry) => {
+    const entryPath = `${relativePath}/${entry.name}`
+    return entry.isDirectory() ? readFilesRecursive(entryPath) : [entryPath]
+  })
+}
+
+function tokenNameToCssVar(tokenName: string) {
+  return `--fabric-${tokenName.replace(/\./g, '-').replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase()}`
+}
+
+function componentPrefixFromPath(relativePath: string) {
+  const name = relativePath.split('/').at(-1)?.replace(/\.vue$/, '') ?? ''
+  return name.charAt(0).toLowerCase() + name.slice(1)
+}
+
+function isVisualToken(varName: string) {
+  const includePrefixes = [
+    'bg-',
+    'border',
+    'text-primary',
+    'text-secondary',
+    'text-muted',
+    'text-disabled',
+    'text-inverse',
+    'text-error',
+    'text-warning',
+    'text-success',
+    'text-chrome',
+    'button-',
+    'input-',
+    'status-',
+    'sidebar-',
+    'topbar-',
+    'workbench-',
+    'panel-',
+    'shadow-',
+    'accent',
+    'green-',
+    'red-',
+    'amber-',
+    'blue-',
+    'brand-',
+    'color-',
+  ]
+  const skipPrefixes = [
+    'space-',
+    'font-',
+    'duration-',
+    'ease-',
+    'radius-',
+    'z-',
+    'text-xs',
+    'text-sm',
+    'text-base',
+    'text-lg',
+    'text-xl',
+    'text-2xl',
+    'text-3xl',
+    'active-sidebar-width',
+    'sidebar-width',
+    'sidebar-expanded',
+    'workbench-status-height',
+  ]
+
+  return (
+    !skipPrefixes.some((prefix) => varName === prefix || varName.startsWith(prefix)) &&
+    includePrefixes.some((prefix) => varName === prefix || varName.startsWith(prefix))
+  )
+}
+
 describe('theme runtime contract', () => {
   it('keeps theme JSON files separate from runtime TypeScript', () => {
     const jsonEntries = readdirSync(resolve(root, 'src/themes/json'))
@@ -117,6 +188,25 @@ describe('theme runtime contract', () => {
     assert.deepEqual(Object.keys(templateTheme.tokens).sort(), Object.keys(darkTheme.tokens).sort())
   })
 
+  it('keeps shared component visual styles behind component theme tokens', () => {
+    const genericUsages: string[] = []
+
+    for (const relativePath of readFilesRecursive('src/shared/components').filter((entry) => entry.endsWith('.vue'))) {
+      const source = read(relativePath)
+      const componentPrefix = tokenNameToCssVar(`${componentPrefixFromPath(relativePath)}.`).replace(/-$/, '')
+
+      for (const match of source.matchAll(/var\(--fabric-([a-z0-9-]+)/g)) {
+        const varName = match[1]
+        const cssVar = `--fabric-${varName}`
+        if (isVisualToken(varName) && !cssVar.startsWith(componentPrefix)) {
+          genericUsages.push(`${relativePath}: ${cssVar}`)
+        }
+      }
+    }
+
+    assert.deepEqual(genericUsages, [])
+  })
+
   it('loads JSON themes through a runtime registry and applies them from useTheme', () => {
     const registry = read('src/themes/runtime/theme.registry.ts')
     const loader = read('src/themes/runtime/theme.loader.ts')
@@ -149,8 +239,8 @@ describe('theme runtime contract', () => {
     const darkTheme = JSON.parse(read('src/themes/json/dark.json')) as { tokens: Record<string, string> }
     const darkThemeSource = read('src/themes/json/dark.json')
 
-    assert.equal(darkTheme.tokens['bg.base'], '#141414')
-    assert.equal(darkTheme.tokens['bg.chrome'], '#191919')
+    assert.equal(darkTheme.tokens['bg.base'], '#0C0C0C')
+    assert.equal(darkTheme.tokens['bg.chrome'], '#202020')
     assert.equal(darkTheme.tokens['bg.canvas'], '#171717')
     assert.doesNotMatch(
       darkThemeSource,

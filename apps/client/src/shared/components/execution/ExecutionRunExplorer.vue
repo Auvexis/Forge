@@ -30,7 +30,7 @@ const selectedDetail = computed(() => selectedRun.value ? buildExecutionRunDetai
 }) : null)
 
 const TRIGGER_PRESENTATION: Record<string, ExecutionNodePresentation> = {
-  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--fabric-text-primary)' },
+  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--fabric-execution-run-explorer-text-primary)' },
   webhook: { icon: 'webhook', iconColor: 'rgb(16, 185, 129)' },
   cron: { icon: 'clock', iconColor: 'rgb(138, 82, 255)' },
   form: { icon: 'clipboard-list', iconColor: 'rgb(236, 72, 153)' },
@@ -108,7 +108,7 @@ watch([() => props.workflow, isDark], loadNodePresentations, { immediate: true }
 
 <style scoped>
 .execution-run-explorer { position: relative; height: 100%; min-height: 0; overflow: hidden; }
-.execution-run-explorer__detail { position: absolute; inset: 0; z-index: 1; box-shadow: -12px 0 28px color-mix(in srgb, var(--fabric-bg-base) 55%, transparent); }
+.execution-run-explorer__detail { position: absolute; inset: 0; z-index: 1; box-shadow: -12px 0 28px color-mix(in srgb, var(--fabric-execution-run-explorer-bg-base) 55%, transparent); }
 .execution-run-slide-enter-active { transition: transform var(--fabric-duration-slow) var(--fabric-ease-decelerate), opacity var(--fabric-duration-base) var(--fabric-ease-standard); }
 .execution-run-slide-leave-active { transition: transform var(--fabric-duration-base) var(--fabric-ease-accelerate), opacity var(--fabric-duration-fast) var(--fabric-ease-standard); }
 .execution-run-slide-enter-from, .execution-run-slide-leave-to { opacity: 0; transform: translateX(100%); }

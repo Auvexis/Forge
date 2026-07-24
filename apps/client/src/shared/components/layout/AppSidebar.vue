@@ -17,7 +17,7 @@ defineProps<{
   position: relative;
   display: flex;
   flex-direction: column;
-  width: var(--fabric-active-sidebar-width, var(--fabric-sidebar-expanded));
+  width: var(--fabric-active-sidebar-width, var(--fabric-sidebar-expanded);
   height: 100%;
   min-height: 0;
   border-right-width: 0;
@@ -25,10 +25,10 @@ defineProps<{
   border-top-width: 0;
   border-bottom-width: 0;
   border-left-width: 0;
-  border-right: 1px solid var(--fabric-border);
+  border-right: 1px solid var(--fabric-app-sidebar-border);
   z-index: var(--fabric-z-raised);
   flex-shrink: 0;
-  background-color: var(--fabric-sidebar-bg);
+  background-color: var(--fabric-app-sidebar-sidebar-bg);
   transition: width var(--fabric-duration-base) var(--fabric-ease-standard);
 }
 

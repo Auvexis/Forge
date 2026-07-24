@@ -53,8 +53,8 @@ withDefaults(
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  color: var(--fabric-workbench-text);
-  background: var(--fabric-workbench-bg);
+  color: var(--fabric-app-workbench-workbench-text);
+  background: var(--fabric-app-workbench-workbench-bg);
 }
 
 .app-workbench--has-toolstrip {
@@ -73,18 +73,18 @@ withDefaults(
 .app-workbench__status {
   min-width: 0;
   flex: 0 0 auto;
-  background: var(--fabric-workbench-rail-bg);
+  background: var(--fabric-app-workbench-workbench-rail-bg);
 }
 
 .app-workbench__toolstrip {
-  border-bottom: 1px solid var(--fabric-workbench-border, var(--fabric-border));
+  border-bottom: 1px solid var(--fabric-app-workbench-workbench-border);
 }
 
 .app-workbench__status {
   height: var(--fabric-workbench-status-height, 24px);
   min-height: var(--fabric-workbench-status-height, 24px);
   max-height: var(--fabric-workbench-status-height, 24px);
-  border-top: 1px solid var(--fabric-workbench-border, var(--fabric-border));
+  border-top: 1px solid var(--fabric-app-workbench-workbench-border);
   overflow: hidden;
 }
 
@@ -101,22 +101,22 @@ withDefaults(
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--fabric-workbench-main-bg, var(--fabric-bg-base));
+  background: var(--fabric-app-workbench-workbench-main-bg);
 }
 
 .app-workbench__panel {
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--fabric-workbench-panel-bg, var(--fabric-bg-surface));
+  background: var(--fabric-app-workbench-workbench-panel-bg);
 }
 
 .app-workbench__panel--left {
-  border-right: 1px solid var(--fabric-workbench-border, var(--fabric-border));
+  border-right: 1px solid var(--fabric-app-workbench-workbench-border);
 }
 
 .app-workbench__panel--inspector {
-  border-left: 1px solid var(--fabric-workbench-border, var(--fabric-border));
+  border-left: 1px solid var(--fabric-app-workbench-workbench-border);
 }
 
 .app-workbench--compact {

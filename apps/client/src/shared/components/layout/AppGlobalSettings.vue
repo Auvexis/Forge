@@ -97,7 +97,7 @@
                 flex-direction: column;
                 align-items: stretch;
                 gap: 1rem;
-                border-bottom: 1px solid var(--fabric-border);
+                border-bottom: 1px solid var(--fabric-app-global-settings-border);
                 padding-bottom: 1.5rem;
                 margin-bottom: 0.5rem;
               "
@@ -265,8 +265,8 @@
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    background: var(--fabric-bg-surface);
-                    border: 1px solid var(--fabric-border);
+                    background: var(--fabric-app-global-settings-bg-surface);
+                    border: 1px solid var(--fabric-app-global-settings-border);
                     border-radius: var(--fabric-global-settings-preview-radius);
                     margin-bottom: 0.75rem;
                   "
@@ -278,7 +278,7 @@
                   style="
                     font-size: 0.95em;
                     font-weight: 500;
-                    color: var(--fabric-text-primary);
+                    color: var(--fabric-app-global-settings-text-primary);
                     margin-bottom: 0.25rem;
                     text-align: center;
                   "
@@ -296,10 +296,10 @@
                   "
                   :style="
                     plugin.status === 'connected'
-                      ? 'color: var(--fabric-text-success);'
+                      ? 'color: var(--fabric-app-global-settings-text-success);'
                       : plugin.status === 'configured'
-                      ? 'color: var(--fabric-text-warning);'
-                      : 'color: var(--fabric-text-danger);'
+                      ? 'color: var(--fabric-app-global-settings-text-warning);'
+                      : 'color: var(--fabric-app-global-settings-text-danger);'
                   "
                 >
                   <LucideIcon
@@ -330,9 +330,9 @@
                 <!-- OAuth Redirect URL Block -->
                 <div
                   v-if="selectedPluginForMenu.auth_type === 'oauth2' && pluginStatus?.oauth_redirect_uri"
-                  style="display: flex; flex-direction: column; gap: var(--fabric-space-2); padding: var(--fabric-space-3); background: var(--fabric-bg-surface); border-radius: var(--fabric-global-settings-inline-card-radius); border: 1px solid var(--fabric-border); margin-bottom: var(--fabric-space-2);"
+                  style="display: flex; flex-direction: column; gap: var(--fabric-space-2); padding: var(--fabric-space-3); background: var(--fabric-app-global-settings-bg-surface); border-radius: var(--fabric-global-settings-inline-card-radius); border: 1px solid var(--fabric-app-global-settings-border); margin-bottom: var(--fabric-space-2);"
                 >
-                  <span style="font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-text-primary);">OAuth Redirect URL</span>
+                  <span style="font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-app-global-settings-text-primary);">OAuth Redirect URL</span>
                   <BaseInput
                     :model-value="pluginStatus.oauth_redirect_uri"
                     readonly
@@ -340,7 +340,7 @@
                   />
                   <p
                     v-if="pluginStatus?.oauth_ui?.oauthCallbackInstructions"
-                    style="margin: 0; font-size: var(--fabric-text-xs); color: var(--fabric-text-muted); margin-top: var(--fabric-space-1);"
+                    style="margin: 0; font-size: var(--fabric-text-xs); color: var(--fabric-app-global-settings-text-muted); margin-top: var(--fabric-space-1);"
                   >
                     {{ pluginStatus.oauth_ui.oauthCallbackInstructions }}
                   </p>
@@ -362,13 +362,13 @@
                   :key="fieldKey"
                 >
                   <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
-                    <label style="display: flex; align-items: center; gap: var(--fabric-space-1); font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-text-primary);">
+                    <label style="display: flex; align-items: center; gap: var(--fabric-space-1); font-size: var(--fabric-text-sm); font-weight: 500; color: var(--fabric-app-global-settings-text-primary);">
                       {{ (schema as any).label ?? (schema as any).title ?? String(fieldKey) }}
                       <span v-if="(schema as any).required" style="color: rgb(239, 68, 68);">*</span>
                     </label>
                     <p
                       v-if="(schema as any).description"
-                      style="margin: 0; font-size: var(--fabric-text-xs); color: var(--fabric-text-muted);"
+                      style="margin: 0; font-size: var(--fabric-text-xs); color: var(--fabric-app-global-settings-text-muted);"
                     >
                       {{ (schema as any).description }}
                     </p>

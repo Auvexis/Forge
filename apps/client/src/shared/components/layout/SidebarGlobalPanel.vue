@@ -37,9 +37,9 @@ const panelStore = useSidebarPanelStore()
   position: absolute;
   top: 0;
   bottom: 0;
-  left: var(--fabric-active-sidebar-width, var(--fabric-sidebar-width));
-  background-color: var(--fabric-bg-surface);
-  border-right: 1px solid var(--fabric-border);
+  left: var(--fabric-active-sidebar-width, var(--fabric-sidebar-width);
+  background-color: var(--fabric-sidebar-global-panel-bg-surface);
+  border-right: 1px solid var(--fabric-sidebar-global-panel-border);
   z-index: var(--fabric-z-raised);
   overflow: hidden;
 }
@@ -62,14 +62,14 @@ const panelStore = useSidebarPanelStore()
   justify-content: space-between;
   height: 48px;
   padding: 0 var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-sidebar-global-panel-border);
   flex-shrink: 0;
 }
 
 .sidebar-panel__title {
   font-size: var(--fabric-text-sm);
   font-weight: 500;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-sidebar-global-panel-text-secondary);
   margin: 0;
 }
 
@@ -80,7 +80,7 @@ const panelStore = useSidebarPanelStore()
   width: 24px;
   height: 24px;
   border-radius: var(--fabric-sidebar-global-panel-radius);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-sidebar-global-panel-text-muted);
   cursor: pointer;
   background: transparent;
   border: none;
@@ -88,8 +88,8 @@ const panelStore = useSidebarPanelStore()
 }
 
 .sidebar-panel__close:hover {
-  background-color: var(--fabric-bg-muted);
-  color: var(--fabric-text-primary);
+  background-color: var(--fabric-sidebar-global-panel-bg-muted);
+  color: var(--fabric-sidebar-global-panel-text-primary);
 }
 
 .sidebar-panel__content {
@@ -111,7 +111,7 @@ const panelStore = useSidebarPanelStore()
   background: transparent;
 }
 .sidebar-panel__content::-webkit-scrollbar-thumb {
-  background: var(--fabric-border);
+  background: var(--fabric-sidebar-global-panel-border);
   border-radius: var(--fabric-sidebar-global-panel-item-radius);
 }
 </style>

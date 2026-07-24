@@ -25,8 +25,7 @@ withDefaults(
   align-items: center;
   gap: 0;
   padding: 0;
-  border-right: 1px solid var(--fabric-workbench-rail-border, var(--fabric-workbench-border, var(--fabric-border)));
-  background: var(--fabric-workbench-rail-bg);
+  background: var(--fabric-base-rail-workbench-rail-bg);
 }
 
 .base-rail :deep(.base-rail__group) {

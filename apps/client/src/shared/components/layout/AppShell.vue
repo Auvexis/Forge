@@ -29,8 +29,8 @@
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  background-color: var(--fabric-bg-base);
-  color: var(--fabric-text-primary);
+  background-color: var(--fabric-app-shell-bg-base);
+  color: var(--fabric-app-shell-text-primary);
 }
 
 .app-shell__main {

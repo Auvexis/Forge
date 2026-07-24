@@ -226,8 +226,8 @@ function handleProfileDropdownAction(
   gap: var(--fabric-space-3);
   min-height: 30px;
   /* padding: 0 var(--fabric-space-4); */
-  border-bottom: 1px solid var(--fabric-topbar-border);
-  background: var(--fabric-topbar-bg);
+  border-bottom: 1px solid var(--fabric-app-topbar-topbar-border);
+  background: var(--fabric-app-topbar-topbar-bg);
   flex-shrink: 0;
 }
 
@@ -271,7 +271,7 @@ function handleProfileDropdownAction(
 
 .app-topbar__context {
   gap: var(--fabric-space-2);
-  color: var(--fabric-topbar-search-text);
+  color: var(--fabric-app-topbar-topbar-search-text);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
   overflow: hidden;
@@ -296,10 +296,10 @@ function handleProfileDropdownAction(
   width: 28px;
   height: 28px;
   flex: 0 0 28px;
-  border: 1px solid var(--fabric-topbar-search-border);
+  border: 1px solid var(--fabric-app-topbar-topbar-search-border);
   border-radius: var(--fabric-app-topbar-avatar-radius);
-  background: var(--fabric-topbar-button-bg);
-  color: var(--fabric-topbar-button-text);
+  background: var(--fabric-app-topbar-topbar-button-bg);
+  color: var(--fabric-app-topbar-topbar-button-text);
   font-size: 15px;
   line-height: 1;
 }
@@ -313,7 +313,7 @@ function handleProfileDropdownAction(
 .app-topbar__profile-name {
   max-width: 160px;
   overflow: hidden;
-  color: var(--fabric-topbar-button-text);
+  color: var(--fabric-app-topbar-topbar-button-text);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
   text-overflow: ellipsis;
@@ -326,12 +326,12 @@ function handleProfileDropdownAction(
   align-items: center;
   justify-content: center;
   gap: 0;
-  color: var(--fabric-topbar-search-text);
+  color: var(--fabric-app-topbar-topbar-search-text);
   line-height: 0;
 }
 
 .app-topbar__separator {
-  color: var(--fabric-topbar-search-text);
+  color: var(--fabric-app-topbar-topbar-search-text);
   font-size: var(--fabric-text-sm);
 }
 
@@ -347,7 +347,7 @@ function handleProfileDropdownAction(
   right: calc(-1 * 2px);
   min-width: var(--fabric-space-4);
   height: var(--fabric-space-4);
-  color: var(--fabric-topbar-notification-badge-text);
+  color: var(--fabric-app-topbar-topbar-notification-badge-text);
   font-size: 5px;
   font-weight: var(--fabric-font-bold);
   text-align: center;

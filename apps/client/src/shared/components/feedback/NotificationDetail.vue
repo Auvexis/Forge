@@ -125,7 +125,7 @@ function formatDate(value: string) {
 
 .notification-detail__level {
   width: max-content;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-notification-detail-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   text-transform: uppercase;
@@ -138,14 +138,14 @@ function formatDate(value: string) {
 }
 
 .notification-detail h2 {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-notification-detail-text-primary);
   font-size: var(--fabric-text-lg);
   line-height: var(--fabric-leading-tight);
 }
 
 .notification-detail p,
 .notification-detail dd {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-notification-detail-text-secondary);
 }
 
 .notification-detail__meta {
@@ -159,7 +159,7 @@ function formatDate(value: string) {
 }
 
 .notification-detail dt {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-notification-detail-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -172,10 +172,10 @@ function formatDate(value: string) {
   max-height: 220px;
   overflow: auto;
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-notification-detail-border);
   border-radius: var(--fabric-notification-detail-preview-radius);
-  background: var(--fabric-bg-base);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-notification-detail-bg-base);
+  color: var(--fabric-notification-detail-text-secondary);
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
 }

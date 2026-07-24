@@ -140,7 +140,7 @@ onUnmounted(() => {
   max-height: 90vh;
   border-radius: var(--fabric-app-dialog-radius);
   overflow: hidden;
-  box-shadow: var(--fabric-shadow-xl);
+  box-shadow: var(--fabric-app-dialog-shadow-xl);
 }
 
 /* ── Sizes ─────────────────────────────────────── */
@@ -163,7 +163,7 @@ onUnmounted(() => {
   align-items: flex-start;
   justify-content: space-between;
   padding: var(--fabric-space-5) var(--fabric-space-6);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-app-dialog-border);
 }
 
 .app-dialog__title-block {
@@ -175,13 +175,13 @@ onUnmounted(() => {
 .app-dialog__title {
   font-size: var(--fabric-text-lg);
   font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-dialog-text-primary);
   margin: 0;
 }
 
 .app-dialog__description {
   font-size: var(--fabric-text-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-app-dialog-text-secondary);
   line-height: var(--fabric-leading-normal);
   margin: 0;
 }
@@ -193,14 +193,14 @@ onUnmounted(() => {
   width: 32px;
   height: 32px;
   border-radius: var(--fabric-app-dialog-close-radius);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-app-dialog-text-secondary);
   transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   margin: -4px -8px 0 0; /* optical alignment */
 }
 
 .app-dialog__close:hover {
-  background-color: var(--fabric-bg-muted);
-  color: var(--fabric-text-primary);
+  background-color: var(--fabric-app-dialog-bg-muted);
+  color: var(--fabric-app-dialog-text-primary);
 }
 
 .app-dialog__body {
@@ -215,7 +215,7 @@ onUnmounted(() => {
   justify-content: flex-end;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-4) var(--fabric-space-6);
-  border-top: 1px solid var(--fabric-border);
-  background-color: var(--fabric-bg-surface);
+  border-top: 1px solid var(--fabric-app-dialog-border);
+  background-color: var(--fabric-app-dialog-bg-surface);
 }
 </style>

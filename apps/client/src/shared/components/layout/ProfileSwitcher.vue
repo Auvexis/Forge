@@ -115,7 +115,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   min-height: 34px;
   padding: 0;
   border: 0;
-  color: var(--fabric-sidebar-text);
+  color: var(--fabric-profile-switcher-sidebar-text);
   background: transparent;
   font: inherit;
   text-align: left;
@@ -138,10 +138,10 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   width: 30px;
   height: 30px;
   border-radius: var(--fabric-profile-switcher-avatar-radius);
-  background: var(--fabric-bg-base);
+  background: var(--fabric-profile-switcher-bg-base);
   font-size: 17px;
   line-height: 1;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-profile-switcher-border);
 }
 
 .profile-switcher__summary-text {
@@ -153,7 +153,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
 .profile-switcher__summary-name {
   overflow: hidden;
-  color: var(--fabric-sidebar-text);
+  color: var(--fabric-profile-switcher-sidebar-text);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
   line-height: 1.2;
@@ -163,7 +163,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 
 .profile-switcher__summary-email {
   overflow: hidden;
-  color: var(--fabric-sidebar-text-muted);
+  color: var(--fabric-profile-switcher-sidebar-text-muted);
   font-size: var(--fabric-text-xs);
   line-height: 1.2;
   text-overflow: ellipsis;
@@ -177,7 +177,7 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-2) var(--fabric-space-3) var(--fabric-space-3);
   margin-bottom: var(--fabric-space-1);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-profile-switcher-border);
 }
 
 .profile-switcher__summary-avatar {
@@ -187,10 +187,10 @@ function handleAction(actionId: ProfileSwitcherAction['id']) {
 }
 
 .profile-switcher__summary-name {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-profile-switcher-text-primary);
 }
 
 .profile-switcher__summary-email {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-profile-switcher-text-muted);
 }
 </style>

@@ -15,14 +15,14 @@ test('shared dropdown and select items keep native hover and active backgrounds'
   const dropdownItem = read('src/shared/components/overlay/Dropdown/AppDropdownItem.vue')
 
   assert.doesNotMatch(baseSelect, /style="position: relative; z-index: 1; background: transparent;"/)
-  assert.match(baseSelect, /\.base-select-option:hover[\s\S]*background:\s*var\(--fabric-button-ghost-hover\)/)
-  assert.match(baseSelect, /\.base-select-option--selected[\s\S]*background:\s*var\(--fabric-button-ghost-active\)/)
+  assert.match(baseSelect, /\.base-select-option:hover[\s\S]*background:\s*var\(--fabric-base-select-button-ghost-hover\)/)
+  assert.match(baseSelect, /\.base-select-option--selected[\s\S]*background:\s*var\(--fabric-base-select-button-ghost-active\)/)
 
-  assert.match(dropdownSelect, /\.base-dropdown-select__option:hover[\s\S]*background:\s*var\(--fabric-button-ghost-hover\)/)
-  assert.match(dropdownSelect, /\.base-dropdown-select__option--active[\s\S]*background:\s*var\(--fabric-button-ghost-active\)/)
+  assert.match(dropdownSelect, /\.base-dropdown-select__option:hover[\s\S]*background:\s*var\(--fabric-base-dropdown-select-button-ghost-hover\)/)
+  assert.match(dropdownSelect, /\.base-dropdown-select__option--active[\s\S]*background:\s*var\(--fabric-base-dropdown-select-button-ghost-active\)/)
 
-  assert.match(dropdownItem, /\.app-dropdown-item:hover:not\(:disabled\)[\s\S]*background:\s*var\(--fabric-button-ghost-hover\)/)
-  assert.match(dropdownItem, /\.app-dropdown-item--danger:hover:not\(:disabled\)[\s\S]*background:\s*var\(--fabric-status-error-bg\)/)
+  assert.match(dropdownItem, /\.app-dropdown-item:hover:not\(:disabled\)[\s\S]*background:\s*var\(--fabric-app-dropdown-item-button-ghost-hover\)/)
+  assert.match(dropdownItem, /\.app-dropdown-item--danger:hover:not\(:disabled\)[\s\S]*background:\s*var\(--fabric-app-dropdown-item-status-error-bg\)/)
 })
 
 test('shared layout menus keep hover and active feedback after animated menu removal', () => {

@@ -39,12 +39,12 @@ withDefaults(
 
 .loading-spinner {
   animation: spin 1s linear infinite;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-loading-spinner-text-muted);
 }
 
 .loading-spinner__text {
   font-size: var(--fabric-text-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-loading-spinner-text-secondary);
 }
 
 @keyframes spin {

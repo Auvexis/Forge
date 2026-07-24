@@ -270,11 +270,11 @@ onMounted(() => {
   width: 78px;
   height: 78px;
   overflow: hidden;
-  border: 3px solid var(--fabric-bg-base);
+  border: 3px solid var(--fabric-auvexis-account-settings-bg-base);
   border-radius: var(--fabric-auvexis-account-settings-avatar-radius);
-  background: var(--fabric-bg-surface);
-  box-shadow: 0 0 0 1px var(--fabric-border);
-  color: var(--fabric-text-muted);
+  background: var(--fabric-auvexis-account-settings-bg-surface);
+  box-shadow: 0 0 0 1px var(--fabric-auvexis-account-settings-border);
+  color: var(--fabric-auvexis-account-settings-text-muted);
   flex: 0 0 auto;
 }
 
@@ -310,7 +310,7 @@ onMounted(() => {
 
 .auvexis-settings__title {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-auvexis-account-settings-text-primary);
   font-size: 18px;
   font-weight: 700;
   line-height: 1.2;
@@ -320,13 +320,13 @@ onMounted(() => {
 .auvexis-settings__muted,
 .auvexis-settings__label {
   margin: 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-auvexis-account-settings-text-muted);
   font-size: 12px;
   line-height: 1.35;
 }
 
 .auvexis-settings__label {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-auvexis-account-settings-text-primary);
   font-weight: 600;
 }
 
@@ -337,15 +337,15 @@ onMounted(() => {
   gap: 8px;
   padding: 18px 34px;
   font-size: 12px;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-auvexis-account-settings-text-secondary);
 }
 
 .auvexis-settings__notice {
   margin: 0 34px;
-  border-top: 1px solid var(--fabric-border-muted);
-  border-bottom: 1px solid var(--fabric-border-muted);
+  border-top: 1px solid var(--fabric-auvexis-account-settings-border-muted);
+  border-bottom: 1px solid var(--fabric-auvexis-account-settings-border-muted);
   background: transparent;
-  color: var(--fabric-status-running-text);
+  color: var(--fabric-auvexis-account-settings-status-running-text);
 }
 
 .auvexis-settings__body,
@@ -371,18 +371,18 @@ onMounted(() => {
 
 .auvexis-settings__metric + .auvexis-settings__metric {
   padding-left: 14px;
-  border-left: 1px solid var(--fabric-border-muted);
+  border-left: 1px solid var(--fabric-auvexis-account-settings-border-muted);
 }
 
 .auvexis-settings__metric span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-auvexis-account-settings-text-muted);
   font-size: 12px;
   line-height: 1.2;
 }
 
 .auvexis-settings__metric strong {
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-auvexis-account-settings-text-primary);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.25;
@@ -401,7 +401,7 @@ onMounted(() => {
   align-items: center;
   gap: 14px;
   padding: 14px 0;
-  border-top: 1px solid var(--fabric-border-muted);
+  border-top: 1px solid var(--fabric-auvexis-account-settings-border-muted);
 }
 
 .auvexis-settings__row--top {
@@ -428,10 +428,10 @@ onMounted(() => {
   min-height: 36px;
   padding: 0 12px;
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-auvexis-account-settings-border);
   border-radius: var(--fabric-auvexis-account-settings-card-radius);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-auvexis-account-settings-bg-surface);
+  color: var(--fabric-auvexis-account-settings-text-primary);
   font-size: 13px;
   font-weight: 500;
   line-height: 1.2;
@@ -461,13 +461,13 @@ onMounted(() => {
 
 .auvexis-settings__username-control > svg {
   padding-left: 6px;
-  color: var(--fabric-accent);
+  color: var(--fabric-auvexis-account-settings-accent);
 }
 
 .auvexis-settings__username-prefix {
-  border-right: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-bg-muted);
-  color: var(--fabric-text-muted);
+  border-right: 1px solid var(--fabric-auvexis-account-settings-border-muted);
+  background: var(--fabric-auvexis-account-settings-bg-muted);
+  color: var(--fabric-auvexis-account-settings-text-muted);
 }
 
 .auvexis-settings__badge-wrap {
@@ -506,11 +506,11 @@ onMounted(() => {
   flex-direction: column;
   gap: 6px;
   padding: 10px 12px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-auvexis-account-settings-border);
   border-radius: var(--fabric-auvexis-account-settings-card-radius);
-  background: var(--fabric-bg-overlay);
-  box-shadow: var(--fabric-shadow-lg);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-auvexis-account-settings-bg-overlay);
+  box-shadow: var(--fabric-auvexis-account-settings-shadow-lg);
+  color: var(--fabric-auvexis-account-settings-text-secondary);
   font-size: 12px;
   line-height: 1.4;
   opacity: 0;
@@ -522,7 +522,7 @@ onMounted(() => {
 }
 
 .auvexis-settings__badge-hint strong {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-auvexis-account-settings-text-primary);
   font-size: 13px;
 }
 
@@ -538,9 +538,9 @@ onMounted(() => {
 .auvexis-settings__error {
   margin: 0;
   padding: 12px 34px;
-  border-top: 1px solid var(--fabric-border-muted);
+  border-top: 1px solid var(--fabric-auvexis-account-settings-border-muted);
   font-size: 12px;
-  color: var(--fabric-status-error-text);
+  color: var(--fabric-auvexis-account-settings-status-error-text);
 }
 
 .auvexis-settings__actions {

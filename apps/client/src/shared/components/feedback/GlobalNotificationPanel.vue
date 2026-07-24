@@ -213,17 +213,17 @@ function labelFromIdentifier(identifier: string) {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   gap: var(--fabric-space-4);
-  width: min(var(--fabric-panel-width-wide), calc(100vw - var(--fabric-space-8)));
+  width: min(var(--fabric-global-notification-panel-panel-width-wide), calc(100vw - var(--fabric-space-8)));
   min-height: min(420px, calc(100vh - var(--fabric-space-4)));
   max-height: calc(100vh - var(--fabric-space-4));
   overflow: visible;
   padding: var(--fabric-space-4);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-global-notification-panel-border);
   border-top: 0;
   border-radius: var(--fabric-notification-panel-header-radius);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-xl);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-global-notification-panel-bg-surface);
+  box-shadow: var(--fabric-global-notification-panel-shadow-xl);
+  color: var(--fabric-global-notification-panel-text-primary);
   pointer-events: auto;
   outline: none;
   z-index: 1;
@@ -247,14 +247,14 @@ function labelFromIdentifier(identifier: string) {
 }
 
 .notification-panel__header p {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-global-notification-panel-text-secondary);
   font-size: var(--fabric-text-sm);
 }
 
 .notification-panel__body {
   position: relative;
   min-height: 0;
-  max-height: calc(100vh - var(--fabric-space-16));
+  max-height: calc(100vh - var(--fabric-space-16);
   overflow: visible;
 }
 
@@ -275,16 +275,16 @@ function labelFromIdentifier(identifier: string) {
   z-index: 3;
   overflow: auto;
   min-height: 100%;
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-global-notification-panel-bg-surface);
 }
 
 .notification-panel__tabs-carousel {
   position: relative;
   overflow: hidden;
   padding: var(--fabric-space-1);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-global-notification-panel-border);
   border-radius: var(--fabric-notification-panel-action-radius);
-  background: var(--fabric-bg-base);
+  background: var(--fabric-global-notification-panel-bg-base);
 }
 
 .notification-panel__tabs-carousel::before,
@@ -317,10 +317,10 @@ function labelFromIdentifier(identifier: string) {
 .notification-panel__tab {
   flex: 0 0 auto;
   padding: var(--fabric-space-2) var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-global-notification-panel-border);
   border-radius: var(--fabric-notification-panel-item-radius);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-global-notification-panel-bg-surface);
+  color: var(--fabric-global-notification-panel-text-secondary);
   font: inherit;
   font-size: var(--fabric-text-sm);
   cursor: pointer;
@@ -333,9 +333,9 @@ function labelFromIdentifier(identifier: string) {
 
 .notification-panel__tab:hover,
 .notification-panel__tab--active {
-  border-color: var(--fabric-border-strong);
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-overlay);
+  border-color: var(--fabric-global-notification-panel-border-strong);
+  color: var(--fabric-global-notification-panel-text-primary);
+  background: var(--fabric-global-notification-panel-bg-overlay);
 }
 
 .notification-panel__controls {

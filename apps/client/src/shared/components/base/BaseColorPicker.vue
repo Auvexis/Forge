@@ -61,20 +61,20 @@ const safeColorValue = computed(() => {
   gap: 6px;
   height: 32px;
   padding: 3px 8px 3px 3px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-base-color-picker-border);
   border-radius: var(--fabric-base-color-picker-radius);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-base-color-picker-bg-surface);
   transition: border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
               box-shadow var(--fabric-duration-fast) var(--fabric-ease-standard);
   position: relative;
 }
 
 .bcp-root:hover {
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-base-color-picker-border-strong);
 }
 
 .bcp-root:focus-within {
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-base-color-picker-border-strong);
 }
 
 .bcp-root--disabled {
@@ -131,12 +131,12 @@ const safeColorValue = computed(() => {
   border: none;
   font-size: 11px;
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-color-picker-text-primary);
   outline: none;
   padding: 0;
   letter-spacing: 0.02em;
 }
 .bcp-text-input::placeholder {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-color-picker-text-muted);
 }
 </style>

@@ -50,8 +50,8 @@ defineEmits<{
   height: var(--fabric-base-rail-item-height, 36px);
   border: 1px solid transparent;
   border-radius: var(--fabric-base-rail-button-toggle-item-radius);
-  background: var(--fabric-workbench-rail-button-bg, transparent);
-  color: var(--fabric-workbench-rail-button-text, var(--fabric-text-muted));
+  background: var(--fabric-base-rail-button-toggle-item-workbench-rail-button-bg);
+  color: var(--fabric-base-rail-button-toggle-item-workbench-rail-button-text);
   cursor: pointer;
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -61,8 +61,8 @@ defineEmits<{
 
 .base-rail-toggle-item:hover:not(:disabled) {
   border-color: transparent;
-  background: var(--fabric-workbench-rail-button-hover-bg, var(--fabric-button-ghost-hover));
-  color: var(--fabric-workbench-rail-button-hover-text, var(--fabric-text-primary));
+  background: var(--fabric-base-rail-button-toggle-item-workbench-rail-button-hover-bg);
+  color: var(--fabric-base-rail-button-toggle-item-workbench-rail-button-hover-text);
 }
 
 .base-rail-toggle-item:disabled {
@@ -71,7 +71,7 @@ defineEmits<{
 }
 
 .base-rail-toggle-item--on {
-  color: var(--fabric-workbench-rail-button-toggle-text, var(--fabric-accent));
+  color: var(--fabric-base-rail-button-toggle-item-workbench-rail-button-toggle-text);
 }
 
 .base-rail-toggle-item--on::after,

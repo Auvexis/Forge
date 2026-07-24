@@ -194,20 +194,20 @@ defineOptions({ inheritAttrs: false })
 .base-input-wrapper__label {
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-select-text-secondary);
   line-height: 1.1;
 }
 
 .required {
-  color: var(--fabric-text-error);
+  color: var(--fabric-base-select-text-error);
 }
 
 .base-select-container {
   display: flex;
   align-items: center;
   position: relative;
-  background-color: var(--fabric-bg-overlay);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-base-select-bg-overlay);
+  border: 1px solid var(--fabric-base-select-border);
   border-radius: var(--fabric-base-select-radius);
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -219,31 +219,31 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-select-container:hover:not(.base-select-container--disabled) {
-  background-color: var(--fabric-bg-surface);
-  border-color: var(--fabric-border-muted);
+  background-color: var(--fabric-base-select-bg-surface);
+  border-color: var(--fabric-base-select-border-muted);
 }
 
 .base-select-container:focus {
-  border-color: var(--fabric-border-brand);
+  border-color: var(--fabric-base-select-border-brand);
 }
 
 .base-select-container--error {
-  border-color: var(--fabric-red-500);
+  border-color: var(--fabric-base-select-red500);
 }
 
 .base-select-container--open {
-  background-color: var(--fabric-bg-surface);
-  border-color: var(--fabric-border-brand);
+  background-color: var(--fabric-base-select-bg-surface);
+  border-color: var(--fabric-base-select-border-brand);
 }
 
 .base-select-container--error.base-select-container--open {
-  box-shadow: 0 0 0 1px var(--fabric-red-500);
+  box-shadow: 0 0 0 1px var(--fabric-base-select-red500);
 }
 
 .base-select-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--fabric-bg-muted);
+  background-color: var(--fabric-base-select-bg-muted);
 }
 
 .base-select-trigger {
@@ -254,12 +254,12 @@ defineOptions({ inheritAttrs: false })
   width: 100%;
   min-height: 24px;
   padding: 0 28px 0 8px;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-select-text-primary);
   font-size: 12px;
 }
 
 .placeholder {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-select-text-muted);
 }
 
 .base-select__icon {
@@ -268,7 +268,7 @@ defineOptions({ inheritAttrs: false })
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-select-text-secondary);
   width: 28px;
   height: 100%;
   pointer-events: none;
@@ -283,8 +283,8 @@ defineOptions({ inheritAttrs: false })
 .base-select-dropdown {
   max-height: 240px;
   overflow-y: auto;
-  background-color: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border-strong);
+  background-color: var(--fabric-base-select-bg-surface);
+  border: 1px solid var(--fabric-base-select-border-strong);
   border-radius: var(--fabric-base-select-menu-radius);
   box-shadow: none;
   gap: 1px;
@@ -303,7 +303,7 @@ defineOptions({ inheritAttrs: false })
   min-height: 24px;
   padding: 0 8px;
   font-size: 12px;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-select-text-primary);
   border-radius: var(--fabric-base-select-option-radius);
   background: transparent;
   cursor: pointer;
@@ -313,20 +313,20 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-select-option:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
+  background: var(--fabric-base-select-button-ghost-hover);
+  color: var(--fabric-base-select-button-ghost-hover-text);
 }
 
 .base-select-option--selected {
-  background: var(--fabric-button-ghost-active);
-  color: var(--fabric-button-ghost-active-text);
+  background: var(--fabric-base-select-button-ghost-active);
+  color: var(--fabric-base-select-button-ghost-active-text);
 }
 
 .base-select-empty {
   padding: 8px;
   text-align: center;
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-select-text-muted);
 }
 
 /* Icons & Images */
@@ -354,13 +354,13 @@ defineOptions({ inheritAttrs: false })
 
 .base-input-wrapper__error {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-error);
+  color: var(--fabric-base-select-text-error);
   margin-top: 2px;
 }
 
 .base-input-wrapper__hint {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-select-text-muted);
   margin-top: 2px;
 }
 </style>

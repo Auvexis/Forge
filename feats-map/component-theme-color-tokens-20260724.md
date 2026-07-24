@@ -1,0 +1,5 @@
+- [x] Mapear componentes Vue e tokens genéricos visuais
+- [x] Gerar aliases por componente nos temas JSON
+- [x] Aplicar aliases nos componentes Vue
+- [x] Sincronizar template e fallbacks CSS
+- [x] Rodar auditoria e testes focados

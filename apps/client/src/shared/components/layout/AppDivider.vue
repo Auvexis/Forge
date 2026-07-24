@@ -30,7 +30,7 @@ withDefaults(
 
 <style>
 .app-divider {
-  background: var(--fabric-border);
+  background: var(--fabric-app-divider-border);
   flex-shrink: 0;
 }
 

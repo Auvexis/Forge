@@ -76,9 +76,9 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   display: flex;
   flex-direction: column;
   min-width: 200px;
-  border: 1px solid color-mix(in srgb, var(--fabric-border-strong) 76%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fabric-app-dropdown-menu-border-strong) 76%, transparent);
   border-radius: var(--fabric-app-dropdown-menu-radius);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-app-dropdown-menu-bg-surface);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.24);
   overflow: hidden;
 }
@@ -87,8 +87,8 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   height: 28px;
   padding: 0 10px;
   margin-bottom: 0;
-  border-bottom: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-workbench-panel-header-bg, var(--fabric-bg-elevated));
+  border-bottom: 1px solid var(--fabric-app-dropdown-menu-border-muted);
+  background: var(--fabric-app-dropdown-menu-workbench-panel-header-bg);
   display: flex;
   align-items: center;
 }
@@ -96,7 +96,7 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
 .app-dropdown-menu__title {
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-app-dropdown-menu-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }

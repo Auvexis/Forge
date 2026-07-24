@@ -151,9 +151,9 @@ onUnmounted(() => {
   max-height: 256px;
   gap: 1px;
   overflow-y: auto;
-  border: 1px solid var(--fabric-border-strong);
+  border: 1px solid var(--fabric-base-dropdown-select-border-strong);
   border-radius: var(--fabric-base-dropdown-select-menu-radius);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-base-dropdown-select-bg-surface);
   padding: 3px;
   box-shadow: none;
 }
@@ -179,13 +179,13 @@ onUnmounted(() => {
 
 .base-dropdown-select__option:hover,
 .base-dropdown-select__option:active {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
+  background: var(--fabric-base-dropdown-select-button-ghost-hover);
+  color: var(--fabric-base-dropdown-select-button-ghost-hover-text);
 }
 
 .base-dropdown-select__option--active {
-  background: var(--fabric-button-ghost-active);
-  color: var(--fabric-button-ghost-active-text);
+  background: var(--fabric-base-dropdown-select-button-ghost-active);
+  color: var(--fabric-base-dropdown-select-button-ghost-active-text);
 }
 
 .base-dropdown-select__option :deep(.base-button__label) {
@@ -197,7 +197,7 @@ onUnmounted(() => {
 
 .base-dropdown-select__option-meta {
   flex: 0 0 auto;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-dropdown-select-text-primary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   line-height: 1;
@@ -217,12 +217,12 @@ onUnmounted(() => {
 }
 
 .base-dropdown-select__option-copy strong {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-dropdown-select-text-primary);
   font-size: var(--fabric-text-xs);
 }
 
 .base-dropdown-select__option-copy small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-dropdown-select-text-muted);
   font-size: 10px;
 }
 
@@ -238,7 +238,7 @@ onUnmounted(() => {
 .base-dropdown-select-up-enter-from,
 .base-dropdown-select-up-leave-to {
   opacity: 0;
-  transform: translateY(var(--fabric-space-2));
+  transform: translateY(var(--fabric-space-2);
 }
 
 .base-dropdown-select-down-enter-from,

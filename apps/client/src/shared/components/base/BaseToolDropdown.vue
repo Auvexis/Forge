@@ -203,8 +203,8 @@ onBeforeUnmount(() => {
   z-index: 1;
   padding: 4px 7px;
   border-radius: var(--fabric-base-tool-dropdown-badge-radius);
-  background: var(--fabric-text-primary);
-  color: var(--fabric-bg-surface);
+  background: var(--fabric-base-tool-dropdown-text-primary);
+  color: var(--fabric-base-tool-dropdown-bg-surface);
   content: attr(data-tooltip);
   font-size: var(--fabric-text-xs);
   opacity: 0;
@@ -229,10 +229,10 @@ onBeforeUnmount(() => {
   min-width: 156px;
   gap: 2px;
   padding: var(--fabric-space-1);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-base-tool-dropdown-border);
   border-radius: var(--fabric-base-tool-dropdown-menu-radius);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-lg);
+  background: var(--fabric-base-tool-dropdown-bg-surface);
+  box-shadow: var(--fabric-base-tool-dropdown-shadow-lg);
 }
 
 .base-tool-dropdown__item {
@@ -243,14 +243,14 @@ onBeforeUnmount(() => {
   min-height: 30px;
   padding: 0 var(--fabric-space-2);
   border-radius: var(--fabric-base-tool-dropdown-item-radius);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-tool-dropdown-text-primary);
   cursor: grab;
   font-size: var(--fabric-text-xs);
   text-align: left;
 }
 
 .base-tool-dropdown__item:hover {
-  background: var(--fabric-button-ghost-hover);
+  background: var(--fabric-base-tool-dropdown-button-ghost-hover);
 }
 
 .base-tool-dropdown__item:active {

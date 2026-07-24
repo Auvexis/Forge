@@ -93,18 +93,18 @@ function showPreview(key: string) {
 </template>
 
 <style scoped>
-.execution-node-inspector { height: 100%; min-height: 0; overflow: auto; padding: var(--fabric-space-4); background-color: var(--fabric-bg-surface); }
-.execution-node-inspector__empty { height: 100%; display: grid; place-items: center; color: var(--fabric-text-muted); font-size: var(--fabric-text-sm); }
+.execution-node-inspector { height: 100%; min-height: 0; overflow: auto; padding: var(--fabric-space-4); background-color: var(--fabric-execution-node-inspector-bg-surface); }
+.execution-node-inspector__empty { height: 100%; display: grid; place-items: center; color: var(--fabric-execution-node-inspector-text-muted); font-size: var(--fabric-text-sm); }
 .execution-node-inspector__header { display: flex; align-items: center; gap: var(--fabric-space-3); margin-bottom: var(--fabric-space-4); }
 .execution-node-inspector__avatar { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; font-size: 24px; line-height: 1; }
-.execution-node-inspector__header h3 { margin: 0; color: var(--fabric-text-primary); font-size: var(--fabric-text-base); font-weight: var(--fabric-font-semibold); }
-.execution-node-inspector__header p { margin: 3px 0 0; color: var(--fabric-text-muted); font-size: var(--fabric-text-xs); }
-.execution-node-inspector__section { margin-top: var(--fabric-space-3); overflow: hidden; border: 1px solid var(--fabric-border-muted); border-radius: var(--fabric-execution-node-inspector-section-radius); background-color: var(--fabric-bg-base); }
-.execution-node-inspector__section--error { border-color: var(--fabric-status-error-border); }
-.execution-node-inspector__section summary { padding: var(--fabric-space-2) var(--fabric-space-3); border-bottom: 1px solid transparent; color: var(--fabric-text-secondary); font-size: var(--fabric-text-xs); font-weight: var(--fabric-font-semibold); cursor: pointer; }
-.execution-node-inspector__section[open] summary { border-bottom-color: var(--fabric-border-muted); }
-.execution-node-inspector__section--error summary { color: var(--fabric-status-error-text); }
-.execution-node-inspector__section pre { max-height: 240px; margin: 0; overflow: auto; padding: var(--fabric-space-3); color: var(--fabric-text-secondary); font-family: var(--fabric-font-mono); font-size: var(--fabric-text-xs); line-height: 1.5; white-space: pre-wrap; }
+.execution-node-inspector__header h3 { margin: 0; color: var(--fabric-execution-node-inspector-text-primary); font-size: var(--fabric-text-base); font-weight: var(--fabric-font-semibold); }
+.execution-node-inspector__header p { margin: 3px 0 0; color: var(--fabric-execution-node-inspector-text-muted); font-size: var(--fabric-text-xs); }
+.execution-node-inspector__section { margin-top: var(--fabric-space-3); overflow: hidden; border: 1px solid var(--fabric-execution-node-inspector-border-muted); border-radius: var(--fabric-execution-node-inspector-section-radius); background-color: var(--fabric-execution-node-inspector-bg-base); }
+.execution-node-inspector__section--error { border-color: var(--fabric-execution-node-inspector-status-error-border); }
+.execution-node-inspector__section summary { padding: var(--fabric-space-2) var(--fabric-space-3); border-bottom: 1px solid transparent; color: var(--fabric-execution-node-inspector-text-secondary); font-size: var(--fabric-text-xs); font-weight: var(--fabric-font-semibold); cursor: pointer; }
+.execution-node-inspector__section[open] summary { border-bottom-color: var(--fabric-execution-node-inspector-border-muted); }
+.execution-node-inspector__section--error summary { color: var(--fabric-execution-node-inspector-status-error-text); }
+.execution-node-inspector__section pre { max-height: 240px; margin: 0; overflow: auto; padding: var(--fabric-space-3); color: var(--fabric-execution-node-inspector-text-secondary); font-family: var(--fabric-font-mono); font-size: var(--fabric-text-xs); line-height: 1.5; white-space: pre-wrap; }
 .execution-node-inspector__section :deep(.base-code-editor) { border: 0; border-radius: var(--fabric-execution-node-inspector-code-editor-radius); }
-.execution-node-inspector__guard { display: flex; align-items: center; justify-content: space-between; gap: var(--fabric-space-3); padding: var(--fabric-space-3); color: var(--fabric-text-muted); font-size: var(--fabric-text-xs); }
+.execution-node-inspector__guard { display: flex; align-items: center; justify-content: space-between; gap: var(--fabric-space-3); padding: var(--fabric-space-3); color: var(--fabric-execution-node-inspector-text-muted); font-size: var(--fabric-text-xs); }
 </style>

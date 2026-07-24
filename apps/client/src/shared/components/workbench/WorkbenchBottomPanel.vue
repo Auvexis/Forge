@@ -89,9 +89,9 @@ const panelStyle = computed(() => ({
   flex-direction: column;
   overflow: hidden;
   z-index: var(--fabric-z-panel, 34);
-  border-top: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workbench-panel-bg);
-  color: var(--fabric-text-primary);
+  border-top: 1px solid var(--fabric-workbench-bottom-panel-workbench-border);
+  background: var(--fabric-workbench-bottom-panel-workbench-panel-bg);
+  color: var(--fabric-workbench-bottom-panel-text-primary);
 }
 
 .workbench-bottom-panel__resize {
@@ -105,7 +105,7 @@ const panelStyle = computed(() => ({
 }
 
 .workbench-bottom-panel__resize:hover {
-  background: color-mix(in srgb, var(--fabric-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--fabric-workbench-bottom-panel-accent) 28%, transparent);
 }
 
 .workbench-bottom-panel__header {
@@ -117,8 +117,8 @@ const panelStyle = computed(() => ({
   height: 32px;
   min-height: 32px;
   padding: 0 8px 0 10px;
-  border-bottom: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workbench-panel-header-bg, var(--fabric-workbench-panel-bg));
+  border-bottom: 1px solid var(--fabric-workbench-bottom-panel-workbench-border);
+  background: var(--fabric-workbench-bottom-panel-workbench-panel-header-bg);
 }
 
 .workbench-bottom-panel__title {
@@ -127,7 +127,7 @@ const panelStyle = computed(() => ({
   align-items: center;
   gap: 8px;
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workbench-bottom-panel-text-primary);
   font-size: 12px;
   font-weight: 650;
   line-height: 1;
@@ -145,15 +145,15 @@ const panelStyle = computed(() => ({
   border: 0;
   border-radius: var(--fabric-workbench-bottom-panel-radius);
   background: transparent;
-  color: var(--fabric-panel-close-color, var(--fabric-text-muted));
+  color: var(--fabric-workbench-bottom-panel-panel-close-color);
   cursor: pointer;
   font-size: 18px;
   line-height: 1;
 }
 
 .workbench-bottom-panel__close:hover {
-  background: var(--fabric-panel-close-hover-bg, var(--fabric-button-ghost-hover));
-  color: var(--fabric-panel-close-hover-color, var(--fabric-text-primary));
+  background: var(--fabric-workbench-bottom-panel-panel-close-hover-bg);
+  color: var(--fabric-workbench-bottom-panel-panel-close-hover-color);
 }
 
 .workbench-bottom-panel__body {

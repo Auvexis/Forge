@@ -21,8 +21,8 @@
   justify-content: space-between;
   height: var(--fabric-dock-height);
   padding: 0 var(--fabric-space-3);
-  background-color: var(--fabric-bg-surface);
-  border-bottom: 1px solid var(--fabric-border);
+  background-color: var(--fabric-app-dock-bg-surface);
+  border-bottom: 1px solid var(--fabric-app-dock-border);
 }
 
 .app-dock__left,

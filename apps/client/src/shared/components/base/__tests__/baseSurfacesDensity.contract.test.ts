@@ -72,7 +72,7 @@ describe('base surface density', () => {
   it('supports a text-only BaseButton link variant', () => {
     assert.match(baseButtonSource, /export type ButtonVariant = [^\n]*'link'/)
     assert.match(baseButtonSource, /\.base-button--link\s*\{[\s\S]*background-color: transparent;/)
-    assert.match(baseButtonSource, /\.base-button--link\s*\{[\s\S]*color: var\(--fabric-accent\);/)
+    assert.match(baseButtonSource, /\.base-button--link\s*\{[\s\S]*color: var\(--fabric-base-button-accent\);/)
     assert.match(baseButtonSource, /\.base-button--link:hover\s*\{[\s\S]*background-color: transparent;/)
     assert.match(baseButtonSource, /\.base-button--link:hover\s*\{[\s\S]*text-decoration: underline;/)
   })

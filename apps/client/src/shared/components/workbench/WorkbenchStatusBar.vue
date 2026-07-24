@@ -30,8 +30,8 @@ withDefaults(
   height: var(--fabric-workbench-status-height, 24px);
   min-width: 0;
   overflow: hidden;
-  background: var(--fabric-workbench-status-bg);
-  color: var(--fabric-workbench-status-text);
+  background: var(--fabric-workbench-status-bar-workbench-status-bg);
+  color: var(--fabric-workbench-status-bar-workbench-status-text);
   font-size: 11px;
 }
 

@@ -162,93 +162,93 @@ defineOptions({ inheritAttrs: false })
 /* ── Variants ──────────────────────────────────── */
 /* Primary */
 .base-button--primary {
-  background-color: var(--fabric-button-primary-bg);
-  color: var(--fabric-button-primary-text);
-  border: 1px solid var(--fabric-button-primary-border);
+  background-color: var(--fabric-base-button-button-primary-bg);
+  color: var(--fabric-base-button-button-primary-text);
+  border: 1px solid var(--fabric-base-button-button-primary-border);
 }
 .base-button--primary:hover {
-  background-color: var(--fabric-button-primary-hover);
-  color: var(--fabric-button-primary-text);
+  background-color: var(--fabric-base-button-button-primary-hover);
+  color: var(--fabric-base-button-button-primary-text);
 }
 .base-button--primary:active {
-  background-color: var(--fabric-button-primary-active);
-  color: var(--fabric-button-primary-active-text);
+  background-color: var(--fabric-base-button-button-primary-active);
+  color: var(--fabric-base-button-button-primary-active-text);
 }
 
 /* Secondary */
 .base-button--secondary {
-  background-color: var(--fabric-button-secondary-bg);
-  color: var(--fabric-button-secondary-text);
-  border: 1px solid var(--fabric-button-secondary-border);
+  background-color: var(--fabric-base-button-button-secondary-bg);
+  color: var(--fabric-base-button-button-secondary-text);
+  border: 1px solid var(--fabric-base-button-button-secondary-border);
 }
 .base-button--secondary:hover {
-  background-color: var(--fabric-button-secondary-hover);
-  color: var(--fabric-button-secondary-text);
+  background-color: var(--fabric-base-button-button-secondary-hover);
+  color: var(--fabric-base-button-button-secondary-text);
 }
 .base-button--secondary:active {
-  background-color: var(--fabric-button-secondary-active);
-  color: var(--fabric-button-secondary-active-text);
+  background-color: var(--fabric-base-button-button-secondary-active);
+  color: var(--fabric-base-button-button-secondary-active-text);
 }
 
 /* Outline */
 .base-button--outline {
-  background-color: var(--fabric-button-outline-bg);
-  color: var(--fabric-button-outline-text);
-  border: 1px solid var(--fabric-button-outline-border);
+  background-color: var(--fabric-base-button-button-outline-bg);
+  color: var(--fabric-base-button-button-outline-text);
+  border: 1px solid var(--fabric-base-button-button-outline-border);
 }
 .base-button--outline:hover {
-  background-color: var(--fabric-button-outline-hover);
-  color: var(--fabric-button-outline-text);
+  background-color: var(--fabric-base-button-button-outline-hover);
+  color: var(--fabric-base-button-button-outline-text);
 }
 .base-button--outline:active {
-  background-color: var(--fabric-button-outline-active);
-  color: var(--fabric-button-outline-active-text);
+  background-color: var(--fabric-base-button-button-outline-active);
+  color: var(--fabric-base-button-button-outline-active-text);
 }
 
 /* Ghost */
 .base-button--ghost {
-  background-color: var(--fabric-button-ghost-bg);
-  color: var(--fabric-button-ghost-text);
+  background-color: var(--fabric-base-button-button-ghost-bg);
+  color: var(--fabric-base-button-button-ghost-text);
   border: 1px solid transparent;
 }
 .base-button--ghost:hover {
-  background-color: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-text);
-  border-color: var(--fabric-border-muted);
+  background-color: var(--fabric-base-button-button-ghost-hover);
+  color: var(--fabric-base-button-button-ghost-text);
+  border-color: var(--fabric-base-button-border-muted);
 }
 .base-button--ghost:active {
-  background-color: var(--fabric-button-ghost-active);
-  color: var(--fabric-button-ghost-active-text);
+  background-color: var(--fabric-base-button-button-ghost-active);
+  color: var(--fabric-base-button-button-ghost-active-text);
 }
 
 /* Danger */
 .base-button--danger {
-  background-color: var(--fabric-button-danger-bg);
-  color: var(--fabric-button-danger-text);
-  border: 1px solid var(--fabric-button-danger-border);
+  background-color: var(--fabric-base-button-button-danger-bg);
+  color: var(--fabric-base-button-button-danger-text);
+  border: 1px solid var(--fabric-base-button-button-danger-border);
 }
 .base-button--danger:hover {
-  background-color: var(--fabric-button-danger-hover);
-  color: var(--fabric-button-danger-active-text);
+  background-color: var(--fabric-base-button-button-danger-hover);
+  color: var(--fabric-base-button-button-danger-active-text);
 }
 .base-button--danger:active {
-  background-color: var(--fabric-button-danger-active);
-  color: var(--fabric-button-danger-active-text);
+  background-color: var(--fabric-base-button-button-danger-active);
+  color: var(--fabric-base-button-button-danger-active-text);
 }
 
 /* Dashed */
 .base-button--dashed {
-  background-color: var(--fabric-button-outline-bg);
-  color: var(--fabric-button-outline-text);
-  border: 1px dashed var(--fabric-button-outline-border);
+  background-color: var(--fabric-base-button-button-outline-bg);
+  color: var(--fabric-base-button-button-outline-text);
+  border: 1px dashed var(--fabric-base-button-button-outline-border);
 }
 .base-button--dashed:hover {
-  background-color: var(--fabric-button-outline-hover);
-  color: var(--fabric-button-outline-text);
+  background-color: var(--fabric-base-button-button-outline-hover);
+  color: var(--fabric-base-button-button-outline-text);
 }
 .base-button--dashed:active {
-  background-color: var(--fabric-button-outline-active);
-  color: var(--fabric-button-outline-active-text);
+  background-color: var(--fabric-base-button-button-outline-active);
+  color: var(--fabric-base-button-button-outline-active-text);
 }
 
 /* Link */
@@ -257,18 +257,18 @@ defineOptions({ inheritAttrs: false })
   padding: 0;
   border: 0;
   background-color: transparent;
-  color: var(--fabric-accent);
+  color: var(--fabric-base-button-accent);
   text-decoration: none;
   text-underline-offset: 3px;
 }
 .base-button--link:hover {
   background-color: transparent;
-  color: var(--fabric-accent);
+  color: var(--fabric-base-button-accent);
   text-decoration: underline;
 }
 .base-button--link:active {
   background-color: transparent;
-  color: var(--fabric-accent);
+  color: var(--fabric-base-button-accent);
 }
 
 .base-button__icon-left,

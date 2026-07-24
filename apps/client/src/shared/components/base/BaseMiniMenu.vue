@@ -75,8 +75,8 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 
 .bmm-dialog {
   width: 100%;
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background: var(--fabric-base-mini-menu-bg-surface);
+  border: 1px solid var(--fabric-base-mini-menu-border);
   border-radius: var(--fabric-base-mini-menu-radius);
   box-shadow: none;
   display: flex;
@@ -90,8 +90,8 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   justify-content: space-between;
   min-height: 36px;
   padding: 0 var(--fabric-space-2) 0 var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-bottom: 1px solid var(--fabric-base-mini-menu-border);
+  background: var(--fabric-base-mini-menu-bg-surface);
 }
 
 .bmm-title {
@@ -99,7 +99,7 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   line-height: 1;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-mini-menu-text-primary);
 }
 
 .bmm-logo {
@@ -119,8 +119,8 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 
 .bmm-footer {
   padding: var(--fabric-space-2) var(--fabric-space-3);
-  border-top: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-top: 1px solid var(--fabric-base-mini-menu-border);
+  background: var(--fabric-base-mini-menu-bg-surface);
   display: flex;
   align-items: center;
   justify-content: flex-end;

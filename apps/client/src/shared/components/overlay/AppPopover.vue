@@ -176,10 +176,10 @@ defineExpose({ open, close, toggle, isOpen })
   z-index: var(--fabric-z-overlay);
   min-width: 200px;
   padding: var(--fabric-space-2);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-app-popover-border);
   border-radius: var(--fabric-app-popover-radius);
   margin-top: 1px;
-  background-color: var(--fabric-bg-surface);
+  background-color: var(--fabric-app-popover-bg-surface);
 }
 
 .app-popover-content--dropdown {

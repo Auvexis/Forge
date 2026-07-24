@@ -295,11 +295,11 @@ onBeforeUnmount(() => {
 .base-code-editor__label {
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-code-editor-text-secondary);
 }
 
 .required {
-  color: var(--fabric-text-error);
+  color: var(--fabric-base-code-editor-text-error);
 }
 
 .base-code-editor__surface {
@@ -316,7 +316,7 @@ onBeforeUnmount(() => {
 }
 
 .base-code-editor__surface:focus-within {
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-base-code-editor-border-strong);
 }
 
 .base-code-editor--disabled {
@@ -325,13 +325,13 @@ onBeforeUnmount(() => {
 
 .base-code-editor__error {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-error);
+  color: var(--fabric-base-code-editor-text-error);
   margin-top: 2px;
 }
 
 .base-code-editor__hint {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-code-editor-text-muted);
   margin-top: 2px;
 }
 </style>

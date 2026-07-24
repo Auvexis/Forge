@@ -60,18 +60,18 @@ const copy = async () => {
   align-items: center;
   justify-content: space-between;
   padding: var(--fabric-space-2) var(--fabric-space-3);
-  background-color: var(--fabric-bg-elevated);
-  border-bottom: 1px solid var(--fabric-border);
+  background-color: var(--fabric-json-viewer-bg-elevated);
+  border-bottom: 1px solid var(--fabric-json-viewer-border);
 }
 
 .json-viewer__title {
   font-size: var(--fabric-text-xs);
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-json-viewer-text-secondary);
 }
 
 .json-viewer__copy {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-json-viewer-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
@@ -80,8 +80,8 @@ const copy = async () => {
   border-radius: var(--fabric-json-viewer-toggle-radius);
 }
 .json-viewer__copy:hover {
-  color: var(--fabric-text-primary);
-  background-color: var(--fabric-bg-muted);
+  color: var(--fabric-json-viewer-text-primary);
+  background-color: var(--fabric-json-viewer-bg-muted);
 }
 
 .json-viewer__body {
@@ -94,7 +94,7 @@ pre {
   margin: 0;
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-green-400); /* gives it a hacker term feel */
+  color: var(--fabric-json-viewer-green400); /* gives it a hacker term feel */
   line-height: 1.5;
 }
 </style>

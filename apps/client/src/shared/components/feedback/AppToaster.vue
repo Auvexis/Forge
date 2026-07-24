@@ -66,15 +66,15 @@ const getIcon = (variant: ToastVariant) => {
   align-items: flex-start;
   gap: var(--fabric-space-3);
   width: 380px;
-  max-width: calc(100vw - var(--fabric-space-8));
+  max-width: calc(100vw - var(--fabric-space-8);
   padding: var(--fabric-space-4);
   border-radius: var(--fabric-app-toaster-radius);
   border-top-left-radius: var(--fabric-radius-sm);
   border-bottom-left-radius: var(--fabric-radius-sm);
   pointer-events: auto; /* Re-enable clicks on the toast */
   overflow: hidden;
-  background-color: var(--fabric-bg-base);
-  border-color: var(--fabric-border);
+  background-color: var(--fabric-app-toaster-bg-base);
+  border-color: var(--fabric-app-toaster-border);
 }
 
 /* Adds a subtle left border matching the variant */
@@ -90,19 +90,19 @@ const getIcon = (variant: ToastVariant) => {
 }
 
 .app-toast--default::before {
-  background-color: var(--fabric-blue-500);
+  background-color: var(--fabric-app-toaster-blue500);
 }
 .app-toast--success::before {
-  background-color: var(--fabric-green-500);
+  background-color: var(--fabric-app-toaster-green500);
 }
 .app-toast--warning::before {
-  background-color: var(--fabric-amber-500);
+  background-color: var(--fabric-app-toaster-amber500);
 }
 .app-toast--reward::before {
-  background-color: var(--fabric-amber-500);
+  background-color: var(--fabric-app-toaster-amber500);
 }
 .app-toast--error::before {
-  background-color: var(--fabric-red-500);
+  background-color: var(--fabric-app-toaster-red500);
 }
 
 .app-toast__icon {
@@ -110,19 +110,19 @@ const getIcon = (variant: ToastVariant) => {
   margin-top: 2px;
 }
 .app-toast--default .app-toast__icon {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-toaster-text-primary);
 }
 .app-toast--success .app-toast__icon {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-toaster-text-primary);
 }
 .app-toast--warning .app-toast__icon {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-toaster-text-primary);
 }
 .app-toast--reward .app-toast__icon {
-  color: var(--fabric-amber-400);
+  color: var(--fabric-app-toaster-amber400);
 }
 .app-toast--error .app-toast__icon {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-toaster-text-primary);
 }
 
 .app-toast__content {
@@ -135,13 +135,13 @@ const getIcon = (variant: ToastVariant) => {
 .app-toast__title {
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-toaster-text-primary);
   margin: 0;
 }
 
 .app-toast__message {
   font-size: var(--fabric-text-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-app-toaster-text-secondary);
   line-height: var(--fabric-leading-normal);
   margin: 0;
   word-break: break-word;
@@ -149,7 +149,7 @@ const getIcon = (variant: ToastVariant) => {
 
 .app-toast__close {
   flex-shrink: 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-app-toaster-text-muted);
   width: 24px;
   height: 24px;
   display: flex;
@@ -161,7 +161,7 @@ const getIcon = (variant: ToastVariant) => {
 }
 
 .app-toast__close:hover {
-  background-color: var(--fabric-bg-muted);
-  color: var(--fabric-text-primary);
+  background-color: var(--fabric-app-toaster-bg-muted);
+  color: var(--fabric-app-toaster-text-primary);
 }
 </style>

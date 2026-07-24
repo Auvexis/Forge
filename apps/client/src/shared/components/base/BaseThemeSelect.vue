@@ -78,13 +78,13 @@ const themeCards = getFabricThemePreviewCards()
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-theme-select-text-secondary);
   cursor: pointer;
   text-align: left;
 }
 
 .base-theme-card:hover .base-theme-preview {
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-base-theme-select-border-strong);
   transform: translateY(-1px);
 }
 
@@ -94,7 +94,7 @@ const themeCards = getFabricThemePreviewCards()
 }
 
 .base-theme-card--selected .base-theme-label {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-theme-select-text-primary);
 }
 
 .base-theme-preview {
@@ -103,7 +103,7 @@ const themeCards = getFabricThemePreviewCards()
   height: 88px;
   padding: 6px;
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-base-theme-select-border);
   border-radius: var(--fabric-base-theme-select-card-radius);
   background: transparent;
   transition:
@@ -226,7 +226,7 @@ const themeCards = getFabricThemePreviewCards()
 
 .base-theme-label {
   width: 100%;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-theme-select-text-secondary);
   font-size: 12px;
   font-weight: 500;
   text-align: center;

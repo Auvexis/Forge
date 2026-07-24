@@ -88,8 +88,8 @@ const iconName = computed(() => {
   gap: var(--fabric-space-3) var(--fabric-space-3);
   width: 100%;
   max-width: 420px;
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background: var(--fabric-app-confirm-panel-bg-surface);
+  border: 1px solid var(--fabric-app-confirm-panel-border);
   border-radius: var(--fabric-app-confirm-panel-icon-radius);
   padding: var(--fabric-space-5);
   box-shadow:
@@ -125,7 +125,7 @@ const iconName = computed(() => {
 
 .acp-icon--primary {
   background: rgba(99, 102, 241, 0.12);
-  color: var(--fabric-accent);
+  color: var(--fabric-app-confirm-panel-accent);
   border: 1px solid rgba(99, 102, 241, 0.25);
 }
 
@@ -145,7 +145,7 @@ const iconName = computed(() => {
   margin: 0;
   font-size: var(--fabric-text-base);
   font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-confirm-panel-text-primary);
 }
 
 .acp-close {
@@ -157,7 +157,7 @@ const iconName = computed(() => {
   border-radius: var(--fabric-app-confirm-panel-radius);
   border: none;
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-app-confirm-panel-text-muted);
   cursor: pointer;
   flex-shrink: 0;
   transition:
@@ -166,8 +166,8 @@ const iconName = computed(() => {
 }
 
 .acp-close:hover {
-  background: var(--fabric-bg-muted);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-app-confirm-panel-bg-muted);
+  color: var(--fabric-app-confirm-panel-text-primary);
 }
 
 /* ── Message ─────────────────────────────────────────────────────────────────── */
@@ -177,9 +177,9 @@ const iconName = computed(() => {
   grid-row: 2;
   margin: 0;
   font-size: var(--fabric-text-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-app-confirm-panel-text-secondary);
   line-height: 1.55;
-  padding-left: calc(36px + var(--fabric-space-3));
+  padding-left: calc(36px + var(--fabric-space-3);
 }
 
 /* ── Actions ─────────────────────────────────────────────────────────────────── */

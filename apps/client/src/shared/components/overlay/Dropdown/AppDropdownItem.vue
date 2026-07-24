@@ -85,7 +85,7 @@ const handleClick = (e: MouseEvent) => {
   padding: 5px 8px;
   border-radius: var(--fabric-app-dropdown-item-radius);
   background-color: transparent;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-app-dropdown-item-text-primary);
   text-align: left;
   border: none;
   cursor: pointer;
@@ -103,17 +103,17 @@ const handleClick = (e: MouseEvent) => {
 }
 
 .app-dropdown-item--danger {
-  color: var(--fabric-text-error);
+  color: var(--fabric-app-dropdown-item-text-error);
 }
 
 .app-dropdown-item:hover:not(:disabled) {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-button-ghost-hover-text);
+  background: var(--fabric-app-dropdown-item-button-ghost-hover);
+  color: var(--fabric-app-dropdown-item-button-ghost-hover-text);
 }
 
 .app-dropdown-item--danger:hover:not(:disabled) {
-  background: var(--fabric-status-error-bg);
-  color: var(--fabric-text-error);
+  background: var(--fabric-app-dropdown-item-status-error-bg);
+  color: var(--fabric-app-dropdown-item-text-error);
 }
 
 .app-dropdown-item__icon {
@@ -143,14 +143,14 @@ const handleClick = (e: MouseEvent) => {
 
 .app-dropdown-item__hint {
   font-size: 11px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-app-dropdown-item-text-muted);
 }
 
 .app-dropdown-item__shortcut {
   flex-shrink: 0;
   font-size: 11px;
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-app-dropdown-item-text-muted);
   letter-spacing: 0.05em;
   opacity: 0.7;
 }

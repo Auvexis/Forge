@@ -56,9 +56,9 @@ defineEmits<{
   grid-auto-flow: column;
   gap: 1px;
   padding: 2px;
-  border: 1px solid var(--fabric-border-muted);
+  border: 1px solid var(--fabric-base-segmented-select-border-muted);
   border-radius: var(--fabric-base-segmented-select-radius);
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-base-segmented-select-bg-overlay);
 }
 
 .base-segmented-select__option {
@@ -70,7 +70,7 @@ defineEmits<{
   height: 22px;
   padding: 0 6px;
   border-radius: var(--fabric-base-segmented-select-option-radius);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-segmented-select-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
   transition:
@@ -79,18 +79,18 @@ defineEmits<{
 }
 
 .base-segmented-select__option:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-base-segmented-select-button-ghost-hover);
+  color: var(--fabric-base-segmented-select-text-primary);
 }
 
 .base-segmented-select__option--active {
-  background: var(--fabric-button-ghost-active);
-  box-shadow: inset 0 -1px 0 var(--fabric-accent);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-base-segmented-select-button-ghost-active);
+  box-shadow: inset 0 -1px 0 var(--fabric-base-segmented-select-accent);
+  color: var(--fabric-base-segmented-select-text-primary);
 }
 
 .base-segmented-select__option--active:hover {
-  background: var(--fabric-button-ghost-active);
+  background: var(--fabric-base-segmented-select-button-ghost-active);
 }
 
 .base-segmented-select__label {

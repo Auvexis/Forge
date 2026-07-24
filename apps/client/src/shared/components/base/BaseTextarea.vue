@@ -93,19 +93,19 @@ defineOptions({ inheritAttrs: false })
 .base-input-wrapper__label {
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-base-textarea-text-secondary);
   line-height: 1.1;
 }
 
 .required {
-  color: var(--fabric-text-error);
+  color: var(--fabric-base-textarea-text-error);
 }
 
 .base-textarea-container {
   display: flex;
   position: relative;
-  background-color: var(--fabric-bg-overlay);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-base-textarea-bg-overlay);
+  border: 1px solid var(--fabric-base-textarea-border);
   border-radius: var(--fabric-base-textarea-radius);
   transition:
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -114,26 +114,26 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-textarea-container:hover:not(.base-textarea-container--disabled) {
-  background-color: var(--fabric-bg-surface);
-  border-color: var(--fabric-border-muted);
+  background-color: var(--fabric-base-textarea-bg-surface);
+  border-color: var(--fabric-base-textarea-border-muted);
 }
 
 .base-textarea-container:focus-within {
-  background-color: var(--fabric-bg-surface);
-  border-color: var(--fabric-border-brand);
+  background-color: var(--fabric-base-textarea-bg-surface);
+  border-color: var(--fabric-base-textarea-border-brand);
 }
 
 .base-textarea-container--error {
-  border-color: var(--fabric-red-500);
+  border-color: var(--fabric-base-textarea-red500);
 }
 .base-textarea-container--error:focus-within {
-  box-shadow: 0 0 0 1px var(--fabric-red-500);
+  box-shadow: 0 0 0 1px var(--fabric-base-textarea-red500);
 }
 
 .base-textarea-container--disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  background-color: var(--fabric-bg-muted);
+  background-color: var(--fabric-base-textarea-bg-muted);
 }
 
 .base-textarea {
@@ -143,7 +143,7 @@ defineOptions({ inheritAttrs: false })
   background: transparent;
   border: none;
   outline: none;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-textarea-text-primary);
   font-size: 12px;
   padding: 6px 8px;
   resize: vertical;
@@ -152,18 +152,18 @@ defineOptions({ inheritAttrs: false })
 }
 
 .base-textarea::placeholder {
-  color: var(--fabric-text-disabled);
+  color: var(--fabric-base-textarea-text-disabled);
 }
 
 .base-input-wrapper__error {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-error);
+  color: var(--fabric-base-textarea-text-error);
   margin-top: 2px;
 }
 
 .base-input-wrapper__hint {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-textarea-text-muted);
   margin-top: 2px;
 }
 </style>

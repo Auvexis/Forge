@@ -142,12 +142,12 @@ function formatDate(value: string) {
 .notification-list__state {
   margin: 0;
   padding: var(--fabric-space-8) var(--fabric-space-4);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-notification-list-text-secondary);
   text-align: center;
 }
 
 .notification-list__state--error {
-  color: var(--fabric-text-error);
+  color: var(--fabric-notification-list-text-error);
 }
 
 .notification-list__items {
@@ -162,10 +162,10 @@ function formatDate(value: string) {
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   width: 100%;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-notification-list-border);
   border-radius: var(--fabric-notification-list-action-radius);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-notification-list-bg-surface);
+  color: var(--fabric-notification-list-text-primary);
   transition:
     border-color var(--fabric-duration-fast) var(--fabric-ease-standard),
     background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
@@ -176,23 +176,23 @@ function formatDate(value: string) {
 
 .notification-list__item:hover,
 .notification-list__item:focus-within {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-bg-elevated);
+  border-color: var(--fabric-notification-list-border-strong);
+  background: var(--fabric-notification-list-bg-elevated);
 }
 
 .notification-list__item--unread {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-notification-list-text-primary);
 }
 
 .notification-list__item--read {
-  border-color: var(--fabric-border-muted);
-  color: var(--fabric-text-muted);
+  border-color: var(--fabric-notification-list-border-muted);
+  color: var(--fabric-notification-list-text-muted);
 }
 
 .notification-list__item--deleting {
   opacity: 0;
   pointer-events: none;
-  transform: translateX(var(--fabric-space-8));
+  transform: translateX(var(--fabric-space-8);
 }
 
 .notification-list__open {
@@ -217,25 +217,25 @@ function formatDate(value: string) {
   align-items: center;
   gap: var(--fabric-space-1);
   border-radius: var(--fabric-notification-list-item-radius);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-notification-list-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
 }
 
 .notification-list__item--error .notification-list__level {
-  color: var(--fabric-text-error);
+  color: var(--fabric-notification-list-text-error);
 }
 
 .notification-list__item--warning .notification-list__level {
-  color: var(--fabric-text-warning);
+  color: var(--fabric-notification-list-text-warning);
 }
 
 .notification-list__item--reward .notification-list__level {
-  color: var(--fabric-amber-400);
+  color: var(--fabric-notification-list-amber400);
 }
 
 .notification-list__item--info .notification-list__level {
-  color: var(--fabric-blue-400);
+  color: var(--fabric-notification-list-blue400);
 }
 
 .notification-list__content {
@@ -254,14 +254,14 @@ function formatDate(value: string) {
 
 .notification-list__content span,
 .notification-list__content small {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-notification-list-text-secondary);
 }
 
 .notification-list__delete {
   margin-right: var(--fabric-space-2);
   opacity: 0;
   pointer-events: none;
-  transform: translateX(var(--fabric-space-1));
+  transform: translateX(var(--fabric-space-1);
   transition:
     opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
     transform var(--fabric-duration-fast) var(--fabric-ease-standard);
@@ -290,11 +290,11 @@ function formatDate(value: string) {
 
 .notification-list-enter-from {
   opacity: 0;
-  transform: translateY(var(--fabric-space-2));
+  transform: translateY(var(--fabric-space-2);
 }
 
 .notification-list-leave-to {
   opacity: 0;
-  transform: translateX(var(--fabric-space-8));
+  transform: translateX(var(--fabric-space-8);
 }
 </style>

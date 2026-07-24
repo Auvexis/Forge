@@ -152,10 +152,10 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
   min-height: 108px;
   width: 100%;
   padding: var(--fabric-space-4);
-  border: 1px dashed var(--fabric-border);
+  border: 1px dashed var(--fabric-base-file-dropzone-border);
   border-radius: var(--fabric-base-file-dropzone-radius);
-  background: var(--fabric-bg-muted);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-base-file-dropzone-bg-muted);
+  color: var(--fabric-base-file-dropzone-text-secondary);
   font: inherit;
   cursor: pointer;
   transition:
@@ -166,9 +166,9 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
 
 .base-file-dropzone:hover,
 .base-file-dropzone--dragging {
-  border-color: var(--fabric-input-border-focus);
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  border-color: var(--fabric-base-file-dropzone-input-border-focus);
+  background: var(--fabric-base-file-dropzone-bg-elevated);
+  color: var(--fabric-base-file-dropzone-text-primary);
 }
 
 .base-file-dropzone:disabled {
@@ -186,7 +186,7 @@ async function collectDroppedEntryFiles(entry: unknown, parentPath: string): Pro
 }
 
 .base-file-dropzone small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-file-dropzone-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
