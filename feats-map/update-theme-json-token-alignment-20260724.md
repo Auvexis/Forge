@@ -1,0 +1,3 @@
+- [x] Comparar tokens dos temas JSON
+- [x] Verificar template, dark e light
+- [x] Rodar contratos de tema
