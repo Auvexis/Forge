@@ -1,0 +1,6 @@
+- [x] Mapear radius hardcoded em shared components
+- [ ] Adicionar tokens JSON de radius
+- [ ] Aplicar tokens nos componentes base
+- [ ] Aplicar tokens em overlay/layout/feedback/display
+- [ ] Adicionar tokens do BaseCodeEditor
+- [ ] Rodar testes focados
