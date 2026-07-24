@@ -602,8 +602,8 @@ async function deleteSession(sessionId: string) {
   min-height: 0;
   min-width: 0;
   flex-direction: column;
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-agent-chat-view-bg-surface);
+  color: var(--fabric-agent-chat-view-text-primary);
 }
 
 .agent-chat-view__header {
@@ -613,7 +613,7 @@ async function deleteSession(sessionId: string) {
   align-items: center;
   justify-content: space-between;
   gap: var(--fabric-space-4);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-agent-chat-view-bg-surface);
   padding: var(--fabric-space-4) var(--fabric-space-8);
 }
 
@@ -638,13 +638,13 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__identity strong {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-agent-chat-view-text-primary);
   font-size: 12px;
   font-weight: var(--fabric-font-semibold);
 }
 
 .agent-chat-view__identity small {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: 10px;
 }
 
@@ -653,9 +653,9 @@ async function deleteSession(sessionId: string) {
   display: grid;
   flex: 0 0 auto;
   place-items: center;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-agent-chat-view-border);
   border-radius: var(--fabric-radius-full);
-  background: var(--fabric-bg-base);
+  background: var(--fabric-agent-chat-view-bg-base);
 }
 
 .agent-chat-view__emoji {
@@ -684,13 +684,13 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__actions :deep(.base-button--outline) {
-  box-shadow: var(--fabric-shadow-sm);
+  box-shadow: var(--fabric-agent-chat-view-shadow-sm);
 }
 
 .agent-chat-view__actions :deep(.base-button--primary) {
-  border-color: var(--fabric-button-primary-border);
-  background: var(--fabric-button-primary-bg);
-  color: var(--fabric-button-primary-text);
+  border-color: var(--fabric-agent-chat-view-button-primary-border);
+  background: var(--fabric-agent-chat-view-button-primary-bg);
+  color: var(--fabric-agent-chat-view-button-primary-text);
 }
 
 .agent-chat-view__messages {
@@ -719,7 +719,7 @@ async function deleteSession(sessionId: string) {
 
 .agent-chat-view__prompt-stage p {
   margin: 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: 10px;
   text-align: center;
 }
@@ -771,7 +771,7 @@ async function deleteSession(sessionId: string) {
   display: inline-flex;
   align-items: baseline;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-agent-chat-view-text-primary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-bold);
 }
@@ -781,7 +781,7 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__role time {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-chat-view-text-muted);
   font-weight: var(--fabric-font-medium);
 }
 
@@ -790,7 +790,7 @@ async function deleteSession(sessionId: string) {
 .agent-chat-view__typing-dots {
   grid-column: 2;
   margin: 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-sm);
   line-height: 1.55;
   white-space: pre-wrap;
@@ -801,7 +801,7 @@ async function deleteSession(sessionId: string) {
   border-radius: var(--fabric-radius-lg);
   background: transparent;
   padding: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-agent-chat-view-text-primary);
   box-shadow: none;
   text-align: right;
 }
@@ -819,7 +819,7 @@ async function deleteSession(sessionId: string) {
   display: grid;
   grid-column: 2;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-sm);
 }
 
@@ -831,7 +831,7 @@ async function deleteSession(sessionId: string) {
   display: grid;
   grid-column: 2;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-sm);
 }
 
@@ -855,8 +855,8 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__choice-option--selected {
-  border-color: var(--fabric-border-strong);
-  color: var(--fabric-text-primary);
+  border-color: var(--fabric-agent-chat-view-border-strong);
+  color: var(--fabric-agent-chat-view-text-primary);
 }
 
 .agent-chat-view__approval-actions {
@@ -870,7 +870,7 @@ async function deleteSession(sessionId: string) {
   gap: var(--fabric-space-1);
   margin: 0;
   padding: 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-xs);
   list-style: none;
 }
@@ -883,7 +883,7 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__waiting-option:hover:not(:disabled) {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-agent-chat-view-text-primary);
 }
 
 .agent-chat-view__waiting-retry {
@@ -903,7 +903,7 @@ async function deleteSession(sessionId: string) {
   width: 5px;
   height: 5px;
   border-radius: var(--fabric-radius-full);
-  background: var(--fabric-text-muted);
+  background: var(--fabric-agent-chat-view-text-muted);
   animation: agent-chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -918,7 +918,7 @@ async function deleteSession(sessionId: string) {
 .agent-chat-view__progress,
 .agent-chat-view__summary {
   grid-column: 2;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-sm);
   line-height: 1.5;
 }
@@ -936,16 +936,16 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__progress--success {
-  color: var(--fabric-green-600);
+  color: var(--fabric-agent-chat-view-green600);
 }
 
 .agent-chat-view__progress--failed {
-  color: var(--fabric-red-600);
+  color: var(--fabric-agent-chat-view-red600);
 }
 
 .agent-chat-view__progress--running,
 .agent-chat-view__progress--retrying {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
 }
 
 .agent-chat-view__status-text {
@@ -964,9 +964,9 @@ async function deleteSession(sessionId: string) {
 .agent-chat-view__status-text--shimmer {
   background: linear-gradient(
     90deg,
-    var(--fabric-text-secondary),
-    var(--fabric-text-primary),
-    var(--fabric-text-secondary)
+    var(--fabric-agent-chat-view-text-secondary),
+    var(--fabric-agent-chat-view-text-primary),
+    var(--fabric-agent-chat-view-text-secondary)
   );
   background-size: 200% 100%;
   background-clip: text;
@@ -983,13 +983,13 @@ async function deleteSession(sessionId: string) {
   border: 0;
   border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-chat-view-text-muted);
   padding: 0;
 }
 
 .agent-chat-view__progress-toggle:hover {
-  background: var(--fabric-bg-muted);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-agent-chat-view-bg-muted);
+  color: var(--fabric-agent-chat-view-text-secondary);
 }
 
 .agent-chat-view__progress-toggle svg {
@@ -1015,7 +1015,7 @@ async function deleteSession(sessionId: string) {
 .agent-chat-view__progress-details {
   grid-column: 2 / span 2;
   width: min(100%, 520px);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-chat-view-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -1026,7 +1026,7 @@ async function deleteSession(sessionId: string) {
 }
 
 .agent-chat-view__progress-detail strong {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
 }
@@ -1035,11 +1035,11 @@ async function deleteSession(sessionId: string) {
   max-height: 220px;
   overflow: auto;
   margin: 0;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-agent-chat-view-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-base);
+  background: var(--fabric-agent-chat-view-bg-base);
   padding: var(--fabric-space-2);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
   line-height: 1.5;
@@ -1092,7 +1092,7 @@ async function deleteSession(sessionId: string) {
   min-width: 0;
   align-items: center;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-xs);
   border: 0;
   padding: 0;
@@ -1102,7 +1102,7 @@ async function deleteSession(sessionId: string) {
   display: grid;
   flex: 1;
   place-items: center;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-chat-view-text-secondary);
   font-size: var(--fabric-text-sm);
 }
 

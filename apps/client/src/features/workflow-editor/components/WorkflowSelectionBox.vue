@@ -177,9 +177,9 @@ onBeforeUnmount(() => {
   left: 0;
   top: 0;
   box-sizing: border-box;
-  border: 2px dashed color-mix(in srgb, var(--fabric-accent) 30%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--fabric-workflow-selection-box-accent) 30%, transparent);
   border-radius: 8px;
-  background: color-mix(in srgb, var(--fabric-accent) 4%, transparent);
+  background: color-mix(in srgb, var(--fabric-workflow-selection-box-accent) 4%, transparent);
   cursor: move;
   pointer-events: auto;
 }
@@ -187,7 +187,7 @@ onBeforeUnmount(() => {
 .fabric-group-box-inner {
   position: absolute;
   inset: 4px;
-  border: 1.5px solid color-mix(in srgb, var(--fabric-accent) 60%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--fabric-workflow-selection-box-accent) 60%, transparent);
   border-radius: 6px;
   pointer-events: none;
 }
@@ -200,10 +200,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   padding: 5px 8px;
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background: var(--fabric-workflow-selection-box-bg-surface);
+  border: 1px solid var(--fabric-workflow-selection-box-border);
   border-radius: var(--fabric-radius-sm);
-  box-shadow: var(--fabric-shadow-md), 0 0 0 1px color-mix(in srgb, var(--fabric-accent) 20%, transparent);
+  box-shadow: var(--fabric-workflow-selection-box-shadow-md), 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-selection-box-accent) 20%, transparent);
   white-space: nowrap;
   pointer-events: auto;
 }
@@ -218,19 +218,19 @@ onBeforeUnmount(() => {
 }
 
 .fabric-group-count {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-selection-box-text-secondary);
 }
 
 .fabric-group-divider {
   width: 1px;
   height: 18px;
   margin: 0 2px;
-  background: var(--fabric-border);
+  background: var(--fabric-workflow-selection-box-border);
 }
 
 .fabric-group-btn {
   padding: 4px 8px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-selection-box-text-muted);
   cursor: pointer;
   background: none;
   border: none;
@@ -239,12 +239,12 @@ onBeforeUnmount(() => {
 }
 
 .fabric-group-btn:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-elevated);
+  color: var(--fabric-workflow-selection-box-text-primary);
+  background: var(--fabric-workflow-selection-box-bg-elevated);
 }
 
 .fabric-group-btn--danger:hover {
-  color: var(--fabric-red-500, #ef4444);
-  background: color-mix(in srgb, var(--fabric-red-500, #ef4444) 12%, transparent);
+  color: var(--fabric-workflow-selection-box-red500);
+  background: color-mix(in srgb, var(--fabric-workflow-selection-box-red500) 12%, transparent);
 }
 </style>

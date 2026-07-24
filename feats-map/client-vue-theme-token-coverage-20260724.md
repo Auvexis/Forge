@@ -1,0 +1,6 @@
+- [x] Auditar todos os Vue do client
+- [x] Gerar tokens visuais por componente/pagina
+- [x] Aplicar tokens nos Vue restantes
+- [x] Sincronizar dark, light, template e CSS fallback
+- [x] Expandir contrato para todo apps/client/src
+- [x] Rodar testes e type-check

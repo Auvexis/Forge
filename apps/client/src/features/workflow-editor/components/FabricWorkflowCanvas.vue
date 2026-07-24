@@ -363,7 +363,7 @@ defineExpose({
   align-items: center;
   gap: 8px;
   padding: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-fabric-workflow-canvas-text-primary);
   background: transparent;
   border: 0;
   transform: translate(-50%, -50%);
@@ -375,9 +375,9 @@ defineExpose({
   height: 82px;
   display: grid;
   place-items: center;
-  color: var(--fabric-text-muted);
-  background: color-mix(in srgb, var(--fabric-bg-surface) 70%, transparent);
-  border: 2px dashed var(--fabric-border-strong);
+  color: var(--fabric-fabric-workflow-canvas-text-muted);
+  background: color-mix(in srgb, var(--fabric-fabric-workflow-canvas-bg-surface) 70%, transparent);
+  border: 2px dashed var(--fabric-fabric-workflow-canvas-border-strong);
   border-radius: 8px;
   transition:
     color 0.15s ease,
@@ -388,14 +388,14 @@ defineExpose({
 .canvas-empty-step__label {
   font-size: 13px;
   line-height: 1.2;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-fabric-workflow-canvas-text-primary);
   white-space: nowrap;
 }
 
 .canvas-empty-step:hover .canvas-empty-step__box {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-surface-hover);
-  border-color: var(--fabric-text-primary);
+  color: var(--fabric-fabric-workflow-canvas-text-primary);
+  background: var(--fabric-fabric-workflow-canvas-bg-surface-hover);
+  border-color: var(--fabric-fabric-workflow-canvas-text-primary);
 }
 
 .canvas-empty-step:focus-visible .canvas-empty-step__box {

@@ -38,8 +38,8 @@ defineEmits<{
 <style scoped>
 .installed-plugins {
   min-width: 280px;
-  border-right: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-right: 1px solid var(--fabric-installed-plugins-list-border);
+  background: var(--fabric-installed-plugins-list-bg-surface);
 }
 
 .installed-plugins__header {
@@ -48,7 +48,7 @@ defineEmits<{
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-installed-plugins-list-border);
 }
 
 .installed-plugins__header h2 {
@@ -64,9 +64,9 @@ defineEmits<{
   align-items: center;
   justify-content: center;
   border-radius: var(--fabric-radius-sm);
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-button-ghost-bg);
-  color: var(--fabric-text-secondary);
+  border: 1px solid var(--fabric-installed-plugins-list-border);
+  background: var(--fabric-installed-plugins-list-button-ghost-bg);
+  color: var(--fabric-installed-plugins-list-text-secondary);
 }
 
 .installed-plugins__list {
@@ -81,8 +81,8 @@ defineEmits<{
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-3);
   border-radius: var(--fabric-radius-sm);
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-base);
+  border: 1px solid var(--fabric-installed-plugins-list-border);
+  background: var(--fabric-installed-plugins-list-bg-base);
 }
 
 .installed-plugin__icon {
@@ -91,8 +91,8 @@ defineEmits<{
   display: grid;
   place-items: center;
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-installed-plugins-list-bg-elevated);
+  color: var(--fabric-installed-plugins-list-text-primary);
   font-size: var(--fabric-text-sm);
 }
 
@@ -118,7 +118,7 @@ defineEmits<{
 .installed-plugin__body span,
 .installed-plugin__body code,
 .installed-plugins__empty {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-installed-plugins-list-text-muted);
   font-size: var(--fabric-text-xs);
 }
 </style>

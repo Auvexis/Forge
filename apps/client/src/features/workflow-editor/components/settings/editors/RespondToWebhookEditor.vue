@@ -142,7 +142,7 @@ function updateHeader(i: number, field: 'key' | 'value', val: string) {
 }
 
 .respond-header-sep {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-respond-to-webhook-editor-text-muted);
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -156,7 +156,7 @@ function updateHeader(i: number, field: 'key' | 'value', val: string) {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-respond-to-webhook-editor-text-muted);
   padding: 4px;
   border-radius: var(--fabric-radius-sm);
   display: flex;
@@ -172,12 +172,12 @@ function updateHeader(i: number, field: 'key' | 'value', val: string) {
   align-items: center;
   gap: var(--fabric-space-1);
   background: transparent;
-  border: 1px dashed var(--fabric-border);
+  border: 1px dashed var(--fabric-respond-to-webhook-editor-border);
   border-radius: var(--fabric-radius-md);
   padding: var(--fabric-space-2) var(--fabric-space-3);
   font-size: var(--fabric-text-xs);
   font-family: inherit;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-respond-to-webhook-editor-text-muted);
   cursor: pointer;
   width: 100%;
   justify-content: center;
@@ -185,8 +185,8 @@ function updateHeader(i: number, field: 'key' | 'value', val: string) {
 }
 
 .respond-add-btn:hover {
-  border-color: var(--fabric-accent);
-  color: var(--fabric-accent);
+  border-color: var(--fabric-respond-to-webhook-editor-accent);
+  color: var(--fabric-respond-to-webhook-editor-accent);
 }
 
 .respond-info-box {
@@ -198,7 +198,7 @@ function updateHeader(i: number, field: 'key' | 'value', val: string) {
   background: rgba(99, 102, 241, 0.06);
   border: 1px solid rgba(99, 102, 241, 0.2);
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-respond-to-webhook-editor-text-muted);
   line-height: 1.5;
 }
 </style>

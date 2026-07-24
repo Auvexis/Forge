@@ -133,10 +133,10 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
   gap: var(--fabric-space-2);
   align-items: flex-start;
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-return-editor-border);
   border-radius: var(--fabric-radius-sm);
-  background-color: var(--fabric-bg-base);
-  color: var(--fabric-text-muted);
+  background-color: var(--fabric-return-editor-bg-base);
+  color: var(--fabric-return-editor-text-muted);
   font-size: var(--fabric-text-xs);
   line-height: 1.5;
 }
@@ -162,7 +162,7 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
 
 .return-field-sep {
   flex-shrink: 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-return-editor-text-muted);
   font-weight: 700;
 }
 
@@ -180,17 +180,17 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
   border: 0;
   border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-return-editor-text-muted);
   cursor: pointer;
 }
 
 .return-field-remove:hover {
-  color: var(--fabric-text-error);
+  color: var(--fabric-return-editor-text-error);
 }
 
 .return-empty-hint {
   padding: var(--fabric-space-2) 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-return-editor-text-muted);
   font-size: var(--fabric-text-xs);
   font-style: italic;
 }
@@ -202,17 +202,17 @@ function updateField(index: number, key: keyof ReturnNodeField, value: string) {
   gap: var(--fabric-space-1);
   width: 100%;
   padding: var(--fabric-space-2) var(--fabric-space-3);
-  border: 1px dashed var(--fabric-border);
+  border: 1px dashed var(--fabric-return-editor-border);
   border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-return-editor-text-muted);
   font-family: inherit;
   font-size: var(--fabric-text-xs);
   cursor: pointer;
 }
 
 .return-add-btn:hover {
-  border-color: var(--fabric-accent);
-  color: var(--fabric-accent);
+  border-color: var(--fabric-return-editor-accent);
+  color: var(--fabric-return-editor-accent);
 }
 </style>

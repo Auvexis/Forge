@@ -57,7 +57,7 @@
             :disabled="!formTestUrlPreview"
             @click="copyUrl(formTestUrlPreview, 'test')"
           >
-            <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--fabric-green-400)" />
+            <CheckIcon v-if="copied === 'test'" :size="14" style="color: var(--fabric-wait-form-editor-green400)" />
             <CopyIcon v-else :size="14" />
           </button>
           <a
@@ -80,7 +80,7 @@
             :disabled="!runtimeUrlPreview"
             @click="copyUrl(runtimeUrlPreview, 'prod')"
           >
-            <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--fabric-green-400)" />
+            <CheckIcon v-if="copied === 'prod'" :size="14" style="color: var(--fabric-wait-form-editor-green400)" />
             <CopyIcon v-else :size="14" />
           </button>
           <a
@@ -237,12 +237,12 @@ function updateExpiration(value: string | boolean) {
 }
 
 .te-url-badge--test {
-  background: var(--fabric-bg-muted);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-wait-form-editor-bg-muted);
+  color: var(--fabric-wait-form-editor-text-secondary);
 }
 
 .te-url-badge--prod {
-  background: color-mix(in srgb, var(--fabric-green-400) 15%, transparent);
-  color: var(--fabric-green-400);
+  background: color-mix(in srgb, var(--fabric-wait-form-editor-green400) 15%, transparent);
+  color: var(--fabric-wait-form-editor-green400);
 }
 </style>

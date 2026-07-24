@@ -187,10 +187,10 @@ function cancelLabel() {
 }
 
 .fabric-edge-btn {
-  background: var(--fabric-workflow-edge-toolbar-bg, var(--fabric-bg-surface));
-  border: 1px solid var(--fabric-workflow-edge-toolbar-border, var(--fabric-border-subtle));
+  background: var(--fabric-workflow-edge-toolbar-bg);
+  border: 1px solid var(--fabric-workflow-edge-toolbar-border);
   border-radius: var(--fabric-radius-xs, 3px);
-  color: var(--fabric-workflow-edge-toolbar-text, var(--fabric-text-muted));
+  color: var(--fabric-workflow-edge-toolbar-text);
   width: 24px;
   height: 24px;
   display: inline-flex;
@@ -201,17 +201,17 @@ function cancelLabel() {
 }
 
 .fabric-edge-btn:hover {
-  background: var(--fabric-workflow-edge-toolbar-hover-bg, var(--fabric-bg-elevated));
-  color: var(--fabric-workflow-edge-toolbar-hover-text, var(--fabric-text-primary));
+  background: var(--fabric-workflow-edge-toolbar-hover-bg);
+  color: var(--fabric-workflow-edge-toolbar-hover-text);
 }
 
 .fabric-edge-btn--danger:hover {
-  background: color-mix(in srgb, var(--fabric-red-500, #ef4444) 15%, transparent);
-  color: var(--fabric-red-500, #ef4444);
+  background: color-mix(in srgb, var(--fabric-workflow-edge-red500) 15%, transparent);
+  color: var(--fabric-workflow-edge-red500);
 }
 
 .fabric-edge-item-count {
-  color: var(--fabric-workflow-edge-muted-text, var(--fabric-text-muted));
+  color: var(--fabric-workflow-edge-muted-text);
   font-family: var(--fabric-font-mono);
   font-size: 10px;
   line-height: 18px;
@@ -233,18 +233,18 @@ function cancelLabel() {
   font-size: 13px;
   font-weight: 500;
   line-height: 1;
-  color: var(--fabric-workflow-edge-label-text, var(--fabric-text-secondary));
-  background: var(--fabric-workflow-edge-label-bg, var(--fabric-bg-surface));
-  border: 1px solid var(--fabric-workflow-edge-label-border, var(--fabric-border-subtle));
+  color: var(--fabric-workflow-edge-label-text);
+  background: var(--fabric-workflow-edge-label-bg);
+  border: 1px solid var(--fabric-workflow-edge-label-border);
   border-radius: var(--fabric-radius-xs, 3px);
   padding: 4px 8px;
 }
 
 .fabric-edge-label-input {
-  background: var(--fabric-workflow-edge-input-bg, var(--fabric-bg-base));
-  border: 1px solid var(--fabric-workflow-edge-input-border, var(--fabric-border));
+  background: var(--fabric-workflow-edge-input-bg);
+  border: 1px solid var(--fabric-workflow-edge-input-border);
   border-radius: var(--fabric-radius-xs, 3px);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-edge-text-primary);
   font-size: 12px;
   height: 22px;
   padding: 0 6px;
@@ -253,6 +253,6 @@ function cancelLabel() {
 }
 
 .fabric-edge-label-input:focus {
-  border-color: var(--fabric-accent);
+  border-color: var(--fabric-workflow-edge-accent);
 }
 </style>

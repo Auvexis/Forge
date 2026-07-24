@@ -624,10 +624,10 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   width: var(--anp-column-width);
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-add-node-panel-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-lg);
+  background: var(--fabric-add-node-panel-bg-surface);
+  box-shadow: var(--fabric-add-node-panel-shadow-lg);
 }
 
 .add-node-cascade__primary {
@@ -661,8 +661,8 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   height: 48px;
   flex: 0 0 auto;
   padding: 0 var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border);
-  color: var(--fabric-text-primary);
+  border-bottom: 1px solid var(--fabric-add-node-panel-border);
+  color: var(--fabric-add-node-panel-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: 600;
 }
@@ -700,13 +700,13 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   border: 0;
   border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-add-node-panel-text-muted);
   cursor: pointer;
 }
 
 .add-node-cascade__back:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-add-node-panel-button-ghost-hover);
+  color: var(--fabric-add-node-panel-text-primary);
 }
 
 .add-node-cascade__scroller {
@@ -720,7 +720,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 .add-node-cascade__section-label {
   padding: var(--fabric-space-1) var(--fabric-space-2) var(--fabric-space-2);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-add-node-panel-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: 700;
   line-height: 1.2;
@@ -732,7 +732,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   min-height: 120px;
   align-items: center;
   justify-content: center;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-add-node-panel-text-muted);
   font-size: var(--fabric-text-sm);
 }
 
@@ -746,7 +746,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   border: 0;
   border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-add-node-panel-text-primary);
   font: inherit;
   text-align: left;
   cursor: pointer;
@@ -754,7 +754,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 :deep(.add-node-picker-item:hover),
 :deep(.add-node-picker-item--active) {
-  background: var(--fabric-button-ghost-hover);
+  background: var(--fabric-add-node-panel-button-ghost-hover);
 }
 
 :deep(.add-node-picker-item__icon) {
@@ -764,11 +764,11 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   width: 32px;
   height: 32px;
   flex: 0 0 auto;
-  border: 1px solid var(--fabric-border);
-  border-color: var(--node-icon-border, var(--fabric-border));
+  border: 1px solid var(--fabric-add-node-panel-border);
+  border-color: var(--node-icon-border, var(--fabric-add-node-panel-border));
   border-radius: var(--fabric-radius-sm);
-  background: var(--node-icon-bg, var(--fabric-bg-surface));
-  color: var(--node-icon-color, var(--fabric-text-muted));
+  background: var(--node-icon-bg, var(--fabric-add-node-panel-bg-surface));
+  color: var(--node-icon-color, var(--fabric-add-node-panel-text-muted));
 }
 
 :deep(.add-node-picker-item__body) {
@@ -781,7 +781,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 
 :deep(.add-node-picker-item__label) {
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-add-node-panel-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: 600;
   line-height: 1.25;
@@ -792,7 +792,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 :deep(.add-node-picker-item__description) {
   display: -webkit-box;
   overflow: hidden;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-add-node-panel-text-muted);
   font-size: var(--fabric-text-xs);
   line-height: 1.25;
   -webkit-line-clamp: 2;
@@ -802,7 +802,7 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
 :deep(.add-node-picker-item__count),
 :deep(.add-node-picker-item__chevron) {
   flex: 0 0 auto;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-add-node-panel-text-muted);
   font-size: var(--fabric-text-sm);
 }
 
@@ -813,12 +813,12 @@ const addAgentMemoryNode = (plugin: PluginSummary) => {
   align-items: center;
   justify-content: center;
   gap: var(--fabric-space-2);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-add-node-panel-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-muted);
+  background: var(--fabric-add-node-panel-bg-elevated);
+  color: var(--fabric-add-node-panel-text-muted);
   font-size: var(--fabric-text-sm);
-  box-shadow: var(--fabric-shadow-lg);
+  box-shadow: var(--fabric-add-node-panel-shadow-lg);
 }
 
 .add-node-spinner {

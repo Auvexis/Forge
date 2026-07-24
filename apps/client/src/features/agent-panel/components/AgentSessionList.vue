@@ -207,8 +207,8 @@ onBeforeUnmount(() => {
   min-width: 0;
   flex-direction: column;
   gap: var(--fabric-space-3);
-  border-right: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-right: 1px solid var(--fabric-agent-session-list-border);
+  background: var(--fabric-agent-session-list-bg-surface);
   padding: var(--fabric-space-5) var(--fabric-space-4);
 }
 
@@ -223,7 +223,7 @@ onBeforeUnmount(() => {
 
 .agent-session-list__header h2 {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-agent-session-list-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
 }
@@ -240,11 +240,11 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   min-width: 0;
-  border: 1px solid var(--fabric-input-border);
+  border: 1px solid var(--fabric-agent-session-list-input-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-input-bg);
+  background: var(--fabric-agent-session-list-input-bg);
   padding: 0 30px 0 var(--fabric-space-3);
-  color: var(--fabric-input-text);
+  color: var(--fabric-agent-session-list-input-text);
   font: inherit;
   font-size: var(--fabric-text-xs);
   transition:
@@ -253,14 +253,14 @@ onBeforeUnmount(() => {
 }
 
 .agent-session-list__search-control input:focus {
-  border-color: var(--fabric-input-border-focus);
+  border-color: var(--fabric-agent-session-list-input-border-focus);
   outline: none;
 }
 
 .agent-session-list__search-control svg {
   position: absolute;
   right: var(--fabric-space-2);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-session-list-text-muted);
   pointer-events: none;
 }
 
@@ -270,17 +270,17 @@ onBeforeUnmount(() => {
   min-width: 0;
   height: 36px;
   justify-content: center;
-  border-color: var(--fabric-button-primary-border);
+  border-color: var(--fabric-agent-session-list-button-primary-border);
   border-radius: var(--fabric-radius-full);
-  background: var(--fabric-button-primary-bg);
-  color: var(--fabric-button-primary-text);
+  background: var(--fabric-agent-session-list-button-primary-bg);
+  color: var(--fabric-agent-session-list-button-primary-text);
   font-size: var(--fabric-text-xs);
   white-space: nowrap;
-  box-shadow: var(--fabric-shadow-sm);
+  box-shadow: var(--fabric-agent-session-list-shadow-sm);
 }
 
 .agent-session-list__state {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-session-list-text-secondary);
   font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
@@ -302,7 +302,7 @@ onBeforeUnmount(() => {
 .agent-session-list__group-toggle {
   width: 100%;
   justify-content: flex-start;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-session-list-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -325,11 +325,11 @@ onBeforeUnmount(() => {
 
 .agent-session-list__row:hover,
 .agent-session-list__row--active {
-  background: var(--fabric-button-ghost-hover);
+  background: var(--fabric-agent-session-list-button-ghost-hover);
 }
 
 .agent-session-list__row--active {
-  background: var(--fabric-button-ghost-active);
+  background: var(--fabric-agent-session-list-button-ghost-active);
 }
 
 .agent-session-list__select {
@@ -352,7 +352,7 @@ onBeforeUnmount(() => {
 
 .agent-session-list__title {
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-agent-session-list-text-primary);
   font-size: 12px;
   font-weight: var(--fabric-font-medium);
   text-overflow: ellipsis;
@@ -367,24 +367,24 @@ onBeforeUnmount(() => {
   width: 24px;
   height: 24px;
   border-radius: var(--fabric-radius-full);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-session-list-text-muted);
   transform: translateY(-50%);
 }
 
 .agent-session-list__more:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-agent-session-list-button-ghost-hover);
+  color: var(--fabric-agent-session-list-text-primary);
 }
 
 .agent-session-list__menu {
   position: fixed;
   z-index: 2147483400;
   width: 136px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-agent-session-list-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-agent-session-list-bg-surface);
   padding: var(--fabric-space-1);
-  box-shadow: var(--fabric-shadow-lg);
+  box-shadow: var(--fabric-agent-session-list-shadow-lg);
 }
 
 .agent-session-group-enter-active,

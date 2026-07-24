@@ -100,7 +100,7 @@ function formatJson(value: unknown) {
   flex-direction: column;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-2);
-  border-top: 1px solid var(--fabric-border);
+  border-top: 1px solid var(--fabric-agent-approval-panel-border);
 }
 
 .agent-approval-panel__summary,
@@ -113,12 +113,12 @@ function formatJson(value: unknown) {
 .agent-approval-panel__summary {
   flex-wrap: wrap;
   justify-content: space-between;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-approval-panel-text-secondary);
   font-size: var(--fabric-text-xs);
 }
 
 .agent-approval-panel__summary span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-approval-panel-text-muted);
   font-family: var(--fabric-font-mono);
   font-size: 10px;
 }
@@ -129,8 +129,8 @@ function formatJson(value: unknown) {
   overflow: auto;
   padding: var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-base);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-agent-approval-panel-bg-base);
+  color: var(--fabric-agent-approval-panel-text-secondary);
   font-family: var(--fabric-font-mono);
   font-size: 10px;
   white-space: pre-wrap;

@@ -58,7 +58,7 @@ const props = withDefaults(defineProps<{
   selected: boolean
 }>(), {
   kind: 'component',
-  color: 'var(--fabric-accent)',
+  color: 'var(--fabric-base-component-group-accent)',
 })
 
 const emit = defineEmits<{

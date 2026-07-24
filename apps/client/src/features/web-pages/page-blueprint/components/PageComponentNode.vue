@@ -3,7 +3,7 @@
     :title="title"
     eyebrow="Page Component"
     icon="component"
-    accent="var(--fabric-accent)"
+    accent="var(--fabric-page-component-node-accent)"
     :selected="selected"
     :dimmed="dimmed"
   >

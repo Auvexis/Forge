@@ -122,13 +122,13 @@ const props = withDefaults(defineProps<{
 }
 
 .fabric-base-advanced-node__title {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-base-advanced-node-text-primary);
   font-size: 14px;
   font-weight: 600;
 }
 
 .fabric-base-advanced-node__description {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-advanced-node-text-muted);
   font-size: 11px;
 }
 </style>

@@ -458,7 +458,7 @@ const iconsMap = computed(() => {
 }
 
 .vt-search-icon {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-tree-text-muted);
   flex-shrink: 0;
 }
 
@@ -468,11 +468,11 @@ const iconsMap = computed(() => {
   border: none;
   font-size: 11px;
   outline: none;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-variable-tree-text-primary);
 }
 
 .vt-search-input::placeholder {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-tree-text-muted);
   opacity: 0.5;
 }
 
@@ -480,7 +480,7 @@ const iconsMap = computed(() => {
 
 .vt-empty {
   font-size: 11px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-tree-text-muted);
   font-style: italic;
   padding: 0 4px;
 }

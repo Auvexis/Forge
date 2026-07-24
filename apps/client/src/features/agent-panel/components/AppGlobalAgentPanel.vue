@@ -56,9 +56,9 @@ watch(
 
 <style scoped>
 :deep(.base-modal-container) {
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-app-global-agent-panel-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-app-global-agent-panel-bg-surface);
 }
 
 .global-agent-panel {
@@ -68,8 +68,8 @@ watch(
   height: 100%;
   overflow: hidden;
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-app-global-agent-panel-bg-surface);
+  color: var(--fabric-app-global-agent-panel-text-primary);
 }
 
 @media (max-width: 820px) {

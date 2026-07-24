@@ -116,7 +116,7 @@ function updateValue(i: number, value: string) {
 }
 
 .payload-sep {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-event-editor-text-muted);
   font-weight: 700;
   flex-shrink: 0;
 }
@@ -130,7 +130,7 @@ function updateValue(i: number, value: string) {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-event-editor-text-muted);
   padding: 4px;
   border-radius: var(--fabric-radius-sm);
   display: flex;
@@ -146,7 +146,7 @@ function updateValue(i: number, value: string) {
 
 .payload-empty {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-event-editor-text-muted);
   font-style: italic;
   padding: var(--fabric-space-2) 0;
 }
@@ -156,12 +156,12 @@ function updateValue(i: number, value: string) {
   align-items: center;
   gap: var(--fabric-space-1);
   background: transparent;
-  border: 1px dashed var(--fabric-border);
+  border: 1px dashed var(--fabric-event-editor-border);
   border-radius: var(--fabric-radius-md);
   padding: var(--fabric-space-2) var(--fabric-space-3);
   font-size: var(--fabric-text-xs);
   font-family: inherit;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-event-editor-text-muted);
   cursor: pointer;
   width: 100%;
   justify-content: center;
@@ -169,7 +169,7 @@ function updateValue(i: number, value: string) {
 }
 
 .payload-add-btn:hover {
-  border-color: var(--fabric-accent);
-  color: var(--fabric-accent);
+  border-color: var(--fabric-event-editor-accent);
+  color: var(--fabric-event-editor-accent);
 }
 </style>

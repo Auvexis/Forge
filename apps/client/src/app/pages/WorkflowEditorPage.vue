@@ -1282,8 +1282,8 @@ watch(
   min-height: 180px;
   max-height: calc(100% - 120px);
   overflow: hidden;
-  border-top: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workbench-panel-bg);
+  border-top: 1px solid var(--fabric-workflow-editor-page-workbench-border);
+  background: var(--fabric-workflow-editor-page-workbench-panel-bg);
 }
 
 .workflow-workbench__bottom-panel-resize {
@@ -1297,7 +1297,7 @@ watch(
 }
 
 .workflow-workbench__bottom-panel-resize:hover {
-  background: color-mix(in srgb, var(--fabric-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--fabric-workflow-editor-page-accent) 28%, transparent);
 }
 
 .workflow-workbench__canvas :deep(.app-panel--right:not(.workflow-inspector-panel)) {
@@ -1333,13 +1333,13 @@ watch(
   min-height: 0;
   flex-direction: column;
   overflow: hidden;
-  background: var(--fabric-workbench-panel-bg);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workflow-editor-page-workbench-panel-bg);
+  color: var(--fabric-workflow-editor-page-text-primary);
   font-size: 12px;
 }
 
 .workflow-inspector-panel__section-title {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-editor-page-text-muted);
   font-size: 10px;
   font-weight: 650;
   letter-spacing: 0.04em;
@@ -1353,7 +1353,7 @@ watch(
   flex-direction: column;
   gap: 8px;
   padding: 10px;
-  border-bottom: 1px solid var(--fabric-workbench-border);
+  border-bottom: 1px solid var(--fabric-workflow-editor-page-workbench-border);
 }
 
 .workflow-property-grid {
@@ -1371,7 +1371,7 @@ watch(
 }
 
 .workflow-property-grid dt {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-editor-page-text-muted);
   font-size: 11px;
 }
 
@@ -1379,7 +1379,7 @@ watch(
   min-width: 0;
   margin: 0;
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-editor-page-text-primary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1389,8 +1389,8 @@ watch(
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
-  border: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-border-muted);
+  border: 1px solid var(--fabric-workflow-editor-page-border-muted);
+  background: var(--fabric-workflow-editor-page-border-muted);
 }
 
 .workflow-meter-grid button {
@@ -1403,13 +1403,13 @@ watch(
   gap: 2px;
   padding: 0 8px;
   border: 0;
-  background: var(--fabric-workbench-panel-bg);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workflow-editor-page-workbench-panel-bg);
+  color: var(--fabric-workflow-editor-page-text-primary);
   cursor: pointer;
 }
 
 .workflow-meter-grid button:hover {
-  background: var(--fabric-button-ghost-hover);
+  background: var(--fabric-workflow-editor-page-button-ghost-hover);
 }
 
 .workflow-meter-grid strong {
@@ -1418,7 +1418,7 @@ watch(
 }
 
 .workflow-meter-grid span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-editor-page-text-muted);
   font-size: 10px;
 }
 
@@ -1436,10 +1436,10 @@ watch(
   justify-content: center;
   width: 30px;
   height: 30px;
-  border: 1px solid var(--fabric-border-muted);
+  border: 1px solid var(--fabric-workflow-editor-page-border-muted);
   border-radius: 4px;
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-muted);
+  background: var(--fabric-workflow-editor-page-bg-elevated);
+  color: var(--fabric-workflow-editor-page-text-muted);
 }
 
 .workflow-selected-node div {
@@ -1462,7 +1462,7 @@ watch(
 
 .workflow-selected-node small,
 .workflow-selected-node code {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-editor-page-text-muted);
   font-size: 10px;
 }
 
@@ -1471,7 +1471,7 @@ watch(
   align-items: center;
   gap: 8px;
   min-height: 40px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-editor-page-text-muted);
   font-size: 11px;
   line-height: 1.35;
 }
@@ -1484,24 +1484,24 @@ watch(
   min-width: 0;
   padding: 0 var(--fabric-space-3);
   border: 0;
-  border-right: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-workbench-status-button-bg, transparent);
+  border-right: 1px solid var(--fabric-workflow-editor-page-border-muted);
+  background: var(--fabric-workflow-editor-page-workbench-status-button-bg);
   color: inherit;
   cursor: pointer;
 }
 
 .workflow-status-bar__button:hover,
 .workflow-status-bar__button--active {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-workbench-status-button-hover-bg, var(--fabric-bg-surface));
+  color: var(--fabric-workflow-editor-page-text-primary);
+  background: var(--fabric-workflow-editor-page-workbench-status-button-hover-bg);
 }
 
 .workflow-status-bar__button--active {
-  background: var(--fabric-workbench-status-button-active-bg, var(--fabric-bg-surface));
+  background: var(--fabric-workflow-editor-page-workbench-status-button-active-bg);
 }
 
 .workflow-status-bar__button--git {
-  border-left: 1px solid var(--fabric-border-muted);
+  border-left: 1px solid var(--fabric-workflow-editor-page-border-muted);
 }
 
 .workflow-status-bar__button:disabled {
@@ -1513,11 +1513,11 @@ watch(
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--fabric-text-muted);
+  background: var(--fabric-workflow-editor-page-text-muted);
 }
 
 .workflow-status-bar__dot.is-active {
-  background: var(--fabric-green-400);
+  background: var(--fabric-workflow-editor-page-green400);
 }
 
 .workflow-status-bar__button code {

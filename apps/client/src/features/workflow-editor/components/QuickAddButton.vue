@@ -117,8 +117,8 @@ const onQuickAdd = (event: MouseEvent) => {
 .qab-btn {
   border-radius: var(--fabric-radius-sm);
   background-color: var(--fabric-node-border);
-  border: 2px solid var(--fabric-border-strong);
-  color: var(--fabric-text-primary);
+  border: 2px solid var(--fabric-quick-add-button-border-strong);
+  color: var(--fabric-quick-add-button-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

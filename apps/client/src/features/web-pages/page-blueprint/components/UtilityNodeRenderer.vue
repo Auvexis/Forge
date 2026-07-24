@@ -17,7 +17,7 @@
     :title="node.label"
     :eyebrow="utilityEyebrow"
     :icon="node.icon || 'box'"
-    :accent="node.accent || 'var(--fabric-accent)'"
+    :accent="node.accent || 'var(--fabric-utility-node-renderer-accent)'"
     :selected="selected"
     :dimmed="dimmed"
   >

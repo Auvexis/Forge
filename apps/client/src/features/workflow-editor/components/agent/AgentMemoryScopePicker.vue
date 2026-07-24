@@ -84,7 +84,7 @@ function handleScopeChange(scope: AgentMemoryScope) {
 }
 
 .agent-memory-scope-picker__write-state {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-memory-scope-picker-text-muted);
   font-size: var(--fabric-text-xs);
 }
 </style>

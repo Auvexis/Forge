@@ -40,7 +40,7 @@ const handlers = computed(() => getAdvancedNodeHandlers('ai-agent'))
 
 <style scoped>
 .ai-agent-node__avatar {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-ai-agent-node-text-muted);
   font-size: 28px;
 }
 </style>

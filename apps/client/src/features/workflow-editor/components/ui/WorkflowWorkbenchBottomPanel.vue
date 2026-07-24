@@ -166,7 +166,7 @@ const TIMELINE_COLORS = [
   '#06b6d4',
 ]
 const TRIGGER_PRESENTATION: Record<string, WorkflowTimelineNodePresentation> = {
-  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--fabric-text-primary)' },
+  manual: { icon: 'mouse-pointer-2', iconColor: 'var(--fabric-workflow-workbench-bottom-panel-text-primary)' },
   webhook: { icon: 'webhook', iconColor: 'rgb(16, 185, 129)' },
   cron: { icon: 'clock', iconColor: 'rgb(138, 82, 255)' },
   form: { icon: 'clipboard-list', iconColor: 'rgb(236, 72, 153)' },
@@ -310,13 +310,13 @@ function presentationForNode(
 
   if (node.type === 'trigger') {
     const triggerType = node.trigger?.type ?? 'manual'
-    return TRIGGER_PRESENTATION[triggerType] ?? { icon: fallback, iconColor: 'var(--fabric-text-primary)' }
+    return TRIGGER_PRESENTATION[triggerType] ?? { icon: fallback, iconColor: 'var(--fabric-workflow-workbench-bottom-panel-text-primary)' }
   }
 
   const style = catalogByType.get(node.type)?.style
   return {
     icon: node.ui?.icon ?? style?.icon ?? fallback,
-    iconColor: style?.iconColor ?? 'var(--fabric-text-secondary)',
+    iconColor: style?.iconColor ?? 'var(--fabric-workflow-workbench-bottom-panel-text-secondary)',
   }
 }
 
@@ -435,7 +435,7 @@ const timelineEntryPoints = computed<WorkflowTimelineEntryPoint[]>(() => {
       name: 'All entry points',
       type: 'workspace',
       icon: iconForNodeType('workspace'),
-      iconColor: 'var(--fabric-text-secondary)',
+      iconColor: 'var(--fabric-workflow-workbench-bottom-panel-text-secondary)',
       nodeCount: allNodeIds.size,
       eventCount: eventCountFor(allNodeIds),
       status: resolveStatus(allNodeIds),
@@ -448,7 +448,7 @@ const timelineEntryPoints = computed<WorkflowTimelineEntryPoint[]>(() => {
         name: node.name,
         type: node.type,
         icon: nodePresentations.value[node.id]?.icon ?? iconForNodeType(node.type),
-        iconColor: nodePresentations.value[node.id]?.iconColor ?? 'var(--fabric-text-secondary)',
+        iconColor: nodePresentations.value[node.id]?.iconColor ?? 'var(--fabric-workflow-workbench-bottom-panel-text-secondary)',
         nodeCount: nodeIds.size,
         eventCount: eventCountFor(nodeIds),
         status: resolveStatus(nodeIds),
@@ -617,7 +617,7 @@ const orderedTimelineNodes = computed(() => {
     column: placement.column,
     color: TIMELINE_COLORS[index % TIMELINE_COLORS.length] ?? '#4f8cff',
     icon: nodePresentations.value[placement.id]?.icon ?? iconForNodeType(nodesById.get(placement.id)?.type ?? 'unknown'),
-    iconColor: nodePresentations.value[placement.id]?.iconColor ?? 'var(--fabric-text-secondary)',
+    iconColor: nodePresentations.value[placement.id]?.iconColor ?? 'var(--fabric-workflow-workbench-bottom-panel-text-secondary)',
     parentId: placement.parentId,
     rootId: placement.rootId,
   }))
@@ -1291,8 +1291,8 @@ onBeforeUnmount(() => {
   grid-template-rows: 32px minmax(0, 1fr);
   height: 100%;
   min-height: 0;
-  color: var(--fabric-workflow-timeline-text, var(--fabric-workbench-text));
-  background: var(--fabric-workflow-timeline-bg, var(--fabric-workbench-panel-bg));
+  color: var(--fabric-workflow-timeline-text);
+  background: var(--fabric-workflow-timeline-bg);
 }
 
 .workflow-bottom-panel__view {
@@ -1308,14 +1308,14 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 12px;
   padding: 0 10px;
-  border-bottom: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workflow-timeline-header-bg, var(--fabric-workbench-panel-header-bg, var(--fabric-workbench-rail-bg)));
+  border-bottom: 1px solid var(--fabric-workflow-workbench-bottom-panel-workbench-border);
+  background: var(--fabric-workflow-timeline-header-bg, var(--fabric-workflow-workbench-bottom-panel-workbench-panel-header-bg));
   font-size: var(--fabric-text-xs);
 }
 
 .workflow-bottom-panel__heading code,
 .workflow-bottom-panel__row code {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 11px;
 }
 
@@ -1332,13 +1332,13 @@ onBeforeUnmount(() => {
   height: 26px;
   margin-left: auto;
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
   transition: background-color var(--fabric-duration-fast);
 }
 
 .workflow-bottom-panel__close:hover {
-  background-color: var(--fabric-bg-muted);
-  color: var(--fabric-text-primary);
+  background-color: var(--fabric-workflow-workbench-bottom-panel-bg-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
 }
 
 .workflow-bottom-panel__rows {
@@ -1354,15 +1354,15 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: 28px;
   padding: 0 10px;
-  border-bottom: 1px solid var(--fabric-border-muted);
-  color: var(--fabric-text-secondary);
+  border-bottom: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
   font-size: var(--fabric-text-xs);
   text-align: left;
 }
 
 .workflow-bottom-panel__row:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-button-ghost-hover);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
+  background: var(--fabric-workflow-workbench-bottom-panel-button-ghost-hover);
 }
 
 .workflow-bottom-panel__row span {
@@ -1375,7 +1375,7 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -1394,8 +1394,8 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   padding: 4px 0;
-  border-right: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workflow-timeline-entry-bg, var(--fabric-workbench-panel-bg));
+  border-right: 1px solid var(--fabric-workflow-workbench-bottom-panel-workbench-border);
+  background: var(--fabric-workflow-timeline-entry-bg);
 }
 
 .workflow-variables__section-header,
@@ -1415,7 +1415,7 @@ onBeforeUnmount(() => {
   gap: 4px;
   height: 24px;
   padding: 0 8px;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
   font-weight: 650;
   font-size: var(--fabric-text-xs);
 }
@@ -1431,7 +1431,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-variables__prop-row > span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 11px;
   white-space: nowrap;
 }
@@ -1509,7 +1509,7 @@ onBeforeUnmount(() => {
 .workflow-variables__error {
   min-height: 20px;
   margin: 2px 8px 0 76px;
-  color: var(--fabric-status-error-text, var(--fabric-red-400));
+  color: var(--fabric-workflow-workbench-bottom-panel-status-error-text);
   font-size: 11px;
 }
 
@@ -1519,7 +1519,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   height: 30px;
   padding: 3px 8px 0;
-  border-top: 1px solid var(--fabric-border-muted);
+  border-top: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
 }
 
 .workflow-variables__icon-button {
@@ -1529,17 +1529,17 @@ onBeforeUnmount(() => {
   border: 1px solid transparent;
   border-radius: 2px;
   background: transparent;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
 }
 
 .workflow-variables__icon-button:hover,
 .workflow-variables__actions button:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workflow-workbench-bottom-panel-button-ghost-hover);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
 }
 
 .workflow-variables__icon-button--primary {
-  color: var(--fabric-accent);
+  color: var(--fabric-workflow-workbench-bottom-panel-accent);
 }
 
 .workflow-variables__list {
@@ -1551,12 +1551,12 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 8px;
   padding: 0 8px;
-  border-bottom: 1px solid var(--fabric-border-muted);
-  background: var(--fabric-workflow-timeline-header-bg, var(--fabric-workbench-panel-header-bg));
+  border-bottom: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
+  background: var(--fabric-workflow-timeline-header-bg);
 }
 
 .workflow-variables__toolbar code {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 10px;
   white-space: nowrap;
 }
@@ -1565,7 +1565,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   width: min(300px, 100%);
   height: 22px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
 }
 
 .workflow-variables__search :deep(.base-input.has-left-icon) {
@@ -1588,14 +1588,14 @@ onBeforeUnmount(() => {
   gap: 8px;
   min-height: 28px;
   padding: 0 8px;
-  border-bottom: 1px solid var(--fabric-border-muted);
-  color: var(--fabric-text-secondary);
+  border-bottom: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
   font-size: var(--fabric-text-xs);
 }
 
 .workflow-variables__row:hover {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workflow-workbench-bottom-panel-button-ghost-hover);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
 }
 
 .workflow-variables__identity {
@@ -1618,7 +1618,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-variables__identity small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 10px;
 }
 
@@ -1626,17 +1626,17 @@ onBeforeUnmount(() => {
   justify-content: center;
   width: 16px;
   height: 16px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
 }
 
 .workflow-variables__type,
 .workflow-variables__token {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 10px;
 }
 
 .workflow-variables__preview {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
 }
 
 .workflow-variables__actions {
@@ -1650,7 +1650,7 @@ onBeforeUnmount(() => {
   height: 22px;
   border: 1px solid transparent;
   border-radius: 2px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
 }
 
 .workflow-variables__empty {
@@ -1658,12 +1658,12 @@ onBeforeUnmount(() => {
   place-items: center;
   align-content: center;
   gap: 6px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
 .workflow-variables__empty strong {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
 }
 
 @media (max-width: 900px) {
@@ -1696,7 +1696,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__stats code:not(:last-child) {
-  border-right: 1px solid var(--fabric-border-muted);
+  border-right: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
 }
 
 .workflow-timeline {
@@ -1709,8 +1709,8 @@ onBeforeUnmount(() => {
   grid-template-rows: 28px minmax(0, 1fr);
   min-width: 0;
   min-height: 0;
-  border-right: 1px solid var(--fabric-workbench-border);
-  background: var(--fabric-workflow-timeline-entry-bg, var(--fabric-workbench-panel-bg));
+  border-right: 1px solid var(--fabric-workflow-workbench-bottom-panel-workbench-border);
+  background: var(--fabric-workflow-timeline-entry-bg);
 }
 
 .workflow-timeline__entries-heading {
@@ -1719,13 +1719,13 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 8px;
   padding: 0 10px;
-  border-bottom: 1px solid var(--fabric-border-muted);
-  color: var(--fabric-text-secondary);
+  border-bottom: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
   font-size: var(--fabric-text-xs);
 }
 
 .workflow-timeline__entries-heading code {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 10px;
 }
 
@@ -1743,34 +1743,34 @@ onBeforeUnmount(() => {
   width: 100%;
   min-height: 38px;
   padding: 3px 10px;
-  border-bottom: 1px solid var(--fabric-border-muted);
+  border-bottom: 1px solid var(--fabric-workflow-workbench-bottom-panel-border-muted);
   border-left: 2px solid transparent;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
   font-size: 11px;
   text-align: left;
 }
 
 .workflow-timeline__entry:hover,
 .workflow-timeline__entry--selected {
-  background: var(--fabric-button-ghost-hover);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-workflow-workbench-bottom-panel-button-ghost-hover);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
 }
 
 .workflow-timeline__entry--active {
-  border-left-color: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
+  border-left-color: var(--fabric-workflow-timeline-playhead);
 }
 
 .workflow-timeline__entry--running,
 .workflow-timeline__entry--retrying {
-  border-left-color: var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+  border-left-color: var(--fabric-workflow-timeline-clip-running-border);
 }
 
 .workflow-timeline__entry--success {
-  border-left-color: var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+  border-left-color: var(--fabric-workflow-timeline-clip-success-border);
 }
 
 .workflow-timeline__entry--failed {
-  border-left-color: var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+  border-left-color: var(--fabric-workflow-timeline-clip-error-border);
 }
 
 .workflow-timeline__entry svg {
@@ -1785,7 +1785,7 @@ onBeforeUnmount(() => {
 
 .workflow-timeline__entry code,
 .workflow-timeline__entry small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 10px;
 }
 
@@ -1833,7 +1833,7 @@ onBeforeUnmount(() => {
   bottom: 0;
   left: calc(var(--workflow-timeline-content-left, 76px) + var(--workflow-timeline-depth-x, 0px));
   width: var(--workflow-timeline-column-width, 132px);
-  border-left: 1px solid var(--fabric-workflow-timeline-depth-border, var(--fabric-border-muted));
+  border-left: 1px solid var(--fabric-workflow-timeline-depth-border);
   background: transparent;
   cursor: pointer;
   pointer-events: auto;
@@ -1847,7 +1847,7 @@ onBeforeUnmount(() => {
 .workflow-timeline__depth-column small,
 .workflow-timeline__lane code {
   position: absolute;
-  color: var(--fabric-workflow-timeline-muted-text, var(--fabric-text-muted));
+  color: var(--fabric-workflow-timeline-muted-text);
   font-family: var(--fabric-font-mono);
   font-size: 9px;
   line-height: 1;
@@ -1871,12 +1871,12 @@ onBeforeUnmount(() => {
   left: 0;
   top: calc(var(--workflow-timeline-plane-top, 18px) + 11px + var(--workflow-timeline-lane-y, 0px));
   height: var(--workflow-timeline-lane-height, 42px);
-  border-top: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
-  border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border, var(--fabric-border-muted));
+  border-top: 1px solid var(--fabric-workflow-timeline-lane-border);
+  border-bottom: 1px solid var(--fabric-workflow-timeline-lane-border);
 }
 
 .workflow-timeline__lane--root {
-  border-top-color: var(--fabric-workflow-timeline-lane-root-border, var(--fabric-border-strong));
+  border-top-color: var(--fabric-workflow-timeline-lane-root-border);
 }
 
 .workflow-timeline__lane--active {
@@ -1907,8 +1907,8 @@ onBeforeUnmount(() => {
   left: var(--workflow-timeline-playhead-x, 128px);
   z-index: 5;
   width: 2px;
-  background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-timeline-playhead, var(--fabric-accent)) 42%, transparent);
+  background: var(--fabric-workflow-timeline-playhead);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-timeline-playhead) 42%, transparent);
   cursor: grab;
   pointer-events: none;
   touch-action: none;
@@ -1926,7 +1926,7 @@ onBeforeUnmount(() => {
   width: 10px;
   height: 10px;
   transform: translateX(-50%) rotate(45deg);
-  background: var(--fabric-workflow-timeline-playhead, var(--fabric-accent));
+  background: var(--fabric-workflow-timeline-playhead);
   content: '';
 }
 
@@ -1961,7 +1961,7 @@ onBeforeUnmount(() => {
 
 .workflow-timeline__connector {
   fill: none;
-  stroke: var(--fabric-workflow-timeline-connector, var(--fabric-border-strong));
+  stroke: var(--fabric-workflow-timeline-connector);
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 1;
@@ -1969,27 +1969,27 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__connector--passed {
-  stroke: var(--fabric-workflow-timeline-trail, var(--fabric-accent));
+  stroke: var(--fabric-workflow-timeline-trail);
   stroke-width: 2;
   opacity: 0.82;
 }
 
 .workflow-timeline__connector--success.workflow-timeline__connector--passed {
-  stroke: var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+  stroke: var(--fabric-workflow-timeline-clip-success-border);
 }
 
 .workflow-timeline__connector--failed.workflow-timeline__connector--passed,
 .workflow-timeline__connector--cancelled.workflow-timeline__connector--passed {
-  stroke: var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+  stroke: var(--fabric-workflow-timeline-clip-error-border);
 }
 
 .workflow-timeline__connector--waiting.workflow-timeline__connector--passed,
 .workflow-timeline__connector--retrying.workflow-timeline__connector--passed {
-  stroke: var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
+  stroke: var(--fabric-workflow-timeline-clip-waiting-border);
 }
 
 .workflow-timeline__connector--running.workflow-timeline__connector--passed {
-  stroke: var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+  stroke: var(--fabric-workflow-timeline-clip-running-border);
 }
 
 .workflow-timeline__clip {
@@ -2004,12 +2004,12 @@ onBeforeUnmount(() => {
   width: 104px;
   height: 28px;
   padding: 0 7px;
-  border: 1px solid color-mix(in srgb, var(--workflow-timeline-color) 72%, var(--fabric-border-muted));
+  border: 1px solid color-mix(in srgb, var(--workflow-timeline-color) 72%, var(--fabric-workflow-workbench-bottom-panel-border-muted));
   border-radius: 3px;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--workflow-timeline-color) 24%, transparent), transparent 48%),
-    var(--fabric-workflow-timeline-clip-bg, var(--fabric-bg-surface));
-  color: var(--fabric-text-primary);
+    var(--fabric-workflow-timeline-clip-bg);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
   font-size: 11px;
   cursor: pointer;
   transition:
@@ -2019,34 +2019,34 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__clip--success {
-  outline: 2px solid var(--fabric-workflow-timeline-clip-success-border, var(--fabric-status-success-border));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-success-border);
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--failed {
-  outline: 2px solid var(--fabric-workflow-timeline-clip-error-border, var(--fabric-status-error-border));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-error-border);
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--waiting,
 .workflow-timeline__clip--retrying {
-  outline: 2px solid var(--fabric-workflow-timeline-clip-waiting-border, var(--fabric-border-brand));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-waiting-border);
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--running {
-  outline: 2px solid var(--fabric-workflow-timeline-clip-running-border, var(--fabric-status-running-border));
+  outline: 2px solid var(--fabric-workflow-timeline-clip-running-border);
   outline-offset: 1px;
 }
 
 .workflow-timeline__clip--active {
   transform: translateY(-2px);
-  background: var(--fabric-workflow-timeline-clip-active-bg, var(--fabric-bg-elevated));
-  box-shadow: inset 0 0 0 1px var(--fabric-accent);
+  background: var(--fabric-workflow-timeline-clip-active-bg);
+  box-shadow: inset 0 0 0 1px var(--fabric-workflow-workbench-bottom-panel-accent);
 }
 
 .workflow-timeline__clip--trace {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fabric-accent) 72%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--fabric-workflow-workbench-bottom-panel-accent) 72%, transparent);
 }
 
 .workflow-timeline__clip--dimmed {
@@ -2065,17 +2065,17 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__clip code {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 9px;
 }
 
 .workflow-timeline__duration {
   min-width: 32px;
   padding: 2px 4px;
-  border: 1px solid var(--fabric-workflow-timeline-duration-border, var(--fabric-border-muted));
+  border: 1px solid var(--fabric-workflow-timeline-duration-border);
   border-radius: 2px;
-  background: var(--fabric-workflow-timeline-duration-bg, var(--fabric-bg-muted));
-  color: var(--fabric-workflow-timeline-duration-text, var(--fabric-text-primary)) !important;
+  background: var(--fabric-workflow-timeline-duration-bg);
+  color: var(--fabric-workflow-timeline-duration-text) !important;
   text-align: center;
 }
 
@@ -2088,11 +2088,11 @@ onBeforeUnmount(() => {
   gap: 6px;
   width: 220px;
   padding: 8px;
-  border: 1px solid var(--fabric-workflow-timeline-tooltip-border, var(--fabric-border));
+  border: 1px solid var(--fabric-workflow-timeline-tooltip-border);
   border-radius: 4px;
-  background: var(--fabric-workflow-timeline-tooltip-bg, var(--fabric-workbench-panel-bg));
-  color: var(--fabric-text-primary);
-  box-shadow: var(--fabric-shadow-lg, 0 12px 32px rgba(0, 0, 0, 0.32));
+  background: var(--fabric-workflow-timeline-tooltip-bg);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
+  box-shadow: var(--fabric-workflow-workbench-bottom-panel-shadow-lg);
   pointer-events: none;
   opacity: 1;
 }
@@ -2105,7 +2105,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__tooltip span {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-secondary);
   font-size: 11px;
 }
 
@@ -2121,7 +2121,7 @@ onBeforeUnmount(() => {
 }
 
 .workflow-timeline__tooltip dt {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-muted);
   font-size: 9px;
   text-transform: uppercase;
 }
@@ -2129,13 +2129,13 @@ onBeforeUnmount(() => {
 .workflow-timeline__tooltip dd {
   margin: 1px 0 0;
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-workbench-bottom-panel-text-primary);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .workflow-timeline__status {
-  color: var(--fabric-workflow-timeline-muted-text, var(--fabric-text-muted)) !important;
+  color: var(--fabric-workflow-timeline-muted-text) !important;
 }
 </style>

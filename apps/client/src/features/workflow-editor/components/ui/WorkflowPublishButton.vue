@@ -108,8 +108,8 @@ async function handleUnpublish() {
 
 /* Draft state — neutral/accent */
 .publish-btn--draft {
-  background-color: var(--fabric-button-publish-draft-bg) !important;
-  color: var(--fabric-button-publish-draft-text) !important;
+  background-color: var(--fabric-workflow-publish-button-button-publish-draft-bg) !important;
+  color: var(--fabric-workflow-publish-button-button-publish-draft-text) !important;
 }
 
 .publish-btn--draft:hover:not(:disabled) {
@@ -118,30 +118,30 @@ async function handleUnpublish() {
 
 /* Unpublished (was published before) — orange */
 .publish-btn--unpublished {
-  background-color: var(--fabric-button-publish-unpub-bg) !important;
-  color: var(--fabric-button-publish-unpub-text) !important;
-  border-color: var(--fabric-button-publish-unpub-border) !important;
+  background-color: var(--fabric-workflow-publish-button-button-publish-unpub-bg) !important;
+  color: var(--fabric-workflow-publish-button-button-publish-unpub-text) !important;
+  border-color: var(--fabric-workflow-publish-button-button-publish-unpub-border) !important;
 }
 
 .publish-btn--unpublished:hover:not(:disabled) {
-  background-color: var(--fabric-button-publish-unpub-hover-bg) !important;
+  background-color: var(--fabric-workflow-publish-button-button-publish-unpub-hover-bg) !important;
 }
 
 /* Published state — green pill with live dot */
 .publish-btn--published {
-  background-color: var(--fabric-button-publish-live-bg) !important;
-  color: var(--fabric-button-publish-live-text) !important;
-  border-color: var(--fabric-button-publish-live-border) !important;
+  background-color: var(--fabric-workflow-publish-button-button-publish-live-bg) !important;
+  color: var(--fabric-workflow-publish-button-button-publish-live-text) !important;
+  border-color: var(--fabric-workflow-publish-button-button-publish-live-border) !important;
 }
 
 .publish-btn--published:hover:not(:disabled) {
-  background-color: var(--fabric-button-publish-live-hover-bg) !important;
-  color: var(--fabric-button-publish-live-hover-text) !important;
-  border-color: var(--fabric-button-publish-live-hover-border) !important;
+  background-color: var(--fabric-workflow-publish-button-button-publish-live-hover-bg) !important;
+  color: var(--fabric-workflow-publish-button-button-publish-live-hover-text) !important;
+  border-color: var(--fabric-workflow-publish-button-button-publish-live-hover-border) !important;
 }
 
 .publish-btn--published:hover:not(:disabled) .publish-btn__dot {
-  background: var(--fabric-button-publish-live-hover-text);
+  background: var(--fabric-workflow-publish-button-button-publish-live-hover-text);
 }
 
 /* Live dot */
@@ -149,7 +149,7 @@ async function handleUnpublish() {
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--fabric-green-400);
+  background: var(--fabric-workflow-publish-button-green400);
   animation: pulse-dot 2s ease-in-out infinite;
   flex-shrink: 0;
 }

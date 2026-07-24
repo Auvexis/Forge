@@ -104,7 +104,7 @@ function toggleDisabled() {
   border-radius: var(--fabric-radius-sm);
   background: transparent;
   border: none;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-node-toolbar-text-muted);
   cursor: pointer;
   transition:
     background-color var(--fabric-duration-fast),
@@ -112,23 +112,23 @@ function toggleDisabled() {
 }
 
 .nt-btn:hover {
-  background-color: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  background-color: var(--fabric-node-toolbar-bg-elevated);
+  color: var(--fabric-node-toolbar-text-primary);
 }
 
 /* Output button when node errored */
 .nt-btn--error {
-  color: var(--fabric-amber-400);
+  color: var(--fabric-node-toolbar-amber400);
 }
 
 .nt-btn--error:hover {
   background-color: rgba(245, 158, 11, 0.1);
-  color: var(--fabric-amber-400);
+  color: var(--fabric-node-toolbar-amber400);
 }
 
 /* Delete button */
 .nt-btn--danger:hover {
   background-color: rgba(239, 68, 68, 0.1);
-  color: var(--fabric-red-400);
+  color: var(--fabric-node-toolbar-red400);
 }
 </style>

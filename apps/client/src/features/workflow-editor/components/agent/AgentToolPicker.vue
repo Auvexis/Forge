@@ -189,17 +189,17 @@ onMounted(loadTools)
   gap: var(--fabric-space-2);
   width: 100%;
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-agent-tool-picker-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-overlay);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-agent-tool-picker-bg-overlay);
+  color: var(--fabric-agent-tool-picker-text-primary);
   text-align: left;
 }
 
 .agent-tool-picker__option:hover,
 .agent-tool-picker__option--selected {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-bg-elevated);
+  border-color: var(--fabric-agent-tool-picker-border-strong);
+  background: var(--fabric-agent-tool-picker-bg-elevated);
 }
 
 .agent-tool-picker__select {
@@ -241,7 +241,7 @@ onMounted(loadTools)
 .agent-tool-picker__description,
 .agent-tool-picker__status {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-tool-picker-text-muted);
 }
 
 .agent-tool-picker__status {
@@ -249,7 +249,7 @@ onMounted(loadTools)
 }
 
 .agent-tool-picker__status--error {
-  color: var(--fabric-text-error);
+  color: var(--fabric-agent-tool-picker-text-error);
 }
 
 .agent-tool-picker__badge {
@@ -258,19 +258,19 @@ onMounted(loadTools)
   min-height: 22px;
   padding: 0 var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
-  border: 1px solid var(--fabric-border);
-  color: var(--fabric-text-secondary);
+  border: 1px solid var(--fabric-agent-tool-picker-border);
+  color: var(--fabric-agent-tool-picker-text-secondary);
   font-size: var(--fabric-text-xs);
 }
 
 .agent-tool-picker__badge--approval {
-  border-color: var(--fabric-warning-border, var(--fabric-border-strong));
-  color: var(--fabric-text-warning, var(--fabric-text-primary));
+  border-color: var(--fabric-warning-border);
+  color: var(--fabric-agent-tool-picker-text-warning);
 }
 
 .agent-tool-picker__badge--danger {
-  border-color: var(--fabric-red-400);
-  color: var(--fabric-red-400);
+  border-color: var(--fabric-agent-tool-picker-red400);
+  color: var(--fabric-agent-tool-picker-red400);
 }
 
 .agent-tool-picker__schema-toggle {
@@ -278,7 +278,7 @@ onMounted(loadTools)
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-tool-picker-text-muted);
   cursor: pointer;
   font-size: var(--fabric-text-xs);
   text-align: left;
@@ -290,8 +290,8 @@ onMounted(loadTools)
   margin: 0;
   padding: var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-muted);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-agent-tool-picker-bg-muted);
+  color: var(--fabric-agent-tool-picker-text-secondary);
   font-size: var(--fabric-text-xs);
   white-space: pre-wrap;
   word-break: break-word;

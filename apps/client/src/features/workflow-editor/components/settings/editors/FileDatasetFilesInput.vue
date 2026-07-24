@@ -159,10 +159,10 @@ function uploadFile(index: number, event: Event) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-file-dataset-files-input-border);
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-muted);
-  background: var(--fabric-bg-surface);
+  color: var(--fabric-file-dataset-files-input-text-muted);
+  background: var(--fabric-file-dataset-files-input-bg-surface);
   cursor: pointer;
 }
 
@@ -174,8 +174,8 @@ function uploadFile(index: number, event: Event) {
 
 .file-dataset-files__button:hover,
 .file-dataset-files__add:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-surface-hover);
+  color: var(--fabric-file-dataset-files-input-text-primary);
+  background: var(--fabric-file-dataset-files-input-bg-surface-hover);
 }
 
 .file-dataset-files__button--remove:hover {

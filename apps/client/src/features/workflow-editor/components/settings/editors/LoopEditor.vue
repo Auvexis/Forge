@@ -40,7 +40,7 @@ defineProps<NodeEditorProps>()
 }
 
 .text-muted-foreground {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-loop-editor-text-muted);
 }
 
 .mt-1 {

@@ -408,8 +408,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 /* ── Shell ─────────────────────────────────────────────── */
 .pe {
   min-height: 100vh;
-  color: var(--fabric-text-primary);
-  background-color: var(--fabric-bg-base);
+  color: var(--fabric-profile-selection-page-text-primary);
+  background-color: var(--fabric-profile-selection-page-bg-base);
 }
 
 /* ── Full-screen list view ────────────────────────────── */
@@ -456,7 +456,7 @@ function canDeleteProfile(profile: ProfileSummary) {
   padding: 72px 64px;
   border-bottom-left-radius: 35px;
   border-top-left-radius: 35px;
-  background: var(--fabric-bg-inverse);
+  background: var(--fabric-profile-selection-page-bg-inverse);
   overflow: hidden;
   position: relative;
 }
@@ -505,7 +505,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__hint {
   margin: 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-profile-selection-page-text-secondary);
   font-size: var(--fabric-text-sm);
 }
 
@@ -531,8 +531,8 @@ function canDeleteProfile(profile: ProfileSummary) {
   width: 110px;
   height: 110px;
   border-radius: 50%;
-  border: 2px solid var(--fabric-border);
-  background: var(--fabric-bg-elevated);
+  border: 2px solid var(--fabric-profile-selection-page-border);
+  background: var(--fabric-profile-selection-page-bg-elevated);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -545,10 +545,10 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__circle:hover {
   transform: scale(1.06) translateY(-3px);
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-profile-selection-page-border-strong);
   box-shadow:
     0 16px 40px rgba(0, 0, 0, 0.35),
-    0 0 0 4px color-mix(in srgb, var(--fabric-brand-500) 12%, transparent);
+    0 0 0 4px color-mix(in srgb, var(--fabric-profile-selection-page-brand500) 12%, transparent);
 }
 
 .pe__circle:active {
@@ -563,11 +563,11 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__circle--add {
   border-style: dashed;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-profile-selection-page-text-secondary);
 }
 .pe__circle--add:hover {
-  color: var(--fabric-text-primary);
-  border-color: var(--fabric-border-strong);
+  color: var(--fabric-profile-selection-page-text-primary);
+  border-color: var(--fabric-profile-selection-page-border-strong);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
 }
 
@@ -582,8 +582,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__circle--danger {
-  border-color: color-mix(in srgb, var(--fabric-red-400) 35%, transparent);
-  background: color-mix(in srgb, var(--fabric-red-400) 6%, var(--fabric-bg-surface));
+  border-color: color-mix(in srgb, var(--fabric-profile-selection-page-red400) 35%, transparent);
+  background: color-mix(in srgb, var(--fabric-profile-selection-page-red400) 6%, var(--fabric-profile-selection-page-bg-surface));
 }
 
 .pe__circle-lock {
@@ -593,9 +593,9 @@ function canDeleteProfile(profile: ProfileSummary) {
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--fabric-amber-400) 15%, var(--fabric-bg-base));
-  border: 1px solid color-mix(in srgb, var(--fabric-amber-400) 30%, transparent);
-  color: var(--fabric-amber-400);
+  background: color-mix(in srgb, var(--fabric-profile-selection-page-amber400) 15%, var(--fabric-profile-selection-page-bg-base));
+  border: 1px solid color-mix(in srgb, var(--fabric-profile-selection-page-amber400) 30%, transparent);
+  color: var(--fabric-profile-selection-page-amber400);
   display: grid;
   place-items: center;
 }
@@ -603,7 +603,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 .pe__avatar-name {
   font-size: 15px;
   font-weight: 500;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-profile-selection-page-text-primary);
   text-align: center;
   max-width: 120px;
   overflow-wrap: anywhere;
@@ -616,9 +616,9 @@ function canDeleteProfile(profile: ProfileSummary) {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-overlay);
-  color: var(--fabric-text-muted);
+  border: 1px solid var(--fabric-profile-selection-page-border);
+  background: var(--fabric-profile-selection-page-bg-overlay);
+  color: var(--fabric-profile-selection-page-text-muted);
   display: grid;
   place-items: center;
   opacity: 0;
@@ -633,8 +633,8 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__circle-delete:hover {
-  color: var(--fabric-red-400);
-  border-color: color-mix(in srgb, var(--fabric-red-400) 30%, transparent);
+  color: var(--fabric-profile-selection-page-red400);
+  border-color: color-mix(in srgb, var(--fabric-profile-selection-page-red400) 30%, transparent);
 }
 
 /* ── Form wrap (left pane) ─────────────────────────────── */
@@ -677,7 +677,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 }
 
 .pe__preview-eyebrow {
-  color: color-mix(in srgb, var(--fabric-text-inverse) 58%, transparent);
+  color: color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 58%, transparent);
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.12em;
@@ -687,7 +687,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 .pe__preview-title {
   max-width: 540px;
   margin: 0;
-  color: var(--fabric-text-inverse);
+  color: var(--fabric-profile-selection-page-text-inverse);
   font-size: clamp(34px, 4.5vw, 62px);
   font-weight: 650;
   letter-spacing: -0.03em;
@@ -699,20 +699,20 @@ function canDeleteProfile(profile: ProfileSummary) {
   place-items: center;
   width: min(100%, 680px);
   aspect-ratio: 16 / 9;
-  border: 1px dashed color-mix(in srgb, var(--fabric-text-inverse) 26%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 26%, transparent);
   border-radius: 18px;
-  color: color-mix(in srgb, var(--fabric-text-inverse) 48%, transparent);
-  background: color-mix(in srgb, var(--fabric-text-inverse) 5%, transparent);
+  color: color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 48%, transparent);
+  background: color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 5%, transparent);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
 }
 
 .pe__preview-gif-slot span {
   display: block;
   padding: 8px 12px;
-  border: 1px solid color-mix(in srgb, var(--fabric-text-inverse) 18%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 18%, transparent);
   border-radius: var(--fabric-radius-full);
-  color: color-mix(in srgb, var(--fabric-text-inverse) 70%, transparent);
-  background: color-mix(in srgb, var(--fabric-bg-inverse) 86%, var(--fabric-text-inverse));
+  color: color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 70%, transparent);
+  background: color-mix(in srgb, var(--fabric-profile-selection-page-bg-inverse) 86%, var(--fabric-profile-selection-page-text-inverse));
   font-size: var(--fabric-text-xs);
   font-weight: 600;
 }
@@ -725,7 +725,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__preview-desc {
   margin: 0;
-  color: color-mix(in srgb, var(--fabric-text-inverse) 68%, transparent);
+  color: color-mix(in srgb, var(--fabric-profile-selection-page-text-inverse) 68%, transparent);
   font-size: var(--fabric-text-base);
   line-height: var(--fabric-leading-loose);
 }
@@ -775,12 +775,12 @@ function canDeleteProfile(profile: ProfileSummary) {
 .pe__label {
   font-size: var(--fabric-text-xs);
   font-weight: 600;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-profile-selection-page-text-secondary);
 }
 
 .pe__opt {
   font-weight: 400;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-profile-selection-page-text-muted);
 }
 
 .pe__input {
@@ -788,19 +788,19 @@ function canDeleteProfile(profile: ProfileSummary) {
   height: 42px;
   padding: 0 13px;
   border-radius: 8px;
-  border: 1px solid var(--fabric-input-border);
-  background: var(--fabric-input-bg);
-  color: var(--fabric-input-text);
+  border: 1px solid var(--fabric-profile-selection-page-input-border);
+  background: var(--fabric-profile-selection-page-input-bg);
+  color: var(--fabric-profile-selection-page-input-text);
   font: inherit;
   font-size: var(--fabric-text-sm);
   transition: border-color 160ms ease;
 }
 .pe__input::placeholder {
-  color: var(--fabric-input-placeholder);
+  color: var(--fabric-profile-selection-page-input-placeholder);
 }
 .pe__input:focus {
   outline: none;
-  border-color: var(--fabric-input-border-focus);
+  border-color: var(--fabric-profile-selection-page-input-border-focus);
 }
 
 .pe__input--mono {
@@ -812,7 +812,7 @@ function canDeleteProfile(profile: ProfileSummary) {
 
 .pe__error {
   margin: 0;
-  color: var(--fabric-text-error);
+  color: var(--fabric-profile-selection-page-text-error);
   font-size: var(--fabric-text-xs);
   text-align: center;
 }
@@ -826,7 +826,7 @@ function canDeleteProfile(profile: ProfileSummary) {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-profile-selection-page-text-muted);
   font-size: 11px;
   white-space: nowrap;
   z-index: 10;

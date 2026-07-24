@@ -219,9 +219,9 @@ onBeforeUnmount(() => {
   left: 0;
   top: 0;
   box-sizing: border-box;
-  border: 2px dashed color-mix(in srgb, var(--fabric-accent) 32%, transparent);
+  border: 2px dashed color-mix(in srgb, var(--fabric-page-blueprint-selection-box-accent) 32%, transparent);
   border-radius: 6px;
-  background: color-mix(in srgb, var(--fabric-accent) 4%, transparent);
+  background: color-mix(in srgb, var(--fabric-page-blueprint-selection-box-accent) 4%, transparent);
   cursor: move;
   pointer-events: auto;
 }
@@ -229,7 +229,7 @@ onBeforeUnmount(() => {
 .web-page-blueprint-selection-box__inner {
   position: absolute;
   inset: 4px;
-  border: 1px solid color-mix(in srgb, var(--fabric-accent) 64%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fabric-page-blueprint-selection-box-accent) 64%, transparent);
   border-radius: 4px;
   pointer-events: none;
 }
@@ -242,10 +242,10 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 6px;
   padding: 5px 7px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-page-blueprint-selection-box-border);
   border-radius: 3px;
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-md), 0 0 0 1px color-mix(in srgb, var(--fabric-accent) 20%, transparent);
+  background: var(--fabric-page-blueprint-selection-box-bg-surface);
+  box-shadow: var(--fabric-page-blueprint-selection-box-shadow-md), 0 0 0 1px color-mix(in srgb, var(--fabric-page-blueprint-selection-box-accent) 20%, transparent);
   white-space: nowrap;
   pointer-events: auto;
 }
@@ -260,20 +260,20 @@ onBeforeUnmount(() => {
 }
 
 .web-page-blueprint-selection-box__count {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-page-blueprint-selection-box-text-secondary);
 }
 
 .web-page-blueprint-selection-box__divider {
   width: 1px;
   height: 18px;
   margin: 0 2px;
-  background: var(--fabric-border);
+  background: var(--fabric-page-blueprint-selection-box-border);
 }
 
 .web-page-blueprint-selection-box__button {
   height: 24px;
   padding: 0 7px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-page-blueprint-selection-box-text-muted);
   cursor: pointer;
   background: none;
   border: none;
@@ -282,12 +282,12 @@ onBeforeUnmount(() => {
 }
 
 .web-page-blueprint-selection-box__button:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-elevated);
+  color: var(--fabric-page-blueprint-selection-box-text-primary);
+  background: var(--fabric-page-blueprint-selection-box-bg-elevated);
 }
 
 .web-page-blueprint-selection-box__button--danger:hover {
-  color: var(--fabric-text-error);
-  background: color-mix(in srgb, var(--fabric-text-error) 12%, transparent);
+  color: var(--fabric-page-blueprint-selection-box-text-error);
+  background: color-mix(in srgb, var(--fabric-page-blueprint-selection-box-text-error) 12%, transparent);
 }
 </style>

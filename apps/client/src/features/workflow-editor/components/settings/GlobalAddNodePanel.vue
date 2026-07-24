@@ -615,8 +615,8 @@ const closePluginMethodView = () => {
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-global-add-node-panel-bg-surface);
+  color: var(--fabric-global-add-node-panel-text-primary);
 }
 
 .global-add-node-panel__browse-view,
@@ -631,7 +631,7 @@ const closePluginMethodView = () => {
 .global-add-node-panel__method-header {
   flex: 0 0 auto;
   padding: var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-global-add-node-panel-border);
 }
 
 .global-add-node-panel__method-header {
@@ -649,7 +649,7 @@ const closePluginMethodView = () => {
   align-items: center;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-global-add-node-panel-border);
   font-size: var(--fabric-text-sm);
   font-weight: 700;
 }
@@ -661,7 +661,7 @@ const closePluginMethodView = () => {
   align-items: center;
   justify-content: center;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-global-add-node-panel-text-muted);
   font-size: var(--fabric-text-sm);
 }
 
@@ -677,7 +677,7 @@ const closePluginMethodView = () => {
 }
 
 .global-add-node-panel__section {
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-global-add-node-panel-border);
 }
 
 .global-add-node-panel__section-header {
@@ -688,7 +688,7 @@ const closePluginMethodView = () => {
   padding: var(--fabric-space-3) 0;
   border: 0;
   background: transparent;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-global-add-node-panel-text-primary);
   font: inherit;
   font-size: var(--fabric-text-sm);
   font-weight: 700;
@@ -719,7 +719,7 @@ const closePluginMethodView = () => {
   border: 0;
   border-radius: var(--fabric-radius-sm);
   background: transparent;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-global-add-node-panel-text-primary);
   font: inherit;
   font-size: var(--fabric-text-sm);
   text-align: left;
@@ -733,7 +733,7 @@ const closePluginMethodView = () => {
 
 .global-add-node-panel__item:hover,
 .global-add-node-panel__method-item:hover {
-  background: var(--fabric-button-ghost-hover);
+  background: var(--fabric-global-add-node-panel-button-ghost-hover);
 }
 
 .global-add-node-panel__icon {
@@ -743,10 +743,10 @@ const closePluginMethodView = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--node-icon-border, var(--fabric-border));
+  border: 1px solid var(--node-icon-border, var(--fabric-global-add-node-panel-border));
   border-radius: var(--fabric-radius-sm);
-  background: var(--node-icon-bg, var(--fabric-bg-surface));
-  color: var(--node-icon-color, var(--fabric-text-muted));
+  background: var(--node-icon-bg, var(--fabric-global-add-node-panel-bg-surface));
+  color: var(--node-icon-color, var(--fabric-global-add-node-panel-text-muted));
 }
 
 .global-add-node-panel__item > span:nth-child(2) {
@@ -764,7 +764,7 @@ const closePluginMethodView = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-global-add-node-panel-text-muted);
 }
 
 .global-add-node-panel__method-list {
@@ -788,10 +788,10 @@ const closePluginMethodView = () => {
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-global-add-node-panel-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-muted);
+  background: var(--fabric-global-add-node-panel-bg-surface);
+  color: var(--fabric-global-add-node-panel-text-muted);
 }
 
 .global-add-node-panel__method-body {
@@ -810,7 +810,7 @@ const closePluginMethodView = () => {
 }
 
 .global-add-node-panel__method-item small {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-global-add-node-panel-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -877,10 +877,10 @@ const closePluginMethodView = () => {
   align-items: center;
   justify-content: center;
   margin: 0 auto var(--fabric-space-2);
-  border: 2px solid var(--fabric-border);
+  border: 2px solid var(--fabric-global-add-node-panel-border);
   border-radius: 22px;
-  background: var(--fabric-bg-elevated);
-  box-shadow: var(--fabric-shadow-lg);
+  background: var(--fabric-global-add-node-panel-bg-elevated);
+  box-shadow: var(--fabric-global-add-node-panel-shadow-lg);
 }
 
 .global-add-node-drag-preview__icon {
@@ -889,12 +889,12 @@ const closePluginMethodView = () => {
   height: 56px;
   align-items: center;
   justify-content: center;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-global-add-node-panel-text-primary);
 }
 
 .global-add-node-drag-preview__label {
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-global-add-node-panel-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: 700;
   line-height: 1.25;
@@ -904,7 +904,7 @@ const closePluginMethodView = () => {
 
 .global-add-node-drag-preview__subtitle {
   overflow: hidden;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-global-add-node-panel-text-muted);
   font-size: var(--fabric-text-xs);
   line-height: 1.25;
   text-overflow: ellipsis;

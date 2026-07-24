@@ -328,9 +328,9 @@ const onQuickAdd = (event: MouseEvent) => {
   position: relative;
   width: 100px;
   height: 100px;
-  background-color: var(--fabric-workflow-node-bg, var(--fabric-node-body));
+  background-color: var(--fabric-workflow-node-bg);
   background-image: linear-gradient(var(--node-tint, transparent), var(--node-tint, transparent));
-  border: 2px solid var(--node-custom-border, var(--fabric-workflow-node-border, var(--fabric-node-border)));
+  border: 2px solid var(--node-custom-border, var(--fabric-workflow-node-border));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -371,18 +371,18 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .fabric-base-node:hover {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--fabric-workflow-node-hover-border, var(--fabric-node-selected))) 80%, var(--fabric-text-primary) 20%);
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--fabric-workflow-node-hover-border)) 80%, var(--fabric-base-node-text-primary) 20%);
   box-shadow: var(--fabric-workflow-node-hover-shadow, 0 4px 24px rgba(0, 0, 0, 0.5));
 }
 
 /* ─── Selection & execution status borders ──────────────────── */
 .fabric-base-node.is-selected {
-  border-color: color-mix(in srgb, var(--node-custom-border, var(--fabric-workflow-node-selected-border, var(--fabric-node-border))) 80%, var(--fabric-text-primary) 20%);
+  border-color: color-mix(in srgb, var(--node-custom-border, var(--fabric-workflow-node-selected-border)) 80%, var(--fabric-base-node-text-primary) 20%);
   box-shadow: var(--fabric-workflow-node-selected-shadow, 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 0 4px color-mix(in srgb, var(--node-custom-border, var(--fabric-node-border)) 50%, transparent));
 }
 
 .fabric-base-node.is-running {
-  border-color: var(--fabric-workflow-node-running-border, var(--fabric-amber-400));
+  border-color: var(--fabric-workflow-node-running-border);
 }
 
 .fabric-base-node.is-waiting {
@@ -398,11 +398,11 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .fabric-base-node.is-success {
-  border-color: var(--fabric-workflow-node-success-border, var(--fabric-green-400));
+  border-color: var(--fabric-workflow-node-success-border);
 }
 
 .fabric-base-node.is-failed {
-  border-color: var(--fabric-workflow-node-error-border, var(--fabric-red-400));
+  border-color: var(--fabric-workflow-node-error-border);
 }
 
 .fabric-base-node.is-disabled {
@@ -488,7 +488,7 @@ const onQuickAdd = (event: MouseEvent) => {
   min-width: 0;
   flex-direction: column;
   align-items: center;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-base-node-text-muted);
   font-size: 9px;
   font-weight: 700;
   line-height: 1;
@@ -509,7 +509,7 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .fabric-base-node__handler-required {
-  color: var(--fabric-red-400);
+  color: var(--fabric-base-node-red400);
 }
 
 .fabric-base-node__handler :deep(.fabric-base-handle) {
@@ -568,7 +568,7 @@ const onQuickAdd = (event: MouseEvent) => {
 .fabric-base-node__label-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--fabric-workflow-node-label-text, var(--fabric-text-primary));
+  color: var(--fabric-workflow-node-label-text);
   line-height: 1.3;
   word-break: break-word;
   white-space: normal;
@@ -578,7 +578,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 .fabric-base-node__label-subtitle {
   font-size: 11px;
-  color: var(--fabric-workflow-node-label-muted-text, var(--fabric-text-muted));
+  color: var(--fabric-workflow-node-label-muted-text);
   text-align: center;
 }
 
@@ -587,8 +587,8 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .fabric-base-node__label-input :deep(.base-input-container) {
-  background: var(--fabric-workflow-node-bg, var(--fabric-node-body));
-  border-color: var(--fabric-workflow-node-selected-border, var(--fabric-node-selected));
+  background: var(--fabric-workflow-node-bg);
+  border-color: var(--fabric-workflow-node-selected-border);
 }
 
 .fabric-base-node__label-input :deep(.base-input) {
@@ -629,15 +629,15 @@ const onQuickAdd = (event: MouseEvent) => {
 .fabric-base-node__quick-add-cable {
   width: 60px;
   height: 2px;
-  background-color: var(--fabric-workflow-handle-bg, var(--fabric-node-handle));
+  background-color: var(--fabric-workflow-handle-bg);
   transition: background-color 0.2s;
 }
 
 .fabric-base-node__quick-add-btn {
   border-radius: var(--fabric-radius-sm);
-  background-color: var(--fabric-workflow-node-quick-add-bg, var(--fabric-node-border));
-  border: 2px solid var(--fabric-workflow-node-quick-add-border, var(--fabric-border-strong));
-  color: var(--fabric-workflow-node-quick-add-text, var(--fabric-text-primary));
+  background-color: var(--fabric-workflow-node-quick-add-bg);
+  border: 2px solid var(--fabric-workflow-node-quick-add-border);
+  color: var(--fabric-workflow-node-quick-add-text);
   display: flex;
   align-items: center;
   justify-content: center;

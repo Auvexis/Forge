@@ -163,8 +163,8 @@ async function handleRun() {
   align-items: center;
   justify-content: space-between;
   padding: var(--fabric-space-3) var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
-  background-color: var(--fabric-bg-surface);
+  border-bottom: 1px solid var(--fabric-run-workflow-panel-border);
+  background-color: var(--fabric-run-workflow-panel-bg-surface);
   flex-shrink: 0;
 }
 
@@ -177,12 +177,12 @@ async function handleRun() {
 .rwp-title {
   font-size: var(--fabric-text-sm);
   font-weight: 600;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-run-workflow-panel-text-primary);
 }
 
 .rwp-subtitle {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-run-workflow-panel-text-muted);
   text-transform: capitalize;
 }
 
@@ -195,16 +195,16 @@ async function handleRun() {
   display: flex;
   flex-direction: column;
   gap: var(--fabric-space-4);
-  background-color: var(--fabric-bg-canvas);
+  background-color: var(--fabric-run-workflow-panel-bg-canvas);
 }
 
 .rwp-info-box {
   padding: var(--fabric-space-3);
   border-radius: var(--fabric-radius-sm);
-  background-color: var(--fabric-bg-elevated);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-run-workflow-panel-bg-elevated);
+  border: 1px solid var(--fabric-run-workflow-panel-border);
   font-size: var(--fabric-text-sm);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-run-workflow-panel-text-muted);
   line-height: 1.5;
 }
 
@@ -213,7 +213,7 @@ async function handleRun() {
 .rwp-fields-label {
   font-size: var(--fabric-text-xs);
   font-weight: 600;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-run-workflow-panel-text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin: 0;
@@ -240,21 +240,21 @@ async function handleRun() {
 .rwp-field-label {
   font-size: var(--fabric-text-xs);
   font-weight: 500;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-run-workflow-panel-text-primary);
 }
 
 .rwp-required {
-  color: var(--fabric-red-400);
+  color: var(--fabric-run-workflow-panel-red400);
   margin-left: 2px;
 }
 
 .rwp-field-type {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
-  background: var(--fabric-bg-elevated);
+  color: var(--fabric-run-workflow-panel-text-muted);
+  background: var(--fabric-run-workflow-panel-bg-elevated);
   padding: 2px 6px;
   border-radius: 4px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-run-workflow-panel-border);
 }
 
 /* ── Input ────────────────────────────────────────────────── */
@@ -262,57 +262,57 @@ async function handleRun() {
 .rwp-input {
   width: 100%;
   height: 36px;
-  background-color: var(--fabric-bg-overlay);
-  border: 1px solid var(--fabric-border-strong);
+  background-color: var(--fabric-run-workflow-panel-bg-overlay);
+  border: 1px solid var(--fabric-run-workflow-panel-border-strong);
   border-radius: var(--fabric-radius-sm);
   padding: 0 var(--fabric-space-3);
   font-size: var(--fabric-text-sm);
   font-family: inherit;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-run-workflow-panel-text-primary);
   outline: none;
   box-sizing: border-box;
   transition: border-color var(--fabric-duration-fast);
 }
 
 .rwp-input:focus {
-  border-color: var(--fabric-accent);
-  box-shadow: 0 0 0 1px var(--fabric-accent);
+  border-color: var(--fabric-run-workflow-panel-accent);
+  box-shadow: 0 0 0 1px var(--fabric-run-workflow-panel-accent);
 }
 
 .rwp-input::placeholder {
-  color: var(--fabric-text-disabled);
+  color: var(--fabric-run-workflow-panel-text-disabled);
 }
 
 .rwp-input--file {
   padding: 6px var(--fabric-space-3);
   height: auto;
   cursor: pointer;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-run-workflow-panel-text-muted);
 }
 
 .rwp-textarea {
   width: 100%;
   min-height: 96px;
   resize: vertical;
-  background-color: var(--fabric-bg-overlay);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-run-workflow-panel-bg-overlay);
+  border: 1px solid var(--fabric-run-workflow-panel-border);
   border-radius: var(--fabric-radius-sm);
   padding: 10px 12px;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-run-workflow-panel-text-primary);
   font: inherit;
   outline: none;
 }
 
 .rwp-textarea:focus {
-  border-color: var(--fabric-accent);
+  border-color: var(--fabric-run-workflow-panel-accent);
 }
 
 /* ── Footer ───────────────────────────────────────────────── */
 
 .rwp-footer {
   padding: var(--fabric-space-3) var(--fabric-space-4);
-  border-top: 1px solid var(--fabric-border);
-  background-color: var(--fabric-bg-surface);
+  border-top: 1px solid var(--fabric-run-workflow-panel-border);
+  background-color: var(--fabric-run-workflow-panel-bg-surface);
   flex-shrink: 0;
 }
 </style>

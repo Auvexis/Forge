@@ -3,7 +3,7 @@
     :title="title"
     eyebrow="Action"
     icon="workflow"
-    accent="var(--fabric-accent)"
+    accent="var(--fabric-run-workflow-node-accent)"
     :selected="selected"
     :dimmed="dimmed"
   >

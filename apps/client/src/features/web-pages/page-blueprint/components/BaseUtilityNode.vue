@@ -36,7 +36,7 @@ withDefaults(defineProps<{
   dimmed?: boolean
 }>(), {
   eyebrow: 'Utility',
-  accent: 'var(--fabric-accent)',
+  accent: 'var(--fabric-base-utility-node-accent)',
   selected: false,
   dimmed: false,
 })

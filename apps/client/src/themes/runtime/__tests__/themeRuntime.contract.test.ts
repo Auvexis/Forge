@@ -188,10 +188,10 @@ describe('theme runtime contract', () => {
     assert.deepEqual(Object.keys(templateTheme.tokens).sort(), Object.keys(darkTheme.tokens).sort())
   })
 
-  it('keeps shared component visual styles behind component theme tokens', () => {
+  it('keeps Vue visual styles behind component theme tokens', () => {
     const genericUsages: string[] = []
 
-    for (const relativePath of readFilesRecursive('src/shared/components').filter((entry) => entry.endsWith('.vue'))) {
+    for (const relativePath of readFilesRecursive('src').filter((entry) => entry.endsWith('.vue'))) {
       const source = read(relativePath)
       const componentPrefix = tokenNameToCssVar(`${componentPrefixFromPath(relativePath)}.`).replace(/-$/, '')
 

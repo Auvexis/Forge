@@ -379,7 +379,7 @@ function handleThemeChange(value: ThemeMode) {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-welcome-profile-guide-text-primary);
 }
 
 .welcome-profile-guide__header,
@@ -401,12 +401,12 @@ function handleThemeChange(value: ThemeMode) {
 
 .welcome-profile-guide__header-title h2 {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-welcome-profile-guide-text-primary);
   font-size: var(--fabric-text-xl);
 }
 
 .welcome-profile-guide__header-title span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-welcome-profile-guide-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -476,10 +476,10 @@ function handleThemeChange(value: ThemeMode) {
   width: min(340px, 42vw);
   aspect-ratio: 16 / 10;
   background:
-    linear-gradient(90deg, transparent 0 48%, color-mix(in srgb, var(--fabric-border-muted) 36%, transparent) 48% 52%, transparent 52%),
-    linear-gradient(180deg, transparent 0 48%, color-mix(in srgb, var(--fabric-border-muted) 36%, transparent) 48% 52%, transparent 52%),
-    var(--fabric-bg-surface);
-  color: var(--fabric-text-muted);
+    linear-gradient(90deg, transparent 0 48%, color-mix(in srgb, var(--fabric-welcome-profile-guide-border-muted) 36%, transparent) 48% 52%, transparent 52%),
+    linear-gradient(180deg, transparent 0 48%, color-mix(in srgb, var(--fabric-welcome-profile-guide-border-muted) 36%, transparent) 48% 52%, transparent 52%),
+    var(--fabric-welcome-profile-guide-bg-surface);
+  color: var(--fabric-welcome-profile-guide-text-muted);
 }
 
 .welcome-profile-guide__theme-select {
@@ -492,13 +492,13 @@ function handleThemeChange(value: ThemeMode) {
 }
 
 .welcome-profile-guide h3 {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-welcome-profile-guide-text-primary);
   font-size: var(--fabric-text-xl);
   line-height: 1.25;
 }
 
 .welcome-profile-guide p {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-welcome-profile-guide-text-secondary);
   line-height: 1.6;
 }
 

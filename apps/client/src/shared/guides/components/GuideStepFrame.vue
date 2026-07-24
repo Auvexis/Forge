@@ -18,7 +18,7 @@
 
 .guide-step-frame__media {
   min-height: 420px;
-  background: var(--fabric-bg-base);
+  background: var(--fabric-guide-step-frame-bg-base);
 }
 
 .guide-step-frame__content {

@@ -81,8 +81,8 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   width: 88px;
   height: 88px;
   border-radius: 50%;
-  border: 2px solid var(--fabric-border-strong);
-  background: var(--fabric-bg-elevated);
+  border: 2px solid var(--fabric-profile-avatar-picker-border-strong);
+  background: var(--fabric-profile-avatar-picker-bg-elevated);
   font-size: 42px;
   cursor: pointer;
   display: grid;
@@ -94,9 +94,9 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 }
 
 .avatar-btn:hover {
-  border-color: var(--fabric-border-brand);
+  border-color: var(--fabric-profile-avatar-picker-border-brand);
   transform: scale(1.05);
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-profile-avatar-picker-bg-overlay);
 }
 
 .avatar-btn__emoji {
@@ -111,9 +111,9 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   width: 22px;
   height: 22px;
   border-radius: 50%;
-  background: var(--fabric-bg-overlay);
-  border: 1px solid var(--fabric-border-strong);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-profile-avatar-picker-bg-overlay);
+  border: 1px solid var(--fabric-profile-avatar-picker-border-strong);
+  color: var(--fabric-profile-avatar-picker-text-secondary);
   display: grid;
   place-items: center;
   pointer-events: none;
@@ -127,24 +127,24 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   z-index: var(--fabric-z-overlay);
   border-radius: var(--fabric-radius-md);
   overflow: hidden;
-  box-shadow: var(--fabric-shadow-xl);
+  box-shadow: var(--fabric-profile-avatar-picker-shadow-xl);
 }
 
 /* ── Mapeia os tokens do Fabric nas variáveis do vue3-emoji-picker ── */
 .avatar-btn__dropdown :deep(.v3-emoji-picker) {
-  --v3-picker-bg: var(--fabric-bg-elevated);
-  --v3-picker-fg: var(--fabric-text-primary);
-  --v3-picker-border: var(--fabric-border-strong);
-  --v3-picker-input-bg: var(--fabric-input-bg);
-  --v3-picker-input-border: var(--fabric-input-border);
-  --v3-picker-input-focus-border: var(--fabric-input-border-focus);
-  --v3-picker-emoji-hover: var(--fabric-bg-overlay);
+  --v3-picker-bg: var(--fabric-profile-avatar-picker-bg-elevated);
+  --v3-picker-fg: var(--fabric-profile-avatar-picker-text-primary);
+  --v3-picker-border: var(--fabric-profile-avatar-picker-border-strong);
+  --v3-picker-input-bg: var(--fabric-profile-avatar-picker-input-bg);
+  --v3-picker-input-border: var(--fabric-profile-avatar-picker-input-border);
+  --v3-picker-input-focus-border: var(--fabric-profile-avatar-picker-input-border-focus);
+  --v3-picker-emoji-hover: var(--fabric-profile-avatar-picker-bg-overlay);
   --avatar-picker-tab-icon-filter: brightness(0) saturate(100%) invert(68%) sepia(0%) saturate(0%)
     hue-rotate(144deg) brightness(92%) contrast(89%);
   --avatar-picker-tab-icon-hover-filter: brightness(0) saturate(100%) invert(97%) sepia(0%)
     saturate(7500%) hue-rotate(45deg) brightness(113%) contrast(90%);
   border-radius: var(--fabric-radius-md);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-profile-avatar-picker-border);
 }
 
 :global(html.light) .avatar-btn__dropdown :deep(.v3-emoji-picker) {
@@ -157,7 +157,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 /* Cabeçalho e rodapé */
 .avatar-btn__dropdown :deep(.v3-header),
 .avatar-btn__dropdown :deep(.v3-footer) {
-  border-color: var(--fabric-border) !important;
+  border-color: var(--fabric-profile-avatar-picker-border) !important;
 }
 
 /* Abas de categoria */
@@ -178,7 +178,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
 
 /* Títulos de grupo */
 .avatar-btn__dropdown :deep(.v3-group h5) {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-profile-avatar-picker-text-muted);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   text-transform: uppercase;
@@ -190,11 +190,11 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
   border-radius: var(--fabric-radius-sm);
   font-family: var(--fabric-font-sans);
   font-size: var(--fabric-text-sm);
-  color: var(--fabric-input-text);
+  color: var(--fabric-profile-avatar-picker-input-text);
 }
 
 .avatar-btn__dropdown :deep(.v3-search input::placeholder) {
-  color: var(--fabric-input-placeholder);
+  color: var(--fabric-profile-avatar-picker-input-placeholder);
 }
 
 /* Scrollbar */

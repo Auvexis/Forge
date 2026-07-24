@@ -129,7 +129,7 @@ const EXECUTION_MODES = [
 }
 
 .editor-limit-field > span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-ai-agent-editor-text-muted);
   font-size: var(--fabric-text-xs);
 }
 </style>

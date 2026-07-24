@@ -489,7 +489,7 @@ const copyToClipboard = async (path: string) => {
             <!-- Special case: event-listener node - show payload preview from Emit Event -->
             <template v-else-if="isEventListenerNode">
               <div v-if="eventListenerInputPreview" class="flex-1 flex flex-col min-h-0">
-                <div class="p-2 border-b border-fabric-border bg-[var(--fabric-bg-surface)] sticky top-0 z-10">
+                <div class="p-2 border-b border-fabric-border bg-[var(--fabric-node-inspector-modal-bg-surface)] sticky top-0 z-10">
                   <BaseInput v-model="eventListenerSearch" icon-left="search" placeholder="Search variables..." />
                 </div>
                 <div class="p-4 flex-1 overflow-y-auto">
@@ -540,10 +540,10 @@ const copyToClipboard = async (path: string) => {
         </div>
 
         <!-- Center Pane: Config -->
-        <div class="inspector-pane" style="background: var(--fabric-bg-surface)">
+        <div class="inspector-pane" style="background: var(--fabric-node-inspector-modal-bg-surface)">
           <div
             class="inspector-pane-header flex-between w-full"
-            style="background: var(--fabric-bg-surface)"
+            style="background: var(--fabric-node-inspector-modal-bg-surface)"
           >
             <div class="text-sm text-muted font-semibold flex items-center gap-2">
               <LucideIcon name="settings" size="16" />
@@ -680,7 +680,7 @@ const copyToClipboard = async (path: string) => {
                   />
                   <div
                     v-else
-                    class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--fabric-bg-elevated)] rounded"
+                    class="text-sm text-muted p-4 flex flex-col items-center justify-center h-full text-center bg-[var(--fabric-node-inspector-modal-bg-elevated)] rounded"
                   >
                     <LucideIcon name="shield-alert" size="24" class="mb-2 opacity-50" />
                     Select an integration first<br />to configure authorization.
@@ -763,7 +763,7 @@ const copyToClipboard = async (path: string) => {
   align-items: center;
   justify-content: center;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-node-inspector-modal-text-muted);
   font-size: 12px;
 }
 

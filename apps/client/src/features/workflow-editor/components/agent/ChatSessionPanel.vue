@@ -757,9 +757,9 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__target-kind {
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-session-panel-border);
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
   font-size: 10px;
   font-weight: 700;
   line-height: 1;
@@ -775,7 +775,7 @@ function formatMessageTime(message: AgentChatMessage) {
   overflow: hidden;
   border: 0;
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
   cursor: pointer;
   font-size: 11px;
   line-height: 1.2;
@@ -788,7 +788,7 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__target-select span,
 .chat-session-panel__target-option span {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-chat-session-panel-text-primary);
   font-weight: 700;
 }
 
@@ -811,9 +811,9 @@ function formatMessageTime(message: AgentChatMessage) {
   min-width: 240px;
   flex-direction: column;
   gap: 1px;
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-elevated);
-  box-shadow: var(--fabric-shadow-lg);
+  border: 1px solid var(--fabric-chat-session-panel-border);
+  background: var(--fabric-chat-session-panel-bg-elevated);
+  box-shadow: var(--fabric-chat-session-panel-shadow-lg);
 }
 
 .chat-session-panel__target-option {
@@ -823,7 +823,7 @@ function formatMessageTime(message: AgentChatMessage) {
   gap: var(--fabric-space-3);
   border: 0;
   background: transparent;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
   cursor: pointer;
   padding: 7px 9px;
   text-align: left;
@@ -831,8 +831,8 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__target-option:hover,
 .chat-session-panel__target-option--active {
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-chat-session-panel-bg-surface);
+  color: var(--fabric-chat-session-panel-text-primary);
 }
 
 .chat-session-panel__empty,
@@ -841,7 +841,7 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__empty {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
 }
 
 .chat-session-panel__published-boundary {
@@ -850,21 +850,21 @@ function formatMessageTime(message: AgentChatMessage) {
   align-items: center;
   justify-content: space-between;
   gap: var(--fabric-space-2);
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-chat-session-panel-border);
+  background: var(--fabric-chat-session-panel-bg-surface);
   padding: 8px 10px;
 }
 
 .chat-session-panel__published-boundary span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
 .chat-session-panel__published-boundary button {
-  border: 1px solid var(--fabric-border-strong);
+  border: 1px solid var(--fabric-chat-session-panel-border-strong);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-inverse);
-  color: var(--fabric-text-inverse);
+  background: var(--fabric-chat-session-panel-bg-inverse);
+  color: var(--fabric-chat-session-panel-text-inverse);
   cursor: pointer;
   font-size: var(--fabric-text-xs);
   font-weight: 700;
@@ -911,19 +911,19 @@ function formatMessageTime(message: AgentChatMessage) {
   flex: 0 0 30px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-session-panel-border);
   border-radius: 999px;
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-chat-session-panel-bg-elevated);
+  color: var(--fabric-chat-session-panel-text-secondary);
 }
 
 .chat-session-panel__message[data-role='assistant'] .chat-session-panel__avatar {
-  border-color: color-mix(in srgb, var(--fabric-green-400) 28%, var(--fabric-border));
-  color: var(--fabric-green-400);
+  border-color: color-mix(in srgb, var(--fabric-chat-session-panel-green400) 28%, var(--fabric-chat-session-panel-border));
+  color: var(--fabric-chat-session-panel-green400);
 }
 
 .chat-session-panel__message[data-role='user'] .chat-session-panel__avatar {
-  border-color: color-mix(in srgb, var(--fabric-text-muted) 35%, var(--fabric-border));
+  border-color: color-mix(in srgb, var(--fabric-chat-session-panel-text-muted) 35%, var(--fabric-chat-session-panel-border));
 }
 
 .chat-session-panel__message-copy {
@@ -948,19 +948,19 @@ function formatMessageTime(message: AgentChatMessage) {
   display: inline-flex;
   align-items: baseline;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-chat-session-panel-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: 700;
 }
 
 .chat-session-panel__message-copy time {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-chat-session-panel-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-medium);
 }
 
 .chat-session-panel__message-copy p {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-chat-session-panel-text-secondary);
   font-size: var(--fabric-text-sm);
   line-height: 1.45;
   white-space: pre-wrap;
@@ -968,7 +968,7 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__thinking {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
   font-size: var(--fabric-text-xs);
   line-height: 1.45;
   white-space: pre-wrap;
@@ -983,16 +983,16 @@ function formatMessageTime(message: AgentChatMessage) {
   justify-content: space-between;
   gap: var(--fabric-space-3);
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-session-panel-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-chat-session-panel-bg-surface);
   padding: 8px 10px;
 }
 
 .chat-session-panel__tool-status--pending,
 .chat-session-panel__tool-status--running,
 .chat-session-panel__tool-status--retrying {
-  border-color: color-mix(in srgb, var(--fabric-amber-400) 34%, var(--fabric-border));
+  border-color: color-mix(in srgb, var(--fabric-chat-session-panel-amber400) 34%, var(--fabric-chat-session-panel-border));
 }
 
 .chat-session-panel__tool-status--pending::before,
@@ -1003,7 +1003,7 @@ function formatMessageTime(message: AgentChatMessage) {
   background: linear-gradient(
     90deg,
     transparent 0%,
-    color-mix(in srgb, var(--fabric-amber-400) 12%, transparent) 46%,
+    color-mix(in srgb, var(--fabric-chat-session-panel-amber400) 12%, transparent) 46%,
     transparent 100%
   );
   animation: chat-tool-shimmer 1.6s ease-in-out infinite;
@@ -1012,11 +1012,11 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__tool-status--success {
-  border-color: color-mix(in srgb, var(--fabric-green-400) 34%, var(--fabric-border));
+  border-color: color-mix(in srgb, var(--fabric-chat-session-panel-green400) 34%, var(--fabric-chat-session-panel-border));
 }
 
 .chat-session-panel__tool-status--failed {
-  border-color: color-mix(in srgb, var(--fabric-red-400, #ef4444) 38%, var(--fabric-border));
+  border-color: color-mix(in srgb, var(--fabric-chat-session-panel-red400) 38%, var(--fabric-chat-session-panel-border));
 }
 
 .chat-session-panel__tool-status-copy {
@@ -1028,20 +1028,20 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__tool-status-copy span {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-chat-session-panel-text-primary);
   font-size: var(--fabric-text-xs);
   font-weight: 700;
 }
 
 .chat-session-panel__tool-status-copy p {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-chat-session-panel-text-secondary);
   font-size: var(--fabric-text-xs);
   line-height: 1.35;
 }
 
 .chat-session-panel__tool-final-reply {
   width: min(420px, 100%);
-  border-left: 1px solid color-mix(in srgb, var(--fabric-green-400) 34%, var(--fabric-border));
+  border-left: 1px solid color-mix(in srgb, var(--fabric-chat-session-panel-green400) 34%, var(--fabric-chat-session-panel-border));
   margin-top: var(--fabric-space-2);
   padding-left: var(--fabric-space-3);
 }
@@ -1058,7 +1058,7 @@ function formatMessageTime(message: AgentChatMessage) {
   width: 5px;
   height: 5px;
   border-radius: 999px;
-  background: var(--fabric-amber-400);
+  background: var(--fabric-chat-session-panel-amber400);
   animation: chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -1081,7 +1081,7 @@ function formatMessageTime(message: AgentChatMessage) {
   width: 5px;
   height: 5px;
   border-radius: 999px;
-  background: var(--fabric-text-muted);
+  background: var(--fabric-chat-session-panel-text-muted);
   animation: chat-typing-bounce 0.9s ease-in-out infinite;
 }
 
@@ -1102,10 +1102,10 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__approval-button {
   min-width: 72px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-session-panel-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-chat-session-panel-bg-elevated);
+  color: var(--fabric-chat-session-panel-text-secondary);
   cursor: pointer;
   font-size: var(--fabric-text-xs);
   font-weight: 700;
@@ -1114,9 +1114,9 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__approval-button--primary {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-bg-inverse);
-  color: var(--fabric-text-inverse);
+  border-color: var(--fabric-chat-session-panel-border-strong);
+  background: var(--fabric-chat-session-panel-bg-inverse);
+  color: var(--fabric-chat-session-panel-text-inverse);
 }
 
 .chat-session-panel__approval-button:disabled {
@@ -1137,12 +1137,12 @@ function formatMessageTime(message: AgentChatMessage) {
   align-items: end;
   gap: var(--fabric-space-2);
   padding: 7px;
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border: 1px solid var(--fabric-chat-session-panel-border);
+  background: var(--fabric-chat-session-panel-bg-surface);
 }
 
 .chat-session-panel__composer-shell:focus-within {
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-chat-session-panel-border-strong);
 }
 
 .chat-session-panel__input {
@@ -1153,14 +1153,14 @@ function formatMessageTime(message: AgentChatMessage) {
   outline: none;
   padding: 5px 6px;
   background: transparent;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-chat-session-panel-text-primary);
   font: inherit;
   font-size: var(--fabric-text-sm);
   line-height: 1.5;
 }
 
 .chat-session-panel__input::placeholder {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-session-panel-text-muted);
 }
 
 .chat-session-panel__input:disabled {
@@ -1180,9 +1180,9 @@ function formatMessageTime(message: AgentChatMessage) {
   height: 30px;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-session-panel-border);
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-chat-session-panel-text-secondary);
   cursor: pointer;
   transition:
     background 120ms ease,
@@ -1194,7 +1194,7 @@ function formatMessageTime(message: AgentChatMessage) {
 
 .chat-session-panel__icon-button {
   position: relative;
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-chat-session-panel-bg-elevated);
 }
 
 .chat-session-panel__icon-button:hover:not(:disabled),
@@ -1203,8 +1203,8 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__icon-button--listening {
-  border-color: var(--fabric-amber-400);
-  color: var(--fabric-amber-400);
+  border-color: var(--fabric-chat-session-panel-amber400);
+  color: var(--fabric-chat-session-panel-amber400);
 }
 
 .chat-session-panel__icon-button--listening::after {
@@ -1217,9 +1217,9 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__send {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-bg-inverse);
-  color: var(--fabric-text-inverse);
+  border-color: var(--fabric-chat-session-panel-border-strong);
+  background: var(--fabric-chat-session-panel-bg-inverse);
+  color: var(--fabric-chat-session-panel-text-inverse);
 }
 
 .chat-session-panel__icon-button:disabled,
@@ -1233,7 +1233,7 @@ function formatMessageTime(message: AgentChatMessage) {
 }
 
 .chat-session-panel__error {
-  color: var(--fabric-text-error);
+  color: var(--fabric-chat-session-panel-text-error);
 }
 
 .chat-message-enter-active,

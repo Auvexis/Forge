@@ -51,7 +51,7 @@ const triggerConfig = computed(() => {
       icon: 'mouse-pointer-2',
       title: 'Manual Trigger',
       subtitle: null,
-      color: 'var(--fabric-text-primary)',
+      color: 'var(--fabric-trigger-node-text-primary)',
       bg: 'var(--fabric-node-body)',
       borderColor: 'var(--fabric-node-border)',
     },
@@ -342,7 +342,7 @@ const onQuickAdd = (event: MouseEvent) => {
   border-color: color-mix(
     in srgb,
     var(--trigger-border, #3c3c3c) 80%,
-    var(--fabric-text-primary) 20%
+    var(--fabric-trigger-node-text-primary) 20%
   );
 }
 
@@ -363,7 +363,7 @@ const onQuickAdd = (event: MouseEvent) => {
   border-color: color-mix(
     in srgb,
     var(--trigger-border, #3c3c3c) 80%,
-    var(--fabric-text-primary) 20%
+    var(--fabric-trigger-node-text-primary) 20%
   );
   box-shadow:
     0 4px 20px rgba(0, 0, 0, 0.5),
@@ -371,7 +371,7 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .trigger-node.is-running {
-  border-color: var(--fabric-amber-400);
+  border-color: var(--fabric-trigger-node-amber400);
 }
 
 .trigger-node.is-waiting {
@@ -383,11 +383,11 @@ const onQuickAdd = (event: MouseEvent) => {
 }
 
 .trigger-node.is-success {
-  border-color: var(--fabric-green-400);
+  border-color: var(--fabric-trigger-node-green400);
 }
 
 .trigger-node.is-failed {
-  border-color: var(--fabric-red-400);
+  border-color: var(--fabric-trigger-node-red400);
 }
 
 .trigger-node.is-disabled {
@@ -411,7 +411,7 @@ const onQuickAdd = (event: MouseEvent) => {
   top: 50%;
   left: -50px;
   transform: translateY(-50%);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-trigger-node-text-primary);
   opacity: 0.9;
   display: flex;
   align-items: center;
@@ -484,7 +484,7 @@ const onQuickAdd = (event: MouseEvent) => {
 .trigger-node__label-title {
   font-size: 13px;
   font-weight: 500;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-trigger-node-text-primary);
   line-height: 1.3;
   max-width: 140px;
   white-space: nowrap;
@@ -495,7 +495,7 @@ const onQuickAdd = (event: MouseEvent) => {
 
 .trigger-node__label-subtitle {
   font-size: 11px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-trigger-node-text-muted);
   text-align: center;
   margin-top: 2px;
   max-width: 140px;
@@ -526,8 +526,8 @@ const onQuickAdd = (event: MouseEvent) => {
 .trigger-node__quick-add-btn {
   border-radius: var(--fabric-radius-sm);
   background-color: var(--fabric-node-border);
-  border: 2px solid var(--fabric-border-strong);
-  color: var(--fabric-text-primary);
+  border: 2px solid var(--fabric-trigger-node-border-strong);
+  color: var(--fabric-trigger-node-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;

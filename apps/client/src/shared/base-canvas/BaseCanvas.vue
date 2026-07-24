@@ -107,7 +107,7 @@ const props = withDefaults(defineProps<{
   patternStyle: 'dot',
   patternSize: 16,
   rulers: false,
-  rulersBg: 'var(--fabric-base-canvas-ruler-bg, var(--fabric-bg-canvas))',
+  rulersBg: 'var(--fabric-base-canvas-ruler-bg)',
   rulersText: 'var(--fabric-base-canvas-ruler-text, rgba(255, 255, 255, 0.54))',
   rulersLines: 'var(--fabric-base-canvas-ruler-lines, rgba(255, 255, 255, 0.2))',
   contextMenu: true,

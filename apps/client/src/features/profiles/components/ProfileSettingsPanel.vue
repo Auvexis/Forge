@@ -186,20 +186,20 @@ async function saveProfile() {
   justify-content: space-between;
   gap: var(--fabric-space-4);
   padding: var(--fabric-space-5) var(--fabric-space-6);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-profile-settings-panel-border);
   flex-shrink: 0;
 }
 
 .profile-settings-modal__header h2 {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-profile-settings-panel-text-primary);
   font-size: var(--fabric-text-lg);
   font-weight: var(--fabric-font-semibold);
 }
 
 .profile-settings-modal__header p {
   margin: var(--fabric-space-1) 0 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-profile-settings-panel-text-secondary);
   font-size: var(--fabric-text-sm);
   line-height: var(--fabric-leading-normal);
 }
@@ -213,7 +213,7 @@ async function saveProfile() {
   margin: -4px -8px 0 0;
   border: 0;
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-profile-settings-panel-text-secondary);
   background: transparent;
   cursor: pointer;
   transition:
@@ -222,8 +222,8 @@ async function saveProfile() {
 }
 
 .profile-settings-modal__close:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-muted);
+  color: var(--fabric-profile-settings-panel-text-primary);
+  background: var(--fabric-profile-settings-panel-bg-muted);
 }
 
 .profile-settings-modal__body {
@@ -251,27 +251,27 @@ async function saveProfile() {
   width: 48px;
   height: 48px;
   border-radius: 8px;
-  border: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-muted);
+  border: 1px solid var(--fabric-profile-settings-panel-border);
+  background: var(--fabric-profile-settings-panel-bg-muted);
   font-size: 26px;
   line-height: 1;
 }
 
 .profile-settings h3 {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-profile-settings-panel-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
 }
 
 .profile-settings p {
   margin: 2px 0 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-profile-settings-panel-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
 .profile-settings__error {
-  color: var(--fabric-text-error);
+  color: var(--fabric-profile-settings-panel-text-error);
 }
 
 .profile-settings__actions {

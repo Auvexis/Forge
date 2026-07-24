@@ -61,10 +61,10 @@ defineEmits<{
   width: min(760px, calc(100vw - 32px));
   max-height: calc(100vh - 32px);
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-guide-modal-border);
   border-radius: var(--fabric-radius-lg);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-lg);
+  background: var(--fabric-guide-modal-bg-surface);
+  box-shadow: var(--fabric-guide-modal-shadow-lg);
 }
 
 .guide-modal__header {
@@ -73,7 +73,7 @@ defineEmits<{
   justify-content: space-between;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-guide-modal-border);
 }
 
 .guide-modal__header h2 {

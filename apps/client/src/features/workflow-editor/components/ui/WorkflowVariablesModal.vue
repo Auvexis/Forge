@@ -188,8 +188,8 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   justify-content: space-between;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-3) var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-bottom: 1px solid var(--fabric-workflow-variables-modal-border);
+  background: var(--fabric-workflow-variables-modal-bg-surface);
 }
 
 .wvm-title,
@@ -214,17 +214,17 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   gap: var(--fabric-space-3);
   width: 260px;
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-workflow-variables-modal-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-lg);
+  background: var(--fabric-workflow-variables-modal-bg-surface);
+  box-shadow: var(--fabric-workflow-variables-modal-shadow-lg);
 }
 
 .wvm-title h2 {
   margin: 0;
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-variables-modal-text-primary);
 }
 
 .wvm-content {
@@ -249,9 +249,9 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
   align-items: center;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-workflow-variables-modal-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-workflow-variables-modal-bg-surface);
   cursor: grab;
 }
 
@@ -279,28 +279,28 @@ function onVariableDragStart(event: DragEvent, variable: WorkflowVariable) {
 .wvm-row__name {
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-variables-modal-text-primary);
 }
 
 .wvm-row__desc,
 .wvm-empty {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-variables-modal-text-muted);
 }
 
 .wvm-row__token,
 .wvm-row__preview {
   padding: 2px 6px;
   border-radius: 4px;
-  background: var(--fabric-bg-base);
+  background: var(--fabric-workflow-variables-modal-bg-base);
   font-size: 10px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-variables-modal-text-muted);
   white-space: pre-wrap;
 }
 
 .wvm-empty {
   padding: var(--fabric-space-4);
-  border: 1px dashed var(--fabric-border);
+  border: 1px dashed var(--fabric-workflow-variables-modal-border);
   border-radius: var(--fabric-radius-sm);
   text-align: center;
 }

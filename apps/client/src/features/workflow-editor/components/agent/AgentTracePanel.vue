@@ -181,8 +181,8 @@ function approvalPayloadValue(payload: unknown, key: string) {
   flex-direction: column;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-3) var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-base);
+  border-bottom: 1px solid var(--fabric-agent-trace-panel-border);
+  background: var(--fabric-agent-trace-panel-bg-base);
 }
 
 .agent-trace-panel__header,
@@ -195,7 +195,7 @@ function approvalPayloadValue(payload: unknown, key: string) {
 
 .agent-trace-panel__header p {
   margin: 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-trace-panel-text-muted);
   font-size: var(--fabric-text-xs);
   font-weight: 700;
   text-transform: uppercase;
@@ -204,7 +204,7 @@ function approvalPayloadValue(payload: unknown, key: string) {
 .agent-trace-panel__header span,
 .agent-trace-panel__kind,
 .agent-trace-panel__retry {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-trace-panel-text-muted);
   font-size: 10px;
   font-family: var(--fabric-font-mono);
 }
@@ -216,13 +216,13 @@ function approvalPayloadValue(payload: unknown, key: string) {
 }
 
 .agent-trace-panel__event {
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-agent-trace-panel-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-agent-trace-panel-bg-overlay);
 }
 
 .agent-trace-panel__event--failed {
-  border-color: var(--fabric-red-400);
+  border-color: var(--fabric-agent-trace-panel-red400);
 }
 
 .agent-trace-panel__summary,
@@ -230,7 +230,7 @@ function approvalPayloadValue(payload: unknown, key: string) {
   width: 100%;
   border: 0;
   background: transparent;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-trace-panel-text-secondary);
   cursor: pointer;
   text-align: left;
 }
@@ -253,8 +253,8 @@ function approvalPayloadValue(payload: unknown, key: string) {
   margin: 0;
   overflow: auto;
   padding: var(--fabric-space-2);
-  border-top: 1px solid var(--fabric-border);
-  color: var(--fabric-text-secondary);
+  border-top: 1px solid var(--fabric-agent-trace-panel-border);
+  color: var(--fabric-agent-trace-panel-text-secondary);
   font-family: var(--fabric-font-mono);
   font-size: 10px;
   white-space: pre-wrap;
@@ -263,11 +263,11 @@ function approvalPayloadValue(payload: unknown, key: string) {
 
 .agent-trace-panel__collapsed {
   padding: var(--fabric-space-2);
-  border-top: 1px solid var(--fabric-border);
+  border-top: 1px solid var(--fabric-agent-trace-panel-border);
   font-size: var(--fabric-text-xs);
 }
 
 .agent-trace-panel__retry {
-  color: var(--fabric-red-400);
+  color: var(--fabric-agent-trace-panel-red400);
 }
 </style>

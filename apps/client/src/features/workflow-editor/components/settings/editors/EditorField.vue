@@ -39,10 +39,10 @@ const iconComponent = computed(() =>
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-editor-field-text-muted);
 }
 
 .editor-field__icon {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-editor-field-text-muted);
 }
 </style>

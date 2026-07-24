@@ -52,6 +52,6 @@ defineEmits<{
   justify-content: flex-end;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-4);
-  border-top: 1px solid var(--fabric-border);
+  border-top: 1px solid var(--fabric-guide-actions-border);
 }
 </style>

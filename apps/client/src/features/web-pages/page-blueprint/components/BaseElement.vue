@@ -46,7 +46,7 @@ withDefaults(defineProps<{
 }>(), {
   detail: '',
   meta: '',
-  accent: 'var(--fabric-accent)',
+  accent: 'var(--fabric-base-element-accent)',
   selected: false,
   dimmed: false,
   variant: 'default',

@@ -59,8 +59,8 @@ defineEmits<{
   z-index: 100000;
   display: flex;
   flex-direction: column;
-  background: var(--fabric-bg-base);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-guide-fullscreen-bg-base);
+  color: var(--fabric-guide-fullscreen-text-primary);
 }
 
 .guide-fullscreen__header {
@@ -70,8 +70,8 @@ defineEmits<{
   gap: var(--fabric-space-4);
   min-height: 64px;
   padding: var(--fabric-space-4) var(--fabric-space-6);
-  border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-bottom: 1px solid var(--fabric-guide-fullscreen-border);
+  background: var(--fabric-guide-fullscreen-bg-surface);
 }
 
 .guide-fullscreen__header h2,
@@ -84,7 +84,7 @@ defineEmits<{
 }
 
 .guide-fullscreen__count {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-guide-fullscreen-text-muted);
   font-size: var(--fabric-text-xs);
 }
 

@@ -110,8 +110,8 @@ const duration = computed(() => {
   align-items: center;
   justify-content: space-between;
   padding: var(--fabric-space-3) var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
-  background-color: var(--fabric-bg-surface);
+  border-bottom: 1px solid var(--fabric-node-output-panel-border);
+  background-color: var(--fabric-node-output-panel-bg-surface);
   flex-shrink: 0;
 }
 
@@ -131,10 +131,10 @@ const duration = computed(() => {
   flex-shrink: 0;
 }
 
-.nop-status-icon--idle    { background: rgba(255, 255, 255, 0.05); color: var(--fabric-text-muted); }
-.nop-status-icon--running { background: rgba(245, 158,  11, 0.15); color: var(--fabric-amber-400); }
-.nop-status-icon--success { background: rgba( 52, 211, 153, 0.15); color: var(--fabric-green-400); }
-.nop-status-icon--failed  { background: rgba(248, 113, 113, 0.15); color: var(--fabric-red-400);   }
+.nop-status-icon--idle    { background: rgba(255, 255, 255, 0.05); color: var(--fabric-node-output-panel-text-muted); }
+.nop-status-icon--running { background: rgba(245, 158,  11, 0.15); color: var(--fabric-node-output-panel-amber400); }
+.nop-status-icon--success { background: rgba( 52, 211, 153, 0.15); color: var(--fabric-node-output-panel-green400); }
+.nop-status-icon--failed  { background: rgba(248, 113, 113, 0.15); color: var(--fabric-node-output-panel-red400);   }
 
 .nop-header-text {
   display: flex;
@@ -145,23 +145,23 @@ const duration = computed(() => {
 .nop-title {
   font-size: var(--fabric-text-sm);
   font-weight: 600;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-node-output-panel-text-primary);
 }
 
 .nop-node-id {
   font-size: var(--fabric-text-xs);
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-node-output-panel-text-muted);
 }
 
 .nop-duration {
   font-size: var(--fabric-text-xs);
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-node-output-panel-text-muted);
   background: rgba(255, 255, 255, 0.05);
   padding: 2px 8px;
   border-radius: var(--fabric-radius-sm);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-node-output-panel-border);
 }
 
 /* ── Body ─────────────────────────────────────────────────────── */
@@ -173,7 +173,7 @@ const duration = computed(() => {
   display: flex;
   flex-direction: column;
   gap: var(--fabric-space-3);
-  background-color: var(--fabric-bg-canvas);
+  background-color: var(--fabric-node-output-panel-bg-canvas);
 }
 
 /* ── Status banners ───────────────────────────────────────────── */
@@ -191,19 +191,19 @@ const duration = computed(() => {
 .nop-state-banner--running {
   background: rgba(245, 158, 11, 0.08);
   border: 1px solid rgba(245, 158, 11, 0.2);
-  color: var(--fabric-amber-400);
+  color: var(--fabric-node-output-panel-amber400);
 }
 
 .nop-state-banner--success {
   background: rgba(52, 211, 153, 0.08);
   border: 1px solid rgba(52, 211, 153, 0.2);
-  color: var(--fabric-green-400);
+  color: var(--fabric-node-output-panel-green400);
 }
 
 .nop-state-banner--failed {
   background: rgba(248, 113, 113, 0.08);
   border: 1px solid rgba(248, 113, 113, 0.2);
-  color: var(--fabric-red-400);
+  color: var(--fabric-node-output-panel-red400);
 }
 
 /* ── Error block ──────────────────────────────────────────────── */
@@ -221,7 +221,7 @@ const duration = computed(() => {
   margin: 0;
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-red-400);
+  color: var(--fabric-node-output-panel-red400);
   line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
@@ -236,7 +236,7 @@ const duration = computed(() => {
   justify-content: center;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-10) var(--fabric-space-4);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-node-output-panel-text-muted);
   text-align: center;
 }
 

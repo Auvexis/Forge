@@ -15,7 +15,7 @@ import AgentChatView from '@/features/agent-panel/components/AgentChatView.vue'
   display: grid;
   grid-template-columns: 300px minmax(0, 1fr);
   min-height: calc(100vh - var(--app-header-height, 0px));
-  background: var(--fabric-bg-page, #f7f8fb);
+  background: var(--fabric-agent-panel-page-bg-page);
 }
 
 @media (max-width: 980px) {

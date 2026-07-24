@@ -77,8 +77,8 @@ defineProps<NodeEditorProps>()
 .split-handles-info {
   padding: var(--fabric-space-3);
   border-radius: var(--fabric-radius-lg);
-  background-color: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-split-in-batches-editor-bg-surface);
+  border: 1px solid var(--fabric-split-in-batches-editor-border);
 }
 
 .split-handles {
@@ -102,7 +102,7 @@ defineProps<NodeEditorProps>()
 }
 
 .split-dot--batch { background-color: var(--fabric-node-split-icon, #f59e0b); }
-.split-dot--done  { background-color: var(--fabric-green-400, #34d399); }
+.split-dot--done  { background-color: var(--fabric-split-in-batches-editor-green400); }
 
 .split-handle-text {
   display: flex;
@@ -114,18 +114,18 @@ defineProps<NodeEditorProps>()
   font-size: var(--fabric-text-sm);
   font-weight: 500;
   font-family: var(--fabric-font-mono);
-  color: var(--fabric-accent);
+  color: var(--fabric-split-in-batches-editor-accent);
 }
 
 .split-handle-desc {
   font-size: 11px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-split-in-batches-editor-text-muted);
 }
 
 code {
   font-family: var(--fabric-font-mono);
   font-size: 10px;
   font-weight: 500;
-  color: var(--fabric-accent);
+  color: var(--fabric-split-in-batches-editor-accent);
 }
 </style>

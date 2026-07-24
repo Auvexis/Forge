@@ -90,8 +90,8 @@ defineEmits<{
   flex: 1;
   flex-direction: column;
   overflow-y: auto;
-  background: var(--fabric-bg-base);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-home-welcome-bg-base);
+  color: var(--fabric-home-welcome-text-primary);
 }
 
 .home-welcome__sections {
@@ -151,7 +151,7 @@ defineEmits<{
 
 .home-welcome__eyebrow {
   margin-bottom: var(--fabric-space-2);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-home-welcome-text-muted);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   text-transform: uppercase;
@@ -165,7 +165,7 @@ defineEmits<{
 
 .home-welcome__intro-copy p {
   margin-top: var(--fabric-space-3);
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-home-welcome-text-secondary);
   line-height: 1.6;
 }
 
@@ -210,7 +210,7 @@ defineEmits<{
 }
 
 .home-welcome__editor-copy p {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-home-welcome-text-secondary);
   line-height: 1.55;
 }
 

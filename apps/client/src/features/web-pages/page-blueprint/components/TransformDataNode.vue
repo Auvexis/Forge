@@ -3,7 +3,7 @@
     :title="title"
     eyebrow="Data"
     icon="braces"
-    accent="var(--fabric-text-error)"
+    accent="var(--fabric-transform-data-node-text-error)"
     :selected="selected"
     :dimmed="dimmed"
   >

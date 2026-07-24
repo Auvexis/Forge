@@ -268,20 +268,20 @@ function parameterPlaceholder(key: string, schema: unknown) {
   display: flex;
   align-items: center;
   gap: var(--fabric-space-2);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-ai-tool-editor-border);
   padding-bottom: var(--fabric-space-2);
 }
 
 .pe-params-indicator {
   width: 4px;
   height: 16px;
-  background-color: var(--fabric-text-primary);
+  background-color: var(--fabric-ai-tool-editor-text-primary);
   border-radius: 9999px;
 }
 
 .pe-params-title {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-ai-tool-editor-text-primary);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -294,7 +294,7 @@ function parameterPlaceholder(key: string, schema: unknown) {
   flex-direction: column;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-4);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-ai-tool-editor-border);
   border-radius: var(--fabric-radius-lg);
 }
 
@@ -313,7 +313,7 @@ function parameterPlaceholder(key: string, schema: unknown) {
 }
 
 .pe-param-label {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-ai-tool-editor-text-primary);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -322,7 +322,7 @@ function parameterPlaceholder(key: string, schema: unknown) {
 
 .pe-param-desc {
   margin-top: 2px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-ai-tool-editor-text-muted);
   font-size: 10px;
   line-height: 1.35;
 }
@@ -330,9 +330,9 @@ function parameterPlaceholder(key: string, schema: unknown) {
 .pe-param-type {
   flex: 0 0 auto;
   padding: 2px 6px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-ai-tool-editor-border);
   border-radius: 4px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-ai-tool-editor-text-muted);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: -0.05em;
@@ -347,7 +347,7 @@ function parameterPlaceholder(key: string, schema: unknown) {
 }
 
 .pe-param-toggle-text {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-ai-tool-editor-text-muted);
   font-size: var(--fabric-text-xs);
   font-style: italic;
   font-weight: 500;

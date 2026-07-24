@@ -141,7 +141,7 @@ function updateCaseValue(i: number, value: string) {
 .switch-case-index {
   font-size: var(--fabric-text-xs);
   font-weight: 700;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-switch-editor-text-muted);
   width: 16px;
   text-align: center;
   flex-shrink: 0;
@@ -154,7 +154,7 @@ function updateCaseValue(i: number, value: string) {
 
 .switch-case-handle-label {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-switch-editor-text-muted);
   font-family: var(--fabric-font-mono, monospace);
   white-space: nowrap;
   flex-shrink: 0;
@@ -164,7 +164,7 @@ function updateCaseValue(i: number, value: string) {
   background: transparent;
   border: none;
   cursor: pointer;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-switch-editor-text-muted);
   padding: 4px;
   border-radius: var(--fabric-radius-sm);
   display: flex;
@@ -180,7 +180,7 @@ function updateCaseValue(i: number, value: string) {
 
 .switch-empty-hint {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-switch-editor-text-muted);
   font-style: italic;
   padding: var(--fabric-space-2) 0;
 }
@@ -190,12 +190,12 @@ function updateCaseValue(i: number, value: string) {
   align-items: center;
   gap: var(--fabric-space-1);
   background: transparent;
-  border: 1px dashed var(--fabric-border);
+  border: 1px dashed var(--fabric-switch-editor-border);
   border-radius: var(--fabric-radius-md);
   padding: var(--fabric-space-2) var(--fabric-space-3);
   font-size: var(--fabric-text-xs);
   font-family: inherit;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-switch-editor-text-muted);
   cursor: pointer;
   width: 100%;
   justify-content: center;
@@ -203,7 +203,7 @@ function updateCaseValue(i: number, value: string) {
 }
 
 .switch-add-btn:hover {
-  border-color: var(--fabric-accent);
-  color: var(--fabric-accent);
+  border-color: var(--fabric-switch-editor-accent);
+  color: var(--fabric-switch-editor-accent);
 }
 </style>

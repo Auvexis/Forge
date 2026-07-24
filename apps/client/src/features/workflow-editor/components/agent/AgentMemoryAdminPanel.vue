@@ -104,9 +104,9 @@ onMounted(loadMemories)
 
 .agent-memory-admin-panel__item {
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-agent-memory-admin-panel-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-agent-memory-admin-panel-bg-overlay);
 }
 
 .agent-memory-admin-panel__item-main {
@@ -125,16 +125,16 @@ onMounted(loadMemories)
 
 .agent-memory-admin-panel__item-main span,
 .agent-memory-admin-panel__status {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-agent-memory-admin-panel-text-muted);
 }
 
 .agent-memory-admin-panel__item-main p {
   margin: var(--fabric-space-1) 0 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-agent-memory-admin-panel-text-secondary);
   word-break: break-word;
 }
 
 .agent-memory-admin-panel__status--error {
-  color: var(--fabric-text-error);
+  color: var(--fabric-agent-memory-admin-panel-text-error);
 }
 </style>

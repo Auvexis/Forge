@@ -1140,23 +1140,23 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   align-items: center;
   gap: 10px;
   padding: 10px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-form-theme-menu-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-form-theme-menu-bg-surface);
+  color: var(--fabric-form-theme-menu-text-primary);
   text-align: left;
   cursor: pointer;
 }
 
 .ftm-open-btn:hover {
-  border-color: var(--fabric-border-strong);
+  border-color: var(--fabric-form-theme-menu-border-strong);
 }
 
 .ftm-open-preview {
   width: 44px;
   height: 34px;
   flex-shrink: 0;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-form-theme-menu-border);
   border-radius: var(--fabric-radius-sm);
 }
 
@@ -1171,7 +1171,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 .ftm-preset-card small {
   display: block;
   margin-top: 2px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-form-theme-menu-text-muted);
   font-size: 11px;
   line-height: 1.35;
 }
@@ -1190,7 +1190,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   display: grid;
   place-items: center;
   padding: 20px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-form-theme-menu-border);
   border-radius: var(--fabric-radius-md);
   overflow: hidden;
 }
@@ -1233,7 +1233,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   position: absolute;
   top: -12px;
   right: -12px;
-  background: var(--fabric-accent);
+  background: var(--fabric-form-theme-menu-accent);
   color: white;
   font-size: 10px;
   font-weight: 700;
@@ -1247,7 +1247,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 
 .ftm-preview-card h3 {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-form-theme-menu-text-primary);
   font-size: 20px;
   font-weight: 700;
   line-height: 1.2;
@@ -1255,7 +1255,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 
 .ftm-preview-card p {
   margin: 6px 0 0 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-form-theme-menu-text-secondary);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -1386,8 +1386,8 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-base);
+  color: var(--fabric-form-theme-menu-text-primary);
+  background: var(--fabric-form-theme-menu-bg-base);
 }
 
 /* Rows — label left, control right */
@@ -1403,7 +1403,7 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
 .ftm-row-label {
   font-size: 13px;
   font-weight: 500;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-form-theme-menu-text-secondary);
   flex-shrink: 0;
 }
 
@@ -1425,14 +1425,14 @@ function updateNumber<K extends 'container' | 'typography' | 'fields'>(
   width: 36px;
   height: 28px;
   padding: 2px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-form-theme-menu-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-form-theme-menu-bg-surface);
   cursor: pointer;
 }
 
 .ftm-color:hover {
-  border-color: var(--fabric-accent);
+  border-color: var(--fabric-form-theme-menu-accent);
 }
 
 @media (max-width: 820px) {

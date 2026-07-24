@@ -116,10 +116,10 @@ function itemScopeLabel(scope: ExpressionScope) {
 .variable-picker {
   width: min(420px, calc(100vw - 32px));
   overflow: hidden;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-variable-picker-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  box-shadow: var(--fabric-shadow-xl);
+  background: var(--fabric-variable-picker-bg-surface);
+  box-shadow: var(--fabric-variable-picker-shadow-xl);
 }
 
 .variable-picker__header {
@@ -127,7 +127,7 @@ function itemScopeLabel(scope: ExpressionScope) {
   align-items: center;
   justify-content: space-between;
   padding: var(--fabric-space-3);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-variable-picker-border);
 }
 
 .variable-picker__title,
@@ -142,7 +142,7 @@ function itemScopeLabel(scope: ExpressionScope) {
   gap: var(--fabric-space-2);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-semibold);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-variable-picker-text-primary);
 }
 
 .variable-picker__tabs {
@@ -150,7 +150,7 @@ function itemScopeLabel(scope: ExpressionScope) {
   grid-template-columns: 1fr 1fr;
   gap: 2px;
   padding: var(--fabric-space-2);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-variable-picker-border);
 }
 
 .variable-picker__tab {
@@ -159,19 +159,19 @@ function itemScopeLabel(scope: ExpressionScope) {
   height: 28px;
   border: 1px solid transparent;
   border-radius: var(--fabric-radius-sm);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-picker-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
 .variable-picker__tab--active {
-  border-color: var(--fabric-border-strong);
-  background: var(--fabric-bg-overlay);
-  color: var(--fabric-text-primary);
+  border-color: var(--fabric-variable-picker-border-strong);
+  background: var(--fabric-variable-picker-bg-overlay);
+  color: var(--fabric-variable-picker-text-primary);
 }
 
 .variable-picker__search {
   padding: var(--fabric-space-2);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-variable-picker-border);
 }
 
 .variable-picker__list {
@@ -194,13 +194,13 @@ function itemScopeLabel(scope: ExpressionScope) {
 
 .variable-picker__item:hover,
 .variable-picker__item:focus-visible {
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-variable-picker-bg-overlay);
   outline: none;
 }
 
 .variable-picker__item-icon {
   flex-shrink: 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-picker-text-muted);
 }
 
 .variable-picker__item-main {
@@ -213,7 +213,7 @@ function itemScopeLabel(scope: ExpressionScope) {
 
 .variable-picker__item-name {
   overflow: hidden;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-variable-picker-text-primary);
   font-family: var(--fabric-font-mono);
   font-size: var(--fabric-text-xs);
   text-overflow: ellipsis;
@@ -222,7 +222,7 @@ function itemScopeLabel(scope: ExpressionScope) {
 
 .variable-picker__item-preview {
   overflow: hidden;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-picker-text-muted);
   font-size: 11px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -237,9 +237,9 @@ function itemScopeLabel(scope: ExpressionScope) {
   max-width: 88px;
   overflow: hidden;
   padding: 2px 6px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-variable-picker-border);
   border-radius: var(--fabric-radius-full);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-picker-text-muted);
   font-size: 10px;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -258,12 +258,12 @@ function itemScopeLabel(scope: ExpressionScope) {
 }
 
 .variable-picker__badge--type {
-  background: var(--fabric-bg-base);
+  background: var(--fabric-variable-picker-bg-base);
 }
 
 .variable-picker__empty {
   padding: var(--fabric-space-4);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-variable-picker-text-muted);
   font-size: var(--fabric-text-xs);
   text-align: center;
 }

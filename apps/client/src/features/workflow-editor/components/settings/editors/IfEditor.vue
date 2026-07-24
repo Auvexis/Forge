@@ -58,8 +58,8 @@ defineProps<NodeEditorProps>()
 .editor-branches {
   padding: var(--fabric-space-3);
   border-radius: var(--fabric-radius-lg);
-  background-color: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-if-editor-bg-surface);
+  border: 1px solid var(--fabric-if-editor-border);
 }
 
 .branches-legend {
@@ -102,7 +102,7 @@ defineProps<NodeEditorProps>()
 
 .editor-hint-text {
   font-size: 11px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-if-editor-text-muted);
   font-style: italic;
   line-height: 1.5;
   margin-top: var(--fabric-space-2);

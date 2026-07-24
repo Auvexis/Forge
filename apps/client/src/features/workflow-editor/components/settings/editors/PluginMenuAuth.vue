@@ -218,7 +218,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
 .plugin-auth__icon-well {
   width: 40px;
   height: 40px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-plugin-menu-auth-border);
   border-radius: var(--fabric-radius-lg);
   display: flex;
   justify-content: center;
@@ -226,14 +226,14 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .plugin-auth__icon {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-menu-auth-text-muted);
 }
 
 .plugin-auth__title {
   font-size: var(--fabric-text-base);
   font-weight: 600;
   margin: 0 0 var(--fabric-space-1) 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-plugin-menu-auth-text-primary);
 }
 
 .plugin-auth__status {
@@ -241,7 +241,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
   align-items: center;
   gap: var(--fabric-space-1);
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-menu-auth-text-muted);
 }
 
 .status-icon--success {
@@ -278,7 +278,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
   gap: var(--fabric-space-1);
   font-size: var(--fabric-text-sm);
   font-weight: 500;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-plugin-menu-auth-text-primary);
 }
 
 .auth-field__asterisk {
@@ -301,7 +301,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
 
 .auth-field__desc {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-menu-auth-text-muted);
   margin: 0 0 var(--fabric-space-1) 0;
 }
 
@@ -312,9 +312,9 @@ function handleOAuthLinkClick(event: MouseEvent) {
   padding: 0 var(--fabric-space-3);
   height: 40px;
   border-radius: var(--fabric-radius-md);
-  border: 1px solid var(--fabric-border);
-  background-color: var(--fabric-bg-muted);
-  color: var(--fabric-text-muted);
+  border: 1px solid var(--fabric-plugin-menu-auth-border);
+  background-color: var(--fabric-plugin-menu-auth-bg-muted);
+  color: var(--fabric-plugin-menu-auth-text-muted);
 }
 
 .text-emerald {
@@ -330,7 +330,7 @@ function handleOAuthLinkClick(event: MouseEvent) {
 
 .auth-field__toggle-text {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-menu-auth-text-muted);
   font-style: italic;
 }
 
@@ -350,8 +350,8 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .auth-btn--primary {
-  border: 1px solid var(--fabric-border);
-  color: var(--fabric-text-primary);
+  border: 1px solid var(--fabric-plugin-menu-auth-border);
+  color: var(--fabric-plugin-menu-auth-text-primary);
 }
 
 .auth-btn--primary:hover {
@@ -370,13 +370,13 @@ function handleOAuthLinkClick(event: MouseEvent) {
 }
 
 .auth-btn--secondary {
-  background-color: var(--fabric-bg-surface);
-  color: var(--fabric-text-primary);
-  border: 1px solid var(--fabric-border);
+  background-color: var(--fabric-plugin-menu-auth-bg-surface);
+  color: var(--fabric-plugin-menu-auth-text-primary);
+  border: 1px solid var(--fabric-plugin-menu-auth-border);
 }
 
 .auth-btn--secondary:hover {
-  background-color: var(--fabric-bg-muted);
+  background-color: var(--fabric-plugin-menu-auth-bg-muted);
 }
 
 .auth-btn--destructive {
@@ -416,8 +416,8 @@ function handleOAuthLinkClick(event: MouseEvent) {
 .plugin-auth__section--oauth-info {
   margin-bottom: var(--fabric-space-2);
   padding: var(--fabric-space-3);
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background: var(--fabric-plugin-menu-auth-bg-surface);
+  border: 1px solid var(--fabric-plugin-menu-auth-border);
   border-radius: var(--fabric-radius-md);
 }
 .oauth-redirect-block {

@@ -80,8 +80,8 @@ defineProps<{
 <style scoped>
 .preview-panel {
   min-width: 320px;
-  border-left: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  border-left: 1px solid var(--fabric-external-plugin-preview-panel-border);
+  background: var(--fabric-external-plugin-preview-panel-bg-surface);
 }
 
 .preview-panel__header {
@@ -90,7 +90,7 @@ defineProps<{
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--fabric-space-4);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-external-plugin-preview-panel-border);
 }
 
 .preview-panel__header h2,
@@ -105,7 +105,7 @@ defineProps<{
 
 .preview-panel__status {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-success);
+  color: var(--fabric-external-plugin-preview-panel-text-success);
 }
 
 .preview-panel__content {
@@ -126,7 +126,7 @@ defineProps<{
   display: grid;
   place-items: center;
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-elevated);
+  background: var(--fabric-external-plugin-preview-panel-bg-elevated);
 }
 
 .preview-plugin h3 {
@@ -138,7 +138,7 @@ defineProps<{
 .preview-section span,
 .preview-panel__empty {
   margin: 4px 0 0;
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-external-plugin-preview-panel-text-secondary);
   font-size: var(--fabric-text-sm);
   line-height: var(--fabric-leading-normal);
 }
@@ -155,7 +155,7 @@ defineProps<{
 }
 
 .preview-meta dt {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-external-plugin-preview-panel-text-muted);
   font-size: var(--fabric-text-xs);
 }
 
@@ -188,17 +188,17 @@ defineProps<{
 .preview-section li {
   padding: 7px var(--fabric-space-2);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-base);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-external-plugin-preview-panel-bg-base);
+  color: var(--fabric-external-plugin-preview-panel-text-secondary);
   font-size: var(--fabric-text-xs);
 }
 
 .is-warning li {
-  color: var(--fabric-text-warning);
+  color: var(--fabric-external-plugin-preview-panel-text-warning);
 }
 
 .is-error li {
-  color: var(--fabric-text-error);
+  color: var(--fabric-external-plugin-preview-panel-text-error);
 }
 
 .preview-panel__empty {

@@ -43,7 +43,7 @@
               variant="ghost"
               size="icon"
               icon-left="x"
-              class="!text-[var(--fabric-text-muted)] hover:!text-[var(--fabric-text-primary)] !p-2"
+              class="!text-[var(--fabric-form-fields-editor-text-muted)] hover:!text-[var(--fabric-form-fields-editor-text-primary)] !p-2"
               @click="removeField(i)"
             />
           </div>
@@ -212,7 +212,7 @@ function updateFieldOptionsText(i: number, value: string) {
 }
 
 .ffe-label {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-form-fields-editor-text-secondary);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -221,7 +221,7 @@ function updateFieldOptionsText(i: number, value: string) {
 
 .ffe-hint {
   margin: 0;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-form-fields-editor-text-muted);
   font-size: 12px;
   line-height: 1.5;
 }
@@ -235,9 +235,9 @@ function updateFieldOptionsText(i: number, value: string) {
 
 .ffe-card {
   padding: 10px;
-  border: 1px solid var(--fabric-border-subtle);
+  border: 1px solid var(--fabric-form-fields-editor-border-subtle);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-form-fields-editor-bg-surface);
 }
 
 .ffe-grid {
@@ -265,7 +265,7 @@ function updateFieldOptionsText(i: number, value: string) {
 }
 
 .ffe-required {
-  color: var(--fabric-text-secondary);
+  color: var(--fabric-form-fields-editor-text-secondary);
   font-size: 12px;
   font-weight: 600;
 }

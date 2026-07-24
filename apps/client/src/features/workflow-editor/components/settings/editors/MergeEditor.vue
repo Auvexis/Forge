@@ -67,12 +67,12 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
   align-items: center;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-3);
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
+  background: var(--fabric-merge-editor-bg-surface);
+  border: 1px solid var(--fabric-merge-editor-border);
   border-radius: var(--fabric-radius-md);
   cursor: pointer;
   font-family: inherit;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-merge-editor-text-muted);
   text-align: left;
   transition: border-color var(--fabric-duration-fast), color var(--fabric-duration-fast);
   width: 100%;
@@ -80,13 +80,13 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 
 .merge-mode-btn:hover {
   border-color: var(--fabric-node-merge-icon, #a78bfa);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-merge-editor-text-primary);
   background: color-mix(in srgb, var(--fabric-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
 .merge-mode-btn--active {
   border-color: var(--fabric-node-merge-icon, #a78bfa);
-  color: var(--fabric-text-primary);
+  color: var(--fabric-merge-editor-text-primary);
   background: color-mix(in srgb, var(--fabric-node-merge-bg, rgba(167,139,250,0.12)) 60%, transparent);
 }
 
@@ -103,6 +103,6 @@ const currentMode = computed(() => (props.node.data.mode as string) ?? 'wait-any
 
 .merge-mode-desc {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-merge-editor-text-muted);
 }
 </style>

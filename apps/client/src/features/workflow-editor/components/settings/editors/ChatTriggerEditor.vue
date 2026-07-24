@@ -128,7 +128,7 @@ const SESSION_MODES = [
 <style scoped>
 .chat-trigger-editor__warning {
   margin: var(--fabric-space-2) 0 0;
-  color: var(--fabric-text-warning, var(--fabric-text-secondary));
+  color: var(--fabric-chat-trigger-editor-text-warning);
   font-size: var(--fabric-text-xs);
   line-height: 1.4;
 }
@@ -143,18 +143,18 @@ const SESSION_MODES = [
 .chat-trigger-editor__slug-button {
   height: 32px;
   padding: 0 var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-trigger-editor-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-chat-trigger-editor-bg-surface);
+  color: var(--fabric-chat-trigger-editor-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: 600;
   cursor: pointer;
 }
 
 .chat-trigger-editor__slug-button:hover {
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-chat-trigger-editor-bg-elevated);
+  color: var(--fabric-chat-trigger-editor-text-primary);
 }
 
 .chat-trigger-editor__panel-hint {
@@ -163,9 +163,9 @@ const SESSION_MODES = [
   justify-content: space-between;
   gap: var(--fabric-space-1);
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-trigger-editor-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-overlay);
+  background: var(--fabric-chat-trigger-editor-bg-overlay);
 }
 
 .chat-trigger-editor__panel-hint > div {
@@ -182,29 +182,29 @@ const SESSION_MODES = [
 }
 
 .chat-trigger-editor__panel-hint strong {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-chat-trigger-editor-text-primary);
 }
 
 .chat-trigger-editor__panel-hint span {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-chat-trigger-editor-text-muted);
 }
 
 .chat-trigger-editor__open-chat {
   flex: 0 0 auto;
   height: 32px;
   padding: 0 var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-chat-trigger-editor-border);
   border-radius: var(--fabric-radius-sm);
-  background: var(--fabric-bg-surface);
-  color: var(--fabric-text-secondary);
+  background: var(--fabric-chat-trigger-editor-bg-surface);
+  color: var(--fabric-chat-trigger-editor-text-secondary);
   font-size: var(--fabric-text-xs);
   font-weight: 700;
   cursor: pointer;
 }
 
 .chat-trigger-editor__open-chat:hover:not(:disabled) {
-  background: var(--fabric-bg-elevated);
-  color: var(--fabric-text-primary);
+  background: var(--fabric-chat-trigger-editor-bg-elevated);
+  color: var(--fabric-chat-trigger-editor-text-primary);
 }
 
 .chat-trigger-editor__open-chat:disabled {

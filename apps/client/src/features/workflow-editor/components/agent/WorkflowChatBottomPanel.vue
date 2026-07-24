@@ -69,7 +69,7 @@ const selectedTrigger = computed(() =>
   flex-direction: column;
   height: 100%;
   min-height: 0;
-  background: var(--fabric-bg-surface);
+  background: var(--fabric-workflow-chat-bottom-panel-bg-surface);
 }
 
 .workflow-chat-bottom-panel__body {
@@ -87,12 +87,12 @@ const selectedTrigger = computed(() =>
   align-items: center;
   justify-content: center;
   gap: var(--fabric-space-2);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-workflow-chat-bottom-panel-text-muted);
   text-align: center;
 }
 
 .workflow-chat-bottom-panel__empty strong {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-workflow-chat-bottom-panel-text-primary);
   font-size: var(--fabric-text-sm);
 }
 

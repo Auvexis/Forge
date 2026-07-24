@@ -579,7 +579,7 @@ const removeFileFromArray = (key: string, index: number) => {
 
 .pe-loading-text {
   font-size: 11px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-editor-text-muted);
   font-style: italic;
   padding: 4px 0;
 }
@@ -588,21 +588,21 @@ const removeFileFromArray = (key: string, index: number) => {
   display: flex;
   align-items: center;
   gap: var(--fabric-space-2);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-plugin-editor-border);
   padding-bottom: var(--fabric-space-2);
 }
 
 .pe-params-indicator {
   width: 4px;
   height: 16px;
-  background-color: var(--fabric-text-primary);
+  background-color: var(--fabric-plugin-editor-text-primary);
   border-radius: 9999px;
 }
 
 .pe-params-title {
   font-size: 11px;
   font-weight: 900;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-plugin-editor-text-primary);
   opacity: 0.7;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -615,7 +615,7 @@ const removeFileFromArray = (key: string, index: number) => {
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-4);
   border-radius: var(--fabric-radius-lg);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-plugin-editor-border);
 }
 
 .pe-param-head {
@@ -635,12 +635,12 @@ const removeFileFromArray = (key: string, index: number) => {
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-plugin-editor-text-primary);
 }
 
 .pe-param-desc {
   font-size: 10px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-editor-text-muted);
   line-height: 1;
   margin-top: 2px;
 }
@@ -658,11 +658,11 @@ const removeFileFromArray = (key: string, index: number) => {
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-editor-text-muted);
   text-transform: uppercase;
   font-weight: 900;
   letter-spacing: -0.05em;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-plugin-editor-border);
 }
 
 .pe-param-toggle {
@@ -674,7 +674,7 @@ const removeFileFromArray = (key: string, index: number) => {
 
 .pe-param-toggle-text {
   font-size: var(--fabric-text-xs);
-  color: var(--fabric-text-muted);
+  color: var(--fabric-plugin-editor-text-muted);
   font-style: italic;
   font-weight: 500;
 }
@@ -709,12 +709,12 @@ const removeFileFromArray = (key: string, index: number) => {
   display: flex;
   align-items: center;
   gap: 8px;
-  background-color: var(--fabric-bg-surface);
+  background-color: var(--fabric-plugin-editor-bg-surface);
 }
 
 .pe-file-name {
   font-size: 12px;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-plugin-editor-text-primary);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -725,17 +725,17 @@ const removeFileFromArray = (key: string, index: number) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--fabric-bg-surface);
-  border: 1px solid var(--fabric-border);
-  color: var(--fabric-text-muted);
+  background: var(--fabric-plugin-editor-bg-surface);
+  border: 1px solid var(--fabric-plugin-editor-border);
+  color: var(--fabric-plugin-editor-text-muted);
   cursor: pointer;
   border-radius: var(--fabric-radius-sm);
   transition: all 0.2s ease;
 }
 
 .pe-file-btn:hover {
-  color: var(--fabric-text-primary);
-  background: var(--fabric-bg-surface-hover);
+  color: var(--fabric-plugin-editor-text-primary);
+  background: var(--fabric-plugin-editor-bg-surface-hover);
 }
 
 .pe-file-btn--upload {
@@ -745,8 +745,8 @@ const removeFileFromArray = (key: string, index: number) => {
 }
 
 .pe-file-btn--upload:hover {
-  color: var(--fabric-text-primary);
-  border-color: var(--fabric-text-primary);
+  color: var(--fabric-plugin-editor-text-primary);
+  border-color: var(--fabric-plugin-editor-text-primary);
 }
 
 .pe-file-btn--remove {

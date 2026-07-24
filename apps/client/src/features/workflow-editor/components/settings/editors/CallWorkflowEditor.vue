@@ -287,9 +287,9 @@ function slugPart(value: string) {
   flex-direction: column;
   gap: var(--fabric-space-2);
   padding: var(--fabric-space-3);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-call-workflow-editor-border);
   border-radius: var(--fabric-radius-md);
-  background: var(--fabric-bg-muted);
+  background: var(--fabric-call-workflow-editor-bg-muted);
 }
 
 .call-trigger-summary__title,
@@ -300,7 +300,7 @@ function slugPart(value: string) {
 }
 
 .call-trigger-summary__title {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-call-workflow-editor-text-primary);
   font-size: var(--fabric-text-sm);
   font-weight: 700;
 }
@@ -308,9 +308,9 @@ function slugPart(value: string) {
 .call-trigger-summary__meta span,
 .cw-param-type {
   padding: 2px 6px;
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-call-workflow-editor-border);
   border-radius: 4px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-call-workflow-editor-text-muted);
   font-size: 11px;
   font-weight: 800;
 }
@@ -319,20 +319,20 @@ function slugPart(value: string) {
   display: flex;
   align-items: center;
   gap: var(--fabric-space-2);
-  border-bottom: 1px solid var(--fabric-border);
+  border-bottom: 1px solid var(--fabric-call-workflow-editor-border);
   padding-bottom: var(--fabric-space-2);
 }
 
 .cw-params-indicator {
   width: 4px;
   height: 16px;
-  background-color: var(--fabric-text-primary);
+  background-color: var(--fabric-call-workflow-editor-text-primary);
   border-radius: 9999px;
 }
 
 .cw-params-title {
   margin: 0;
-  color: var(--fabric-text-primary);
+  color: var(--fabric-call-workflow-editor-text-primary);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -345,7 +345,7 @@ function slugPart(value: string) {
   flex-direction: column;
   gap: var(--fabric-space-3);
   padding: var(--fabric-space-4);
-  border: 1px solid var(--fabric-border);
+  border: 1px solid var(--fabric-call-workflow-editor-border);
   border-radius: var(--fabric-radius-lg);
 }
 
@@ -364,7 +364,7 @@ function slugPart(value: string) {
 }
 
 .cw-param-label {
-  color: var(--fabric-text-primary);
+  color: var(--fabric-call-workflow-editor-text-primary);
   font-size: 11px;
   font-weight: 900;
   letter-spacing: 0.1em;
@@ -373,7 +373,7 @@ function slugPart(value: string) {
 
 .cw-param-desc {
   margin-top: 2px;
-  color: var(--fabric-text-muted);
+  color: var(--fabric-call-workflow-editor-text-muted);
   font-size: 10px;
   line-height: 1.35;
 }
@@ -386,7 +386,7 @@ function slugPart(value: string) {
 }
 
 .cw-param-toggle-text {
-  color: var(--fabric-text-muted);
+  color: var(--fabric-call-workflow-editor-text-muted);
   font-size: var(--fabric-text-xs);
   font-style: italic;
   font-weight: 500;

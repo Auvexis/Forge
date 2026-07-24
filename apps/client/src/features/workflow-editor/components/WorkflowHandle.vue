@@ -109,7 +109,7 @@ watch(() => [handleId.value, props.type, side.value, props.variant], registerHan
   width: 12px;
   height: 12px;
   box-sizing: border-box;
-  border: 1px solid var(--fabric-border-strong);
+  border: 1px solid var(--fabric-workflow-handle-border-strong);
   border-radius: 100%;
   background-color: var(--fabric-node-handle);
   pointer-events: none;
