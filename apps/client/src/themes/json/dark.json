@@ -595,6 +595,7 @@
     "globalSettings.card.radius": "var(--fabric-radius-sm)",
     "globalSettings.inlineCard.radius": "var(--fabric-radius-md)",
     "globalSettings.notice.radius": "var(--fabric-radius-md)",
-    "globalSettings.accountShell.radius": "8px"
+    "globalSettings.accountShell.radius": "8px",
+    "baseTopbarButton.radius": "var(--fabric-radius-full)"
   }
 }

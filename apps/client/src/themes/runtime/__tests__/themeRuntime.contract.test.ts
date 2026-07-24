@@ -42,6 +42,7 @@ describe('theme runtime contract', () => {
       'baseSelect.bg',
       'baseSwitch.track.bg',
       'baseTextarea.bg',
+      'baseTopbarButton.radius',
       'baseTopbarButton.hover.bg',
       'baseVariableInput.bg',
       'appContextMenu.bg',

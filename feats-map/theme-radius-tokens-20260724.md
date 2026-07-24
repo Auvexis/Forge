@@ -4,3 +4,4 @@
 - [x] Aplicar tokens em overlay/layout/feedback/display
 - [x] Adicionar tokens do BaseCodeEditor
 - [x] Rodar testes focados
+- [x] Completar BaseTopbarButton

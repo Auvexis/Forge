@@ -255,6 +255,7 @@
   --fabric-base-color-picker-swatch-radius: calc(var(--fabric-radius-sm) - 2px);
   --fabric-base-code-editor-radius: var(--fabric-radius-sm);
   --fabric-base-variable-input-radius: var(--fabric-radius-sm);
+  --fabric-base-topbar-button-radius: var(--fabric-radius-full);
   --fabric-base-profile-dropdown-radius: 10px;
   --fabric-base-profile-dropdown-trigger-radius: 8px;
   --fabric-base-profile-dropdown-item-radius: 6px;

@@ -67,6 +67,7 @@ describe('component semantic color tokens', () => {
     '--fabric-base-code-editor-text',
     '--fabric-base-code-editor-header-bg',
     '--fabric-base-code-editor-line-number-text',
+    '--fabric-base-topbar-button-radius',
     '--fabric-app-confirm-panel-radius',
     '--fabric-app-dropdown-menu-radius',
     '--fabric-app-dropdown-item-radius',
