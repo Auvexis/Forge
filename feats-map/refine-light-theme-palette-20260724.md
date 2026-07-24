@@ -1,0 +1,3 @@
+- [x] Revisar tokens atuais do light
+- [x] Suavizar paleta clara
+- [x] Rodar contratos de tema
