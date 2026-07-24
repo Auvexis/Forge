@@ -13,6 +13,13 @@
   --fabric-chrome-danger: var(--fabric-red-500);
   --fabric-chrome-save: var(--fabric-amber-500);
   --fabric-chrome-radius: 4px;
+  --fabric-chrome-menu-trigger-bg: var(--fabric-workflow-chrome-menu-trigger-bg);
+  --fabric-chrome-menu-trigger-text: var(--fabric-workflow-chrome-menu-trigger-text);
+  --fabric-chrome-menu-trigger-hover-bg: var(--fabric-workflow-chrome-menu-trigger-hover-bg);
+  --fabric-chrome-menu-trigger-hover-text: var(--fabric-workflow-chrome-menu-trigger-hover-text);
+  --fabric-chrome-menu-trigger-active-bg: var(--fabric-workflow-chrome-menu-trigger-active-bg);
+  --fabric-chrome-menu-trigger-active-text: var(--fabric-workflow-chrome-menu-trigger-active-text);
+  --fabric-chrome-menu-trigger-radius: var(--fabric-workflow-chrome-menu-trigger-radius);
   --fabric-chrome-control-h: 24px;
   --fabric-chrome-icon: 14px;
   --fabric-chrome-gap: 4px;
@@ -297,8 +304,9 @@
   min-width: 0;
   padding: 0 10px;
   border: 1px solid transparent;
-  color: var(--fabric-chrome-text);
-  background: transparent;
+  border-radius: var(--fabric-chrome-menu-trigger-radius);
+  color: var(--fabric-chrome-menu-trigger-text);
+  background: var(--fabric-chrome-menu-trigger-bg);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
   line-height: 1;
@@ -309,7 +317,7 @@
 }
 
 #fabric-topbar-left .wec-menu-trigger {
-  color: var(--fabric-topbar-search-text);
+  color: var(--fabric-chrome-menu-trigger-text);
 }
 
 .wec-menu-bar .app-popover-wrapper {
@@ -337,8 +345,13 @@
 
 .wec-menu-trigger:hover,
 .wec-menu-trigger--active {
-  background: var(--fabric-topbar-search-hover-bg);
-  color: var(--fabric-topbar-search-hover-text);
+  background: var(--fabric-chrome-menu-trigger-hover-bg);
+  color: var(--fabric-chrome-menu-trigger-hover-text);
+}
+
+.wec-menu-trigger--active {
+  background: var(--fabric-chrome-menu-trigger-active-bg);
+  color: var(--fabric-chrome-menu-trigger-active-text);
 }
 
 .wec-workflow-search {

@@ -1,0 +1,3 @@
+- [x] Tokenizar wec menu trigger
+- [x] Ajustar light para texto forte
+- [x] Rodar contratos de tema
