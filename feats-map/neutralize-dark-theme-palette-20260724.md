@@ -1,0 +1,3 @@
+- [x] Preservar ajustes locais do dark
+- [x] Neutralizar fundos e bordas
+- [x] Rodar contratos de tema
