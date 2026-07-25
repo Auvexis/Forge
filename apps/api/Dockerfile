@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine AS deps
 
 WORKDIR /app
 
@@ -11,11 +11,29 @@ COPY apps/gateway/package.json apps/gateway/package.json
 
 RUN npm ci
 
+FROM deps AS build
+
+WORKDIR /app
+
 COPY . .
 
-ENV NODE_ENV=production
-
 RUN npm run build --workspace apps/api
+
+FROM node:22-alpine AS runtime
+
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV FABRIC_HOME=/app/.fabric
+
+COPY package*.json ./
+COPY apps/api/package.json apps/api/package.json
+COPY apps/client/package.json apps/client/package.json
+COPY apps/gateway/package.json apps/gateway/package.json
+
+RUN npm ci --omit=dev
+
+COPY --from=build /app/apps/api/src apps/api/src
 
 EXPOSE 23801
 

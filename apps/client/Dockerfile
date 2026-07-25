@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22-alpine AS build
 
 WORKDIR /app
 
@@ -18,6 +18,10 @@ ENV NODE_ENV=production
 
 RUN npm run build --workspace apps/client
 
-EXPOSE 23802
+FROM nginx:1.27-alpine AS runtime
 
-CMD ["npm", "run", "preview", "--workspace", "apps/client", "--", "--host", "0.0.0.0", "--port", "23802"]
+COPY --from=build /app/apps/client/dist /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
