@@ -1,0 +1,5 @@
+- [x] Revisar build atual da API
+- [x] Emitir JS da API para dist
+- [x] Copiar assets dos plugins internos
+- [x] Rodar API em dist no Docker
+- [x] Validar e commitar

@@ -33,7 +33,7 @@ COPY apps/gateway/package.json apps/gateway/package.json
 
 RUN npm ci --omit=dev
 
-COPY --from=build /app/apps/api/src apps/api/src
+COPY --from=build /app/apps/api/dist apps/api/dist
 
 EXPOSE 23801
 
