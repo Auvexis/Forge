@@ -208,8 +208,12 @@ function listCallableWorkflowSummaries(): CallableWorkflowSummary[] {
 }
 
 function resolveClientOrigin(): string {
-  const publicUrl = PublicUrlService.getConfig();
-  return publicUrl.source === "default" ? CLIENT_ORIGIN : publicUrl.publicUrl;
+  try {
+    const publicUrl = PublicUrlService.getConfig();
+    return publicUrl.source === "default" ? CLIENT_ORIGIN : publicUrl.publicUrl;
+  } catch {
+    return CLIENT_ORIGIN;
+  }
 }
 
 // ──────────── Safe SSE serializer ────────────

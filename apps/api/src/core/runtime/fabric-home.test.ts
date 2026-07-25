@@ -25,7 +25,7 @@ describe("resolveFabricHomePaths", () => {
     assert.equal(paths.profilesDir, path.join(path.resolve(home), "profiles"));
     assert.equal(paths.profilesIndexPath, path.join(path.resolve(home), "profiles.json"));
     assert.equal(paths.defaultProfileDir, path.join(path.resolve(home), "profiles", "default"));
-    assert.match(paths.internalPluginsDir, /server[\\/]src[\\/]plugins$/);
+    assert.match(paths.internalPluginsDir, /api[\\/]src[\\/]plugins$/);
   });
 
   it("resolves OS defaults when FABRIC_HOME is not set", () => {

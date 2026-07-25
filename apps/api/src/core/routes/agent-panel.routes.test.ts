@@ -76,8 +76,8 @@ describe("agent panel routes", () => {
     assertEnvelope(sent, 200, "Agent panel message sent");
 
     const routes = app.printRoutes();
-    assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream/);
-    assert.match(routes, /agent-panel\/[\s\S]*sessions\/[\s\S]*:sessionId[\s\S]*\/messages[\s\S]*\/stream[\s\S]*s\/[\s\S]*:streamId/);
+    assert.match(routes, /messages \(GET, HEAD, POST\)[\s\S]*\/stream \(POST\)/);
+    assert.match(routes, /\/stream \(POST\)[\s\S]*s\/[\s\S]*:streamId/);
     const routeSource = readFileSync("src/core/routes/agent-panel.routes.ts", "utf8");
     assert.match(routeSource, /Access-Control-Allow-Origin/);
     assert.match(routeSource, /flushHeaders/);

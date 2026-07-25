@@ -180,7 +180,7 @@ describe("page renderer", () => {
     assert.match(html, /FormData/);
     assert.match(html, /encodeURIComponent\(projectPublicId\).*\/actions\/.*encodeURIComponent\(actionId\).*encodePublishedPath\(slug\)/s);
     assert.match(html, /pendingActionId/);
-    assert.match(html, /runtimeError/);
+    assert.match(html, /\[Fabric Pages\] Action failed/);
     assert.doesNotMatch(html, /eval\(/);
   });
 
@@ -312,7 +312,7 @@ describe("page renderer", () => {
     assert.match(html, /resolveResultPath\(result, binding\.resultPath\)/);
     assert.match(html, /binding\.expression \? evaluateBlueprintExpression\(binding\.expression, result\)/);
     assert.match(html, /normalizeBlueprintExpression\(template\)/);
-    assert.match(html, /trimmed\.replace\(\/\\\{\\\{\\s\*\(utility:run-workflow/);
+    assert.match(html, /trimmed\.replace\(\/\\\{\\\{\\s\*\(\(\?:utility\|blueprint-element\)/);
     assert.match(html, /applyInitialOutputExpressions\(\)/);
     assert.match(html, /evaluateBlueprintExpression\(binding\.expression, \{\}\)/);
     assert.match(html, /writeOutputTarget\(binding\.target, value\)/);

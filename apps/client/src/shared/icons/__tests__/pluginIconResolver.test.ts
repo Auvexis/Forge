@@ -30,7 +30,7 @@ describe('plugin icon resolver', () => {
     const ollamaManifest = JSON.parse(
       readFileSync(
         fileURLToPath(
-          new URL('../../../../../server/src/plugins/fabric/ollama/manifest.json', import.meta.url),
+          new URL('../../../../../api/src/plugins/fabric/ollama/manifest.json', import.meta.url),
         ),
         'utf8',
       ),
@@ -39,7 +39,7 @@ describe('plugin icon resolver', () => {
       readFileSync(
         fileURLToPath(
           new URL(
-            '../../../../../server/src/plugins/fabric/openrouter/manifest.json',
+            '../../../../../api/src/plugins/fabric/openrouter/manifest.json',
             import.meta.url,
           ),
         ),

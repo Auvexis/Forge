@@ -41,7 +41,7 @@ describe("pages form workflow smoke", () => {
 
     const submitResponse = await app.inject({
       method: "POST",
-      url: "/p/lead-capture/actions/action_submit",
+      url: "/p/site_default_profile_a/actions/action_submit/lead-capture",
       payload: { email: "ada@example.com" },
     });
 

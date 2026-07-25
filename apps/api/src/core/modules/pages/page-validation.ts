@@ -199,6 +199,9 @@ function normalizeBlock(
   if (customCss.length > MAX_CUSTOM_CODE_LENGTH) {
     return { success: false, error: "Block custom CSS is too long." };
   }
+  if (/<\s*\/?\s*style|<\s*script/i.test(customCss)) {
+    return { success: false, error: "Block custom CSS contains unsafe code." };
+  }
   const customJs = block.customJs ?? "";
   if (customJs.length > MAX_CUSTOM_CODE_LENGTH) {
     return { success: false, error: "Block custom JS is too long." };

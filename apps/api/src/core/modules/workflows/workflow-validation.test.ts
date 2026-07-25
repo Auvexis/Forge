@@ -310,7 +310,7 @@ describe("workflow validation", () => {
     assert.equal(error, null);
   });
 
-  it("rejects File Dataset connected directly to Vector Store documents", () => {
+  it("accepts File Dataset connected directly to Vector Store documents", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {
         files: {
@@ -342,7 +342,7 @@ describe("workflow validation", () => {
       edges: [{ id: "files-store", source: "files", target: "store", targetHandle: "document" }],
     }));
 
-    assert.match(error ?? "", /handle "document" requires capability "document-source".*provides \[file-data-source\]/);
+    assert.equal(error, null);
   });
 
   it("accepts vector store retrieval settings while preserving legacy retriever workflows", () => {

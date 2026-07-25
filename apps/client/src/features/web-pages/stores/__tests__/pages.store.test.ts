@@ -140,6 +140,7 @@ describe('pages store', () => {
       metaDescription: 'Create an account',
       faviconUrl: '/sites/site_1/assets/favicon.png',
       bodyStyles: undefined,
+      pageActions: undefined,
       blocks: [],
     })
   })

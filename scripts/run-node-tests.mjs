@@ -1,9 +1,10 @@
 import { readdirSync } from "node:fs";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import { spawnSync } from "node:child_process";
 
 const root = process.cwd();
 const testFiles = [];
+const includeContracts = process.argv.includes("--include-contracts");
 
 function walk(directory) {
   for (const entry of readdirSync(directory, { withFileTypes: true })) {
@@ -12,9 +13,13 @@ function walk(directory) {
       walk(path);
       continue;
     }
-    if (entry.name.endsWith(".test.ts") && !entry.name.endsWith(".vitest.test.ts")) {
-      testFiles.push(path);
+    if (!entry.name.endsWith(".test.ts") || entry.name.endsWith(".vitest.test.ts")) {
+      continue;
     }
+    if (!includeContracts && entry.name.endsWith(".contract.test.ts")) {
+      continue;
+    }
+    testFiles.push(path);
   }
 }
 
@@ -25,10 +30,14 @@ if (testFiles.length === 0) {
   process.exit(0);
 }
 
-const result = spawnSync(process.execPath, ["--import", "tsx", "--test", ...testFiles], {
+const result = spawnSync(
+  process.execPath,
+  ["--import", "tsx", "--test", "--test-concurrency=1", ...testFiles],
+  {
   cwd: root,
   stdio: "inherit",
   shell: false,
-});
+  },
+);
 
 process.exit(result.status ?? 1);

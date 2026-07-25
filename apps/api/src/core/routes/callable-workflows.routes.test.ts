@@ -9,6 +9,10 @@ import {
   setWorkflowDatabaseProvider,
   WorkflowRepository,
 } from "../modules/workflows/repository.ts";
+import {
+  resetAppDatabaseProvider,
+  setAppDatabaseProvider,
+} from "../modules/app/app-repository.ts";
 import type { WorkflowItem, WorkflowTrigger } from "../../shared/models/workflow-types.ts";
 import workflowsRoutes from "./workflows.routes.ts";
 
@@ -16,6 +20,13 @@ async function createWorkflowDb(): Promise<Database.Database> {
   const db = new Database(":memory:");
   db.pragma("foreign_keys = ON");
   await createMigrationEngine(db, "workflows").up();
+  return db;
+}
+
+async function createAppDb(): Promise<Database.Database> {
+  const db = new Database(":memory:");
+  db.pragma("foreign_keys = ON");
+  await createMigrationEngine(db, "app").up();
   return db;
 }
 
@@ -105,11 +116,14 @@ function workflow(
 describe("callable workflows routes", () => {
   afterEach(() => {
     resetWorkflowDatabaseProvider();
+    resetAppDatabaseProvider();
   });
 
   it("lists published workflows with normalized callable trigger metadata", async () => {
     const db = await createWorkflowDb();
+    const appDb = await createAppDb();
     setWorkflowDatabaseProvider(() => db);
+    setAppDatabaseProvider(() => appDb);
     WorkflowRepository.saveWorkflow(workflow("wf-callable", "Callable Ops", { type: "manual" }));
     WorkflowRepository.saveWorkflow(workflow("wf-products", "Product Ops", { type: "manual" }));
     WorkflowRepository.saveWorkflow(workflow("wf-delete", "Delete Ops", { type: "manual" }));
@@ -172,12 +186,15 @@ describe("callable workflows routes", () => {
     ]);
 
     await app.close();
+    appDb.close();
     db.close();
   });
 
   it("normalizes manual trigger editor field maps into callable JSON schema", async () => {
     const db = await createWorkflowDb();
+    const appDb = await createAppDb();
     setWorkflowDatabaseProvider(() => db);
+    setAppDatabaseProvider(() => appDb);
     WorkflowRepository.saveWorkflow({
       ...workflow("wf-manual-map", "Manual Map", { type: "manual" }),
       nodes: {
@@ -216,6 +233,7 @@ describe("callable workflows routes", () => {
     });
 
     await app.close();
+    appDb.close();
     db.close();
   });
 });

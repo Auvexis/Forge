@@ -2,7 +2,8 @@ export const APP_NAME = 'Fabric'
 export const APP_VERSION = '1.0.0'
 
 function resolveApiBaseUrl(): string {
-  const configured = import.meta.env.VITE_API_URL as string | undefined
+  const viteEnv = (import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env
+  const configured = viteEnv?.VITE_API_URL
   if (configured !== undefined) return configured
   if (typeof window === 'undefined') return 'http://localhost:23801'
 
@@ -16,7 +17,8 @@ export const API_BASE_URL = resolveApiBaseUrl()
 
 /** Client origin for SSE and CORS. */
 export const CLIENT_ORIGIN =
-  (import.meta.env.VITE_CLIENT_ORIGIN as string | undefined) ?? 'http://localhost:23802'
+  ((import.meta as ImportMeta & { env?: Record<string, string | undefined> }).env?.VITE_CLIENT_ORIGIN) ??
+  'http://localhost:23802'
 
 /** Default request timeout in ms. */
 export const DEFAULT_TIMEOUT_MS = 30_000

@@ -85,7 +85,7 @@ describe("agent chat workflow integration", () => {
         url: "/agent-chat/support-agent/messages",
         payload: { message: "Create a note" },
       });
-      assert.equal(first.statusCode, 200);
+      assert.equal(first.statusCode, 200, first.body);
       const firstBody = first.json();
       const sessionId = firstBody.data.session.id as string;
       assert.match(sessionId, /^chat_/);
@@ -100,7 +100,7 @@ describe("agent chat workflow integration", () => {
         url: "/agent-chat/support-agent/messages",
         payload: { sessionId, message: "What did we do?" },
       });
-      assert.equal(second.statusCode, 200);
+      assert.equal(second.statusCode, 200, second.body);
 
       assert.deepEqual(threadIds, [sessionId, sessionId]);
     } finally {
@@ -117,18 +117,39 @@ async function createMigratedDb(kind: "app" | "credentials" | "workflows"): Prom
 }
 
 function createFakeModel() {
-  let calls = 0;
+  let finalCalls = 0;
+  let loopCalls = 0;
   return {
-    async invoke() {
-      calls += 1;
-      if (calls === 1) {
+    async routeIntent() {
+      return "agent";
+    },
+    async generatePlan() {
+      return {
+        steps: [
+          {
+            id: "create_note",
+            toolName: "notes_create",
+            params: { text: "Created by agent" },
+            reason: "Create the requested note",
+          },
+        ],
+      };
+    },
+    async invokeJson() {
+      loopCalls += 1;
+      if (loopCalls % 2 === 1) {
         return {
-          content: "",
-          toolCalls: [{ id: "call_1", name: "notes_create", args: { text: "Created by agent" } }],
+          action: "tool",
+          toolName: "notes_create",
+          params: { text: "Created by agent" },
+          reason: "Create the requested note",
         };
       }
-      if (calls === 2) return { content: "Created note" };
-      return { content: "We created a note" };
+      return { action: "final", response: finalCalls === 0 ? "Created note" : "We created a note" };
+    },
+    async generateFinalResponse() {
+      finalCalls += 1;
+      return finalCalls === 1 ? "Created note" : "We created a note";
     },
   };
 }
