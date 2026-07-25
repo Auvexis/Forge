@@ -1,0 +1,4 @@
+- [x] Revisar Dockerfiles
+- [x] Criar matrix Docker no CI
+- [x] Validar workflow
+- [x] Commitar batch 4
