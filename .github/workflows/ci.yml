@@ -76,14 +76,14 @@ jobs:
             tag: fabric-client:ci
             host-port: 23802
             container-port: 80
-            path: /
+            path: /home
           - label: Gateway
             container: gateway
             dockerfile: apps/gateway/Dockerfile
             tag: fabric-gateway:ci
             host-port: 23800
             container-port: 23800
-            path: /
+            path: /home
 
     steps:
       - name: Checkout
