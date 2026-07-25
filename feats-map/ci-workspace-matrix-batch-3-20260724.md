@@ -1,0 +1,4 @@
+- [x] Revisar nomes dos workspaces
+- [x] Criar matrix no CI
+- [x] Validar comandos por workspace
+- [x] Commitar batch 3

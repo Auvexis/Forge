@@ -11,8 +11,18 @@ on:
 
 jobs:
   test-build:
-    name: Test and build
+    name: Test and build (${{ matrix.workspace.label }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        workspace:
+          - label: API
+            name: fabric
+          - label: Client
+            name: client
+          - label: Gateway
+            name: "@fabric/gateway"
 
     steps:
       - name: Checkout
@@ -28,16 +38,16 @@ jobs:
         run: npm ci
 
       - name: Type-check
-        run: npm run type-check
+        run: npm run type-check --workspace ${{ matrix.workspace.name }}
 
       - name: Run Vitest suites
-        run: npm run test:vitest
+        run: npm run test:vitest --workspace ${{ matrix.workspace.name }}
 
       - name: Run Node test suites
-        run: npm run test:node
+        run: npm run test:node --workspace ${{ matrix.workspace.name }}
 
-      - name: Build workspaces
-        run: npm run build
+      - name: Build workspace
+        run: npm run build --workspace ${{ matrix.workspace.name }}
 
   docker-build:
     name: Docker build
