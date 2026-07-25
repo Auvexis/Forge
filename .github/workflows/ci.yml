@@ -33,6 +33,9 @@ jobs:
       - name: Run Vitest suites
         run: npm run test:vitest
 
+      - name: Run Node test suites
+        run: npm run test:node
+
       - name: Build workspaces
         run: npm run build
 
