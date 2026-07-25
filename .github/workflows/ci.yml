@@ -24,7 +24,7 @@ jobs:
       matrix:
         workspace:
           - label: API
-            name: fabric
+            name: "@fabric/api"
           - label: Client
             name: client
           - label: Gateway

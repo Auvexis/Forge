@@ -41,5 +41,13 @@
   },
   "dependencies": {
     "@auvexis/accounts": "^0.1.13"
+  },
+  "overrides": {
+    "@rushstack/node-core-library": "5.23.1",
+    "@rushstack/terminal": "0.24.0",
+    "@rushstack/ts-command-line": "5.3.9",
+    "ajv": "^8.20.0",
+    "gaxios": "^7.1.5",
+    "uuid": "11.1.1"
   }
 }
