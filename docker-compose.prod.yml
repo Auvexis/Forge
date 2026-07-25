@@ -1,0 +1,45 @@
+services:
+  fabric-gateway:
+    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_GATEWAY_IMAGE:-fabric-gateway}:${FABRIC_VERSION:-dev}
+    container_name: fabric-gateway
+    ports:
+      - "${FABRIC_GATEWAY_PORT:-23800}:23800"
+    environment:
+      FABRIC_API_ORIGIN: http://fabric-server:23801
+      FABRIC_CLIENT_ORIGIN: http://fabric-client:80
+      FABRIC_GATEWAY_PORT: 23800
+    depends_on:
+      fabric-server:
+        condition: service_healthy
+      fabric-client:
+        condition: service_started
+    restart: unless-stopped
+
+  fabric-server:
+    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_API_IMAGE:-fabric-api}:${FABRIC_VERSION:-dev}
+    container_name: fabric-server
+    environment:
+      FABRIC_HOME: /app/.fabric
+      FABRIC_PUBLIC_URL: ${FABRIC_PUBLIC_URL:-http://localhost:23800}
+      FABRIC_PUBLIC_URL_LOCKED: ${FABRIC_PUBLIC_URL_LOCKED:-false}
+      CLIENT_ORIGIN: ${FABRIC_PUBLIC_URL:-http://localhost:23800}
+    volumes:
+      - fabric_data:/app/.fabric
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:23801/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  fabric-client:
+    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_CLIENT_IMAGE:-fabric-client}:${FABRIC_VERSION:-dev}
+    container_name: fabric-client
+    depends_on:
+      fabric-server:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  fabric_data:

@@ -1,0 +1,5 @@
+- [x] Revisar compose local
+- [x] Criar compose de produção
+- [x] Usar imagens GHCR versionadas
+- [x] Expor somente gateway
+- [x] Validar e commitar
