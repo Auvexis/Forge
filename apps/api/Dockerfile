@@ -13,6 +13,10 @@ RUN npm ci
 
 COPY . .
 
+ENV NODE_ENV=production
+
+RUN npm run build --workspace apps/api
+
 EXPOSE 23801
 
-CMD ["npm", "run", "dev", "--workspace", "apps/api"]
+CMD ["npm", "run", "start", "--workspace", "apps/api"]

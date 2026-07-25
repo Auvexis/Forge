@@ -5,9 +5,9 @@
   "main": "src/core/server.ts",
   "type": "module",
   "scripts": {
-    "dev": "npx ts-node src/core/server.ts",
+    "dev": "tsx src/core/server.ts",
     "build": "tsc",
-    "start": "node dist/src/core/server.js",
+    "start": "tsx src/core/server.ts",
     "test": "vitest run",
     "test:vitest": "vitest run",
     "test:node": "node ../../scripts/run-node-tests.mjs",

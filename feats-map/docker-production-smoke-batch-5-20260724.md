@@ -1,0 +1,5 @@
+- [x] Revisar runtime Docker
+- [x] Ajustar API para start sem dev
+- [x] Adicionar smoke test Docker no CI
+- [x] Validar localmente
+- [x] Commitar batch 5

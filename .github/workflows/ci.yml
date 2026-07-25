@@ -58,14 +58,23 @@ jobs:
       matrix:
         image:
           - label: API
+            container: api
             dockerfile: apps/api/Dockerfile
             tag: fabric-api:ci
+            port: 23801
+            path: /
           - label: Client
+            container: client
             dockerfile: apps/client/Dockerfile
             tag: fabric-client:ci
+            port: 23802
+            path: /
           - label: Gateway
+            container: gateway
             dockerfile: apps/gateway/Dockerfile
             tag: fabric-gateway:ci
+            port: 23800
+            path: /
 
     steps:
       - name: Checkout
@@ -73,3 +82,17 @@ jobs:
 
       - name: Build image
         run: docker build -f ${{ matrix.image.dockerfile }} -t ${{ matrix.image.tag }} .
+
+      - name: Smoke test image
+        run: |
+          docker run --rm -d --name fabric-smoke-${{ matrix.image.container }} -p ${{ matrix.image.port }}:${{ matrix.image.port }} ${{ matrix.image.tag }}
+          for attempt in {1..20}; do
+            if curl --silent --show-error http://localhost:${{ matrix.image.port }}${{ matrix.image.path }} >/tmp/fabric-smoke-response.txt; then
+              docker rm -f fabric-smoke-${{ matrix.image.container }}
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs fabric-smoke-${{ matrix.image.container }}
+          docker rm -f fabric-smoke-${{ matrix.image.container }}
+          exit 1
