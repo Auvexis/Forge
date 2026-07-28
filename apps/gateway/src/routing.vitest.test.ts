@@ -10,7 +10,14 @@ describe("resolveGatewayRoute", () => {
   });
 
   it("routes browser navigations and SPA paths to the client", () => {
-    expect(resolveGatewayRoute("/workflows/123", { accept: "text/html" }).target).toBe("client");
+    expect(
+      resolveGatewayRoute("/workflows/123", { accept: "text/html", fetchMode: "navigate" }).target,
+    ).toBe("client");
     expect(resolveGatewayRoute("/home").target).toBe("client");
+  });
+
+  it("routes API paths to the backend when non-navigation fetches accept html", () => {
+    expect(resolveGatewayRoute("/workflows", { accept: "text/html" }).target).toBe("api");
+    expect(resolveGatewayRoute("/workflows/123", { accept: "text/html" }).target).toBe("api");
   });
 });

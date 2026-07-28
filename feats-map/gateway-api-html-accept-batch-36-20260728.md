@@ -1,0 +1,4 @@
+- [x] Priorizar rotas API no gateway
+- [x] Ajustar contratos do gateway
+- [x] Validar testes afetados
+- [x] Commitar e pushar

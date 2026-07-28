@@ -34,7 +34,11 @@ describe("gateway routing", () => {
   });
 
   it("routes browser HTML navigation to the client when paths overlap API routes", () => {
-    assert.equal(resolveGatewayRoute("/workflows/wf_123", { accept: "text/html" }).target, "client");
+    assert.equal(
+      resolveGatewayRoute("/workflows/wf_123", { accept: "text/html", fetchMode: "navigate" }).target,
+      "client",
+    );
+    assert.equal(resolveGatewayRoute("/workflows/wf_123", { accept: "text/html" }).target, "api");
     assert.equal(resolveGatewayRoute("/workflows/wf_123").target, "api");
   });
 });

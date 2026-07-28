@@ -5,6 +5,7 @@ export interface GatewayRoute {
 
 export interface GatewayRouteInput {
   accept?: string | string[];
+  fetchMode?: string | string[];
 }
 
 const API_PREFIXES = [
@@ -47,10 +48,15 @@ function acceptsHtml(input: GatewayRouteInput = {}): boolean {
   return accept.includes("text/html");
 }
 
+function isBrowserNavigation(input: GatewayRouteInput = {}): boolean {
+  const fetchMode = Array.isArray(input.fetchMode) ? input.fetchMode.join(",") : input.fetchMode ?? "";
+  return fetchMode === "navigate" && acceptsHtml(input);
+}
+
 export function resolveGatewayRoute(pathname: string, input: GatewayRouteInput = {}): GatewayRoute {
   const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
 
-  if (acceptsHtml(input)) {
+  if (isBrowserNavigation(input)) {
     return { target: "client", reason: "html-navigation" };
   }
 

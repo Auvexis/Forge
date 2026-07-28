@@ -7,14 +7,18 @@ const GATEWAY_PORT = Number(process.env.FABRIC_GATEWAY_PORT ?? process.env.PORT 
 const API_ORIGIN = process.env.FABRIC_API_ORIGIN ?? "http://localhost:23801";
 const CLIENT_ORIGIN = process.env.FABRIC_CLIENT_ORIGIN ?? "http://localhost:23802";
 
-function targetOrigin(pathname: string, accept?: string | string[]): URL {
-  const route = resolveGatewayRoute(pathname, { accept });
+function targetOrigin(
+  pathname: string,
+  accept?: string | string[],
+  fetchMode?: string | string[],
+): URL {
+  const route = resolveGatewayRoute(pathname, { accept, fetchMode });
   return new URL(route.target === "api" ? API_ORIGIN : CLIENT_ORIGIN);
 }
 
 function proxyHttp(req: http.IncomingMessage, res: http.ServerResponse): void {
   const requestUrl = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-  const target = targetOrigin(requestUrl.pathname, req.headers.accept);
+  const target = targetOrigin(requestUrl.pathname, req.headers.accept, req.headers["sec-fetch-mode"]);
   const headers = { ...req.headers };
   headers.host = target.host;
   headers["x-forwarded-host"] = req.headers["x-forwarded-host"] ?? req.headers.host ?? "";
@@ -49,7 +53,7 @@ function proxyHttp(req: http.IncomingMessage, res: http.ServerResponse): void {
 
 function proxyUpgrade(req: http.IncomingMessage, socket: net.Socket, head: Buffer): void {
   const requestUrl = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-  const target = targetOrigin(requestUrl.pathname, req.headers.accept);
+  const target = targetOrigin(requestUrl.pathname, req.headers.accept, req.headers["sec-fetch-mode"]);
   const upstream = net.connect(Number(target.port || 80), target.hostname, () => {
     upstream.write(
       `${req.method} ${requestUrl.pathname}${requestUrl.search} HTTP/${req.httpVersion}\r\n` +
