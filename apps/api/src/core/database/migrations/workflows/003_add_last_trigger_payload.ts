@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { addColumnIfMissing } from "../../sqlite-schema.ts";
 
 /**
  * Adds the `last_trigger_payload` column to the `workflows` table.
@@ -8,9 +9,7 @@ import type Database from "better-sqlite3";
  * The column is nullable — it's only populated after a successful "listen" capture.
  */
 export async function up(db: Database.Database): Promise<void> {
-  db.prepare(
-    `ALTER TABLE workflows ADD COLUMN last_trigger_payload JSON`
-  ).run();
+  addColumnIfMissing(db, "workflows", "last_trigger_payload", "JSON");
 }
 
 export async function down(db: Database.Database): Promise<void> {

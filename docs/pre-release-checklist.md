@@ -135,7 +135,7 @@ Antes de uma release publica:
 ## Sequencia Recomendada
 
 1. Fechar Fase 1 com Docker confiavel.
-2. Rodar um release `v0.1.0-alpha.2` de teste.
+2. Rodar um release `v0.1.0-alpha.5` de teste.
 3. Testar Docker em maquina limpa.
 4. Implementar npm CLI.
 5. Implementar Electron.

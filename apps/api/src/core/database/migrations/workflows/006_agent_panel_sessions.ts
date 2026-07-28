@@ -1,4 +1,5 @@
 import type Database from "better-sqlite3";
+import { addColumnIfMissing } from "../../sqlite-schema.ts";
 
 export async function up(db: Database.Database): Promise<void> {
   addColumnIfMissing(db, "agent_chat_sessions", "agent_node_id", "TEXT");
@@ -18,15 +19,4 @@ export async function up(db: Database.Database): Promise<void> {
 export async function down(db: Database.Database): Promise<void> {
   db.prepare(`DROP INDEX IF EXISTS idx_agent_chat_sessions_agent_node`).run();
   db.prepare(`DROP INDEX IF EXISTS idx_agent_chat_sessions_agent_key`).run();
-}
-
-function addColumnIfMissing(
-  db: Database.Database,
-  tableName: string,
-  columnName: string,
-  definition: string,
-): void {
-  const columns = db.prepare(`PRAGMA table_info(${tableName})`).all() as Array<{ name: string }>;
-  if (columns.some((column) => column.name === columnName)) return;
-  db.prepare(`ALTER TABLE ${tableName} ADD COLUMN ${columnName} ${definition}`).run();
 }

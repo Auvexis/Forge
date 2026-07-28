@@ -5,7 +5,7 @@ Use this checklist after pushing `dev` or a release tag.
 ## Current Alpha
 
 ```text
-v0.1.0-alpha.2
+v0.1.0-alpha.5
 ```
 
 ## GitHub Actions
@@ -18,7 +18,7 @@ Required:
 Validate:
 
 - `CI` runs for `dev`.
-- `CI` runs for `v0.1.0-alpha.2`.
+- `CI` runs for `v0.1.0-alpha.5`.
 - `test-build` passes for API, Client and Gateway.
 - `docker-build` passes for API, Client and Gateway.
 - `docker-publish` publishes alpha tags.
@@ -33,9 +33,9 @@ Required:
 Expected images:
 
 ```text
-ghcr.io/auvexis/fabric-api:0.1.0-alpha.2
-ghcr.io/auvexis/fabric-client:0.1.0-alpha.2
-ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2
+ghcr.io/auvexis/fabric-api:0.1.0-alpha.5
+ghcr.io/auvexis/fabric-client:0.1.0-alpha.5
+ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.5
 ```
 
 Alpha and beta images must not publish `latest`.
@@ -43,9 +43,9 @@ Alpha and beta images must not publish `latest`.
 Previous local result:
 
 ```text
-docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.2 -> unauthorized
-docker pull ghcr.io/auvexis/fabric-client:0.1.0-alpha.2 -> unauthorized
-docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2 -> unauthorized
+docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.5 -> unauthorized
+docker pull ghcr.io/auvexis/fabric-client:0.1.0-alpha.5 -> unauthorized
+docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.5 -> unauthorized
 ```
 
 This means the Docker engine is working, but GHCR still needs authentication or package visibility changes.
@@ -53,9 +53,9 @@ This means the Docker engine is working, but GHCR still needs authentication or 
 Authenticated local result:
 
 ```text
-docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.2 -> ok
-docker pull ghcr.io/auvexis/fabric-client:0.1.0-alpha.2 -> ok
-docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2 -> ok
+docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.5 -> ok
+docker pull ghcr.io/auvexis/fabric-client:0.1.0-alpha.5 -> ok
+docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.5 -> ok
 ```
 
 ## Docker Smoke
@@ -73,7 +73,7 @@ Docker Desktop Linux engine is reachable.
 PowerShell:
 
 ```powershell
-$env:FABRIC_VERSION = "0.1.0-alpha.2"
+$env:FABRIC_VERSION = "0.1.0-alpha.5"
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```

@@ -1,0 +1,8 @@
+- [x] Rodar npm audit local
+- [x] Conferir alerts remotos
+- [x] Corrigir migrations idempotentes de workflows
+- [x] Smoke testar pacote npm publicado
+- [x] Atualizar docs minimas
+- [x] Rodar verificacoes finais
+- [ ] Publicar alpha 5
+- [ ] Commitar batch 23

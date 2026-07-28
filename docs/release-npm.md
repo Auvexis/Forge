@@ -103,8 +103,8 @@ The workflow validates npm packaging on every push, but it only publishes when a
 Create and push an alpha tag only after the secret exists:
 
 ```sh
-git tag v0.1.0-alpha.3
-git push origin v0.1.0-alpha.3
+git tag v0.1.0-alpha.5
+git push origin v0.1.0-alpha.5
 ```
 
 Users can run the alpha package with:
