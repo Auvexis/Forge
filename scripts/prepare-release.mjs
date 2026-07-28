@@ -103,7 +103,7 @@ function replaceAll(relativePath, replacements) {
 }
 
 if (!nextVersion) {
-  fail("Usage: npm run release:prepare -- 0.1.0-alpha.6");
+  fail("Usage: npm run release:prepare -- <version>");
 }
 
 const parsedNextVersion = parseVersion(nextVersion);
@@ -128,10 +128,28 @@ ensureTagDoesNotExist(nextVersion);
 packageJson.version = nextVersion;
 writeJson("package.json", packageJson);
 
+const workspacePackagePaths = [
+  "apps/api/package.json",
+  "apps/client/package.json",
+  "apps/gateway/package.json",
+];
+const workspaceLockPackagePaths = ["apps/api", "apps/client", "apps/gateway"];
+
+for (const workspacePackagePath of workspacePackagePaths) {
+  const workspacePackageJson = readJson(workspacePackagePath);
+  workspacePackageJson.version = nextVersion;
+  writeJson(workspacePackagePath, workspacePackageJson);
+}
+
 const packageLockJson = readJson("package-lock.json");
 packageLockJson.version = nextVersion;
 if (packageLockJson.packages?.[""]) {
   packageLockJson.packages[""].version = nextVersion;
+}
+for (const workspaceLockPackagePath of workspaceLockPackagePaths) {
+  if (packageLockJson.packages?.[workspaceLockPackagePath]) {
+    packageLockJson.packages[workspaceLockPackagePath].version = nextVersion;
+  }
 }
 writeJson("package-lock.json", packageLockJson);
 
@@ -145,5 +163,6 @@ replaceAll("docs/release-docker.md", replacements);
 replaceAll("docs/release-npm.md", replacements);
 replaceAll("README.md", replacements);
 replaceAll("CHANGELOG.md", replacements);
+replaceAll("apps/client/src/core/constants/app.ts", replacements);
 
 console.log(`Prepared Fabric ${formatKind(parsedNextVersion)} release ${nextVersion}.`);

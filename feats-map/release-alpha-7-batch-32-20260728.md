@@ -1,0 +1,7 @@
+- [x] Identificar mismatch de versao interna nas imagens alpha.6
+- [x] Corrigir prepare-release para atualizar workspaces, lockfile e APP_VERSION
+- [x] Preparar 0.1.0-alpha.7
+- [x] Validar CI local
+- [ ] Commitar e pushar
+- [ ] Criar tag release
+- [ ] Validar npm e Docker

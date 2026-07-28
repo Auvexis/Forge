@@ -107,7 +107,7 @@ Use the manual `Release` workflow to create the tag:
 1. Prepare the next version:
 
 ```sh
-npm run release:prepare -- 0.1.0-alpha.6
+npm run release:prepare -- 0.1.0-alpha.7
 ```
 
 2. Review and commit the generated version changes.
@@ -115,14 +115,14 @@ npm run release:prepare -- 0.1.0-alpha.6
 4. Wait for CI to pass.
 5. Open GitHub Actions -> `Release`.
 6. Run it from `dev`.
-7. Enter the exact package version, for example `0.1.0-alpha.6`.
+7. Enter the exact package version, for example `0.1.0-alpha.7`.
 
 The prepare command updates `package.json`, `package-lock.json`, Docker defaults, release docs, README and changelog references from the current alpha version to the next one.
 
 The same prepare command accepts alpha, beta and stable versions:
 
 ```sh
-npm run release:prepare -- 0.1.0-alpha.6
+npm run release:prepare -- 0.1.0-alpha.7
 npm run release:prepare -- 0.1.0-beta.1
 npm run release:prepare -- 0.1.0
 ```
