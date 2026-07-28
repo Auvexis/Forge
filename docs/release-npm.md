@@ -99,7 +99,7 @@ Use the manual `Release alpha` workflow to create the tag:
 1. Prepare the next alpha version:
 
 ```sh
-npm run release:alpha:prepare -- 0.1.0-alpha.6
+npm run release:prepare -- 0.1.0-alpha.6
 ```
 
 2. Review and commit the generated version changes.
@@ -110,6 +110,13 @@ npm run release:alpha:prepare -- 0.1.0-alpha.6
 7. Enter the exact package version, for example `0.1.0-alpha.6`.
 
 The prepare command updates `package.json`, `package-lock.json`, Docker defaults, release docs, README and changelog references from the current alpha version to the next one.
+
+The same prepare command accepts future beta and stable versions:
+
+```sh
+npm run release:prepare -- 0.1.0-beta.1
+npm run release:prepare -- 0.1.0
+```
 
 The release workflow validates that the input matches `package.json`, requires `X.Y.Z-alpha.N`, and refuses to recreate an existing tag.
 

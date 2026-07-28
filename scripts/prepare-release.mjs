@@ -7,7 +7,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(__dirname, "..");
 const nextVersion = process.argv[2]?.trim();
-const alphaVersionPattern = /^\d+\.\d+\.\d+-alpha\.\d+$/;
+const versionPattern = /^(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta)\.(\d+))?$/;
+const channelRank = { alpha: 0, beta: 1, stable: 2 };
 
 function fail(message) {
   console.error(message);
@@ -33,28 +34,45 @@ function writeText(relativePath, value) {
   fs.writeFileSync(path.join(rootDir, relativePath), value);
 }
 
-function parseAlphaVersion(version) {
-  const match = /^(\d+)\.(\d+)\.(\d+)-alpha\.(\d+)$/.exec(version);
+function parseVersion(version) {
+  const match = versionPattern.exec(version);
   if (!match) {
     return null;
   }
 
-  return match.slice(1).map(Number);
+  const [, major, minor, patch, channel, prerelease] = match;
+  return {
+    major: Number(major),
+    minor: Number(minor),
+    patch: Number(patch),
+    channel: channel ?? "stable",
+    prerelease: prerelease === undefined ? null : Number(prerelease),
+  };
 }
 
-function compareAlphaVersions(left, right) {
-  const leftParts = parseAlphaVersion(left);
-  const rightParts = parseAlphaVersion(right);
-  if (!leftParts || !rightParts) {
-    fail("Both current and next versions must match X.Y.Z-alpha.N.");
+function compareVersions(left, right) {
+  const fields = ["major", "minor", "patch"];
+  for (const field of fields) {
+    if (left[field] > right[field]) return 1;
+    if (left[field] < right[field]) return -1;
   }
 
-  for (let index = 0; index < leftParts.length; index += 1) {
-    if (leftParts[index] > rightParts[index]) return 1;
-    if (leftParts[index] < rightParts[index]) return -1;
-  }
+  const leftRank = channelRank[left.channel];
+  const rightRank = channelRank[right.channel];
+  if (leftRank > rightRank) return 1;
+  if (leftRank < rightRank) return -1;
 
+  if (left.prerelease === null && right.prerelease === null) return 0;
+  if (left.prerelease === null) return 1;
+  if (right.prerelease === null) return -1;
+  if (left.prerelease > right.prerelease) return 1;
+  if (left.prerelease < right.prerelease) return -1;
   return 0;
+}
+
+function formatKind(version) {
+  if (version.channel === "stable") return "stable";
+  return version.channel;
 }
 
 function ensureTagDoesNotExist(version) {
@@ -85,21 +103,23 @@ function replaceAll(relativePath, replacements) {
 }
 
 if (!nextVersion) {
-  fail("Usage: npm run release:alpha:prepare -- 0.1.0-alpha.6");
+  fail("Usage: npm run release:prepare -- 0.1.0-alpha.6");
 }
 
-if (!alphaVersionPattern.test(nextVersion)) {
-  fail("Version must match X.Y.Z-alpha.N.");
+const parsedNextVersion = parseVersion(nextVersion);
+if (!parsedNextVersion) {
+  fail("Version must match X.Y.Z, X.Y.Z-alpha.N, or X.Y.Z-beta.N.");
 }
 
 const packageJson = readJson("package.json");
 const currentVersion = packageJson.version;
+const parsedCurrentVersion = parseVersion(currentVersion);
 
-if (!alphaVersionPattern.test(currentVersion)) {
-  fail(`Current package.json version is not alpha: ${currentVersion}`);
+if (!parsedCurrentVersion) {
+  fail(`Current package.json version is invalid: ${currentVersion}`);
 }
 
-if (compareAlphaVersions(nextVersion, currentVersion) <= 0) {
+if (compareVersions(parsedNextVersion, parsedCurrentVersion) <= 0) {
   fail(`Next version must be greater than current version ${currentVersion}.`);
 }
 
@@ -126,4 +146,4 @@ replaceAll("docs/release-npm.md", replacements);
 replaceAll("README.md", replacements);
 replaceAll("CHANGELOG.md", replacements);
 
-console.log(`Prepared Fabric alpha release ${nextVersion}.`);
+console.log(`Prepared Fabric ${formatKind(parsedNextVersion)} release ${nextVersion}.`);

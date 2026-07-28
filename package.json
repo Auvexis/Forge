@@ -40,7 +40,10 @@
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run --ignore-scripts",
     "publish:alpha": "npm publish --tag alpha --access public",
-    "release:alpha:prepare": "node scripts/prepare-alpha-release.mjs"
+    "release:prepare": "node scripts/prepare-release.mjs",
+    "release:alpha:prepare": "node scripts/prepare-release.mjs",
+    "release:beta:prepare": "node scripts/prepare-release.mjs",
+    "release:stable:prepare": "node scripts/prepare-release.mjs"
   },
   "workspaces": [
     "apps/api",
