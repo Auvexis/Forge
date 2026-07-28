@@ -1,0 +1,6 @@
+- [x] Confirmar secret e CI verde
+- [ ] Criar tag alpha
+- [ ] Push da tag
+- [ ] Monitorar release npm
+- [ ] Validar pacote publicado
+- [x] Commitar batch 21
