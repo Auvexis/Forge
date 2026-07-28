@@ -1,0 +1,6 @@
+- [x] Definir versao alpha
+- [x] Atualizar packages e lockfile
+- [x] Atualizar docs de tag
+- [x] Validar pacote
+- [x] Commitar batch 15
+- [x] Criar tag alpha

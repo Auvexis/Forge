@@ -53,8 +53,10 @@ Antes de publicar uma versao:
 
 Para release por tag:
 
-- Criar tag `vX.Y.Z`.
-- Workflow deve publicar `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` e `sha-*`.
+- Criar tag pre-release `vX.Y.Z-alpha.N` ou `vX.Y.Z-beta.N`.
+- Criar tag stable `vX.Y.Z` apenas quando estiver pronto para publico geral.
+- Workflow alpha/beta deve publicar `vX.Y.Z-alpha.N`, `X.Y.Z-alpha.N` e `sha-*`.
+- Workflow stable deve publicar `vX.Y.Z`, `X.Y.Z`, `X.Y`, `latest` e `sha-*`.
 - Confirmar as tres imagens no GHCR:
   - `ghcr.io/auvexis/fabric-api`
   - `ghcr.io/auvexis/fabric-client`
@@ -133,7 +135,7 @@ Antes de uma release publica:
 ## Sequencia Recomendada
 
 1. Fechar Fase 1 com Docker confiavel.
-2. Rodar um release `v0.1.0` de teste.
+2. Rodar um release `v0.1.0-alpha.2` de teste.
 3. Testar Docker em maquina limpa.
 4. Implementar npm CLI.
 5. Implementar Electron.

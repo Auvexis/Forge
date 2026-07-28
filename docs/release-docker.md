@@ -15,7 +15,13 @@ Branch builds from `dev` publish:
 - `dev`
 - `sha-<commit>`
 
-Version tags like `v1.2.3` publish:
+Pre-release tags like `v0.1.0-alpha.2` publish:
+
+- `v0.1.0-alpha.2`
+- `0.1.0-alpha.2`
+- `sha-<commit>`
+
+Stable tags like `v1.2.3` publish:
 
 - `v1.2.3`
 - `1.2.3`
@@ -107,7 +113,7 @@ Default:
 FABRIC_VERSION=dev
 ```
 
-Use `latest` only for stable release deployments.
+Use `latest` only for stable release deployments. Use explicit tags like `0.1.0-alpha.2` for alpha and beta.
 
 ## Registry Override
 
@@ -144,25 +150,25 @@ Do not delete this volume unless you intentionally want to remove local Fabric d
 
 1. Merge changes into `dev`.
 2. Wait for CI to pass.
-3. Create a version tag:
+3. Create a pre-release or stable version tag:
 
 ```sh
-git tag v1.2.3
-git push origin v1.2.3
+git tag v0.1.0-alpha.2
+git push origin v0.1.0-alpha.2
 ```
 
 4. Wait for Docker images to publish.
 5. Deploy with:
 
 ```sh
-FABRIC_VERSION=1.2.3 docker compose -f docker-compose.prod.yml pull
-FABRIC_VERSION=1.2.3 docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.2 docker compose -f docker-compose.prod.yml pull
+FABRIC_VERSION=0.1.0-alpha.2 docker compose -f docker-compose.prod.yml up -d
 ```
 
 PowerShell:
 
 ```powershell
-$env:FABRIC_VERSION = "1.2.3"
+$env:FABRIC_VERSION = "0.1.0-alpha.2"
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```
