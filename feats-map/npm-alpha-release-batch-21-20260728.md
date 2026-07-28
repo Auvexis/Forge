@@ -1,4 +1,6 @@
 - [x] Confirmar secret e CI verde
+- [x] Alinhar versao alpha.3
+- [x] Commitar versao alpha.3
 - [ ] Criar tag alpha
 - [ ] Push da tag
 - [ ] Monitorar release npm
