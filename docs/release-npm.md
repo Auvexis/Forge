@@ -96,6 +96,8 @@ gh secret list
 
 The publish job runs `npm whoami` before publishing. If publish fails with `E403` and mentions 2FA, replace `NPM_TOKEN` with a token that supports CI publishing with 2FA bypass.
 
+The npm publish workflow does not use provenance while this repository is private. npm provenance for GitHub Actions requires a public source repository.
+
 The workflow validates npm packaging on every push, but it only publishes when a pushed tag matches `v*-alpha.*`.
 
 Create and push an alpha tag only after the secret exists:

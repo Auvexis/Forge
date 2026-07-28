@@ -155,7 +155,7 @@ jobs:
         run: npm ci
 
       - name: Publish alpha package
-        run: npm publish --tag alpha --access public --provenance
+        run: npm publish --tag alpha --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 

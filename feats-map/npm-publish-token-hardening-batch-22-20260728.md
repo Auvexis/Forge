@@ -1,4 +1,9 @@
 - [x] Documentar token npm com bypass 2FA
 - [x] Validar auth no job npm publish
+- [x] Remover provenance para repo privado
+- [x] Documentar limite de provenance
+- [x] Criar alpha.4
+- [ ] Publicar alpha.4
+- [ ] Validar pacote publicado
 - [x] Rodar verificacoes locais
 - [x] Commitar batch 22
