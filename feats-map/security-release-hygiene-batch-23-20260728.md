@@ -4,5 +4,5 @@
 - [x] Smoke testar pacote npm publicado
 - [x] Atualizar docs minimas
 - [x] Rodar verificacoes finais
-- [ ] Publicar alpha 5
-- [ ] Commitar batch 23
+- [x] Publicar alpha 5
+- [x] Commitar batch 23
