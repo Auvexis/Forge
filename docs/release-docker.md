@@ -10,10 +10,10 @@ The CI publishes these images to GitHub Container Registry:
 - `ghcr.io/auvexis/fabric-client`
 - `ghcr.io/auvexis/fabric-gateway`
 
-Pre-release tags like `v0.1.0-alpha.5` publish:
+Pre-release tags like `v0.1.0-alpha.6` publish:
 
-- `v0.1.0-alpha.5`
-- `0.1.0-alpha.5`
+- `v0.1.0-alpha.6`
+- `0.1.0-alpha.6`
 - `sha-<commit>`
 
 Stable tags like `v1.2.3` publish:
@@ -105,10 +105,10 @@ docker compose -f docker-compose.prod.yml up -d
 Default:
 
 ```text
-FABRIC_VERSION=0.1.0-alpha.5
+FABRIC_VERSION=0.1.0-alpha.6
 ```
 
-Use `latest` only for stable release deployments. Use explicit tags like `0.1.0-alpha.5` for alpha and beta.
+Use `latest` only for stable release deployments. Use explicit tags like `0.1.0-alpha.6` for alpha and beta.
 
 ## Registry Override
 
@@ -151,14 +151,14 @@ Do not delete this volume unless you intentionally want to remove local Fabric d
 6. Deploy with:
 
 ```sh
-FABRIC_VERSION=0.1.0-alpha.5 docker compose -f docker-compose.prod.yml pull
-FABRIC_VERSION=0.1.0-alpha.5 docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.6 docker compose -f docker-compose.prod.yml pull
+FABRIC_VERSION=0.1.0-alpha.6 docker compose -f docker-compose.prod.yml up -d
 ```
 
 PowerShell:
 
 ```powershell
-$env:FABRIC_VERSION = "0.1.0-alpha.5"
+$env:FABRIC_VERSION = "0.1.0-alpha.6"
 docker compose -f docker-compose.prod.yml pull
 docker compose -f docker-compose.prod.yml up -d
 ```

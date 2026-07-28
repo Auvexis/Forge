@@ -1,0 +1,5 @@
+- [x] Preparar 0.1.0-alpha.6
+- [ ] Commitar e pushar
+- [ ] Validar CI
+- [ ] Criar tag release
+- [ ] Validar npm e Docker
