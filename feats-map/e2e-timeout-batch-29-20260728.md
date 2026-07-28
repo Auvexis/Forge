@@ -1,0 +1,3 @@
+- [x] Limitar tempo do E2E
+- [x] Validar workflow
+- [ ] Commitar batch
