@@ -5,7 +5,7 @@ The npm package starts Fabric locally without Docker.
 ## Run
 
 ```sh
-npx fabric
+npx @auvexis/fabric
 ```
 
 Open:
@@ -30,7 +30,7 @@ PowerShell:
 
 ```powershell
 $env:FABRIC_PUBLIC_URL = "https://example.ngrok-free.app"
-npx fabric
+npx @auvexis/fabric
 ```
 
 ## Ports
@@ -41,7 +41,7 @@ Override ports only when needed:
 $env:FABRIC_GATEWAY_PORT = "23800"
 $env:FABRIC_API_PORT = "23801"
 $env:FABRIC_CLIENT_PORT = "23802"
-npx fabric
+npx @auvexis/fabric
 ```
 
 ## Package Validation
@@ -49,7 +49,7 @@ npx fabric
 Before publishing:
 
 ```sh
-npm pack --dry-run
+npm run pack:check
 ```
 
 Then install the generated tarball in a clean folder and validate:
@@ -58,4 +58,30 @@ Then install the generated tarball in a clean folder and validate:
 http://localhost:23800/
 http://localhost:23800/home
 http://localhost:23800/profiles
+```
+
+## Alpha Publish
+
+Local publish uses the `alpha` dist-tag:
+
+```sh
+npm run publish:alpha
+```
+
+GitHub Actions publishes automatically for alpha tags matching:
+
+```text
+v*-alpha.*
+```
+
+Repository secret required:
+
+```text
+NPM_TOKEN
+```
+
+Users can run the alpha package with:
+
+```sh
+npx @auvexis/fabric@alpha
 ```
