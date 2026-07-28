@@ -1,0 +1,54 @@
+name: Release alpha
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Alpha version from package.json, for example 0.1.0-alpha.6"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-alpha-tag:
+    name: Create alpha tag
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/dev'
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate alpha version
+        run: |
+          PACKAGE_VERSION="$(node -p "require('./package.json').version")"
+          INPUT_VERSION="${{ inputs.version }}"
+
+          if [ "$PACKAGE_VERSION" != "$INPUT_VERSION" ]; then
+            echo "package.json version ($PACKAGE_VERSION) does not match input version ($INPUT_VERSION)."
+            exit 1
+          fi
+
+          if ! printf '%s' "$INPUT_VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+-alpha\.[0-9]+$'; then
+            echo "Version must match X.Y.Z-alpha.N."
+            exit 1
+          fi
+
+          TAG_NAME="v$INPUT_VERSION"
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG_NAME" >/dev/null 2>&1; then
+            echo "Tag $TAG_NAME already exists."
+            exit 1
+          fi
+
+          echo "TAG_NAME=$TAG_NAME" >> "$GITHUB_ENV"
+
+      - name: Create and push alpha tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$TAG_NAME" -m "Release $TAG_NAME"
+          git push origin "$TAG_NAME"

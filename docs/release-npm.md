@@ -60,13 +60,7 @@ http://localhost:23800/home
 http://localhost:23800/profiles
 ```
 
-## Alpha Publish
-
-Local publish uses the `alpha` dist-tag:
-
-```sh
-npm run publish:alpha
-```
+## Alpha Release
 
 GitHub Actions publishes automatically for alpha tags matching:
 
@@ -98,14 +92,18 @@ The publish job runs `npm whoami` before publishing. If publish fails with `E403
 
 The npm publish workflow does not use provenance while this repository is private. npm provenance for GitHub Actions requires a public source repository.
 
-The workflow validates npm packaging on every push, but it only publishes when a pushed tag matches `v*-alpha.*`.
+The CI validates npm packaging on every push, but it only publishes when a tag matches `v*-alpha.*`.
 
-Create and push an alpha tag only after the secret exists:
+Use the manual `Release alpha` workflow to create the tag:
 
-```sh
-git tag v0.1.0-alpha.5
-git push origin v0.1.0-alpha.5
-```
+1. Update `package.json` to the next alpha version.
+2. Push the version commit to `dev`.
+3. Wait for CI to pass.
+4. Open GitHub Actions -> `Release alpha`.
+5. Run it from `dev`.
+6. Enter the exact package version, for example `0.1.0-alpha.6`.
+
+The workflow validates that the input matches `package.json`, requires `X.Y.Z-alpha.N`, and refuses to recreate an existing tag.
 
 Users can run the alpha package with:
 

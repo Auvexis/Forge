@@ -10,11 +10,6 @@ The CI publishes these images to GitHub Container Registry:
 - `ghcr.io/auvexis/fabric-client`
 - `ghcr.io/auvexis/fabric-gateway`
 
-Branch builds from `dev` publish:
-
-- `dev`
-- `sha-<commit>`
-
 Pre-release tags like `v0.1.0-alpha.5` publish:
 
 - `v0.1.0-alpha.5`
@@ -110,7 +105,7 @@ docker compose -f docker-compose.prod.yml up -d
 Default:
 
 ```text
-FABRIC_VERSION=dev
+FABRIC_VERSION=0.1.0-alpha.5
 ```
 
 Use `latest` only for stable release deployments. Use explicit tags like `0.1.0-alpha.5` for alpha and beta.
@@ -150,15 +145,10 @@ Do not delete this volume unless you intentionally want to remove local Fabric d
 
 1. Merge changes into `dev`.
 2. Wait for CI to pass.
-3. Create a pre-release or stable version tag:
-
-```sh
-git tag v0.1.0-alpha.5
-git push origin v0.1.0-alpha.5
-```
-
-4. Wait for Docker images to publish.
-5. Deploy with:
+3. For alpha releases, run GitHub Actions -> `Release alpha` from `dev`.
+4. Enter the exact `package.json` version, for example `0.1.0-alpha.6`.
+5. Wait for the tag CI to publish Docker images.
+6. Deploy with:
 
 ```sh
 FABRIC_VERSION=0.1.0-alpha.5 docker compose -f docker-compose.prod.yml pull

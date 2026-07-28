@@ -1,0 +1,5 @@
+- [x] Criar workflow manual alpha
+- [x] Validar versao e tag
+- [x] Documentar uso
+- [x] Rodar verificacoes
+- [x] Commitar batch
