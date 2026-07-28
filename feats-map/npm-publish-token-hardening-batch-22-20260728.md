@@ -3,7 +3,7 @@
 - [x] Remover provenance para repo privado
 - [x] Documentar limite de provenance
 - [x] Criar alpha.4
-- [ ] Publicar alpha.4
-- [ ] Validar pacote publicado
+- [x] Publicar alpha.4
+- [x] Validar pacote publicado
 - [x] Rodar verificacoes locais
 - [x] Commitar batch 22
