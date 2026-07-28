@@ -32,6 +32,8 @@
     "test": "npm run test --workspaces",
     "test:vitest": "npm run test:vitest --workspaces",
     "test:node": "npm run test:node --workspaces --if-present",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium",
     "type-check": "npm run type-check --workspaces --if-present",
     "ci": "npm run type-check && npm run test:vitest && npm run test:node && npm run build",
     "start": "node ./bin/fabric.mjs",
@@ -60,6 +62,7 @@
     "tag": "alpha"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "concurrently": "^10.0.3",
     "tsx": "^4.23.1"
   },

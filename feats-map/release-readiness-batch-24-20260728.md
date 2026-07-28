@@ -2,6 +2,6 @@
 - [x] Validar Docker alpha 5
 - [x] Criar README principal
 - [x] Criar CHANGELOG
-- [ ] Adicionar E2E basico
-- [ ] Rodar verificacoes
-- [ ] Commitar batches
+- [x] Adicionar E2E basico
+- [x] Rodar verificacoes
+- [x] Commitar batches
