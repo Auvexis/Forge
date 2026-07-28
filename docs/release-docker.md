@@ -145,8 +145,8 @@ Do not delete this volume unless you intentionally want to remove local Fabric d
 
 1. Merge changes into `dev`.
 2. Wait for CI to pass.
-3. For alpha releases, run GitHub Actions -> `Release alpha` from `dev`.
-4. Enter the exact `package.json` version, for example `0.1.0-alpha.6`.
+3. Run GitHub Actions -> `Release` from `dev`.
+4. Enter the exact `package.json` version, for example `0.1.0-alpha.6`, `0.1.0-beta.1`, or `0.1.0`.
 5. Wait for the tag CI to publish Docker images.
 6. Deploy with:
 

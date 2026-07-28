@@ -60,13 +60,21 @@ http://localhost:23800/home
 http://localhost:23800/profiles
 ```
 
-## Alpha Release
+## Release Channels
 
-GitHub Actions publishes automatically for alpha tags matching:
+GitHub Actions publishes npm automatically for release tags:
 
 ```text
 v*-alpha.*
+v*-beta.*
+vX.Y.Z
 ```
+
+The npm dist-tag is selected from the release tag:
+
+- `vX.Y.Z-alpha.N` publishes with `alpha`.
+- `vX.Y.Z-beta.N` publishes with `beta`.
+- `vX.Y.Z` publishes with `latest`.
 
 Repository secret required:
 
@@ -92,11 +100,11 @@ The publish job runs `npm whoami` before publishing. If publish fails with `E403
 
 The npm publish workflow does not use provenance while this repository is private. npm provenance for GitHub Actions requires a public source repository.
 
-The CI validates npm packaging on every push, but it only publishes when a tag matches `v*-alpha.*`.
+The CI validates npm packaging on every push, but it only publishes on release tags.
 
-Use the manual `Release alpha` workflow to create the tag:
+Use the manual `Release` workflow to create the tag:
 
-1. Prepare the next alpha version:
+1. Prepare the next version:
 
 ```sh
 npm run release:prepare -- 0.1.0-alpha.6
@@ -105,23 +113,26 @@ npm run release:prepare -- 0.1.0-alpha.6
 2. Review and commit the generated version changes.
 3. Push the version commit to `dev`.
 4. Wait for CI to pass.
-5. Open GitHub Actions -> `Release alpha`.
+5. Open GitHub Actions -> `Release`.
 6. Run it from `dev`.
 7. Enter the exact package version, for example `0.1.0-alpha.6`.
 
 The prepare command updates `package.json`, `package-lock.json`, Docker defaults, release docs, README and changelog references from the current alpha version to the next one.
 
-The same prepare command accepts future beta and stable versions:
+The same prepare command accepts alpha, beta and stable versions:
 
 ```sh
+npm run release:prepare -- 0.1.0-alpha.6
 npm run release:prepare -- 0.1.0-beta.1
 npm run release:prepare -- 0.1.0
 ```
 
-The release workflow validates that the input matches `package.json`, requires `X.Y.Z-alpha.N`, and refuses to recreate an existing tag.
+The release workflow validates that the input matches `package.json`, accepts `X.Y.Z-alpha.N`, `X.Y.Z-beta.N` or `X.Y.Z`, and refuses to recreate an existing tag.
 
-Users can run the alpha package with:
+Users can run packages with:
 
 ```sh
 npx @auvexis/fabric@alpha
+npx @auvexis/fabric@beta
+npx @auvexis/fabric@latest
 ```

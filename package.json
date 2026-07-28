@@ -43,7 +43,9 @@
     "release:prepare": "node scripts/prepare-release.mjs",
     "release:alpha:prepare": "node scripts/prepare-release.mjs",
     "release:beta:prepare": "node scripts/prepare-release.mjs",
-    "release:stable:prepare": "node scripts/prepare-release.mjs"
+    "release:stable:prepare": "node scripts/prepare-release.mjs",
+    "publish:beta": "npm publish --tag beta --access public",
+    "publish:stable": "npm publish --tag latest --access public"
   },
   "workspaces": [
     "apps/api",
