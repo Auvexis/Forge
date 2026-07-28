@@ -1,0 +1,4 @@
+- [x] Documentar token npm com bypass 2FA
+- [x] Validar auth no job npm publish
+- [x] Rodar verificacoes locais
+- [x] Commitar batch 22

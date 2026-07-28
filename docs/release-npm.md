@@ -82,15 +82,19 @@ NPM_TOKEN
 
 Safe setup:
 
-1. Create an npm automation/classic token with publish access to the `@auvexis` scope.
-2. Add it in GitHub at `Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`.
-3. Use `NPM_TOKEN` as the secret name.
-4. Paste the token only into GitHub. Do not paste it in issues, commits, logs, or chat.
-5. Confirm the secret exists without printing its value:
+1. Create an npm token that can publish `@auvexis/fabric`.
+2. If npm 2FA is enabled, use an automation token or a granular token with 2FA bypass enabled for publishing.
+3. Prefer the narrowest scope/package access available.
+4. Add it in GitHub at `Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`.
+5. Use `NPM_TOKEN` as the secret name.
+6. Paste the token only into GitHub. Do not paste it in issues, commits, logs, or chat.
+7. Confirm the secret exists without printing its value:
 
 ```sh
 gh secret list
 ```
+
+The publish job runs `npm whoami` before publishing. If publish fails with `E403` and mentions 2FA, replace `NPM_TOKEN` with a token that supports CI publishing with 2FA bypass.
 
 The workflow validates npm packaging on every push, but it only publishes when a pushed tag matches `v*-alpha.*`.
 
