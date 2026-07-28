@@ -1,0 +1,6 @@
+- [x] Baixar imagens alpha do GHCR
+- [x] Subir compose alpha
+- [x] Validar gateway
+- [x] Confirmar portas internas
+- [x] Registrar resultado
+- [x] Commitar follow-up

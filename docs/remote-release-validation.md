@@ -40,7 +40,7 @@ ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2
 
 Alpha and beta images must not publish `latest`.
 
-Current local result:
+Previous local result:
 
 ```text
 docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.2 -> unauthorized
@@ -49,6 +49,14 @@ docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2 -> unauthorized
 ```
 
 This means the Docker engine is working, but GHCR still needs authentication or package visibility changes.
+
+Authenticated local result:
+
+```text
+docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.2 -> ok
+docker pull ghcr.io/auvexis/fabric-client:0.1.0-alpha.2 -> ok
+docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2 -> ok
+```
 
 ## Docker Smoke
 
@@ -81,3 +89,13 @@ Validate:
 - `/home` opens through gateway.
 - API and client are not exposed directly by compose.
 - Public URL points to the gateway.
+
+Current local result:
+
+```text
+http://localhost:23800/ -> 200
+http://localhost:23800/home -> 200
+fabric-server -> healthy, internal 23801/tcp only
+fabric-client -> internal 80/tcp only
+fabric-gateway -> published 23800/tcp
+```
