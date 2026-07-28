@@ -2,7 +2,7 @@
 
 All notable Fabric release changes are documented here.
 
-## 0.1.0-alpha.8 - 2026-07-28
+## 0.1.0-alpha.9 - 2026-07-28
 
 ### Fixed
 
@@ -12,7 +12,7 @@ All notable Fabric release changes are documented here.
 ### Added
 
 - Added workflow migration regression coverage for partially migrated SQLite schemas.
-- Published alpha npm package as `@auvexis/fabric@0.1.0-alpha.8`.
+- Published alpha npm package as `@auvexis/fabric@0.1.0-alpha.9`.
 - Published alpha Docker images for API, client and gateway.
 
 ### Verified

@@ -15,7 +15,7 @@ Fabric is currently alpha software. Use it for testing, local automation and ear
 Current alpha:
 
 ```text
-0.1.0-alpha.8
+0.1.0-alpha.9
 ```
 
 ## Run With npm
@@ -45,13 +45,13 @@ Open only the gateway URL in the browser.
 Requires Docker Desktop or Docker Engine.
 
 ```sh
-FABRIC_VERSION=0.1.0-alpha.8 docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.9 docker compose -f docker-compose.prod.yml up -d
 ```
 
 PowerShell:
 
 ```powershell
-$env:FABRIC_VERSION = "0.1.0-alpha.8"
+$env:FABRIC_VERSION = "0.1.0-alpha.9"
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -91,7 +91,7 @@ npx @auvexis/fabric@alpha
 Docker:
 
 ```sh
-FABRIC_VERSION=0.1.0-alpha.8 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.9 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
 ```
 
 Use the gateway port, not the API port, for public URLs.
@@ -114,9 +114,9 @@ npx @auvexis/fabric@alpha
 Docker images:
 
 ```text
-ghcr.io/auvexis/fabric-api:0.1.0-alpha.8
-ghcr.io/auvexis/fabric-client:0.1.0-alpha.8
-ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.8
+ghcr.io/auvexis/fabric-api:0.1.0-alpha.9
+ghcr.io/auvexis/fabric-client:0.1.0-alpha.9
+ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.9
 ```
 
 More release docs:
