@@ -23,7 +23,7 @@ export class AgentChatFileStore {
   }
 
   createSession(input: CreateChatSessionInput): AgentChatSession {
-    const now = new Date().toISOString();
+    const now = this.nextProfileTimestamp(input.profileId);
     const session = { ...input, createdAt: now, updatedAt: now };
     this.writeChat(input.profileId, input.id, {
       session,
@@ -73,7 +73,7 @@ export class AgentChatFileStore {
 
   appendMessage(input: AppendChatMessageInput): AgentChatMessage {
     const chat = this.requireChat(input.profileId, input.sessionId);
-    const createdAt = this.nextMessageCreatedAt(chat);
+    const createdAt = this.nextProfileTimestamp(input.profileId, chat);
     const message = { ...input, createdAt };
     chat.messages.push(message);
     this.touchChat(chat, createdAt);
@@ -87,14 +87,14 @@ export class AgentChatFileStore {
 
   touch(profileId: string, sessionId: string): void {
     const chat = this.requireChat(profileId, sessionId);
-    this.touchChat(chat);
+    this.touchChat(chat, this.nextProfileTimestamp(profileId, chat));
     this.writeChat(profileId, sessionId, chat);
   }
 
   appendExecution(profileId: string, sessionId: string, execution: unknown): void {
     const chat = this.requireChat(profileId, sessionId);
     chat.executions.push(execution);
-    this.touchChat(chat);
+    this.touchChat(chat, this.nextProfileTimestamp(profileId, chat));
     this.writeChat(profileId, sessionId, chat);
   }
 
@@ -129,10 +129,15 @@ export class AgentChatFileStore {
     chat.session.updatedAt = timestamp;
   }
 
-  private nextMessageCreatedAt(chat: AgentChatFile): string {
-    const previous = chat.messages.at(-1)?.createdAt;
+  private nextProfileTimestamp(profileId: string, currentChat?: AgentChatFile): string {
     const now = new Date();
-    const previousTimes = [previous, chat.updatedAt, chat.session.updatedAt]
+    const profileChats = this.listChats(profileId);
+    const previousTimes = [
+      currentChat?.messages.at(-1)?.createdAt,
+      currentChat?.updatedAt,
+      currentChat?.session.updatedAt,
+      ...profileChats.flatMap((chat) => [chat.updatedAt, chat.session.updatedAt]),
+    ]
       .map((value) => (value ? Date.parse(value) : NaN))
       .filter(Number.isFinite);
     const latestPreviousTime = previousTimes.length > 0 ? Math.max(...previousTimes) : NaN;
