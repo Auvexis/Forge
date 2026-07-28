@@ -39,7 +39,8 @@
     "start": "node ./bin/fabric.mjs",
     "prepack": "npm run build",
     "pack:check": "npm pack --dry-run --ignore-scripts",
-    "publish:alpha": "npm publish --tag alpha --access public"
+    "publish:alpha": "npm publish --tag alpha --access public",
+    "release:alpha:prepare": "node scripts/prepare-alpha-release.mjs"
   },
   "workspaces": [
     "apps/api",

@@ -96,14 +96,22 @@ The CI validates npm packaging on every push, but it only publishes when a tag m
 
 Use the manual `Release alpha` workflow to create the tag:
 
-1. Update `package.json` to the next alpha version.
-2. Push the version commit to `dev`.
-3. Wait for CI to pass.
-4. Open GitHub Actions -> `Release alpha`.
-5. Run it from `dev`.
-6. Enter the exact package version, for example `0.1.0-alpha.6`.
+1. Prepare the next alpha version:
 
-The workflow validates that the input matches `package.json`, requires `X.Y.Z-alpha.N`, and refuses to recreate an existing tag.
+```sh
+npm run release:alpha:prepare -- 0.1.0-alpha.6
+```
+
+2. Review and commit the generated version changes.
+3. Push the version commit to `dev`.
+4. Wait for CI to pass.
+5. Open GitHub Actions -> `Release alpha`.
+6. Run it from `dev`.
+7. Enter the exact package version, for example `0.1.0-alpha.6`.
+
+The prepare command updates `package.json`, `package-lock.json`, Docker defaults, release docs, README and changelog references from the current alpha version to the next one.
+
+The release workflow validates that the input matches `package.json`, requires `X.Y.Z-alpha.N`, and refuses to recreate an existing tag.
 
 Users can run the alpha package with:
 
