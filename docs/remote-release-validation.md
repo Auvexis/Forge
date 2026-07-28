@@ -40,11 +40,27 @@ ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2
 
 Alpha and beta images must not publish `latest`.
 
+Current local result:
+
+```text
+docker pull ghcr.io/auvexis/fabric-api:0.1.0-alpha.2 -> unauthorized
+docker pull ghcr.io/auvexis/fabric-client:0.1.0-alpha.2 -> unauthorized
+docker pull ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.2 -> unauthorized
+```
+
+This means the Docker engine is working, but GHCR still needs authentication or package visibility changes.
+
 ## Docker Smoke
 
 Required:
 
 - Docker Desktop running with Linux engine.
+
+Current local result:
+
+```text
+Docker Desktop Linux engine is reachable.
+```
 
 PowerShell:
 

@@ -4,4 +4,6 @@
 - [x] Validar tags alpha
 - [x] Testar GHCR alpha
 - [x] Registrar bloqueios
+- [x] Retestar Docker engine
+- [x] Retestar GHCR com Docker ativo
 - [x] Commitar batch 16
