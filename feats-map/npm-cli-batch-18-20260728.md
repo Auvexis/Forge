@@ -1,0 +1,7 @@
+- [x] Mapear scripts e builds atuais
+- [x] Definir pacote npm inicial
+- [x] Criar CLI de start
+- [x] Empacotar assets necessarios
+- [x] Validar npm pack
+- [x] Rodar testes afetados
+- [x] Commitar batch 18

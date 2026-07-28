@@ -6,6 +6,7 @@
 **/*.db-shm
 **/*.db-wal
 **/*.db-journal
+*.tgz
 PROJECT.md
 PROMPT.md
 IMPLEMENTATION.md
