@@ -80,6 +80,27 @@ Repository secret required:
 NPM_TOKEN
 ```
 
+Safe setup:
+
+1. Create an npm automation/classic token with publish access to the `@auvexis` scope.
+2. Add it in GitHub at `Settings` -> `Secrets and variables` -> `Actions` -> `New repository secret`.
+3. Use `NPM_TOKEN` as the secret name.
+4. Paste the token only into GitHub. Do not paste it in issues, commits, logs, or chat.
+5. Confirm the secret exists without printing its value:
+
+```sh
+gh secret list
+```
+
+The workflow validates npm packaging on every push, but it only publishes when a pushed tag matches `v*-alpha.*`.
+
+Create and push an alpha tag only after the secret exists:
+
+```sh
+git tag v0.1.0-alpha.3
+git push origin v0.1.0-alpha.3
+```
+
 Users can run the alpha package with:
 
 ```sh
