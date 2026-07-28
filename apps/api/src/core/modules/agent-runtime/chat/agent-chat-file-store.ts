@@ -132,9 +132,12 @@ export class AgentChatFileStore {
   private nextMessageCreatedAt(chat: AgentChatFile): string {
     const previous = chat.messages.at(-1)?.createdAt;
     const now = new Date();
-    const previousTime = previous ? Date.parse(previous) : NaN;
-    if (!Number.isFinite(previousTime) || now.getTime() > previousTime) return now.toISOString();
-    return new Date(previousTime + 1).toISOString();
+    const previousTimes = [previous, chat.updatedAt, chat.session.updatedAt]
+      .map((value) => (value ? Date.parse(value) : NaN))
+      .filter(Number.isFinite);
+    const latestPreviousTime = previousTimes.length > 0 ? Math.max(...previousTimes) : NaN;
+    if (!Number.isFinite(latestPreviousTime) || now.getTime() > latestPreviousTime) return now.toISOString();
+    return new Date(latestPreviousTime + 1).toISOString();
   }
 
   private writeChat(profileId: string, sessionId: string, chat: AgentChatFile): void {

@@ -1,0 +1,5 @@
+- [x] Corrigir timestamp de append
+- [x] Validar teste afetado
+- [x] Validar API node tests
+- [x] Registrar CI remoto
+- [x] Commitar batch 17
