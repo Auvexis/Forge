@@ -20,7 +20,7 @@
 
 ## Batch 3 — Pending Interactions
 
-- [ ] Add pending interaction migration and repository
+- [x] Add pending interaction migration and repository
 - [ ] Persist clarification state
 - [ ] Persist ambiguous selection state
 - [ ] Route replies to pending interactions before intent classification
