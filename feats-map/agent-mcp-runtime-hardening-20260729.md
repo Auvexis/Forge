@@ -24,7 +24,7 @@
 - [ ] Persist clarification state
 - [ ] Persist ambiguous selection state
 - [ ] Route replies to pending interactions before intent classification
-- [ ] Add cancel, continue, retry, confirm, and selection handlers
+- [x] Add cancel, continue, retry, confirm, and selection handlers
 - [ ] Add restart and resume tests
 - [ ] Update this tracker and commit each task
 
