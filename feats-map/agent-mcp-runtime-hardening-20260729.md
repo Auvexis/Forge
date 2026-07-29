@@ -35,8 +35,8 @@
 - [x] Add bounded argument repair
 - [x] Add result envelope validation
 - [x] Add tool catalog and schema limits
-- [ ] Add validation security tests
-- [ ] Update this tracker and commit each task
+- [x] Add validation security tests
+- [x] Update this tracker and commit each task
 
 ## Batch 5 — MCP Errors and Retry
 
@@ -123,7 +123,7 @@
 - [x] Log interaction and approval transitions
 - [x] Add environment-controlled log levels
 - [x] Add redaction and correlation tests
-- [ ] Update this tracker and commit each task
+- [x] Update this tracker and commit each task
 
 ## Batch 13 — Legacy Cleanup
 
