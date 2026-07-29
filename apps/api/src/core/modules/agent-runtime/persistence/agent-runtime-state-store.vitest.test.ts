@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { up } from "../../../database/migrations/workflows/007_agent_mcp_runs.ts";
+import { up as addRunLeases } from "../../../database/migrations/workflows/011_agent_run_leases.ts";
 import type { AgentRunInput } from "../agent-types.ts";
 import { AgentActionRepository } from "./agent-action-repository.ts";
 import { AgentRunRepository } from "./agent-run-repository.ts";
@@ -10,6 +11,7 @@ describe("AgentRuntimeStateStore", () => {
   it("persists run and action transitions", async () => {
     const db = new Database(":memory:");
     await up(db);
+    await addRunLeases(db);
     const store = new AgentRuntimeStateStore(db);
     store.startRun("run_1", runInput());
     store.markRunRunning();

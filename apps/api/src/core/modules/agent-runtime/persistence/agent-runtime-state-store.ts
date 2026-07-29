@@ -1,4 +1,6 @@
 import type Database from "better-sqlite3";
+import { randomUUID } from "node:crypto";
+import { AgentRuntimeError } from "../agent-errors.ts";
 import type { AgentRequiredAction } from "../intent/agent-intent-gateway.ts";
 import type { AgentRunInput } from "../agent-types.ts";
 import type { AgentActionRecord, AgentRunRecord } from "../contracts/agent-domain-contracts.ts";
@@ -40,6 +42,10 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
   private readonly interactions: AgentPendingInteractionRepository;
   private run?: AgentRunRecord;
   private readonly actionRecords = new Map<string, AgentActionRecord>();
+  private readonly leaseOwner = `worker_${randomUUID()}`;
+  private leaseHeartbeat?: NodeJS.Timeout;
+  private static readonly LEASE_MS = 30_000;
+  private static readonly HEARTBEAT_MS = 10_000;
 
   constructor(db: Database.Database) {
     this.runs = new AgentRunRepository(db);
@@ -57,6 +63,7 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
       sessionId: input.sessionId,
       userMessage: input.userMessage,
     });
+    this.acquireLease();
   }
 
   findPendingInteraction(input: AgentRunInput): AgentPendingInteraction | null {
@@ -77,6 +84,7 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
     for (const action of this.actions.listByRun(profileId, runId)) {
       this.actionRecords.set(action.id, action);
     }
+    this.acquireLease();
   }
 
   createPendingInteraction(input: {
@@ -170,6 +178,15 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
       expectedVersion: run.version,
       state,
     });
+    if (
+      state === "waiting-user" ||
+      state === "waiting-approval" ||
+      state === "completed" ||
+      state === "failed" ||
+      state === "cancelled"
+    ) {
+      this.releaseLease();
+    }
   }
 
   private transitionAction(
@@ -192,5 +209,43 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
   private requireRun(): AgentRunRecord {
     if (!this.run) throw new Error("Agent run state was not initialized");
     return this.run;
+  }
+
+  private acquireLease(): void {
+    const run = this.requireRun();
+    const acquired = this.runs.acquireLease({
+      profileId: run.profileId,
+      id: run.id,
+      owner: this.leaseOwner,
+      now: new Date(),
+      leaseMs: AgentRuntimeStateStore.LEASE_MS,
+    });
+    if (!acquired) {
+      throw new AgentRuntimeError(
+        `Agent run lease is owned by another worker: ${run.id}`,
+        "AGENT_RUN_LEASE_CONFLICT",
+        "Agent run is already being processed",
+        409,
+      );
+    }
+    this.leaseHeartbeat = setInterval(() => {
+      const active = this.run;
+      if (!active) return;
+      this.runs.heartbeatLease({
+        profileId: active.profileId,
+        id: active.id,
+        owner: this.leaseOwner,
+        now: new Date(),
+        leaseMs: AgentRuntimeStateStore.LEASE_MS,
+      });
+    }, AgentRuntimeStateStore.HEARTBEAT_MS);
+    this.leaseHeartbeat.unref?.();
+  }
+
+  private releaseLease(): void {
+    if (this.leaseHeartbeat) clearInterval(this.leaseHeartbeat);
+    this.leaseHeartbeat = undefined;
+    const run = this.requireRun();
+    this.runs.releaseLease(run.profileId, run.id, this.leaseOwner);
   }
 }

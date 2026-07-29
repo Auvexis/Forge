@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { up as createRuns } from "../../../database/migrations/workflows/007_agent_mcp_runs.ts";
 import { up as createInteractions } from "../../../database/migrations/workflows/008_agent_pending_interactions.ts";
+import { up as addRunLeases } from "../../../database/migrations/workflows/011_agent_run_leases.ts";
 import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { InternalMcpServer } from "../mcp/internal-mcp-server.ts";
 import { runMcpAgentLoop } from "../loop/mcp-agent-loop.ts";
@@ -136,6 +137,7 @@ async function database(): Promise<Database.Database> {
   db.pragma("foreign_keys = ON");
   await createRuns(db);
   await createInteractions(db);
+  await addRunLeases(db);
   return db;
 }
 

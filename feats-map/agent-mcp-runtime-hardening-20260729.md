@@ -78,9 +78,9 @@
 - [x] Check cancellation between transitions
 - [x] Detect action dependency cycles
 - [x] Enforce action and tool-call limits
-- [ ] Add worker lease and heartbeat
-- [ ] Add timeout, cancellation, and concurrency tests
-- [ ] Update this tracker and commit each task
+- [x] Add worker lease and heartbeat
+- [x] Add timeout, cancellation, and concurrency tests
+- [x] Update this tracker and commit each task
 
 ## Batch 9 — Intent and Conversation
 

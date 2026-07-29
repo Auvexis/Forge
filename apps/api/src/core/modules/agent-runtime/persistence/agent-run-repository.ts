@@ -94,6 +94,63 @@ export class AgentRunRepository {
     if (result.changes !== 1) throw concurrencyError("run", input.id);
     return this.getById(input.profileId, input.id)!;
   }
+
+  acquireLease(input: {
+    profileId: string;
+    id: string;
+    owner: string;
+    now: Date;
+    leaseMs: number;
+  }): boolean {
+    const now = input.now.toISOString();
+    return this.db.prepare(`
+      UPDATE agent_runs
+      SET lease_owner = ?, lease_expires_at = ?, heartbeat_at = ?, updated_at = ?
+      WHERE profile_id = ? AND id = ?
+        AND (lease_owner IS NULL OR lease_owner = ? OR lease_expires_at <= ?)
+        AND state NOT IN ('completed', 'failed', 'cancelled')
+    `).run(
+      input.owner,
+      new Date(input.now.getTime() + input.leaseMs).toISOString(),
+      now,
+      now,
+      input.profileId,
+      input.id,
+      input.owner,
+      now,
+    ).changes === 1;
+  }
+
+  heartbeatLease(input: {
+    profileId: string;
+    id: string;
+    owner: string;
+    now: Date;
+    leaseMs: number;
+  }): boolean {
+    const now = input.now.toISOString();
+    return this.db.prepare(`
+      UPDATE agent_runs
+      SET lease_expires_at = ?, heartbeat_at = ?, updated_at = ?
+      WHERE profile_id = ? AND id = ? AND lease_owner = ? AND lease_expires_at > ?
+    `).run(
+      new Date(input.now.getTime() + input.leaseMs).toISOString(),
+      now,
+      now,
+      input.profileId,
+      input.id,
+      input.owner,
+      now,
+    ).changes === 1;
+  }
+
+  releaseLease(profileId: string, id: string, owner: string): boolean {
+    return this.db.prepare(`
+      UPDATE agent_runs
+      SET lease_owner = NULL, lease_expires_at = NULL
+      WHERE profile_id = ? AND id = ? AND lease_owner = ?
+    `).run(profileId, id, owner).changes === 1;
+  }
 }
 
 interface AgentRunRow {
