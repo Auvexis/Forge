@@ -55,7 +55,7 @@
 - [x] Add profile-scoped artifact storage
 - [ ] Convert binary tool results into artifact references
 - [ ] Resolve artifact references only at tool execution
-- [ ] Add size, TTL, ownership, and cleanup policies
+- [x] Add size, TTL, ownership, and cleanup policies
 - [ ] Add Drive to Email to YouTube tests
 - [ ] Update this tracker and commit each task
 
