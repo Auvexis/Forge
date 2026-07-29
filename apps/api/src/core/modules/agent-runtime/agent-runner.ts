@@ -37,6 +37,7 @@ import { InternalMcpClient } from "./mcp/internal-mcp-client.ts";
 import { InternalMcpServer } from "./mcp/internal-mcp-server.ts";
 import type { InternalMcpTool } from "./mcp/internal-mcp-types.ts";
 import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
+import type { AgentRuntimeStateLifecycle } from "./persistence/agent-runtime-state-store.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -44,6 +45,7 @@ export interface AgentRunnerOptions {
   pluginMemoryExecutor?: PluginMemoryExecutor;
   toolExecutor?: typeof executePluginAgentTool;
   emitEvent?: (event: AgentRuntimeEvent, input: AgentRunInput) => void;
+  stateStoreFactory?: () => AgentRuntimeStateLifecycle;
 }
 
 export type PluginMemoryExecutor = (
@@ -58,6 +60,7 @@ export class AgentRunner {
   private readonly pluginMemoryExecutor: PluginMemoryExecutor;
   private readonly toolExecutor: NonNullable<AgentRunnerOptions["toolExecutor"]>;
   private readonly eventEmitter: NonNullable<AgentRunnerOptions["emitEvent"]>;
+  private readonly stateStoreFactory?: AgentRunnerOptions["stateStoreFactory"];
 
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
@@ -65,18 +68,23 @@ export class AgentRunner {
     this.pluginMemoryExecutor = options.pluginMemoryExecutor ?? defaultPluginMemoryExecutor;
     this.toolExecutor = options.toolExecutor ?? executePluginAgentTool;
     this.eventEmitter = options.emitEvent ?? defaultEventEmitter;
+    this.stateStoreFactory = options.stateStoreFactory;
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
+    const runId = `run_${randomUUID()}`;
     const logger = new AgentRuntimeLogger({
       profileId: input.profileId,
       workflowId: input.workflowId,
       executionId: input.executionId,
       nodeId: input.nodeId,
-      runId: `run_${randomUUID()}`,
+      runId,
       ...(input.sessionId ? { sessionId: input.sessionId } : {}),
     });
+    const state = this.stateStoreFactory?.();
+    state?.startRun(runId, input);
+    state?.markRunRunning();
     logger.info("run.started", { hasSession: Boolean(input.sessionId) });
     this.eventEmitter({ type: "agent:start", payload: { sessionId: input.sessionId } }, input);
     this.eventEmitter({
@@ -106,6 +114,7 @@ export class AgentRunner {
           iterationCount: 1,
           toolCalls: [],
         };
+        state?.markRunCompleted();
         this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
         return result;
       }
@@ -131,9 +140,12 @@ export class AgentRunner {
         tools,
         contextMessages,
         logger,
+        state,
       });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
+      if (result.status === "waiting-user") state?.markRunWaitingUser();
+      else state?.markRunCompleted();
       logger.info("run.completed", {
         status: result.status,
         toolCallCount: result.toolCallCount,
@@ -143,9 +155,11 @@ export class AgentRunner {
       return result;
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) {
+        state?.markRunWaitingApproval();
         logger.info("approval.requested", { toolName: error.approvalRequest.toolName });
         throw error;
       }
+      state?.markRunFailed();
       logger.error("run.failed", serializeErrorPayload(error));
       this.eventEmitter({ type: "agent:error", payload: serializeErrorPayload(error) }, input);
       if (error instanceof AgentRuntimeError) throw error;
@@ -276,6 +290,7 @@ export class AgentRunner {
     tools: InternalMcpTool[];
     contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
     logger: AgentRuntimeLogger;
+    state?: AgentRuntimeStateLifecycle;
   }): Promise<AgentRunResult> {
     const model = toAgentRuntimeModel(input.model);
     const client = new InternalMcpClient(new InternalMcpServer(input.tools));
@@ -334,6 +349,7 @@ export class AgentRunner {
         : undefined,
       emitEvent: (event) => this.eventEmitter(event, input.input),
       logger: input.logger,
+      state: input.state,
     });
   }
 }

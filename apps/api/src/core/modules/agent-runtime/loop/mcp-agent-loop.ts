@@ -7,6 +7,7 @@ import type { AgentRequiredAction, IntentModel } from "../intent/agent-intent-ga
 import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { sanitizeAgentToolValue } from "./agent-tool-result-sanitizer.ts";
 import type { AgentRuntimeLogger } from "../observability/agent-runtime-logger.ts";
+import type { AgentRuntimeStateLifecycle } from "../persistence/agent-runtime-state-store.ts";
 
 interface ActionState extends AgentRequiredAction {
   status: "pending" | "completed";
@@ -41,17 +42,20 @@ export async function runMcpAgentLoop(input: {
   };
   emitEvent: (event: AgentRuntimeEvent) => void;
   logger?: AgentRuntimeLogger;
+  state?: AgentRuntimeStateLifecycle;
 }): Promise<AgentRunResult> {
   const resumed = normalizeResumeState(input.approvedTool?.resumeState);
   const actions: ActionState[] = resumed?.actions ?? input.actions.map((action) => ({ ...action, status: "pending" }));
   const toolCalls = [...(resumed?.toolCalls ?? [])];
   let toolCallCount = resumed?.toolCallCount ?? 0;
+  input.state?.initializeActions(actions);
 
   if (input.approvedTool) {
     const action = nextAction(actions);
     if (!action || action.toolName !== input.approvedTool.toolName) {
       return waitingUser("A ação aprovada não corresponde à próxima etapa pendente.", toolCallCount, toolCalls);
     }
+    input.state?.markActionRunning(action.id);
     const result = await executeCall(input, action, input.approvedTool.arguments, toolCallCount + 1, actions, toolCalls);
     action.status = "completed";
     action.callId = result.call.id;
@@ -59,6 +63,7 @@ export async function runMcpAgentLoop(input: {
     action.output = result.content;
     toolCalls.push(result.toolCall);
     toolCallCount += 1;
+    input.state?.markActionCompleted(action.id, result.content);
   }
 
   while (actions.some((action) => action.status === "pending")) {
@@ -80,6 +85,7 @@ export async function runMcpAgentLoop(input: {
       toolName: action.toolName,
       dependencyCount: action.dependsOn.length,
     });
+    input.state?.markActionRunning(action.id);
     const tool = input.client.describeTool(action.toolName);
     const decision = await input.model.invokeJson<ArgumentDecision>({
       signal: input.abortSignal,
@@ -116,23 +122,15 @@ export async function runMcpAgentLoop(input: {
         toolName: action.toolName,
         reason: "missing_arguments",
       });
+      input.state?.markActionWaitingUser(action.id);
       return waitingUser(decision.question || `Preciso de mais informações para executar ${action.objective}.`, toolCallCount, toolCalls);
     }
 
     const arguments_ = isRecord(decision.arguments) ? decision.arguments : {};
     try {
       const result = await executeCall(input, action, arguments_, toolCallCount + 1, actions, toolCalls);
-      action.status = "completed";
-      action.callId = result.call.id;
-      action.arguments = result.call.arguments;
-      action.output = result.content;
       toolCalls.push(result.toolCall);
       toolCallCount += 1;
-      input.logger?.info("action.completed", {
-        actionId: action.id,
-        toolName: action.toolName,
-      });
-
       const interruption = classifyInterruption(result.content);
       if (interruption) {
         input.logger?.info("action.waiting_user", {
@@ -140,15 +138,28 @@ export async function runMcpAgentLoop(input: {
           toolName: action.toolName,
           reason: "tool_result",
         });
+        input.state?.markActionWaitingUser(action.id, result.content);
         return waitingUser(interruption, toolCallCount, toolCalls);
       }
+      action.status = "completed";
+      action.callId = result.call.id;
+      action.arguments = result.call.arguments;
+      action.output = result.content;
+      input.state?.markActionCompleted(action.id, result.content);
+      input.logger?.info("action.completed", {
+        actionId: action.id,
+        toolName: action.toolName,
+      });
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) {
+        input.state?.markActionWaitingApproval(action.id);
         error.approvalRequest.resumeState = {
           actions: sanitizeActionsForResume(actions),
           toolCalls,
           toolCallCount,
         } satisfies McpLoopResumeState;
+      } else {
+        input.state?.markActionFailed(action.id, { error: safeError(error) });
       }
       throw error;
     }

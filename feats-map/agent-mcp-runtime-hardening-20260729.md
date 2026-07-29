@@ -14,7 +14,7 @@
 - [x] Add run repository
 - [x] Add action repository
 - [x] Add optimistic version checks
-- [ ] Persist every loop transition
+- [x] Persist every loop transition
 - [ ] Add repository and recovery tests
 - [ ] Update this tracker and commit each task
 
