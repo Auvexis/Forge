@@ -128,7 +128,12 @@ function serializeOptional(value: unknown): string | null {
 }
 
 function parseOptionalJson<T>(value: string | null): T | undefined {
-  return value === null ? undefined : parseJson<T>(value, undefined);
+  if (value === null) return undefined;
+  try {
+    return JSON.parse(value) as T;
+  } catch {
+    return undefined;
+  }
 }
 
 function parseJson<T>(value: string, fallback: T): T {
