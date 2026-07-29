@@ -1,6 +1,7 @@
 import type { InternalMcpToolCall } from "./internal-mcp-types.ts";
 import { InternalMcpServer } from "./internal-mcp-server.ts";
 import { InternalMcpArgumentValidator } from "./internal-mcp-argument-validator.ts";
+import { validateInternalMcpResult } from "./internal-mcp-result-validator.ts";
 
 /**
  * MCP-shaped in-process boundary. The transport is deliberately internal:
@@ -30,6 +31,8 @@ export class InternalMcpClient {
 
   async callTool(call: InternalMcpToolCall) {
     this.validateToolArguments(call.name, call.arguments);
-    return await this.server.callTool(call);
+    const result: unknown = await this.server.callTool(call);
+    validateInternalMcpResult(call, result);
+    return result;
   }
 }

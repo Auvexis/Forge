@@ -33,7 +33,7 @@
 - [x] Add Host-side AJV argument validation
 - [x] Reject unknown tool arguments
 - [x] Add bounded argument repair
-- [ ] Add result envelope validation
+- [x] Add result envelope validation
 - [ ] Add tool catalog and schema limits
 - [ ] Add validation security tests
 - [ ] Update this tracker and commit each task
