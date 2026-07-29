@@ -117,12 +117,12 @@
 ## Batch 12 — Observability
 
 - [x] Define structured runtime log contracts
-- [ ] Add sanitized debug logger
+- [x] Add sanitized debug logger
 - [ ] Log run and intent transitions
 - [ ] Log action and tool-call transitions
 - [ ] Log interaction and approval transitions
-- [ ] Add environment-controlled log levels
-- [ ] Add redaction and correlation tests
+- [x] Add environment-controlled log levels
+- [x] Add redaction and correlation tests
 - [ ] Update this tracker and commit each task
 
 ## Batch 13 — Legacy Cleanup
