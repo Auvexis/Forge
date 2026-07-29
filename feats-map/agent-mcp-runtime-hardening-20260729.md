@@ -42,11 +42,11 @@
 
 - [x] Define structured MCP error categories
 - [x] Normalize plugin, workflow, and retrieval errors
-- [ ] Add retry policy with bounded backoff
-- [ ] Pause authentication and permission errors
-- [ ] Pause ambiguous and not-found results
-- [ ] Add error matrix tests
-- [ ] Update this tracker and commit each task
+- [x] Add retry policy with bounded backoff
+- [x] Pause authentication and permission errors
+- [x] Pause ambiguous and not-found results
+- [x] Add error matrix tests
+- [x] Update this tracker and commit each task
 
 ## Batch 6 — Artifacts
 

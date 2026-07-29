@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { InternalMcpServer } from "../mcp/internal-mcp-server.ts";
 import { runMcpAgentLoop } from "./mcp-agent-loop.ts";
+import { AgentRuntimeError } from "../agent-errors.ts";
 
 describe("runMcpAgentLoop", () => {
   it("executes every required action and passes previous outputs by reference", async () => {
@@ -102,6 +103,72 @@ describe("runMcpAgentLoop", () => {
     expect(result.status).toBe("success");
     expect(executions).toBe(1);
     expect(decisions).toHaveLength(0);
+  });
+
+  it("retries a temporary MCP error with a bounded policy", async () => {
+    let executions = 0;
+    const result = await runMcpAgentLoop({
+      model: {
+        invokeJson: async <T extends object>() => ({ action: "call", arguments: {} }) as T,
+        generateFinalResponse: async () => "Concluído.",
+      },
+      client: new InternalMcpClient(new InternalMcpServer([
+        tool("temporary_tool", async () => {
+          executions += 1;
+          if (executions === 1) {
+            throw new AgentRuntimeError(
+              "provider unavailable",
+              "PROVIDER_UNAVAILABLE",
+              "Provider temporarily unavailable",
+              503,
+            );
+          }
+          return { ok: true };
+        }),
+      ])),
+      systemPrompt: "",
+      userMessage: "Execute",
+      contextMessages: [],
+      actions: [{ id: "temporary", toolName: "temporary_tool", objective: "Execute", dependsOn: [] }],
+      maxToolCalls: 1,
+      maxRetriesPerTool: 1,
+      emitEvent: () => undefined,
+    });
+
+    expect(result.status).toBe("success");
+    expect(executions).toBe(2);
+  });
+
+  it.each([
+    ["AUTH_EXPIRED", 401, "authentication"],
+    ["PERMISSION_DENIED", 403, "permission"],
+    ["FILE_NOT_FOUND", 404, "not-found"],
+    ["MULTIPLE_MATCHES", 409, "ambiguous"],
+  ] as const)("pauses on %s MCP errors", async (code, statusCode, _category) => {
+    const result = await runMcpAgentLoop({
+      model: {
+        invokeJson: async <T extends object>() => ({ action: "call", arguments: {} }) as T,
+        generateFinalResponse: async () => "",
+      },
+      client: new InternalMcpClient(new InternalMcpServer([
+        tool("blocked_tool", async () => {
+          throw new AgentRuntimeError("private detail", code, "User action is required", statusCode);
+        }),
+      ])),
+      systemPrompt: "",
+      userMessage: "Execute",
+      contextMessages: [],
+      actions: [{ id: "blocked", toolName: "blocked_tool", objective: "Execute", dependsOn: [] }],
+      maxToolCalls: 1,
+      maxRetriesPerTool: 2,
+      emitEvent: () => undefined,
+    });
+
+    expect(result).toMatchObject({
+      status: "waiting-user",
+      output: { question: "User action is required" },
+      toolCallCount: 0,
+    });
   });
 });
 

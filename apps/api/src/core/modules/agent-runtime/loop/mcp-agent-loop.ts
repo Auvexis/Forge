@@ -8,6 +8,7 @@ import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { sanitizeAgentToolValue } from "./agent-tool-result-sanitizer.ts";
 import type { AgentRuntimeLogger } from "../observability/agent-runtime-logger.ts";
 import type { AgentRuntimeStateLifecycle } from "../persistence/agent-runtime-state-store.ts";
+import { InternalMcpCallError } from "../mcp/internal-mcp-error.ts";
 
 interface ActionState extends AgentRequiredAction {
   status: "pending" | "completed";
@@ -34,6 +35,7 @@ export async function runMcpAgentLoop(input: {
   contextMessages: AgentModelMessage[];
   actions: AgentRequiredAction[];
   maxToolCalls: number;
+  maxRetriesPerTool?: number;
   abortSignal?: AbortSignal;
   approvedTool?: {
     toolName: string;
@@ -151,6 +153,25 @@ export async function runMcpAgentLoop(input: {
           toolCalls,
           toolCallCount,
         } satisfies McpLoopResumeState;
+      } else if (error instanceof InternalMcpCallError && error.mcpError.userActionRequired) {
+        const kind = pendingKindFor(error);
+        input.state?.markActionWaitingUser(action.id, { error: error.mcpError });
+        persistPending(
+          input,
+          kind,
+          error.mcpError.message,
+          actions,
+          toolCalls,
+          toolCallCount,
+          action.id,
+          { error: error.mcpError },
+        );
+        input.logger?.info("action.waiting_user", {
+          actionId: action.id,
+          toolName: action.toolName,
+          reason: error.mcpError.category,
+        });
+        return waitingUser(error.mcpError.message, toolCallCount, toolCalls);
       } else {
         input.state?.markActionFailed(action.id, { error: safeError(error) });
       }
@@ -276,29 +297,47 @@ async function executeCall(
     } as AgentRuntimeEvent);
   }
 
-  try {
-    const result = await input.client.callTool(call);
-    logger?.info("tool.call_completed", { sequence, result: result.content });
-    input.emitEvent({
-      type: "agent:tool-end",
-      payload: { callId: call.id, name: call.name, pluginId: tool.pluginId, status: "success", output: sanitizeAgentToolValue(result.content) },
-    } as AgentRuntimeEvent);
-    return result;
-  } catch (error) {
-    if (error instanceof AgentToolApprovalRequiredError) {
-      error.approvalRequest.resumeState = {
-        actions: sanitizeActionsForResume(actions),
-        toolCalls,
-        toolCallCount: sequence - 1,
-      } satisfies McpLoopResumeState;
+  const maxRetries = Math.min(Math.max(0, input.maxRetriesPerTool ?? 0), 3);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const result = await input.client.callTool(call);
+      logger?.info("tool.call_completed", { sequence, attempt, result: result.content });
+      input.emitEvent({
+        type: "agent:tool-end",
+        payload: { callId: call.id, name: call.name, pluginId: tool.pluginId, status: "success", output: sanitizeAgentToolValue(result.content) },
+      } as AgentRuntimeEvent);
+      return result;
+    } catch (error) {
+      if (error instanceof AgentToolApprovalRequiredError) {
+        error.approvalRequest.resumeState = {
+          actions: sanitizeActionsForResume(actions),
+          toolCalls,
+          toolCallCount: sequence - 1,
+        } satisfies McpLoopResumeState;
+        throw error;
+      }
+      if (error instanceof InternalMcpCallError && error.mcpError.retryable && attempt < maxRetries) {
+        const delayMs = retryDelayMs(attempt);
+        logger?.warn("tool.call_failed", {
+          sequence,
+          attempt,
+          category: error.mcpError.category,
+          retryInMs: delayMs,
+        });
+        input.emitEvent({
+          type: "agent:tool-retry",
+          payload: { callId: call.id, name: call.name, attempt: attempt + 1, delayMs },
+        } as AgentRuntimeEvent);
+        await waitForRetry(delayMs, input.abortSignal);
+        continue;
+      }
+      logger?.error("tool.call_failed", { sequence, attempt, error: safeError(error) });
+      input.emitEvent({
+        type: "agent:tool-end",
+        payload: { callId: call.id, name: call.name, pluginId: tool.pluginId, status: "failed", error: safeError(error) },
+      } as AgentRuntimeEvent);
       throw error;
     }
-    logger?.error("tool.call_failed", { sequence, error: safeError(error) });
-    input.emitEvent({
-      type: "agent:tool-end",
-      payload: { callId: call.id, name: call.name, pluginId: tool.pluginId, status: "failed", error: safeError(error) },
-    } as AgentRuntimeEvent);
-    throw error;
   }
 }
 
@@ -364,7 +403,7 @@ function classifyInterruption(value: unknown): string | null {
 
 function persistPending(
   input: Parameters<typeof runMcpAgentLoop>[0],
-  kind: "clarification" | "selection",
+  kind: "clarification" | "selection" | "authentication" | "permission",
   question: string,
   actions: ActionState[],
   toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
@@ -450,4 +489,28 @@ function isRecord(value: unknown): value is Record<string, any> {
 
 function safeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function pendingKindFor(
+  error: InternalMcpCallError,
+): "clarification" | "selection" | "authentication" | "permission" {
+  if (error.mcpError.category === "ambiguous") return "selection";
+  if (error.mcpError.category === "authentication") return "authentication";
+  if (error.mcpError.category === "permission") return "permission";
+  return "clarification";
+}
+
+function retryDelayMs(attempt: number): number {
+  return Math.min(1_000, 100 * (2 ** attempt));
+}
+
+function waitForRetry(delayMs: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted) return Promise.reject(signal.reason ?? new Error("Agent run cancelled"));
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(resolve, delayMs);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timeout);
+      reject(signal.reason ?? new Error("Agent run cancelled"));
+    }, { once: true });
+  });
 }

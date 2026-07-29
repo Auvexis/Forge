@@ -373,6 +373,7 @@ export class AgentRunner {
       contextMessages: input.contextMessages,
       actions: intent?.mode === "action" ? intent.actions : [],
       maxToolCalls: input.validated.agent.maxToolCalls,
+      maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
       abortSignal: input.input.abortSignal,
       approvedTool: input.input.approvalToken === "approved" &&
           input.input.approvalToolName &&
