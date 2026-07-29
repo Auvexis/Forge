@@ -24,8 +24,12 @@ export class InternalMcpClient {
     return this.server.describeTool(name);
   }
 
+  validateToolArguments(name: string, arguments_: Record<string, unknown>): void {
+    this.argumentValidator.validate(name, this.getToolSchema(name), arguments_);
+  }
+
   async callTool(call: InternalMcpToolCall) {
-    this.argumentValidator.validate(call.name, this.getToolSchema(call.name), call.arguments);
+    this.validateToolArguments(call.name, call.arguments);
     return await this.server.callTool(call);
   }
 }

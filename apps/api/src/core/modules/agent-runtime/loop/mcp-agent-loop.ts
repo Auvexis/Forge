@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { AgentToolApprovalRequiredError } from "../agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import type { AgentRuntimeEvent } from "../agent-runtime-events.ts";
 import type { AgentRunResult } from "../agent-types.ts";
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
@@ -86,36 +86,8 @@ export async function runMcpAgentLoop(input: {
       toolName: action.toolName,
       dependencyCount: action.dependsOn.length,
     });
-    input.state?.markActionRunning(action.id);
     const tool = input.client.describeTool(action.toolName);
-    const decision = await input.model.invokeJson<ArgumentDecision>({
-      signal: input.abortSignal,
-      schema: argumentDecisionSchema(input.client.getToolSchema(action.toolName)),
-      messages: [
-        {
-          role: "system",
-          content: [
-            input.systemPrompt,
-            `Prepare the arguments for exactly one connected tool: ${tool.name}.`,
-            `Objective: ${action.objective}`,
-            `Tool summary: ${tool.summary}`,
-            tool.instructions ? `Tool instructions: ${tool.instructions}` : "",
-            "Return call when all required arguments are known.",
-            "Return clarify instead of guessing any missing identifier, recipient, file, permission, or destructive intent.",
-            "Previous completed action outputs are supplied below. Reuse their stable references when needed.",
-          ].filter(Boolean).join("\n\n"),
-        },
-        ...input.contextMessages,
-        { role: "user", content: input.userMessage },
-        ...actionConversationMessages(actions),
-        {
-          role: "tool",
-          name: "fabric_action_state",
-          tool_call_id: "fabric_action_state",
-          content: JSON.stringify(completedActionContext(actions)),
-        },
-      ],
-    });
+    const decision = await prepareArguments(input, action, actions, tool);
 
     if (decision.action === "clarify") {
       input.logger?.info("action.waiting_user", {
@@ -137,6 +109,7 @@ export async function runMcpAgentLoop(input: {
     }
 
     const arguments_ = isRecord(decision.arguments) ? decision.arguments : {};
+    input.state?.markActionRunning(action.id);
     try {
       const result = await executeCall(input, action, arguments_, toolCallCount + 1, actions, toolCalls);
       toolCalls.push(result.toolCall);
@@ -213,6 +186,66 @@ export async function runMcpAgentLoop(input: {
     toolCallCount,
     iterationCount: Math.max(1, toolCallCount),
     toolCalls,
+  };
+}
+
+async function prepareArguments(
+  input: Parameters<typeof runMcpAgentLoop>[0],
+  action: ActionState,
+  actions: ActionState[],
+  tool: ReturnType<InternalMcpClient["describeTool"]>,
+): Promise<ArgumentDecision> {
+  let validationFeedback = "";
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const decision = await input.model.invokeJson<ArgumentDecision>({
+      signal: input.abortSignal,
+      schema: argumentDecisionSchema(input.client.getToolSchema(action.toolName)),
+      messages: [
+        {
+          role: "system",
+          content: [
+            input.systemPrompt,
+            `Prepare the arguments for exactly one connected tool: ${tool.name}.`,
+            `Objective: ${action.objective}`,
+            `Tool summary: ${tool.summary}`,
+            tool.instructions ? `Tool instructions: ${tool.instructions}` : "",
+            "Return call when all required arguments are known.",
+            "Return clarify instead of guessing any missing identifier, recipient, file, permission, or destructive intent.",
+            "Previous completed action outputs are supplied below. Reuse their stable references when needed.",
+            validationFeedback,
+          ].filter(Boolean).join("\n\n"),
+        },
+        ...input.contextMessages,
+        { role: "user", content: input.userMessage },
+        ...actionConversationMessages(actions),
+        {
+          role: "tool",
+          name: "fabric_action_state",
+          tool_call_id: "fabric_action_state",
+          content: JSON.stringify(completedActionContext(actions)),
+        },
+      ],
+    });
+    if (decision.action === "clarify") return decision;
+
+    const arguments_ = isRecord(decision.arguments) ? decision.arguments : {};
+    try {
+      input.client.validateToolArguments(action.toolName, arguments_);
+      return { action: "call", arguments: arguments_ };
+    } catch (error) {
+      if (!(error instanceof AgentRuntimeError) || error.code !== "AGENT_TOOL_ARGUMENTS_INVALID") {
+        throw error;
+      }
+      validationFeedback = [
+        "The previous arguments did not match the tool schema.",
+        error.message,
+        "Repair them once. Do not add fields that are not declared in the schema.",
+      ].join("\n");
+    }
+  }
+  return {
+    action: "clarify",
+    question: `Preciso de dados válidos para executar ${action.objective}.`,
   };
 }
 
