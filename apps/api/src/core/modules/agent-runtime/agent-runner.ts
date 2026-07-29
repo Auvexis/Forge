@@ -1,9 +1,5 @@
 import { randomUUID } from "node:crypto";
-import {
-  type AgentGraphEvent,
-  type BuildAgentGraphInput,
-  type AgentGraphMessage,
-} from "./agent-graph-builder.ts";
+import type { AgentRuntimeEvent } from "./agent-runtime-events.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { emitAgentEvent } from "./agent-event-bus.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";
@@ -15,7 +11,6 @@ import { AgentToolRegistry } from "./agent-tool-registry.ts";
 import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import { PluginExecutor } from "../plugins/executor.ts";
-import { fabricHomePaths } from "../../runtime/fabric-home.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
@@ -29,42 +24,26 @@ import {
   validateAiModelConfig,
   validateAiToolConfig,
 } from "./agent-validation.ts";
-import { createAgentCheckpointer } from "./memory/agent-checkpointer.ts";
 import type { AgentMemoryRecord, AgentMemoryStore } from "./memory/agent-memory-store.ts";
 import {
   assertMemoryWriteAllowed,
   buildMemoryNamespace,
 } from "./memory/agent-memory-policy.ts";
-import {
-  usesLongTermMemory,
-  usesShortTermMemory,
-} from "./memory/agent-memory-mode.ts";
+import { usesLongTermMemory } from "./memory/agent-memory-mode.ts";
 import { toAgentRuntimeModel } from "./agent-runtime-model.ts";
-import { runAgentLoop } from "./loop/agent-loop-runner.ts";
-import { runAgentPlanRuntime } from "./plan/agent-plan-runner.ts";
-import { AgentFileRefStore } from "./loop/agent-file-ref-store.ts";
-import {
-  resolveAgentChatFileCacheDir,
-  resolveAgentExecutionFileCacheDir,
-} from "./chat/agent-chat-paths.ts";
+import { routeAgentIntent } from "./intent/agent-intent-gateway.ts";
+import { runMcpAgentLoop } from "./loop/mcp-agent-loop.ts";
+import { InternalMcpClient } from "./mcp/internal-mcp-client.ts";
+import { InternalMcpServer } from "./mcp/internal-mcp-server.ts";
+import type { InternalMcpTool } from "./mcp/internal-mcp-types.ts";
+import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
   toolRegistry?: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   pluginMemoryExecutor?: PluginMemoryExecutor;
-  graphBuilder?: (input: BuildAgentGraphInput) => {
-    invoke(input: {
-      userMessage: string;
-      sessionId?: string;
-      contextMessages?: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
-    }): Promise<AgentRunResult>;
-  };
-  checkpointerFactory?: (input: {
-    sessionId: string;
-    dbPath?: string;
-  }) => Promise<unknown>;
   toolExecutor?: typeof executePluginAgentTool;
-  emitEvent?: (event: AgentGraphEvent, input: AgentRunInput) => void;
+  emitEvent?: (event: AgentRuntimeEvent, input: AgentRunInput) => void;
 }
 
 export type PluginMemoryExecutor = (
@@ -73,27 +52,10 @@ export type PluginMemoryExecutor = (
   params: Record<string, unknown>,
 ) => Promise<unknown>;
 
-interface GraphTool {
-  name: string;
-  description: string;
-  instructions?: string;
-  pluginId?: string;
-  pluginName?: string;
-  methodId?: string;
-  sideEffect?: FabricAgentToolDefinition["sideEffect"];
-  requiresApproval: boolean;
-  inputSchema: Record<string, any>;
-  timeoutMs: number;
-  selection?: FabricAgentToolDefinition["selection"];
-  invoke(args: unknown): Promise<unknown>;
-}
-
 export class AgentRunner {
   private readonly modelRegistry: Pick<AgentModelProviderRegistry, "createChatModel">;
   private readonly toolRegistry: Pick<AgentToolRegistry, "listAvailableTools" | "resolveConfiguredTools">;
   private readonly pluginMemoryExecutor: PluginMemoryExecutor;
-  private readonly graphBuilder?: AgentRunnerOptions["graphBuilder"];
-  private readonly checkpointerFactory: NonNullable<AgentRunnerOptions["checkpointerFactory"]>;
   private readonly toolExecutor: NonNullable<AgentRunnerOptions["toolExecutor"]>;
   private readonly eventEmitter: NonNullable<AgentRunnerOptions["emitEvent"]>;
 
@@ -101,14 +63,21 @@ export class AgentRunner {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
     this.toolRegistry = options.toolRegistry ?? new AgentToolRegistry();
     this.pluginMemoryExecutor = options.pluginMemoryExecutor ?? defaultPluginMemoryExecutor;
-    this.graphBuilder = options.graphBuilder;
-    this.checkpointerFactory = options.checkpointerFactory ?? defaultCheckpointerFactory;
     this.toolExecutor = options.toolExecutor ?? executePluginAgentTool;
     this.eventEmitter = options.emitEvent ?? defaultEventEmitter;
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
+    const logger = new AgentRuntimeLogger({
+      profileId: input.profileId,
+      workflowId: input.workflowId,
+      executionId: input.executionId,
+      nodeId: input.nodeId,
+      runId: `run_${randomUUID()}`,
+      ...(input.sessionId ? { sessionId: input.sessionId } : {}),
+    });
+    logger.info("run.started", { hasSession: Boolean(input.sessionId) });
     this.eventEmitter({ type: "agent:start", payload: { sessionId: input.sessionId } }, input);
     this.eventEmitter({
       type: "agent:config-snapshot",
@@ -127,8 +96,8 @@ export class AgentRunner {
       const toolDefinitions = pluginTools.length > 0
         ? this.toolRegistry.resolveConfiguredTools(pluginTools)
         : [];
-      const tools = this.createGraphTools(input, validated.tools, toolDefinitions);
-      if (!this.graphBuilder && isToolCatalogQuestion(input.userMessage)) {
+      const tools = this.createMcpTools(input, validated.tools, toolDefinitions);
+      if (isToolCatalogQuestion(input.userMessage)) {
         const output = formatConfiguredToolsAnswer(tools);
         const result: AgentRunResult = {
           status: "success",
@@ -155,35 +124,29 @@ export class AgentRunner {
         ...memoryMessages,
         ...(validated.contextMessages ?? []),
       ];
-      const checkpointer = usesShortTermMemory(validated.memory) && input.sessionId
-        ? await this.checkpointerFactory({
-            sessionId: input.sessionId,
-            dbPath: input.checkpointerDbPath,
-          })
-        : undefined;
-
-      const result = this.graphBuilder
-        ? await this.runLegacyGraph({
-            input,
-            validated,
-            model,
-            tools,
-            checkpointer,
-            contextMessages,
-          })
-        : await this.runConfiguredRuntime({
-            input,
-            validated,
-            model,
-            tools,
-            contextMessages,
-          });
+      const result = await this.runMcpRuntime({
+        input,
+        validated,
+        model,
+        tools,
+        contextMessages,
+        logger,
+      });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
+      logger.info("run.completed", {
+        status: result.status,
+        toolCallCount: result.toolCallCount,
+        iterationCount: result.iterationCount,
+      });
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
-      if (error instanceof AgentToolApprovalRequiredError) throw error;
+      if (error instanceof AgentToolApprovalRequiredError) {
+        logger.info("approval.requested", { toolName: error.approvalRequest.toolName });
+        throw error;
+      }
+      logger.error("run.failed", serializeErrorPayload(error));
       this.eventEmitter({ type: "agent:error", payload: serializeErrorPayload(error) }, input);
       if (error instanceof AgentRuntimeError) throw error;
       const detail = safeErrorMessage(error);
@@ -256,30 +219,30 @@ export class AgentRunner {
     });
   }
 
-  private createGraphTools(
+  private createMcpTools(
     input: AgentRunInput,
     configs: AgentToolConfig[],
     definitions: FabricAgentToolDefinition[],
-  ): GraphTool[] {
+  ): InternalMcpTool[] {
     let pluginIndex = 0;
     return configs.map((config) => {
       if (!isPluginToolConfig(config)) {
         return {
           name: config.name,
-          description: config.description,
+          summary: config.description,
           ...(config.instructions ? { instructions: config.instructions } : {}),
           sideEffect: config.sideEffect,
           requiresApproval: config.requiresApproval,
           inputSchema: config.inputSchema,
           timeoutMs: config.timeoutMs,
-          invoke: config.invoke,
+          invoke: async (arguments_) => config.invoke(arguments_),
         };
       }
       const definition = definitions[pluginIndex++];
       if (!definition) throw new Error(`Agent tool definition was not resolved for ${config.name}`);
       return {
       name: definition.name,
-      description: describeConfiguredDefaults(
+      summary: describeConfiguredDefaults(
         definition.description,
         config.inputDefaults,
       ),
@@ -291,12 +254,11 @@ export class AgentRunner {
       requiresApproval: config.requiresApproval ?? definition.requiresApproval,
       inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, config.inputDefaults),
       timeoutMs: config.timeoutMs ?? definition.timeoutMs,
-      selection: definition.selection,
-      invoke: async (args: unknown) =>
+      invoke: async (args: Record<string, unknown>) =>
         this.toolExecutor({
           definition,
           configuredTool: config,
-          args: normalizeToolArgs(args),
+          args,
           approvalToken: input.approvalToken,
           approvalToolName: input.approvalToolName,
           executionId: input.executionId,
@@ -307,85 +269,72 @@ export class AgentRunner {
     });
   }
 
-  private async runLegacyGraph(input: {
+  private async runMcpRuntime(input: {
     input: AgentRunInput;
     validated: AgentRunInput;
     model: unknown;
-    tools: GraphTool[];
-    checkpointer: unknown;
+    tools: InternalMcpTool[];
     contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
+    logger: AgentRuntimeLogger;
   }): Promise<AgentRunResult> {
-    const graph = this.graphBuilder!({
-      agent: input.validated.agent,
-      model: input.model,
-      tools: input.tools,
-      memory: input.validated.memory,
-      checkpointer: input.checkpointer,
-      approvalToken: input.input.approvalToken,
-      approvalToolName: input.input.approvalToolName,
-      abortSignal: input.input.abortSignal,
-      skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
-      onEvent: (event) => this.eventEmitter(event, input.input),
-    });
-    return graph.invoke({
+    const model = toAgentRuntimeModel(input.model);
+    const client = new InternalMcpClient(new InternalMcpServer(input.tools));
+    const isApprovalResume = input.input.approvalToken === "approved" &&
+      Boolean(input.input.approvalToolResumeState);
+    const intent = isApprovalResume
+      ? null
+      : await routeAgentIntent({
+          model,
+          systemPrompt: input.validated.agent.prompt,
+          userMessage: input.input.userMessage,
+          contextMessages: input.contextMessages,
+          tools: client.listTools(),
+          signal: input.input.abortSignal,
+        });
+
+    if (isApprovalResume) {
+      input.logger.info("approval.resumed", { toolName: input.input.approvalToolName });
+    } else if (intent) {
+      input.logger.info("intent.classified", {
+        mode: intent.mode,
+        ...(intent.mode === "action" ? { actionCount: intent.actions.length } : {}),
+      });
+    }
+    if (intent?.mode === "chat") {
+      return { status: "success", output: intent.response, iterationCount: 1, toolCallCount: 0, toolCalls: [] };
+    }
+    if (intent?.mode === "clarify") {
+      input.logger.info("interaction.created", { kind: "clarification" });
+      return {
+        status: "waiting-user",
+        output: { status: "waiting-user", question: intent.question },
+        iterationCount: 1,
+        toolCallCount: 0,
+        toolCalls: [],
+      };
+    }
+
+    return runMcpAgentLoop({
+      model,
+      client,
+      systemPrompt: input.validated.agent.prompt,
       userMessage: input.input.userMessage,
-      sessionId: input.input.sessionId,
       contextMessages: input.contextMessages,
+      actions: intent?.mode === "action" ? intent.actions : [],
+      maxToolCalls: input.validated.agent.maxToolCalls,
+      abortSignal: input.input.abortSignal,
+      approvedTool: input.input.approvalToken === "approved" &&
+          input.input.approvalToolName &&
+          input.input.approvalToolArgs
+        ? {
+            toolName: input.input.approvalToolName,
+            arguments: input.input.approvalToolArgs,
+            resumeState: input.input.approvalToolResumeState,
+          }
+        : undefined,
+      emitEvent: (event) => this.eventEmitter(event, input.input),
+      logger: input.logger,
     });
-  }
-
-  private async runConfiguredRuntime(input: {
-    input: AgentRunInput;
-    validated: AgentRunInput;
-    model: unknown;
-    tools: GraphTool[];
-    contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
-  }): Promise<AgentRunResult> {
-    if (input.validated.agent.executionMode === "plan") {
-      return runAgentPlanRuntime({
-        input: input.input,
-        model: input.model,
-        tools: input.tools,
-        contextMessages: input.contextMessages,
-        maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
-        emitEvent: (event) => this.eventEmitter(event, input.input),
-      });
-    }
-
-    const fileRefStore = new AgentFileRefStore({
-      rootDir: resolveAgentFileCacheDir(input.input),
-    });
-
-    try {
-      const result = await runAgentLoop({
-        model: toAgentRuntimeModel(input.model),
-        userMessage: input.input.userMessage,
-        contextMessages: input.contextMessages,
-        tools: input.tools,
-        maxIterations: input.validated.agent.maxIterations,
-        maxToolCalls: input.validated.agent.maxToolCalls,
-        maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
-        modelCallTimeoutMs: Math.min(input.validated.agent.timeoutMs, AGENT_LIMITS.defaultToolTimeoutMs),
-        abortSignal: input.input.abortSignal,
-        skipFinalResponseAfterToolUse: input.input.skipFinalResponseAfterToolUse,
-        fileRefStore,
-        approvedTool: input.input.approvalToken === "approved" && input.input.approvalToolName && input.input.approvalToolArgs
-          ? {
-              toolName: input.input.approvalToolName,
-              params: input.input.approvalToolArgs,
-              resumeState: input.input.approvalToolResumeState,
-            }
-          : undefined,
-        emitEvent: (event) => this.eventEmitter(event, input.input),
-      });
-      fileRefStore.cleanupAll();
-      return result;
-    } catch (error) {
-      if (!(error instanceof AgentToolApprovalRequiredError)) {
-        fileRefStore.cleanupAll();
-      }
-      throw error;
-    }
   }
 }
 
@@ -467,15 +416,7 @@ function assertNonEmpty(field: string, value: string): void {
   }
 }
 
-async function defaultCheckpointerFactory(input: {
-  sessionId: string;
-  dbPath?: string;
-}): Promise<unknown> {
-  if (!input.dbPath) return undefined;
-  return createAgentCheckpointer({ dbPath: input.dbPath });
-}
-
-function defaultEventEmitter(event: AgentGraphEvent, input: AgentRunInput): void {
+function defaultEventEmitter(event: AgentRuntimeEvent, input: AgentRunInput): void {
   emitAgentEvent({
     workflowId: input.workflowId,
     executionId: input.executionId,
@@ -574,27 +515,12 @@ function isToolCatalogQuestion(message: string): boolean {
   return asksAboutTools && asksAccess;
 }
 
-function formatConfiguredToolsAnswer(tools: Array<Pick<GraphTool, "name" | "description" | "pluginName">>): string {
+function formatConfiguredToolsAnswer(tools: Array<Pick<InternalMcpTool, "name" | "summary" | "pluginName">>): string {
   if (!tools.length) return "Nao tenho ferramentas configuradas para este agente no momento.";
 
   const lines = tools.map((tool) => {
     const owner = tool.pluginName ? `${tool.pluginName}: ` : "";
-    return `- ${owner}${tool.description || tool.name}`;
+    return `- ${owner}${tool.summary || tool.name}`;
   });
   return ["Tenho acesso a estas ferramentas configuradas:", ...lines].join("\n");
-}
-
-function resolveAgentFileCacheDir(input: AgentRunInput): string {
-  if (input.sessionId) {
-    return resolveAgentChatFileCacheDir({
-      profilesDir: fabricHomePaths.profilesDir,
-      profileId: input.profileId,
-      chatId: input.sessionId,
-    });
-  }
-  return resolveAgentExecutionFileCacheDir({
-    profilesDir: fabricHomePaths.profilesDir,
-    profileId: input.profileId,
-    executionId: input.executionId,
-  });
 }

@@ -118,8 +118,8 @@
 
 - [x] Define structured runtime log contracts
 - [x] Add sanitized debug logger
-- [ ] Log run and intent transitions
-- [ ] Log action and tool-call transitions
+- [x] Log run and intent transitions
+- [x] Log action and tool-call transitions
 - [ ] Log interaction and approval transitions
 - [x] Add environment-controlled log levels
 - [x] Add redaction and correlation tests
