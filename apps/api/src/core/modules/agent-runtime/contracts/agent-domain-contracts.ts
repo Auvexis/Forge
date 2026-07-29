@@ -80,6 +80,16 @@ export interface AgentArtifactRef {
   size: number;
 }
 
+export interface AgentArtifactRecord extends AgentArtifactRef {
+  id: string;
+  runId: string;
+  actionId?: string;
+  storageKey: string;
+  sha256: string;
+  createdAt: string;
+  expiresAt: string;
+}
+
 export type AgentMcpErrorCategory =
   | "validation"
   | "not-found"

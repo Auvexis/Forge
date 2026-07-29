@@ -50,8 +50,8 @@
 
 ## Batch 6 — Artifacts
 
-- [ ] Define artifact metadata and reference contracts
-- [ ] Add artifact migration and repository
+- [x] Define artifact metadata and reference contracts
+- [x] Add artifact migration and repository
 - [ ] Add profile-scoped artifact storage
 - [ ] Convert binary tool results into artifact references
 - [ ] Resolve artifact references only at tool execution
