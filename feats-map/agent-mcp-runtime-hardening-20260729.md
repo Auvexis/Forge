@@ -12,7 +12,7 @@
 
 - [x] Add agent run and action migrations
 - [x] Add run repository
-- [ ] Add action repository
+- [x] Add action repository
 - [ ] Add optimistic version checks
 - [ ] Persist every loop transition
 - [ ] Add repository and recovery tests
