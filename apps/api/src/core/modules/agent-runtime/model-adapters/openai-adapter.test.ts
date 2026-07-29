@@ -92,7 +92,7 @@ describe("OpenAiAdapter", () => {
     ]);
   });
 
-  it("flattens tool messages into user-readable input instead of sending role tool", async () => {
+  it("sends canonical tool history as native Responses function items", async () => {
     const calls: Array<{ body: any }> = [];
     const adapter = new OpenAiAdapter({
       fetch: async (_url, init) => {
@@ -106,15 +106,38 @@ describe("OpenAiAdapter", () => {
       credentials: { api_key: "sk-test" },
       messages: [
         { role: "user", content: "Find file" },
-        { role: "tool", name: "drive_search", content: "[{\"name\":\"file.pdf\"}]" },
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [{
+            id: "call_search",
+            name: "drive_search",
+            arguments: { query: "file.pdf" },
+          }],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_search",
+          name: "drive_search",
+          content: "[{\"name\":\"file.pdf\"}]",
+        },
       ],
     });
 
     assert.deepEqual(calls[0].body.input, [
       { role: "user", content: "Find file" },
-      { role: "user", content: "Tool result from drive_search:\n[{\"name\":\"file.pdf\"}]" },
+      {
+        type: "function_call",
+        call_id: "call_search",
+        name: "drive_search",
+        arguments: "{\"query\":\"file.pdf\"}",
+      },
+      {
+        type: "function_call_output",
+        call_id: "call_search",
+        output: "[{\"name\":\"file.pdf\"}]",
+      },
     ]);
-    assert.equal(calls[0].body.input.some((message: any) => message.role === "tool"), false);
   });
 
   it("uses JSON object mode when no schema is provided", async () => {
@@ -205,8 +228,6 @@ describe("OpenAiAdapter", () => {
 
     assert.equal((await model.invoke([{ role: "user", content: "hi" }])).content, "{\"steps\":[]}");
     assert.deepEqual(await model.invokeJson({ messages: [{ role: "user", content: "json" }] }), { steps: [] });
-    assert.deepEqual(await model.generatePlan({ messages: [{ role: "user", content: "plan" }] }), { steps: [] });
-    assert.deepEqual(await model.repairPlanStep({ messages: [{ role: "user", content: "repair" }] }), { steps: [] });
     assert.equal(await model.generateFinalResponse({ messages: [{ role: "user", content: "final" }] }), "{\"steps\":[]}");
   });
 });

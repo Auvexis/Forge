@@ -95,13 +95,13 @@
 
 ## Batch 10 — Model Providers
 
-- [ ] Define provider capability matrix
-- [ ] Add structured-output capability checks
-- [ ] Add provider-specific context limits
-- [ ] Add native tool-history adapters where supported
-- [ ] Add safe text fallback adapters
-- [ ] Add OpenAI-compatible and Ollama integration tests
-- [ ] Update this tracker and commit each task
+- [x] Define provider capability matrix
+- [x] Add structured-output capability checks
+- [x] Add provider-specific context limits
+- [x] Add native tool-history adapters where supported
+- [x] Add safe text fallback adapters
+- [x] Add OpenAI-compatible and Ollama integration tests
+- [x] Update this tracker and commit each task
 
 ## Batch 11 — MCP Isolation
 

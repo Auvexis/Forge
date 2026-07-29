@@ -1,5 +1,4 @@
 import { AgentRuntimeError } from "../agent-errors.ts";
-import type { AgentPlan, AgentStepRepair } from "../plan/agent-plan-types.ts";
 import type {
   AgentModelAdapter,
   AgentModelInvokeInput,
@@ -29,16 +28,6 @@ export interface RuntimeChatModel {
     schema?: Record<string, any>,
     options?: { signal?: AbortSignal },
   ): Promise<T>;
-  generatePlan(
-    input: { messages: AgentModelMessage[] },
-    schema?: Record<string, any>,
-    options?: { signal?: AbortSignal },
-  ): Promise<AgentPlan>;
-  repairPlanStep(
-    input: { messages: AgentModelMessage[] },
-    schema?: Record<string, any>,
-    options?: { signal?: AbortSignal },
-  ): Promise<AgentStepRepair>;
   generateFinalResponse(
     input: { messages: AgentModelMessage[] },
     options?: { signal?: AbortSignal },
@@ -79,14 +68,6 @@ export class OpenAiAdapter implements AgentModelAdapter {
     }
   }
 
-  generatePlan(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentPlan> {
-    return this.invokeJson<AgentPlan>(input, schema);
-  }
-
-  repairPlanStep(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<AgentStepRepair> {
-    return this.invokeJson<AgentStepRepair>(input, schema);
-  }
-
   generateFinalResponse(input: AgentModelInvokeInput): Promise<string> {
     return this.invokeText(input);
   }
@@ -104,18 +85,6 @@ export class OpenAiAdapter implements AgentModelAdapter {
         this.invokeJson({
           ...input,
           messages: jsonInput.messages,
-          abortSignal: options?.signal ?? input.abortSignal,
-        }, schema),
-      generatePlan: async (planInput, schema, options) =>
-        this.generatePlan({
-          ...input,
-          messages: planInput.messages,
-          abortSignal: options?.signal ?? input.abortSignal,
-        }, schema),
-      repairPlanStep: async (repairInput, schema, options) =>
-        this.repairPlanStep({
-          ...input,
-          messages: repairInput.messages,
           abortSignal: options?.signal ?? input.abortSignal,
         }, schema),
       generateFinalResponse: async (finalInput, options) =>
@@ -207,7 +176,7 @@ function createResponseBody(
 
 function normalizeMessages(messages: AgentModelMessage[]): {
   instructions?: string;
-  input: Array<{ role: string; content: string }>;
+  input: Array<Record<string, unknown>>;
 } {
   const instructions = messages
     .filter((message) => message.role === "system")
@@ -219,25 +188,45 @@ function normalizeMessages(messages: AgentModelMessage[]): {
     ...(instructions ? { instructions } : {}),
     input: messages
       .filter((message) => message.role !== "system")
-      .map(toOpenAiInputMessage),
+      .flatMap(toOpenAiInputItems),
   };
 }
 
-function toOpenAiInputMessage(message: AgentModelMessage): { role: string; content: string } {
+export function toOpenAiInputItems(message: AgentModelMessage): Array<Record<string, unknown>> {
+  if (message.role === "assistant" && message.tool_calls?.length) {
+    return [
+      ...(message.content.trim()
+        ? [{ role: "assistant", content: message.content }]
+        : []),
+      ...message.tool_calls.map((call) => ({
+        type: "function_call",
+        call_id: call.id,
+        name: call.name,
+        arguments: JSON.stringify(call.arguments),
+      })),
+    ];
+  }
+  if (message.role === "tool" && message.tool_call_id) {
+    return [{
+      type: "function_call_output",
+      call_id: message.tool_call_id,
+      output: message.content,
+    }];
+  }
   if (message.role === "tool") {
     const name = message.name?.trim();
-    return {
+    return [{
       role: "user",
       content: name
         ? `Tool result from ${name}:\n${message.content}`
         : `Tool result:\n${message.content}`,
-    };
+    }];
   }
 
-  return {
+  return [{
     role: message.role,
     content: message.content,
-  };
+  }];
 }
 
 function toOpenAiTextFormat(format: "json" | Record<string, any>): Record<string, any> {

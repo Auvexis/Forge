@@ -1,5 +1,7 @@
 import { AgentRuntimeError } from "./agent-errors.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
+import type { AgentModelCapabilities } from "./model-adapters/agent-model-capabilities.ts";
+import { Ajv } from "ajv";
 
 export interface AgentRuntimeModel {
   invokeJson<T extends object>(input: {
@@ -28,9 +30,14 @@ export function toAgentRuntimeModel(model: unknown): AgentRuntimeModel {
       input: { messages: AgentModelMessage[] },
       options?: { signal?: AbortSignal },
     ) => Promise<string>;
+    capabilities?: AgentModelCapabilities;
   };
 
-  if (typeof candidate.invokeJson !== "function") {
+  const supportsStructuredOutput =
+    candidate.capabilities?.structuredOutput !== "text" &&
+    typeof candidate.invokeJson === "function";
+  const supportsTextFallback = typeof candidate.invoke === "function";
+  if (!supportsStructuredOutput && !supportsTextFallback) {
     throw new AgentRuntimeError(
       "Agent model does not support structured decisions",
       "AGENT_MODEL_JSON_UNSUPPORTED",
@@ -40,15 +47,25 @@ export function toAgentRuntimeModel(model: unknown): AgentRuntimeModel {
   }
 
   return {
-    invokeJson: <T extends object>(input: {
+    invokeJson: async <T extends object>(input: {
       messages: AgentModelMessage[];
       schema: Record<string, any>;
       signal?: AbortSignal;
-    }) => candidate.invokeJson!<T>(
-      { messages: input.messages },
-      input.schema,
-      { signal: input.signal },
-    ),
+    }) => {
+      if (supportsStructuredOutput) {
+        return candidate.invokeJson!<T>(
+          { messages: input.messages },
+          input.schema,
+          { signal: input.signal },
+        );
+      }
+      const response = await candidate.invoke!(
+        withJsonFallbackInstruction(input.messages, input.schema),
+        { signal: input.signal },
+      );
+      const content = typeof response === "string" ? response : response.content;
+      return parseAndValidateFallbackJson<T>(content, input.schema);
+    },
     generateFinalResponse: async (input) => {
       if (typeof candidate.generateFinalResponse === "function") {
         return candidate.generateFinalResponse(
@@ -69,6 +86,55 @@ export function toAgentRuntimeModel(model: unknown): AgentRuntimeModel {
       );
     },
   };
+}
+
+function withJsonFallbackInstruction(
+  messages: AgentModelMessage[],
+  schema: Record<string, any>,
+): AgentModelMessage[] {
+  return [
+    {
+      role: "system",
+      content: [
+        "Return exactly one JSON object and no prose or markdown.",
+        `The JSON must satisfy this schema: ${JSON.stringify(schema)}`,
+      ].join("\n"),
+    },
+    ...messages,
+  ];
+}
+
+function parseAndValidateFallbackJson<T extends object>(
+  content: unknown,
+  schema: Record<string, any>,
+): T {
+  if (typeof content !== "string" || content.length > 64_000) {
+    throw invalidFallbackJson();
+  }
+  const trimmed = content.trim();
+  if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) {
+    throw invalidFallbackJson();
+  }
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+      throw new Error("Expected object");
+    }
+    const validate = new Ajv({ allErrors: true, strict: false }).compile(schema);
+    if (!validate(parsed)) throw new Error("Schema mismatch");
+    return parsed as T;
+  } catch {
+    throw invalidFallbackJson();
+  }
+}
+
+function invalidFallbackJson(): AgentRuntimeError {
+  return new AgentRuntimeError(
+    "Text fallback returned invalid structured output",
+    "AGENT_MODEL_JSON_INVALID",
+    "Model returned invalid JSON",
+    502,
+  );
 }
 
 export function withAgentModelTimeout(

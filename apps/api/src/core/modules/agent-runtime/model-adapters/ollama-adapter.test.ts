@@ -166,6 +166,55 @@ describe("OllamaAdapter", () => {
     assert.equal(headers[0].Authorization, "Bearer ollama-secret");
   });
 
+  it("sends canonical tool history using Ollama native tool messages", async () => {
+    const requests: Array<{ body: any }> = [];
+    const adapter = new OllamaAdapter({
+      fetch: async (_url, init) => {
+        requests.push({ body: JSON.parse(String(init?.body)) });
+        return response({ message: { content: "done" } });
+      },
+    });
+
+    await adapter.invokeText({
+      model: "llama3.2",
+      messages: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [{
+            id: "call_search",
+            name: "drive_search",
+            arguments: { query: "file.pdf" },
+          }],
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_search",
+          name: "drive_search",
+          content: "[{\"name\":\"file.pdf\"}]",
+        },
+      ],
+    });
+
+    assert.deepEqual(requests[0].body.messages, [
+      {
+        role: "assistant",
+        content: "",
+        tool_calls: [{
+          function: {
+            name: "drive_search",
+            arguments: { query: "file.pdf" },
+          },
+        }],
+      },
+      {
+        role: "tool",
+        content: "[{\"name\":\"file.pdf\"}]",
+        tool_name: "drive_search",
+      },
+    ]);
+  });
+
   it("rejects invalid JSON returned by Ollama", async () => {
     const adapter = new OllamaAdapter({
       fetch: async () => response({ message: { content: "not json" } }),
@@ -175,49 +224,6 @@ describe("OllamaAdapter", () => {
       adapter.invokeJson({
         model: "llama3.2",
         messages: [{ role: "user", content: "json" }],
-      }),
-      (error) =>
-        error instanceof AgentRuntimeError &&
-        error.code === "AGENT_MODEL_JSON_INVALID",
-    );
-  });
-
-  it("generates plans with the provided JSON schema format", async () => {
-    const requests: any[] = [];
-    const adapter = new OllamaAdapter({
-      fetch: async (_url, init) => {
-        requests.push(JSON.parse(String(init?.body)));
-        return response({ message: { content: "{\"steps\":[]}" } });
-      },
-    });
-
-    const result = await adapter.generatePlan({
-      model: "llama3.2",
-      messages: [{ role: "user", content: "plan" }],
-    }, {
-      type: "object",
-      properties: { steps: { type: "array" } },
-    });
-
-    assert.deepEqual(result, { steps: [] });
-    assert.deepEqual(requests[0].format, {
-      type: "object",
-      properties: { steps: { type: "array" } },
-    });
-  });
-
-  it("repairs plan steps and rejects invalid repair JSON", async () => {
-    const adapter = new OllamaAdapter({
-      fetch: async () => response({ message: { content: "not json" } }),
-    });
-
-    await assert.rejects(
-      adapter.repairPlanStep({
-        model: "llama3.2",
-        messages: [{ role: "user", content: "repair" }],
-      }, {
-        type: "object",
-        properties: { params: { type: "object" } },
       }),
       (error) =>
         error instanceof AgentRuntimeError &&

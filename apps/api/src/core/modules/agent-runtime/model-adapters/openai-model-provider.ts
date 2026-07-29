@@ -2,6 +2,10 @@ import { AgentRuntimeError } from "../agent-errors.ts";
 import type { AiModelNodeConfig } from "../agent-types.ts";
 import type { AgentModelProvider } from "../model-provider-registry.ts";
 import { OpenAiAdapter, type FetchLike } from "./openai-adapter.ts";
+import {
+  boundedModelContext,
+  modelCapabilities,
+} from "./agent-model-capabilities.ts";
 
 export type AgentCredentialResolver = (
   credentialId?: string,
@@ -46,13 +50,15 @@ export class OpenAiModelProvider implements AgentModelProvider {
       );
     }
 
-    return this.openai.createChatModel({
+    const model = this.openai.createChatModel({
       model: config.model,
       baseUrl: config.baseUrl,
       credentials: effectiveCredentials,
       temperature: config.temperature,
       maxTokens: config.maxTokens,
+      numCtx: boundedModelContext(config.adapter, config.numCtx),
     });
+    return Object.assign(model, { capabilities: modelCapabilities(config.adapter) });
   }
 
   private resolveCredentials(

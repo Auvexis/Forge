@@ -2,6 +2,10 @@ import type { AiModelNodeConfig } from "../agent-types.ts";
 import type { AgentModelProvider } from "../model-provider-registry.ts";
 import type { AgentCredentialResolver } from "./openai-model-provider.ts";
 import { OllamaAdapter } from "./ollama-adapter.ts";
+import {
+  boundedModelContext,
+  modelCapabilities,
+} from "./agent-model-capabilities.ts";
 
 export class OllamaModelProvider implements AgentModelProvider {
   public readonly adapter = "ollama";
@@ -17,13 +21,13 @@ export class OllamaModelProvider implements AgentModelProvider {
   }
 
   async createChatModel(config: AiModelNodeConfig): Promise<unknown> {
-    return this.ollama.createChatModel({
+    const model = this.ollama.createChatModel({
       model: config.model,
       baseUrl: config.baseUrl,
       credentials: this.resolveCredentials(config) ?? undefined,
       temperature: config.temperature,
       maxTokens: config.maxTokens,
-      numCtx: config.numCtx,
+      numCtx: boundedModelContext(config.adapter, config.numCtx),
       topP: config.topP,
       topK: config.topK,
       repeatPenalty: config.repeatPenalty,
@@ -33,6 +37,7 @@ export class OllamaModelProvider implements AgentModelProvider {
       thinkingEnabled: config.thinkingEnabled,
       thinkingRequest: config.thinkingRequest,
     });
+    return Object.assign(model, { capabilities: modelCapabilities(config.adapter) });
   }
 
   private resolveCredentials(config: AiModelNodeConfig): Record<string, string> | null | undefined {
