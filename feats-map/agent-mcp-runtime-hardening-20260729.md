@@ -61,7 +61,7 @@
 
 ## Batch 7 — Idempotency
 
-- [ ] Add idempotency migration and repository
+- [x] Add idempotency migration and repository
 - [ ] Generate stable side-effect keys
 - [ ] Reserve keys transactionally before execution
 - [ ] Persist successful side-effect results
