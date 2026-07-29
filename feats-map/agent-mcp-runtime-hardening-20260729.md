@@ -88,7 +88,7 @@
 - [ ] Add prepare-versus-execute safety cases
 - [ ] Add repeated-tool and multi-action cases
 - [x] Persist canonical assistant tool calls and tool results
-- [ ] Add bounded conversation compaction
+- [x] Add bounded conversation compaction
 - [x] Add completion guard tests
 - [ ] Add small-model evaluation fixtures
 - [ ] Update this tracker and commit each task

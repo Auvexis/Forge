@@ -42,6 +42,11 @@ import type { AgentPendingInteraction } from "./contracts/agent-domain-contracts
 import { routePendingInteractionReply } from "./interactions/pending-interaction-router.ts";
 import type { AgentArtifactService } from "./artifacts/agent-artifact-service.ts";
 import type { AgentSideEffectService } from "./idempotency/agent-side-effect-service.ts";
+import {
+  compactAgentConversation,
+  conversationBudgetChars,
+} from "./conversation/agent-conversation-compactor.ts";
+import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -171,11 +176,14 @@ export class AgentRunner {
         userId: input.userId,
       });
       const memoryMessages = await this.readMemory(input, longTermMemory, namespace);
-      const contextMessages = [
-        ...memoryMessages,
-        ...(validated.contextMessages ?? []),
-        ...pendingContextMessages(pending),
-      ];
+      const contextMessages = compactAgentConversation(
+        [
+          ...memoryMessages,
+          ...(validated.contextMessages ?? []),
+          ...pendingContextMessages(pending),
+        ],
+        conversationBudgetChars(validated.model.numCtx),
+      );
       const result = await this.runMcpRuntime({
         input,
         validated,
@@ -335,7 +343,7 @@ export class AgentRunner {
     validated: AgentRunInput;
     model: unknown;
     tools: InternalMcpTool[];
-    contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
+    contextMessages: AgentModelMessage[];
     logger: AgentRuntimeLogger;
     state?: AgentRuntimeStateLifecycle;
     pending?: AgentPendingInteraction | null;
