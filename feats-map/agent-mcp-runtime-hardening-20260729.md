@@ -116,7 +116,7 @@
 
 ## Batch 12 — Observability
 
-- [ ] Define structured runtime log contracts
+- [x] Define structured runtime log contracts
 - [ ] Add sanitized debug logger
 - [ ] Log run and intent transitions
 - [ ] Log action and tool-call transitions
