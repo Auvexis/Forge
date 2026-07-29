@@ -1,6 +1,10 @@
 import type Database from "better-sqlite3";
 import { AgentRuntimeError } from "../agent-errors.ts";
-import type { AgentRunRecord, AgentRunState } from "../contracts/agent-domain-contracts.ts";
+import type {
+  AgentRunRecord,
+  AgentRunState,
+  AgentToolCatalogSnapshot,
+} from "../contracts/agent-domain-contracts.ts";
 import { assertAgentRunTransition } from "../contracts/agent-state-transitions.ts";
 
 export interface CreateAgentRunInput {
@@ -151,6 +155,25 @@ export class AgentRunRepository {
       WHERE profile_id = ? AND id = ? AND lease_owner = ?
     `).run(profileId, id, owner).changes === 1;
   }
+
+  saveToolCatalogSnapshot(input: {
+    profileId: string;
+    workflowId: string;
+    id: string;
+    snapshot: AgentToolCatalogSnapshot;
+  }): boolean {
+    return this.db.prepare(`
+      UPDATE agent_runs
+      SET tool_catalog_json = ?, updated_at = ?
+      WHERE profile_id = ? AND workflow_id = ? AND id = ? AND tool_catalog_json IS NULL
+    `).run(
+      JSON.stringify(input.snapshot),
+      new Date().toISOString(),
+      input.profileId,
+      input.workflowId,
+      input.id,
+    ).changes === 1;
+  }
 }
 
 interface AgentRunRow {
@@ -166,6 +189,7 @@ interface AgentRunRow {
   created_at: string;
   updated_at: string;
   completed_at: string | null;
+  tool_catalog_json: string | null;
 }
 
 function toRun(row: AgentRunRow): AgentRunRecord {
@@ -182,6 +206,9 @@ function toRun(row: AgentRunRow): AgentRunRecord {
     createdAt: row.created_at,
     updatedAt: row.updated_at,
     completedAt: row.completed_at ?? undefined,
+    toolCatalogSnapshot: row.tool_catalog_json
+      ? JSON.parse(row.tool_catalog_json) as AgentToolCatalogSnapshot
+      : undefined,
   };
 }
 

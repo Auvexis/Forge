@@ -47,6 +47,7 @@ import {
   conversationBudgetChars,
 } from "./conversation/agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
+import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -359,7 +360,7 @@ export class AgentRunner {
       ),
       input.input.abortSignal,
     );
-    const client = new InternalMcpClient(new InternalMcpServer(
+    const server = new InternalMcpServer(
       input.tools,
       input.artifacts
         ? {
@@ -392,7 +393,28 @@ export class AgentRunner {
               }),
           }
         : undefined,
-    ));
+    );
+    const client = new InternalMcpClient(server);
+    if (input.state) {
+      try {
+        const snapshotStatus = input.state.bindToolCatalogSnapshot(client.snapshot({
+          profileId: input.input.profileId,
+          workflowId: input.input.workflowId,
+          nodeId: input.input.nodeId,
+        }));
+        if (snapshotStatus === "created") {
+          agentRuntimeMetrics.increment("mcp_catalog_snapshot_created");
+          input.logger.info("mcp.catalog_snapshotted", { toolCount: input.tools.length });
+        } else {
+          agentRuntimeMetrics.increment("mcp_catalog_snapshot_verified");
+          input.logger.info("mcp.catalog_verified", { toolCount: input.tools.length });
+        }
+      } catch (error) {
+        agentRuntimeMetrics.increment("mcp_catalog_isolation_rejected");
+        input.logger.warn("mcp.catalog_rejected", { reason: safeErrorMessage(error) });
+        throw error;
+      }
+    }
     const isApprovalResume = input.input.approvalToken === "approved" &&
       Boolean(input.input.approvalToolResumeState);
     const isPendingLoopResume = input.pending?.context.source === "loop";

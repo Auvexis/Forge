@@ -14,7 +14,10 @@ export type AgentRuntimeLogEvent =
   | "interaction.created"
   | "interaction.resolved"
   | "approval.requested"
-  | "approval.resumed";
+  | "approval.resumed"
+  | "mcp.catalog_snapshotted"
+  | "mcp.catalog_verified"
+  | "mcp.catalog_rejected";
 
 export interface AgentRuntimeLogContext {
   profileId: string;

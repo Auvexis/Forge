@@ -30,7 +30,23 @@ export interface AgentRunRecord {
   createdAt: string;
   updatedAt: string;
   completedAt?: string;
+  toolCatalogSnapshot?: AgentToolCatalogSnapshot;
 }
+
+export interface AgentToolCatalogSnapshot {
+  profileId: string;
+  workflowId: string;
+  nodeId: string;
+  tools: Array<{
+    name: string;
+    pluginId?: string;
+    methodId?: string;
+    sideEffect: AgentToolSideEffect;
+    schemaHash: string;
+  }>;
+}
+
+import type { AgentToolSideEffect } from "../agent-types.ts";
 
 export interface AgentActionRecord {
   id: string;

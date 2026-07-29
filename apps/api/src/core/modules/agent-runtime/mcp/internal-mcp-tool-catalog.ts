@@ -1,6 +1,8 @@
 import { AgentRuntimeError } from "../agent-errors.ts";
 import { AGENT_LIMITS } from "../agent-limits.ts";
 import type { InternalMcpTool, InternalMcpToolCard } from "./internal-mcp-types.ts";
+import { createHash } from "node:crypto";
+import type { AgentToolCatalogSnapshot } from "../contracts/agent-domain-contracts.ts";
 
 /**
  * Run-scoped catalog. Only tools connected to the executing AI Agent node are
@@ -24,7 +26,7 @@ export class InternalMcpToolCatalog {
           400,
         );
       }
-      this.tools.set(tool.name, tool);
+      this.tools.set(tool.name, sanitizeTool(tool));
     }
   }
 
@@ -52,17 +54,39 @@ export class InternalMcpToolCatalog {
     }
     return tool;
   }
+
+  snapshot(scope: {
+    profileId: string;
+    workflowId: string;
+    nodeId: string;
+  }): AgentToolCatalogSnapshot {
+    return {
+      ...scope,
+      tools: [...this.tools.values()].map((tool) => ({
+        name: tool.name,
+        ...(tool.pluginId ? { pluginId: tool.pluginId } : {}),
+        ...(tool.methodId ? { methodId: tool.methodId } : {}),
+        sideEffect: tool.sideEffect ?? "read",
+        schemaHash: createHash("sha256")
+          .update(stableJson(tool.inputSchema))
+          .digest("hex"),
+      })),
+    };
+  }
 }
 
 function compactSummary(value: string): string {
-  const normalized = value.replace(/\s+/g, " ").trim();
+  const normalized = sanitizeMetadataText(value);
   return normalized.length <= AGENT_LIMITS.maxToolSummaryChars
     ? normalized
     : `${normalized.slice(0, AGENT_LIMITS.maxToolSummaryChars - 3)}...`;
 }
 
 function validateTool(tool: InternalMcpTool): void {
-  if (!tool.name.trim() || tool.name.length > AGENT_LIMITS.maxToolNameChars) {
+  if (
+    !/^[a-zA-Z0-9_.:-]+$/.test(tool.name) ||
+    tool.name.length > AGENT_LIMITS.maxToolNameChars
+  ) {
     throw invalidCatalog("Connected tool has an invalid name");
   }
   if (tool.summary.length > AGENT_LIMITS.maxToolSummaryChars * 4) {
@@ -88,6 +112,49 @@ function validateTool(tool: InternalMcpTool): void {
   if (stats.hasExternalRef) {
     throw invalidCatalog(`Connected tool ${tool.name} has an external schema reference`);
   }
+}
+
+function sanitizeTool(tool: InternalMcpTool): InternalMcpTool {
+  return Object.freeze({
+    ...tool,
+    summary: compactSummary(tool.summary),
+    ...(tool.instructions
+      ? { instructions: sanitizeMetadataText(tool.instructions) }
+      : {}),
+    inputSchema: sanitizeSchemaMetadata(tool.inputSchema),
+  });
+}
+
+function sanitizeSchemaMetadata(value: unknown, key?: string): any {
+  if (typeof value === "string") {
+    return key === "title" || key === "description" || key === "$comment"
+      ? sanitizeMetadataText(value)
+      : value;
+  }
+  if (Array.isArray(value)) return value.map((item) => sanitizeSchemaMetadata(item));
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .map(([childKey, child]) => [childKey, sanitizeSchemaMetadata(child, childKey)]),
+  );
+}
+
+function sanitizeMetadataText(value: string): string {
+  return value
+    .replace(/[\u0000-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.entries(value as Record<string, unknown>)
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, child]) => `${JSON.stringify(key)}:${stableJson(child)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
 }
 
 function inspectSchema(

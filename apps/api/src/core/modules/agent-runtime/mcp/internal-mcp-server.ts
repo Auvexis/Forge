@@ -6,6 +6,7 @@ import type {
 } from "./internal-mcp-types.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import { InternalMcpCallError, normalizeInternalMcpError } from "./internal-mcp-error.ts";
+import type { AgentToolCatalogSnapshot } from "../contracts/agent-domain-contracts.ts";
 
 /**
  * Run-scoped MCP server assembled by the Fabric Host from the Agent node's
@@ -34,6 +35,14 @@ export class InternalMcpServer {
 
   getToolSchema(name: string): Record<string, any> {
     return this.catalog.get(name).inputSchema;
+  }
+
+  snapshot(scope: {
+    profileId: string;
+    workflowId: string;
+    nodeId: string;
+  }): AgentToolCatalogSnapshot {
+    return this.catalog.snapshot(scope);
   }
 
   async callTool(call: InternalMcpToolCall): Promise<InternalMcpToolResult> {

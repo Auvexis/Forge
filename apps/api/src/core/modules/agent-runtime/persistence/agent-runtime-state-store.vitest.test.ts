@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import { describe, expect, it } from "vitest";
 import { up } from "../../../database/migrations/workflows/007_agent_mcp_runs.ts";
 import { up as addRunLeases } from "../../../database/migrations/workflows/011_agent_run_leases.ts";
+import { up as addToolCatalogSnapshot } from "../../../database/migrations/workflows/012_agent_tool_catalog_snapshot.ts";
 import type { AgentRunInput } from "../agent-types.ts";
 import { AgentActionRepository } from "./agent-action-repository.ts";
 import { AgentRunRepository } from "./agent-run-repository.ts";
@@ -12,6 +13,7 @@ describe("AgentRuntimeStateStore", () => {
     const db = new Database(":memory:");
     await up(db);
     await addRunLeases(db);
+    await addToolCatalogSnapshot(db);
     const store = new AgentRuntimeStateStore(db);
     store.startRun("run_1", runInput());
     store.markRunRunning();
@@ -35,7 +37,56 @@ describe("AgentRuntimeStateStore", () => {
       version: 4,
     });
   });
+
+  it("persists an immutable catalog and verifies it on resume", async () => {
+    const db = new Database(":memory:");
+    await up(db);
+    await addRunLeases(db);
+    await addToolCatalogSnapshot(db);
+    const firstWorker = new AgentRuntimeStateStore(db);
+    firstWorker.startRun("run_snapshot", runInput());
+    expect(firstWorker.bindToolCatalogSnapshot(snapshot("drive_download"))).toBe("created");
+    firstWorker.markRunRunning();
+    firstWorker.markRunWaitingUser();
+
+    const resumedWorker = new AgentRuntimeStateStore(db);
+    resumedWorker.resumeRun("profile_1", "run_snapshot");
+    expect(resumedWorker.bindToolCatalogSnapshot(snapshot("drive_download"))).toBe("verified");
+    expect(() => resumedWorker.bindToolCatalogSnapshot(snapshot("drive_download_v2")))
+      .toThrowError(/Connected tools changed/);
+    resumedWorker.markRunCancelled();
+  });
+
+  it("rejects a catalog owned by another profile or workflow", async () => {
+    const db = new Database(":memory:");
+    await up(db);
+    await addRunLeases(db);
+    await addToolCatalogSnapshot(db);
+    const store = new AgentRuntimeStateStore(db);
+    store.startRun("run_isolated", runInput());
+
+    expect(() => store.bindToolCatalogSnapshot({
+      ...snapshot("drive_download"),
+      profileId: "profile_attacker",
+    })).toThrowError(/ownership does not match/);
+    store.markRunCancelled();
+  });
 });
+
+function snapshot(name: string) {
+  return {
+    profileId: "profile_1",
+    workflowId: "workflow_1",
+    nodeId: "agent_1",
+    tools: [{
+      name,
+      pluginId: "drive",
+      methodId: "download",
+      sideEffect: "read" as const,
+      schemaHash: "hash_1",
+    }],
+  };
+}
 
 function runInput(): AgentRunInput {
   return {

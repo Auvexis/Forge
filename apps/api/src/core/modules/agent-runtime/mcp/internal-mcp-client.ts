@@ -25,6 +25,14 @@ export class InternalMcpClient {
     return this.server.describeTool(name);
   }
 
+  snapshot(scope: {
+    profileId: string;
+    workflowId: string;
+    nodeId: string;
+  }) {
+    return this.server.snapshot(scope);
+  }
+
   validateToolArguments(name: string, arguments_: Record<string, unknown>): void {
     this.argumentValidator.validate(name, this.getToolSchema(name), arguments_);
   }

@@ -3,7 +3,11 @@ import { randomUUID } from "node:crypto";
 import { AgentRuntimeError } from "../agent-errors.ts";
 import type { AgentRequiredAction } from "../intent/agent-intent-gateway.ts";
 import type { AgentRunInput } from "../agent-types.ts";
-import type { AgentActionRecord, AgentRunRecord } from "../contracts/agent-domain-contracts.ts";
+import type {
+  AgentActionRecord,
+  AgentRunRecord,
+  AgentToolCatalogSnapshot,
+} from "../contracts/agent-domain-contracts.ts";
 import type { AgentPendingInteraction, AgentPendingInteractionKind } from "../contracts/agent-domain-contracts.ts";
 import { AgentActionRepository } from "./agent-action-repository.ts";
 import { AgentRunRepository } from "./agent-run-repository.ts";
@@ -34,6 +38,7 @@ export interface AgentRuntimeStateLifecycle {
   markActionWaitingApproval(actionId: string): void;
   markActionCompleted(actionId: string, output?: unknown): void;
   markActionFailed(actionId: string, output?: unknown): void;
+  bindToolCatalogSnapshot(snapshot: AgentToolCatalogSnapshot): "created" | "verified";
 }
 
 export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
@@ -170,6 +175,33 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
     this.transitionAction(actionId, "failed", output);
   }
 
+  bindToolCatalogSnapshot(snapshot: AgentToolCatalogSnapshot): "created" | "verified" {
+    const run = this.requireRun();
+    if (
+      snapshot.profileId !== run.profileId ||
+      snapshot.workflowId !== run.workflowId ||
+      snapshot.nodeId !== run.nodeId
+    ) {
+      throw catalogIsolationError("Tool catalog ownership does not match the active run");
+    }
+    if (run.toolCatalogSnapshot) {
+      if (JSON.stringify(run.toolCatalogSnapshot) !== JSON.stringify(snapshot)) {
+        throw catalogIsolationError("Connected tools changed while resuming the run");
+      }
+      return "verified";
+    }
+    if (!this.runs.saveToolCatalogSnapshot({
+      profileId: run.profileId,
+      workflowId: run.workflowId,
+      id: run.id,
+      snapshot,
+    })) {
+      throw catalogIsolationError("Tool catalog snapshot could not be reserved");
+    }
+    this.run = this.runs.getById(run.profileId, run.id)!;
+    return "created";
+  }
+
   private transitionRun(state: AgentRunRecord["state"]): void {
     const run = this.requireRun();
     this.run = this.runs.updateState({
@@ -248,4 +280,13 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
     const run = this.requireRun();
     this.runs.releaseLease(run.profileId, run.id, this.leaseOwner);
   }
+}
+
+function catalogIsolationError(detail: string): AgentRuntimeError {
+  return new AgentRuntimeError(
+    detail,
+    "AGENT_TOOL_CATALOG_ISOLATION",
+    "Connected tools changed or do not belong to this agent run",
+    409,
+  );
 }

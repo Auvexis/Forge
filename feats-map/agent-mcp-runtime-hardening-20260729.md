@@ -105,14 +105,14 @@
 
 ## Batch 11 — MCP Isolation
 
-- [ ] Snapshot the connected tool catalog per run
-- [ ] Reject disconnected and renamed tools
-- [ ] Enforce profile and workflow ownership
-- [ ] Sanitize untrusted tool metadata
+- [x] Snapshot the connected tool catalog per run
+- [x] Reject disconnected and renamed tools
+- [x] Enforce profile and workflow ownership
+- [x] Sanitize untrusted tool metadata
 - [x] Add tool-name collision policy
-- [ ] Add cross-agent isolation tests
-- [ ] Add audit events and metrics
-- [ ] Update this tracker and commit each task
+- [x] Add cross-agent isolation tests
+- [x] Add audit events and metrics
+- [x] Update this tracker and commit each task
 
 ## Batch 12 — Observability
 
