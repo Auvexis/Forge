@@ -9,6 +9,7 @@ import { sanitizeAgentToolValue } from "./agent-tool-result-sanitizer.ts";
 import type { AgentRuntimeLogger } from "../observability/agent-runtime-logger.ts";
 import type { AgentRuntimeStateLifecycle } from "../persistence/agent-runtime-state-store.ts";
 import { InternalMcpCallError } from "../mcp/internal-mcp-error.ts";
+import { validateAgentActionGraph } from "./agent-action-graph-validator.ts";
 
 interface ActionState extends AgentRequiredAction {
   status: "pending" | "completed";
@@ -50,6 +51,7 @@ export async function runMcpAgentLoop(input: {
   throwIfCancelled(input.abortSignal);
   const resumed = normalizeResumeState(input.resumeState ?? input.approvedTool?.resumeState);
   const actions: ActionState[] = resumed?.actions ?? input.actions.map((action) => ({ ...action, status: "pending" }));
+  validateAgentActionGraph(actions, input.maxToolCalls);
   const toolCalls = [...(resumed?.toolCalls ?? [])];
   let toolCallCount = resumed?.toolCallCount ?? 0;
   input.state?.initializeActions(actions);

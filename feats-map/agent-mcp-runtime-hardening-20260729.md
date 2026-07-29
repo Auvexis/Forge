@@ -76,8 +76,8 @@
 - [ ] Add per-model timeout
 - [x] Add per-tool timeout
 - [x] Check cancellation between transitions
-- [ ] Detect action dependency cycles
-- [ ] Enforce action and tool-call limits
+- [x] Detect action dependency cycles
+- [x] Enforce action and tool-call limits
 - [ ] Add worker lease and heartbeat
 - [ ] Add timeout, cancellation, and concurrency tests
 - [ ] Update this tracker and commit each task
