@@ -1,0 +1,4 @@
+- [x] Criar checklist alpha manual
+- [x] Atualizar docs pre-release
+- [x] Revisar diff
+- [x] Commitar checklist

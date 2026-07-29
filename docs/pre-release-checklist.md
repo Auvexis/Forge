@@ -97,6 +97,83 @@ Verificar:
 - Forms publicados abrem em outro dispositivo.
 - Login/conexao Auvexis nao quebra por CORS ou callback incorreto.
 
+## Gate Alpha Manual
+
+Use este gate antes de promover uma nova alpha para testers. Ele valida o fluxo real que mais importa: app abrindo, gateway roteando, URL publica funcionando e triggers externos chegando no backend certo.
+
+### npm
+
+Em uma pasta limpa:
+
+```sh
+npm install -g @auvexis/fabric@alpha
+fabric
+```
+
+Verificar:
+
+- `http://localhost:23800` abre o Fabric pelo gateway.
+- Criar um perfil novo funciona.
+- Reiniciar o Fabric preserva o perfil esperado.
+- Abrir `/home` e `/workflows` nao gera erro de CORS.
+- Abrir `/workflows` nao gera `Failed to parse response as JSON`.
+- Criar um workflow simples funciona.
+- Publicar o workflow funciona.
+
+### Docker
+
+Com Docker ligado:
+
+```sh
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up
+```
+
+Verificar:
+
+- `http://localhost:23800` abre o Fabric.
+- Criar ou selecionar um perfil funciona.
+- Abrir `/home` e `/workflows` nao gera erro de CORS.
+- API, client e gateway sobem sem expor API/client diretamente como requisito para uso normal.
+- Parar o compose ao final do teste.
+
+### Public URL
+
+Com ngrok apontando para o gateway:
+
+```sh
+ngrok http 23800
+```
+
+No Fabric, configurar a URL publica gerada pelo ngrok quando necessario.
+
+Verificar:
+
+- A URL publica abre o frontend em outro dispositivo.
+- Criar workflow com trigger de formulario.
+- Testar o formulario em modo dev.
+- Publicar o workflow.
+- Abrir o formulario publicado pelo celular.
+- Enviar o formulario pelo celular.
+- Confirmar que a execucao aparece no Fabric.
+- Confirmar que nao ha erro de CORS no browser.
+
+### Evidencia
+
+Salvar logs locais quando possivel:
+
+- `logs/release-alpha-npm-<version>.log`
+- `logs/release-alpha-docker-<version>.log`
+
+Registrar no `feats-map/release-alpha-<n>-*.md`:
+
+- Versao testada.
+- Resultado npm.
+- Resultado Docker.
+- Resultado Public URL.
+- Resultado do teste pelo celular.
+- Qualquer erro encontrado.
+
 ## Gate npm
 
 Antes de publicar no npm:
