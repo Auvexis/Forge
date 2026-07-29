@@ -13,7 +13,7 @@
 - [x] Add agent run and action migrations
 - [x] Add run repository
 - [x] Add action repository
-- [ ] Add optimistic version checks
+- [x] Add optimistic version checks
 - [ ] Persist every loop transition
 - [ ] Add repository and recovery tests
 - [ ] Update this tracker and commit each task

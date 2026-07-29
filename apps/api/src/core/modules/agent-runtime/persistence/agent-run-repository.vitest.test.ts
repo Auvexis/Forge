@@ -33,4 +33,30 @@ describe("AgentRunRepository", () => {
       sessionId: "chat_1",
     })?.id).toBe("run_1");
   });
+
+  it("rejects stale state transitions", () => {
+    const repository = new AgentRunRepository(db);
+    const run = repository.create({
+      id: "run_1",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      executionId: "execution_1",
+      nodeId: "agent_1",
+      userMessage: "hello",
+    });
+
+    const running = repository.updateState({
+      profileId: "profile_1",
+      id: run.id,
+      expectedVersion: run.version,
+      state: "running",
+    });
+    expect(running.version).toBe(2);
+    expect(() => repository.updateState({
+      profileId: "profile_1",
+      id: run.id,
+      expectedVersion: run.version,
+      state: "failed",
+    })).toThrow(/Concurrent agent run update rejected/);
+  });
 });

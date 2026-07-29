@@ -1,5 +1,7 @@
 import type Database from "better-sqlite3";
+import { AgentRuntimeError } from "../agent-errors.ts";
 import type { AgentRunRecord, AgentRunState } from "../contracts/agent-domain-contracts.ts";
+import { assertAgentRunTransition } from "../contracts/agent-state-transitions.ts";
 
 export interface CreateAgentRunInput {
   id: string;
@@ -63,6 +65,35 @@ export class AgentRunRepository {
     ) as AgentRunRow | undefined;
     return row ? toRun(row) : null;
   }
+
+  updateState(input: {
+    profileId: string;
+    id: string;
+    expectedVersion: number;
+    state: AgentRunState;
+  }): AgentRunRecord {
+    const current = this.getById(input.profileId, input.id);
+    if (!current) throw concurrencyError("run", input.id);
+    if (current.version !== input.expectedVersion) throw concurrencyError("run", input.id);
+    assertAgentRunTransition(current.state, input.state);
+
+    const now = new Date().toISOString();
+    const completedAt = isTerminal(input.state) ? now : null;
+    const result = this.db.prepare(`
+      UPDATE agent_runs
+      SET state = ?, version = version + 1, updated_at = ?, completed_at = ?
+      WHERE profile_id = ? AND id = ? AND version = ?
+    `).run(
+      input.state,
+      now,
+      completedAt,
+      input.profileId,
+      input.id,
+      input.expectedVersion,
+    );
+    if (result.changes !== 1) throw concurrencyError("run", input.id);
+    return this.getById(input.profileId, input.id)!;
+  }
 }
 
 interface AgentRunRow {
@@ -95,4 +126,17 @@ function toRun(row: AgentRunRow): AgentRunRecord {
     updatedAt: row.updated_at,
     completedAt: row.completed_at ?? undefined,
   };
+}
+
+function isTerminal(state: AgentRunState): boolean {
+  return state === "completed" || state === "failed" || state === "cancelled";
+}
+
+function concurrencyError(entity: "run" | "action", id: string): AgentRuntimeError {
+  return new AgentRuntimeError(
+    `Concurrent agent ${entity} update rejected for ${id}`,
+    "AGENT_STATE_VERSION_CONFLICT",
+    "The agent state changed while this request was running",
+    409,
+  );
 }

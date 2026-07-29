@@ -48,4 +48,29 @@ describe("AgentActionRepository", () => {
     });
     expect(repository.listByRun("profile_2", "run_1")).toEqual([]);
   });
+
+  it("rejects stale action updates", () => {
+    const repository = new AgentActionRepository(db);
+    const action = repository.create({
+      id: "action_1",
+      runId: "run_1",
+      position: 1,
+      toolName: "drive_download",
+      objective: "Download the file",
+    });
+    const ready = repository.updateState({
+      runId: action.runId,
+      id: action.id,
+      expectedVersion: action.version,
+      state: "ready",
+    });
+
+    expect(ready.version).toBe(2);
+    expect(() => repository.updateState({
+      runId: action.runId,
+      id: action.id,
+      expectedVersion: action.version,
+      state: "skipped",
+    })).toThrow(/Concurrent agent action update rejected/);
+  });
 });

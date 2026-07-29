@@ -1,8 +1,10 @@
 import type Database from "better-sqlite3";
+import { AgentRuntimeError } from "../agent-errors.ts";
 import type {
   AgentActionRecord,
   AgentActionState,
 } from "../contracts/agent-domain-contracts.ts";
+import { assertAgentActionTransition } from "../contracts/agent-state-transitions.ts";
 
 export interface CreateAgentActionInput {
   id: string;
@@ -58,6 +60,40 @@ export class AgentActionRepository {
     `).all(profileId, runId) as AgentActionRow[];
     return rows.map(toAction);
   }
+
+  updateState(input: {
+    runId: string;
+    id: string;
+    expectedVersion: number;
+    state: AgentActionState;
+    arguments?: Record<string, unknown>;
+    output?: unknown;
+  }): AgentActionRecord {
+    const current = this.getById(input.runId, input.id);
+    if (!current) throw concurrencyError(input.id);
+    if (current.version !== input.expectedVersion) throw concurrencyError(input.id);
+    assertAgentActionTransition(current.state, input.state);
+
+    const result = this.db.prepare(`
+      UPDATE agent_actions
+      SET state = ?,
+          arguments_json = COALESCE(?, arguments_json),
+          output_json = COALESCE(?, output_json),
+          version = version + 1,
+          updated_at = ?
+      WHERE run_id = ? AND id = ? AND version = ?
+    `).run(
+      input.state,
+      serializeOptional(input.arguments),
+      serializeOptional(input.output),
+      new Date().toISOString(),
+      input.runId,
+      input.id,
+      input.expectedVersion,
+    );
+    if (result.changes !== 1) throw concurrencyError(input.id);
+    return this.getById(input.runId, input.id)!;
+  }
 }
 
 interface AgentActionRow {
@@ -101,4 +137,13 @@ function parseJson<T>(value: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function concurrencyError(id: string): AgentRuntimeError {
+  return new AgentRuntimeError(
+    `Concurrent agent action update rejected for ${id}`,
+    "AGENT_STATE_VERSION_CONFLICT",
+    "The agent state changed while this request was running",
+    409,
+  );
 }
