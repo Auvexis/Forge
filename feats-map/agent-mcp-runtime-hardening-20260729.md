@@ -6,7 +6,7 @@
 - [x] Define run and action state transitions
 - [x] Define internal MCP request and response envelopes
 - [x] Add contract tests
-- [ ] Update this tracker and commit each task
+- [x] Update this tracker and commit each task
 
 ## Batch 2 — Durable Runs
 
