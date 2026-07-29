@@ -11,7 +11,7 @@
 ## Batch 2 — Durable Runs
 
 - [x] Add agent run and action migrations
-- [ ] Add run repository
+- [x] Add run repository
 - [ ] Add action repository
 - [ ] Add optimistic version checks
 - [ ] Persist every loop transition

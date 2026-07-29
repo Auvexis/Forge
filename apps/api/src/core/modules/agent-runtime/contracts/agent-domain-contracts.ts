@@ -17,6 +17,21 @@ export type AgentActionState =
   | "failed"
   | "skipped";
 
+export interface AgentRunRecord {
+  id: string;
+  profileId: string;
+  workflowId: string;
+  executionId: string;
+  nodeId: string;
+  sessionId?: string;
+  userMessage: string;
+  state: AgentRunState;
+  version: number;
+  createdAt: string;
+  updatedAt: string;
+  completedAt?: string;
+}
+
 export interface AgentActionRecord {
   id: string;
   runId: string;
