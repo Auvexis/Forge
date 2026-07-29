@@ -30,8 +30,8 @@
 
 ## Batch 4 — MCP Validation
 
-- [ ] Add Host-side AJV argument validation
-- [ ] Reject unknown tool arguments
+- [x] Add Host-side AJV argument validation
+- [x] Reject unknown tool arguments
 - [ ] Add bounded argument repair
 - [ ] Add result envelope validation
 - [ ] Add tool catalog and schema limits
