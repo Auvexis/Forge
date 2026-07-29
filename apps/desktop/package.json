@@ -1,0 +1,21 @@
+{
+  "name": "@fabric/desktop",
+  "version": "0.1.0-alpha.10",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "dev": "npm run build && tsx scripts/dev.mts",
+    "build": "tsc && tsx scripts/copy-assets.mts",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "electron": "^40.1.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@auvexis/fabric": "file:../.."
+  }
+}

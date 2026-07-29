@@ -6,8 +6,9 @@ COPY package*.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/client/package.json apps/client/package.json
 COPY apps/gateway/package.json apps/gateway/package.json
+COPY apps/desktop/package.json apps/desktop/package.json
 
-RUN npm ci
+RUN npm ci --include-workspace-root --workspace apps/api --workspace apps/client --workspace apps/gateway
 
 FROM deps AS build
 
@@ -27,8 +28,9 @@ COPY package*.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/client/package.json apps/client/package.json
 COPY apps/gateway/package.json apps/gateway/package.json
+COPY apps/desktop/package.json apps/desktop/package.json
 
-RUN npm ci --omit=dev
+RUN npm ci --omit=dev --include-workspace-root --workspace apps/api --workspace apps/client --workspace apps/gateway
 
 COPY --from=build /app/apps/gateway/dist apps/gateway/dist
 
