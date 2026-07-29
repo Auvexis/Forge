@@ -129,6 +129,32 @@ describe("agent runtime recovery", () => {
       kind: "selection",
       question: "Qual arquivo?",
     });
+
+    const pending = store.findPendingInteraction(input)!;
+    const restartedStore = new AgentRuntimeStateStore(db);
+    restartedStore.resumeRun(input.profileId, pending.runId);
+    restartedStore.resolvePendingInteraction(input.profileId, pending.id, { id: "2" });
+    restartedStore.markRunRunning();
+    const resumed = await runMcpAgentLoop({
+      model: {
+        invokeJson: async <T extends object>() =>
+          ({ action: "call", arguments: { name: "X.mp4", id: "2" } }) as T,
+        generateFinalResponse: async () => "Arquivo selecionado.",
+      },
+      client: client(async () => ({ artifact: "artifact://selected" })),
+      systemPrompt: "",
+      userMessage: "O segundo.",
+      contextMessages: [],
+      actions: [],
+      resumeState: pending.context.resumeState,
+      maxToolCalls: 2,
+      emitEvent: () => undefined,
+      state: restartedStore,
+    });
+    restartedStore.markRunCompleted();
+
+    expect(resumed).toMatchObject({ status: "success", toolCallCount: 2 });
+    expect(new AgentRunRepository(db).getById("profile_1", "run_2")?.state).toBe("completed");
   });
 });
 
@@ -154,6 +180,7 @@ function client(invoke: (args: Record<string, unknown>) => Promise<unknown>): In
       properties: {
         to: { type: "string" },
         name: { type: "string" },
+        id: { type: "string" },
       },
     },
     invoke,

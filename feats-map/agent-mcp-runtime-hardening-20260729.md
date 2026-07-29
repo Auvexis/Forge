@@ -138,15 +138,15 @@
 
 ## Batch 14 — End-to-End Validation
 
-- [ ] Test chat-only conversation
-- [ ] Test missing-context resume
-- [ ] Test ambiguous-result resume
-- [ ] Test approval resume
+- [x] Test chat-only conversation
+- [x] Test missing-context resume
+- [x] Test ambiguous-result resume
+- [x] Test approval resume
 - [x] Test multi-tool dependency execution
-- [ ] Test repeated use of the same tool
-- [ ] Test crash recovery
-- [ ] Test backend restart recovery
-- [ ] Run API build, type-check, Vitest, and Node tests
-- [ ] Run client build, type-check, Vitest, and Node tests
-- [ ] Update architecture documentation
-- [ ] Update this tracker and commit each task
+- [x] Test repeated use of the same tool
+- [x] Test crash recovery
+- [x] Test backend restart recovery
+- [x] Run API build, type-check, Vitest, and Node tests
+- [x] Run client build, type-check, Vitest, and Node tests
+- [x] Update architecture documentation
+- [x] Update this tracker and commit each task

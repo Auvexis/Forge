@@ -156,7 +156,7 @@ describe("plugin tool executor", () => {
     assert.equal(executed, false);
   });
 
-  it("replays an already completed side-effect tool in the same execution without sending it again", async () => {
+  it("does not bypass approval through the removed process-local replay cache", async () => {
     let executions = 0;
     PluginManager.registerPlugin(createPlugin(async () => {
       executions += 1;
@@ -175,19 +175,23 @@ describe("plugin tool executor", () => {
       workflowId: "workflow_1",
       nodeId: "agent_1",
     });
-    const replay = await executePluginAgentTool({
-      definition: toolDefinition,
-      configuredTool: toolConfig,
-      args: { owner: "acme", title: "Piada" },
-      approvalToken: "approved",
-      approvalToolName: "google_gmail_send_message",
-      executionId: "exec_replay",
-      workflowId: "workflow_1",
-      nodeId: "agent_1",
-    });
+    await assert.rejects(
+      executePluginAgentTool({
+        definition: toolDefinition,
+        configuredTool: toolConfig,
+        args: { owner: "acme", title: "Piada" },
+        approvalToken: "approved",
+        approvalToolName: "google_gmail_send_message",
+        executionId: "exec_replay",
+        workflowId: "workflow_1",
+        nodeId: "agent_1",
+      }),
+      (error) =>
+        error instanceof AgentRuntimeError &&
+        error.code === "AGENT_TOOL_APPROVAL_REQUIRED",
+    );
 
     assert.deepEqual(first, { ok: true, id: "sent_1" });
-    assert.deepEqual(replay, first);
     assert.equal(executions, 1);
   });
 
