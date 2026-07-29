@@ -38,6 +38,8 @@ import { InternalMcpServer } from "./mcp/internal-mcp-server.ts";
 import type { InternalMcpTool } from "./mcp/internal-mcp-types.ts";
 import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
 import type { AgentRuntimeStateLifecycle } from "./persistence/agent-runtime-state-store.ts";
+import type { AgentPendingInteraction } from "./contracts/agent-domain-contracts.ts";
+import { routePendingInteractionReply } from "./interactions/pending-interaction-router.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -73,7 +75,9 @@ export class AgentRunner {
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
-    const runId = `run_${randomUUID()}`;
+    const state = this.stateStoreFactory?.();
+    const pending = state?.findPendingInteraction(input) ?? null;
+    const runId = pending?.runId ?? `run_${randomUUID()}`;
     const logger = new AgentRuntimeLogger({
       profileId: input.profileId,
       workflowId: input.workflowId,
@@ -82,9 +86,28 @@ export class AgentRunner {
       runId,
       ...(input.sessionId ? { sessionId: input.sessionId } : {}),
     });
-    const state = this.stateStoreFactory?.();
-    state?.startRun(runId, input);
-    state?.markRunRunning();
+    if (pending) {
+      state?.resumeRun(input.profileId, pending.runId);
+      const reply = routePendingInteractionReply(pending, input.userMessage);
+      if (reply.type === "cancel" || (reply.type === "confirm" && !reply.confirmed)) {
+        state?.cancelPendingInteraction(input.profileId, pending.id);
+        state?.markRunCancelled();
+        logger.info("interaction.resolved", { interactionId: pending.id, resolution: "cancelled" });
+        return {
+          status: "cancelled",
+          output: "Operação cancelada.",
+          toolCallCount: 0,
+          iterationCount: 1,
+          toolCalls: [],
+        };
+      }
+      state?.resolvePendingInteraction(input.profileId, pending.id, reply);
+      state?.markRunRunning();
+      logger.info("interaction.resolved", { interactionId: pending.id, resolution: reply.type });
+    } else {
+      state?.startRun(runId, input);
+      state?.markRunRunning();
+    }
     logger.info("run.started", { hasSession: Boolean(input.sessionId) });
     this.eventEmitter({ type: "agent:start", payload: { sessionId: input.sessionId } }, input);
     this.eventEmitter({
@@ -132,6 +155,7 @@ export class AgentRunner {
       const contextMessages = [
         ...memoryMessages,
         ...(validated.contextMessages ?? []),
+        ...pendingContextMessages(pending),
       ];
       const result = await this.runMcpRuntime({
         input,
@@ -141,6 +165,7 @@ export class AgentRunner {
         contextMessages,
         logger,
         state,
+        pending,
       });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
@@ -291,12 +316,14 @@ export class AgentRunner {
     contextMessages: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
     logger: AgentRuntimeLogger;
     state?: AgentRuntimeStateLifecycle;
+    pending?: AgentPendingInteraction | null;
   }): Promise<AgentRunResult> {
     const model = toAgentRuntimeModel(input.model);
     const client = new InternalMcpClient(new InternalMcpServer(input.tools));
     const isApprovalResume = input.input.approvalToken === "approved" &&
       Boolean(input.input.approvalToolResumeState);
-    const intent = isApprovalResume
+    const isPendingLoopResume = input.pending?.context.source === "loop";
+    const intent = isApprovalResume || isPendingLoopResume
       ? null
       : await routeAgentIntent({
           model,
@@ -320,6 +347,15 @@ export class AgentRunner {
     }
     if (intent?.mode === "clarify") {
       input.logger.info("interaction.created", { kind: "clarification" });
+      input.state?.createPendingInteraction({
+        id: `interaction_${randomUUID()}`,
+        kind: "clarification",
+        question: intent.question,
+        context: {
+          source: "intent",
+          originalUserMessage: input.input.userMessage,
+        },
+      });
       return {
         status: "waiting-user",
         output: { status: "waiting-user", question: intent.question },
@@ -350,6 +386,7 @@ export class AgentRunner {
       emitEvent: (event) => this.eventEmitter(event, input.input),
       logger: input.logger,
       state: input.state,
+      resumeState: isPendingLoopResume ? input.pending?.context.resumeState : undefined,
     });
   }
 }
@@ -501,6 +538,28 @@ function normalizePluginMemoryRecords(result: unknown): Array<Pick<AgentMemoryRe
 function normalizeToolArgs(args: unknown): Record<string, any> {
   if (!args || typeof args !== "object" || Array.isArray(args)) return {};
   return args as Record<string, any>;
+}
+
+function pendingContextMessages(
+  pending: AgentPendingInteraction | null,
+): Array<{ role: "user" | "tool"; content: string }> {
+  if (!pending) return [];
+  const original = typeof pending.context.originalUserMessage === "string"
+    ? pending.context.originalUserMessage
+    : "";
+  return [
+    ...(original ? [{ role: "user" as const, content: original }] : []),
+    {
+      role: "tool" as const,
+      content: JSON.stringify({
+        pendingInteraction: {
+          kind: pending.kind,
+          question: pending.question,
+          interruptedOutput: pending.context.interruptedOutput,
+        },
+      }),
+    },
+  ];
 }
 
 function formatMemoryValue(value: unknown): string {

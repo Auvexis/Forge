@@ -40,11 +40,12 @@ export async function runMcpAgentLoop(input: {
     arguments: Record<string, unknown>;
     resumeState?: unknown;
   };
+  resumeState?: unknown;
   emitEvent: (event: AgentRuntimeEvent) => void;
   logger?: AgentRuntimeLogger;
   state?: AgentRuntimeStateLifecycle;
 }): Promise<AgentRunResult> {
-  const resumed = normalizeResumeState(input.approvedTool?.resumeState);
+  const resumed = normalizeResumeState(input.resumeState ?? input.approvedTool?.resumeState);
   const actions: ActionState[] = resumed?.actions ?? input.actions.map((action) => ({ ...action, status: "pending" }));
   const toolCalls = [...(resumed?.toolCalls ?? [])];
   let toolCallCount = resumed?.toolCallCount ?? 0;
@@ -123,6 +124,15 @@ export async function runMcpAgentLoop(input: {
         reason: "missing_arguments",
       });
       input.state?.markActionWaitingUser(action.id);
+      persistPending(
+        input,
+        "clarification",
+        decision.question || `More information is required for ${action.objective}.`,
+        actions,
+        toolCalls,
+        toolCallCount,
+        action.id,
+      );
       return waitingUser(decision.question || `Preciso de mais informações para executar ${action.objective}.`, toolCallCount, toolCalls);
     }
 
@@ -139,6 +149,16 @@ export async function runMcpAgentLoop(input: {
           reason: "tool_result",
         });
         input.state?.markActionWaitingUser(action.id, result.content);
+        persistPending(
+          input,
+          "selection",
+          interruption,
+          actions,
+          toolCalls,
+          toolCallCount,
+          action.id,
+          result.content,
+        );
         return waitingUser(interruption, toolCallCount, toolCalls);
       }
       action.status = "completed";
@@ -307,6 +327,36 @@ function classifyInterruption(value: unknown): string | null {
       : "Não encontrei o item solicitado. Você pode informar outro nome ou mais detalhes?";
   }
   return null;
+}
+
+function persistPending(
+  input: Parameters<typeof runMcpAgentLoop>[0],
+  kind: "clarification" | "selection",
+  question: string,
+  actions: ActionState[],
+  toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
+  toolCallCount: number,
+  actionId?: string,
+  interruptedOutput?: unknown,
+): void {
+  input.state?.createPendingInteraction({
+    id: `interaction_${randomUUID()}`,
+    actionId,
+    kind,
+    question,
+    context: {
+      source: "loop",
+      originalUserMessage: input.userMessage,
+      resumeState: {
+        actions: sanitizeActionsForResume(actions),
+        toolCalls,
+        toolCallCount,
+      } satisfies McpLoopResumeState,
+      ...(interruptedOutput !== undefined
+        ? { interruptedOutput: sanitizeAgentToolValue(interruptedOutput) }
+        : {}),
+    },
+  });
 }
 
 function waitingUser(

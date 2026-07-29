@@ -2,16 +2,30 @@ import type Database from "better-sqlite3";
 import type { AgentRequiredAction } from "../intent/agent-intent-gateway.ts";
 import type { AgentRunInput } from "../agent-types.ts";
 import type { AgentActionRecord, AgentRunRecord } from "../contracts/agent-domain-contracts.ts";
+import type { AgentPendingInteraction, AgentPendingInteractionKind } from "../contracts/agent-domain-contracts.ts";
 import { AgentActionRepository } from "./agent-action-repository.ts";
 import { AgentRunRepository } from "./agent-run-repository.ts";
+import { AgentPendingInteractionRepository } from "./agent-pending-interaction-repository.ts";
 
 export interface AgentRuntimeStateLifecycle {
   startRun(runId: string, input: AgentRunInput): void;
+  findPendingInteraction(input: AgentRunInput): AgentPendingInteraction | null;
+  resumeRun(profileId: string, runId: string): void;
+  createPendingInteraction(input: {
+    id: string;
+    actionId?: string;
+    kind: AgentPendingInteractionKind;
+    question: string;
+    context: Record<string, unknown>;
+  }): void;
+  resolvePendingInteraction(profileId: string, id: string, response: unknown): void;
+  cancelPendingInteraction(profileId: string, id: string): void;
   markRunRunning(): void;
   markRunWaitingUser(): void;
   markRunWaitingApproval(): void;
   markRunCompleted(): void;
   markRunFailed(): void;
+  markRunCancelled(): void;
   initializeActions(actions: AgentRequiredAction[]): void;
   markActionRunning(actionId: string): void;
   markActionWaitingUser(actionId: string, output?: unknown): void;
@@ -23,12 +37,14 @@ export interface AgentRuntimeStateLifecycle {
 export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
   private readonly runs: AgentRunRepository;
   private readonly actions: AgentActionRepository;
+  private readonly interactions: AgentPendingInteractionRepository;
   private run?: AgentRunRecord;
   private readonly actionRecords = new Map<string, AgentActionRecord>();
 
   constructor(db: Database.Database) {
     this.runs = new AgentRunRepository(db);
     this.actions = new AgentActionRepository(db);
+    this.interactions = new AgentPendingInteractionRepository(db);
   }
 
   startRun(runId: string, input: AgentRunInput): void {
@@ -41,6 +57,47 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
       sessionId: input.sessionId,
       userMessage: input.userMessage,
     });
+  }
+
+  findPendingInteraction(input: AgentRunInput): AgentPendingInteraction | null {
+    if (!input.sessionId) return null;
+    return this.interactions.getPendingForSession({
+      profileId: input.profileId,
+      workflowId: input.workflowId,
+      nodeId: input.nodeId,
+      sessionId: input.sessionId,
+    });
+  }
+
+  resumeRun(profileId: string, runId: string): void {
+    const run = this.runs.getById(profileId, runId);
+    if (!run) throw new Error(`Agent run was not found for resume: ${runId}`);
+    this.run = run;
+    this.actionRecords.clear();
+    for (const action of this.actions.listByRun(profileId, runId)) {
+      this.actionRecords.set(action.id, action);
+    }
+  }
+
+  createPendingInteraction(input: {
+    id: string;
+    actionId?: string;
+    kind: AgentPendingInteractionKind;
+    question: string;
+    context: Record<string, unknown>;
+  }): void {
+    this.interactions.create({
+      ...input,
+      runId: this.requireRun().id,
+    });
+  }
+
+  resolvePendingInteraction(profileId: string, id: string, response: unknown): void {
+    this.interactions.resolve({ profileId, id, response });
+  }
+
+  cancelPendingInteraction(profileId: string, id: string): void {
+    this.interactions.cancel(profileId, id);
   }
 
   markRunRunning(): void {
@@ -63,8 +120,13 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
     this.transitionRun("failed");
   }
 
+  markRunCancelled(): void {
+    this.transitionRun("cancelled");
+  }
+
   initializeActions(actions: AgentRequiredAction[]): void {
     actions.forEach((action, position) => {
+      if (this.actionRecords.has(action.id)) return;
       const record = this.actions.create({
         id: action.id,
         runId: this.requireRun().id,

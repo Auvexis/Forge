@@ -15,18 +15,18 @@
 - [x] Add action repository
 - [x] Add optimistic version checks
 - [x] Persist every loop transition
-- [ ] Add repository and recovery tests
-- [ ] Update this tracker and commit each task
+- [x] Add repository and recovery tests
+- [x] Update this tracker and commit each task
 
 ## Batch 3 — Pending Interactions
 
 - [x] Add pending interaction migration and repository
-- [ ] Persist clarification state
-- [ ] Persist ambiguous selection state
-- [ ] Route replies to pending interactions before intent classification
+- [x] Persist clarification state
+- [x] Persist ambiguous selection state
+- [x] Route replies to pending interactions before intent classification
 - [x] Add cancel, continue, retry, confirm, and selection handlers
-- [ ] Add restart and resume tests
-- [ ] Update this tracker and commit each task
+- [x] Add restart and resume tests
+- [x] Update this tracker and commit each task
 
 ## Batch 4 — MCP Validation
 
@@ -120,7 +120,7 @@
 - [x] Add sanitized debug logger
 - [x] Log run and intent transitions
 - [x] Log action and tool-call transitions
-- [ ] Log interaction and approval transitions
+- [x] Log interaction and approval transitions
 - [x] Add environment-controlled log levels
 - [x] Add redaction and correlation tests
 - [ ] Update this tracker and commit each task
