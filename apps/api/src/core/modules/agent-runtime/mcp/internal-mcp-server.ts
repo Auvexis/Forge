@@ -15,7 +15,10 @@ import { InternalMcpCallError, normalizeInternalMcpError } from "./internal-mcp-
 export class InternalMcpServer {
   private readonly catalog: InternalMcpToolCatalog;
 
-  constructor(tools: InternalMcpTool[]) {
+  constructor(
+    tools: InternalMcpTool[],
+    private readonly artifactBoundary?: InternalMcpArtifactBoundary,
+  ) {
     this.catalog = new InternalMcpToolCatalog(tools);
   }
 
@@ -36,7 +39,13 @@ export class InternalMcpServer {
     const tool = this.catalog.get(call.name);
     let content: unknown;
     try {
-      content = await tool.invoke(call.arguments);
+      const arguments_ = this.artifactBoundary
+        ? await this.artifactBoundary.resolveArguments(call.arguments)
+        : call.arguments;
+      const rawContent = await tool.invoke(arguments_);
+      content = this.artifactBoundary
+        ? await this.artifactBoundary.captureResult(call, rawContent)
+        : rawContent;
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) throw error;
       throw new InternalMcpCallError(normalizeInternalMcpError(error, tool.name));
@@ -53,4 +62,9 @@ export class InternalMcpServer {
       },
     };
   }
+}
+
+export interface InternalMcpArtifactBoundary {
+  resolveArguments(arguments_: Record<string, unknown>): Promise<Record<string, unknown>>;
+  captureResult(call: InternalMcpToolCall, content: unknown): Promise<unknown>;
 }

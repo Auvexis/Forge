@@ -279,7 +279,12 @@ async function executeCall(
   toolCalls: NonNullable<AgentRunResult["toolCalls"]>,
 ) {
   const tool = input.client.describeTool(action.toolName);
-  const call = { id: `tool_call_${sequence}_${randomUUID()}`, name: tool.name, arguments: arguments_ };
+  const call = {
+    id: `tool_call_${sequence}_${randomUUID()}`,
+    actionId: action.id,
+    name: tool.name,
+    arguments: arguments_,
+  };
   const logger = input.logger?.child({
     actionId: action.id,
     toolCallId: call.id,

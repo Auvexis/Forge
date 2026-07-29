@@ -40,6 +40,7 @@ import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
 import type { AgentRuntimeStateLifecycle } from "./persistence/agent-runtime-state-store.ts";
 import type { AgentPendingInteraction } from "./contracts/agent-domain-contracts.ts";
 import { routePendingInteractionReply } from "./interactions/pending-interaction-router.ts";
+import type { AgentArtifactService } from "./artifacts/agent-artifact-service.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -48,6 +49,7 @@ export interface AgentRunnerOptions {
   toolExecutor?: typeof executePluginAgentTool;
   emitEvent?: (event: AgentRuntimeEvent, input: AgentRunInput) => void;
   stateStoreFactory?: () => AgentRuntimeStateLifecycle;
+  artifactServiceFactory?: () => AgentArtifactService;
 }
 
 export type PluginMemoryExecutor = (
@@ -63,6 +65,7 @@ export class AgentRunner {
   private readonly toolExecutor: NonNullable<AgentRunnerOptions["toolExecutor"]>;
   private readonly eventEmitter: NonNullable<AgentRunnerOptions["emitEvent"]>;
   private readonly stateStoreFactory?: AgentRunnerOptions["stateStoreFactory"];
+  private readonly artifactServiceFactory?: AgentRunnerOptions["artifactServiceFactory"];
 
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
@@ -71,11 +74,13 @@ export class AgentRunner {
     this.toolExecutor = options.toolExecutor ?? executePluginAgentTool;
     this.eventEmitter = options.emitEvent ?? defaultEventEmitter;
     this.stateStoreFactory = options.stateStoreFactory;
+    this.artifactServiceFactory = options.artifactServiceFactory;
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
     const state = this.stateStoreFactory?.();
+    const artifacts = this.artifactServiceFactory?.();
     const pending = state?.findPendingInteraction(input) ?? null;
     const runId = pending?.runId ?? `run_${randomUUID()}`;
     const logger = new AgentRuntimeLogger({
@@ -166,6 +171,8 @@ export class AgentRunner {
         logger,
         state,
         pending,
+        artifacts,
+        runId,
       });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
@@ -317,9 +324,30 @@ export class AgentRunner {
     logger: AgentRuntimeLogger;
     state?: AgentRuntimeStateLifecycle;
     pending?: AgentPendingInteraction | null;
+    artifacts?: AgentArtifactService;
+    runId: string;
   }): Promise<AgentRunResult> {
     const model = toAgentRuntimeModel(input.model);
-    const client = new InternalMcpClient(new InternalMcpServer(input.tools));
+    const client = new InternalMcpClient(new InternalMcpServer(
+      input.tools,
+      input.artifacts
+        ? {
+            resolveArguments: async (arguments_) =>
+              await input.artifacts!.resolveReferences(
+                input.input.profileId,
+                arguments_,
+              ) as Record<string, unknown>,
+            captureResult: async (call, content) =>
+              await input.artifacts!.captureResult({
+                profileId: input.input.profileId,
+                runId: input.runId,
+                actionId: call.actionId,
+                toolName: call.name,
+                value: content,
+              }),
+          }
+        : undefined,
+    ));
     const isApprovalResume = input.input.approvalToken === "approved" &&
       Boolean(input.input.approvalToolResumeState);
     const isPendingLoopResume = input.pending?.context.source === "loop";

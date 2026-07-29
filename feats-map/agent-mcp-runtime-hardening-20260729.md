@@ -53,11 +53,11 @@
 - [x] Define artifact metadata and reference contracts
 - [x] Add artifact migration and repository
 - [x] Add profile-scoped artifact storage
-- [ ] Convert binary tool results into artifact references
-- [ ] Resolve artifact references only at tool execution
+- [x] Convert binary tool results into artifact references
+- [x] Resolve artifact references only at tool execution
 - [x] Add size, TTL, ownership, and cleanup policies
-- [ ] Add Drive to Email to YouTube tests
-- [ ] Update this tracker and commit each task
+- [x] Add Drive to Email to YouTube tests
+- [x] Update this tracker and commit each task
 
 ## Batch 7 — Idempotency
 
