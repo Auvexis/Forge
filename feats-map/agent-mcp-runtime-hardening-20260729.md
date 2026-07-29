@@ -84,14 +84,14 @@
 
 ## Batch 9 — Intent and Conversation
 
-- [ ] Add multilingual chat, action, clarify, and control fixtures
-- [ ] Add prepare-versus-execute safety cases
-- [ ] Add repeated-tool and multi-action cases
+- [x] Add multilingual chat, action, clarify, and control fixtures
+- [x] Add prepare-versus-execute safety cases
+- [x] Add repeated-tool and multi-action cases
 - [x] Persist canonical assistant tool calls and tool results
 - [x] Add bounded conversation compaction
 - [x] Add completion guard tests
-- [ ] Add small-model evaluation fixtures
-- [ ] Update this tracker and commit each task
+- [x] Add small-model evaluation fixtures
+- [x] Update this tracker and commit each task
 
 ## Batch 10 — Model Providers
 
