@@ -5,7 +5,7 @@
 - [x] Define run, action, tool-call, interaction, artifact, and error contracts
 - [x] Define run and action state transitions
 - [x] Define internal MCP request and response envelopes
-- [ ] Add contract tests
+- [x] Add contract tests
 - [ ] Update this tracker and commit each task
 
 ## Batch 2 — Durable Runs
