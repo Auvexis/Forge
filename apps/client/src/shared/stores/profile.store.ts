@@ -6,8 +6,41 @@ import {
   type ProfileSummary,
   type UpdateProfilePayload,
 } from '@/core/api/profiles.api'
+import { ApiError } from '@/core/types/api.types'
 import { compareProfilesForLoginList } from '@/features/profiles/profileListRules'
 import { refreshAfterProfileSwitch } from '@/features/profiles/profileSwitchRefresh'
+
+const PROFILE_LOAD_RETRY_DELAYS_MS = [350, 700, 1200, 1800]
+
+function wait(ms: number) {
+  return new Promise((resolve) => globalThis.setTimeout(resolve, ms))
+}
+
+function isTransientStartupError(error: unknown) {
+  return (
+    error instanceof ApiError &&
+    (error.statusCode === 0 ||
+      error.statusCode === 502 ||
+      error.statusCode === 503 ||
+      error.statusCode === 504)
+  )
+}
+
+async function withProfileStartupRetry<T>(request: () => Promise<T>): Promise<T> {
+  for (const delay of PROFILE_LOAD_RETRY_DELAYS_MS) {
+    try {
+      return await request()
+    } catch (error) {
+      if (!isTransientStartupError(error)) {
+        throw error
+      }
+
+      await wait(delay)
+    }
+  }
+
+  return request()
+}
 
 export const useProfileStore = defineStore('profile', () => {
   const profiles = ref<ProfileSummary[]>([])
@@ -35,7 +68,9 @@ export const useProfileStore = defineStore('profile', () => {
     isLoading.value = true
     error.value = null
     try {
-      const [items, current] = await Promise.all([profilesApi.list(), profilesApi.getCurrent()])
+      const [items, current] = await withProfileStartupRetry(() =>
+        Promise.all([profilesApi.list(), profilesApi.getCurrent()]),
+      )
       profiles.value = items
       currentProfile.value = current
       setProfile(current)

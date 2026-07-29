@@ -5,27 +5,36 @@ import path from "node:path";
 
 const desktopUrl = process.env.FABRIC_DESKTOP_URL ?? "http://127.0.0.1:23800";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const splashMinMs = 1400;
 
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
 
-async function waitForGateway(url: string, timeoutMs = 30000): Promise<void> {
+function resolveUrl(pathname: string): string {
+  return new URL(pathname, desktopUrl).toString();
+}
+
+async function waitForApi(timeoutMs = 45000): Promise<void> {
   const startedAt = Date.now();
 
   while (Date.now() - startedAt < timeoutMs) {
     try {
-      const response = await fetch(url, { method: "GET" });
-      if (response.ok) {
+      const response = await fetch(resolveUrl("/profiles"), {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      });
+      const contentType = response.headers.get("content-type") ?? "";
+      if (response.ok && contentType.includes("application/json")) {
         return;
       }
     } catch {
-      // The dev gateway may still be starting.
+      // The dev API/gateway may still be starting.
     }
 
     await sleep(500);
   }
 
-  throw new Error(`Fabric gateway did not become ready at ${url}`);
+  throw new Error(`Fabric API did not become ready at ${resolveUrl("/profiles")}`);
 }
 
 function createSplashWindow(): BrowserWindow {
@@ -71,10 +80,15 @@ function createMainWindow(): BrowserWindow {
 }
 
 app.whenReady().then(async () => {
+  const splashStartedAt = Date.now();
   splashWindow = createSplashWindow();
 
   try {
-    await waitForGateway(desktopUrl);
+    await waitForApi();
+    const remainingSplashMs = splashMinMs - (Date.now() - splashStartedAt);
+    if (remainingSplashMs > 0) {
+      await sleep(remainingSplashMs);
+    }
     mainWindow = createMainWindow();
     splashWindow.close();
     splashWindow = null;

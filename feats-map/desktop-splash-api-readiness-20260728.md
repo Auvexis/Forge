@@ -1,0 +1,4 @@
+- [x] Esperar API no splash desktop
+- [x] Adicionar retry no loadProfiles
+- [x] Validar desktop e client
+- [x] Commitar batch
