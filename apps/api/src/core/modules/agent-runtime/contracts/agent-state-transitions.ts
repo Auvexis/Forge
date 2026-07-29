@@ -13,7 +13,7 @@ const RUN_TRANSITIONS: Record<AgentRunState, ReadonlySet<AgentRunState>> = {
 
 const ACTION_TRANSITIONS: Record<AgentActionState, ReadonlySet<AgentActionState>> = {
   pending: new Set(["ready", "skipped"]),
-  ready: new Set(["running", "skipped"]),
+  ready: new Set(["running", "waiting-user", "skipped"]),
   running: new Set(["waiting-user", "waiting-approval", "completed", "failed"]),
   "waiting-user": new Set(["ready", "skipped"]),
   "waiting-approval": new Set(["ready", "skipped"]),

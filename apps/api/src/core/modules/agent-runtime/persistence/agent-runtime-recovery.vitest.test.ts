@@ -146,7 +146,14 @@ function client(invoke: (args: Record<string, unknown>) => Promise<unknown>): In
     sideEffect: "external-message",
     requiresApproval: false,
     timeoutMs: 30_000,
-    inputSchema: { type: "object", additionalProperties: true },
+    inputSchema: {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        to: { type: "string" },
+        name: { type: "string" },
+      },
+    },
     invoke,
   }]));
 }

@@ -22,4 +22,9 @@ describe("agent state transitions", () => {
       "Invalid agent action transition",
     );
   });
+
+  it("allows a prepared action to wait for missing user input", () => {
+    expect(() => assertAgentActionTransition("ready", "waiting-user")).not.toThrow();
+    expect(() => assertAgentActionTransition("waiting-user", "ready")).not.toThrow();
+  });
 });

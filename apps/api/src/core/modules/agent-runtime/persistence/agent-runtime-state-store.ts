@@ -145,6 +145,8 @@ export class AgentRuntimeStateStore implements AgentRuntimeStateLifecycle {
   }
 
   markActionWaitingUser(actionId: string, output?: unknown): void {
+    const action = this.actionRecords.get(actionId);
+    if (action?.state === "pending") this.transitionAction(actionId, "ready");
     this.transitionAction(actionId, "waiting-user", output);
   }
 
