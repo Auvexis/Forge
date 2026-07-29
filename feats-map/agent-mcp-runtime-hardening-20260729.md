@@ -52,7 +52,7 @@
 
 - [x] Define artifact metadata and reference contracts
 - [x] Add artifact migration and repository
-- [ ] Add profile-scoped artifact storage
+- [x] Add profile-scoped artifact storage
 - [ ] Convert binary tool results into artifact references
 - [ ] Resolve artifact references only at tool execution
 - [ ] Add size, TTL, ownership, and cleanup policies
