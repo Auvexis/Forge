@@ -89,7 +89,7 @@
 - [ ] Add repeated-tool and multi-action cases
 - [ ] Persist canonical assistant tool calls and tool results
 - [ ] Add bounded conversation compaction
-- [ ] Add completion guard tests
+- [x] Add completion guard tests
 - [ ] Add small-model evaluation fixtures
 - [ ] Update this tracker and commit each task
 
@@ -109,29 +109,40 @@
 - [ ] Reject disconnected and renamed tools
 - [ ] Enforce profile and workflow ownership
 - [ ] Sanitize untrusted tool metadata
-- [ ] Add tool-name collision policy
+- [x] Add tool-name collision policy
 - [ ] Add cross-agent isolation tests
 - [ ] Add audit events and metrics
 - [ ] Update this tracker and commit each task
 
-## Batch 12 — Legacy Cleanup
+## Batch 12 — Observability
+
+- [ ] Define structured runtime log contracts
+- [ ] Add sanitized debug logger
+- [ ] Log run and intent transitions
+- [ ] Log action and tool-call transitions
+- [ ] Log interaction and approval transitions
+- [ ] Add environment-controlled log levels
+- [ ] Add redaction and correlation tests
+- [ ] Update this tracker and commit each task
+
+## Batch 13 — Legacy Cleanup
 
 - [ ] Remove unused Agent Panel database structures
 - [ ] Remove obsolete agent event contracts
 - [ ] Remove obsolete frontend tokens and API types
 - [ ] Remove obsolete max-iteration and retry fields or redefine them
 - [ ] Remove stale specs and feature maps
-- [ ] Keep `/agents` as a hook-free empty shell
+- [x] Keep `/agents` as a hook-free empty shell
 - [ ] Add empty-shell contract test
 - [ ] Update this tracker and commit each task
 
-## Batch 13 — End-to-End Validation
+## Batch 14 — End-to-End Validation
 
 - [ ] Test chat-only conversation
 - [ ] Test missing-context resume
 - [ ] Test ambiguous-result resume
 - [ ] Test approval resume
-- [ ] Test multi-tool dependency execution
+- [x] Test multi-tool dependency execution
 - [ ] Test repeated use of the same tool
 - [ ] Test crash recovery
 - [ ] Test backend restart recovery
