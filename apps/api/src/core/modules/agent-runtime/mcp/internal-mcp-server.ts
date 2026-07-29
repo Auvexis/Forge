@@ -1,0 +1,56 @@
+import { InternalMcpToolCatalog } from "./internal-mcp-tool-catalog.ts";
+import type {
+  InternalMcpTool,
+  InternalMcpToolCall,
+  InternalMcpToolResult,
+} from "./internal-mcp-types.ts";
+import { AgentToolApprovalRequiredError } from "../agent-errors.ts";
+import { InternalMcpCallError, normalizeInternalMcpError } from "./internal-mcp-error.ts";
+
+/**
+ * Run-scoped MCP server assembled by the Fabric Host from the Agent node's
+ * connected tools. It is not discoverable outside the run and has no remote
+ * transport.
+ */
+export class InternalMcpServer {
+  private readonly catalog: InternalMcpToolCatalog;
+
+  constructor(tools: InternalMcpTool[]) {
+    this.catalog = new InternalMcpToolCatalog(tools);
+  }
+
+  listTools() {
+    return this.catalog.listCards();
+  }
+
+  describeTool(name: string): Omit<InternalMcpTool, "invoke"> {
+    const { invoke: _invoke, ...descriptor } = this.catalog.get(name);
+    return descriptor;
+  }
+
+  getToolSchema(name: string): Record<string, any> {
+    return this.catalog.get(name).inputSchema;
+  }
+
+  async callTool(call: InternalMcpToolCall): Promise<InternalMcpToolResult> {
+    const tool = this.catalog.get(call.name);
+    let content: unknown;
+    try {
+      content = await tool.invoke(call.arguments);
+    } catch (error) {
+      if (error instanceof AgentToolApprovalRequiredError) throw error;
+      throw new InternalMcpCallError(normalizeInternalMcpError(error, tool.name));
+    }
+    return {
+      call,
+      content,
+      toolCall: {
+        toolCallId: call.id,
+        name: tool.name,
+        ...(tool.pluginId ? { pluginId: tool.pluginId } : {}),
+        ...(tool.pluginName ? { pluginName: tool.pluginName } : {}),
+        status: "success",
+      },
+    };
+  }
+}

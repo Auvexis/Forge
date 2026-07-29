@@ -40,8 +40,8 @@
 
 ## Batch 5 — MCP Errors and Retry
 
-- [ ] Define structured MCP error categories
-- [ ] Normalize plugin, workflow, and retrieval errors
+- [x] Define structured MCP error categories
+- [x] Normalize plugin, workflow, and retrieval errors
 - [ ] Add retry policy with bounded backoff
 - [ ] Pause authentication and permission errors
 - [ ] Pause ambiguous and not-found results
