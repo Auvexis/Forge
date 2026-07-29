@@ -211,6 +211,7 @@ export async function runMcpAgentLoop(input: {
     toolCallCount,
     iterationCount: Math.max(1, toolCallCount),
     toolCalls,
+    conversationMessages: actionConversationMessages(actions),
   };
 }
 

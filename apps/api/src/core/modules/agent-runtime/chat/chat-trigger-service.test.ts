@@ -106,6 +106,80 @@ describe("chat trigger service", () => {
     });
   });
 
+  it("persists and replays canonical tool-call history", async () => {
+    WorkflowRepository.saveWorkflow(workflowFixture());
+    const payloads: any[] = [];
+    const service = new ChatTriggerService({
+      db: workflowDb!,
+      workflowRepository: WorkflowRepository,
+      workflowEngine: {
+        executeWorkflowFromTrigger: async (_workflow, _triggerNodeId, payload) => {
+          payloads.push(payload);
+          return {
+            executionId: `exec_${payloads.length}`,
+            status: "SUCCESS",
+            context: {
+              steps: {
+                agent: {
+                  output: {
+                    output: "Arquivo baixado.",
+                    conversationMessages: [
+                      {
+                        role: "assistant",
+                        content: "",
+                        tool_calls: [{
+                          id: "call_1",
+                          name: "drive_download",
+                          arguments: { fileId: "file_1" },
+                        }],
+                      },
+                      {
+                        role: "tool",
+                        name: "drive_download",
+                        tool_call_id: "call_1",
+                        content: "{\"ref\":\"artifact://artifact_1\"}",
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+          };
+        },
+      },
+    });
+
+    const first = await service.sendMessage({
+      profileId: "profile_1",
+      chatSlug: "support-agent",
+      message: "Baixe o arquivo",
+    });
+    await service.sendMessage({
+      profileId: "profile_1",
+      chatSlug: "support-agent",
+      sessionId: first.session.id,
+      message: "E agora?",
+    });
+
+    assert.deepEqual(payloads[1].messages.slice(1, 3), [
+      {
+        role: "assistant",
+        content: "",
+        tool_calls: [{
+          id: "call_1",
+          name: "drive_download",
+          arguments: { fileId: "file_1" },
+        }],
+      },
+      {
+        role: "tool",
+        name: "drive_download",
+        tool_call_id: "call_1",
+        content: "{\"ref\":\"artifact://artifact_1\"}",
+      },
+    ]);
+  });
+
   it("returns a debuggable error when the published chat workflow fails", async () => {
     WorkflowRepository.saveWorkflow(workflowFixture());
     const service = new ChatTriggerService({

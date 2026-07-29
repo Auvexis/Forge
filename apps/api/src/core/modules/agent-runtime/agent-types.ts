@@ -2,7 +2,7 @@ export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "us
 export type AgentMemoryAdapter = "fabric-internal" | "plugin-memory-store";
 
 export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
-export type AgentExecutionMode = "loop" | "plan";
+export type AgentExecutionMode = "loop";
 
 export type AgentToolSideEffect =
   | "read"
@@ -121,10 +121,6 @@ export type AgentEventType =
   | "agent:approval-created"
   | "agent:approval-resumed"
   | "agent:thinking"
-  | "agent:plan-start"
-  | "agent:plan-end"
-  | "agent:repair-start"
-  | "agent:repair-end"
   | "agent:error"
   | "agent:end";
 
@@ -142,7 +138,7 @@ export interface AgentRunInput {
   abortSignal?: AbortSignal;
   checkpointerDbPath?: string;
   userMessage: string;
-  contextMessages?: Array<{ role: "system" | "user" | "assistant" | "tool"; content: string }>;
+  contextMessages?: AgentModelMessage[];
   triggerPayload: Record<string, any>;
   skipFinalResponseAfterToolUse?: boolean;
   agent: AiAgentNodeConfig;
@@ -158,6 +154,7 @@ export interface AgentRunResult {
   toolCalls?: AgentRunToolCall[];
   iterationCount: number;
   approvalId?: string;
+  conversationMessages?: AgentModelMessage[];
 }
 
 export interface AgentRunToolCall {
@@ -167,3 +164,4 @@ export interface AgentRunToolCall {
   pluginName?: string;
   status: "success" | "failed";
 }
+import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";

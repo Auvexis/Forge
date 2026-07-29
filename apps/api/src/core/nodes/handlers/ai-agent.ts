@@ -139,10 +139,43 @@ function toContextMessages(value: unknown): AgentRunInput["contextMessages"] {
       const role = record.role;
       if (role !== "system" && role !== "user" && role !== "assistant" && role !== "tool") return null;
       const content = normalizeMessageContent(record.content);
-      if (!content.trim()) return null;
-      return { role, content };
+      const embedded = record.content && typeof record.content === "object" && !Array.isArray(record.content)
+        ? record.content as Record<string, unknown>
+        : {};
+      const source = { ...embedded, ...record };
+      const toolCalls = normalizeToolCalls(source.tool_calls);
+      if (!content.trim() && toolCalls.length === 0) return null;
+      return {
+        role,
+        content,
+        ...(typeof source.name === "string" ? { name: source.name } : {}),
+        ...(typeof source.tool_call_id === "string"
+          ? { tool_call_id: source.tool_call_id }
+          : {}),
+        ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+      };
     })
     .filter((message): message is NonNullable<AgentRunInput["contextMessages"]>[number] => Boolean(message));
+}
+
+function normalizeToolCalls(value: unknown): Array<{
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}> {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const record = item as Record<string, unknown>;
+    if (typeof record.id !== "string" || typeof record.name !== "string") return [];
+    const arguments_ = record.arguments;
+    if (!arguments_ || typeof arguments_ !== "object" || Array.isArray(arguments_)) return [];
+    return [{
+      id: record.id,
+      name: record.name,
+      arguments: arguments_ as Record<string, unknown>,
+    }];
+  });
 }
 
 function normalizeMessageContent(value: unknown): string {

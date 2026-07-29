@@ -105,6 +105,15 @@ export class ChatTriggerService {
       payload,
     );
     assertSuccessfulChatExecution(execution);
+    for (const canonical of extractCanonicalToolMessages(execution)) {
+      this.messages.append({
+        id: `msg_${randomUUID()}`,
+        profileId: input.profileId,
+        sessionId: session.id,
+        role: canonical.role,
+        content: canonical,
+      });
+    }
     const assistantResponse = extractAssistantResponse(execution);
     if (assistantResponse !== null && assistantResponse !== undefined) {
       this.messages.append({
@@ -247,13 +256,57 @@ function createSessionTitle(message: string, workflow: WorkflowItem): string {
   return title || workflow.metadata.name;
 }
 
-function toContextMessages(messages: AgentChatMessage[]): Array<{ role: "user" | "assistant" | "tool" | "system"; content: string }> {
+function toContextMessages(messages: AgentChatMessage[]): Array<{
+  role: "user" | "assistant" | "tool" | "system";
+  content: string;
+  name?: string;
+  tool_call_id?: string;
+  tool_calls?: Array<{
+    id: string;
+    name: string;
+    arguments: Record<string, unknown>;
+  }>;
+}> {
   return messages
-    .map((message) => ({
-      role: message.role,
-      content: normalizeMessageContent(message.content),
-    }))
-    .filter((message) => message.content.trim());
+    .flatMap((message) => {
+      const embedded = message.content && typeof message.content === "object" &&
+          !Array.isArray(message.content)
+        ? message.content as Record<string, unknown>
+        : {};
+      const content = normalizeMessageContent(message.content);
+      const toolCalls = normalizeToolCalls(embedded.tool_calls);
+      if (!content.trim() && toolCalls.length === 0) return [];
+      return [{
+        role: message.role,
+        content,
+        ...(typeof embedded.name === "string" ? { name: embedded.name } : {}),
+        ...(typeof embedded.tool_call_id === "string"
+          ? { tool_call_id: embedded.tool_call_id }
+          : {}),
+        ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+      }];
+    });
+}
+
+function normalizeToolCalls(value: unknown): Array<{
+  id: string;
+  name: string;
+  arguments: Record<string, unknown>;
+}> {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const record = item as Record<string, unknown>;
+    if (typeof record.id !== "string" || typeof record.name !== "string") return [];
+    if (!record.arguments || typeof record.arguments !== "object" || Array.isArray(record.arguments)) {
+      return [];
+    }
+    return [{
+      id: record.id,
+      name: record.name,
+      arguments: record.arguments as Record<string, unknown>,
+    }];
+  });
 }
 
 function normalizeMessageContent(content: unknown): string {
@@ -270,6 +323,29 @@ function extractAssistantResponse(execution: unknown): unknown {
   if (!steps) return null;
   const agentStep = Object.values(steps).find((step) => step?.output?.output !== undefined);
   return agentStep?.output?.output ?? null;
+}
+
+function extractCanonicalToolMessages(execution: unknown): Array<{
+  role: "assistant" | "tool";
+  content: string;
+  name?: string;
+  tool_call_id?: string;
+  tool_calls?: Array<{
+    id: string;
+    name: string;
+    arguments: Record<string, unknown>;
+  }>;
+}> {
+  const steps = (execution as { context?: { steps?: Record<string, any> } })?.context?.steps;
+  if (!steps) return [];
+  const agentStep = Object.values(steps).find((step) =>
+    Array.isArray(step?.output?.conversationMessages)
+  );
+  const messages = agentStep?.output?.conversationMessages;
+  if (!Array.isArray(messages)) return [];
+  return messages.filter((message): message is ReturnType<typeof extractCanonicalToolMessages>[number] =>
+    message?.role === "assistant" || message?.role === "tool"
+  );
 }
 
 function assertSuccessfulChatExecution(execution: unknown): void {

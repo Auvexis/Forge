@@ -223,6 +223,25 @@ describe("AI workflow node handlers", () => {
         messages: [
           { role: "user", content: "Boa noite" },
           { role: "assistant", content: { text: "Boa noite! Como posso ajudar?" } },
+          {
+            role: "assistant",
+            content: {
+              content: "",
+              tool_calls: [{
+                id: "call_1",
+                name: "drive_download",
+                arguments: { fileId: "file_1" },
+              }],
+            },
+          },
+          {
+            role: "tool",
+            content: {
+              content: "{\"ref\":\"artifact://artifact_1\"}",
+              name: "drive_download",
+              tool_call_id: "call_1",
+            },
+          },
           { role: "assistant", content: { pending: true } },
         ],
         metadata: { origin: "test" },
@@ -256,6 +275,21 @@ describe("AI workflow node handlers", () => {
     assert.deepEqual(runCall.contextMessages, [
       { role: "user", content: "Boa noite" },
       { role: "assistant", content: "Boa noite! Como posso ajudar?" },
+      {
+        role: "assistant",
+        content: "",
+        tool_calls: [{
+          id: "call_1",
+          name: "drive_download",
+          arguments: { fileId: "file_1" },
+        }],
+      },
+      {
+        role: "tool",
+        content: "{\"ref\":\"artifact://artifact_1\"}",
+        name: "drive_download",
+        tool_call_id: "call_1",
+      },
     ]);
     assert.deepEqual(runCall.triggerPayload, context.trigger);
   });

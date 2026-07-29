@@ -87,7 +87,7 @@
 - [ ] Add multilingual chat, action, clarify, and control fixtures
 - [ ] Add prepare-versus-execute safety cases
 - [ ] Add repeated-tool and multi-action cases
-- [ ] Persist canonical assistant tool calls and tool results
+- [x] Persist canonical assistant tool calls and tool results
 - [ ] Add bounded conversation compaction
 - [x] Add completion guard tests
 - [ ] Add small-model evaluation fixtures
