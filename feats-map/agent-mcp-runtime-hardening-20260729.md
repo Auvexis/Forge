@@ -127,14 +127,14 @@
 
 ## Batch 13 — Legacy Cleanup
 
-- [ ] Remove unused Agent Panel database structures
-- [ ] Remove obsolete agent event contracts
-- [ ] Remove obsolete frontend tokens and API types
-- [ ] Remove obsolete max-iteration and retry fields or redefine them
-- [ ] Remove stale specs and feature maps
+- [x] Remove unused Agent Panel database structures
+- [x] Remove obsolete agent event contracts
+- [x] Remove obsolete frontend tokens and API types
+- [x] Remove obsolete max-iteration and retry fields or redefine them
+- [x] Remove stale specs and feature maps
 - [x] Keep `/agents` as a hook-free empty shell
-- [ ] Add empty-shell contract test
-- [ ] Update this tracker and commit each task
+- [x] Add empty-shell contract test
+- [x] Update this tracker and commit each task
 
 ## Batch 14 — End-to-End Validation
 

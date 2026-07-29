@@ -55,7 +55,6 @@ export function buildWorkflowSchema(
         break;
       case "loop":
         baseSchema.collection = node.collection;
-        baseSchema.maxIterations = node.maxIterations;
         baseSchema.handles = ["loop-body", "loop-done"];
         break;
       case "call-workflow":

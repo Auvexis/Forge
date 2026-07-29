@@ -390,9 +390,6 @@ function validateNode(workflow: WorkflowItem, nodeId: string, node: WorkflowItem
       if (node.inputMessage !== undefined && typeof node.inputMessage !== "string") {
         return `AI Agent node "${nodeId}" inputMessage must be a string`;
       }
-      if (typeof node.maxIterations !== "number" || node.maxIterations < 1) {
-        return `AI Agent node "${nodeId}" must have maxIterations >= 1`;
-      }
       if (typeof node.maxToolCalls !== "number" || node.maxToolCalls < 0) {
         return `AI Agent node "${nodeId}" must have maxToolCalls >= 0`;
       }

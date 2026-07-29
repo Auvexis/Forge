@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
-import type { AgentRuntimeEvent } from "../agent-runtime-events.ts";
+import type { AgentRuntimeEvent } from "../agent-types.ts";
 import type { AgentRunResult } from "../agent-types.ts";
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
 import type { AgentRequiredAction, IntentModel } from "../intent/agent-intent-gateway.ts";

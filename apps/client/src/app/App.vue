@@ -84,7 +84,6 @@
       <AppGlobalSettings />
       <ProfileSettingsPanel v-model="isProfileSettingsOpen" />
       <AppGlobalAutomationMonitor />
-      <AppGlobalAgentPanel />
       <GlobalNotificationPanel />
       <ExternalPluginInstaller
         :is-open="isPluginInstallerOpen"
@@ -113,9 +112,6 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import SidebarGlobalPanel from '@/shared/components/layout/SidebarGlobalPanel.vue'
 import AppGlobalSettings from '@/shared/components/layout/AppGlobalSettings.vue'
 import CommandPaletteHost from '@/features/command-palette/components/CommandPaletteHost.vue'
-import AppGlobalAgentPanel from '@/features/agent-panel/components/AppGlobalAgentPanel.vue'
-import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
-import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useCommandPaletteStore } from '@/features/command-palette/stores/commandPalette.store'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
@@ -137,8 +133,6 @@ import AppGlobalAutomationMonitor, {
 
 const settingsStore = useSettingsStore()
 const appUiStore = useAppUiStore()
-const agentPanelUi = useAgentPanelUiStore()
-const agentPanelStore = useAgentPanelStore()
 const commandPaletteStore = useCommandPaletteStore()
 const route = useRoute()
 const router = useRouter()
@@ -192,10 +186,6 @@ function handleUiIntent(event: Event) {
   if (intent?.type === 'plugin-installer.open') openPluginInstallerPanel()
   if (intent?.type === 'monitoring.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
-  }
-  if (intent?.type === 'agent-panel.open') {
-    agentPanelStore.clearDevSessionContext()
-    agentPanelUi.open()
   }
   if (intent?.type === 'settings.open') settingsStore.open()
 }

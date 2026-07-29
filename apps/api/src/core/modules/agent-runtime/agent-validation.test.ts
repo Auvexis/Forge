@@ -142,12 +142,10 @@ describe("agent runtime validation", () => {
   it("accepts user-defined agent iteration and tool call limits above defaults", () => {
     const agent = validateAiAgentConfig({
       ...validAgent(),
-      maxIterations: 16,
       maxToolCalls: 30,
       maxRetriesPerTool: 100,
     });
 
-    assert.equal(agent.maxIterations, 16);
     assert.equal(agent.maxToolCalls, 30);
     assert.equal(agent.maxRetriesPerTool, 100);
   });
@@ -169,13 +167,11 @@ describe("agent runtime validation", () => {
     );
   });
 
-  it("accepts plan execution mode when explicitly configured", () => {
-    const agent = validateAiAgentConfig({
+  it("rejects the removed plan execution mode", () => {
+    assert.throws(() => validateAiAgentConfig({
       ...validAgent(),
       executionMode: "plan",
-    });
-
-    assert.equal(agent.executionMode, "plan");
+    }));
   });
 
   it("rejects tool side effects outside the allowlist", () => {
@@ -218,7 +214,6 @@ function validAgent() {
     type: "ai-agent",
     name: "AI Agent",
     prompt: "You are a helpful workflow agent.",
-    maxIterations: 8,
     maxToolCalls: 12,
     timeoutMs: AGENT_LIMITS.defaultAgentTimeoutMs,
     requireApprovalForSideEffects: ["write", "delete"],

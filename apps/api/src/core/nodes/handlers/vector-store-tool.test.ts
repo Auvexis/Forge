@@ -50,7 +50,7 @@ describe("Vector Store Tool", () => {
 
 function executionInput(executePluginMethod: (pluginId: string, methodId: string, params: Record<string, any>) => Promise<any>) {
   const nodes = {
-    agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxIterations: 3, maxToolCalls: 3, maxRetriesPerTool: 1, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
+    agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxToolCalls: 3, maxRetriesPerTool: 1, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
     agentModel: { type: "ai-model", name: "Agent Model", pluginId: "openai", adapter: "openai-compatible", model: "gpt-agent", temperature: 0 },
     tool: { type: "vector-store-tool", name: "Vector Tool", toolName: "search_refund_policy", description: "Search the refund policy knowledge base.", topK: 3, scoreThreshold: 0.8, instructions: "Answer concisely." },
     toolModel: { type: "ai-model", name: "Tool Model", pluginId: "openai", adapter: "openai-compatible", model: "gpt-tool", temperature: 0 },

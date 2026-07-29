@@ -102,7 +102,6 @@ function runInput(): AgentRunInput {
       name: "Agent",
       prompt: "Help",
       executionMode: "loop",
-      maxIterations: 10,
       maxToolCalls: 10,
       maxRetriesPerTool: 1,
       timeoutMs: 30_000,

@@ -1,5 +1,0 @@
-- [x] Add regression contract for chat actions dropdown
-- [x] Raise session menu above modal layer
-- [x] Align confirm panel above modal layer
-- [x] Verify focused test and type-check
-- [x] Commit fix

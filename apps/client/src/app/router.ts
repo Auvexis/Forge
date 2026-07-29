@@ -29,6 +29,12 @@ const router = createRouter({
       meta: { title: 'Editor' },
     },
     {
+      path: '/agents',
+      name: 'agents',
+      component: () => import('@/app/pages/AgentPanelPage.vue'),
+      meta: { title: 'Agents' },
+    },
+    {
       path: '/pages',
       name: 'pages',
       component: () => import('@/app/pages/PagesEditorPage.vue'),

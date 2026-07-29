@@ -137,7 +137,7 @@ function questionAnswerWorkflow(): WorkflowItem {
 
 function agentToolWorkflow(): WorkflowItem {
   return workflow({
-    agent: { type: "ai-agent", name: "Agent", prompt: "Help", executionMode: "loop", maxIterations: 3, maxToolCalls: 3, maxRetriesPerTool: 1, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
+    agent: { type: "ai-agent", name: "Agent", prompt: "Help", executionMode: "loop", maxToolCalls: 3, maxRetriesPerTool: 1, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
     agentModel: modelNode(), tool: { type: "vector-store-tool", name: "Tool", toolName: "search_refunds", description: "Search refunds", topK: 3, scoreThreshold: 0.8 },
     toolModel: modelNode(), store: vectorStoreNode(), embedding: embeddingNode(), set: setNode("{{ steps.agent.output.output.answer }}", "answer"),
   }, [flow("trigger", "agent"), config("agentModel", "agent", "chatModel"), config("tool", "agent", "tool"), config("store", "tool", "vectorStore"), config("toolModel", "tool", "model"), config("embedding", "store", "embedding"), flow("agent", "set")]);

@@ -5,8 +5,6 @@ export interface AgentChatSession {
   profileId: string;
   workflowId: string;
   triggerNodeId: string;
-  agentNodeId?: string;
-  agentKey?: string;
   title: string;
   status: string;
   createdAt: string;
@@ -18,8 +16,6 @@ export interface CreateChatSessionInput {
   profileId: string;
   workflowId: string;
   triggerNodeId: string;
-  agentNodeId?: string;
-  agentKey?: string;
   title: string;
   status: string;
 }
@@ -36,16 +32,14 @@ export class ChatSessionRepository {
     this.db
       .prepare(`
         INSERT INTO agent_chat_sessions
-          (id, profile_id, workflow_id, trigger_node_id, agent_node_id, agent_key, title, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          (id, profile_id, workflow_id, trigger_node_id, title, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `)
       .run(
         input.id,
         input.profileId,
         input.workflowId,
         input.triggerNodeId,
-        input.agentNodeId ?? null,
-        input.agentKey ?? null,
         input.title,
         input.status,
         now,
@@ -77,17 +71,6 @@ export class ChatSessionRepository {
     return rows.map(toChatSession);
   }
 
-  listByAgentKey(profileId: string, agentKey: string): AgentChatSession[] {
-    const rows = this.db
-      .prepare(`
-        SELECT * FROM agent_chat_sessions
-        WHERE profile_id = ? AND agent_key = ?
-        ORDER BY updated_at DESC
-      `)
-      .all(profileId, agentKey) as ChatSessionRow[];
-    return rows.map(toChatSession);
-  }
-
   touch(profileId: string, id: string): void {
     this.db
       .prepare(`UPDATE agent_chat_sessions SET updated_at = ? WHERE profile_id = ? AND id = ?`)
@@ -107,8 +90,6 @@ interface ChatSessionRow {
   profile_id: string;
   workflow_id: string;
   trigger_node_id: string;
-  agent_node_id: string | null;
-  agent_key: string | null;
   title: string;
   status: string;
   created_at: string;
@@ -121,8 +102,6 @@ function toChatSession(row: ChatSessionRow): AgentChatSession {
     profileId: row.profile_id,
     workflowId: row.workflow_id,
     triggerNodeId: row.trigger_node_id,
-    agentNodeId: row.agent_node_id ?? undefined,
-    agentKey: row.agent_key ?? undefined,
     title: row.title,
     status: row.status,
     createdAt: row.created_at,

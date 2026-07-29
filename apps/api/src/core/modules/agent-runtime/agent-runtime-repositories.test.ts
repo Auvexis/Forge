@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import Database from "better-sqlite3";
 import { up } from "../../database/migrations/workflows/005_agent_runtime_tables.ts";
-import { up as upAgentPanelSessions } from "../../database/migrations/workflows/006_agent_panel_sessions.ts";
 import { AgentApprovalService } from "./agent-approval-service.ts";
 import { ChatMessageRepository } from "./chat/chat-message-repository.ts";
 import { ChatSessionRepository } from "./chat/chat-session-repository.ts";
@@ -26,26 +25,6 @@ describe("agent runtime repositories", () => {
     assert.equal(session.profileId, "profile_a");
     assert.ok(session.createdAt);
     assert.deepEqual(sessions.getById("profile_b", "chat_1"), null);
-  });
-
-  it("stores chat sessions with optional agent node identity", () => {
-    const db = createDb();
-    const sessions = new ChatSessionRepository(db);
-
-    sessions.create({
-      id: "chat_agent_1",
-      profileId: "profile_a",
-      workflowId: "workflow_agent",
-      triggerNodeId: "chat_trigger",
-      agentNodeId: "agent",
-      agentKey: "profile_a:workflow_agent:chat_trigger:agent",
-      title: "New chat",
-      status: "active",
-    });
-
-    const session = sessions.getById("profile_a", "chat_agent_1");
-    assert.equal(session?.agentNodeId, "agent");
-    assert.equal(session?.agentKey, "profile_a:workflow_agent:chat_trigger:agent");
   });
 
   it("appends and lists ordered chat messages by session", async () => {
@@ -140,6 +119,5 @@ describe("agent runtime repositories", () => {
 function createDb(): Database.Database {
   const db = new Database(":memory:");
   up(db);
-  upAgentPanelSessions(db);
   return db;
 }

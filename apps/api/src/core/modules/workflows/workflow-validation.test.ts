@@ -70,7 +70,6 @@ describe("workflow validation", () => {
           type: "ai-agent",
           name: "Agent",
           prompt: "Help users.",
-          maxIterations: 8,
           maxToolCalls: 12,
           timeoutMs: 180000,
           requireApprovalForSideEffects: [],
@@ -150,7 +149,7 @@ describe("workflow validation", () => {
   it("rejects missing required configuration handles on active flow nodes", () => {
     const error = validateWorkflowDefinition(baseWorkflow({
       nodes: {
-        agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxIterations: 3, maxToolCalls: 3, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
+        agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxToolCalls: 3, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
       },
       edges: [{ id: "trigger-agent", source: "trigger", target: "agent" }],
     }));
@@ -159,7 +158,7 @@ describe("workflow validation", () => {
 
   it("rejects incompatible and excess configuration connections", () => {
     const nodes = {
-      agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxIterations: 3, maxToolCalls: 3, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
+      agent: { type: "ai-agent", name: "Agent", prompt: "Help", maxToolCalls: 3, timeoutMs: 30000, requireApprovalForSideEffects: [], outputMode: "text" },
       model: { type: "ai-model", name: "Model", pluginId: "openai", adapter: "openai-compatible", model: "gpt", temperature: 0 },
       model2: { type: "ai-model", name: "Model 2", pluginId: "openai", adapter: "openai-compatible", model: "gpt", temperature: 0 },
       embedding: { type: "embeddings", name: "Embedding", pluginId: "openai", methodId: "embed", model: "embed", input: "" },
@@ -423,7 +422,6 @@ describe("workflow validation", () => {
           type: "ai-agent",
           name: "Agent",
           prompt: "Help users.",
-          maxIterations: 8,
           maxToolCalls: 12,
           maxRetriesPerTool: 101,
           timeoutMs: 180000,

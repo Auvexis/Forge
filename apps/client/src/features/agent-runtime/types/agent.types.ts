@@ -2,7 +2,7 @@ export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'us
 export type AgentMemoryAdapter = 'fabric-internal' | 'plugin-memory-store'
 
 export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
-export type AgentExecutionMode = 'loop' | 'plan'
+export type AgentExecutionMode = 'loop'
 
 export type AgentToolSideEffect =
   | 'read'
@@ -19,8 +19,8 @@ export interface AiAgentNodeConfig {
   name: string
   prompt: string
   executionMode: AgentExecutionMode
-  maxIterations: number
   maxToolCalls: number
+  /** Retry budget for transient/rate-limit tool failures only. */
   maxRetriesPerTool: number
   timeoutMs: number
   requireApprovalForSideEffects: AgentToolSideEffect[]

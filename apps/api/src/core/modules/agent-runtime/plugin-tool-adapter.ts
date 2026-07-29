@@ -1,6 +1,12 @@
 import { PluginManager } from "../plugins/manager.ts";
 import type { AgentToolSideEffect } from "./agent-types.ts";
-import type { AgentToolSelection } from "./plan/agent-plan-types.ts";
+
+export interface AgentToolSelection {
+  path: string;
+  labelFields: string[];
+  valueField: string;
+  mode: "single" | "multiple";
+}
 
 export interface FabricAgentToolDefinition {
   name: string;

@@ -735,7 +735,6 @@ function getLogicNodeDefaults(type: WorkflowNodeType): Record<string, unknown> {
     return {
       prompt: 'You are a helpful workflow agent. Use tools only when needed.',
       executionMode: 'loop',
-      maxIterations: 8,
       maxToolCalls: 12,
       maxRetriesPerTool: 3,
       timeoutMs: 180000,

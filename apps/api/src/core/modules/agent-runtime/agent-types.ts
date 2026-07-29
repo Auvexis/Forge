@@ -17,8 +17,8 @@ export interface AiAgentNodeConfig {
   name: string;
   prompt: string;
   executionMode: AgentExecutionMode;
-  maxIterations: number;
   maxToolCalls: number;
+  /** Retry budget for transient/rate-limit tool failures only. */
   maxRetriesPerTool: number;
   timeoutMs: number;
   requireApprovalForSideEffects: AgentToolSideEffect[];
@@ -124,6 +124,11 @@ export type AgentEventType =
   | "agent:error"
   | "agent:end";
 
+export interface AgentRuntimeEvent {
+  type: AgentEventType;
+  payload?: Record<string, any>;
+}
+
 export interface AgentRunInput {
   profileId: string;
   workflowId: string;
@@ -136,7 +141,6 @@ export interface AgentRunInput {
   approvalToolArgs?: Record<string, any>;
   approvalToolResumeState?: unknown;
   abortSignal?: AbortSignal;
-  checkpointerDbPath?: string;
   userMessage: string;
   contextMessages?: AgentModelMessage[];
   triggerPayload: Record<string, any>;

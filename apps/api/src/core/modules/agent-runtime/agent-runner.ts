@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { AgentRuntimeEvent } from "./agent-runtime-events.ts";
+import type { AgentRuntimeEvent } from "./agent-types.ts";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "./agent-errors.ts";
 import { emitAgentEvent } from "./agent-event-bus.ts";
 import { AGENT_LIMITS } from "./agent-limits.ts";

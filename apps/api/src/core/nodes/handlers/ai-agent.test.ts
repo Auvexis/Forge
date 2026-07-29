@@ -383,47 +383,6 @@ describe("AI workflow node handlers", () => {
     assert.equal((received as AgentRunInput).contextMessages, undefined);
   });
 
-  it("passes chat-scoped memory sqlite path for fabric internal session memory", async () => {
-    const registry = createUtilityNodeRegistry();
-    const fixture = workflowFixture();
-    const memory = fixture.nodes.memory;
-    if (memory.type !== "ai-memory") throw new Error("Invalid memory fixture");
-    const workflow = workflowFixture({
-      nodes: {
-        ...fixture.nodes,
-        memory: {
-          ...memory,
-          adapter: "fabric-internal",
-          scope: "session",
-        },
-      },
-    });
-    let received: AgentRunInput | null = null;
-    AgentRuntimeService.runAgent = async (input) => {
-      received = input;
-      return {
-        status: "success",
-        output: "ok",
-        toolCallCount: 0,
-        iterationCount: 1,
-      };
-    };
-
-    await registry
-      .get("ai-agent")
-      .execute(handlerInput("agent", workflow.nodes.agent, workflow, contextFixture({
-        trigger: {
-          profileId: "profile_1",
-          message: "Hello",
-          sessionId: "chat_session_1",
-        },
-      })));
-
-    const dbPath = (received as unknown as AgentRunInput).checkpointerDbPath ?? "";
-    assert.equal(path.basename(dbPath), "memory.sqlite");
-    assert.match(dbPath.replace(/\\/g, "/"), /profiles\/profile_1\/chats\/chat_session_1\/memory\.sqlite$/);
-  });
-
   it("passes the panel skip-final-response flag to the agent runtime", async () => {
     const registry = createUtilityNodeRegistry();
     const workflow = workflowFixture();
@@ -879,7 +838,6 @@ function workflowFixture(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
         agentDisplayName: "Support Agent",
         agentEmoji: "\u{1F916}",
         prompt: "You are helpful.",
-        maxIterations: 4,
         maxToolCalls: 4,
         timeoutMs: 30000,
         requireApprovalForSideEffects: ["write", "delete", "external-message", "external-payment"],

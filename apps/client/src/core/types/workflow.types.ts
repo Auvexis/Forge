@@ -42,7 +42,7 @@ export type AgentMemoryScope = 'none' | 'session' | 'workflow' | 'profile' | 'us
 export type AgentMemoryAdapter = 'fabric-internal' | 'plugin-memory-store'
 
 export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
-export type AgentExecutionMode = 'loop' | 'plan'
+export type AgentExecutionMode = 'loop'
 export type CallableWorkflowTriggerType = 'manual' | 'form' | 'webhook'
 export type WorkflowReturnMode = 'all-steps' | 'fields' | 'expression'
 export type WorkflowResultSourceType = 'return' | 'fallback-steps'
@@ -282,8 +282,8 @@ export interface AiAgentNode extends WorkflowNodeBase {
   prompt: string
   inputMessage?: string
   executionMode?: AgentExecutionMode
-  maxIterations: number
   maxToolCalls: number
+  /** Retry budget for transient/rate-limit tool failures only. */
   maxRetriesPerTool?: number
   timeoutMs: number
   requireApprovalForSideEffects: AgentToolSideEffect[]

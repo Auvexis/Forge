@@ -127,23 +127,6 @@ export const ENDPOINTS = {
     `/agent-chat/${encodeURIComponent(chatSlug)}/messages`,
   AGENT_CHAT_SESSION_MESSAGES: (sessionId: string) =>
     `/agent-chat/sessions/${encodeURIComponent(sessionId)}/messages`,
-  AGENT_PANEL_AGENTS: '/agent-panel/agents',
-  AGENT_PANEL_AGENT_SESSIONS: (agentKey: string) =>
-    `/agent-panel/agents/${encodeURIComponent(agentKey)}/sessions`,
-  AGENT_PANEL_AGENT_MESSAGES: (agentKey: string) =>
-    `/agent-panel/agents/${encodeURIComponent(agentKey)}/messages`,
-  AGENT_PANEL_SESSION_MESSAGES: (sessionId: string) =>
-    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages`,
-  AGENT_PANEL_SESSION_ATTACHMENTS: (sessionId: string) =>
-    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/attachments`,
-  AGENT_PANEL_SESSION_MESSAGES_STREAM: (sessionId: string) =>
-    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages/stream`,
-  AGENT_PANEL_SESSION_MESSAGES_STREAM_START: (sessionId: string) =>
-    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages/stream/start`,
-  AGENT_PANEL_SESSION_MESSAGES_STREAM_EVENTS: (sessionId: string, streamId: string) =>
-    `/agent-panel/sessions/${encodeURIComponent(sessionId)}/messages/streams/${encodeURIComponent(streamId)}`,
-  AGENT_PANEL_SESSION: (sessionId: string) =>
-    `/agent-panel/sessions/${encodeURIComponent(sessionId)}`,
   AGENT_TOOLS: '/agent-tools',
   AGENT_MEMORY: '/agent-memory',
   AGENT_MEMORY_BY_ID: (memoryId: string) => `/agent-memory/${encodeURIComponent(memoryId)}`,

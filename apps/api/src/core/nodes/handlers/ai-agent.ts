@@ -13,8 +13,6 @@ import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
 import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-memory-mode.ts";
 import { CancellationRegistry } from "../../modules/workflows/cancellation-registry.ts";
-import { fabricHomePaths } from "../../runtime/fabric-home.ts";
-import { resolveAgentChatMemoryPath } from "../../modules/agent-runtime/chat/agent-chat-paths.ts";
 import type { AgentToolRef, ChatModelRef, MemoryRef } from "../../modules/ai-services/ai-service-types.ts";
 import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
 import { createCoreCapabilityAdapterRegistry } from "../dependencies/core-capability-adapters.ts";
@@ -42,7 +40,6 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
     userMessage: toUserMessage(input.node, input.context, triggerPayload),
     contextMessages: contextMessages.length > 0 ? contextMessages : undefined,
-    checkpointerDbPath: resolveCheckpointerDbPath(profileId, sessionId, memoryConfig),
     triggerPayload,
     skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),
@@ -72,26 +69,12 @@ async function resolveDependencies(input: NodeHandlerInput<AiAgentNode>) {
   return new ConfigDependencyResolver(createCoreCapabilityAdapterRegistry()).resolveForNode(input, input.nodeId);
 }
 
-function resolveCheckpointerDbPath(
-  profileId: string,
-  sessionId: string | undefined,
-  memory: AiMemoryNodeConfig | undefined,
-): string | undefined {
-  if (!sessionId || !usesShortTermMemory(memory) || memory?.adapter !== "fabric-internal") return undefined;
-  return resolveAgentChatMemoryPath({
-    profilesDir: fabricHomePaths.profilesDir,
-    profileId,
-    chatId: sessionId,
-  });
-}
-
 function toAgentConfig(node: AiAgentNode, context: NodeHandlerInput["context"]): AiAgentNodeConfig {
   return validateAiAgentConfig({
     type: "ai-agent",
     name: node.name,
     prompt: String(TemplateEngine.evaluate(node.prompt, context, { escape: "prompt" })),
     executionMode: node.executionMode,
-    maxIterations: node.maxIterations,
     maxToolCalls: node.maxToolCalls,
     maxRetriesPerTool: node.maxRetriesPerTool,
     timeoutMs: node.timeoutMs,

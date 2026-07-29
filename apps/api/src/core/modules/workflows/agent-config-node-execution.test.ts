@@ -337,7 +337,6 @@ function workflowFixture(overrides: Partial<WorkflowItem> = {}): WorkflowItem {
         type: "ai-agent",
         name: "Agent",
         prompt: "You are helpful.",
-        maxIterations: 4,
         maxToolCalls: 4,
         timeoutMs: 30000,
         requireApprovalForSideEffects: ["write", "delete", "external-message", "external-payment"],
