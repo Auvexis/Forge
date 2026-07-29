@@ -72,10 +72,10 @@
 
 ## Batch 8 — Execution Control
 
-- [ ] Add global run timeout
+- [x] Add global run timeout
 - [ ] Add per-model timeout
-- [ ] Add per-tool timeout
-- [ ] Check cancellation between transitions
+- [x] Add per-tool timeout
+- [x] Check cancellation between transitions
 - [ ] Detect action dependency cycles
 - [ ] Enforce action and tool-call limits
 - [ ] Add worker lease and heartbeat

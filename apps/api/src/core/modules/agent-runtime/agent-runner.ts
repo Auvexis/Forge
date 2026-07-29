@@ -82,6 +82,15 @@ export class AgentRunner {
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
+    const deadline = createRunDeadline(input.abortSignal, input.agent.timeoutMs);
+    try {
+      return await this.runWithinDeadline({ ...input, abortSignal: deadline.signal });
+    } finally {
+      deadline.dispose();
+    }
+  }
+
+  private async runWithinDeadline(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
     const state = this.stateStoreFactory?.();
     const artifacts = this.artifactServiceFactory?.();
@@ -439,6 +448,32 @@ export class AgentRunner {
       resumeState: isPendingLoopResume ? input.pending?.context.resumeState : undefined,
     });
   }
+}
+
+function createRunDeadline(
+  upstream: AbortSignal | undefined,
+  timeoutMs: number,
+): { signal: AbortSignal; dispose: () => void } {
+  const controller = new AbortController();
+  const onAbort = () => controller.abort(upstream?.reason);
+  upstream?.addEventListener("abort", onAbort, { once: true });
+  if (upstream?.aborted) onAbort();
+  const timeout = setTimeout(() => {
+    controller.abort(new AgentRuntimeError(
+      `Agent run timed out after ${timeoutMs}ms`,
+      "AGENT_RUN_TIMEOUT",
+      "Agent execution timed out",
+      504,
+    ));
+  }, timeoutMs);
+  timeout.unref?.();
+  return {
+    signal: controller.signal,
+    dispose: () => {
+      clearTimeout(timeout);
+      upstream?.removeEventListener("abort", onAbort);
+    },
+  };
 }
 
 function schemaWithoutConfiguredDefaults(

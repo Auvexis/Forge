@@ -4,7 +4,7 @@ import type {
   InternalMcpToolCall,
   InternalMcpToolResult,
 } from "./internal-mcp-types.ts";
-import { AgentToolApprovalRequiredError } from "../agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import { InternalMcpCallError, normalizeInternalMcpError } from "./internal-mcp-error.ts";
 
 /**
@@ -44,7 +44,11 @@ export class InternalMcpServer {
         const arguments_ = this.artifactBoundary
           ? await this.artifactBoundary.resolveArguments(call.arguments)
           : call.arguments;
-        const rawContent = await tool.invoke(arguments_);
+        const rawContent = await withToolTimeout(
+          tool.invoke(arguments_),
+          tool.timeoutMs,
+          tool.name,
+        );
         return this.artifactBoundary
           ? await this.artifactBoundary.captureResult(call, rawContent)
           : rawContent;
@@ -85,4 +89,29 @@ export interface InternalMcpExecutionGuard {
     timeoutMs: number;
     invoke: () => Promise<unknown>;
   }): Promise<unknown>;
+}
+
+async function withToolTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number,
+  toolName: string,
+): Promise<T> {
+  let timeout: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeout = setTimeout(() => reject(new AgentRuntimeError(
+          `Internal MCP tool ${toolName} timed out after ${timeoutMs}ms`,
+          "AGENT_TOOL_TIMEOUT",
+          `Tool ${toolName} timed out`,
+          504,
+        )), timeoutMs);
+        timeout.unref?.();
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+    promise.catch(() => undefined);
+  }
 }

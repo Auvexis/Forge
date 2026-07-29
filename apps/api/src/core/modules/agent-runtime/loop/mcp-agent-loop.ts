@@ -47,6 +47,7 @@ export async function runMcpAgentLoop(input: {
   logger?: AgentRuntimeLogger;
   state?: AgentRuntimeStateLifecycle;
 }): Promise<AgentRunResult> {
+  throwIfCancelled(input.abortSignal);
   const resumed = normalizeResumeState(input.resumeState ?? input.approvedTool?.resumeState);
   const actions: ActionState[] = resumed?.actions ?? input.actions.map((action) => ({ ...action, status: "pending" }));
   const toolCalls = [...(resumed?.toolCalls ?? [])];
@@ -70,6 +71,7 @@ export async function runMcpAgentLoop(input: {
   }
 
   while (actions.some((action) => action.status === "pending")) {
+    throwIfCancelled(input.abortSignal);
     if (toolCallCount >= input.maxToolCalls) {
       return waitingUser("O limite de ferramentas foi atingido antes de concluir todas as ações.", toolCallCount, toolCalls);
     }
@@ -305,7 +307,7 @@ async function executeCall(
   const maxRetries = Math.min(Math.max(0, input.maxRetriesPerTool ?? 0), 3);
   for (let attempt = 0; ; attempt += 1) {
     try {
-      const result = await input.client.callTool(call);
+      const result = await withAbort(input.client.callTool(call), input.abortSignal);
       logger?.info("tool.call_completed", { sequence, attempt, result: result.content });
       input.emitEvent({
         type: "agent:tool-end",
@@ -496,6 +498,16 @@ function safeError(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function throwIfCancelled(signal?: AbortSignal): void {
+  if (!signal?.aborted) return;
+  throw signal.reason ?? new AgentRuntimeError(
+    "Agent run was cancelled",
+    "AGENT_RUN_CANCELLED",
+    "Agent execution was cancelled",
+    499,
+  );
+}
+
 function pendingKindFor(
   error: InternalMcpCallError,
 ): "clarification" | "selection" | "authentication" | "permission" {
@@ -518,4 +530,22 @@ function waitForRetry(delayMs: number, signal?: AbortSignal): Promise<void> {
       reject(signal.reason ?? new Error("Agent run cancelled"));
     }, { once: true });
   });
+}
+
+async function withAbort<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  if (signal.aborted) throw signal.reason ?? new Error("Agent run cancelled");
+  let onAbort: (() => void) | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        onAbort = () => reject(signal.reason ?? new Error("Agent run cancelled"));
+        signal.addEventListener("abort", onAbort, { once: true });
+      }),
+    ]);
+  } finally {
+    if (onAbort) signal.removeEventListener("abort", onAbort);
+    promise.catch(() => undefined);
+  }
 }
