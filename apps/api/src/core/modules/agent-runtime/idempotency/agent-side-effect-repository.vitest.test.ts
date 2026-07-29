@@ -31,6 +31,13 @@ describe("AgentSideEffectRepository", () => {
       attempt: 1,
     });
     expect(repository.reserve(reservation("owner_2", now))).toMatchObject({ status: "busy" });
+    repository.markRunning({
+      profileId: "profile_1",
+      idempotencyKey: "key_1",
+      ownerToken: "owner_1",
+      now,
+      leaseMs: 30_000,
+    });
     repository.succeed({
       profileId: "profile_1",
       idempotencyKey: "key_1",
@@ -54,6 +61,21 @@ describe("AgentSideEffectRepository", () => {
       ownerToken: "new_worker",
       attempt: 2,
     });
+  });
+
+  it("does not repeat an interrupted side effect with an unknown outcome", () => {
+    repository.reserve(reservation("dead_worker", now));
+    repository.markRunning({
+      profileId: "profile_1",
+      idempotencyKey: "key_1",
+      ownerToken: "dead_worker",
+      now,
+      leaseMs: 30_000,
+    });
+
+    expect(repository.reserve(
+      reservation("new_worker", new Date("2026-01-01T00:01:00.000Z")),
+    )).toEqual({ status: "outcome-unknown" });
   });
 });
 

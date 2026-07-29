@@ -62,13 +62,13 @@
 ## Batch 7 — Idempotency
 
 - [x] Add idempotency migration and repository
-- [ ] Generate stable side-effect keys
-- [ ] Reserve keys transactionally before execution
-- [ ] Persist successful side-effect results
-- [ ] Resume interrupted side effects safely
-- [ ] Remove process-local replay cache
-- [ ] Add crash and duplicate delivery tests
-- [ ] Update this tracker and commit each task
+- [x] Generate stable side-effect keys
+- [x] Reserve keys transactionally before execution
+- [x] Persist successful side-effect results
+- [x] Resume interrupted side effects safely
+- [x] Remove process-local replay cache
+- [x] Add crash and duplicate delivery tests
+- [x] Update this tracker and commit each task
 
 ## Batch 8 — Execution Control
 

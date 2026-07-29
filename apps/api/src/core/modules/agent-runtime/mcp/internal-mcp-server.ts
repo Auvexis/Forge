@@ -18,6 +18,7 @@ export class InternalMcpServer {
   constructor(
     tools: InternalMcpTool[],
     private readonly artifactBoundary?: InternalMcpArtifactBoundary,
+    private readonly executionGuard?: InternalMcpExecutionGuard,
   ) {
     this.catalog = new InternalMcpToolCatalog(tools);
   }
@@ -39,13 +40,22 @@ export class InternalMcpServer {
     const tool = this.catalog.get(call.name);
     let content: unknown;
     try {
-      const arguments_ = this.artifactBoundary
-        ? await this.artifactBoundary.resolveArguments(call.arguments)
-        : call.arguments;
-      const rawContent = await tool.invoke(arguments_);
-      content = this.artifactBoundary
-        ? await this.artifactBoundary.captureResult(call, rawContent)
-        : rawContent;
+      const invoke = async () => {
+        const arguments_ = this.artifactBoundary
+          ? await this.artifactBoundary.resolveArguments(call.arguments)
+          : call.arguments;
+        const rawContent = await tool.invoke(arguments_);
+        return this.artifactBoundary
+          ? await this.artifactBoundary.captureResult(call, rawContent)
+          : rawContent;
+      };
+      content = this.executionGuard && tool.sideEffect !== "read" && call.actionId
+        ? await this.executionGuard.execute({
+            call,
+            timeoutMs: tool.timeoutMs,
+            invoke,
+          })
+        : await invoke();
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) throw error;
       throw new InternalMcpCallError(normalizeInternalMcpError(error, tool.name));
@@ -67,4 +77,12 @@ export class InternalMcpServer {
 export interface InternalMcpArtifactBoundary {
   resolveArguments(arguments_: Record<string, unknown>): Promise<Record<string, unknown>>;
   captureResult(call: InternalMcpToolCall, content: unknown): Promise<unknown>;
+}
+
+export interface InternalMcpExecutionGuard {
+  execute(input: {
+    call: InternalMcpToolCall;
+    timeoutMs: number;
+    invoke: () => Promise<unknown>;
+  }): Promise<unknown>;
 }

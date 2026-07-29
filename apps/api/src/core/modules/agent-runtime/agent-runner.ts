@@ -41,6 +41,7 @@ import type { AgentRuntimeStateLifecycle } from "./persistence/agent-runtime-sta
 import type { AgentPendingInteraction } from "./contracts/agent-domain-contracts.ts";
 import { routePendingInteractionReply } from "./interactions/pending-interaction-router.ts";
 import type { AgentArtifactService } from "./artifacts/agent-artifact-service.ts";
+import type { AgentSideEffectService } from "./idempotency/agent-side-effect-service.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -50,6 +51,7 @@ export interface AgentRunnerOptions {
   emitEvent?: (event: AgentRuntimeEvent, input: AgentRunInput) => void;
   stateStoreFactory?: () => AgentRuntimeStateLifecycle;
   artifactServiceFactory?: () => AgentArtifactService;
+  sideEffectServiceFactory?: () => AgentSideEffectService;
 }
 
 export type PluginMemoryExecutor = (
@@ -66,6 +68,7 @@ export class AgentRunner {
   private readonly eventEmitter: NonNullable<AgentRunnerOptions["emitEvent"]>;
   private readonly stateStoreFactory?: AgentRunnerOptions["stateStoreFactory"];
   private readonly artifactServiceFactory?: AgentRunnerOptions["artifactServiceFactory"];
+  private readonly sideEffectServiceFactory?: AgentRunnerOptions["sideEffectServiceFactory"];
 
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
@@ -75,12 +78,14 @@ export class AgentRunner {
     this.eventEmitter = options.emitEvent ?? defaultEventEmitter;
     this.stateStoreFactory = options.stateStoreFactory;
     this.artifactServiceFactory = options.artifactServiceFactory;
+    this.sideEffectServiceFactory = options.sideEffectServiceFactory;
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
     const validated = validateRunInput(input);
     const state = this.stateStoreFactory?.();
     const artifacts = this.artifactServiceFactory?.();
+    const sideEffects = this.sideEffectServiceFactory?.();
     const pending = state?.findPendingInteraction(input) ?? null;
     const runId = pending?.runId ?? `run_${randomUUID()}`;
     const logger = new AgentRuntimeLogger({
@@ -173,6 +178,7 @@ export class AgentRunner {
         pending,
         artifacts,
         runId,
+        sideEffects,
       });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
@@ -326,6 +332,7 @@ export class AgentRunner {
     pending?: AgentPendingInteraction | null;
     artifacts?: AgentArtifactService;
     runId: string;
+    sideEffects?: AgentSideEffectService;
   }): Promise<AgentRunResult> {
     const model = toAgentRuntimeModel(input.model);
     const client = new InternalMcpClient(new InternalMcpServer(
@@ -344,6 +351,20 @@ export class AgentRunner {
                 actionId: call.actionId,
                 toolName: call.name,
                 value: content,
+              }),
+          }
+        : undefined,
+      input.sideEffects
+        ? {
+            execute: async ({ call, timeoutMs, invoke }) =>
+              await input.sideEffects!.execute({
+                profileId: input.input.profileId,
+                runId: input.runId,
+                actionId: call.actionId!,
+                toolName: call.name,
+                arguments: call.arguments,
+                leaseMs: timeoutMs + 5_000,
+                invoke,
               }),
           }
         : undefined,

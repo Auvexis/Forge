@@ -4,7 +4,8 @@ import { AgentRuntimeError } from "../agent-errors.ts";
 export type SideEffectReservation =
   | { status: "acquired"; ownerToken: string; attempt: number }
   | { status: "replay"; result: unknown }
-  | { status: "busy"; leaseExpiresAt: string };
+  | { status: "busy"; leaseExpiresAt: string }
+  | { status: "outcome-unknown" };
 
 export interface ReserveSideEffectInput {
   idempotencyKey: string;
@@ -30,7 +31,7 @@ export class AgentSideEffectRepository {
           idempotency_key, profile_id, run_id, action_id, tool_name,
           arguments_hash, status, owner_token, attempt, lease_expires_at,
           created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?, 1, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, 'reserved', ?, 1, ?, ?, ?)
       `).run(
         input.idempotencyKey,
         input.profileId,
@@ -50,19 +51,22 @@ export class AgentSideEffectRepository {
       if (row.status === "succeeded") {
         return { status: "replay", result: parseJson(row.result_json) };
       }
-      if (row.status === "pending" && row.owner_token === input.ownerToken) {
+      if (row.status === "reserved" && row.owner_token === input.ownerToken) {
         return { status: "acquired", ownerToken: row.owner_token, attempt: row.attempt };
       }
-      if (row.status === "pending" && row.lease_expires_at > now) {
+      if (row.status === "running" && row.lease_expires_at <= now) {
+        return { status: "outcome-unknown" };
+      }
+      if ((row.status === "reserved" || row.status === "running") && row.lease_expires_at > now) {
         return { status: "busy", leaseExpiresAt: row.lease_expires_at };
       }
 
       const claimed = this.db.prepare(`
         UPDATE agent_side_effects
-        SET status = 'pending', owner_token = ?, attempt = attempt + 1,
+        SET status = 'reserved', owner_token = ?, attempt = attempt + 1,
             lease_expires_at = ?, error_json = NULL, updated_at = ?
         WHERE profile_id = ? AND idempotency_key = ?
-          AND (status = 'failed' OR lease_expires_at <= ?)
+          AND (status = 'failed' OR (status = 'reserved' AND lease_expires_at <= ?))
       `).run(
         input.ownerToken,
         leaseExpiresAt,
@@ -80,6 +84,28 @@ export class AgentSideEffectRepository {
     })();
   }
 
+  markRunning(input: {
+    profileId: string;
+    idempotencyKey: string;
+    ownerToken: string;
+    now: Date;
+    leaseMs: number;
+  }): void {
+    const result = this.db.prepare(`
+      UPDATE agent_side_effects
+      SET status = 'running', lease_expires_at = ?, updated_at = ?
+      WHERE profile_id = ? AND idempotency_key = ?
+        AND owner_token = ? AND status = 'reserved'
+    `).run(
+      new Date(input.now.getTime() + input.leaseMs).toISOString(),
+      input.now.toISOString(),
+      input.profileId,
+      input.idempotencyKey,
+      input.ownerToken,
+    );
+    if (result.changes !== 1) throw sideEffectError("Side-effect reservation ownership was lost");
+  }
+
   succeed(input: {
     profileId: string;
     idempotencyKey: string;
@@ -92,7 +118,7 @@ export class AgentSideEffectRepository {
       UPDATE agent_side_effects
       SET status = 'succeeded', result_json = ?, updated_at = ?, completed_at = ?
       WHERE profile_id = ? AND idempotency_key = ?
-        AND owner_token = ? AND status = 'pending'
+        AND owner_token = ? AND status = 'running'
     `).run(
       JSON.stringify(input.result),
       now,
@@ -115,7 +141,7 @@ export class AgentSideEffectRepository {
       UPDATE agent_side_effects
       SET status = 'failed', error_json = ?, updated_at = ?
       WHERE profile_id = ? AND idempotency_key = ?
-        AND owner_token = ? AND status = 'pending'
+        AND owner_token = ? AND status IN ('reserved', 'running')
     `).run(
       JSON.stringify(input.error),
       input.now.toISOString(),
@@ -141,7 +167,7 @@ interface SideEffectRow {
   action_id: string;
   tool_name: string;
   arguments_hash: string;
-  status: "pending" | "succeeded" | "failed";
+  status: "reserved" | "running" | "succeeded" | "failed";
   owner_token: string;
   attempt: number;
   lease_expires_at: string;
