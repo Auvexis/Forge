@@ -2,7 +2,7 @@
 
 ## Batch 1 — Contracts
 
-- [ ] Define run, action, tool-call, interaction, artifact, and error contracts
+- [x] Define run, action, tool-call, interaction, artifact, and error contracts
 - [ ] Define run and action state transitions
 - [ ] Define internal MCP request and response envelopes
 - [ ] Add contract tests
