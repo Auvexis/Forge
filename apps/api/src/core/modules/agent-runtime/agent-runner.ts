@@ -30,7 +30,7 @@ import {
   buildMemoryNamespace,
 } from "./memory/agent-memory-policy.ts";
 import { usesLongTermMemory } from "./memory/agent-memory-mode.ts";
-import { toAgentRuntimeModel } from "./agent-runtime-model.ts";
+import { toAgentRuntimeModel, withAgentModelTimeout } from "./agent-runtime-model.ts";
 import { routeAgentIntent } from "./intent/agent-intent-gateway.ts";
 import { runMcpAgentLoop } from "./loop/mcp-agent-loop.ts";
 import { InternalMcpClient } from "./mcp/internal-mcp-client.ts";
@@ -343,7 +343,14 @@ export class AgentRunner {
     runId: string;
     sideEffects?: AgentSideEffectService;
   }): Promise<AgentRunResult> {
-    const model = toAgentRuntimeModel(input.model);
+    const model = withAgentModelTimeout(
+      toAgentRuntimeModel(input.model),
+      Math.min(
+        input.validated.agent.timeoutMs,
+        AGENT_LIMITS.defaultModelTimeoutMs,
+      ),
+      input.input.abortSignal,
+    );
     const client = new InternalMcpClient(new InternalMcpServer(
       input.tools,
       input.artifacts

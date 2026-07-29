@@ -23,6 +23,7 @@ export const AGENT_LIMITS = {
   maxToolTimeoutMs: 120000,
   defaultAgentTimeoutMs: 180000,
   maxAgentTimeoutMs: 600000,
+  defaultModelTimeoutMs: 60_000,
   defaultMaxRetriesPerTool: 3,
   maxRetriesPerTool: 100,
   chatRateLimitPerMinute: 30,
