@@ -4,8 +4,8 @@
 
 - [x] Define session, turn, message, and part contracts
 - [x] Add normalized persistence migrations
-- [ ] Add repositories and transactional revision updates
-- [ ] Add paginated message and session snapshot queries
+- [x] Add repositories and transactional revision updates
+- [x] Add paginated message and session snapshot queries
 - [x] Remove legacy chat storage and history
 - [ ] Add contract, repository, and recovery tests
 
