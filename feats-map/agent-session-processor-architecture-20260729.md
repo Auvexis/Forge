@@ -58,7 +58,7 @@
 ## Batch 7 — Hardening
 
 - [x] Test process restarts at every transition
-- [ ] Test duplicate and out-of-order events
+- [x] Test duplicate and out-of-order events
 - [ ] Test multiple tabs and concurrent requests
 - [ ] Test small-model multi-tool scenarios
 - [ ] Add performance and load benchmarks

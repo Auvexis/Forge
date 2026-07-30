@@ -48,6 +48,19 @@ describe("AgentSessionReconciler", () => {
     reconciler.invalidate(8);
     expect(loader).toHaveBeenCalledTimes(2);
   });
+
+  it("ignores duplicate and out-of-order invalidation revisions", async () => {
+    const loader = vi.fn().mockResolvedValue(snapshot(12));
+    const reconciler = new AgentSessionReconciler(loader);
+
+    await reconciler.refresh();
+    reconciler.invalidate(12);
+    reconciler.invalidate(11);
+    reconciler.invalidate(4);
+
+    expect(loader).toHaveBeenCalledTimes(1);
+    expect(reconciler.state.snapshot?.revision).toBe(12);
+  });
 });
 
 function snapshot(revision: number): AgentSessionSnapshot {
