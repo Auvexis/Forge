@@ -38,12 +38,12 @@
 
 ## Batch 5 — Context Engine
 
-- [ ] Build model history from persisted parts
-- [ ] Add turn-aware compaction
-- [ ] Keep tool calls paired with results
-- [ ] Offload large results to artifacts
-- [ ] Add provider token budgets and prefix caching
-- [ ] Add context and compaction tests
+- [x] Build model history from persisted parts
+- [x] Add turn-aware compaction
+- [x] Keep tool calls paired with results
+- [x] Offload large results to artifacts
+- [x] Add provider token budgets and prefix caching
+- [x] Add context and compaction tests
 
 ## Batch 6 — Agent Interface
 

@@ -17,6 +17,7 @@ import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
 import { AgentSessionRepository } from "../session/agent-session-repository.ts";
 import type { AgentMessageWithParts } from "../session/agent-session-contracts.ts";
 import { AgentSessionWriter } from "../session/agent-session-writer.ts";
+import { AgentContextEngine } from "../conversation/agent-context-engine.ts";
 
 export interface SendChatMessageInput {
   profileId: string;
@@ -84,7 +85,7 @@ export class ChatTriggerService {
       profileId: input.profileId,
       sessionId: session.id,
     });
-    const previousMessages = sessionSnapshot.messages;
+    const context = new AgentContextEngine().build(sessionSnapshot);
     const sessionBeforeTurn = this.sessionRepository.getSession(input.profileId, session.id)!;
     const writer = new AgentSessionWriter(
       this.sessionRepository,
@@ -110,7 +111,7 @@ export class ChatTriggerService {
       sessionId: session.id,
       userId: input.userId,
       message,
-      messages: toContextMessages(previousMessages),
+      messages: context.messages,
       metadata: input.metadata ?? {},
     };
     const execution = await this.workflowEngine.executeWorkflowFromTrigger(
@@ -260,79 +261,6 @@ function createSessionTitle(message: string, workflow: WorkflowItem): string {
   return title || workflow.metadata.name;
 }
 
-function toContextMessages(messages: AgentMessageWithParts[]): Array<{
-  role: "user" | "assistant" | "tool" | "system";
-  content: string;
-  name?: string;
-  tool_call_id?: string;
-  tool_calls?: Array<{
-    id: string;
-    name: string;
-    arguments: Record<string, unknown>;
-  }>;
-}> {
-  return messages.flatMap(({ message, parts }) => {
-    const text = parts
-      .filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join("");
-    const tools = parts.filter((part) => part.type === "tool");
-    const toolCalls = tools.map((part) => ({
-      id: part.callId,
-      name: part.toolName,
-      arguments: isRecord(part.state.input) ? part.state.input : {},
-    }));
-    const toolResults = tools.flatMap((part) => {
-      if (part.state.status === "completed") {
-        return [{
-          role: "tool" as const,
-          content: JSON.stringify(part.state.output),
-          name: part.toolName,
-          tool_call_id: part.callId,
-        }];
-      }
-      if (part.state.status === "error") {
-        return [{
-          role: "tool" as const,
-          content: JSON.stringify({ error: part.state.error }),
-          name: part.toolName,
-          tool_call_id: part.callId,
-        }];
-      }
-      return [];
-    });
-    const primary = text || toolCalls.length > 0
-      ? [{
-          role: message.role,
-          content: text,
-          ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
-        }]
-      : [];
-    return [...primary, ...toolResults];
-  });
-}
-
-function normalizeToolCalls(value: unknown): Array<{
-  id: string;
-  name: string;
-  arguments: Record<string, unknown>;
-}> {
-  if (!Array.isArray(value)) return [];
-  return value.flatMap((item) => {
-    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
-    const record = item as Record<string, unknown>;
-    if (typeof record.id !== "string" || typeof record.name !== "string") return [];
-    if (!record.arguments || typeof record.arguments !== "object" || Array.isArray(record.arguments)) {
-      return [];
-    }
-    return [{
-      id: record.id,
-      name: record.name,
-      arguments: record.arguments as Record<string, unknown>,
-    }];
-  });
-}
-
 function normalizeMessageContent(content: unknown): string {
   if (typeof content === "string") return content;
   if (!content || typeof content !== "object" || Array.isArray(content)) return "";
@@ -358,10 +286,6 @@ function toLegacyChatMessage(profileId: string, entry: AgentMessageWithParts): A
     },
     createdAt: entry.message.createdAt,
   };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function extractAssistantResponse(execution: unknown): unknown {
