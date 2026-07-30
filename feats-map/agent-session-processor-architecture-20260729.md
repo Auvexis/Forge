@@ -62,4 +62,4 @@
 - [x] Test multiple tabs and concurrent requests
 - [x] Test small-model multi-tool scenarios
 - [x] Add performance and load benchmarks
-- [ ] Update runtime documentation
+- [x] Update runtime documentation
