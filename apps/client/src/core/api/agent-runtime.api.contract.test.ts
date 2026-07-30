@@ -23,6 +23,7 @@ describe('agent runtime api contract', () => {
       ENDPOINTS.AGENT_SESSION_SNAPSHOT('chat_1'),
       '/agent-sessions/chat_1/snapshot',
     )
+    assert.equal(ENDPOINTS.AGENT_CHATS, '/agent-chats')
     assert.equal(ENDPOINTS.AGENT_TOOLS, '/agent-tools')
     assert.equal(ENDPOINTS.AGENT_MEMORY, '/agent-memory')
     assert.equal(ENDPOINTS.AGENT_MEMORY_BY_ID('memory 1'), '/agent-memory/memory%201')
@@ -41,6 +42,7 @@ describe('agent runtime api contract', () => {
     const toolsSource = fs.readFileSync(path.resolve('src/core/api/agent-tools.api.ts'), 'utf8')
 
     assert.match(chatSource, /export const agentChatApi/)
+    assert.match(chatSource, /listChats:/)
     assert.match(chatSource, /sendMessage:/)
     assert.match(chatSource, /listSessionMessages:/)
     assert.match(chatSource, /getSessionSnapshot:/)

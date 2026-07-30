@@ -67,7 +67,7 @@
 ## Batch 8 — Agent Chat Surface
 
 - [x] Add published agent and session directory API
-- [ ] Add directory client contracts
+- [x] Add directory client contracts
 - [ ] Build snapshot-based agent chat modal
 - [ ] Replace the legacy agents page shell
 - [ ] Add dedicated theme tokens

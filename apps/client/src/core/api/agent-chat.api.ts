@@ -2,6 +2,7 @@ import { apiRequest } from './client.ts'
 import { ENDPOINTS } from './endpoints.ts'
 import type {
   AgentApprovalDecisionPayload,
+  AgentChatDirectoryEntry,
   AgentChatMessage,
   AgentSessionSnapshot,
   SendAgentChatMessagePayload,
@@ -9,6 +10,9 @@ import type {
 } from '../../features/agent-runtime/types/agent.types.ts'
 
 export const agentChatApi = {
+  listChats: () =>
+    apiRequest<AgentChatDirectoryEntry[]>(ENDPOINTS.AGENT_CHATS),
+
   sendMessage: (chatSlug: string, payload: SendAgentChatMessagePayload) =>
     apiRequest<SendAgentChatMessageResult>(ENDPOINTS.AGENT_CHAT_MESSAGES(chatSlug), {
       method: 'POST',

@@ -80,6 +80,15 @@ export interface AgentChatSession {
   updatedAt: string
 }
 
+export interface AgentChatDirectoryEntry {
+  chatSlug: string
+  title: string
+  workflowId: string
+  workflowName: string
+  triggerNodeId: string
+  sessions: AgentChatSession[]
+}
+
 export interface AgentChatMessage {
   id: string
   profileId: string
