@@ -11,7 +11,7 @@
 
 ## Batch 2 — Agent Processor
 
-- [ ] Add provider-neutral response stream contracts
+- [x] Add provider-neutral response stream contracts
 - [ ] Persist assistant parts incrementally
 - [ ] Execute text and tool calls in one loop
 - [ ] Remove mandatory intent planning
