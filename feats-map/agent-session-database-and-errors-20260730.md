@@ -13,5 +13,5 @@
 
 ## Batch 3 — Validation
 
-- [ ] Run agent API and frontend tests
-- [ ] Run type checks
+- [x] Run agent API and frontend tests
+- [x] Run type checks
