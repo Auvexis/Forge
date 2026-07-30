@@ -7,6 +7,7 @@ export interface AgentChatSession {
   triggerNodeId: string;
   title: string;
   status: string;
+  revision?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,9 +32,9 @@ export class ChatSessionRepository {
     const now = new Date().toISOString();
     this.db
       .prepare(`
-        INSERT INTO agent_chat_sessions
-          (id, profile_id, workflow_id, trigger_node_id, title, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO agent_sessions
+          (id, profile_id, workflow_id, trigger_node_id, title, state, revision, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
       `)
       .run(
         input.id,
@@ -48,6 +49,7 @@ export class ChatSessionRepository {
 
     return {
       ...input,
+      revision: 1,
       createdAt: now,
       updatedAt: now,
     };
@@ -55,7 +57,7 @@ export class ChatSessionRepository {
 
   getById(profileId: string, id: string): AgentChatSession | null {
     const row = this.db
-      .prepare(`SELECT * FROM agent_chat_sessions WHERE profile_id = ? AND id = ?`)
+      .prepare(`SELECT * FROM agent_sessions WHERE profile_id = ? AND id = ?`)
       .get(profileId, id) as ChatSessionRow | undefined;
     return row ? toChatSession(row) : null;
   }
@@ -63,7 +65,7 @@ export class ChatSessionRepository {
   listByWorkflow(profileId: string, workflowId: string): AgentChatSession[] {
     const rows = this.db
       .prepare(`
-        SELECT * FROM agent_chat_sessions
+        SELECT * FROM agent_sessions
         WHERE profile_id = ? AND workflow_id = ?
         ORDER BY updated_at DESC
       `)
@@ -73,13 +75,17 @@ export class ChatSessionRepository {
 
   touch(profileId: string, id: string): void {
     this.db
-      .prepare(`UPDATE agent_chat_sessions SET updated_at = ? WHERE profile_id = ? AND id = ?`)
+      .prepare(`
+        UPDATE agent_sessions
+        SET updated_at = ?, revision = revision + 1
+        WHERE profile_id = ? AND id = ?
+      `)
       .run(new Date().toISOString(), profileId, id);
   }
 
   delete(profileId: string, id: string): boolean {
     const result = this.db
-      .prepare(`DELETE FROM agent_chat_sessions WHERE profile_id = ? AND id = ?`)
+      .prepare(`DELETE FROM agent_sessions WHERE profile_id = ? AND id = ?`)
       .run(profileId, id);
     return result.changes > 0;
   }
@@ -91,7 +97,8 @@ interface ChatSessionRow {
   workflow_id: string;
   trigger_node_id: string;
   title: string;
-  status: string;
+  state: string;
+  revision: number;
   created_at: string;
   updated_at: string;
 }
@@ -103,7 +110,8 @@ function toChatSession(row: ChatSessionRow): AgentChatSession {
     workflowId: row.workflow_id,
     triggerNodeId: row.trigger_node_id,
     title: row.title,
-    status: row.status,
+    status: row.state,
+    revision: row.revision,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };

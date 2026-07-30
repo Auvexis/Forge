@@ -5,7 +5,6 @@ import { AgentRuntimeError } from "../agent-errors.ts";
 import type {
   AgentChatMessage,
 } from "./chat-message-repository.ts";
-import { ChatMessageRepository } from "./chat-message-repository.ts";
 import type { AgentChatSession } from "./chat-session-repository.ts";
 import { ChatSessionRepository } from "./chat-session-repository.ts";
 import { WorkflowEngine } from "../../workflows/executor.ts";
@@ -15,6 +14,9 @@ import {
   type ResolvedWorkflowTrigger,
 } from "../../workflows/workflow-triggers.ts";
 import type { WorkflowItem } from "../../../../shared/models/workflow-types.ts";
+import { AgentSessionRepository } from "../session/agent-session-repository.ts";
+import type { AgentMessageWithParts } from "../session/agent-session-contracts.ts";
+import { AgentSessionWriter } from "../session/agent-session-writer.ts";
 
 export interface SendChatMessageInput {
   profileId: string;
@@ -47,7 +49,7 @@ interface RateLimitBucket {
 
 export class ChatTriggerService {
   private readonly sessions: ChatSessionRepository;
-  private readonly messages: ChatMessageRepository;
+  private readonly sessionRepository: AgentSessionRepository;
   private readonly workflowRepository: Pick<typeof WorkflowRepository, "getActiveWorkflows" | "getWorkflows">;
   private readonly workflowEngine: Pick<typeof WorkflowEngine, "executeWorkflowFromTrigger">;
   private readonly now: () => number;
@@ -56,7 +58,7 @@ export class ChatTriggerService {
   constructor(options: ChatTriggerServiceOptions = {}) {
     const db = options.db ?? DatabaseManager.workflows;
     this.sessions = new ChatSessionRepository(db);
-    this.messages = new ChatMessageRepository(db);
+    this.sessionRepository = new AgentSessionRepository(db);
     this.workflowRepository = options.workflowRepository ?? WorkflowRepository;
     this.workflowEngine = options.workflowEngine ?? WorkflowEngine;
     this.now = options.now ?? Date.now;
@@ -78,15 +80,24 @@ export class ChatTriggerService {
     this.assertPublicOriginAllowed(input, resolved);
     this.assertPublicRateLimit(input, resolved);
     const session = this.resolveSession(input, resolved, message);
-    const previousMessages = this.messages.listBySession(input.profileId, session.id);
-    this.messages.append({
-      id: `msg_${randomUUID()}`,
+    const previousMessages = this.sessionRepository.getSnapshot({
       profileId: input.profileId,
       sessionId: session.id,
-      role: "user",
-      content: message,
+    }).messages;
+    const sessionBeforeTurn = this.sessionRepository.getSession(input.profileId, session.id)!;
+    const writer = new AgentSessionWriter(
+      this.sessionRepository,
+      input.profileId,
+      session.id,
+      sessionBeforeTurn.revision,
+    );
+    const turn = writer.createTurn({ state: "running" });
+    const userMessage = writer.appendMessage(turn.id, "user");
+    writer.appendText({
+      turnId: turn.id,
+      messageId: userMessage.id,
+      text: message,
     });
-    this.sessions.touch(input.profileId, session.id);
 
     const payload = {
       type: "chat",
@@ -105,30 +116,19 @@ export class ChatTriggerService {
       payload,
     );
     assertSuccessfulChatExecution(execution);
-    for (const canonical of extractCanonicalToolMessages(execution)) {
-      this.messages.append({
-        id: `msg_${randomUUID()}`,
-        profileId: input.profileId,
-        sessionId: session.id,
-        role: canonical.role,
-        content: canonical,
-      });
+    const afterExecution = this.sessionRepository.getSnapshot({
+      profileId: input.profileId,
+      sessionId: session.id,
+    });
+    if (!afterExecution.messages.some((entry) =>
+      entry.message.turnId === turn.id && entry.message.role === "assistant"
+    )) {
+      persistExecutionFallback(writer, turn.id, execution);
+      writer.updateTurn(turn.id, "completed");
     }
-    const assistantResponse = extractAssistantResponse(execution);
-    if (assistantResponse !== null && assistantResponse !== undefined) {
-      this.messages.append({
-        id: `msg_${randomUUID()}`,
-        profileId: input.profileId,
-        sessionId: session.id,
-        role: "assistant",
-        content: assistantResponse,
-      });
-      this.sessions.touch(input.profileId, session.id);
-    }
-
     return {
-      session,
-      messages: this.messages.listBySession(input.profileId, session.id),
+      session: this.sessions.getById(input.profileId, session.id) ?? session,
+      messages: this.listMessages(input.profileId, session.id),
       execution,
     };
   }
@@ -138,7 +138,8 @@ export class ChatTriggerService {
   }
 
   listMessages(profileId: string, sessionId: string): AgentChatMessage[] {
-    return this.messages.listBySession(profileId, sessionId);
+    return this.sessionRepository.getSnapshot({ profileId, sessionId }).messages
+      .map((message) => toLegacyChatMessage(profileId, message));
   }
 
   private resolve(chatSlug: string): ResolvedWorkflowTrigger {
@@ -256,7 +257,7 @@ function createSessionTitle(message: string, workflow: WorkflowItem): string {
   return title || workflow.metadata.name;
 }
 
-function toContextMessages(messages: AgentChatMessage[]): Array<{
+function toContextMessages(messages: AgentMessageWithParts[]): Array<{
   role: "user" | "assistant" | "tool" | "system";
   content: string;
   name?: string;
@@ -267,25 +268,45 @@ function toContextMessages(messages: AgentChatMessage[]): Array<{
     arguments: Record<string, unknown>;
   }>;
 }> {
-  return messages
-    .flatMap((message) => {
-      const embedded = message.content && typeof message.content === "object" &&
-          !Array.isArray(message.content)
-        ? message.content as Record<string, unknown>
-        : {};
-      const content = normalizeMessageContent(message.content);
-      const toolCalls = normalizeToolCalls(embedded.tool_calls);
-      if (!content.trim() && toolCalls.length === 0) return [];
-      return [{
-        role: message.role,
-        content,
-        ...(typeof embedded.name === "string" ? { name: embedded.name } : {}),
-        ...(typeof embedded.tool_call_id === "string"
-          ? { tool_call_id: embedded.tool_call_id }
-          : {}),
-        ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
-      }];
+  return messages.flatMap(({ message, parts }) => {
+    const text = parts
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("");
+    const tools = parts.filter((part) => part.type === "tool");
+    const toolCalls = tools.map((part) => ({
+      id: part.callId,
+      name: part.toolName,
+      arguments: isRecord(part.state.input) ? part.state.input : {},
+    }));
+    const toolResults = tools.flatMap((part) => {
+      if (part.state.status === "completed") {
+        return [{
+          role: "tool" as const,
+          content: JSON.stringify(part.state.output),
+          name: part.toolName,
+          tool_call_id: part.callId,
+        }];
+      }
+      if (part.state.status === "error") {
+        return [{
+          role: "tool" as const,
+          content: JSON.stringify({ error: part.state.error }),
+          name: part.toolName,
+          tool_call_id: part.callId,
+        }];
+      }
+      return [];
     });
+    const primary = text || toolCalls.length > 0
+      ? [{
+          role: message.role,
+          content: text,
+          ...(toolCalls.length > 0 ? { tool_calls: toolCalls } : {}),
+        }]
+      : [];
+    return [...primary, ...toolResults];
+  });
 }
 
 function normalizeToolCalls(value: unknown): Array<{
@@ -318,6 +339,28 @@ function normalizeMessageContent(content: unknown): string {
   return "";
 }
 
+function toLegacyChatMessage(profileId: string, entry: AgentMessageWithParts): AgentChatMessage {
+  const text = entry.parts
+    .filter((part) => part.type === "text")
+    .map((part) => part.text)
+    .join("");
+  return {
+    id: entry.message.id,
+    profileId,
+    sessionId: entry.message.sessionId,
+    role: entry.message.role,
+    content: {
+      text,
+      parts: entry.parts,
+    },
+    createdAt: entry.message.createdAt,
+  };
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 function extractAssistantResponse(execution: unknown): unknown {
   const steps = (execution as { context?: { steps?: Record<string, any> } })?.context?.steps;
   if (!steps) return null;
@@ -346,6 +389,51 @@ function extractCanonicalToolMessages(execution: unknown): Array<{
   return messages.filter((message): message is ReturnType<typeof extractCanonicalToolMessages>[number] =>
     message?.role === "assistant" || message?.role === "tool"
   );
+}
+
+function persistExecutionFallback(
+  writer: AgentSessionWriter,
+  turnId: string,
+  execution: unknown,
+): void {
+  const canonical = extractCanonicalToolMessages(execution);
+  const results = new Map(
+    canonical
+      .filter((message) => message.role === "tool" && message.tool_call_id)
+      .map((message) => [message.tool_call_id!, parseJsonValue(message.content)]),
+  );
+  for (const message of canonical) {
+    if (message.role !== "assistant" || !message.tool_calls?.length) continue;
+    const assistant = writer.appendMessage(turnId, "assistant");
+    for (const call of message.tool_calls) {
+      const pending = writer.appendTool({
+        turnId,
+        messageId: assistant.id,
+        callId: call.id,
+        toolName: call.name,
+        arguments: call.arguments,
+      });
+      const running = writer.startTool(pending, call.arguments);
+      writer.completeTool(running, results.get(call.id));
+    }
+  }
+  const response = extractAssistantResponse(execution);
+  if (response !== null && response !== undefined) {
+    const assistant = writer.appendMessage(turnId, "assistant");
+    writer.appendText({
+      turnId,
+      messageId: assistant.id,
+      text: normalizeMessageContent(response),
+    });
+  }
+}
+
+function parseJsonValue(value: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return value;
+  }
 }
 
 function assertSuccessfulChatExecution(execution: unknown): void {

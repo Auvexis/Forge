@@ -25,7 +25,7 @@
 - [x] Activate schemas per turn
 - [x] Execute independent read tools concurrently
 - [x] Keep side effects ordered and idempotent
-- [ ] Add discovery, cache, and concurrency tests
+- [x] Add discovery, cache, and concurrency tests
 
 ## Batch 4 — Goal Completion
 

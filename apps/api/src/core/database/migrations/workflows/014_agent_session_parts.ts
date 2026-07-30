@@ -63,7 +63,7 @@ export async function up(db: Database.Database): Promise<void> {
         ON agent_message_parts(message_id, sequence);
 
       CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_message_parts_tool_call
-        ON agent_message_parts(session_id, json_extract(data_json, '$.callId'))
+        ON agent_message_parts(turn_id, json_extract(data_json, '$.callId'))
         WHERE type = 'tool';
 
       CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_message_parts_interaction
