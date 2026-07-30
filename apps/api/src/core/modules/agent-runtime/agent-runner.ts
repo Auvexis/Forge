@@ -31,8 +31,6 @@ import {
 } from "./memory/agent-memory-policy.ts";
 import { usesLongTermMemory } from "./memory/agent-memory-mode.ts";
 import { toAgentRuntimeModel, withAgentModelTimeout } from "./agent-runtime-model.ts";
-import { routeAgentIntent } from "./intent/agent-intent-gateway.ts";
-import { runMcpAgentLoop } from "./loop/mcp-agent-loop.ts";
 import { InternalMcpClient } from "./mcp/internal-mcp-client.ts";
 import { InternalMcpServer } from "./mcp/internal-mcp-server.ts";
 import type { InternalMcpTool } from "./mcp/internal-mcp-types.ts";
@@ -48,6 +46,9 @@ import {
 } from "./conversation/agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
 import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
+import { runAgentProcessor } from "./processor/agent-processor.ts";
+import { StructuredTurnStreamingModel } from "./processor/structured-turn-streaming-model.ts";
+import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -58,6 +59,10 @@ export interface AgentRunnerOptions {
   stateStoreFactory?: () => AgentRuntimeStateLifecycle;
   artifactServiceFactory?: () => AgentArtifactService;
   sideEffectServiceFactory?: () => AgentSideEffectService;
+  sessionWriterFactory?: (
+    input: AgentRunInput,
+    runId: string,
+  ) => { writer: AgentSessionWriter; turnId: string } | undefined;
 }
 
 export type PluginMemoryExecutor = (
@@ -75,6 +80,7 @@ export class AgentRunner {
   private readonly stateStoreFactory?: AgentRunnerOptions["stateStoreFactory"];
   private readonly artifactServiceFactory?: AgentRunnerOptions["artifactServiceFactory"];
   private readonly sideEffectServiceFactory?: AgentRunnerOptions["sideEffectServiceFactory"];
+  private readonly sessionWriterFactory?: AgentRunnerOptions["sessionWriterFactory"];
 
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
@@ -85,6 +91,7 @@ export class AgentRunner {
     this.stateStoreFactory = options.stateStoreFactory;
     this.artifactServiceFactory = options.artifactServiceFactory;
     this.sideEffectServiceFactory = options.sideEffectServiceFactory;
+    this.sessionWriterFactory = options.sessionWriterFactory;
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
@@ -103,6 +110,7 @@ export class AgentRunner {
     const sideEffects = this.sideEffectServiceFactory?.();
     const pending = state?.findPendingInteraction(input) ?? null;
     const runId = pending?.runId ?? `run_${randomUUID()}`;
+    let sessionExecution: ReturnType<NonNullable<AgentRunnerOptions["sessionWriterFactory"]>>;
     const logger = new AgentRuntimeLogger({
       profileId: input.profileId,
       workflowId: input.workflowId,
@@ -133,6 +141,7 @@ export class AgentRunner {
       state?.startRun(runId, input);
       state?.markRunRunning();
     }
+    sessionExecution = this.sessionWriterFactory?.(input, runId);
     logger.info("run.started", { hasSession: Boolean(input.sessionId) });
     this.eventEmitter({ type: "agent:start", payload: { sessionId: input.sessionId } }, input);
     this.eventEmitter({
@@ -197,6 +206,8 @@ export class AgentRunner {
         artifacts,
         runId,
         sideEffects,
+        sessionWriter: sessionExecution?.writer,
+        sessionTurnId: sessionExecution?.turnId,
       });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
@@ -212,10 +223,19 @@ export class AgentRunner {
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) {
         state?.markRunWaitingApproval();
+        if (sessionExecution) {
+          sessionExecution.writer.updateTurn(sessionExecution.turnId, "waiting-approval");
+        }
         logger.info("approval.requested", { toolName: error.approvalRequest.toolName });
         throw error;
       }
       state?.markRunFailed();
+      if (sessionExecution) {
+        const snapshot = sessionExecution.writer.currentRevision;
+        if (snapshot > 0) {
+          sessionExecution.writer.updateTurn(sessionExecution.turnId, "failed");
+        }
+      }
       logger.error("run.failed", serializeErrorPayload(error));
       this.eventEmitter({ type: "agent:error", payload: serializeErrorPayload(error) }, input);
       if (error instanceof AgentRuntimeError) throw error;
@@ -351,6 +371,8 @@ export class AgentRunner {
     artifacts?: AgentArtifactService;
     runId: string;
     sideEffects?: AgentSideEffectService;
+    sessionWriter?: AgentSessionWriter;
+    sessionTurnId?: string;
   }): Promise<AgentRunResult> {
     const model = withAgentModelTimeout(
       toAgentRuntimeModel(input.model),
@@ -415,75 +437,40 @@ export class AgentRunner {
         throw error;
       }
     }
-    const isApprovalResume = input.input.approvalToken === "approved" &&
-      Boolean(input.input.approvalToolResumeState);
-    const isPendingLoopResume = input.pending?.context.source === "loop";
-    const intent = isApprovalResume || isPendingLoopResume
-      ? null
-      : await routeAgentIntent({
-          model,
-          systemPrompt: input.validated.agent.prompt,
-          userMessage: input.input.userMessage,
-          contextMessages: input.contextMessages,
-          tools: client.listTools(),
-          signal: input.input.abortSignal,
-        });
-
-    if (isApprovalResume) {
-      input.logger.info("approval.resumed", { toolName: input.input.approvalToolName });
-    } else if (intent) {
-      input.logger.info("intent.classified", {
-        mode: intent.mode,
-        ...(intent.mode === "action" ? { actionCount: intent.actions.length } : {}),
-      });
-    }
-    if (intent?.mode === "chat") {
-      return { status: "success", output: intent.response, iterationCount: 1, toolCallCount: 0, toolCalls: [] };
-    }
-    if (intent?.mode === "clarify") {
-      input.logger.info("interaction.created", { kind: "clarification" });
-      input.state?.createPendingInteraction({
-        id: `interaction_${randomUUID()}`,
-        kind: "clarification",
-        question: intent.question,
-        context: {
-          source: "intent",
-          originalUserMessage: input.input.userMessage,
-        },
-      });
-      return {
-        status: "waiting-user",
-        output: { status: "waiting-user", question: intent.question },
-        iterationCount: 1,
-        toolCallCount: 0,
-        toolCalls: [],
-      };
-    }
-
-    return runMcpAgentLoop({
-      model,
+    const result = await runAgentProcessor({
+      model: new StructuredTurnStreamingModel(model),
       client,
       systemPrompt: input.validated.agent.prompt,
-      userMessage: input.input.userMessage,
-      contextMessages: input.contextMessages,
-      actions: intent?.mode === "action" ? intent.actions : [],
+      messages: [
+        ...input.contextMessages.map((message) => ({
+          role: message.role,
+          content: message.content,
+          ...(message.tool_call_id ? { toolCallId: message.tool_call_id } : {}),
+          ...(message.tool_calls
+            ? {
+                toolCalls: message.tool_calls.map((call) => ({
+                  callId: call.id,
+                  name: call.name,
+                  input: call.arguments,
+                })),
+              }
+            : {}),
+        })),
+        { role: "user", content: input.input.userMessage },
+      ],
+      maxIterations: input.validated.agent.maxToolCalls + 2,
       maxToolCalls: input.validated.agent.maxToolCalls,
-      maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
       abortSignal: input.input.abortSignal,
-      approvedTool: input.input.approvalToken === "approved" &&
-          input.input.approvalToolName &&
-          input.input.approvalToolArgs
-        ? {
-            toolName: input.input.approvalToolName,
-            arguments: input.input.approvalToolArgs,
-            resumeState: input.input.approvalToolResumeState,
-          }
-        : undefined,
-      emitEvent: (event) => this.eventEmitter(event, input.input),
-      logger: input.logger,
-      state: input.state,
-      resumeState: isPendingLoopResume ? input.pending?.context.resumeState : undefined,
+      writer: input.sessionWriter,
+      turnId: input.sessionTurnId,
     });
+    return {
+      status: "success",
+      output: result.output,
+      iterationCount: result.iterations,
+      toolCallCount: result.toolCallCount,
+      toolCalls: result.toolCalls,
+    };
   }
 }
 

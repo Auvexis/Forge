@@ -70,6 +70,11 @@ describe("runAgentProcessor", () => {
       output: "Arquivo baixado.",
       iterations: 2,
       toolCallCount: 1,
+      toolCalls: [{
+        toolCallId: "call_1",
+        name: "drive_download",
+        status: "success",
+      }],
     });
     expect(invoke).toHaveBeenCalledWith({ file: "X.mp4" });
   });

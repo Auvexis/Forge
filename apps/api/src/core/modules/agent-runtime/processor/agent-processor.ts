@@ -14,6 +14,11 @@ export interface AgentProcessorResult {
   output: string;
   iterations: number;
   toolCallCount: number;
+  toolCalls: Array<{
+    toolCallId: string;
+    name: string;
+    status: "success";
+  }>;
 }
 
 export async function runAgentProcessor(input: {
@@ -34,6 +39,7 @@ export async function runAgentProcessor(input: {
   ];
   const toolset = new AdaptiveMcpToolset(input.client);
   let toolCallCount = 0;
+  const completedToolCalls: AgentProcessorResult["toolCalls"] = [];
   let finalText = "";
 
   for (let iteration = 1; iteration <= input.maxIterations; iteration += 1) {
@@ -67,6 +73,7 @@ export async function runAgentProcessor(input: {
         output: finalText,
         iterations: iteration,
         toolCallCount,
+        toolCalls: completedToolCalls,
       };
     }
     if (toolCallCount + response.toolCalls.length > input.maxToolCalls) {
@@ -111,6 +118,11 @@ export async function runAgentProcessor(input: {
         toolCallId: result.callId,
       });
       toolCallCount += 1;
+      completedToolCalls.push({
+        toolCallId: result.callId,
+        name: result.toolName,
+        status: "success",
+      });
     }
   }
 
@@ -130,7 +142,7 @@ async function executeToolCalls(input: {
   writer?: AgentSessionWriter;
   maxConcurrentReads: number;
   abortSignal?: AbortSignal;
-}): Promise<Array<{ callId: string; content: unknown }>> {
+}): Promise<Array<{ callId: string; toolName: string; content: unknown }>> {
   const output = new Map<string, unknown>();
   let readWave: typeof input.calls = [];
   const flushReads = async () => {
@@ -155,6 +167,7 @@ async function executeToolCalls(input: {
   await flushReads();
   return input.calls.map(({ call }) => ({
     callId: call.callId,
+    toolName: call.toolName,
     content: output.get(call.callId),
   }));
 }
@@ -171,7 +184,7 @@ async function executeToolCall(input: {
   toolset: AdaptiveMcpToolset;
   writer?: AgentSessionWriter;
   abortSignal?: AbortSignal;
-}): Promise<{ callId: string; content: unknown }> {
+}): Promise<{ callId: string; toolName: string; content: unknown }> {
   const { call } = input.prepared;
   throwIfAborted(input.abortSignal);
   try {
@@ -183,7 +196,7 @@ async function executeToolCall(input: {
     if (input.prepared.part && input.writer) {
       input.writer.completeTool(input.prepared.part, result.content);
     }
-    return { callId: call.callId, content: result.content };
+    return { callId: call.callId, toolName: call.toolName, content: result.content };
   } catch (error) {
     if (input.prepared.part && input.writer) {
       input.writer.failTool(
