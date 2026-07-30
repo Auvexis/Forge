@@ -61,6 +61,25 @@ describe("AgentSessionReconciler", () => {
     expect(loader).toHaveBeenCalledTimes(1);
     expect(reconciler.state.snapshot?.revision).toBe(12);
   });
+
+  it("lets independent tabs converge through canonical refreshes", async () => {
+    let serverRevision = 3;
+    const loadFromServer = vi.fn(async () => snapshot(serverRevision));
+    const firstTab = new AgentSessionReconciler(loadFromServer);
+    const secondTab = new AgentSessionReconciler(loadFromServer);
+
+    await Promise.all([firstTab.refresh(), secondTab.refresh()]);
+    serverRevision = 8;
+    firstTab.invalidate(8);
+    await vi.waitFor(() => expect(firstTab.state.snapshot?.revision).toBe(8));
+    expect(secondTab.state.snapshot?.revision).toBe(3);
+
+    // The second tab missed the invalidation and later regains focus.
+    await secondTab.refresh();
+
+    expect(secondTab.state.snapshot?.revision).toBe(8);
+    expect(firstTab.state.snapshot).toEqual(secondTab.state.snapshot);
+  });
 });
 
 function snapshot(revision: number): AgentSessionSnapshot {
