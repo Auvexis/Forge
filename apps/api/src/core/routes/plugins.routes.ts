@@ -762,6 +762,15 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     message: string,
   ): string => {
     const accent = status === "success" ? "#0f9f6e" : "#b42318";
+    const completionScript =
+      status === "success"
+        ? `<script>
+            try {
+              window.opener?.postMessage({ type: "fabric:oauth-complete" }, window.location.origin);
+            } catch {}
+            window.setTimeout(() => window.close(), 1200);
+          </script>`
+        : "";
     return `<!doctype html>
       <html lang="en">
         <head>
@@ -799,9 +808,19 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
               line-height: 1.2;
             }
             p {
-              margin: 0;
+              margin: 0 0 24px;
               color: #4a5568;
               line-height: 1.6;
+            }
+            button {
+              border: 0;
+              border-radius: 6px;
+              padding: 10px 16px;
+              color: #fff;
+              background: ${accent};
+              font: inherit;
+              font-weight: 600;
+              cursor: pointer;
             }
           </style>
         </head>
@@ -810,7 +829,9 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
             <div class="status" aria-hidden="true"></div>
             <h1>${escapeHtml(title)}</h1>
             <p>${escapeHtml(message)}</p>
+            <button type="button" onclick="window.close()">Close this tab</button>
           </main>
+          ${completionScript}
         </body>
       </html>`;
   };

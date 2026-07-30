@@ -10,6 +10,7 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
   const authLoading = ref(false)
   const awaitingOAuthReturn = ref(false)
   const toast = useToast()
+  let connectionPollTimer: number | null = null
 
   const getPluginId = () => {
     return toValue(pluginIdOrGetter)
@@ -74,6 +75,7 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
         throw new Error('The browser blocked the OAuth tab. Allow popups for Fabric and try again.')
       }
       awaitingOAuthReturn.value = true
+      scheduleConnectionCheck()
     } catch (error) {
       browserTab?.close()
       const message = error instanceof Error ? error.message : 'Could not start OAuth.'
@@ -98,8 +100,27 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     await loadStatus()
     if (pluginStatus.value?.status === 'connected') {
       awaitingOAuthReturn.value = false
+      stopConnectionPolling()
       toast.success('OAuth connection successful!', 'Success')
+      return
     }
+    scheduleConnectionCheck()
+  }
+
+  const stopConnectionPolling = () => {
+    if (connectionPollTimer !== null) {
+      window.clearTimeout(connectionPollTimer)
+      connectionPollTimer = null
+    }
+  }
+
+  const scheduleConnectionCheck = () => {
+    stopConnectionPolling()
+    if (!awaitingOAuthReturn.value) return
+    connectionPollTimer = window.setTimeout(() => {
+      connectionPollTimer = null
+      void checkConnection()
+    }, 1500)
   }
 
   const handleFocus = () => {
@@ -120,6 +141,7 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
   })
 
   onUnmounted(() => {
+    stopConnectionPolling()
     window.removeEventListener('focus', handleFocus)
     document.removeEventListener('visibilitychange', handleVisibilityChange)
   })

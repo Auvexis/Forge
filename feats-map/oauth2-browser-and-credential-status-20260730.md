@@ -22,6 +22,6 @@
 ## Batch 4 — Callback Return
 
 - [x] Route public OAuth callbacks to the API
-- [ ] Notify and close the provider tab after callback
-- [ ] Reconcile OAuth completion in web and desktop
-- [ ] Add callback routing tests
+- [x] Notify and close the provider tab after callback
+- [x] Reconcile OAuth completion in web and desktop
+- [x] Add callback routing tests
