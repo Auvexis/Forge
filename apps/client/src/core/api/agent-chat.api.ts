@@ -3,6 +3,7 @@ import { ENDPOINTS } from './endpoints.ts'
 import type {
   AgentApprovalDecisionPayload,
   AgentChatMessage,
+  AgentSessionSnapshot,
   SendAgentChatMessagePayload,
   SendAgentChatMessageResult,
 } from '../../features/agent-runtime/types/agent.types.ts'
@@ -16,6 +17,9 @@ export const agentChatApi = {
 
   listSessionMessages: (sessionId: string) =>
     apiRequest<AgentChatMessage[]>(ENDPOINTS.AGENT_CHAT_SESSION_MESSAGES(sessionId)),
+
+  getSessionSnapshot: (sessionId: string) =>
+    apiRequest<AgentSessionSnapshot>(ENDPOINTS.AGENT_SESSION_SNAPSHOT(sessionId)),
 
   approveToolCall: (approvalId: string, payload: AgentApprovalDecisionPayload) =>
     apiRequest(ENDPOINTS.AGENT_APPROVAL_APPROVE(approvalId), {

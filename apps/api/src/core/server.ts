@@ -15,6 +15,7 @@ import profilesRoutes from "./routes/profiles.routes.ts";
 import commandPaletteRoutes from "./routes/command-palette.routes.ts";
 import pagesRoutes from "./routes/pages.routes.ts";
 import agentChatRoutes from "./routes/agent-chat.routes.ts";
+import agentSessionRoutes from "./routes/agent-session.routes.ts";
 import notificationsRoutes from "./routes/notifications.routes.ts";
 import auvexisAccountRoutes from "./modules/auvexis/auvexis-account-routes.ts";
 import { devWorkflowSessionRuntime } from "./modules/workflows/dev-session/runtime.ts";
@@ -80,6 +81,7 @@ fastify.register(webhooksRoutes);
 fastify.register(credentialsRoutes);
 fastify.register(pagesRoutes);
 fastify.register(agentChatRoutes);
+fastify.register(agentSessionRoutes);
 fastify.register(notificationsRoutes);
 fastify.register(profilesRoutes, {
   store: activeProfileRuntime.profileStore,

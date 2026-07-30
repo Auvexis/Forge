@@ -89,6 +89,98 @@ export interface AgentChatMessage {
   createdAt: string
 }
 
+export type AgentTurnState =
+  | 'queued'
+  | 'running'
+  | 'waiting-user'
+  | 'waiting-approval'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+
+export interface AgentSessionTurn {
+  id: string
+  sessionId: string
+  runId?: string
+  state: AgentTurnState
+  sequence: number
+  createdAt: string
+  updatedAt: string
+  completedAt?: string
+}
+
+export interface AgentSessionMessage {
+  id: string
+  sessionId: string
+  turnId: string
+  role: Exclude<AgentChatMessageRole, 'tool'>
+  sequence: number
+  createdAt: string
+  completedAt?: string
+}
+
+interface AgentPartBase {
+  id: string
+  sessionId: string
+  turnId: string
+  messageId: string
+  sequence: number
+  createdAt: string
+  updatedAt: string
+}
+
+export type AgentSessionPart =
+  | (AgentPartBase & { type: 'text'; text: string; state: 'streaming' | 'completed' })
+  | (AgentPartBase & {
+      type: 'tool'
+      callId: string
+      actionId?: string
+      toolName: string
+      state: {
+        status: 'pending' | 'running' | 'completed' | 'error'
+        input?: unknown
+        output?: unknown
+        error?: unknown
+        attempt?: number
+        startedAt?: string
+        completedAt?: string
+      }
+    })
+  | (AgentPartBase & { type: 'artifact'; artifactRef: string; name: string; mimeType?: string; size: number })
+  | (AgentPartBase & {
+      type: 'interaction'
+      interactionId: string
+      kind: 'clarification' | 'selection' | 'approval' | 'authentication' | 'permission'
+      question: string
+      state: 'pending' | 'resolved' | 'cancelled'
+      response?: unknown
+    })
+  | (AgentPartBase & { type: 'error'; error: unknown })
+  | (AgentPartBase & {
+      type: 'commitment'
+      request: string
+      items: Array<{
+        id: string
+        description: string
+        status: 'pending' | 'completed' | 'failed'
+        evidencePartIds: string[]
+      }>
+    })
+  | (AgentPartBase & {
+      type: 'compaction'
+      summary: string
+      firstMessageSequence: number
+      lastMessageSequence: number
+    })
+
+export interface AgentSessionSnapshot {
+  session: Omit<AgentChatSession, 'status'> & { state: 'active' | 'archived'; revision: number }
+  activeTurn: AgentSessionTurn | null
+  messages: Array<{ message: AgentSessionMessage; parts: AgentSessionPart[] }>
+  pendingInteraction: Extract<AgentSessionPart, { type: 'interaction' }> | null
+  revision: number
+}
+
 export interface SendAgentChatMessagePayload {
   message: string
   sessionId?: string
