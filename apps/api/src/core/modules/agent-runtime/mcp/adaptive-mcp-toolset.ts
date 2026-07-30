@@ -10,7 +10,9 @@ const DEFAULT_ACTIVATION_LIMIT = 12;
 
 export class AdaptiveMcpToolset {
   private static readonly schemaCache = new Map<string, Readonly<Record<string, unknown>>>();
+  private static readonly maxCachedSchemas = 512;
   private readonly activated = new Set<string>();
+  private readonly cards;
   private readonly directSchemaLimit: number;
   private readonly activationLimit: number;
 
@@ -23,10 +25,11 @@ export class AdaptiveMcpToolset {
   ) {
     this.directSchemaLimit = options.directSchemaLimit ?? DEFAULT_DIRECT_SCHEMA_LIMIT;
     this.activationLimit = options.activationLimit ?? DEFAULT_ACTIVATION_LIMIT;
+    this.cards = this.client.listTools();
   }
 
   listForModel(): AgentProcessorTool[] {
-    const cards = this.client.listTools();
+    const cards = this.cards;
     if (cards.length <= this.directSchemaLimit) {
       return cards.map((card) => this.modelTool(card.name, card.summary));
     }
@@ -49,7 +52,7 @@ export class AdaptiveMcpToolset {
   async call(call: InternalMcpToolCall): Promise<InternalMcpToolResult> {
     if (call.name === SEARCH_TOOL) return this.search(call);
     if (call.name === DESCRIBE_TOOL) return this.activate(call);
-    if (this.client.listTools().length > this.directSchemaLimit && !this.activated.has(call.name)) {
+    if (this.cards.length > this.directSchemaLimit && !this.activated.has(call.name)) {
       throw new Error(`Tool schema must be activated before calling ${call.name}`);
     }
     return this.client.callTool(call);
@@ -59,7 +62,7 @@ export class AdaptiveMcpToolset {
     const query = String(call.arguments.query ?? "").trim();
     const limit = clampInteger(call.arguments.limit, 1, 10, 6);
     const tokens = tokenize(query);
-    const matches = this.client.listTools()
+    const matches = this.cards
       .map((card) => ({
         ...card,
         score: searchScore(tokens, `${card.name} ${card.summary}`),
@@ -102,9 +105,18 @@ export class AdaptiveMcpToolset {
     const schema = this.client.getToolSchema(name);
     const hash = createHash("sha256").update(stableJson(schema)).digest("hex");
     const cached = AdaptiveMcpToolset.schemaCache.get(hash);
-    if (cached) return cached;
+    if (cached) {
+      AdaptiveMcpToolset.schemaCache.delete(hash);
+      AdaptiveMcpToolset.schemaCache.set(hash, cached);
+      return cached;
+    }
     const frozen = deepFreeze(structuredClone(schema));
     AdaptiveMcpToolset.schemaCache.set(hash, frozen);
+    while (AdaptiveMcpToolset.schemaCache.size > AdaptiveMcpToolset.maxCachedSchemas) {
+      const oldest = AdaptiveMcpToolset.schemaCache.keys().next().value;
+      if (typeof oldest !== "string") break;
+      AdaptiveMcpToolset.schemaCache.delete(oldest);
+    }
     return frozen;
   }
 }
