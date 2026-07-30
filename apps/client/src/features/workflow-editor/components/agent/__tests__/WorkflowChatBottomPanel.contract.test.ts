@@ -12,6 +12,7 @@ test('workflow editor no longer runs the legacy event-driven chat panel', () => 
   )
 
   assert.match(source, /Agent chats moved/)
-  assert.match(source, /to="\/agents"/)
+  assert.match(source, /type: 'agents\.open'/)
+  assert.doesNotMatch(source, /to="\/agents"/)
   assert.doesNotMatch(source, /ChatSessionPanel|useExecutionStore|EventSource|agentChatApi/)
 })

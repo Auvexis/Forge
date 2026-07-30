@@ -7,9 +7,9 @@
 
 ## Batch 2 — Global Modal
 
-- [ ] Open Agents from a global modal intent
-- [ ] Remove the Agents route and page
-- [ ] Update workflow agent launcher
+- [x] Open Agents from a global modal intent
+- [x] Remove the Agents route and page
+- [x] Update workflow agent launcher
 
 ## Batch 3 — Validation
 

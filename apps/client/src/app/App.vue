@@ -89,6 +89,10 @@
         :is-open="isPluginInstallerOpen"
         @close="isPluginInstallerOpen = false"
       />
+      <AgentChatModal
+        :is-open="isAgentChatOpen"
+        @close="isAgentChatOpen = false"
+      />
     </template>
   </AppShell>
 
@@ -116,6 +120,7 @@ import { useCommandPaletteStore } from '@/features/command-palette/stores/comman
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useAppUiStore } from '@/shared/stores/app-ui.store'
 import ExternalPluginInstaller from '@/features/plugins/components/ExternalPluginInstaller.vue'
+import AgentChatModal from '@/features/agent-runtime/components/AgentChatModal.vue'
 import ProfileSelectionPage from '@/features/profiles/components/ProfileSelectionPage.vue'
 import ProfileSettingsPanel from '@/features/profiles/components/ProfileSettingsPanel.vue'
 import {
@@ -140,6 +145,7 @@ const SIDEBAR_COLLAPSED_STORAGE_KEY = 'fabric:app-sidebar-collapsed'
 const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(readStoredSidebarCollapsed())
 const isPluginInstallerOpen = ref(false)
+const isAgentChatOpen = ref(false)
 const isProfileSettingsOpen = ref(false)
 const hasEnteredProfile = ref(false)
 const activeSidebarWidth = computed(() =>
@@ -163,6 +169,7 @@ function handleSidebarNavClick(item: SidebarNavItem) {
 
 function isSidebarNavItemActive(item: SidebarNavItem) {
   if (item.route) return route.path.startsWith(item.route)
+  if (item.intent?.type === 'agents.open') return isAgentChatOpen.value
   if (item.intent?.type === 'monitoring.open') return isAutomationMonitorOpen.value
   return item.intent?.type === 'plugin-installer.open' && isPluginInstallerOpen.value
 }
@@ -184,6 +191,7 @@ function openPluginInstallerPanel() {
 function handleUiIntent(event: Event) {
   const intent = (event as CustomEvent<SidebarNavIntent>).detail
   if (intent?.type === 'plugin-installer.open') openPluginInstallerPanel()
+  if (intent?.type === 'agents.open') isAgentChatOpen.value = true
   if (intent?.type === 'monitoring.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }

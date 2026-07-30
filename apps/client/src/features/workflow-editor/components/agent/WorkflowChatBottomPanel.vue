@@ -3,7 +3,7 @@
     <div class="workflow-chat-bottom-panel__empty">
       <strong>Agent chats moved</strong>
       <span>Use Agents to open the persisted chat interface.</span>
-      <RouterLink to="/agents">Open Agents</RouterLink>
+      <button type="button" @click="openAgents">Open Agents</button>
     </div>
   </section>
 </template>
@@ -22,6 +22,12 @@ defineProps<{
 defineEmits<{
   'update:selectedTriggerNodeId': [triggerNodeId: string]
 }>()
+
+function openAgents() {
+  window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', {
+    detail: { type: 'agents.open' },
+  }))
+}
 </script>
 
 <style scoped>
@@ -53,11 +59,15 @@ defineEmits<{
 }
 
 .workflow-chat-bottom-panel__empty span,
-.workflow-chat-bottom-panel__empty a {
+.workflow-chat-bottom-panel__empty button {
   font-size: var(--fabric-text-xs);
 }
 
-.workflow-chat-bottom-panel__empty a {
+.workflow-chat-bottom-panel__empty button {
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: var(--fabric-workflow-chat-bottom-panel-text-primary);
+  cursor: pointer;
 }
 </style>
