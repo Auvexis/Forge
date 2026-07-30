@@ -46,8 +46,7 @@ import {
 } from "./conversation/agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
 import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
-import { routeAgentIntent, type AgentRequiredAction } from "./intent/agent-intent-gateway.ts";
-import { runMcpAgentLoop } from "./loop/mcp-agent-loop.ts";
+import { runIterativeMcpAgentLoop } from "./loop/iterative-mcp-agent-loop.ts";
 import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
 import type { AgentInteractionPart } from "./session/agent-session-contracts.ts";
 import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
@@ -532,100 +531,32 @@ export class AgentRunner {
         throw error;
       }
     }
-    const resumedActions = actionsFromResumeState(input.pending?.context.resumeState);
-    let actions: AgentRequiredAction[];
-    if (resumedActions.length > 0) {
-      actions = resumedActions;
-    } else {
-      const intent = await routeAgentIntent({
-        model,
-        systemPrompt: input.validated.agent.prompt,
-        userMessage: input.input.userMessage,
-        contextMessages: input.contextMessages,
-        tools: client.listTools(),
-        signal: input.input.abortSignal,
-      });
-      input.logger.info("intent.classified", {
-        mode: intent.mode,
-        ...(intent.mode === "action" ? { actionCount: intent.actions.length } : {}),
-      });
-      if (intent.mode === "chat") {
-        persistAgentText(input.sessionWriter, input.sessionTurnId, intent.response, "completed");
-        return {
-          status: "success",
-          output: intent.response,
-          iterationCount: 1,
-          toolCallCount: 0,
-          toolCalls: [],
-        };
-      }
-      if (intent.mode === "clarify") {
-        throw new AgentProcessorPause(
-          "clarification",
-          intent.question,
-          "agent",
-          {
-            code: "AGENT_CLARIFICATION_REQUIRED",
-            category: "validation",
-            message: intent.question,
-            retryable: false,
-            userActionRequired: true,
-          },
-        );
-      }
-      actions = intent.actions;
-    }
-
-    let commitmentPart = input.commitmentPart;
-    if (input.sessionWriter && input.sessionTurnId && !commitmentPart) {
-      const message = input.sessionWriter.appendMessage(input.sessionTurnId, "assistant");
-      commitmentPart = input.sessionWriter.appendCommitments({
-        turnId: input.sessionTurnId,
-        messageId: message.id,
-        request: input.input.userMessage,
-        items: actions.map((action) => ({
-          id: action.id,
-          description: action.objective,
-          status: "pending",
-          evidencePartIds: [],
-        })),
-      });
-    }
     const toolParts = new Map<string, AgentToolPart>();
-    let result: AgentRunResult;
-    try {
-      result = await runMcpAgentLoop({
-        model,
-        client,
-        systemPrompt: input.validated.agent.prompt,
-        userMessage: input.input.userMessage,
-        contextMessages: input.contextMessages,
-        actions,
-        maxToolCalls: input.validated.agent.maxToolCalls,
-        maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
-        abortSignal: input.input.abortSignal,
-        resumeState: input.pending?.context.resumeState,
-        emitEvent: (event) => {
-          this.eventEmitter(event, input.input);
-          persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
-        },
-        logger: input.logger,
-        state: input.state,
-      });
-    } catch (error) {
-      if (commitmentPart && input.sessionWriter) {
-        input.sessionWriter.updateCommitments(
-          commitmentPart,
-          commitmentPart.items.map((item) => ({
-            ...item,
-            status: item.status === "completed" ? "completed" : "failed",
-          })),
-        );
-      }
-      throw error;
-    }
+    const result = await runIterativeMcpAgentLoop({
+      model,
+      client,
+      systemPrompt: input.validated.agent.prompt,
+      userMessage: input.input.userMessage,
+      contextMessages: input.contextMessages,
+      maxToolCalls: input.validated.agent.maxToolCalls,
+      abortSignal: input.input.abortSignal,
+      logger: input.logger,
+      emitEvent: (event) => {
+        this.eventEmitter(event, input.input);
+        persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
+      },
+    });
     if (result.status === "waiting-user") {
       const question = waitingQuestion(result.output);
+      input.state?.createPendingInteraction({
+        id: `interaction_${randomUUID()}`,
+        kind: "clarification",
+        question,
+        context: {
+          source: "iterative-loop",
+          originalUserMessage: input.input.userMessage,
+        },
+      });
       if (input.sessionWriter && input.sessionTurnId) {
         const message = input.sessionWriter.appendMessage(input.sessionTurnId, "assistant");
         input.sessionWriter.appendInteraction({
@@ -638,16 +569,6 @@ export class AgentRunner {
       }
       return result;
     }
-    if (commitmentPart && input.sessionWriter) {
-      input.sessionWriter.updateCommitments(
-        commitmentPart,
-        commitmentPart.items.map((item) => ({
-          ...item,
-          status: "completed",
-          evidencePartIds: result.toolCalls?.map((call) => `tool-call:${call.toolCallId}`) ?? [],
-        })),
-      );
-    }
     persistAgentText(
       input.sessionWriter,
       input.sessionTurnId,
@@ -656,23 +577,6 @@ export class AgentRunner {
     );
     return result;
   }
-}
-
-function actionsFromResumeState(value: unknown): AgentRequiredAction[] {
-  if (!value || typeof value !== "object") return [];
-  const actions = (value as { actions?: unknown }).actions;
-  if (!Array.isArray(actions)) return [];
-  return actions
-    .filter((action): action is Record<string, unknown> =>
-      Boolean(action) && typeof action === "object" && !Array.isArray(action)
-    )
-    .map((action) => ({
-      id: String(action.id ?? ""),
-      toolName: String(action.toolName ?? ""),
-      objective: String(action.objective ?? ""),
-      dependsOn: Array.isArray(action.dependsOn) ? action.dependsOn.map(String) : [],
-    }))
-    .filter((action) => action.id && action.toolName && action.objective);
 }
 
 function persistAgentText(

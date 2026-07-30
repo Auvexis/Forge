@@ -90,17 +90,13 @@ describe("Agent MCP runtime end-to-end", () => {
 
   it("routes Drive list-download-email through compact cards before loading selected schemas", async () => {
     const modelDecisions = [
-      {
-        mode: "action",
-        actions: [
-          { id: "find_cv", toolName: "drive_list", objective: "Find backend CV", dependsOn: [] },
-          { id: "download_cv", toolName: "drive_download", objective: "Download backend CV", dependsOn: ["find_cv"] },
-          { id: "send_cv", toolName: "email_send", objective: "Email backend CV", dependsOn: ["download_cv"] },
-        ],
-      },
+      { mode: "tool", toolName: "drive_list", objective: "Find backend CV" },
       { action: "call", arguments: { query: "backend curriculum" } },
+      { mode: "tool", toolName: "drive_download", objective: "Download backend CV" },
       { action: "call", arguments: { fileId: "file_1" } },
+      { mode: "tool", toolName: "email_send", objective: "Email backend CV" },
       { action: "call", arguments: { to: "andre.emailto@gmail.com", file: "artifact://cv" } },
+      { mode: "chat", response: "Currículo enviado." },
     ];
     const calls: string[] = [];
     const runner = new AgentRunner({
