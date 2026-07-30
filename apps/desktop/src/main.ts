@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain, shell } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -74,9 +74,25 @@ function createMainWindow(): BrowserWindow {
   });
 
   window.once("ready-to-show", () => window.show());
+  window.webContents.setWindowOpenHandler(({ url }) => {
+    void openExternalUrl(url);
+    return { action: "deny" };
+  });
   void window.loadURL(desktopUrl);
 
   return window;
+}
+
+ipcMain.handle("fabric-desktop-open-external", async (_event, url: string) => {
+  await openExternalUrl(url);
+});
+
+async function openExternalUrl(url: string): Promise<void> {
+  const parsed = new URL(url);
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+    throw new Error("Only HTTP(S) URLs can be opened externally");
+  }
+  await shell.openExternal(parsed.toString());
 }
 
 app.whenReady().then(async () => {

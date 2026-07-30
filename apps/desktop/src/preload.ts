@@ -1,7 +1,7 @@
-import { contextBridge, shell } from "electron";
+import { contextBridge, ipcRenderer } from "electron";
 
 contextBridge.exposeInMainWorld("fabricDesktop", {
   isDesktop: true,
   platform: process.platform,
-  openExternal: (url: string) => shell.openExternal(url),
+  openExternal: (url: string) => ipcRenderer.invoke("fabric-desktop-open-external", url),
 });

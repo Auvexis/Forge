@@ -9,7 +9,7 @@
 ## Batch 2 — OAuth Navigation
 
 - [x] Open OAuth providers in a new browser tab
-- [ ] Open desktop OAuth providers in the default browser
+- [x] Open desktop OAuth providers in the default browser
 - [ ] Validate provider authorization URLs
 - [ ] Add web and desktop tests
 
