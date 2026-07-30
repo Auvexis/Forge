@@ -6,7 +6,7 @@ import { AgentSessionRepository } from "../modules/agent-runtime/session/agent-s
 import { ChatSessionRepository } from "../modules/agent-runtime/chat/chat-session-repository.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
-import { listTriggerEntries } from "../modules/workflows/workflow-triggers.ts";
+import { listTriggerEntries, resolveChatTrigger } from "../modules/workflows/workflow-triggers.ts";
 
 export interface AgentSessionRoutesOptions {
   db?: Database.Database;
@@ -49,6 +49,38 @@ export default async function agentSessionRoutes(
     return reply.code(200).send(response);
   });
 
+  fastify.post("/agent-chats/:chatSlug/sessions", async (request, reply) => {
+    const { chatSlug } = request.params as { chatSlug: string };
+    const resolved = resolveChatTrigger(getActiveWorkflows(), chatSlug, { requireActive: true });
+    if (!resolved) {
+      const response: ApiResponse<null> = {
+        status_code: 404,
+        message: "Published agent chat not found",
+        error: "Published agent chat not found",
+        data: null,
+      };
+      return reply.code(404).send(response);
+    }
+    const requestedTitle = (request.body as { title?: unknown } | undefined)?.title;
+    const session = chatSessions.create({
+      id: `session_${randomUUID()}`,
+      profileId: getProfileId(),
+      workflowId: resolved.workflow.metadata.id,
+      triggerNodeId: resolved.triggerNodeId,
+      title: typeof requestedTitle === "string" && requestedTitle.trim()
+        ? requestedTitle.trim().slice(0, 80)
+        : resolved.entry.trigger.chatTitle?.trim() || resolved.entry.name || "Agent chat",
+      status: "active",
+    });
+    const response: ApiResponse<typeof session> = {
+      status_code: 201,
+      message: "Agent chat session created",
+      error: null,
+      data: session,
+    };
+    return reply.code(201).send(response);
+  });
+
   fastify.get("/agent-sessions/:sessionId/snapshot", async (request, reply) => {
     const { sessionId } = request.params as { sessionId: string };
     const profileId = getProfileId();
@@ -73,3 +105,4 @@ export default async function agentSessionRoutes(
     return reply.code(200).send(response);
   });
 }
+import { randomUUID } from "node:crypto";

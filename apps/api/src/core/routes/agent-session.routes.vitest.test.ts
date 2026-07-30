@@ -136,4 +136,64 @@ describe("agent session routes", () => {
     })]);
     await app.close();
   });
+
+  it("creates an empty durable session before the first turn", async () => {
+    db = new Database(":memory:");
+    await createMigrationEngine(db, "workflows").up();
+    const app = Fastify();
+    await app.register(agentSessionRoutes, {
+      db,
+      getActiveProfileId: () => "profile_1",
+      getActiveWorkflows: () => [chatWorkflow()],
+    });
+
+    const response = await app.inject({
+      method: "POST",
+      url: "/agent-chats/support/sessions",
+      payload: { title: "First request" },
+    });
+
+    expect(response.statusCode).toBe(201);
+    expect(response.json().data).toMatchObject({
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "chat_trigger",
+      title: "First request",
+      status: "active",
+    });
+    expect(new AgentSessionRepository(db).getSnapshot({
+      profileId: "profile_1",
+      sessionId: response.json().data.id,
+    }).messages).toEqual([]);
+    await app.close();
+  });
 });
+
+function chatWorkflow() {
+  return {
+    metadata: {
+      id: "workflow_1",
+      name: "Support workflow",
+      description: "",
+      isActive: true,
+      version: "1",
+      createdAt: "",
+      updatedAt: "",
+    },
+    nodes: {
+      chat_trigger: {
+        id: "chat_trigger",
+        type: "trigger" as const,
+        name: "Support",
+        position: { x: 0, y: 0 },
+        trigger: {
+          type: "chat" as const,
+          chatSlug: "support",
+          chatTitle: "Support agent",
+        },
+      },
+    },
+    edges: [],
+    trigger: { type: "manual" as const },
+  };
+}
