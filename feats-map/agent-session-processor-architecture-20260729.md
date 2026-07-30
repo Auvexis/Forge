@@ -2,7 +2,7 @@
 
 ## Batch 1 — Session Model
 
-- [ ] Define session, turn, message, and part contracts
+- [x] Define session, turn, message, and part contracts
 - [ ] Add normalized persistence migrations
 - [ ] Add repositories and transactional revision updates
 - [ ] Add paginated message and session snapshot queries
