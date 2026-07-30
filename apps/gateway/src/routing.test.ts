@@ -41,4 +41,14 @@ describe("gateway routing", () => {
     assert.equal(resolveGatewayRoute("/workflows/wf_123", { accept: "text/html" }).target, "api");
     assert.equal(resolveGatewayRoute("/workflows/wf_123").target, "api");
   });
+
+  it("always routes OAuth callback browser navigation to the API", () => {
+    assert.deepEqual(
+      resolveGatewayRoute("/plugins/google-drive/auth/callback", {
+        accept: "text/html,application/xhtml+xml",
+        fetchMode: "navigate",
+      }),
+      { target: "api", reason: "oauth-callback" },
+    );
+  });
 });

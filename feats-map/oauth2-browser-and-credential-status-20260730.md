@@ -18,3 +18,10 @@
 - [x] Refresh plugin status after saving credentials
 - [x] Add credential status tests
 - [x] Run frontend, desktop, and API validation
+
+## Batch 4 — Callback Return
+
+- [x] Route public OAuth callbacks to the API
+- [ ] Notify and close the provider tab after callback
+- [ ] Reconcile OAuth completion in web and desktop
+- [ ] Add callback routing tests

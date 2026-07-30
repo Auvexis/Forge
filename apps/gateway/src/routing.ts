@@ -56,6 +56,10 @@ function isBrowserNavigation(input: GatewayRouteInput = {}): boolean {
 export function resolveGatewayRoute(pathname: string, input: GatewayRouteInput = {}): GatewayRoute {
   const path = pathname.startsWith("/") ? pathname : `/${pathname}`;
 
+  if (/^\/plugins\/[^/]+\/auth\/callback$/.test(path)) {
+    return { target: "api", reason: "oauth-callback" };
+  }
+
   if (isBrowserNavigation(input)) {
     return { target: "client", reason: "html-navigation" };
   }
