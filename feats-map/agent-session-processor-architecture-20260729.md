@@ -7,7 +7,7 @@
 - [x] Add repositories and transactional revision updates
 - [x] Add paginated message and session snapshot queries
 - [x] Remove legacy chat storage and history
-- [ ] Add contract, repository, and recovery tests
+- [x] Add contract, repository, and recovery tests
 
 ## Batch 2 — Agent Processor
 
@@ -15,8 +15,8 @@
 - [x] Persist assistant parts incrementally
 - [x] Execute text and tool calls in one loop
 - [x] Remove mandatory intent planning
-- [ ] Support interrupted tool reconciliation
-- [ ] Add processor and restart tests
+- [x] Support interrupted tool reconciliation
+- [x] Add processor and restart tests
 
 ## Batch 3 — MCP Toolset
 
