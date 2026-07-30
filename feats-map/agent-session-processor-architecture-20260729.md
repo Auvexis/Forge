@@ -23,8 +23,8 @@
 - [x] Add adaptive tool discovery
 - [x] Cache tool catalogs and schemas by hash
 - [x] Activate schemas per turn
-- [ ] Execute independent read tools concurrently
-- [ ] Keep side effects ordered and idempotent
+- [x] Execute independent read tools concurrently
+- [x] Keep side effects ordered and idempotent
 - [ ] Add discovery, cache, and concurrency tests
 
 ## Batch 4 — Goal Completion

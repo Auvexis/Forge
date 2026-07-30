@@ -1,4 +1,5 @@
 import { normalizeInternalMcpError } from "../mcp/internal-mcp-error.ts";
+import { AdaptiveMcpToolset } from "../mcp/adaptive-mcp-toolset.ts";
 import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import type { AgentToolPart } from "../session/agent-session-contracts.ts";
 import type { AgentSessionWriter } from "../session/agent-session-writer.ts";
@@ -22,6 +23,7 @@ export async function runAgentProcessor(input: {
   systemPrompt: string;
   maxIterations: number;
   maxToolCalls: number;
+  maxConcurrentReads?: number;
   abortSignal?: AbortSignal;
   writer?: AgentSessionWriter;
   turnId?: string;
@@ -30,11 +32,7 @@ export async function runAgentProcessor(input: {
     { role: "system", content: processorSystemPrompt(input.systemPrompt) },
     ...input.messages,
   ];
-  const tools = input.client.listTools().map((tool) => ({
-    name: tool.name,
-    description: tool.summary,
-    inputSchema: input.client.getToolSchema(tool.name),
-  }));
+  const toolset = new AdaptiveMcpToolset(input.client);
   let toolCallCount = 0;
   let finalText = "";
 
@@ -42,7 +40,7 @@ export async function runAgentProcessor(input: {
     throwIfAborted(input.abortSignal);
     const response = await collectAgentResponse(input.model.stream({
       messages,
-      tools,
+      tools: toolset.listForModel(),
       abortSignal: input.abortSignal,
     }));
     const assistantMessage = input.writer && input.turnId
@@ -85,8 +83,7 @@ export async function runAgentProcessor(input: {
       })),
     });
 
-    for (const call of response.toolCalls) {
-      throwIfAborted(input.abortSignal);
+    const prepared = response.toolCalls.map((call) => {
       let part: AgentToolPart | undefined;
       if (assistantMessage && input.writer) {
         part = input.writer.appendTool({
@@ -98,27 +95,124 @@ export async function runAgentProcessor(input: {
         });
         part = input.writer.startTool(part, call.input);
       }
-      try {
-        const result = await input.client.callTool({
-          id: call.callId,
-          name: call.toolName,
-          arguments: call.input,
-        });
-        if (part && input.writer) part = input.writer.completeTool(part, result.content);
-        messages.push({
-          role: "tool",
-          content: JSON.stringify(result.content),
-          toolCallId: call.callId,
-        });
-        toolCallCount += 1;
-      } catch (error) {
-        if (part && input.writer) input.writer.failTool(part, normalizeInternalMcpError(error, call.toolName));
-        throw error;
-      }
+      return { call, part };
+    });
+    const results = await executeToolCalls({
+      calls: prepared,
+      toolset,
+      writer: input.writer,
+      maxConcurrentReads: input.maxConcurrentReads ?? 4,
+      abortSignal: input.abortSignal,
+    });
+    for (const result of results) {
+      messages.push({
+        role: "tool",
+        content: JSON.stringify(result.content),
+        toolCallId: result.callId,
+      });
+      toolCallCount += 1;
     }
   }
 
   throw new Error("Agent iteration limit exceeded before completing the turn");
+}
+
+async function executeToolCalls(input: {
+  calls: Array<{
+    call: {
+      callId: string;
+      toolName: string;
+      input: Record<string, unknown>;
+    };
+    part?: AgentToolPart;
+  }>;
+  toolset: AdaptiveMcpToolset;
+  writer?: AgentSessionWriter;
+  maxConcurrentReads: number;
+  abortSignal?: AbortSignal;
+}): Promise<Array<{ callId: string; content: unknown }>> {
+  const output = new Map<string, unknown>();
+  let readWave: typeof input.calls = [];
+  const flushReads = async () => {
+    if (readWave.length === 0) return;
+    const wave = readWave;
+    readWave = [];
+    const results = await mapConcurrent(wave, input.maxConcurrentReads, (call) =>
+      executeToolCall({ ...input, prepared: call }));
+    results.forEach((result) => output.set(result.callId, result.content));
+  };
+
+  for (const prepared of input.calls) {
+    const descriptor = input.toolset.describe(prepared.call.toolName);
+    if (descriptor.sideEffect === "read" && !descriptor.requiresApproval) {
+      readWave.push(prepared);
+      continue;
+    }
+    await flushReads();
+    const result = await executeToolCall({ ...input, prepared });
+    output.set(result.callId, result.content);
+  }
+  await flushReads();
+  return input.calls.map(({ call }) => ({
+    callId: call.callId,
+    content: output.get(call.callId),
+  }));
+}
+
+async function executeToolCall(input: {
+  prepared: {
+    call: {
+      callId: string;
+      toolName: string;
+      input: Record<string, unknown>;
+    };
+    part?: AgentToolPart;
+  };
+  toolset: AdaptiveMcpToolset;
+  writer?: AgentSessionWriter;
+  abortSignal?: AbortSignal;
+}): Promise<{ callId: string; content: unknown }> {
+  const { call } = input.prepared;
+  throwIfAborted(input.abortSignal);
+  try {
+    const result = await input.toolset.call({
+      id: call.callId,
+      name: call.toolName,
+      arguments: call.input,
+    });
+    if (input.prepared.part && input.writer) {
+      input.writer.completeTool(input.prepared.part, result.content);
+    }
+    return { callId: call.callId, content: result.content };
+  } catch (error) {
+    if (input.prepared.part && input.writer) {
+      input.writer.failTool(
+        input.prepared.part,
+        normalizeInternalMcpError(error, call.toolName),
+      );
+    }
+    throw error;
+  }
+}
+
+async function mapConcurrent<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T) => Promise<R>,
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let cursor = 0;
+  const workers = Array.from(
+    { length: Math.min(Math.max(1, concurrency), items.length) },
+    async () => {
+      while (cursor < items.length) {
+        const index = cursor++;
+        results[index] = await mapper(items[index]!);
+      }
+    },
+  );
+  await Promise.all(workers);
+  return results;
 }
 
 function processorSystemPrompt(systemPrompt: string): string {
