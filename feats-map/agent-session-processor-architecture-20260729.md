@@ -6,7 +6,7 @@
 - [x] Add normalized persistence migrations
 - [ ] Add repositories and transactional revision updates
 - [ ] Add paginated message and session snapshot queries
-- [ ] Migrate canonical chat history
+- [x] Remove legacy chat storage and history
 - [ ] Add contract, repository, and recovery tests
 
 ## Batch 2 — Agent Processor
