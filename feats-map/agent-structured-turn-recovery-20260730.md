@@ -14,5 +14,5 @@
 
 ## Batch 3 — Validation
 
-- [ ] Run processor and session tests
-- [ ] Run API and frontend type checks
+- [x] Run processor and session tests
+- [x] Run API and frontend type checks

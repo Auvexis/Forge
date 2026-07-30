@@ -273,6 +273,7 @@ export class AgentRunner {
             source: "processor",
             toolName: error.toolName,
             error: error.error,
+            originalUserMessage: input.userMessage,
           },
         });
         state?.markRunWaitingUser();
