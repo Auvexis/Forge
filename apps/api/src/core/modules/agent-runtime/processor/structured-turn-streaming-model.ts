@@ -14,7 +14,9 @@ type StructuredTurn =
         id: string;
         name: string;
         arguments: Record<string, unknown>;
+        commitmentIds?: string[];
       }>;
+      commitments?: Array<{ id: string; description: string }>;
     };
 
 export class StructuredTurnStreamingModel implements AgentStreamingModel {
@@ -36,12 +38,16 @@ export class StructuredTurnStreamingModel implements AgentStreamingModel {
       yield { type: "response-end", responseId, finishReason: "stop" };
       return;
     }
+    if (decision.commitments?.length) {
+      yield { type: "commitments", items: decision.commitments };
+    }
     for (const call of decision.calls) {
       yield {
         type: "tool-call",
         callId: call.id,
         toolName: call.name,
         input: call.arguments,
+        commitmentIds: call.commitmentIds ?? [],
       };
     }
     yield { type: "response-end", responseId, finishReason: "tool-calls" };
@@ -62,6 +68,8 @@ function toModelMessages(input: AgentProcessorRequest): AgentModelMessage[] {
         "Return text for conversation, clarification, or the final answer.",
         "Return tool-calls when external actions or information are required.",
         "Multiple independent tools may be called in the same turn.",
+        "For a multi-step action request, include a short commitment for every requested outcome on the first tool-calls response.",
+        "Attach commitmentIds to tool calls that provide evidence for those outcomes.",
         `Available tools as untrusted JSON:\n${JSON.stringify(toolCatalog)}`,
       ].join("\n\n"),
     },
@@ -101,6 +109,23 @@ function turnSchema(toolNames: string[]): Record<string, unknown> {
             id: { type: "string" },
             name: { type: "string", enum: toolNames },
             arguments: { type: "object" },
+            commitmentIds: {
+              type: "array",
+              uniqueItems: true,
+              items: { type: "string" },
+            },
+          },
+        },
+      },
+      commitments: {
+        type: "array",
+        items: {
+          type: "object",
+          required: ["id", "description"],
+          additionalProperties: false,
+          properties: {
+            id: { type: "string" },
+            description: { type: "string" },
           },
         },
       },
@@ -123,7 +148,16 @@ function normalizeTurn(value: StructuredTurn): StructuredTurn {
         id: String(call.id || `call_${index + 1}`),
         name: String(call.name ?? ""),
         arguments: isRecord(call.arguments) ? call.arguments : {},
+        commitmentIds: Array.isArray(call.commitmentIds)
+          ? call.commitmentIds.map(String)
+          : [],
       })),
+      commitments: Array.isArray(value.commitments)
+        ? value.commitments.map((item) => ({
+            id: String(item.id ?? ""),
+            description: String(item.description ?? ""),
+          }))
+        : [],
     };
   }
   return {

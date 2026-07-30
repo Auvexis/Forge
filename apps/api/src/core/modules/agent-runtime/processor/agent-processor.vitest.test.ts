@@ -232,4 +232,88 @@ describe("runAgentProcessor", () => {
 
     expect(reservedActionId).toBe("action_call_1");
   });
+
+  it("rejects a final response while a requested outcome lacks tool evidence", async () => {
+    const client = new InternalMcpClient(new InternalMcpServer([
+      {
+        name: "download",
+        summary: "Download",
+        sideEffect: "read",
+        requiresApproval: false,
+        timeoutMs: 1_000,
+        inputSchema: { type: "object", additionalProperties: false },
+        invoke: async () => "downloaded",
+      },
+      {
+        name: "publish",
+        summary: "Publish",
+        sideEffect: "write",
+        requiresApproval: false,
+        timeoutMs: 1_000,
+        inputSchema: { type: "object", additionalProperties: false },
+        invoke: async () => "published",
+      },
+    ]));
+    let turn = 0;
+    const model: AgentStreamingModel = {
+      async *stream(input) {
+        turn += 1;
+        yield { type: "response-start", responseId: `response_${turn}` };
+        if (turn === 1) {
+          yield {
+            type: "commitments",
+            items: [
+              { id: "downloaded", description: "Download the video" },
+              { id: "published", description: "Publish the video" },
+            ],
+          };
+          yield {
+            type: "tool-call",
+            callId: "call_1",
+            toolName: "download",
+            input: {},
+            commitmentIds: ["downloaded"],
+          };
+          yield { type: "response-end", responseId: "response_1", finishReason: "tool-calls" };
+          return;
+        }
+        if (turn === 2) {
+          yield { type: "text-start", partId: "premature" };
+          yield { type: "text-delta", partId: "premature", delta: "Tudo pronto." };
+          yield { type: "text-end", partId: "premature" };
+          yield { type: "response-end", responseId: "response_2", finishReason: "stop" };
+          return;
+        }
+        if (turn === 3) {
+          expect(input.messages.at(-1)?.content).toContain("published");
+          yield {
+            type: "tool-call",
+            callId: "call_2",
+            toolName: "publish",
+            input: {},
+            commitmentIds: ["published"],
+          };
+          yield { type: "response-end", responseId: "response_3", finishReason: "tool-calls" };
+          return;
+        }
+        yield { type: "text-start", partId: "final" };
+        yield { type: "text-delta", partId: "final", delta: "Vídeo publicado." };
+        yield { type: "text-end", partId: "final" };
+        yield { type: "response-end", responseId: "response_4", finishReason: "stop" };
+      },
+    };
+
+    const result = await runAgentProcessor({
+      model,
+      client,
+      systemPrompt: "",
+      messages: [{ role: "user", content: "Baixe e publique o vídeo" }],
+      maxIterations: 5,
+      maxToolCalls: 4,
+    });
+
+    expect(result.output).toBe("Vídeo publicado.");
+    expect(result.iterations).toBe(4);
+    expect(result.toolCallCount).toBe(2);
+  });
 });

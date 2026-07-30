@@ -32,6 +32,7 @@ describe("StructuredTurnStreamingModel", () => {
       toolName: "drive_download",
       input: { file: "X.mp4" },
       providerExecuted: false,
+      commitmentIds: [],
     }]);
     expect(invokeJson).toHaveBeenCalledOnce();
   });

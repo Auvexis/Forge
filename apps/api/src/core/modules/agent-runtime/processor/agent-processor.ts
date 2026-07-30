@@ -1,13 +1,14 @@
 import { normalizeInternalMcpError } from "../mcp/internal-mcp-error.ts";
 import { AdaptiveMcpToolset } from "../mcp/adaptive-mcp-toolset.ts";
 import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
-import type { AgentToolPart } from "../session/agent-session-contracts.ts";
+import type { AgentCommitmentPart, AgentToolPart } from "../session/agent-session-contracts.ts";
 import type { AgentSessionWriter } from "../session/agent-session-writer.ts";
 import {
   collectAgentResponse,
   type AgentProcessorRequest,
   type AgentStreamingModel,
 } from "./agent-response-stream.ts";
+import { TurnCommitmentLedger } from "./turn-commitment-ledger.ts";
 
 export interface AgentProcessorResult {
   status: "completed";
@@ -40,6 +41,8 @@ export async function runAgentProcessor(input: {
   const toolset = new AdaptiveMcpToolset(input.client);
   let toolCallCount = 0;
   const completedToolCalls: AgentProcessorResult["toolCalls"] = [];
+  let commitmentLedger: TurnCommitmentLedger | undefined;
+  let commitmentPart: AgentCommitmentPart | undefined;
   let finalText = "";
 
   for (let iteration = 1; iteration <= input.maxIterations; iteration += 1) {
@@ -49,9 +52,40 @@ export async function runAgentProcessor(input: {
       tools: toolset.listForModel(),
       abortSignal: input.abortSignal,
     }));
+    if (response.commitments.length > 0) {
+      if (commitmentLedger) throw new Error("Turn commitments cannot be replaced after execution starts");
+      commitmentLedger = new TurnCommitmentLedger(response.commitments);
+    }
+    if (response.toolCalls.length === 0 && commitmentLedger && !commitmentLedger.isComplete) {
+      messages.push({
+        role: "system",
+        content: [
+          "Completion rejected because requested outcomes remain pending.",
+          JSON.stringify(commitmentLedger.pending.map((item) => ({
+            id: item.id,
+            description: item.description,
+          }))),
+          "Continue with tools or explain what user input is required. Do not claim completion.",
+        ].join("\n"),
+      });
+      continue;
+    }
     const assistantMessage = input.writer && input.turnId
       ? input.writer.appendMessage(input.turnId, "assistant")
       : undefined;
+    if (
+      commitmentLedger &&
+      !commitmentPart &&
+      assistantMessage &&
+      input.writer
+    ) {
+      commitmentPart = input.writer.appendCommitments({
+        turnId: input.turnId!,
+        messageId: assistantMessage.id,
+        request: latestUserMessage(messages),
+        items: commitmentLedger.snapshot,
+      });
+    }
     if (response.text) {
       finalText = response.text;
       if (assistantMessage && input.writer) {
@@ -102,7 +136,7 @@ export async function runAgentProcessor(input: {
         });
         part = input.writer.startTool(part, call.input);
       }
-      return { call, part };
+      return { call, part, commitmentIds: call.commitmentIds };
     });
     const results = await executeToolCalls({
       calls: prepared,
@@ -123,6 +157,18 @@ export async function runAgentProcessor(input: {
         name: result.toolName,
         status: "success",
       });
+      if (commitmentLedger && result.commitmentIds.length > 0) {
+        commitmentLedger.recordEvidence(
+          result.commitmentIds,
+          result.evidencePartId,
+        );
+        if (commitmentPart && input.writer) {
+          commitmentPart = input.writer.updateCommitments(
+            commitmentPart,
+            commitmentLedger.snapshot,
+          );
+        }
+      }
     }
   }
 
@@ -137,12 +183,19 @@ async function executeToolCalls(input: {
       input: Record<string, unknown>;
     };
     part?: AgentToolPart;
+    commitmentIds: string[];
   }>;
   toolset: AdaptiveMcpToolset;
   writer?: AgentSessionWriter;
   maxConcurrentReads: number;
   abortSignal?: AbortSignal;
-}): Promise<Array<{ callId: string; toolName: string; content: unknown }>> {
+}): Promise<Array<{
+  callId: string;
+  toolName: string;
+  content: unknown;
+  commitmentIds: string[];
+  evidencePartId: string;
+}>> {
   const output = new Map<string, unknown>();
   let readWave: typeof input.calls = [];
   const flushReads = async () => {
@@ -169,6 +222,9 @@ async function executeToolCalls(input: {
     callId: call.callId,
     toolName: call.toolName,
     content: output.get(call.callId),
+    commitmentIds: input.calls.find((candidate) => candidate.call.callId === call.callId)!.commitmentIds,
+    evidencePartId: input.calls.find((candidate) => candidate.call.callId === call.callId)!.part?.id ??
+      `tool-call:${call.callId}`,
   }));
 }
 
@@ -180,6 +236,7 @@ async function executeToolCall(input: {
       input: Record<string, unknown>;
     };
     part?: AgentToolPart;
+    commitmentIds: string[];
   };
   toolset: AdaptiveMcpToolset;
   writer?: AgentSessionWriter;
@@ -235,9 +292,15 @@ function processorSystemPrompt(systemPrompt: string): string {
     "Respond naturally when no external action is required.",
     "Call connected tools when the user requests an external action.",
     "After tool results, continue until the user's request is fully handled.",
+    "For multi-step external requests, declare every requested outcome as a commitment with a stable id.",
+    "Attach commitmentIds to the tool calls whose successful results prove each outcome.",
     "Never claim an operation succeeded without a corresponding successful tool result.",
     "Ask a concise question instead of guessing missing identifiers, recipients, files, permissions, or destructive intent.",
   ].filter(Boolean).join("\n\n");
+}
+
+function latestUserMessage(messages: AgentProcessorRequest["messages"]): string {
+  return [...messages].reverse().find((message) => message.role === "user")?.content ?? "";
 }
 
 function throwIfAborted(signal?: AbortSignal): void {

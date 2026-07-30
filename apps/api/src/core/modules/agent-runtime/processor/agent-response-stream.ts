@@ -27,11 +27,16 @@ export type AgentResponseStreamEvent =
   | { type: "tool-input-start"; callId: string; toolName: string }
   | { type: "tool-input-delta"; callId: string; delta: string }
   | {
+      type: "commitments";
+      items: Array<{ id: string; description: string }>;
+    }
+  | {
       type: "tool-call";
       callId: string;
       toolName: string;
       input: Record<string, unknown>;
       providerExecuted?: boolean;
+      commitmentIds?: string[];
     }
   | {
       type: "tool-result";
@@ -76,7 +81,9 @@ export interface AgentCollectedResponse {
     toolName: string;
     input: Record<string, unknown>;
     providerExecuted: boolean;
+    commitmentIds: string[];
   }>;
+  commitments: Array<{ id: string; description: string }>;
   finishReason: Extract<AgentResponseStreamEvent, { type: "response-end" }>["finishReason"];
   usage?: AgentResponseUsage;
 }
@@ -90,6 +97,7 @@ export async function collectAgentResponse(
   let usage: AgentResponseUsage | undefined;
   const textParts = new Map<string, string>();
   const calls = new Map<string, AgentCollectedResponse["toolCalls"][number]>();
+  let commitments: AgentCollectedResponse["commitments"] = [];
 
   for await (const event of events) {
     switch (event.type) {
@@ -121,7 +129,12 @@ export async function collectAgentResponse(
           toolName: event.toolName,
           input: event.input,
           providerExecuted: event.providerExecuted === true,
+          commitmentIds: event.commitmentIds ?? [],
         });
+        break;
+      case "commitments":
+        if (commitments.length > 0) throw new Error("Agent commitments were emitted more than once");
+        commitments = event.items;
         break;
       case "response-end":
         if (finishReason) throw new Error("Agent response stream ended more than once");
@@ -143,6 +156,7 @@ export async function collectAgentResponse(
     responseId,
     text,
     toolCalls: [...calls.values()],
+    commitments,
     finishReason,
     ...(usage ? { usage } : {}),
   };
