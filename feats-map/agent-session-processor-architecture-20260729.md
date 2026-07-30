@@ -70,6 +70,6 @@
 - [x] Add directory client contracts
 - [x] Build snapshot-based agent chat modal
 - [x] Replace the legacy agents page shell
-- [ ] Add dedicated theme tokens
+- [x] Add dedicated theme tokens
 - [ ] Remove obsolete agent panel frontend code
 - [ ] Add modal and page tests
