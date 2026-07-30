@@ -9,18 +9,19 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('plugin OAuth uses a browser-openable backend redirect URL', () => {
+test('plugin OAuth opens the provider URL without replacing Fabric', () => {
   const source = read('src/shared/composables/usePluginAuth.ts')
   const endpoints = read('src/core/api/endpoints.ts')
   const api = read('src/core/api/plugins.api.ts')
   const menu = read('src/features/workflow-editor/components/settings/editors/PluginMenuAuth.vue')
 
-  assert.match(endpoints, /PLUGIN_AUTH_CONNECT_OPEN/)
-  assert.match(api, /getAuthOpenUrl/)
-  assert.match(source, /authConnectUrl = computed/)
-  assert.match(source, /pluginsApi\.getAuthOpenUrl\(id\)/)
-  assert.match(source, /markOAuthOpened/)
-  assert.match(menu, /<a[\s\S]*target="_blank"[\s\S]*authConnectUrl/)
-  assert.match(menu, /handleOAuthLinkClick/)
-  assert.doesNotMatch(menu, /@click="handleConnect"/)
+  assert.match(endpoints, /PLUGIN_AUTH_CONNECT/)
+  assert.match(api, /getAuthUrl/)
+  assert.match(source, /pluginsApi\.getAuthUrl\(id\)/)
+  assert.match(source, /window\.open\('about:blank', '_blank'\)/)
+  assert.match(source, /browserTab\.location\.replace\(providerUrl\.toString\(\)\)/)
+  assert.match(source, /window\.fabricDesktop!\.openExternal/)
+  assert.doesNotMatch(source, /window\.location\.assign/)
+  assert.match(menu, /<button[\s\S]*@click="handleConnect"/)
+  assert.doesNotMatch(menu, /target="_blank"|authConnectUrl|handleOAuthLinkClick/)
 })

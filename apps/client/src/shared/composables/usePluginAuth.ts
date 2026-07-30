@@ -1,4 +1,4 @@
-import { computed, ref, watch, type Ref, toValue, onMounted, onUnmounted } from 'vue'
+import { ref, type Ref, toValue, onMounted, onUnmounted } from 'vue'
 import { pluginsApi } from '@/core/api/plugins.api'
 import type { PluginStatusResponse } from '@/core/types/plugin.types'
 import { useToast } from '@/shared/composables/useToast'
@@ -38,11 +38,6 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     return (pluginStatus.value?.locked_fields ?? []).includes(key)
   }
 
-  const authConnectUrl = computed(() => {
-    const id = getPluginId()
-    return id ? pluginsApi.getAuthOpenUrl(id) : ''
-  })
-
   const handleSaveCredentials = async () => {
     const id = getPluginId()
     if (!id) return
@@ -60,31 +55,32 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
   const handleConnect = async () => {
     const id = getPluginId()
     if (!id) return
-    if (pluginStatus.value?.oauth_public_url_required) {
-      toast.error(
-        'Public URL required',
-        'Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.',
-      )
-      return
-    }
+    const isDesktop = window.fabricDesktop?.isDesktop === true
+    const browserTab = isDesktop ? null : window.open('about:blank', '_blank')
+    authLoading.value = true
+    try {
+      const { url } = await pluginsApi.getAuthUrl(id)
+      const providerUrl = new URL(url)
+      if (providerUrl.protocol !== 'https:' && providerUrl.protocol !== 'http:') {
+        throw new Error('OAuth provider returned an unsupported authorization URL.')
+      }
 
-    const opened = window.open(pluginsApi.getAuthOpenUrl(id), '_blank', 'noopener,noreferrer')
-    if (!opened) {
-      window.location.assign(pluginsApi.getAuthOpenUrl(id))
+      if (isDesktop) {
+        await window.fabricDesktop!.openExternal(providerUrl.toString())
+      } else if (browserTab) {
+        browserTab.opener = null
+        browserTab.location.replace(providerUrl.toString())
+      } else {
+        throw new Error('The browser blocked the OAuth tab. Allow popups for Fabric and try again.')
+      }
+      awaitingOAuthReturn.value = true
+    } catch (error) {
+      browserTab?.close()
+      const message = error instanceof Error ? error.message : 'Could not start OAuth.'
+      toast.error('OAuth connection failed', message)
+    } finally {
+      authLoading.value = false
     }
-    awaitingOAuthReturn.value = true
-  }
-
-  const markOAuthOpened = () => {
-    if (pluginStatus.value?.oauth_public_url_required) {
-      toast.error(
-        'Public URL required',
-        'Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.',
-      )
-      return false
-    }
-    awaitingOAuthReturn.value = true
-    return true
   }
 
   const handleDisconnect = async () => {
@@ -134,12 +130,10 @@ export function usePluginAuth(pluginIdOrGetter: Ref<string | null> | (() => stri
     saving,
     authLoading,
     awaitingOAuthReturn,
-    authConnectUrl,
     loadStatus,
     isLocked,
     handleSaveCredentials,
     handleConnect,
-    markOAuthOpened,
     handleDisconnect,
     checkConnection
   }
