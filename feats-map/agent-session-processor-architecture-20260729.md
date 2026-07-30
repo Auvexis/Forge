@@ -50,9 +50,9 @@
 - [x] Add session snapshot client
 - [x] Render message parts and tool states
 - [x] Add interaction, retry, cancel, and approval controls
-- [ ] Use realtime events only for invalidation
-- [ ] Reconcile on mount, focus, and reconnect
-- [ ] Add refresh and event-loss tests
+- [x] Use realtime events only for invalidation
+- [x] Reconcile on mount, focus, and reconnect
+- [x] Add refresh and event-loss tests
 
 ## Batch 7 — Hardening
 
