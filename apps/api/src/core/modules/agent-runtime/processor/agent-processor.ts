@@ -1,0 +1,137 @@
+import { normalizeInternalMcpError } from "../mcp/internal-mcp-error.ts";
+import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
+import type { AgentToolPart } from "../session/agent-session-contracts.ts";
+import type { AgentSessionWriter } from "../session/agent-session-writer.ts";
+import {
+  collectAgentResponse,
+  type AgentProcessorRequest,
+  type AgentStreamingModel,
+} from "./agent-response-stream.ts";
+
+export interface AgentProcessorResult {
+  status: "completed";
+  output: string;
+  iterations: number;
+  toolCallCount: number;
+}
+
+export async function runAgentProcessor(input: {
+  model: AgentStreamingModel;
+  client: InternalMcpClient;
+  messages: AgentProcessorRequest["messages"];
+  systemPrompt: string;
+  maxIterations: number;
+  maxToolCalls: number;
+  abortSignal?: AbortSignal;
+  writer?: AgentSessionWriter;
+  turnId?: string;
+}): Promise<AgentProcessorResult> {
+  const messages: AgentProcessorRequest["messages"] = [
+    { role: "system", content: processorSystemPrompt(input.systemPrompt) },
+    ...input.messages,
+  ];
+  const tools = input.client.listTools().map((tool) => ({
+    name: tool.name,
+    description: tool.summary,
+    inputSchema: input.client.getToolSchema(tool.name),
+  }));
+  let toolCallCount = 0;
+  let finalText = "";
+
+  for (let iteration = 1; iteration <= input.maxIterations; iteration += 1) {
+    throwIfAborted(input.abortSignal);
+    const response = await collectAgentResponse(input.model.stream({
+      messages,
+      tools,
+      abortSignal: input.abortSignal,
+    }));
+    const assistantMessage = input.writer && input.turnId
+      ? input.writer.appendMessage(input.turnId, "assistant")
+      : undefined;
+    if (response.text) {
+      finalText = response.text;
+      if (assistantMessage && input.writer) {
+        input.writer.appendText({
+          turnId: input.turnId!,
+          messageId: assistantMessage.id,
+          text: response.text,
+        });
+      }
+    }
+
+    if (response.toolCalls.length === 0) {
+      if (response.finishReason === "length") {
+        throw new Error("Agent model reached its output limit before completing the turn");
+      }
+      if (input.writer && input.turnId) input.writer.updateTurn(input.turnId, "completed");
+      return {
+        status: "completed",
+        output: finalText,
+        iterations: iteration,
+        toolCallCount,
+      };
+    }
+    if (toolCallCount + response.toolCalls.length > input.maxToolCalls) {
+      throw new Error("Agent tool call limit exceeded");
+    }
+
+    messages.push({
+      role: "assistant",
+      content: response.text,
+      toolCalls: response.toolCalls.map((call) => ({
+        callId: call.callId,
+        name: call.toolName,
+        input: call.input,
+      })),
+    });
+
+    for (const call of response.toolCalls) {
+      throwIfAborted(input.abortSignal);
+      let part: AgentToolPart | undefined;
+      if (assistantMessage && input.writer) {
+        part = input.writer.appendTool({
+          turnId: input.turnId!,
+          messageId: assistantMessage.id,
+          callId: call.callId,
+          toolName: call.toolName,
+          arguments: call.input,
+        });
+        part = input.writer.startTool(part, call.input);
+      }
+      try {
+        const result = await input.client.callTool({
+          id: call.callId,
+          name: call.toolName,
+          arguments: call.input,
+        });
+        if (part && input.writer) part = input.writer.completeTool(part, result.content);
+        messages.push({
+          role: "tool",
+          content: JSON.stringify(result.content),
+          toolCallId: call.callId,
+        });
+        toolCallCount += 1;
+      } catch (error) {
+        if (part && input.writer) input.writer.failTool(part, normalizeInternalMcpError(error, call.toolName));
+        throw error;
+      }
+    }
+  }
+
+  throw new Error("Agent iteration limit exceeded before completing the turn");
+}
+
+function processorSystemPrompt(systemPrompt: string): string {
+  return [
+    systemPrompt,
+    "Respond naturally when no external action is required.",
+    "Call connected tools when the user requests an external action.",
+    "After tool results, continue until the user's request is fully handled.",
+    "Never claim an operation succeeded without a corresponding successful tool result.",
+    "Ask a concise question instead of guessing missing identifiers, recipients, files, permissions, or destructive intent.",
+  ].filter(Boolean).join("\n\n");
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) throw signal.reason ?? new Error("Agent processor was cancelled");
+}
