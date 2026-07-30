@@ -1,91 +1,47 @@
 <template>
   <section class="workflow-chat-bottom-panel">
-    <div class="workflow-chat-bottom-panel__body">
-      <div v-if="!selectedTrigger?.chatSlug" class="workflow-chat-bottom-panel__empty">
-        <strong>Configure a Chat Trigger</strong>
-        <span>Set Trigger Type = Chat and add a chat slug to test messages here.</span>
-      </div>
-
-      <ChatSessionPanel
-        v-else
-        :chat-slug="selectedTrigger?.chatSlug || ''"
-        :title="selectedTrigger?.title || 'Agent Chat'"
-        :workflow-id="workflowId"
-        :trigger-node-id="selectedTrigger?.triggerNodeId"
-        :dev-session-id="devSessionId"
-        :chat-triggers="chatTriggers"
-        :selected-trigger-node-id="selectedTrigger?.triggerNodeId"
-        @update:selected-trigger-node-id="emit('update:selectedTriggerNodeId', $event)"
-      />
+    <div class="workflow-chat-bottom-panel__empty">
+      <strong>Agent chats moved</strong>
+      <span>Use Agents to open the persisted chat interface.</span>
+      <RouterLink to="/agents">Open Agents</RouterLink>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import ChatSessionPanel from './ChatSessionPanel.vue'
-
-export interface ChatPanelTrigger {
-  triggerNodeId: string
-  chatSlug?: string
-  title?: string
-}
-
-const props = withDefaults(defineProps<{
-  chatTriggers?: ChatPanelTrigger[]
+defineProps<{
+  chatTriggers?: unknown[]
   chatSlug?: string
   title?: string
   workflowId?: string
   triggerNodeId?: string
   devSessionId?: string
   selectedTriggerNodeId?: string
-}>(), {
-  chatTriggers: () => [],
-})
-
-const emit = defineEmits<{
-  'update:selectedTriggerNodeId': [triggerNodeId: string]
 }>()
 
-const fallbackTrigger = computed<ChatPanelTrigger | null>(() => {
-  if (!props.chatSlug) return null
-  return {
-    triggerNodeId: props.triggerNodeId || 'trigger',
-    chatSlug: props.chatSlug,
-    title: props.title || 'Agent Chat',
-  }
-})
-const chatTriggers = computed(() => props.chatTriggers.length ? props.chatTriggers : fallbackTrigger.value ? [fallbackTrigger.value] : [])
-const selectedTrigger = computed(() =>
-  chatTriggers.value.find((trigger) => trigger.triggerNodeId === props.selectedTriggerNodeId) ??
-  chatTriggers.value[0] ??
-  null,
-)
+defineEmits<{
+  'update:selectedTriggerNodeId': [triggerNodeId: string]
+}>()
 </script>
 
 <style scoped>
-.workflow-chat-bottom-panel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  background: var(--fabric-workflow-chat-bottom-panel-bg-surface);
-}
-
-.workflow-chat-bottom-panel__body {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  padding: var(--fabric-space-3);
-}
-
+.workflow-chat-bottom-panel,
 .workflow-chat-bottom-panel__empty {
   display: flex;
   height: 100%;
-  min-height: 140px;
+  min-height: 0;
+}
+
+.workflow-chat-bottom-panel {
   flex-direction: column;
+  background: var(--fabric-workflow-chat-bottom-panel-bg-surface);
+}
+
+.workflow-chat-bottom-panel__empty {
+  flex: 1;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   gap: var(--fabric-space-2);
   color: var(--fabric-workflow-chat-bottom-panel-text-muted);
   text-align: center;
@@ -96,9 +52,12 @@ const selectedTrigger = computed(() =>
   font-size: var(--fabric-text-sm);
 }
 
-.workflow-chat-bottom-panel__empty span {
-  max-width: 420px;
+.workflow-chat-bottom-panel__empty span,
+.workflow-chat-bottom-panel__empty a {
   font-size: var(--fabric-text-xs);
-  line-height: 1.5;
+}
+
+.workflow-chat-bottom-panel__empty a {
+  color: var(--fabric-workflow-chat-bottom-panel-text-primary);
 }
 </style>

@@ -71,5 +71,5 @@
 - [x] Build snapshot-based agent chat modal
 - [x] Replace the legacy agents page shell
 - [x] Add dedicated theme tokens
-- [ ] Remove obsolete agent panel frontend code
+- [x] Remove obsolete agent panel frontend code
 - [ ] Add modal and page tests
