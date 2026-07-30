@@ -3,7 +3,7 @@
 ## Batch 1 — Session Model
 
 - [x] Define session, turn, message, and part contracts
-- [ ] Add normalized persistence migrations
+- [x] Add normalized persistence migrations
 - [ ] Add repositories and transactional revision updates
 - [ ] Add paginated message and session snapshot queries
 - [ ] Migrate canonical chat history
