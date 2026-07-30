@@ -13,5 +13,5 @@
 
 ## Batch 3 — Validation
 
-- [ ] Test agent directory discovery
-- [ ] Run frontend, API, and Gateway checks
+- [x] Test agent directory discovery
+- [x] Run frontend, API, and Gateway checks
