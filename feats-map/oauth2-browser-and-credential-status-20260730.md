@@ -10,7 +10,7 @@
 
 - [x] Open OAuth providers in a new browser tab
 - [x] Open desktop OAuth providers in the default browser
-- [ ] Validate provider authorization URLs
+- [x] Validate provider authorization URLs
 - [ ] Add web and desktop tests
 
 ## Batch 3 — Credential Status

@@ -21,6 +21,7 @@ import { installExternalPlugin } from "../modules/plugins/external/plugin-instal
 import { OAuth2Service } from "../modules/plugins/auth/oauth2-service.ts";
 import { oauth2SessionStore } from "../modules/plugins/auth/oauth2-session-store.ts";
 import { isDeclarativeOAuth2Auth, isLegacyOAuth2Auth } from "../modules/plugins/auth/oauth2-types.ts";
+import { validateOAuth2AuthorizationUrl } from "../modules/plugins/auth/oauth2-authorization-url.ts";
 import { z } from "zod";
 import type {
   CredentialSchema,
@@ -90,10 +91,6 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
 
     const redirectUri = PluginManager.getRedirectUri(pluginId);
-    if (PluginManager.isLocalRedirectUri(redirectUri)) {
-      throw new Error("Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.");
-    }
-
     if (isDeclarativeOAuth2Auth(provider)) {
       const state = randomUUID();
       const result = await OAuth2Service.createAuthorizationUrl({
@@ -110,11 +107,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
         codeVerifier: result.codeVerifier,
         ttlMs: OAUTH2_AUTH_SESSION_TTL_MS,
       });
-      return result.url;
+      return validateOAuth2AuthorizationUrl(result.url);
     }
 
     if (isLegacyOAuth2Auth(provider)) {
-      return provider.getAuthUrl(credentials, redirectUri);
+      return validateOAuth2AuthorizationUrl(await provider.getAuthUrl(credentials, redirectUri));
     }
 
     throw new Error("Invalid OAuth2 provider contract");
@@ -442,10 +439,11 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
       if (plugin.auth.type === "oauth2") {
         oauth_ui = (plugin.auth as OAuth2Provider).ui;
         oauth_redirect_uri = PluginManager.getRedirectUri(pluginId);
-        oauth_public_url_required = PluginManager.isLocalRedirectUri(oauth_redirect_uri);
-        if (oauth_public_url_required) {
+        const usesLocalRedirect = PluginManager.isLocalRedirectUri(oauth_redirect_uri);
+        oauth_public_url_required = false;
+        if (usesLocalRedirect) {
           oauth_public_url_warning =
-            "OAuth providers usually require a public HTTPS callback URL. Set Public URL in Settings or PUBLIC_URL on the Fabric server before connecting.";
+            "Using a local OAuth callback. Register the redirect URL above with the provider.";
         }
       }
 
