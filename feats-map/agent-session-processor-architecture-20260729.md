@@ -60,6 +60,6 @@
 - [x] Test process restarts at every transition
 - [x] Test duplicate and out-of-order events
 - [x] Test multiple tabs and concurrent requests
-- [ ] Test small-model multi-tool scenarios
+- [x] Test small-model multi-tool scenarios
 - [ ] Add performance and load benchmarks
 - [ ] Update runtime documentation
