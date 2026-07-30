@@ -69,7 +69,7 @@
 - [x] Add published agent and session directory API
 - [x] Add directory client contracts
 - [x] Build snapshot-based agent chat modal
-- [ ] Replace the legacy agents page shell
+- [x] Replace the legacy agents page shell
 - [ ] Add dedicated theme tokens
 - [ ] Remove obsolete agent panel frontend code
 - [ ] Add modal and page tests
