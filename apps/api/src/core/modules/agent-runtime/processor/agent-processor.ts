@@ -9,6 +9,8 @@ import {
   type AgentStreamingModel,
 } from "./agent-response-stream.ts";
 import { TurnCommitmentLedger } from "./turn-commitment-ledger.ts";
+import { AgentProcessorPause, pauseKind } from "./agent-processor-pause.ts";
+import { AgentToolApprovalRequiredError } from "../agent-errors.ts";
 
 export interface AgentProcessorResult {
   status: "completed";
@@ -256,10 +258,22 @@ async function executeToolCall(input: {
     }
     return { callId: call.callId, toolName: call.toolName, content: result.content };
   } catch (error) {
+    const normalized = normalizeInternalMcpError(error, call.toolName);
     if (input.prepared.part && input.writer) {
       input.writer.failTool(
         input.prepared.part,
-        normalizeInternalMcpError(error, call.toolName),
+        normalized,
+      );
+    }
+    if (
+      !(error instanceof AgentToolApprovalRequiredError) &&
+      normalized.userActionRequired
+    ) {
+      throw new AgentProcessorPause(
+        pauseKind(normalized),
+        normalized.message,
+        call.toolName,
+        normalized,
       );
     }
     throw error;

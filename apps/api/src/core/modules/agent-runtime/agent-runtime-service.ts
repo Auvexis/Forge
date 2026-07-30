@@ -33,10 +33,20 @@ const defaultRunner = new AgentRunner({
       input.sessionId,
       session.revision,
     );
-    const activeTurn = repository.getSnapshot({
+    const snapshot = repository.getSnapshot({
       profileId: input.profileId,
       sessionId: input.sessionId,
-    }).activeTurn;
+    });
+    const activeTurn = snapshot.activeTurn;
+    if (snapshot.pendingInteraction && activeTurn) {
+      writer.resolveInteraction(
+        snapshot.pendingInteraction,
+        input.approvalToken === "approved"
+          ? { approved: true }
+          : { message: input.userMessage },
+      );
+      writer.updateTurn(activeTurn.id, "running");
+    }
     const turn = activeTurn ?? writer.createTurn({ runId, state: "running" });
     if (!activeTurn) {
       const message = writer.appendMessage(turn.id, "user");

@@ -4,6 +4,7 @@ import type {
   AgentMessage,
   AgentCommitmentPart,
   AgentTextPart,
+  AgentInteractionPart,
   AgentToolPart,
   AgentToolPartState,
   AgentTurn,
@@ -135,6 +136,69 @@ export class AgentSessionWriter {
         updatedAt: this.now(),
       },
     }) as AgentCommitmentPart;
+    this.revision += 1;
+    return saved;
+  }
+
+  appendInteraction(input: {
+    turnId: string;
+    messageId: string;
+    interactionId?: string;
+    kind: AgentInteractionPart["kind"];
+    question: string;
+  }): AgentInteractionPart {
+    const now = this.now();
+    const part: AgentInteractionPart = {
+      id: `part_${randomUUID()}`,
+      sessionId: this.sessionId,
+      turnId: input.turnId,
+      messageId: input.messageId,
+      type: "interaction",
+      sequence: this.nextPartSequence(input.messageId),
+      interactionId: input.interactionId ?? `interaction_${randomUUID()}`,
+      kind: input.kind,
+      question: input.question,
+      state: "pending",
+      createdAt: now,
+      updatedAt: now,
+    };
+    const saved = this.repository.appendPart({
+      profileId: this.profileId,
+      expectedRevision: this.revision,
+      part,
+    }) as AgentInteractionPart;
+    this.revision += 1;
+    return saved;
+  }
+
+  resolveInteraction(
+    part: AgentInteractionPart,
+    response: unknown,
+  ): AgentInteractionPart {
+    const saved = this.repository.replacePart({
+      profileId: this.profileId,
+      expectedRevision: this.revision,
+      part: {
+        ...part,
+        state: "resolved",
+        response,
+        updatedAt: this.now(),
+      },
+    }) as AgentInteractionPart;
+    this.revision += 1;
+    return saved;
+  }
+
+  cancelInteraction(part: AgentInteractionPart): AgentInteractionPart {
+    const saved = this.repository.replacePart({
+      profileId: this.profileId,
+      expectedRevision: this.revision,
+      part: {
+        ...part,
+        state: "cancelled",
+        updatedAt: this.now(),
+      },
+    }) as AgentInteractionPart;
     this.revision += 1;
     return saved;
   }

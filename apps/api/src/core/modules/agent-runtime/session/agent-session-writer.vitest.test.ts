@@ -59,4 +59,40 @@ describe("AgentSessionWriter", () => {
     });
     expect(writer.currentRevision).toBe(6);
   });
+
+  it("persists and resolves a human interaction as a message part", async () => {
+    db = new Database(":memory:");
+    db.pragma("foreign_keys = ON");
+    await createLegacyChat(db);
+    await createRuns(db);
+    await createParts(db);
+    await replaceChat(db);
+    const repository = new AgentSessionRepository(db, () => "2026-07-29T00:00:00.000Z");
+    const session = repository.createSession({
+      id: "session_1",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "trigger_1",
+      title: "Session",
+    });
+    const writer = new AgentSessionWriter(repository, "profile_1", "session_1", session.revision);
+    const turn = writer.createTurn();
+    const message = writer.appendMessage(turn.id, "assistant");
+    const pending = writer.appendInteraction({
+      turnId: turn.id,
+      messageId: message.id,
+      kind: "clarification",
+      question: "Qual arquivo?",
+    });
+    writer.resolveInteraction(pending, { file: "X.mp4" });
+
+    expect(repository.getSnapshot({
+      profileId: "profile_1",
+      sessionId: "session_1",
+    }).messages[0]?.parts[0]).toMatchObject({
+      type: "interaction",
+      state: "resolved",
+      response: { file: "X.mp4" },
+    });
+  });
 });

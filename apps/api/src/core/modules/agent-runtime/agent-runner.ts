@@ -49,6 +49,7 @@ import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
 import { runAgentProcessor } from "./processor/agent-processor.ts";
 import { StructuredTurnStreamingModel } from "./processor/structured-turn-streaming-model.ts";
 import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
+import { AgentProcessorPause } from "./processor/agent-processor-pause.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -221,9 +222,59 @@ export class AgentRunner {
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
+      if (error instanceof AgentProcessorPause) {
+        const interactionId = `interaction_${randomUUID()}`;
+        state?.createPendingInteraction({
+          id: interactionId,
+          kind: error.kind,
+          question: error.question,
+          context: {
+            source: "processor",
+            toolName: error.toolName,
+            error: error.error,
+          },
+        });
+        state?.markRunWaitingUser();
+        if (sessionExecution) {
+          const message = sessionExecution.writer.appendMessage(
+            sessionExecution.turnId,
+            "assistant",
+          );
+          sessionExecution.writer.appendInteraction({
+            turnId: sessionExecution.turnId,
+            messageId: message.id,
+            interactionId,
+            kind: error.kind,
+            question: error.question,
+          });
+          sessionExecution.writer.updateTurn(sessionExecution.turnId, "waiting-user");
+        }
+        logger.info("interaction.created", {
+          interactionId,
+          kind: error.kind,
+          toolName: error.toolName,
+        });
+        return {
+          status: "waiting-user",
+          output: { status: "waiting-user", question: error.question },
+          iterationCount: 1,
+          toolCallCount: 0,
+          toolCalls: [],
+        };
+      }
       if (error instanceof AgentToolApprovalRequiredError) {
         state?.markRunWaitingApproval();
         if (sessionExecution) {
+          const message = sessionExecution.writer.appendMessage(
+            sessionExecution.turnId,
+            "assistant",
+          );
+          sessionExecution.writer.appendInteraction({
+            turnId: sessionExecution.turnId,
+            messageId: message.id,
+            kind: "approval",
+            question: `Autorizar ${error.approvalRequest.toolName}?`,
+          });
           sessionExecution.writer.updateTurn(sessionExecution.turnId, "waiting-approval");
         }
         logger.info("approval.requested", { toolName: error.approvalRequest.toolName });

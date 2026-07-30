@@ -3,6 +3,7 @@ import { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { InternalMcpServer } from "../mcp/internal-mcp-server.ts";
 import type { AgentStreamingModel } from "./agent-response-stream.ts";
 import { runAgentProcessor } from "./agent-processor.ts";
+import { AgentRuntimeError } from "../agent-errors.ts";
 
 describe("runAgentProcessor", () => {
   it("uses one loop for tool decisions and the final conversational response", async () => {
@@ -315,5 +316,44 @@ describe("runAgentProcessor", () => {
     expect(result.output).toBe("Vídeo publicado.");
     expect(result.iterations).toBe(4);
     expect(result.toolCallCount).toBe(2);
+  });
+
+  it("pauses for durable user interaction when a tool needs user action", async () => {
+    const client = new InternalMcpClient(new InternalMcpServer([{
+      name: "drive_find",
+      summary: "Find file",
+      sideEffect: "read",
+      requiresApproval: false,
+      timeoutMs: 1_000,
+      inputSchema: { type: "object", additionalProperties: false },
+      invoke: async () => {
+        throw new AgentRuntimeError(
+          "File was not found",
+          "DRIVE_FILE_NOT_FOUND",
+          "Qual arquivo devo usar?",
+          404,
+        );
+      },
+    }]));
+    const model: AgentStreamingModel = {
+      async *stream() {
+        yield { type: "response-start", responseId: "response_1" };
+        yield { type: "tool-call", callId: "call_1", toolName: "drive_find", input: {} };
+        yield { type: "response-end", responseId: "response_1", finishReason: "tool-calls" };
+      },
+    };
+
+    await expect(runAgentProcessor({
+      model,
+      client,
+      systemPrompt: "",
+      messages: [{ role: "user", content: "Encontre o arquivo" }],
+      maxIterations: 2,
+      maxToolCalls: 2,
+    })).rejects.toMatchObject({
+      kind: "clarification",
+      question: "Qual arquivo devo usar?",
+      toolName: "drive_find",
+    });
   });
 });
