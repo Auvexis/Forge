@@ -135,13 +135,25 @@ export interface AgentCompactionPart extends AgentPartBase {
   lastMessageSequence: number;
 }
 
+export interface AgentCommitmentPart extends AgentPartBase {
+  type: "commitment";
+  request: string;
+  items: Array<{
+    id: string;
+    description: string;
+    status: "pending" | "completed" | "failed";
+    evidencePartIds: string[];
+  }>;
+}
+
 export type AgentMessagePart =
   | AgentTextPart
   | AgentToolPart
   | AgentArtifactPart
   | AgentInteractionPart
   | AgentErrorPart
-  | AgentCompactionPart;
+  | AgentCompactionPart
+  | AgentCommitmentPart;
 
 export interface AgentMessageWithParts {
   message: AgentMessage;

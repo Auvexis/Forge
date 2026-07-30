@@ -29,8 +29,8 @@
 
 ## Batch 4 — Goal Completion
 
-- [ ] Add lightweight turn commitments
-- [ ] Add completion evidence links
+- [x] Add lightweight turn commitments
+- [x] Add completion evidence links
 - [ ] Block premature final responses
 - [ ] Persist waiting-user and approval parts
 - [ ] Add retry, cancel, and resume flows

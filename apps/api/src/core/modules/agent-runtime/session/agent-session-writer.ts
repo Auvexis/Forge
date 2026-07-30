@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { AgentMcpError } from "../contracts/agent-domain-contracts.ts";
 import type {
   AgentMessage,
+  AgentCommitmentPart,
   AgentTextPart,
   AgentToolPart,
   AgentToolPartState,
@@ -89,6 +90,51 @@ export class AgentSessionWriter {
       expectedRevision: this.revision,
       part,
     }) as AgentTextPart;
+    this.revision += 1;
+    return saved;
+  }
+
+  appendCommitments(input: {
+    turnId: string;
+    messageId: string;
+    request: string;
+    items: AgentCommitmentPart["items"];
+  }): AgentCommitmentPart {
+    const now = this.now();
+    const part: AgentCommitmentPart = {
+      id: `part_${randomUUID()}`,
+      sessionId: this.sessionId,
+      turnId: input.turnId,
+      messageId: input.messageId,
+      type: "commitment",
+      sequence: this.nextPartSequence(input.messageId),
+      request: input.request,
+      items: structuredClone(input.items),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const saved = this.repository.appendPart({
+      profileId: this.profileId,
+      expectedRevision: this.revision,
+      part,
+    }) as AgentCommitmentPart;
+    this.revision += 1;
+    return saved;
+  }
+
+  updateCommitments(
+    part: AgentCommitmentPart,
+    items: AgentCommitmentPart["items"],
+  ): AgentCommitmentPart {
+    const saved = this.repository.replacePart({
+      profileId: this.profileId,
+      expectedRevision: this.revision,
+      part: {
+        ...part,
+        items: structuredClone(items),
+        updatedAt: this.now(),
+      },
+    }) as AgentCommitmentPart;
     this.revision += 1;
     return saved;
   }
