@@ -24,3 +24,11 @@
 - [x] Test Drive list-download-email iteration
 - [x] Test isolated step failure
 - [x] Run agent and frontend checks
+
+## Batch 5 — Loop repetition recovery
+
+- [x] Reconstruct completed tool calls from conversation history
+- [x] Reject identical tool calls before execution and UI persistence
+- [x] Bound repeated non-paginated list/search calls
+- [x] Return a clarification containing the previous result if the model remains stuck
+- [x] Add continuation and duplicate-call regression tests

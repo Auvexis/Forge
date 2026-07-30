@@ -73,6 +73,93 @@ describe("runIterativeMcpAgentLoop", () => {
 
     expect(terminalStates).toEqual(["success", "failed"]);
   });
+
+  it("rejects an identical completed call without executing or displaying it twice", async () => {
+    const decisions = [
+      { mode: "tool", toolName: "drive_list", objective: "Find CV" },
+      { action: "call", arguments: { query: "backend" } },
+      { mode: "tool", toolName: "drive_list", objective: "Find CV again" },
+      { action: "call", arguments: { query: "backend" } },
+      { mode: "tool", toolName: "drive_download", objective: "Download matching CV" },
+      { action: "call", arguments: { fileId: "file_1" } },
+      { mode: "chat", response: "Done" },
+    ];
+    const calls: string[] = [];
+    const intents: string[] = [];
+
+    const result = await runIterativeMcpAgentLoop({
+      model: { invokeJson: async () => decisions.shift() as any },
+      client: client([
+        tool("drive_list", ["query"], async () => {
+          calls.push("drive_list");
+          return [{ id: "file_1", name: "backend.pdf" }];
+        }),
+        tool("drive_download", ["fileId"], async () => {
+          calls.push("drive_download");
+          return { ref: "artifact://cv" };
+        }),
+      ]),
+      systemPrompt: "",
+      userMessage: "Find and download my backend CV",
+      contextMessages: [],
+      maxToolCalls: 3,
+      emitEvent: (event) => {
+        if (event.type === "agent:tool-intent") intents.push(String(event.payload?.name));
+      },
+    });
+
+    expect(result.status).toBe("success");
+    expect(calls).toEqual(["drive_list", "drive_download"]);
+    expect(intents).toEqual(["drive_list", "drive_download"]);
+  });
+
+  it("uses completed tool calls from prior chat turns to prevent repetition after clarification", async () => {
+    const decisions = [
+      { mode: "tool", toolName: "drive_list", objective: "Find CV" },
+      { action: "call", arguments: { query: "backend" } },
+      { mode: "tool", toolName: "drive_download", objective: "Download matching CV" },
+      { action: "call", arguments: { fileId: "file_1" } },
+      { mode: "chat", response: "Done" },
+    ];
+    const calls: string[] = [];
+
+    await runIterativeMcpAgentLoop({
+      model: { invokeJson: async () => decisions.shift() as any },
+      client: client([
+        tool("drive_list", ["query"], async () => {
+          calls.push("drive_list");
+          return [];
+        }),
+        tool("drive_download", ["fileId"], async () => {
+          calls.push("drive_download");
+          return { ref: "artifact://cv" };
+        }),
+      ]),
+      systemPrompt: "",
+      userMessage: "The PDF contains backend",
+      contextMessages: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [{
+            id: "prior_call",
+            name: "drive_list",
+            arguments: { query: "backend" },
+          }],
+        },
+        {
+          role: "tool",
+          name: "drive_list",
+          tool_call_id: "prior_call",
+          content: JSON.stringify([{ id: "file_1", name: "backend.pdf" }]),
+        },
+      ],
+      maxToolCalls: 3,
+      emitEvent: () => {},
+    });
+
+    expect(calls).toEqual(["drive_download"]);
+  });
 });
 
 function client(tools: ReturnType<typeof tool>[]) {
