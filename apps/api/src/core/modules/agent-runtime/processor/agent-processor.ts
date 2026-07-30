@@ -190,6 +190,7 @@ async function executeToolCall(input: {
   try {
     const result = await input.toolset.call({
       id: call.callId,
+      actionId: `action_${call.callId}`,
       name: call.toolName,
       arguments: call.input,
     });

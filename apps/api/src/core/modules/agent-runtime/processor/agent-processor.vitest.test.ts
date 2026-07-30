@@ -183,4 +183,53 @@ describe("runAgentProcessor", () => {
     expect(order.slice(0, 2)).toEqual(["read_one:start", "read_two:start"]);
     expect(order.at(-1)).toBe("send");
   });
+
+  it("assigns a stable action identity before side-effect reservation", async () => {
+    let reservedActionId: string | undefined;
+    const server = new InternalMcpServer(
+      [{
+        name: "email_send",
+        summary: "Send email",
+        sideEffect: "external-message",
+        requiresApproval: false,
+        timeoutMs: 1_000,
+        inputSchema: { type: "object", additionalProperties: false },
+        invoke: async () => "sent",
+      }],
+      undefined,
+      {
+        async execute({ call, invoke }) {
+          reservedActionId = call.actionId;
+          return invoke();
+        },
+      },
+    );
+    let turn = 0;
+    const model: AgentStreamingModel = {
+      async *stream() {
+        turn += 1;
+        yield { type: "response-start", responseId: `response_${turn}` };
+        if (turn === 1) {
+          yield { type: "tool-call", callId: "call_1", toolName: "email_send", input: {} };
+          yield { type: "response-end", responseId: "response_1", finishReason: "tool-calls" };
+          return;
+        }
+        yield { type: "text-start", partId: "text_1" };
+        yield { type: "text-delta", partId: "text_1", delta: "Sent" };
+        yield { type: "text-end", partId: "text_1" };
+        yield { type: "response-end", responseId: "response_2", finishReason: "stop" };
+      },
+    };
+
+    await runAgentProcessor({
+      model,
+      client: new InternalMcpClient(server),
+      systemPrompt: "",
+      messages: [{ role: "user", content: "Send" }],
+      maxIterations: 3,
+      maxToolCalls: 2,
+    });
+
+    expect(reservedActionId).toBe("action_call_1");
+  });
 });
