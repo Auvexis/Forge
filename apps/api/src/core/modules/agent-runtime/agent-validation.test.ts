@@ -20,6 +20,14 @@ describe("agent runtime validation", () => {
     assert.equal(validateChatTriggerConfig(validChatTrigger()).type, "chat");
   });
 
+  it("applies the safe default timeout when an AI tool omits timeoutMs", () => {
+    const { timeoutMs: _timeoutMs, ...toolWithoutTimeout } = validTool();
+
+    const tool = validateAiToolConfig(toolWithoutTimeout);
+
+    assert.equal(tool.timeoutMs, AGENT_LIMITS.defaultToolTimeoutMs);
+  });
+
   it("accepts valid AI model configs with plugin id and adapter", () => {
     const model = validateAiModelConfig({
       ...validModel(),

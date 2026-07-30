@@ -107,7 +107,12 @@ const aiToolSchema = z
     pluginId: z.string().trim().min(1).max(120),
     methodId: z.string().trim().min(1).max(120),
     descriptionOverride: z.string().trim().min(1).max(1000).optional(),
-    timeoutMs: z.number().int().min(1000).max(AGENT_LIMITS.maxToolTimeoutMs),
+    timeoutMs: z
+      .number()
+      .int()
+      .min(1000)
+      .max(AGENT_LIMITS.maxToolTimeoutMs)
+      .default(AGENT_LIMITS.defaultToolTimeoutMs),
     requiresApproval: z.boolean(),
     sideEffect: sideEffectSchema,
     inputDefaults: jsonObjectSchema.optional(),
