@@ -25,6 +25,8 @@ const API_PREFIXES = [
   "/plugin-events",
   "/events",
   "/agent-chat",
+  "/agent-chats",
+  "/agent-sessions",
   "/agent-panel",
   "/agent-tools",
   "/agent-memory",
