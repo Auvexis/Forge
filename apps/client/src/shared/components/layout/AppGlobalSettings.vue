@@ -689,11 +689,16 @@ const {
 } = usePluginAuth(() => selectedPluginForMenu.value?.id ?? null)
 
 watch(() => pluginStatus.value?.status, (newStatus) => {
-  if (selectedPluginForMenu.value && newStatus) {
-    const target = plugins.value.find((p: any) => p.id === selectedPluginForMenu.value.id)
-    if (target) target.status = newStatus
-  }
+  if (newStatus) syncSelectedPluginStatus(newStatus)
 })
+
+function syncSelectedPluginStatus(status: string) {
+  const pluginId = selectedPluginForMenu.value?.id
+  if (!pluginId) return
+  const target = plugins.value.find((plugin: any) => plugin.id === pluginId)
+  if (target) target.status = status
+  selectedPluginForMenu.value.status = status
+}
 
 async function openPluginMenu(plugin: any) {
   selectedPluginForMenu.value = plugin
@@ -776,6 +781,10 @@ async function handleSaveCredential(pluginId: string) {
   try {
     await store.saveCredential(pluginId, fields)
     delete pendingCredFields.value[pluginId]
+    await loadStatus()
+    if (pluginStatus.value?.status) {
+      syncSelectedPluginStatus(pluginStatus.value.status)
+    }
   } finally {
     isSavingCred.value = null
   }

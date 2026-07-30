@@ -15,6 +15,6 @@
 
 ## Batch 3 — Credential Status
 
-- [ ] Refresh plugin status after saving credentials
-- [ ] Add credential status tests
+- [x] Refresh plugin status after saving credentials
+- [x] Add credential status tests
 - [ ] Run frontend, desktop, and API validation
