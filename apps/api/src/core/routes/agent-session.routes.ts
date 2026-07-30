@@ -1,7 +1,6 @@
 import type Database from "better-sqlite3";
 import type { FastifyInstance } from "fastify";
 import type { ApiResponse } from "../../shared/models/api-response.model.ts";
-import { DatabaseManager } from "../database/index.ts";
 import { AgentSessionRepository } from "../modules/agent-runtime/session/agent-session-repository.ts";
 import { ChatSessionRepository } from "../modules/agent-runtime/chat/chat-session-repository.ts";
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
@@ -10,6 +9,7 @@ import { listTriggerEntries, resolveChatTrigger } from "../modules/workflows/wor
 
 export interface AgentSessionRoutesOptions {
   db?: Database.Database;
+  getWorkflowDatabase?: () => Database.Database;
   getActiveProfileId?: () => string;
   getActiveWorkflows?: typeof WorkflowRepository.getActiveWorkflows;
 }
@@ -20,12 +20,12 @@ export default async function agentSessionRoutes(
 ) {
   const getProfileId = options.getActiveProfileId ??
     (() => activeProfileRuntime.activeProfileService.getActiveProfile()?.id ?? "default");
-  const repository = new AgentSessionRepository(options.db ?? DatabaseManager.workflows);
-  const chatSessions = new ChatSessionRepository(options.db ?? DatabaseManager.workflows);
+  const getDb = () => options.db ?? options.getWorkflowDatabase?.() ?? WorkflowRepository.database();
   const getActiveWorkflows = options.getActiveWorkflows ?? WorkflowRepository.getActiveWorkflows;
 
   fastify.get("/agent-chats", async (_request, reply) => {
     const profileId = getProfileId();
+    const chatSessions = new ChatSessionRepository(getDb());
     const chats = getActiveWorkflows().flatMap((workflow) =>
       listTriggerEntries(workflow).flatMap((entry) => {
         if (entry.disabled || entry.trigger.type !== "chat" || !entry.trigger.chatSlug) return [];
@@ -50,6 +50,7 @@ export default async function agentSessionRoutes(
   });
 
   fastify.post("/agent-chats/:chatSlug/sessions", async (request, reply) => {
+    const chatSessions = new ChatSessionRepository(getDb());
     const { chatSlug } = request.params as { chatSlug: string };
     const resolved = resolveChatTrigger(getActiveWorkflows(), chatSlug, { requireActive: true });
     if (!resolved) {
@@ -84,6 +85,7 @@ export default async function agentSessionRoutes(
   fastify.get("/agent-sessions/:sessionId/snapshot", async (request, reply) => {
     const { sessionId } = request.params as { sessionId: string };
     const profileId = getProfileId();
+    const repository = new AgentSessionRepository(getDb());
     const session = repository.getSession(profileId, sessionId);
     if (!session) {
       const response: ApiResponse<null> = {

@@ -167,6 +167,32 @@ describe("agent session routes", () => {
     }).messages).toEqual([]);
     await app.close();
   });
+
+  it("resolves session storage from the active profile database per request", async () => {
+    const first = new Database(":memory:");
+    const second = new Database(":memory:");
+    await createMigrationEngine(first, "workflows").up();
+    await createMigrationEngine(second, "workflows").up();
+    let active = first;
+    const app = Fastify();
+    await app.register(agentSessionRoutes, {
+      getActiveProfileId: () => active === first ? "profile_1" : "profile_2",
+      getWorkflowDatabase: () => active,
+      getActiveWorkflows: () => [chatWorkflow()],
+    });
+
+    const firstResponse = await app.inject({ method: "GET", url: "/agent-chats" });
+    active = second;
+    const secondResponse = await app.inject({ method: "GET", url: "/agent-chats" });
+
+    expect(firstResponse.statusCode).toBe(200);
+    expect(secondResponse.statusCode).toBe(200);
+    expect(firstResponse.json().data[0].sessions).toEqual([]);
+    expect(secondResponse.json().data[0].sessions).toEqual([]);
+    await app.close();
+    first.close();
+    second.close();
+  });
 });
 
 function chatWorkflow() {
