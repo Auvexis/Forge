@@ -30,17 +30,17 @@
       @cancel="cancel"
     />
 
-    <p v-if="error" class="agent-session-panel__error">{{ errorMessage }}</p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, toRef } from 'vue'
+import { ref, toRef, watch } from 'vue'
 import { agentChatApi } from '@/core/api/agent-chat.api'
 import { useAgentSessionSnapshot } from '../composables/useAgentSessionSnapshot'
 import type { AgentSessionPart } from '../types/agent.types'
 import AgentSessionControls from './AgentSessionControls.vue'
 import AgentSessionTimeline from './AgentSessionTimeline.vue'
+import { useAgentErrorReporter } from '../composables/useAgentErrorReporter'
 
 const props = defineProps<{
   sessionId: string
@@ -54,9 +54,11 @@ const actionPending = ref(false)
 const { snapshot, loading, error, refresh, invalidate } = useAgentSessionSnapshot(
   () => sessionId.value,
 )
-const errorMessage = computed(() =>
-  error.value instanceof Error ? error.value.message : 'Could not load the agent session.',
-)
+const { reportAgentError } = useAgentErrorReporter()
+
+watch(error, (cause) => {
+  if (cause) reportAgentError(cause, 'Could not load the agent session.', 'session.refresh')
+})
 
 async function sendControlMessage(message: string) {
   if (actionPending.value) return
@@ -68,6 +70,8 @@ async function sendControlMessage(message: string) {
       metadata: { source: 'agent-session-control' },
     })
     await refresh()
+  } catch (error) {
+    reportAgentError(error, 'Could not update the agent session.', 'session.control')
   } finally {
     actionPending.value = false
   }
@@ -159,16 +163,10 @@ defineExpose({ refresh, invalidate })
   padding: 10px 8px;
 }
 
-.agent-session-panel__empty,
-.agent-session-panel__error {
+.agent-session-panel__empty {
   margin: 0;
   color: var(--fabric-chat-session-panel-text-muted);
   font-size: 11px;
 }
 
-.agent-session-panel__error {
-  border-top: 1px solid var(--fabric-chat-session-panel-border);
-  color: var(--fabric-chat-session-panel-text-error);
-  padding: 6px 8px;
-}
 </style>

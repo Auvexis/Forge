@@ -7,9 +7,9 @@
 
 ## Batch 2 — Error Delivery
 
-- [ ] Send agent errors to Toast
-- [ ] Persist agent errors in Notifications
-- [ ] Remove inline technical errors
+- [x] Send agent errors to Toast
+- [x] Persist agent errors in Notifications
+- [x] Remove inline technical errors
 
 ## Batch 3 — Validation
 

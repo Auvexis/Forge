@@ -88,7 +88,6 @@
             </button>
           </form>
 
-          <p v-if="errorMessage" class="agent-chat-modal__error">{{ errorMessage }}</p>
         </main>
       </div>
     </section>
@@ -101,6 +100,7 @@ import { agentChatApi } from '@/core/api/agent-chat.api'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import type { AgentChatDirectoryEntry } from '../types/agent.types'
 import AgentSessionPanel from './AgentSessionPanel.vue'
+import { useAgentErrorReporter } from '../composables/useAgentErrorReporter'
 
 const props = defineProps<{
   isOpen: boolean
@@ -114,8 +114,8 @@ const activeSessionId = ref('')
 const draft = ref('')
 const directoryLoading = ref(false)
 const sending = ref(false)
-const errorMessage = ref('')
 const sessionPanel = ref<{ invalidate: (revision?: number) => void } | null>(null)
+const { reportAgentError } = useAgentErrorReporter()
 
 const activeChat = computed(() =>
   chats.value.find((chat) => chat.chatSlug === activeChatSlug.value) ?? null,
@@ -134,7 +134,6 @@ watch(() => props.isOpen, (isOpen) => {
 
 async function loadDirectory() {
   directoryLoading.value = true
-  errorMessage.value = ''
   try {
     const entries = await agentChatApi.listChats()
     chats.value = entries
@@ -143,7 +142,7 @@ async function loadDirectory() {
       activeSessionId.value = entries[0]?.sessions[0]?.id ?? ''
     }
   } catch (error) {
-    errorMessage.value = formatError(error, 'Could not load published agents.')
+    reportAgentError(error, 'Could not load published agents.', 'directory.load')
   } finally {
     directoryLoading.value = false
   }
@@ -154,13 +153,11 @@ function selectChat(chatSlug: string) {
   activeSessionId.value = chats.value
     .find((chat) => chat.chatSlug === chatSlug)
     ?.sessions[0]?.id ?? ''
-  errorMessage.value = ''
 }
 
 function startNewSession() {
   activeSessionId.value = ''
   draft.value = ''
-  errorMessage.value = ''
 }
 
 async function sendMessage() {
@@ -168,7 +165,6 @@ async function sendMessage() {
   const message = draft.value.trim()
   if (!chat || !message || sending.value) return
   sending.value = true
-  errorMessage.value = ''
   try {
     if (!activeSessionId.value) {
       const session = await agentChatApi.createSession(chat.chatSlug, message.slice(0, 80))
@@ -186,7 +182,7 @@ async function sendMessage() {
     await loadDirectory()
     activeSessionId.value = result.session.id
   } catch (error) {
-    errorMessage.value = formatError(error, 'The agent could not process this message.')
+    reportAgentError(error, 'The agent could not process this message.', 'message.send')
   } finally {
     sending.value = false
   }
@@ -203,9 +199,6 @@ function formatSessionTime(value: string) {
   }).format(date)
 }
 
-function formatError(error: unknown, fallback: string) {
-  return error instanceof Error && error.message ? error.message : fallback
-}
 </script>
 
 <style scoped>
@@ -422,7 +415,6 @@ function formatError(error: unknown, fallback: string) {
   opacity: 0.45;
 }
 
-.agent-chat-modal__error,
 .agent-chat-modal__empty {
   margin: 0;
   color: var(--fabric-agent-chat-danger);
