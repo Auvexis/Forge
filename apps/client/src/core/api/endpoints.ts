@@ -101,7 +101,6 @@ export const ENDPOINTS = {
 
   // Plugin OAuth
   PLUGIN_AUTH_CONNECT: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/connect`,
-  PLUGIN_AUTH_CONNECT_OPEN: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/connect/open`,
   PLUGIN_AUTH_DISCONNECT: (id: string) => `/plugins/${encodeURIComponent(id)}/auth/disconnect`,
 
   // Auvexis Account

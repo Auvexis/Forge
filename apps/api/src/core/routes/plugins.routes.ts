@@ -718,20 +718,6 @@ export default async function pluginsRoutes(fastify: FastifyInstance) {
     }
   });
 
-  fastify.get("/plugins/:pluginId/auth/connect/open", async (req, reply) => {
-    const { pluginId } = req.params as { pluginId: string };
-
-    try {
-      const url = await createOAuthConnectUrl(pluginId);
-      return reply.redirect(url);
-    } catch (error: any) {
-      return reply
-        .code(400)
-        .type("text/html; charset=utf-8")
-        .send(`<p>OAuth connection failed: ${escapeHtml(error.message ?? String(error))}</p>`);
-    }
-  });
-
   /**
    * OAuth Disconnect — removes tokens
    */

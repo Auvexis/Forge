@@ -11,10 +11,10 @@
 - [x] Open OAuth providers in a new browser tab
 - [x] Open desktop OAuth providers in the default browser
 - [x] Validate provider authorization URLs
-- [ ] Add web and desktop tests
+- [x] Add web and desktop tests
 
 ## Batch 3 — Credential Status
 
 - [x] Refresh plugin status after saving credentials
 - [x] Add credential status tests
-- [ ] Run frontend, desktop, and API validation
+- [x] Run frontend, desktop, and API validation

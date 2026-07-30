@@ -3,7 +3,6 @@
 // ─────────────────────────────────────────────────────────────
 
 import { apiRequest } from './client'
-import { API_BASE_URL } from '../constants/app'
 import { ENDPOINTS } from './endpoints'
 import type {
   ExternalPluginInstallResult,
@@ -87,9 +86,6 @@ export const pluginsApi = {
     apiRequest<{ url: string }>(ENDPOINTS.PLUGIN_AUTH_CONNECT(id), {
       method: 'POST',
     }),
-
-  /** Browser-openable OAuth redirect endpoint for a plugin */
-  getAuthOpenUrl: (id: string) => `${API_BASE_URL}${ENDPOINTS.PLUGIN_AUTH_CONNECT_OPEN(id)}`,
 
   /** Disconnect an OAuth plugin */
   disconnectAuth: (id: string) =>
