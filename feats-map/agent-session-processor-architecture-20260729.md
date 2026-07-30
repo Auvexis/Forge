@@ -20,9 +20,9 @@
 
 ## Batch 3 — MCP Toolset
 
-- [ ] Add adaptive tool discovery
-- [ ] Cache tool catalogs and schemas by hash
-- [ ] Activate schemas per turn
+- [x] Add adaptive tool discovery
+- [x] Cache tool catalogs and schemas by hash
+- [x] Activate schemas per turn
 - [ ] Execute independent read tools concurrently
 - [ ] Keep side effects ordered and idempotent
 - [ ] Add discovery, cache, and concurrency tests
