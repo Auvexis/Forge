@@ -14,7 +14,11 @@
     </header>
 
     <div class="agent-session-panel__body">
-      <AgentSessionTimeline v-if="snapshot" :snapshot="snapshot" />
+      <AgentSessionTimeline
+        v-if="snapshot"
+        :snapshot="snapshot"
+        :pending-user-messages="visibleOptimisticMessages"
+      />
       <p v-else-if="loading" class="agent-session-panel__empty">Loading session…</p>
       <p v-else class="agent-session-panel__empty">Session unavailable.</p>
     </div>
@@ -34,7 +38,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRef, watch } from 'vue'
+import { computed, ref, toRef, watch } from 'vue'
 import { agentChatApi } from '@/core/api/agent-chat.api'
 import { useAgentSessionSnapshot } from '../composables/useAgentSessionSnapshot'
 import type { AgentSessionPart } from '../types/agent.types'
@@ -51,7 +55,8 @@ type InteractionPart = Extract<AgentSessionPart, { type: 'interaction' }>
 
 const sessionId = toRef(props, 'sessionId')
 const actionPending = ref(false)
-const { snapshot, loading, error, refresh, invalidate } = useAgentSessionSnapshot(
+const optimisticMessages = ref<Array<{ id: string; text: string }>>([])
+const { snapshot, loading, error, refresh, invalidate, beginLiveRun, endLiveRun } = useAgentSessionSnapshot(
   () => sessionId.value,
 )
 const { reportAgentError } = useAgentErrorReporter()
@@ -60,19 +65,45 @@ watch(error, (cause) => {
   if (cause) reportAgentError(cause, 'Could not load the agent session.', 'session.refresh')
 })
 
+const visibleOptimisticMessages = computed(() => {
+  const persistedTexts = new Set(
+    (snapshot.value?.messages ?? []).flatMap((entry) =>
+      entry.message.role === 'user'
+        ? entry.parts
+          .filter((part): part is Extract<AgentSessionPart, { type: 'text' }> => part.type === 'text')
+          .map((part) => part.text)
+        : [],
+    ),
+  )
+  return optimisticMessages.value.filter((message) => !persistedTexts.has(message.text))
+})
+
+function startLiveMessage(message: string) {
+  const id = `optimistic_${crypto.randomUUID()}`
+  optimisticMessages.value.push({ id, text: message })
+  beginLiveRun()
+  return id
+}
+
+async function finishLiveMessage(id: string) {
+  await endLiveRun()
+  optimisticMessages.value = optimisticMessages.value.filter((message) => message.id !== id)
+}
+
 async function sendControlMessage(message: string) {
   if (actionPending.value) return
   actionPending.value = true
+  const optimisticId = startLiveMessage(message)
   try {
     await agentChatApi.sendMessage(props.chatSlug, {
       sessionId: props.sessionId,
       message,
       metadata: { source: 'agent-session-control' },
     })
-    await refresh()
   } catch (error) {
     reportAgentError(error, 'Could not update the agent session.', 'session.control')
   } finally {
+    await finishLiveMessage(optimisticId)
     actionPending.value = false
   }
 }
@@ -97,7 +128,12 @@ function cancel() {
   return sendControlMessage('cancelar')
 }
 
-defineExpose({ refresh, invalidate })
+defineExpose({
+  refresh,
+  invalidate,
+  startLiveMessage,
+  finishLiveMessage,
+})
 </script>
 
 <style scoped>

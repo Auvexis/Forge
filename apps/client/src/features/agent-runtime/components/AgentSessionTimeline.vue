@@ -54,6 +54,21 @@
         </template>
       </div>
     </article>
+
+    <article
+      v-for="message in pendingUserMessages"
+      :key="message.id"
+      class="agent-timeline__message agent-timeline__message--optimistic"
+      data-role="user"
+    >
+      <header>
+        <span>You</span>
+        <time>now</time>
+      </header>
+      <div class="agent-timeline__parts">
+        <p class="agent-timeline__text">{{ message.text }}</p>
+      </div>
+    </article>
   </div>
 </template>
 
@@ -64,7 +79,12 @@ import type {
   AgentSessionPart,
 } from '../types/agent.types'
 
-defineProps<{ snapshot: AgentSessionSnapshot }>()
+withDefaults(defineProps<{
+  snapshot: AgentSessionSnapshot
+  pendingUserMessages?: Array<{ id: string; text: string }>
+}>(), {
+  pendingUserMessages: () => [],
+})
 
 function roleLabel(role: Exclude<AgentChatMessageRole, 'tool'>) {
   if (role === 'assistant') return 'Agent'
@@ -118,6 +138,10 @@ function formatBytes(bytes: number) {
   display: grid;
   grid-template-columns: 64px minmax(0, 1fr);
   gap: 8px;
+}
+
+.agent-timeline__message--optimistic {
+  opacity: 0.82;
 }
 
 .agent-timeline__message > header {

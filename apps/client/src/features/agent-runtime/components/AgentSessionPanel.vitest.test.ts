@@ -11,7 +11,8 @@ describe("AgentSessionPanel", () => {
     expect(source).toMatch(/useAgentSessionSnapshot/);
     expect(source).toMatch(/AgentSessionTimeline/);
     expect(source).toMatch(/AgentSessionControls/);
-    expect(source).toMatch(/defineExpose\(\{ refresh, invalidate \}\)/);
+    expect(source).toMatch(/defineExpose\(\{[\s\S]*refresh,[\s\S]*invalidate,[\s\S]*startLiveMessage,[\s\S]*finishLiveMessage/);
+    expect(source).toMatch(/visibleOptimisticMessages/);
     expect(source).toMatch(/sessionId: props\.sessionId/);
   });
 });

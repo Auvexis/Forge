@@ -14,6 +14,7 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
   let reconcilerSessionId: string | undefined
   let pollTimer: ReturnType<typeof setTimeout> | null = null
   let idlePolls = 0
+  let liveRuns = 0
 
   function currentReconciler() {
     const id = sessionId()
@@ -43,6 +44,17 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
     startPolling()
   }
 
+  function beginLiveRun() {
+    liveRuns += 1
+    invalidate()
+  }
+
+  async function endLiveRun() {
+    liveRuns = Math.max(0, liveRuns - 1)
+    await refresh()
+    startPolling()
+  }
+
   function startPolling() {
     if (pollTimer) return
     idlePolls = 0
@@ -54,13 +66,14 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
     if (document.visibilityState !== 'visible') return
     await refresh()
     const state = snapshot.value?.activeTurn?.state
-    const active = state === 'queued' ||
+    const active = liveRuns > 0 ||
+      state === 'queued' ||
       state === 'running' ||
       state === 'waiting-user' ||
       state === 'waiting-approval'
     idlePolls = active ? 0 : idlePolls + 1
     if (active || idlePolls < 3) {
-      pollTimer = setTimeout(poll, 1_000)
+      pollTimer = setTimeout(poll, active ? 300 : 1_000)
     }
   }
 
@@ -90,5 +103,7 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
     error,
     refresh,
     invalidate,
+    beginLiveRun,
+    endLiveRun,
   }
 }

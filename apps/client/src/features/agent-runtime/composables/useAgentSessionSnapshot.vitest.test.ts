@@ -14,6 +14,9 @@ describe("useAgentSessionSnapshot", () => {
     expect(source).toMatch(/addEventListener\('visibilitychange'/);
     expect(source).toMatch(/invalidate\(revision\?: number\)/);
     expect(source).toMatch(/startPolling\(\)/);
-    expect(source).toMatch(/setTimeout\(poll, 1_000\)/);
+    expect(source).toMatch(/beginLiveRun/);
+    expect(source).toMatch(/endLiveRun/);
+    expect(source).toMatch(/liveRuns > 0/);
+    expect(source).toMatch(/active \? 300 : 1_000/);
   });
 });

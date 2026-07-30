@@ -32,3 +32,12 @@
 - [x] Bound repeated non-paginated list/search calls
 - [x] Return a clarification containing the previous result if the model remains stuck
 - [x] Add continuation and duplicate-call regression tests
+
+## Batch 6 — Live clarification continuation
+
+- [x] Display the user's clarification response optimistically
+- [x] Transition resumed turns from waiting-user to running
+- [x] Poll snapshots throughout the complete HTTP execution
+- [x] Disable snapshot caching
+- [x] Render tool steps from each persisted revision
+- [x] Add live reconciliation contract tests

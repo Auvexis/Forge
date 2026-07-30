@@ -93,9 +93,12 @@ export class ChatTriggerService {
       session.id,
       sessionBeforeTurn.revision,
     );
-    const turn = sessionSnapshot.pendingInteraction && sessionSnapshot.activeTurn
+    let turn = sessionSnapshot.pendingInteraction && sessionSnapshot.activeTurn
       ? sessionSnapshot.activeTurn
       : writer.createTurn({ state: "running" });
+    if (sessionSnapshot.pendingInteraction && turn.state !== "running") {
+      turn = writer.updateTurn(turn.id, "running");
+    }
     const userMessage = writer.appendMessage(turn.id, "user");
     writer.appendText({
       turnId: turn.id,

@@ -114,7 +114,11 @@ const activeSessionId = ref('')
 const draft = ref('')
 const directoryLoading = ref(false)
 const sending = ref(false)
-const sessionPanel = ref<{ invalidate: (revision?: number) => void } | null>(null)
+const sessionPanel = ref<{
+  invalidate: (revision?: number) => void
+  startLiveMessage: (message: string) => string
+  finishLiveMessage: (id: string) => Promise<void>
+} | null>(null)
 const { reportAgentError } = useAgentErrorReporter()
 
 const activeChat = computed(() =>
@@ -165,26 +169,28 @@ async function sendMessage() {
   const message = draft.value.trim()
   if (!chat || !message || sending.value) return
   sending.value = true
+  let optimisticId: string | null = null
   try {
     if (!activeSessionId.value) {
       const session = await agentChatApi.createSession(chat.chatSlug, message.slice(0, 80))
       activeSessionId.value = session.id
       await nextTick()
     }
-    sessionPanel.value?.invalidate()
+    optimisticId = sessionPanel.value?.startLiveMessage(message) ?? null
+    draft.value = ''
     const result = await agentChatApi.sendMessage(chat.chatSlug, {
       message,
       sessionId: activeSessionId.value,
       metadata: { source: 'agent-chat-modal' },
     })
     activeSessionId.value = result.session.id
-    draft.value = ''
     await loadDirectory()
     activeSessionId.value = result.session.id
   } catch (error) {
     reportAgentError(error, 'The agent could not process this message.', 'message.send')
     sessionPanel.value?.invalidate()
   } finally {
+    if (optimisticId) await sessionPanel.value?.finishLiveMessage(optimisticId)
     sending.value = false
   }
 }

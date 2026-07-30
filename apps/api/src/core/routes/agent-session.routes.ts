@@ -83,6 +83,7 @@ export default async function agentSessionRoutes(
   });
 
   fastify.get("/agent-sessions/:sessionId/snapshot", async (request, reply) => {
+    reply.header("Cache-Control", "no-store, no-cache, must-revalidate");
     const { sessionId } = request.params as { sessionId: string };
     const profileId = getProfileId();
     const repository = new AgentSessionRepository(getDb());

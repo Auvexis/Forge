@@ -30,7 +30,9 @@ export const agentChatApi = {
     apiRequest<AgentChatMessage[]>(ENDPOINTS.AGENT_CHAT_SESSION_MESSAGES(sessionId)),
 
   getSessionSnapshot: (sessionId: string) =>
-    apiRequest<AgentSessionSnapshot>(ENDPOINTS.AGENT_SESSION_SNAPSHOT(sessionId)),
+    apiRequest<AgentSessionSnapshot>(ENDPOINTS.AGENT_SESSION_SNAPSHOT(sessionId), {
+      cache: 'no-store',
+    }),
 
   approveToolCall: (approvalId: string, payload: AgentApprovalDecisionPayload) =>
     apiRequest(ENDPOINTS.AGENT_APPROVAL_APPROVE(approvalId), {
