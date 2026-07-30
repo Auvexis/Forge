@@ -64,6 +64,7 @@
         <main class="agent-chat-modal__conversation">
           <AgentSessionPanel
             v-if="activeSessionId && activeChat"
+            ref="sessionPanel"
             :key="activeSessionId"
             :session-id="activeSessionId"
             :chat-slug="activeChat.chatSlug"
@@ -95,7 +96,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { agentChatApi } from '@/core/api/agent-chat.api'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import type { AgentChatDirectoryEntry } from '../types/agent.types'
@@ -114,6 +115,7 @@ const draft = ref('')
 const directoryLoading = ref(false)
 const sending = ref(false)
 const errorMessage = ref('')
+const sessionPanel = ref<{ invalidate: (revision?: number) => void } | null>(null)
 
 const activeChat = computed(() =>
   chats.value.find((chat) => chat.chatSlug === activeChatSlug.value) ?? null,
@@ -168,9 +170,15 @@ async function sendMessage() {
   sending.value = true
   errorMessage.value = ''
   try {
+    if (!activeSessionId.value) {
+      const session = await agentChatApi.createSession(chat.chatSlug, message.slice(0, 80))
+      activeSessionId.value = session.id
+      await nextTick()
+    }
+    sessionPanel.value?.invalidate()
     const result = await agentChatApi.sendMessage(chat.chatSlug, {
       message,
-      ...(activeSessionId.value ? { sessionId: activeSessionId.value } : {}),
+      sessionId: activeSessionId.value,
       metadata: { source: 'agent-chat-modal' },
     })
     activeSessionId.value = result.session.id

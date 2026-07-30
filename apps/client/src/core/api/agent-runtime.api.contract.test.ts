@@ -24,6 +24,10 @@ describe('agent runtime api contract', () => {
       '/agent-sessions/chat_1/snapshot',
     )
     assert.equal(ENDPOINTS.AGENT_CHATS, '/agent-chats')
+    assert.equal(
+      ENDPOINTS.AGENT_CHAT_SESSIONS('support agent'),
+      '/agent-chats/support%20agent/sessions',
+    )
     assert.equal(ENDPOINTS.AGENT_TOOLS, '/agent-tools')
     assert.equal(ENDPOINTS.AGENT_MEMORY, '/agent-memory')
     assert.equal(ENDPOINTS.AGENT_MEMORY_BY_ID('memory 1'), '/agent-memory/memory%201')
@@ -43,6 +47,7 @@ describe('agent runtime api contract', () => {
 
     assert.match(chatSource, /export const agentChatApi/)
     assert.match(chatSource, /listChats:/)
+    assert.match(chatSource, /createSession:/)
     assert.match(chatSource, /sendMessage:/)
     assert.match(chatSource, /listSessionMessages:/)
     assert.match(chatSource, /getSessionSnapshot:/)

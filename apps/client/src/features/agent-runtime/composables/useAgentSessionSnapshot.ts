@@ -12,6 +12,8 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
   const error = shallowRef<unknown>(null)
   let reconciler: AgentSessionReconciler | null = null
   let reconcilerSessionId: string | undefined
+  let pollTimer: ReturnType<typeof setTimeout> | null = null
+  let idlePolls = 0
 
   function currentReconciler() {
     const id = sessionId()
@@ -38,6 +40,28 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
 
   function invalidate(revision?: number) {
     currentReconciler()?.invalidate(revision)
+    startPolling()
+  }
+
+  function startPolling() {
+    if (pollTimer) return
+    idlePolls = 0
+    pollTimer = setTimeout(poll, 250)
+  }
+
+  async function poll() {
+    pollTimer = null
+    if (document.visibilityState !== 'visible') return
+    await refresh()
+    const state = snapshot.value?.activeTurn?.state
+    const active = state === 'queued' ||
+      state === 'running' ||
+      state === 'waiting-user' ||
+      state === 'waiting-approval'
+    idlePolls = active ? 0 : idlePolls + 1
+    if (active || idlePolls < 3) {
+      pollTimer = setTimeout(poll, 1_000)
+    }
   }
 
   function reconcileWhenVisible() {
@@ -46,12 +70,15 @@ export function useAgentSessionSnapshot(sessionId: () => string | undefined) {
 
   onMounted(() => {
     void refresh()
+    startPolling()
     window.addEventListener('focus', refresh)
     window.addEventListener('online', refresh)
     document.addEventListener('visibilitychange', reconcileWhenVisible)
   })
 
   onBeforeUnmount(() => {
+    if (pollTimer) clearTimeout(pollTimer)
+    pollTimer = null
     window.removeEventListener('focus', refresh)
     window.removeEventListener('online', refresh)
     document.removeEventListener('visibilitychange', reconcileWhenVisible)

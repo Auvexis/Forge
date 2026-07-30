@@ -4,6 +4,7 @@ import type {
   AgentApprovalDecisionPayload,
   AgentChatDirectoryEntry,
   AgentChatMessage,
+  AgentChatSession,
   AgentSessionSnapshot,
   SendAgentChatMessagePayload,
   SendAgentChatMessageResult,
@@ -12,6 +13,12 @@ import type {
 export const agentChatApi = {
   listChats: () =>
     apiRequest<AgentChatDirectoryEntry[]>(ENDPOINTS.AGENT_CHATS),
+
+  createSession: (chatSlug: string, title?: string) =>
+    apiRequest<AgentChatSession>(ENDPOINTS.AGENT_CHAT_SESSIONS(chatSlug), {
+      method: 'POST',
+      body: title ? { title } : {},
+    }),
 
   sendMessage: (chatSlug: string, payload: SendAgentChatMessagePayload) =>
     apiRequest<SendAgentChatMessageResult>(ENDPOINTS.AGENT_CHAT_MESSAGES(chatSlug), {

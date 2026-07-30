@@ -12,6 +12,8 @@ describe("AgentChatModal", () => {
     expect(source).toMatch(/AgentSessionPanel/);
     expect(source).toMatch(/agentChatApi\.listChats/);
     expect(source).toMatch(/agentChatApi\.sendMessage/);
+    expect(source).toMatch(/agentChatApi\.createSession/);
+    expect(source).toMatch(/sessionPanel\.value\?\.invalidate/);
     expect(source).not.toMatch(/EventSource|WebSocket|agent:tool-start|agent:output-delta/);
   });
 });

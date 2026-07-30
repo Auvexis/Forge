@@ -13,5 +13,7 @@ describe("useAgentSessionSnapshot", () => {
     expect(source).toMatch(/addEventListener\('online', refresh\)/);
     expect(source).toMatch(/addEventListener\('visibilitychange'/);
     expect(source).toMatch(/invalidate\(revision\?: number\)/);
+    expect(source).toMatch(/startPolling\(\)/);
+    expect(source).toMatch(/setTimeout\(poll, 1_000\)/);
   });
 });

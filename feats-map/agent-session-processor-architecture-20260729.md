@@ -73,5 +73,5 @@
 - [x] Add dedicated theme tokens
 - [x] Remove obsolete agent panel frontend code
 - [x] Persist a session before the first agent turn
-- [ ] Reconcile snapshots during active execution
+- [x] Reconcile snapshots during active execution
 - [ ] Add modal and page tests

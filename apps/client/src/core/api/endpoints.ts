@@ -130,6 +130,8 @@ export const ENDPOINTS = {
   AGENT_SESSION_SNAPSHOT: (sessionId: string) =>
     `/agent-sessions/${encodeURIComponent(sessionId)}/snapshot`,
   AGENT_CHATS: '/agent-chats',
+  AGENT_CHAT_SESSIONS: (chatSlug: string) =>
+    `/agent-chats/${encodeURIComponent(chatSlug)}/sessions`,
   AGENT_TOOLS: '/agent-tools',
   AGENT_MEMORY: '/agent-memory',
   AGENT_MEMORY_BY_ID: (memoryId: string) => `/agent-memory/${encodeURIComponent(memoryId)}`,
