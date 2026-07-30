@@ -95,12 +95,8 @@ function normalizeDecision(value: AgentIntentDecision, tools: Set<string>): Agen
           : [],
       }];
     });
-  const validIds = new Set(actions.map((action) => action.id));
   actions.forEach((action, index) => {
-    action.dependsOn = action.dependsOn.filter((dependency) => validIds.has(dependency));
-    if (index > 0 && action.dependsOn.length === 0) {
-      action.dependsOn = [actions[index - 1]!.id];
-    }
+    action.dependsOn = index === 0 ? [] : [actions[index - 1]!.id];
   });
 
   return actions.length > 0

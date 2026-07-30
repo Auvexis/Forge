@@ -91,6 +91,31 @@ describe("routeAgentIntent", () => {
     expect(decision.actions).toHaveLength(2);
     expect(decision.actions[1]?.dependsOn).toEqual(["find"]);
   });
+
+  it("repairs self references, future references, and cycles into request order", async () => {
+    const decision = await routeAgentIntent({
+      model: fixedDecisionModel({
+        mode: "action",
+        actions: [
+          { id: "find", toolName: "drive_download", objective: "Find", dependsOn: ["find", "send"] },
+          { id: "download", toolName: "youtube_upload", objective: "Download", dependsOn: ["send"] },
+          { id: "send", toolName: "email_send", objective: "Send", dependsOn: ["find"] },
+        ],
+      }),
+      systemPrompt: "Assistant",
+      userMessage: "Find, download, and send",
+      contextMessages: [],
+      tools,
+    });
+
+    expect(decision.mode).toBe("action");
+    if (decision.mode !== "action") return;
+    expect(decision.actions.map(({ dependsOn }) => dependsOn)).toEqual([
+      [],
+      ["find"],
+      ["download"],
+    ]);
+  });
 });
 
 function fixedDecisionModel(decision: AgentIntentDecision): IntentModel {
