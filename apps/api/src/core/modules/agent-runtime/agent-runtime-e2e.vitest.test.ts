@@ -88,6 +88,72 @@ describe("Agent MCP runtime end-to-end", () => {
     expect(recipients).toEqual(["ana@example.com", "bruno@example.com"]);
   });
 
+  it("routes Drive-to-email through compact cards before loading selected schemas", async () => {
+    const modelDecisions = [
+      {
+        mode: "action",
+        actions: [
+          { id: "find_cv", toolName: "drive_search", objective: "Find backend CV", dependsOn: [] },
+          { id: "send_cv", toolName: "email_send", objective: "Email backend CV", dependsOn: ["find_cv"] },
+        ],
+      },
+      { action: "call", arguments: { query: "backend curriculum" } },
+      { action: "call", arguments: { to: "andre.emailto@gmail.com", file: "artifact://cv" } },
+    ];
+    const calls: string[] = [];
+    const runner = new AgentRunner({
+      modelRegistry: {
+        createChatModel: async () => ({
+          invokeJson: async () => modelDecisions.shift() as any,
+          generateFinalResponse: async () => "Currículo enviado.",
+        }),
+      },
+      emitEvent: () => undefined,
+    });
+
+    const result = await runner.run({
+      ...runInput("Busque meu currículo de backend no Drive e envie por email."),
+      tools: [
+        {
+          name: "drive_search",
+          description: "Search Drive",
+          inputSchema: {
+            type: "object",
+            required: ["query"],
+            properties: { query: { type: "string" } },
+          },
+          sideEffect: "read",
+          requiresApproval: false,
+          timeoutMs: 5_000,
+          async invoke() {
+            calls.push("drive_search");
+            return { ref: "artifact://cv", name: "backend.pdf" };
+          },
+        },
+        {
+          name: "email_send",
+          description: "Send email",
+          inputSchema: {
+            type: "object",
+            required: ["to", "file"],
+            properties: { to: { type: "string" }, file: { type: "string" } },
+          },
+          sideEffect: "external-message",
+          requiresApproval: false,
+          timeoutMs: 5_000,
+          async invoke() {
+            calls.push("email_send");
+            return { messageId: "mail_1" };
+          },
+        },
+      ],
+    });
+
+    expect(result).toMatchObject({ status: "success", output: "Currículo enviado.", toolCallCount: 2 });
+    expect(calls).toEqual(["drive_search", "email_send"]);
+    expect(modelDecisions).toHaveLength(0);
+  });
+
   it("resumes an approved side effect without replanning completed actions", async () => {
     let approved = false;
     let executions = 0;

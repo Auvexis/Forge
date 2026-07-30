@@ -46,11 +46,12 @@ import {
 } from "./conversation/agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
 import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
-import { runAgentProcessor } from "./processor/agent-processor.ts";
-import { StructuredTurnStreamingModel } from "./processor/structured-turn-streaming-model.ts";
+import { routeAgentIntent, type AgentRequiredAction } from "./intent/agent-intent-gateway.ts";
+import { runMcpAgentLoop } from "./loop/mcp-agent-loop.ts";
 import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
 import type { AgentInteractionPart } from "./session/agent-session-contracts.ts";
 import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
+import type { AgentToolPart } from "./session/agent-session-contracts.ts";
 import { AgentProcessorPause } from "./processor/agent-processor-pause.ts";
 
 export interface AgentRunnerOptions {
@@ -531,43 +532,212 @@ export class AgentRunner {
         throw error;
       }
     }
-    const result = await runAgentProcessor({
-      model: new StructuredTurnStreamingModel(model),
+    const resumedActions = actionsFromResumeState(input.pending?.context.resumeState);
+    let actions: AgentRequiredAction[];
+    if (resumedActions.length > 0) {
+      actions = resumedActions;
+    } else {
+      const intent = await routeAgentIntent({
+        model,
+        systemPrompt: input.validated.agent.prompt,
+        userMessage: input.input.userMessage,
+        contextMessages: input.contextMessages,
+        tools: client.listTools(),
+        signal: input.input.abortSignal,
+      });
+      input.logger.info("intent.classified", {
+        mode: intent.mode,
+        ...(intent.mode === "action" ? { actionCount: intent.actions.length } : {}),
+      });
+      if (intent.mode === "chat") {
+        persistAgentText(input.sessionWriter, input.sessionTurnId, intent.response, "completed");
+        return {
+          status: "success",
+          output: intent.response,
+          iterationCount: 1,
+          toolCallCount: 0,
+          toolCalls: [],
+        };
+      }
+      if (intent.mode === "clarify") {
+        throw new AgentProcessorPause(
+          "clarification",
+          intent.question,
+          "agent",
+          {
+            code: "AGENT_CLARIFICATION_REQUIRED",
+            category: "validation",
+            message: intent.question,
+            retryable: false,
+            userActionRequired: true,
+          },
+        );
+      }
+      actions = intent.actions;
+    }
+
+    let commitmentPart = input.commitmentPart;
+    if (input.sessionWriter && input.sessionTurnId && !commitmentPart) {
+      const message = input.sessionWriter.appendMessage(input.sessionTurnId, "assistant");
+      commitmentPart = input.sessionWriter.appendCommitments({
+        turnId: input.sessionTurnId,
+        messageId: message.id,
+        request: input.input.userMessage,
+        items: actions.map((action) => ({
+          id: action.id,
+          description: action.objective,
+          status: "pending",
+          evidencePartIds: [],
+        })),
+      });
+    }
+    const toolParts = new Map<string, AgentToolPart>();
+    const result = await runMcpAgentLoop({
+      model,
       client,
       systemPrompt: input.validated.agent.prompt,
-      messages: [
-        ...input.contextMessages.map((message) => ({
-          role: message.role,
-          content: message.content,
-          ...(message.tool_call_id ? { toolCallId: message.tool_call_id } : {}),
-          ...(message.tool_calls
-            ? {
-                toolCalls: message.tool_calls.map((call) => ({
-                  callId: call.id,
-                  name: call.name,
-                  input: call.arguments,
-                })),
-              }
-            : {}),
-        })),
-        { role: "user", content: input.input.userMessage },
-      ],
-      maxIterations: input.validated.agent.maxToolCalls + 2,
+      userMessage: input.input.userMessage,
+      contextMessages: input.contextMessages,
+      actions,
       maxToolCalls: input.validated.agent.maxToolCalls,
       maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
       abortSignal: input.input.abortSignal,
-      writer: input.sessionWriter,
-      turnId: input.sessionTurnId,
-      restoredCommitmentPart: input.commitmentPart,
+      resumeState: input.pending?.context.resumeState,
+      emitEvent: (event) => {
+        this.eventEmitter(event, input.input);
+        persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
+      },
+      logger: input.logger,
+      state: input.state,
     });
-    return {
-      status: "success",
-      output: result.output,
-      iterationCount: result.iterations,
-      toolCallCount: result.toolCallCount,
-      toolCalls: result.toolCalls,
-    };
+    if (result.status === "waiting-user") {
+      const question = waitingQuestion(result.output);
+      if (input.sessionWriter && input.sessionTurnId) {
+        const message = input.sessionWriter.appendMessage(input.sessionTurnId, "assistant");
+        input.sessionWriter.appendInteraction({
+          turnId: input.sessionTurnId,
+          messageId: message.id,
+          kind: "clarification",
+          question,
+        });
+        input.sessionWriter.updateTurn(input.sessionTurnId, "waiting-user");
+      }
+      return result;
+    }
+    if (commitmentPart && input.sessionWriter) {
+      input.sessionWriter.updateCommitments(
+        commitmentPart,
+        commitmentPart.items.map((item) => ({
+          ...item,
+          status: "completed",
+          evidencePartIds: result.toolCalls?.map((call) => `tool-call:${call.toolCallId}`) ?? [],
+        })),
+      );
+    }
+    persistAgentText(
+      input.sessionWriter,
+      input.sessionTurnId,
+      typeof result.output === "string" ? result.output : JSON.stringify(result.output),
+      "completed",
+    );
+    return result;
   }
+}
+
+function actionsFromResumeState(value: unknown): AgentRequiredAction[] {
+  if (!value || typeof value !== "object") return [];
+  const actions = (value as { actions?: unknown }).actions;
+  if (!Array.isArray(actions)) return [];
+  return actions
+    .filter((action): action is Record<string, unknown> =>
+      Boolean(action) && typeof action === "object" && !Array.isArray(action)
+    )
+    .map((action) => ({
+      id: String(action.id ?? ""),
+      toolName: String(action.toolName ?? ""),
+      objective: String(action.objective ?? ""),
+      dependsOn: Array.isArray(action.dependsOn) ? action.dependsOn.map(String) : [],
+    }))
+    .filter((action) => action.id && action.toolName && action.objective);
+}
+
+function persistAgentText(
+  writer: AgentSessionWriter | undefined,
+  turnId: string | undefined,
+  text: string,
+  state: "completed" | "waiting-user",
+): void {
+  if (!writer || !turnId || !text.trim()) return;
+  const message = writer.appendMessage(turnId, "assistant");
+  writer.appendText({ turnId, messageId: message.id, text: text.trim() });
+  writer.updateTurn(turnId, state);
+}
+
+function persistLoopEvent(
+  writer: AgentSessionWriter | undefined,
+  turnId: string | undefined,
+  parts: Map<string, AgentToolPart>,
+  event: AgentRuntimeEvent,
+): void {
+  if (!writer || !turnId) return;
+  const payload = event.payload ?? {};
+  const callId = typeof payload.callId === "string" ? payload.callId : "";
+  if (!callId) return;
+
+  if (event.type === "agent:tool-intent") {
+    const message = writer.appendMessage(turnId, "assistant");
+    const part = writer.appendTool({
+      turnId,
+      messageId: message.id,
+      callId,
+      toolName: String(payload.name ?? "tool"),
+      ...(typeof payload.actionId === "string" ? { actionId: payload.actionId } : {}),
+      ...(payload.params && typeof payload.params === "object"
+        ? { arguments: payload.params as Record<string, unknown> }
+        : {}),
+    });
+    parts.set(callId, part);
+    return;
+  }
+
+  const current = parts.get(callId);
+  if (!current) return;
+  if (event.type === "agent:tool-start") {
+    const input = (current.state.status === "pending" && current.state.input
+      ? current.state.input
+      : {}) as Record<string, unknown>;
+    parts.set(callId, writer.startTool(current, input));
+    return;
+  }
+  if (event.type !== "agent:tool-end") return;
+
+  const running = current.state.status === "running"
+    ? current
+    : writer.startTool(
+        current,
+        (current.state.status === "pending" && current.state.input
+          ? current.state.input
+          : {}) as Record<string, unknown>,
+      );
+  if (payload.status === "success") {
+    parts.set(callId, writer.completeTool(running, payload.output));
+    return;
+  }
+  parts.set(callId, writer.failTool(running, {
+    code: "AGENT_TOOL_FAILED",
+    category: "internal",
+    message: safeErrorMessage(payload.error),
+    retryable: false,
+    userActionRequired: false,
+  }));
+}
+
+function waitingQuestion(output: AgentRunResult["output"]): string {
+  if (output && typeof output === "object" && "question" in output) {
+    const question = String(output.question ?? "").trim();
+    if (question) return question;
+  }
+  return "Preciso de uma informação adicional para continuar.";
 }
 
 function isUserCancellation(signal?: AbortSignal): boolean {

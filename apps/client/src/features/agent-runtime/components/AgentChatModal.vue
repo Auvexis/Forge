@@ -183,6 +183,7 @@ async function sendMessage() {
     activeSessionId.value = result.session.id
   } catch (error) {
     reportAgentError(error, 'The agent could not process this message.', 'message.send')
+    sessionPanel.value?.invalidate()
   } finally {
     sending.value = false
   }
