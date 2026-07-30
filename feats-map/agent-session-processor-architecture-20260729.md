@@ -49,7 +49,7 @@
 
 - [x] Add session snapshot client
 - [x] Render message parts and tool states
-- [ ] Add interaction, retry, cancel, and approval controls
+- [x] Add interaction, retry, cancel, and approval controls
 - [ ] Use realtime events only for invalidation
 - [ ] Reconcile on mount, focus, and reconnect
 - [ ] Add refresh and event-loss tests
