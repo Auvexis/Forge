@@ -33,8 +33,8 @@
 - [x] Add completion evidence links
 - [x] Block premature final responses
 - [x] Persist waiting-user and approval parts
-- [ ] Add retry, cancel, and resume flows
-- [ ] Add multi-step completion tests
+- [x] Add retry, cancel, and resume flows
+- [x] Add multi-step completion tests
 
 ## Batch 5 — Context Engine
 

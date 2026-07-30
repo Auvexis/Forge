@@ -356,4 +356,62 @@ describe("runAgentProcessor", () => {
       toolName: "drive_find",
     });
   });
+
+  it("retries transient failures with the same tool call identity", async () => {
+    let attempts = 0;
+    const client = new InternalMcpClient(new InternalMcpServer([{
+      name: "temporary_read",
+      summary: "Temporary read",
+      sideEffect: "read",
+      requiresApproval: false,
+      timeoutMs: 1_000,
+      inputSchema: { type: "object", additionalProperties: false },
+      invoke: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          throw new AgentRuntimeError(
+            "Temporary unavailable",
+            "TOOL_TEMPORARY_UNAVAILABLE",
+            "Temporary unavailable",
+            503,
+          );
+        }
+        return "ok";
+      },
+    }]));
+    let turn = 0;
+    const model: AgentStreamingModel = {
+      async *stream() {
+        turn += 1;
+        yield { type: "response-start", responseId: `response_${turn}` };
+        if (turn === 1) {
+          yield {
+            type: "tool-call",
+            callId: "stable_call",
+            toolName: "temporary_read",
+            input: {},
+          };
+          yield { type: "response-end", responseId: "response_1", finishReason: "tool-calls" };
+          return;
+        }
+        yield { type: "text-start", partId: "final" };
+        yield { type: "text-delta", partId: "final", delta: "Done" };
+        yield { type: "text-end", partId: "final" };
+        yield { type: "response-end", responseId: "response_2", finishReason: "stop" };
+      },
+    };
+
+    const result = await runAgentProcessor({
+      model,
+      client,
+      systemPrompt: "",
+      messages: [{ role: "user", content: "Read" }],
+      maxIterations: 3,
+      maxToolCalls: 2,
+      maxRetriesPerTool: 1,
+    });
+
+    expect(attempts).toBe(2);
+    expect(result.toolCalls[0]?.toolCallId).toBe("stable_call");
+  });
 });

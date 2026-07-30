@@ -36,4 +36,27 @@ describe("TurnCommitmentLedger", () => {
     const ledger = new TurnCommitmentLedger([{ id: "known", description: "Known" }]);
     expect(() => ledger.recordEvidence(["unknown"], "part_1")).toThrow(/Unknown/);
   });
+
+  it("restores completed evidence without reopening finished outcomes", () => {
+    const ledger = new TurnCommitmentLedger([
+      {
+        id: "download",
+        description: "Download",
+        status: "completed",
+        evidencePartIds: ["part_1"],
+      },
+      {
+        id: "publish",
+        description: "Publish",
+        status: "pending",
+        evidencePartIds: [],
+      },
+    ]);
+
+    expect(ledger.pending.map((item) => item.id)).toEqual(["publish"]);
+    expect(ledger.snapshot[0]).toMatchObject({
+      status: "completed",
+      evidencePartIds: ["part_1"],
+    });
+  });
 });

@@ -80,10 +80,11 @@ export class ChatTriggerService {
     this.assertPublicOriginAllowed(input, resolved);
     this.assertPublicRateLimit(input, resolved);
     const session = this.resolveSession(input, resolved, message);
-    const previousMessages = this.sessionRepository.getSnapshot({
+    const sessionSnapshot = this.sessionRepository.getSnapshot({
       profileId: input.profileId,
       sessionId: session.id,
-    }).messages;
+    });
+    const previousMessages = sessionSnapshot.messages;
     const sessionBeforeTurn = this.sessionRepository.getSession(input.profileId, session.id)!;
     const writer = new AgentSessionWriter(
       this.sessionRepository,
@@ -91,7 +92,9 @@ export class ChatTriggerService {
       session.id,
       sessionBeforeTurn.revision,
     );
-    const turn = writer.createTurn({ state: "running" });
+    const turn = sessionSnapshot.pendingInteraction && sessionSnapshot.activeTurn
+      ? sessionSnapshot.activeTurn
+      : writer.createTurn({ state: "running" });
     const userMessage = writer.appendMessage(turn.id, "user");
     writer.appendText({
       turnId: turn.id,

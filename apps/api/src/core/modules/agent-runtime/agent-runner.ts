@@ -49,6 +49,8 @@ import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
 import { runAgentProcessor } from "./processor/agent-processor.ts";
 import { StructuredTurnStreamingModel } from "./processor/structured-turn-streaming-model.ts";
 import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
+import type { AgentInteractionPart } from "./session/agent-session-contracts.ts";
+import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
 import { AgentProcessorPause } from "./processor/agent-processor-pause.ts";
 
 export interface AgentRunnerOptions {
@@ -63,7 +65,12 @@ export interface AgentRunnerOptions {
   sessionWriterFactory?: (
     input: AgentRunInput,
     runId: string,
-  ) => { writer: AgentSessionWriter; turnId: string } | undefined;
+  ) => {
+    writer: AgentSessionWriter;
+    turnId: string;
+    pendingInteraction?: AgentInteractionPart;
+    commitmentPart?: AgentCommitmentPart;
+  } | undefined;
 }
 
 export type PluginMemoryExecutor = (
@@ -122,10 +129,15 @@ export class AgentRunner {
     });
     if (pending) {
       state?.resumeRun(input.profileId, pending.runId);
+      sessionExecution = this.sessionWriterFactory?.(input, runId);
       const reply = routePendingInteractionReply(pending, input.userMessage);
       if (reply.type === "cancel" || (reply.type === "confirm" && !reply.confirmed)) {
         state?.cancelPendingInteraction(input.profileId, pending.id);
         state?.markRunCancelled();
+        if (sessionExecution?.pendingInteraction) {
+          sessionExecution.writer.cancelInteraction(sessionExecution.pendingInteraction);
+          sessionExecution.writer.updateTurn(sessionExecution.turnId, "cancelled");
+        }
         logger.info("interaction.resolved", { interactionId: pending.id, resolution: "cancelled" });
         return {
           status: "cancelled",
@@ -137,12 +149,26 @@ export class AgentRunner {
       }
       state?.resolvePendingInteraction(input.profileId, pending.id, reply);
       state?.markRunRunning();
+      if (sessionExecution?.pendingInteraction) {
+        sessionExecution.writer.resolveInteraction(sessionExecution.pendingInteraction, reply);
+        sessionExecution.writer.updateTurn(sessionExecution.turnId, "running");
+      }
       logger.info("interaction.resolved", { interactionId: pending.id, resolution: reply.type });
     } else {
       state?.startRun(runId, input);
       state?.markRunRunning();
+      sessionExecution = this.sessionWriterFactory?.(input, runId);
+      if (
+        input.approvalToken === "approved" &&
+        sessionExecution?.pendingInteraction?.kind === "approval"
+      ) {
+        sessionExecution.writer.resolveInteraction(
+          sessionExecution.pendingInteraction,
+          { approved: true },
+        );
+        sessionExecution.writer.updateTurn(sessionExecution.turnId, "running");
+      }
     }
-    sessionExecution = this.sessionWriterFactory?.(input, runId);
     logger.info("run.started", { hasSession: Boolean(input.sessionId) });
     this.eventEmitter({ type: "agent:start", payload: { sessionId: input.sessionId } }, input);
     this.eventEmitter({
@@ -209,6 +235,7 @@ export class AgentRunner {
         sideEffects,
         sessionWriter: sessionExecution?.writer,
         sessionTurnId: sessionExecution?.turnId,
+        commitmentPart: sessionExecution?.commitmentPart,
       });
 
       await this.writeMemory(input, longTermMemory, namespace, result.output);
@@ -222,6 +249,20 @@ export class AgentRunner {
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
+      if (isUserCancellation(input.abortSignal)) {
+        state?.markRunCancelled();
+        if (sessionExecution) {
+          sessionExecution.writer.updateTurn(sessionExecution.turnId, "cancelled");
+        }
+        logger.info("run.completed", { status: "cancelled", toolCallCount: 0, iterationCount: 1 });
+        return {
+          status: "cancelled",
+          output: "OperaÃ§Ã£o cancelada.",
+          iterationCount: 1,
+          toolCallCount: 0,
+          toolCalls: [],
+        };
+      }
       if (error instanceof AgentProcessorPause) {
         const interactionId = `interaction_${randomUUID()}`;
         state?.createPendingInteraction({
@@ -424,6 +465,7 @@ export class AgentRunner {
     sideEffects?: AgentSideEffectService;
     sessionWriter?: AgentSessionWriter;
     sessionTurnId?: string;
+    commitmentPart?: AgentCommitmentPart;
   }): Promise<AgentRunResult> {
     const model = withAgentModelTimeout(
       toAgentRuntimeModel(input.model),
@@ -511,9 +553,11 @@ export class AgentRunner {
       ],
       maxIterations: input.validated.agent.maxToolCalls + 2,
       maxToolCalls: input.validated.agent.maxToolCalls,
+      maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
       abortSignal: input.input.abortSignal,
       writer: input.sessionWriter,
       turnId: input.sessionTurnId,
+      restoredCommitmentPart: input.commitmentPart,
     });
     return {
       status: "success",
@@ -523,6 +567,12 @@ export class AgentRunner {
       toolCalls: result.toolCalls,
     };
   }
+}
+
+function isUserCancellation(signal?: AbortSignal): boolean {
+  if (!signal?.aborted) return false;
+  const reason = signal.reason;
+  return !(reason instanceof AgentRuntimeError && reason.code === "AGENT_RUN_TIMEOUT");
 }
 
 function createRunDeadline(

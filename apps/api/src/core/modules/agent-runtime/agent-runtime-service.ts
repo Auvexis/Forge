@@ -38,15 +38,12 @@ const defaultRunner = new AgentRunner({
       sessionId: input.sessionId,
     });
     const activeTurn = snapshot.activeTurn;
-    if (snapshot.pendingInteraction && activeTurn) {
-      writer.resolveInteraction(
-        snapshot.pendingInteraction,
-        input.approvalToken === "approved"
-          ? { approved: true }
-          : { message: input.userMessage },
+    const commitmentPart = snapshot.messages
+      .flatMap((entry) => entry.parts)
+      .find((part) =>
+        part.type === "commitment" &&
+        (!activeTurn || part.turnId === activeTurn.id)
       );
-      writer.updateTurn(activeTurn.id, "running");
-    }
     const turn = activeTurn ?? writer.createTurn({ runId, state: "running" });
     if (!activeTurn) {
       const message = writer.appendMessage(turn.id, "user");
@@ -56,7 +53,14 @@ const defaultRunner = new AgentRunner({
         text: input.userMessage,
       });
     }
-    return { writer, turnId: turn.id };
+    return {
+      writer,
+      turnId: turn.id,
+      ...(snapshot.pendingInteraction
+        ? { pendingInteraction: snapshot.pendingInteraction }
+        : {}),
+      ...(commitmentPart?.type === "commitment" ? { commitmentPart } : {}),
+    };
   },
 });
 

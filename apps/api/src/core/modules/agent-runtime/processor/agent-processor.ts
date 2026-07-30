@@ -32,9 +32,11 @@ export async function runAgentProcessor(input: {
   maxIterations: number;
   maxToolCalls: number;
   maxConcurrentReads?: number;
+  maxRetriesPerTool?: number;
   abortSignal?: AbortSignal;
   writer?: AgentSessionWriter;
   turnId?: string;
+  restoredCommitmentPart?: AgentCommitmentPart;
 }): Promise<AgentProcessorResult> {
   const messages: AgentProcessorRequest["messages"] = [
     { role: "system", content: processorSystemPrompt(input.systemPrompt) },
@@ -43,8 +45,16 @@ export async function runAgentProcessor(input: {
   const toolset = new AdaptiveMcpToolset(input.client);
   let toolCallCount = 0;
   const completedToolCalls: AgentProcessorResult["toolCalls"] = [];
-  let commitmentLedger: TurnCommitmentLedger | undefined;
-  let commitmentPart: AgentCommitmentPart | undefined;
+  let commitmentLedger = input.restoredCommitmentPart
+    ? new TurnCommitmentLedger(input.restoredCommitmentPart.items)
+    : undefined;
+  let commitmentPart = input.restoredCommitmentPart;
+  if (commitmentLedger && !commitmentLedger.isComplete) {
+    messages.push({
+      role: "system",
+      content: `Resume these pending outcomes: ${JSON.stringify(commitmentLedger.pending)}`,
+    });
+  }
   let finalText = "";
 
   for (let iteration = 1; iteration <= input.maxIterations; iteration += 1) {
@@ -145,6 +155,7 @@ export async function runAgentProcessor(input: {
       toolset,
       writer: input.writer,
       maxConcurrentReads: input.maxConcurrentReads ?? 4,
+      maxRetriesPerTool: input.maxRetriesPerTool ?? 0,
       abortSignal: input.abortSignal,
     });
     for (const result of results) {
@@ -190,6 +201,7 @@ async function executeToolCalls(input: {
   toolset: AdaptiveMcpToolset;
   writer?: AgentSessionWriter;
   maxConcurrentReads: number;
+  maxRetriesPerTool: number;
   abortSignal?: AbortSignal;
 }): Promise<Array<{
   callId: string;
@@ -243,40 +255,56 @@ async function executeToolCall(input: {
   toolset: AdaptiveMcpToolset;
   writer?: AgentSessionWriter;
   abortSignal?: AbortSignal;
+  maxRetriesPerTool: number;
 }): Promise<{ callId: string; toolName: string; content: unknown }> {
   const { call } = input.prepared;
   throwIfAborted(input.abortSignal);
-  try {
-    const result = await input.toolset.call({
-      id: call.callId,
-      actionId: `action_${call.callId}`,
-      name: call.toolName,
-      arguments: call.input,
-    });
-    if (input.prepared.part && input.writer) {
-      input.writer.completeTool(input.prepared.part, result.content);
+  const maxRetries = Math.min(Math.max(0, input.maxRetriesPerTool), 3);
+  for (let attempt = 0; ; attempt += 1) {
+    try {
+      const result = await input.toolset.call({
+        id: call.callId,
+        actionId: `action_${call.callId}`,
+        name: call.toolName,
+        arguments: call.input,
+      });
+      if (input.prepared.part && input.writer) {
+        input.prepared.part = input.writer.completeTool(input.prepared.part, result.content);
+      }
+      return { callId: call.callId, toolName: call.toolName, content: result.content };
+    } catch (error) {
+      const normalized = normalizeInternalMcpError(error, call.toolName);
+      if (
+        normalized.retryable &&
+        !(error instanceof AgentToolApprovalRequiredError) &&
+        attempt < maxRetries
+      ) {
+        await retryDelay(attempt, input.abortSignal);
+        if (input.prepared.part && input.writer) {
+          input.prepared.part = input.writer.startTool(
+            input.prepared.part,
+            call.input,
+            attempt + 2,
+          );
+        }
+        continue;
+      }
+      if (input.prepared.part && input.writer) {
+        input.writer.failTool(input.prepared.part, normalized);
+      }
+      if (
+        !(error instanceof AgentToolApprovalRequiredError) &&
+        normalized.userActionRequired
+      ) {
+        throw new AgentProcessorPause(
+          pauseKind(normalized),
+          normalized.message,
+          call.toolName,
+          normalized,
+        );
+      }
+      throw error;
     }
-    return { callId: call.callId, toolName: call.toolName, content: result.content };
-  } catch (error) {
-    const normalized = normalizeInternalMcpError(error, call.toolName);
-    if (input.prepared.part && input.writer) {
-      input.writer.failTool(
-        input.prepared.part,
-        normalized,
-      );
-    }
-    if (
-      !(error instanceof AgentToolApprovalRequiredError) &&
-      normalized.userActionRequired
-    ) {
-      throw new AgentProcessorPause(
-        pauseKind(normalized),
-        normalized.message,
-        call.toolName,
-        normalized,
-      );
-    }
-    throw error;
   }
 }
 
@@ -319,4 +347,16 @@ function latestUserMessage(messages: AgentProcessorRequest["messages"]): string 
 
 function throwIfAborted(signal?: AbortSignal): void {
   if (signal?.aborted) throw signal.reason ?? new Error("Agent processor was cancelled");
+}
+
+function retryDelay(attempt: number, signal?: AbortSignal): Promise<void> {
+  const delayMs = Math.min(1_000, 100 * (2 ** attempt));
+  if (signal?.aborted) return Promise.reject(signal.reason ?? new Error("Agent processor was cancelled"));
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(resolve, delayMs);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timeout);
+      reject(signal.reason ?? new Error("Agent processor was cancelled"));
+    }, { once: true });
+  });
 }

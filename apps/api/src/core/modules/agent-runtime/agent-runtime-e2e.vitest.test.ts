@@ -34,6 +34,29 @@ describe("Agent MCP runtime end-to-end", () => {
     expect(modelCalls).toBe(1);
   });
 
+  it("returns a cancelled result when the user aborts the active run", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("User cancelled"));
+    const runner = new AgentRunner({
+      modelRegistry: {
+        createChatModel: async () => ({
+          invokeJson: async () => {
+            throw new Error("cancelled run must not invoke the model");
+          },
+          generateFinalResponse: async () => "",
+        }),
+      },
+      emitEvent: () => undefined,
+    });
+
+    const result = await runner.run({
+      ...runInput("Cancel"),
+      abortSignal: controller.signal,
+    });
+
+    expect(result.status).toBe("cancelled");
+  });
+
   it("executes repeated uses of the same tool as distinct required actions", async () => {
     const recipients: string[] = [];
     const decisions = [

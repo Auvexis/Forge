@@ -3,6 +3,8 @@ import type { AgentCommitmentPart } from "../session/agent-session-contracts.ts"
 export interface TurnCommitmentInput {
   id: string;
   description: string;
+  status?: "pending" | "completed" | "failed";
+  evidencePartIds?: string[];
 }
 
 export class TurnCommitmentLedger {
@@ -19,8 +21,8 @@ export class TurnCommitmentLedger {
       return {
         id,
         description,
-        status: "pending",
-        evidencePartIds: [],
+        status: commitment.status ?? "pending",
+        evidencePartIds: [...(commitment.evidencePartIds ?? [])],
       };
     });
   }
