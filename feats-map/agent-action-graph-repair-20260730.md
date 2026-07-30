@@ -8,10 +8,10 @@
 
 ## Batch 2 — Status
 
-- [ ] Mark commitments failed on runtime errors
-- [ ] Keep completed evidence intact
+- [x] Mark commitments failed on runtime errors
+- [x] Keep completed evidence intact
 
 ## Batch 3 — Validation
 
-- [ ] Run intent, loop, and runtime tests
-- [ ] Run API type check
+- [x] Run intent, loop, and runtime tests
+- [x] Run API type check

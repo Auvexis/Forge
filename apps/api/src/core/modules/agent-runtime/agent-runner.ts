@@ -592,24 +592,38 @@ export class AgentRunner {
       });
     }
     const toolParts = new Map<string, AgentToolPart>();
-    const result = await runMcpAgentLoop({
-      model,
-      client,
-      systemPrompt: input.validated.agent.prompt,
-      userMessage: input.input.userMessage,
-      contextMessages: input.contextMessages,
-      actions,
-      maxToolCalls: input.validated.agent.maxToolCalls,
-      maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
-      abortSignal: input.input.abortSignal,
-      resumeState: input.pending?.context.resumeState,
-      emitEvent: (event) => {
-        this.eventEmitter(event, input.input);
-        persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
-      },
-      logger: input.logger,
-      state: input.state,
-    });
+    let result: AgentRunResult;
+    try {
+      result = await runMcpAgentLoop({
+        model,
+        client,
+        systemPrompt: input.validated.agent.prompt,
+        userMessage: input.input.userMessage,
+        contextMessages: input.contextMessages,
+        actions,
+        maxToolCalls: input.validated.agent.maxToolCalls,
+        maxRetriesPerTool: input.validated.agent.maxRetriesPerTool,
+        abortSignal: input.input.abortSignal,
+        resumeState: input.pending?.context.resumeState,
+        emitEvent: (event) => {
+          this.eventEmitter(event, input.input);
+          persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
+        },
+        logger: input.logger,
+        state: input.state,
+      });
+    } catch (error) {
+      if (commitmentPart && input.sessionWriter) {
+        input.sessionWriter.updateCommitments(
+          commitmentPart,
+          commitmentPart.items.map((item) => ({
+            ...item,
+            status: item.status === "completed" ? "completed" : "failed",
+          })),
+        );
+      }
+      throw error;
+    }
     if (result.status === "waiting-user") {
       const question = waitingQuestion(result.output);
       if (input.sessionWriter && input.sessionTurnId) {

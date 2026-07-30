@@ -95,7 +95,9 @@ function normalizeDecision(value: AgentIntentDecision, tools: Set<string>): Agen
           : [],
       }];
     });
-  if (!hasValidDependencies(actions)) {
+  const omittedAllOrdering = actions.length > 1 &&
+    actions.slice(1).every((action) => action.dependsOn.length === 0);
+  if (omittedAllOrdering || !hasValidDependencies(actions)) {
     actions.forEach((action, index) => {
       action.dependsOn = index === 0 ? [] : [actions[index - 1]!.id];
     });
