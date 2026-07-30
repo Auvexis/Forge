@@ -70,6 +70,38 @@ describe("runMcpAgentLoop", () => {
     expect(result.status).toBe("waiting-user");
     expect(result.output).toMatchObject({ question: "Qual é o email de Y?" });
   });
+
+  it("explains required fields when the model gives a generic clarification", async () => {
+    const result = await runMcpAgentLoop({
+      model: {
+        invokeJson: async <T extends object>() =>
+          ({ action: "clarify", question: "Preciso de mais informações." }) as T,
+        generateFinalResponse: async () => "",
+      },
+      client: new InternalMcpClient(new InternalMcpServer([{
+        ...tool("email_send", async () => null),
+        inputSchema: {
+          type: "object",
+          required: ["to", "subject", "body"],
+          properties: {
+            to: { type: "string" },
+            subject: { type: "string" },
+            body: { type: "string" },
+          },
+        },
+      }])),
+      systemPrompt: "",
+      userMessage: "Envie o currículo",
+      contextMessages: [],
+      actions: [{ id: "email", toolName: "email_send", objective: "enviar o currículo", dependsOn: [] }],
+      maxToolCalls: 1,
+      emitEvent: () => undefined,
+    });
+
+    expect(result.output).toMatchObject({
+      question: expect.stringContaining("to, subject, body"),
+    });
+  });
   it("repairs invalid tool arguments once before execution", async () => {
     const decisions = [
       { action: "call", arguments: { to: "y@example.com", unknown: true } },

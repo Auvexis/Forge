@@ -20,7 +20,7 @@ export class AgentArtifactService {
     now?: Date;
     ttlMs?: number;
   }): Promise<unknown> {
-    const binary = toBinaryResult(input.value, input.toolName);
+    const binary = await toBinaryResult(input.value, input.toolName);
     if (!binary) return input.value;
 
     const artifactId = `artifact_${randomUUID().replaceAll("-", "")}`;
@@ -97,10 +97,10 @@ export class AgentArtifactService {
   }
 }
 
-function toBinaryResult(
+async function toBinaryResult(
   value: unknown,
   toolName: string,
-): { content: Buffer; name: string; mimeType: string } | null {
+): Promise<{ content: Buffer; name: string; mimeType: string } | null> {
   if (Buffer.isBuffer(value)) {
     return {
       content: value,
@@ -110,16 +110,53 @@ function toBinaryResult(
   }
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
   const record = value as Record<string, unknown>;
-  if (!Buffer.isBuffer(record.data)) return null;
+  const download = isRecord(record.download) ? record.download : null;
+  const contentValue = download?.content ?? record.data ?? record.content;
+  const content = await toBuffer(contentValue);
+  if (!content) return null;
   return {
-    content: record.data,
-    name: typeof record.name === "string" && record.name.trim()
-      ? record.name
+    content,
+    name: typeof (download?.fileName ?? record.name) === "string" &&
+        String(download?.fileName ?? record.name).trim()
+      ? String(download?.fileName ?? record.name)
       : `${toolName}.bin`,
-    mimeType: typeof record.mimeType === "string" && record.mimeType.trim()
-      ? record.mimeType
+    mimeType: typeof (download?.mimeType ?? record.mimeType) === "string" &&
+        String(download?.mimeType ?? record.mimeType).trim()
+      ? String(download?.mimeType ?? record.mimeType)
       : "application/octet-stream",
   };
+}
+
+async function toBuffer(value: unknown): Promise<Buffer | null> {
+  if (Buffer.isBuffer(value)) return value;
+  if (!isReadableLike(value)) return null;
+  const chunks: Buffer[] = [];
+  let size = 0;
+  for await (const chunk of value as AsyncIterable<unknown>) {
+    const buffer = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as any);
+    size += buffer.byteLength;
+    if (size > AGENT_LIMITS.maxArtifactBytes) {
+      throw new AgentRuntimeError(
+        "Plugin download exceeded the artifact size limit",
+        "AGENT_ARTIFACT_TOO_LARGE",
+        "Downloaded file is too large for the agent",
+        413,
+      );
+    }
+    chunks.push(buffer);
+  }
+  return Buffer.concat(chunks);
+}
+
+function isReadableLike(value: unknown): boolean {
+  return Boolean(value && typeof value === "object" && (
+    Symbol.asyncIterator in value ||
+    typeof (value as { pipe?: unknown }).pipe === "function"
+  ));
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function toReference(input: {

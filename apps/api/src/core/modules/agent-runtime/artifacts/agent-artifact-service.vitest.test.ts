@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import { Readable } from "node:stream";
 import Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
 import { up as createRuns } from "../../../database/migrations/workflows/007_agent_mcp_runs.ts";
@@ -38,6 +39,36 @@ describe("AgentArtifactService", () => {
       .resolves.toEqual({ file: Buffer.from("video") });
     await expect(service.resolveReferences("profile_2", reference.ref))
       .rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it("captures nested Drive download streams for downstream email attachments", async () => {
+    const { service } = await fixture();
+    const reference = await service.captureResult({
+      profileId: "profile_1",
+      runId: "run_1",
+      toolName: "google_drive_download_file",
+      value: {
+        download: {
+          fileName: "andresimoes-jr-backend.pdf",
+          mimeType: "application/pdf",
+          content: Readable.from([Buffer.from("pdf-content")]),
+        },
+      },
+    }) as { ref: string };
+
+    expect(reference).toMatchObject({
+      name: "andresimoes-jr-backend.pdf",
+      mimeType: "application/pdf",
+      size: 11,
+    });
+    await expect(service.resolveReferences("profile_1", {
+      attachments: [{ filename: "andresimoes-jr-backend.pdf", content: reference.ref }],
+    })).resolves.toEqual({
+      attachments: [{
+        filename: "andresimoes-jr-backend.pdf",
+        content: Buffer.from("pdf-content"),
+      }],
+    });
   });
 
   it("rejects expired references and cleans their storage", async () => {

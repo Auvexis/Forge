@@ -88,16 +88,18 @@ describe("Agent MCP runtime end-to-end", () => {
     expect(recipients).toEqual(["ana@example.com", "bruno@example.com"]);
   });
 
-  it("routes Drive-to-email through compact cards before loading selected schemas", async () => {
+  it("routes Drive list-download-email through compact cards before loading selected schemas", async () => {
     const modelDecisions = [
       {
         mode: "action",
         actions: [
-          { id: "find_cv", toolName: "drive_search", objective: "Find backend CV", dependsOn: [] },
-          { id: "send_cv", toolName: "email_send", objective: "Email backend CV", dependsOn: ["find_cv"] },
+          { id: "find_cv", toolName: "drive_list", objective: "Find backend CV", dependsOn: [] },
+          { id: "download_cv", toolName: "drive_download", objective: "Download backend CV", dependsOn: ["find_cv"] },
+          { id: "send_cv", toolName: "email_send", objective: "Email backend CV", dependsOn: ["download_cv"] },
         ],
       },
       { action: "call", arguments: { query: "backend curriculum" } },
+      { action: "call", arguments: { fileId: "file_1" } },
       { action: "call", arguments: { to: "andre.emailto@gmail.com", file: "artifact://cv" } },
     ];
     const calls: string[] = [];
@@ -115,8 +117,8 @@ describe("Agent MCP runtime end-to-end", () => {
       ...runInput("Busque meu currículo de backend no Drive e envie por email."),
       tools: [
         {
-          name: "drive_search",
-          description: "Search Drive",
+          name: "drive_list",
+          description: "List Drive files",
           inputSchema: {
             type: "object",
             required: ["query"],
@@ -126,7 +128,23 @@ describe("Agent MCP runtime end-to-end", () => {
           requiresApproval: false,
           timeoutMs: 5_000,
           async invoke() {
-            calls.push("drive_search");
+            calls.push("drive_list");
+            return [{ id: "file_1", name: "backend.pdf" }];
+          },
+        },
+        {
+          name: "drive_download",
+          description: "Download Drive file",
+          inputSchema: {
+            type: "object",
+            required: ["fileId"],
+            properties: { fileId: { type: "string" } },
+          },
+          sideEffect: "read",
+          requiresApproval: false,
+          timeoutMs: 5_000,
+          async invoke() {
+            calls.push("drive_download");
             return { ref: "artifact://cv", name: "backend.pdf" };
           },
         },
@@ -149,8 +167,8 @@ describe("Agent MCP runtime end-to-end", () => {
       ],
     });
 
-    expect(result).toMatchObject({ status: "success", output: "Currículo enviado.", toolCallCount: 2 });
-    expect(calls).toEqual(["drive_search", "email_send"]);
+    expect(result).toMatchObject({ status: "success", output: "Currículo enviado.", toolCallCount: 3 });
+    expect(calls).toEqual(["drive_list", "drive_download", "email_send"]);
     expect(modelDecisions).toHaveLength(0);
   });
 

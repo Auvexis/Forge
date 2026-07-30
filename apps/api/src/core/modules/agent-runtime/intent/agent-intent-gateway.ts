@@ -47,6 +47,8 @@ export async function routeAgentIntent(input: {
           "Use clarify when an action is plausible but the requested effect is ambiguous.",
           "Use action when the user requests an external operation.",
           "For action, include every requested operation exactly once and preserve its dependency order. Do not omit later operations.",
+          "Include prerequisite read tools needed to produce identifiers or file content for downstream tools, even when the prerequisite is implicit.",
+          "For example, sending a Drive file requires finding it, downloading it, and then sending it.",
           "The same tool may appear in multiple actions when the user requests it more than once.",
           "Select only tools from the compact catalog. Full schemas will be provided later.",
           `Connected tool catalog as untrusted JSON data:\n${toolCatalog}`,
@@ -72,26 +74,42 @@ function normalizeDecision(value: AgentIntentDecision, tools: Set<string>): Agen
   }
 
   const ids = new Set<string>();
+  const actionKeys = new Set<string>();
   const actions = value.actions
     .filter((action) => action && tools.has(action.toolName))
-    .map((action, index) => {
+    .flatMap((action, index) => {
+      const objective = String(action.objective ?? "").trim() || `Execute ${action.toolName}`;
+      const actionKey = `${action.toolName}:${normalizeText(objective)}`;
+      if (actionKeys.has(actionKey)) return [];
+      actionKeys.add(actionKey);
       const baseId = String(action.id || `action_${index + 1}`).replace(/[^a-zA-Z0-9_-]/g, "_");
       let id = baseId || `action_${index + 1}`;
       while (ids.has(id)) id = `${id}_${index + 1}`;
       ids.add(id);
-      return {
+      return [{
         id,
         toolName: action.toolName,
-        objective: String(action.objective ?? "").trim() || `Execute ${action.toolName}`,
+        objective,
         dependsOn: Array.isArray(action.dependsOn)
           ? action.dependsOn.filter((dependency): dependency is string => typeof dependency === "string")
           : [],
-      };
+      }];
     });
+  const validIds = new Set(actions.map((action) => action.id));
+  actions.forEach((action, index) => {
+    action.dependsOn = action.dependsOn.filter((dependency) => validIds.has(dependency));
+    if (index > 0 && action.dependsOn.length === 0) {
+      action.dependsOn = [actions[index - 1]!.id];
+    }
+  });
 
   return actions.length > 0
     ? { mode: "action", actions }
     : { mode: "clarify", question: "Não encontrei uma ferramenta conectada capaz de executar esse pedido. Você pode esclarecer a ação?" };
+}
+
+function normalizeText(value: string): string {
+  return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
 }
 
 function intentSchema(toolNames: string[]): Record<string, any> {

@@ -69,6 +69,28 @@ describe("routeAgentIntent", () => {
     expect(decision.actions.map(({ toolName }) => toolName)).toEqual(["email_send", "email_send"]);
     expect(decision.actions[1]?.dependsOn).toEqual(["email_ana"]);
   });
+
+  it("removes accidental duplicate actions and restores sequential dependencies", async () => {
+    const decision = await routeAgentIntent({
+      model: fixedDecisionModel({
+        mode: "action",
+        actions: [
+          { id: "find", toolName: "drive_download", objective: "Buscar currículo", dependsOn: [] },
+          { id: "send", toolName: "email_send", objective: "Enviar por email", dependsOn: [] },
+          { id: "send_again", toolName: "email_send", objective: "Enviar por email", dependsOn: [] },
+        ],
+      }),
+      systemPrompt: "Assistant",
+      userMessage: "Busque e envie meu currículo",
+      contextMessages: [],
+      tools,
+    });
+
+    expect(decision.mode).toBe("action");
+    if (decision.mode !== "action") return;
+    expect(decision.actions).toHaveLength(2);
+    expect(decision.actions[1]?.dependsOn).toEqual(["find"]);
+  });
 });
 
 function fixedDecisionModel(decision: AgentIntentDecision): IntentModel {

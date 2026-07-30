@@ -222,10 +222,12 @@ async function prepareArguments(
   tool: ReturnType<InternalMcpClient["describeTool"]>,
 ): Promise<ArgumentDecision> {
   let validationFeedback = "";
+  let lastValidationError = "";
+  const toolSchema = input.client.getToolSchema(action.toolName);
   for (let attempt = 0; attempt < 2; attempt += 1) {
     const decision = await input.model.invokeJson<ArgumentDecision>({
       signal: input.abortSignal,
-      schema: argumentDecisionSchema(input.client.getToolSchema(action.toolName)),
+      schema: argumentDecisionSchema(toolSchema),
       messages: [
         {
           role: "system",
@@ -237,13 +239,14 @@ async function prepareArguments(
             tool.instructions ? `Tool instructions: ${tool.instructions}` : "",
             "Return call when all required arguments are known.",
             "Return clarify instead of guessing any missing identifier, recipient, file, permission, or destructive intent.",
+            "Infer safe presentational fields such as an email subject or short body from the user's request.",
+            "Use stable IDs and artifact references from completed action outputs instead of asking the user to repeat them.",
             "Previous completed action outputs are supplied below. Reuse their stable references when needed.",
             validationFeedback,
           ].filter(Boolean).join("\n\n"),
         },
         ...input.contextMessages,
         { role: "user", content: input.userMessage },
-        ...actionConversationMessages(actions),
         {
           role: "tool",
           name: "fabric_action_state",
@@ -252,7 +255,12 @@ async function prepareArguments(
         },
       ],
     });
-    if (decision.action === "clarify") return decision;
+    if (decision.action === "clarify") {
+      return {
+        action: "clarify",
+        question: clarifyQuestion(decision.question, action, toolSchema),
+      };
+    }
 
     const arguments_ = isRecord(decision.arguments) ? decision.arguments : {};
     try {
@@ -262,6 +270,7 @@ async function prepareArguments(
       if (!(error instanceof AgentRuntimeError) || error.code !== "AGENT_TOOL_ARGUMENTS_INVALID") {
         throw error;
       }
+      lastValidationError = error.message;
       validationFeedback = [
         "The previous arguments did not match the tool schema.",
         error.message,
@@ -271,7 +280,7 @@ async function prepareArguments(
   }
   return {
     action: "clarify",
-    question: `Preciso de dados válidos para executar ${action.objective}.`,
+    question: invalidArgumentsQuestion(action, toolSchema, lastValidationError),
   };
 }
 
@@ -466,6 +475,38 @@ function argumentDecisionSchema(inputSchema: Record<string, any>): Record<string
       question: { type: "string" },
     },
   };
+}
+
+function clarifyQuestion(
+  question: string,
+  action: AgentRequiredAction,
+  schema: Record<string, any>,
+): string {
+  const value = String(question ?? "").trim();
+  const normalized = value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase();
+  if (value && !/mais inform|more information|dados validos/.test(normalized)) return value;
+  const required = requiredFields(schema);
+  return required.length > 0
+    ? `Para ${action.objective}, preciso destes campos: ${required.join(", ")}. Informe os valores que ainda não estão no pedido ou nos resultados anteriores.`
+    : `Qual informação específica está faltando para ${action.objective}?`;
+}
+
+function invalidArgumentsQuestion(
+  action: AgentRequiredAction,
+  schema: Record<string, any>,
+  detail: string,
+): string {
+  const required = requiredFields(schema);
+  return [
+    `Não consegui preparar os parâmetros para ${action.objective}.`,
+    required.length > 0 ? `Campos exigidos pela ferramenta: ${required.join(", ")}.` : "",
+    detail ? `Validação: ${detail}.` : "",
+    "Informe somente os valores que não podem ser obtidos do pedido ou dos resultados anteriores.",
+  ].filter(Boolean).join(" ");
+}
+
+function requiredFields(schema: Record<string, any>): string[] {
+  return Array.isArray(schema.required) ? schema.required.map(String) : [];
 }
 
 function normalizeResumeState(value: unknown): McpLoopResumeState | null {
