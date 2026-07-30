@@ -48,7 +48,7 @@
 ## Batch 6 — Agent Interface
 
 - [x] Add session snapshot client
-- [ ] Render message parts and tool states
+- [x] Render message parts and tool states
 - [ ] Add interaction, retry, cancel, and approval controls
 - [ ] Use realtime events only for invalidation
 - [ ] Reconcile on mount, focus, and reconnect
