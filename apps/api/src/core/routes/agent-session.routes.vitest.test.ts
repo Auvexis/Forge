@@ -75,4 +75,65 @@ describe("agent session routes", () => {
     expect(response.statusCode).toBe(404);
     await app.close();
   });
+
+  it("lists active chat triggers with profile-scoped sessions", async () => {
+    db = new Database(":memory:");
+    await createMigrationEngine(db, "workflows").up();
+    const sessions = new AgentSessionRepository(db);
+    sessions.createSession({
+      id: "session_visible",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "chat_trigger",
+      title: "Visible",
+    });
+    sessions.createSession({
+      id: "session_other_profile",
+      profileId: "profile_2",
+      workflowId: "workflow_1",
+      triggerNodeId: "chat_trigger",
+      title: "Private",
+    });
+    const app = Fastify();
+    await app.register(agentSessionRoutes, {
+      db,
+      getActiveProfileId: () => "profile_1",
+      getActiveWorkflows: () => [{
+        metadata: {
+          id: "workflow_1",
+          name: "Support workflow",
+          description: "",
+          isActive: true,
+          version: "1",
+          createdAt: "",
+          updatedAt: "",
+        },
+        nodes: {
+          chat_trigger: {
+            id: "chat_trigger",
+            type: "trigger",
+            name: "Support",
+            position: { x: 0, y: 0 },
+            trigger: {
+              type: "chat",
+              chatSlug: "support",
+              chatTitle: "Support agent",
+            },
+          },
+        },
+        edges: [],
+        trigger: { type: "manual" },
+      }],
+    });
+
+    const response = await app.inject({ method: "GET", url: "/agent-chats" });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().data).toEqual([expect.objectContaining({
+      chatSlug: "support",
+      title: "Support agent",
+      sessions: [expect.objectContaining({ id: "session_visible" })],
+    })]);
+    await app.close();
+  });
 });
