@@ -74,4 +74,4 @@
 - [x] Remove obsolete agent panel frontend code
 - [x] Persist a session before the first agent turn
 - [x] Reconcile snapshots during active execution
-- [ ] Add modal and page tests
+- [x] Add modal and page tests
