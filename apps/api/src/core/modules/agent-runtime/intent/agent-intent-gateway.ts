@@ -95,9 +95,11 @@ function normalizeDecision(value: AgentIntentDecision, tools: Set<string>): Agen
           : [],
       }];
     });
-  actions.forEach((action, index) => {
-    action.dependsOn = index === 0 ? [] : [actions[index - 1]!.id];
-  });
+  if (!hasValidDependencies(actions)) {
+    actions.forEach((action, index) => {
+      action.dependsOn = index === 0 ? [] : [actions[index - 1]!.id];
+    });
+  }
 
   return actions.length > 0
     ? { mode: "action", actions }
@@ -106,6 +108,29 @@ function normalizeDecision(value: AgentIntentDecision, tools: Set<string>): Agen
 
 function normalizeText(value: string): string {
   return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function hasValidDependencies(actions: AgentRequiredAction[]): boolean {
+  const ids = new Set(actions.map((action) => action.id));
+  if (actions.some((action) =>
+    action.dependsOn.some((dependency) => dependency === action.id || !ids.has(dependency))
+  )) return false;
+
+  const byId = new Map(actions.map((action) => [action.id, action]));
+  const visiting = new Set<string>();
+  const visited = new Set<string>();
+  const visit = (id: string): boolean => {
+    if (visiting.has(id)) return false;
+    if (visited.has(id)) return true;
+    visiting.add(id);
+    for (const dependency of byId.get(id)?.dependsOn ?? []) {
+      if (!visit(dependency)) return false;
+    }
+    visiting.delete(id);
+    visited.add(id);
+    return true;
+  };
+  return actions.every((action) => visit(action.id));
 }
 
 function intentSchema(toolNames: string[]): Record<string, any> {
