@@ -61,5 +61,5 @@
 - [x] Test duplicate and out-of-order events
 - [x] Test multiple tabs and concurrent requests
 - [x] Test small-model multi-tool scenarios
-- [ ] Add performance and load benchmarks
+- [x] Add performance and load benchmarks
 - [ ] Update runtime documentation
