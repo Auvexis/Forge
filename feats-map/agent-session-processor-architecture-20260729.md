@@ -53,6 +53,7 @@
 - [x] Use realtime events only for invalidation
 - [x] Reconcile on mount, focus, and reconnect
 - [x] Add refresh and event-loss tests
+- [x] Compose the persisted session panel
 
 ## Batch 7 — Hardening
 
