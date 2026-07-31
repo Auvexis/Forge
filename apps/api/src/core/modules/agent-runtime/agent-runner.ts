@@ -57,6 +57,7 @@ import type { AgentInteractionPart } from "./session/agent-session-contracts.ts"
 import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
 import type { AgentToolPart } from "./session/agent-session-contracts.ts";
 import { AgentProcessorPause } from "./processor/agent-processor-pause.ts";
+import { withAgentModelResilience } from "./model-resilience/agent-model-resilience-policy.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -497,7 +498,7 @@ export class AgentRunner {
     sessionTurnId?: string;
     commitmentPart?: AgentCommitmentPart;
   }): Promise<AgentRunResult> {
-    const model = withAgentModelTimeout(
+    const primaryModel = withAgentModelTimeout(
       toAgentRuntimeModel(input.model),
       Math.min(
         input.validated.agent.timeoutMs,
@@ -505,6 +506,7 @@ export class AgentRunner {
       ),
       input.input.abortSignal,
     );
+    const model = withAgentModelResilience(primaryModel);
     const server = new InternalMcpServer(
       input.tools,
       input.artifacts
@@ -610,6 +612,7 @@ export class AgentRunner {
           iterationCount: loopState.iterationCount,
           toolCallCount: loopState.toolCallCount,
           toolCalls,
+          stopReason: "final-response",
         };
         break;
       }
@@ -621,6 +624,7 @@ export class AgentRunner {
           iterationCount: loopState.iterationCount,
           toolCallCount: loopState.toolCallCount,
           toolCalls,
+          stopReason: "interaction-required",
         };
         break;
       }
