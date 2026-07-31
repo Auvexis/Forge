@@ -72,7 +72,7 @@
 - [x] Preserve completed steps on resume
 - [x] Detect duplicate responses
 - [x] Remove orphan tool messages
-- [ ] Bound tool result context
+- [x] Bound tool result context
 - [ ] Preserve artifact references
 - [ ] Add scratchpad tests
 
