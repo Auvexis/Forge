@@ -10,6 +10,7 @@ import { AgentRunRepository } from "../persistence/agent-run-repository.ts";
 import { AgentArtifactRepository } from "./agent-artifact-repository.ts";
 import { AgentArtifactService } from "./agent-artifact-service.ts";
 import { AgentArtifactStorage } from "./agent-artifact-storage.ts";
+import { AgentArtifactArgumentResolver } from "./agent-artifact-argument-resolver.ts";
 
 describe("AgentArtifactService", () => {
   const directories: string[] = [];
@@ -68,6 +69,67 @@ describe("AgentArtifactService", () => {
         filename: "andresimoes-jr-backend.pdf",
         content: Buffer.from("pdf-content"),
       }],
+    });
+  });
+
+  it("maps artifact objects to the receiving tool schema without plugin-specific code", async () => {
+    const { service } = await fixture();
+    const reference = await service.captureResult({
+      profileId: "profile_1",
+      runId: "run_1",
+      toolName: "external_download",
+      value: {
+        data: Buffer.from("pdf-content"),
+        name: "andresimoes-jr-backend.pdf",
+        mimeType: "application/pdf",
+      },
+    }) as { ref: string; name: string; mimeType: string };
+    const resolver = new AgentArtifactArgumentResolver(service);
+
+    await expect(resolver.resolve("profile_1", {
+      attachments: [{
+        filename: reference.name,
+        mimeType: reference.mimeType,
+        ref: reference.ref,
+      }],
+    }, {
+      type: "object",
+      properties: {
+        attachments: {
+          type: "array",
+          items: { type: "object" },
+        },
+      },
+    })).resolves.toEqual({
+      attachments: [{
+        filename: "andresimoes-jr-backend.pdf",
+        mimeType: "application/pdf",
+        content: Buffer.from("pdf-content"),
+      }],
+    });
+  });
+
+  it("supports an external plugin's custom artifact field and encoding", async () => {
+    const { service } = await fixture();
+    const reference = await service.captureResult({
+      profileId: "profile_1",
+      runId: "run_1",
+      toolName: "external_download",
+      value: Buffer.from("binary"),
+    }) as { ref: string };
+    const resolver = new AgentArtifactArgumentResolver(service);
+
+    await expect(resolver.resolve("profile_1", { upload: { ref: reference.ref } }, {
+      type: "object",
+      properties: {
+        upload: {
+          type: "object",
+          "x-fabric-artifact-content-field": "filePayload",
+          "x-fabric-artifact-encoding": "base64",
+        },
+      },
+    })).resolves.toEqual({
+      upload: { filePayload: Buffer.from("binary").toString("base64") },
     });
   });
 

@@ -21,6 +21,7 @@ import { SideEffectExecutionGuard } from "./execution/side-effect-execution-guar
 import { AgentPendingInteractionRepository } from "./persistence/agent-pending-interaction-repository.ts";
 import { AgentEngineRecoveryService } from "./recovery/agent-engine-recovery-service.ts";
 import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
+import { AgentArtifactArgumentResolver } from "./artifacts/agent-artifact-argument-resolver.ts";
 
 const defaultRunner = new AgentRunner({
   stateStoreFactory: () => new AgentRuntimeStateStore(WorkflowRepository.database()),
@@ -45,8 +46,12 @@ const defaultRunner = new AgentRunner({
         new AgentSideEffectService(new AgentSideEffectRepository(database)),
       ),
       {
-        resolveArguments: async (_request, arguments_) => artifacts
-          ? await artifacts.resolveReferences(input.profileId, arguments_) as Record<string, unknown>
+        resolveArguments: async (_request, arguments_, target) => artifacts
+          ? await new AgentArtifactArgumentResolver(artifacts).resolve(
+              input.profileId,
+              arguments_,
+              target.inputSchema,
+            ) as Record<string, unknown>
           : arguments_,
         transformOutput: async (request, output) => artifacts
           ? await artifacts.captureResult({
@@ -57,6 +62,8 @@ const defaultRunner = new AgentRunner({
               value: output,
             })
           : output,
+        isApproved: (request) => input.approvalToken === "approved" &&
+          (!input.approvalToolName || input.approvalToolName === request.toolName),
       },
     );
   },

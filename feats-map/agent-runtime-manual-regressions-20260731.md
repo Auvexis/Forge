@@ -8,6 +8,14 @@
 - [x] Add regression tests
 - [x] Run affected suites
 
+## Batch 4 — Attachment and Approval Bridge
+
+- [x] Resolve artifacts from generic tool schemas
+- [x] Enforce approval in the workflow scheduler
+- [x] Resume approved tools with resolved artifacts
+- [x] Add external-plugin artifact regression tests
+- [x] Run affected suites
+
 ## Batch 3 — Artifact Foreign Keys
 
 - [x] Remove legacy action foreign keys from clean schema

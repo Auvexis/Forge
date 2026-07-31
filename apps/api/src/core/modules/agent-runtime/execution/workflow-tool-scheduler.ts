@@ -6,6 +6,7 @@ import type { WorkflowNode } from "../../../../shared/models/workflow-types.ts";
 import { randomUUID } from "node:crypto";
 import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import type { AgentMcpError } from "../contracts/agent-domain-contracts.ts";
+import type { AgentToolSideEffect } from "../agent-types.ts";
 
 export interface AgentWorkflowToolTarget {
   nodeId: string;
@@ -13,6 +14,9 @@ export interface AgentWorkflowToolTarget {
   pluginId?: string;
   methodId?: string;
   node?: WorkflowNode;
+  requiresApproval?: boolean;
+  sideEffect?: AgentToolSideEffect;
+  inputSchema?: Record<string, any>;
 }
 
 export interface AgentWorkflowToolResolver {
@@ -42,11 +46,13 @@ export interface WorkflowToolSchedulerOptions {
   resolveArguments?: (
     request: AgentEngineToolRequest,
     arguments_: Record<string, unknown>,
+    target: AgentWorkflowToolTarget,
   ) => Promise<Record<string, unknown>>;
   transformOutput?: (
     request: AgentEngineToolRequest,
     output: unknown,
   ) => Promise<unknown>;
+  isApproved?: (request: AgentEngineToolRequest) => boolean;
 }
 
 export class WorkflowToolScheduler {
@@ -97,8 +103,15 @@ export class WorkflowToolScheduler {
 
     try {
       const target = this.resolver.resolve(executing.toolName);
+      if (target.requiresApproval && !this.options.isApproved?.(executing)) {
+        throw new AgentToolApprovalRequiredError({
+          toolName: executing.toolName,
+          sideEffect: target.sideEffect ?? "read",
+          args: executing.arguments,
+        });
+      }
       const resolvedArguments = this.options.resolveArguments
-        ? await this.options.resolveArguments(executing, executing.arguments)
+        ? await this.options.resolveArguments(executing, executing.arguments, target)
         : executing.arguments;
       const invoke = () => this.executor.execute(target, resolvedArguments, signal);
       const rawOutput = this.guard ? await this.guard.execute(executing, invoke) : await invoke();

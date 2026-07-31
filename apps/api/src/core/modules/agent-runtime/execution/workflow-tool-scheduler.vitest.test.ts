@@ -114,6 +114,77 @@ describe("WorkflowToolScheduler", () => {
     expect(responses.getByRequestId("request_1")).toEqual(response);
   });
 
+  it("persists an approval request without invoking a protected tool", async () => {
+    const execute = vi.fn(async () => ({ sent: true }));
+    const scheduler = new WorkflowToolScheduler(
+      requests,
+      responses,
+      {
+        resolve: (toolName) => ({
+          nodeId: "tool_1",
+          toolName,
+          requiresApproval: true,
+          sideEffect: "external-message",
+        }),
+      },
+      { execute },
+    );
+
+    const response = await scheduler.dispatch(request());
+
+    expect(response).toMatchObject({
+      status: "failed",
+      error: {
+        code: "AGENT_TOOL_APPROVAL_REQUIRED",
+        category: "policy",
+        userActionRequired: true,
+        details: {
+          approvalRequest: {
+            toolName: "drive_list",
+            sideEffect: "external-message",
+            args: { query: "backend" },
+          },
+        },
+      },
+    });
+    expect(execute).not.toHaveBeenCalled();
+  });
+
+  it("resolves arguments and invokes a protected tool after approval", async () => {
+    const execute = vi.fn(async () => ({ sent: true }));
+    const scheduler = new WorkflowToolScheduler(
+      requests,
+      responses,
+      {
+        resolve: (toolName) => ({
+          nodeId: "tool_1",
+          toolName,
+          requiresApproval: true,
+          sideEffect: "external-message",
+          inputSchema: { type: "object" },
+        }),
+      },
+      { execute },
+      undefined,
+      {
+        isApproved: () => true,
+        resolveArguments: async (_request, arguments_, target) => ({
+          ...arguments_,
+          schemaType: target.inputSchema?.type,
+        }),
+      },
+    );
+
+    const response = await scheduler.dispatch(request());
+
+    expect(response).toMatchObject({ status: "succeeded", output: { sent: true } });
+    expect(execute).toHaveBeenCalledWith(
+      expect.anything(),
+      { query: "backend", schemaType: "object" },
+      undefined,
+    );
+  });
+
   function createScheduler(execute: (target: any, arguments_: any) => Promise<unknown>) {
     return new WorkflowToolScheduler(
       requests,

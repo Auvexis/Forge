@@ -67,13 +67,18 @@ export class AgentArtifactService {
     }
     if (!value || typeof value !== "object" || Buffer.isBuffer(value)) return value;
 
+    const record = value as Record<string, unknown>;
     const entries = await Promise.all(
-      Object.entries(value as Record<string, unknown>).map(async ([key, item]) => [
+      Object.entries(record).map(async ([key, item]) => [
         key,
         await this.resolveReferences(profileId, item, now),
       ] as const),
     );
     return Object.fromEntries(entries);
+  }
+
+  resolveReference(profileId: string, ref: string, now = new Date()): Promise<Buffer> {
+    return this.resolveOne(profileId, ref, now);
   }
 
   async cleanupExpired(profileId: string, now = new Date()): Promise<number> {

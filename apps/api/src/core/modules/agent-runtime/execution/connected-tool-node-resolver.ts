@@ -21,7 +21,16 @@ export class ConnectedToolNodeResolver implements AgentWorkflowToolResolver {
       if (!node || node.type !== "ai-tool" || node.disabled) return [];
       const definition = resolvePluginAgentTool(node.pluginId, node.methodId);
       return definition.name === toolName
-        ? [{ nodeId: edge.source, toolName, pluginId: node.pluginId, methodId: node.methodId, node }]
+        ? [{
+            nodeId: edge.source,
+            toolName,
+            pluginId: node.pluginId,
+            methodId: node.methodId,
+            node,
+            requiresApproval: node.requiresApproval || definition.requiresApproval,
+            sideEffect: node.sideEffect ?? definition.sideEffect,
+            inputSchema: definition.inputSchema,
+          }]
         : [];
     });
     if (matches.length === 0) {
