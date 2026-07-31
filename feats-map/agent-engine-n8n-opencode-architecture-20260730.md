@@ -74,7 +74,7 @@
 - [x] Remove orphan tool messages
 - [x] Bound tool result context
 - [x] Preserve artifact references
-- [ ] Add scratchpad tests
+- [x] Add scratchpad tests
 
 ## Batch 7 — Durable Interactions
 
