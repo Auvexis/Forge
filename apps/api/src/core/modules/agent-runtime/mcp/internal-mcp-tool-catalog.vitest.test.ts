@@ -19,6 +19,7 @@ describe("InternalMcpToolCatalog", () => {
       {
         name: "drive_download",
         summary: "Download a Drive file",
+        aliases: ["drive", "download"],
         sideEffect: "read",
       },
     ]);

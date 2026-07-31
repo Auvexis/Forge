@@ -17,6 +17,7 @@ export interface InternalMcpTool {
 export interface InternalMcpToolCard {
   name: string;
   summary: string;
+  aliases?: string[];
   sideEffect: AgentToolSideEffect;
 }
 

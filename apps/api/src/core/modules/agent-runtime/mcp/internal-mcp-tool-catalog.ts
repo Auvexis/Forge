@@ -34,6 +34,7 @@ export class InternalMcpToolCatalog {
     return [...this.tools.values()].map((tool) => ({
       name: tool.name,
       summary: compactSummary(tool.summary),
+      aliases: toolAliases(tool),
       sideEffect: tool.sideEffect ?? "read",
     }));
   }
@@ -73,6 +74,19 @@ export class InternalMcpToolCatalog {
       })),
     };
   }
+}
+
+function toolAliases(tool: InternalMcpTool): string[] {
+  const values = [
+    tool.methodId,
+    tool.pluginName && tool.methodId ? `${tool.pluginName} ${tool.methodId}` : undefined,
+    ...tool.name.split(/[_.:-]+/g),
+  ];
+  return [...new Set(values
+    .filter((value): value is string => Boolean(value))
+    .map((value) => sanitizeMetadataText(value).toLowerCase())
+    .filter((value) => value && value !== tool.name.toLowerCase()))]
+    .slice(0, 8);
 }
 
 function compactSummary(value: string): string {
