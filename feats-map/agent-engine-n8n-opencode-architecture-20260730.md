@@ -137,15 +137,15 @@
 
 ## Batch 12 — Live Session Interface
 
-- [ ] Derive UI from session snapshots
-- [ ] Reconcile snapshots by revision
-- [ ] Show user messages optimistically
+- [x] Derive UI from session snapshots
+- [x] Reconcile snapshots by revision
+- [x] Show user messages optimistically
 - [x] Show steps when requested
-- [ ] Update each step independently
+- [x] Update each step independently
 - [x] Persist errors as message parts
-- [ ] Route operational errors to notifications
-- [ ] Add cancel and retry controls
-- [ ] Add interface contract tests
+- [x] Route operational errors to notifications
+- [x] Add cancel and retry controls
+- [x] Add interface contract tests
 
 ## Batch 13 — Observability
 
