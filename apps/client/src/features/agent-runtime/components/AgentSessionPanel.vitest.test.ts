@@ -14,5 +14,7 @@ describe("AgentSessionPanel", () => {
     expect(source).toMatch(/defineExpose\(\{[\s\S]*refresh,[\s\S]*invalidate,[\s\S]*startLiveMessage,[\s\S]*finishLiveMessage/);
     expect(source).toMatch(/visibleOptimisticMessages/);
     expect(source).toMatch(/sessionId: props\.sessionId/);
+    expect(source).toMatch(/:show-steps="showSteps"/);
+    expect(source).toMatch(/showSteps = !showSteps/);
   });
 });

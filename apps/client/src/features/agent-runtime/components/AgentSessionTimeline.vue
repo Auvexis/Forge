@@ -18,7 +18,7 @@
             <span v-if="part.state === 'streaming'" class="agent-timeline__cursor" />
           </p>
 
-          <section v-else-if="part.type === 'tool'" class="agent-timeline__step" :data-state="part.state.status">
+          <section v-else-if="part.type === 'tool' && showSteps" class="agent-timeline__step" :data-state="part.state.status">
             <span class="agent-timeline__state-dot" />
             <div>
               <strong>{{ part.toolName }}</strong>
@@ -33,7 +33,7 @@
             <span v-if="part.state !== 'pending'">{{ part.state }}</span>
           </section>
 
-          <section v-else-if="part.type === 'commitment'" class="agent-timeline__commitments">
+          <section v-else-if="part.type === 'commitment' && showSteps" class="agent-timeline__commitments">
             <div v-for="item in part.items" :key="item.id" :data-state="item.status">
               <span class="agent-timeline__state-dot" />
               <span>{{ item.description }}</span>
@@ -81,8 +81,10 @@ import type {
 
 withDefaults(defineProps<{
   snapshot: AgentSessionSnapshot
+  showSteps?: boolean
   pendingUserMessages?: Array<{ id: string; text: string }>
 }>(), {
+  showSteps: true,
   pendingUserMessages: () => [],
 })
 

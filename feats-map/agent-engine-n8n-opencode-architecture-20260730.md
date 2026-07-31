@@ -140,7 +140,7 @@
 - [ ] Derive UI from session snapshots
 - [ ] Reconcile snapshots by revision
 - [ ] Show user messages optimistically
-- [ ] Show steps when requested
+- [x] Show steps when requested
 - [ ] Update each step independently
 - [ ] Persist errors as message parts
 - [ ] Route operational errors to notifications

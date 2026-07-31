@@ -8,6 +8,14 @@
       <span v-if="snapshot?.activeTurn" class="agent-session-panel__status">
         {{ snapshot.activeTurn.state }}
       </span>
+      <button
+        type="button"
+        :aria-pressed="showSteps"
+        title="Toggle execution steps"
+        @click="showSteps = !showSteps"
+      >
+        {{ showSteps ? 'Hide steps' : 'Show steps' }}
+      </button>
       <button type="button" :disabled="loading" title="Refresh session" @click="refresh">
         Refresh
       </button>
@@ -17,6 +25,7 @@
       <AgentSessionTimeline
         v-if="snapshot"
         :snapshot="snapshot"
+        :show-steps="showSteps"
         :pending-user-messages="visibleOptimisticMessages"
       />
       <p v-else-if="loading" class="agent-session-panel__empty">Loading session…</p>
@@ -55,6 +64,7 @@ type InteractionPart = Extract<AgentSessionPart, { type: 'interaction' }>
 
 const sessionId = toRef(props, 'sessionId')
 const actionPending = ref(false)
+const showSteps = ref(true)
 const optimisticMessages = ref<Array<{ id: string; text: string }>>([])
 const { snapshot, loading, error, refresh, invalidate, beginLiveRun, endLiveRun } = useAgentSessionSnapshot(
   () => sessionId.value,

@@ -14,5 +14,7 @@ describe("AgentSessionTimeline", () => {
     expect(source).toMatch(/part\.type === 'commitment'/);
     expect(source).toMatch(/part\.state\.status/);
     expect(source).toMatch(/snapshot\.revision/);
+    expect(source).toMatch(/part\.type === 'tool' && showSteps/);
+    expect(source).toMatch(/showSteps: true/);
   });
 });
