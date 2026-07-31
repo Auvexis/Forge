@@ -174,16 +174,16 @@
 
 ## Batch 15 — Migration Cleanup
 
-- [ ] Switch agent node to the new engine
-- [ ] Remove legacy planner runtime
-- [ ] Remove legacy loop runtime
-- [ ] Remove legacy agent processors
-- [ ] Remove replaced legacy contracts
-- [ ] Remove replaced legacy tables
-- [ ] Remove legacy frontend hooks
+- [x] Switch agent node to the new engine
+- [x] Remove legacy planner runtime
+- [x] Remove legacy loop runtime
+- [x] Remove legacy agent processors
+- [x] Remove replaced legacy contracts
+- [x] Remove replaced legacy tables
+- [x] Remove legacy frontend hooks
 - [ ] Remove legacy migrations
-- [ ] Remove dead dependencies
-- [ ] Verify clean architecture boundaries
+- [x] Remove dead dependencies
+- [x] Verify clean architecture boundaries
 
 ## Batch 16 — End-to-End Validation
 

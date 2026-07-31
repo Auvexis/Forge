@@ -56,7 +56,6 @@ import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
 import type { AgentInteractionPart } from "./session/agent-session-contracts.ts";
 import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
 import type { AgentToolPart } from "./session/agent-session-contracts.ts";
-import { AgentProcessorPause } from "./processor/agent-processor-pause.ts";
 import { withAgentModelResilience } from "./model-resilience/agent-model-resilience-policy.ts";
 import { sanitizeAgentToolValue } from "./loop/agent-tool-result-sanitizer.ts";
 
@@ -292,47 +291,6 @@ export class AgentRunner {
         return {
           status: "cancelled",
           output: "OperaÃ§Ã£o cancelada.",
-          iterationCount: 1,
-          toolCallCount: 0,
-          toolCalls: [],
-        };
-      }
-      if (error instanceof AgentProcessorPause) {
-        const interactionId = `interaction_${randomUUID()}`;
-        state?.createPendingInteraction({
-          id: interactionId,
-          kind: error.kind,
-          question: error.question,
-          context: {
-            source: "processor",
-            toolName: error.toolName,
-            error: error.error,
-            originalUserMessage: input.userMessage,
-          },
-        });
-        state?.markRunWaitingUser();
-        if (sessionExecution) {
-          const message = sessionExecution.writer.appendMessage(
-            sessionExecution.turnId,
-            "assistant",
-          );
-          sessionExecution.writer.appendInteraction({
-            turnId: sessionExecution.turnId,
-            messageId: message.id,
-            interactionId,
-            kind: error.kind,
-            question: error.question,
-          });
-          sessionExecution.writer.updateTurn(sessionExecution.turnId, "waiting-user");
-        }
-        logger.info("interaction.created", {
-          interactionId,
-          kind: error.kind,
-          toolName: error.toolName,
-        });
-        return {
-          status: "waiting-user",
-          output: { status: "waiting-user", question: error.question },
           iterationCount: 1,
           toolCallCount: 0,
           toolCalls: [],
