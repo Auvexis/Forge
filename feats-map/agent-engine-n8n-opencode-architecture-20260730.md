@@ -46,7 +46,7 @@
 - [x] Return engine requests from the loop
 - [x] Resume from engine responses
 - [x] Preserve one tool per iteration
-- [ ] Enforce iteration limits
+- [x] Enforce iteration limits
 - [ ] Enforce tool call limits
 - [ ] Add repetition guard
 - [ ] Add completion guard
