@@ -121,7 +121,7 @@
 - [x] Add lease expiration
 - [x] Add retry policy
 - [x] Add dead-letter state
-- [ ] Add restart matrix tests
+- [x] Add restart matrix tests
 
 ## Batch 11 — Model Resilience
 
