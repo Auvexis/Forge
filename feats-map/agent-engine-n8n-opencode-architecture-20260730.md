@@ -69,7 +69,7 @@
 - [x] Build assistant tool-call messages
 - [x] Build correlated tool-result messages
 - [x] Reconstruct steps by tool call ID
-- [ ] Preserve completed steps on resume
+- [x] Preserve completed steps on resume
 - [ ] Detect duplicate responses
 - [ ] Remove orphan tool messages
 - [ ] Bound tool result context
