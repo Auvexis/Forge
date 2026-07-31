@@ -22,6 +22,16 @@ describe("google gmail methods", () => {
     ]);
   });
 
+  it("preserves the canonical Fabric file name", async () => {
+    const attachments = await normalizeGmailAttachments([{
+      name: "andresimoes-jr-backend.pdf",
+      mimeType: "application/pdf",
+      content: Buffer.from("pdf-content").toString("base64"),
+    }]);
+
+    assert.equal(attachments?.[0]?.filename, "andresimoes-jr-backend.pdf");
+  });
+
   it("rejects attachment metadata without real content", async () => {
     await assert.rejects(
       () => normalizeGmailAttachments([

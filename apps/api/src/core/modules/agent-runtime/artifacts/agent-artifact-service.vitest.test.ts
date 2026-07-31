@@ -97,19 +97,23 @@ describe("AgentArtifactService", () => {
       properties: {
         attachments: {
           type: "array",
-          items: { type: "object" },
+          items: {
+            type: "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
+          },
         },
       },
     })).resolves.toEqual({
       attachments: [{
-        filename: "andresimoes-jr-backend.pdf",
+        name: "andresimoes-jr-backend.pdf",
         mimeType: "application/pdf",
         content: Buffer.from("pdf-content"),
       }],
     });
   });
 
-  it("supports an external plugin's custom artifact field and encoding", async () => {
+  it("supports the canonical Base64 file encoding", async () => {
     const { service } = await fixture();
     const reference = await service.captureResult({
       profileId: "profile_1",
@@ -124,12 +128,16 @@ describe("AgentArtifactService", () => {
       properties: {
         upload: {
           type: "object",
-          "x-fabric-artifact-content-field": "filePayload",
-          "x-fabric-artifact-encoding": "base64",
+          "x-fabric-value-type": "file",
+          "x-fabric-binary-encoding": "base64",
         },
       },
     })).resolves.toEqual({
-      upload: { filePayload: Buffer.from("binary").toString("base64") },
+      upload: {
+        name: "artifact.bin",
+        mimeType: "application/octet-stream",
+        content: Buffer.from("binary").toString("base64"),
+      },
     });
   });
 
@@ -158,17 +166,18 @@ describe("AgentArtifactService", () => {
         attachments: {
           type: "array",
           "x-input-type": "files",
-          "x-fabric-artifact-content-field": "contentBase64",
-          "x-fabric-artifact-encoding": "base64",
-          items: { type: ["string", "object"] },
+          items: {
+            type: "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "base64",
+          },
         },
       },
     }, "run_1")).resolves.toEqual({
       attachments: [{
-        fileId: "provider-file-id",
-        fileName: "andresimoes-jr-backend.pdf",
+        name: "andresimoes-jr-backend.pdf",
         mimeType: "application/pdf",
-        contentBase64: Buffer.from("pdf-content").toString("base64"),
+        content: Buffer.from("pdf-content").toString("base64"),
       }],
     });
   });
@@ -189,7 +198,14 @@ describe("AgentArtifactService", () => {
     await expect(resolver.resolve("profile_1", input, {
       type: "object",
       properties: {
-        files: { type: "array", "x-fabric-artifact-input": true },
+        files: {
+          type: "array",
+          items: {
+            type: "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
+          },
+        },
       },
     }, "run_1")).resolves.toEqual(input);
   });

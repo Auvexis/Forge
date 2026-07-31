@@ -256,12 +256,12 @@ export function createGoogleDriveMethods(options: GoogleDriveMethodsOptions = {}
           { responseType: "stream" },
         );
 
+        const content = await streamToBuffer(response.data);
         return {
-          download: {
-            fileName: ensureFileExtension(metadata.data.name ?? params.fileId.trim(), exportSpec.extension),
-            mimeType: exportSpec.mimeType,
-            content: response.data,
-          },
+          name: ensureFileExtension(metadata.data.name ?? params.fileId.trim(), exportSpec.extension),
+          mimeType: exportSpec.mimeType,
+          size: content.byteLength,
+          content,
         };
       }
 
@@ -270,12 +270,12 @@ export function createGoogleDriveMethods(options: GoogleDriveMethodsOptions = {}
         { responseType: "stream" },
       );
 
+      const content = await streamToBuffer(response.data);
       return {
-        download: {
-          fileName: metadata.data.name,
-          mimeType: metadata.data.mimeType,
-          content: response.data,
-        },
+        name: metadata.data.name ?? params.fileId.trim(),
+        mimeType: metadata.data.mimeType ?? "application/octet-stream",
+        size: content.byteLength,
+        content,
       };
     },
 
@@ -427,6 +427,18 @@ export function createGoogleDriveMethods(options: GoogleDriveMethodsOptions = {}
       return { ...file.data, trashed: false };
     },
   };
+}
+
+async function streamToBuffer(value: unknown): Promise<Buffer> {
+  if (Buffer.isBuffer(value)) return value;
+  if (!value || typeof value !== "object" || !(Symbol.asyncIterator in value)) {
+    throw new TypeError("Google Drive returned an unsupported binary response");
+  }
+  const chunks: Buffer[] = [];
+  for await (const chunk of value as AsyncIterable<unknown>) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as any));
+  }
+  return Buffer.concat(chunks);
 }
 
 export function normalizeDriveListQuery(query: string): string {

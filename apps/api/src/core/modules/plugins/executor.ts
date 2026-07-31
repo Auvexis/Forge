@@ -11,6 +11,7 @@ import { OAuth2Service } from "./auth/oauth2-service.ts";
 import { isDeclarativeOAuth2Auth, isLegacyOAuth2Auth } from "./auth/oauth2-types.ts";
 import type { CustomOAuth2Auth, OAuth2DeclarativeAuth } from "./auth/oauth2-types.ts";
 import type { OAuth2Tokens } from "@auvexis/fabric-sdk";
+import { materializePluginData } from "./data-contracts/fabric-file-contract.ts";
 
 export { PluginValidationError };
 
@@ -114,13 +115,14 @@ export const PluginExecutor = {
     // (`removeAdditional: true`) and type mismatches throw PluginValidationError,
     // which the route layer maps to HTTP 400 (not 500).
     const methodManifest = plugin.manifest.methods[methodName];
-    validateParams(pluginId, methodName, methodManifest.parameters, params);
+    const materializedParams = materializePluginData(params, methodManifest.parameters) as Record<string, any>;
+    validateParams(pluginId, methodName, methodManifest.parameters, materializedParams);
 
     // ──────────── Parameter cooking (JSON Schema-driven) ────────────
     // The executor normalises raw params before passing them to the plugin method.
     // Rules are declared in the manifest under each property's x-input-type and format
     // fields — no plugin-specific magic lives here.
-    const cookedParams: Record<string, any> = { ...params };
+    const cookedParams: Record<string, any> = { ...materializedParams };
     const schemaProperties = methodManifest?.parameters?.properties ?? {};
 
     for (const [key, paramSchema] of Object.entries(schemaProperties)) {
@@ -154,6 +156,8 @@ export const PluginExecutor = {
 
     const result = await method(cookedParams, context);
 
-    return result;
+    return methodManifest.responseSchema
+      ? materializePluginData(result, methodManifest.responseSchema)
+      : result;
   },
 };

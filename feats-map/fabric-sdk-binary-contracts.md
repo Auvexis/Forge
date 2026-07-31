@@ -18,10 +18,10 @@
 
 ## Batch 3 — Fabric Integration
 
-- [ ] Upgrade the published SDK dependency
-- [ ] Remove loader contract duplication
-- [ ] Project schemas for AI and runtime
-- [ ] Materialize binary inputs deterministically
-- [ ] Migrate internal file plugins
-- [ ] Add engine compatibility tests
-- [ ] Run affected suites
+- [x] Upgrade the published SDK dependency
+- [x] Remove loader contract duplication
+- [x] Project schemas for AI and runtime
+- [x] Materialize binary inputs deterministically
+- [x] Migrate Drive and Gmail file contracts
+- [x] Add engine compatibility tests
+- [x] Run affected suites

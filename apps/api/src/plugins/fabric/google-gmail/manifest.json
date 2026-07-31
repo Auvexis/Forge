@@ -167,20 +167,18 @@
             "description": "Optional list of file attachments. Each file must be base64-encoded.",
             "x-label": "Attachments",
             "x-input-type": "files",
-            "x-fabric-artifact-input": true,
-            "x-fabric-artifact-content-field": "contentBase64",
-            "x-fabric-artifact-encoding": "base64",
             "items": {
-              "type": [
-                "string",
-                "object"
-              ],
+              "type": "object",
+              "x-fabric-value-type": "file",
+              "x-fabric-binary-encoding": "base64",
               "properties": {
-                "fileName": { "type": "string" },
+                "name": { "type": "string" },
                 "mimeType": { "type": "string" },
-                "contentBase64": { "type": "string" },
-                "fileId": { "type": "string" }
-              }
+                "size": { "type": "integer", "minimum": 0 },
+                "content": { "type": "string", "format": "base64" }
+              },
+              "required": ["name", "mimeType", "content"],
+              "additionalProperties": false
             }
           }
         },
@@ -388,20 +386,18 @@
             "description": "Optional list of file attachments.",
             "x-label": "Attachments",
             "x-input-type": "files",
-            "x-fabric-artifact-input": true,
-            "x-fabric-artifact-content-field": "contentBase64",
-            "x-fabric-artifact-encoding": "base64",
             "items": {
-              "type": [
-                "string",
-                "object"
-              ],
+              "type": "object",
+              "x-fabric-value-type": "file",
+              "x-fabric-binary-encoding": "base64",
               "properties": {
-                "fileName": { "type": "string" },
+                "name": { "type": "string" },
                 "mimeType": { "type": "string" },
-                "contentBase64": { "type": "string" },
-                "fileId": { "type": "string" }
-              }
+                "size": { "type": "integer", "minimum": 0 },
+                "content": { "type": "string", "format": "base64" }
+              },
+              "required": ["name", "mimeType", "content"],
+              "additionalProperties": false
             }
           }
         },

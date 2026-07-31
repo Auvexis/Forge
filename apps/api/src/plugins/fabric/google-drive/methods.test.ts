@@ -38,9 +38,9 @@ describe("google drive methods", () => {
     const result = await methods.downloadFile({ fileId: "file_pdf" }, fakeContext());
 
     assert.deepEqual(calls, ["metadata", "download:media:stream"]);
-    assert.equal(result.download.fileName, "resume.pdf");
-    assert.equal(result.download.mimeType, "application/pdf");
-    assert.equal(await streamText(result.download.content), "pdf");
+    assert.equal(result.name, "resume.pdf");
+    assert.equal(result.mimeType, "application/pdf");
+    assert.equal(result.content.toString("utf8"), "pdf");
   });
 
   it("exports Google Docs editor files instead of downloading alt media", async () => {
@@ -63,9 +63,9 @@ describe("google drive methods", () => {
     const result = await methods.downloadFile({ fileId: "file_doc" }, fakeContext());
 
     assert.deepEqual(calls, ["metadata:name, mimeType", "export:application/pdf:stream"]);
-    assert.equal(result.download.fileName, "Andresimoes Analista.pdf");
-    assert.equal(result.download.mimeType, "application/pdf");
-    assert.equal(await streamText(result.download.content), "exported-pdf");
+    assert.equal(result.name, "Andresimoes Analista.pdf");
+    assert.equal(result.mimeType, "application/pdf");
+    assert.equal(result.content.toString("utf8"), "exported-pdf");
   });
 });
 
@@ -74,12 +74,4 @@ function fakeContext(): any {
     credentials: { client_id: "client", client_secret: "secret" },
     tokens: { access_token: "token" },
   };
-}
-
-async function streamText(stream: Readable): Promise<string> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)));
-  }
-  return Buffer.concat(chunks).toString("utf8");
 }

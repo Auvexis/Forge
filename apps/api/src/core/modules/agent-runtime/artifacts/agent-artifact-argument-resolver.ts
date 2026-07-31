@@ -22,15 +22,12 @@ export class AgentArtifactArgumentResolver {
     schema: Record<string, any>,
     available: AvailableArtifact[],
   ): Promise<unknown> {
-    if (typeof value === "string" && value.startsWith("artifact://")) {
-      const content = await this.artifacts.resolveReference(profileId, value);
-      return artifactEncoding(schema) === "base64" ? content.toString("base64") : content;
-    }
+    if (typeof value === "string" && value.startsWith("artifact://")) return value;
     if (Array.isArray(value)) {
       const itemSchema = artifactItemSchema(schema);
       return Promise.all(value.map((item) => this.resolveValue(
         profileId,
-        bindAvailableArtifact(item, schema, available),
+        bindAvailableArtifact(item, itemSchema, available),
         itemSchema,
         available,
       )));
@@ -39,12 +36,17 @@ export class AgentArtifactArgumentResolver {
 
     if (typeof value.ref === "string" && value.ref.startsWith("artifact://")) {
       const content = await this.artifacts.resolveReference(profileId, value.ref);
-      const field = artifactContentField(schema);
-      const encoded = artifactEncoding(schema, field) === "base64"
+      const encoded = artifactEncoding(schema) === "base64"
         ? content.toString("base64")
         : content;
-      const { ref: _ref, ...metadata } = value;
-      return { ...metadata, [field]: encoded };
+      return {
+        name: normalizedName(value),
+        mimeType: typeof value.mimeType === "string" && value.mimeType.trim()
+          ? value.mimeType
+          : "application/octet-stream",
+        ...(typeof value.size === "number" ? { size: value.size } : {}),
+        content: encoded,
+      };
     }
 
     const properties = isRecord(schema.properties) ? schema.properties : {};
@@ -84,22 +86,11 @@ function bindAvailableArtifact(
 }
 
 function artifactItemSchema(schema: Record<string, any>): Record<string, any> {
-  const itemSchema = isRecord(schema.items) ? schema.items : {};
-  return {
-    ...itemSchema,
-    ...(schema["x-fabric-artifact-content-field"]
-      ? { "x-fabric-artifact-content-field": schema["x-fabric-artifact-content-field"] }
-      : {}),
-    ...(schema["x-fabric-artifact-encoding"]
-      ? { "x-fabric-artifact-encoding": schema["x-fabric-artifact-encoding"] }
-      : {}),
-  };
+  return isRecord(schema.items) ? schema.items : {};
 }
 
 function isArtifactInput(schema: Record<string, any>): boolean {
-  return schema["x-fabric-artifact-input"] === true ||
-    schema["x-input-type"] === "file" ||
-    schema["x-input-type"] === "files";
+  return schema["x-fabric-value-type"] === "file";
 }
 
 function hasArtifactContent(value: Record<string, any>): boolean {
@@ -110,21 +101,16 @@ function hasArtifactContent(value: Record<string, any>): boolean {
     value.data !== undefined;
 }
 
-function artifactContentField(schema: Record<string, any>): string {
-  const configured = schema["x-fabric-artifact-content-field"];
-  return typeof configured === "string" && /^[A-Za-z_][A-Za-z0-9_-]{0,63}$/.test(configured)
-    ? configured
-    : "content";
-}
-
 function artifactEncoding(
   schema: Record<string, any>,
-  field?: string,
 ): "buffer" | "base64" {
-  if (schema["x-fabric-artifact-encoding"] === "base64" || field === "contentBase64") {
-    return "base64";
-  }
-  return "buffer";
+  return schema["x-fabric-binary-encoding"] === "base64" ? "base64" : "buffer";
+}
+
+function normalizedName(value: Record<string, any>): string {
+  const name = [value.name, value.fileName, value.filename]
+    .find((candidate) => typeof candidate === "string" && candidate.trim());
+  return typeof name === "string" ? name.trim() : "artifact.bin";
 }
 
 function isRecord(value: unknown): value is Record<string, any> {

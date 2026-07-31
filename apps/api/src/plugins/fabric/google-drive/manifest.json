@@ -348,26 +348,16 @@
       },
       "responseSchema": {
         "type": "object",
+        "x-fabric-value-type": "file",
+        "x-fabric-binary-encoding": "buffer",
         "properties": {
-          "download": {
-            "type": "object",
-            "x-label": "Download",
-            "properties": {
-              "fileName": {
-                "type": "string",
-                "x-label": "File Name"
-              },
-              "mimeType": {
-                "type": "string",
-                "x-label": "Mime Type"
-              },
-              "content": {
-                "type": "string",
-                "x-label": "Content (Binary)"
-              }
-            }
-          }
-        }
+          "name": { "type": "string", "x-label": "File Name" },
+          "mimeType": { "type": "string", "x-label": "MIME Type" },
+          "size": { "type": "number", "x-label": "Size" },
+          "content": { "type": "object", "x-label": "Content" }
+        },
+        "required": ["name", "mimeType", "content"],
+        "additionalProperties": false
       },
       "agentTool": {
         "enabled": true,

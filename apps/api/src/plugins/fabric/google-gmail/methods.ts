@@ -407,7 +407,7 @@ async function normalizeGmailAttachment(att: any): Promise<GmailAttachment | nul
     return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
   }
 
-  const filename = att.filename || att.fileName || "attachment.bin";
+  const filename = att.name || att.filename || att.fileName || "attachment.bin";
   const mimeType = att.mimetype || att.mimeType || "application/octet-stream";
   const content = att.content ?? att.buffer ?? att.contentBase64;
   if (!content) {

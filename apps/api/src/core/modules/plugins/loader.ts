@@ -30,19 +30,9 @@ type PluginImporter = (entrypoint: string) => Promise<FabricPlugin>;
 const AjvCtor = AjvModule as any;
 const addFormats = addFormatsModule as any;
 const triggerDeliveryModes = ["webhook", "polling", "realtime"] as const;
-const agentToolSideEffects = [
-  "read",
-  "write",
-  "delete",
-  "external-message",
-  "external-payment",
-  "filesystem",
-] as const;
-
 function buildFabricManifestSchema(): any {
   const schema = structuredClone(manifestSchema as any);
   const metadataDefinition = schema.properties.metadata;
-  const methodDefinition = schema.$defs.MethodDefinition;
   const triggerDefinition = schema.$defs.TriggerDefinition;
 
   metadataDefinition.properties.agentCapabilities = {
@@ -119,58 +109,6 @@ function buildFabricManifestSchema(): any {
   };
   triggerDefinition.properties.payloadSchema = {
     $ref: "#/$defs/JSONSchemaResponse",
-  };
-
-  methodDefinition.properties.agentTool = {
-    type: "object",
-    required: ["enabled"],
-    additionalProperties: false,
-    properties: {
-      enabled: { type: "boolean" },
-      name: {
-        type: "string",
-        pattern: "^[a-z][a-z0-9_]{2,63}$",
-      },
-      description: {
-        type: "string",
-        minLength: 20,
-        maxLength: 1000,
-      },
-      instructions: {
-        type: "string",
-        minLength: 1,
-        maxLength: 2000,
-      },
-      sideEffect: { enum: agentToolSideEffects },
-      requiresApproval: { type: "boolean" },
-      timeoutMs: {
-        type: "integer",
-        minimum: 1000,
-        maximum: 120000,
-      },
-      selection: {
-        type: "object",
-        required: ["path", "labelFields", "valueField", "mode"],
-        additionalProperties: false,
-        properties: {
-          path: { type: "string", minLength: 1 },
-          labelFields: {
-            type: "array",
-            minItems: 1,
-            items: { type: "string", minLength: 1 },
-          },
-          valueField: { type: "string", minLength: 1 },
-          mode: { enum: ["single", "multiple"] },
-        },
-      },
-    },
-    if: {
-      properties: { enabled: { const: true } },
-      required: ["enabled"],
-    },
-    then: {
-      required: ["name", "description", "sideEffect", "requiresApproval", "timeoutMs"],
-    },
   };
 
   return schema;

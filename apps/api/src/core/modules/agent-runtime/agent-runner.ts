@@ -11,6 +11,7 @@ import { AgentToolRegistry } from "./agent-tool-registry.ts";
 import type { FabricAgentToolDefinition } from "./plugin-tool-adapter.ts";
 import { executePluginAgentTool } from "./plugin-tool-executor.ts";
 import { PluginExecutor } from "../plugins/executor.ts";
+import { projectPluginSchemaForAgent } from "../plugins/data-contracts/fabric-file-contract.ts";
 import type {
   AgentRunInput,
   AgentRunResult,
@@ -447,7 +448,9 @@ export class AgentRunner {
       methodId: definition.methodId,
       sideEffect: config.sideEffect ?? definition.sideEffect,
       requiresApproval: config.requiresApproval ?? definition.requiresApproval,
-      inputSchema: schemaWithoutConfiguredDefaults(definition.inputSchema, config.inputDefaults),
+      inputSchema: projectPluginSchemaForAgent(
+        schemaWithoutConfiguredDefaults(definition.inputSchema, config.inputDefaults),
+      ),
       timeoutMs: config.timeoutMs ?? definition.timeoutMs,
       invoke: async (args: Record<string, unknown>) =>
         this.toolExecutor({
