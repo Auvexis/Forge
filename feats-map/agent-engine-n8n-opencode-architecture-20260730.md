@@ -84,7 +84,7 @@
 - [x] Implement authentication requests
 - [x] Implement permission requests
 - [x] Persist user responses before resume
-- [ ] Feed rejection feedback to the model
+- [x] Feed rejection feedback to the model
 - [ ] Resume the same run and turn
 - [ ] Add interaction tests
 
