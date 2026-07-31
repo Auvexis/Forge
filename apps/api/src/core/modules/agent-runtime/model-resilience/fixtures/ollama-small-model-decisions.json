@@ -1,0 +1,27 @@
+[
+  {
+    "modelClass": "1b",
+    "invalid": {},
+    "repaired": { "mode": "tool", "toolName": "drive_list", "objective": "Find backend CV" }
+  },
+  {
+    "modelClass": "2b",
+    "invalid": { "mode": "tool" },
+    "repaired": { "mode": "tool", "toolName": "drive_list", "objective": "Find backend CV" }
+  },
+  {
+    "modelClass": "4b",
+    "invalid": { "mode": "chat", "response": "" },
+    "repaired": { "mode": "clarify", "question": "Qual é o nome do arquivo?" }
+  },
+  {
+    "modelClass": "5b",
+    "invalid": { "mode": "unknown" },
+    "repaired": { "mode": "tool", "toolName": "drive_list", "objective": "Search Drive" }
+  },
+  {
+    "modelClass": "20b",
+    "invalid": { "mode": "tool", "toolName": "missing", "objective": "Search" },
+    "repaired": { "mode": "tool", "toolName": "drive_list", "objective": "Search Drive" }
+  }
+]
