@@ -19,9 +19,10 @@ export interface AgentEngineToolRequest {
   methodId?: string;
   arguments: Record<string, unknown>;
   status: AgentEngineRequestStatus;
-  providerMetadata?: unknown;
+  providerMetadata?: AgentProviderContinuationMetadata;
   createdAt: string;
   updatedAt: string;
 }
 
 export type AgentEngineRequest = AgentEngineToolRequest;
+import type { AgentProviderContinuationMetadata } from "./agent-provider-metadata.ts";

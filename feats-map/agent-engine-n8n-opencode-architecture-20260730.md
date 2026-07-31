@@ -15,7 +15,7 @@
 - [x] Define engine response contract
 - [x] Define continuation metadata contract
 - [x] Define typed interaction contract
-- [ ] Define provider metadata envelope
+- [x] Define provider metadata envelope
 - [ ] Add contract tests
 - [ ] Remove replaced legacy contracts
 

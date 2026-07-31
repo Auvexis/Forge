@@ -7,8 +7,6 @@ export interface AgentContinuationMetadata {
   completedToolCallIds: string[];
   pendingRequestId?: string;
   contextRevision: number;
-  provider?: {
-    id: string;
-    payload: Record<string, unknown>;
-  };
+  provider?: AgentProviderContinuationMetadata;
 }
+import type { AgentProviderContinuationMetadata } from "./agent-provider-metadata.ts";
