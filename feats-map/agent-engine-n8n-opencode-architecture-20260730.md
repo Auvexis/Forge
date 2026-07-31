@@ -98,7 +98,7 @@
 - [x] Implement Gemini adapter
 - [x] Implement DeepSeek adapter
 - [x] Keep reasoning metadata private
-- [ ] Add provider compatibility tests
+- [x] Add provider compatibility tests
 
 ## Batch 9 — Conversation Memory
 
