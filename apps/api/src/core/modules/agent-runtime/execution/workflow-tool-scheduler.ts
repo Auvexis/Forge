@@ -4,7 +4,7 @@ import type { AgentEngineToolRequest } from "../engine-protocol/agent-engine-req
 import type { AgentEngineResponse } from "../engine-protocol/agent-engine-response.ts";
 import type { WorkflowNode } from "../../../../shared/models/workflow-types.ts";
 import { randomUUID } from "node:crypto";
-import { AgentRuntimeError } from "../agent-errors.ts";
+import { AgentRuntimeError, AgentToolApprovalRequiredError } from "../agent-errors.ts";
 import type { AgentMcpError } from "../contracts/agent-domain-contracts.ts";
 
 export interface AgentWorkflowToolTarget {
@@ -111,13 +111,26 @@ export class WorkflowToolScheduler {
 }
 
 function toMcpError(cause: unknown): AgentMcpError {
-  if (cause instanceof AgentRuntimeError) {
+  if (cause instanceof AgentToolApprovalRequiredError) {
     return {
       code: cause.code,
-      category: cause.statusCode >= 500 ? "temporary" : "validation",
+      category: "policy",
+      message: cause.publicMessage,
+      retryable: false,
+      userActionRequired: true,
+      details: { approvalRequest: cause.approvalRequest },
+    };
+  }
+  if (cause instanceof AgentRuntimeError) {
+    const category = errorCategory(cause.code, cause.statusCode);
+    return {
+      code: cause.code,
+      category,
       message: cause.publicMessage,
       retryable: cause.statusCode >= 500,
-      userActionRequired: false,
+      userActionRequired: category === "authentication" ||
+        category === "permission" ||
+        category === "ambiguous",
     };
   }
   return {
@@ -127,4 +140,15 @@ function toMcpError(cause: unknown): AgentMcpError {
     retryable: false,
     userActionRequired: false,
   };
+}
+
+function errorCategory(
+  code: string,
+  statusCode: number,
+): AgentMcpError["category"] {
+  if (/AUTH|CREDENTIAL|OAUTH/.test(code)) return "authentication";
+  if (/PERMISSION|FORBIDDEN/.test(code)) return "permission";
+  if (/AMBIGUOUS|MULTIPLE_MATCH/.test(code)) return "ambiguous";
+  if (/NOT_FOUND/.test(code)) return "not-found";
+  return statusCode >= 500 ? "temporary" : "validation";
 }

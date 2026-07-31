@@ -49,6 +49,7 @@ import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
 import {
   advanceResumableMcpAgentLoop,
   createResumableMcpLoopState,
+  type ResumableMcpLoopStep,
 } from "./loop/resumable-mcp-agent-loop.ts";
 import type { AgentEngineToolRequest } from "./engine-protocol/agent-engine-request.ts";
 import type { AgentEngineResponse } from "./engine-protocol/agent-engine-response.ts";
@@ -129,6 +130,7 @@ export class AgentRunner {
     const artifacts = this.artifactServiceFactory?.();
     const sideEffects = this.sideEffectServiceFactory?.();
     const pending = state?.findPendingInteraction(input) ?? null;
+    let pendingReply: ReturnType<typeof routePendingInteractionReply> | undefined;
     const runId = pending?.runId ?? `run_${randomUUID()}`;
     let sessionExecution: ReturnType<NonNullable<AgentRunnerOptions["sessionWriterFactory"]>>;
     const logger = new AgentRuntimeLogger({
@@ -143,7 +145,8 @@ export class AgentRunner {
       state?.resumeRun(input.profileId, pending.runId);
       sessionExecution = this.sessionWriterFactory?.(input, runId);
       const reply = routePendingInteractionReply(pending, input.userMessage);
-      if (reply.type === "cancel" || (reply.type === "confirm" && !reply.confirmed)) {
+      pendingReply = reply;
+      if (reply.type === "cancel") {
         state?.cancelPendingInteraction(input.profileId, pending.id);
         state?.markRunCancelled();
         if (sessionExecution?.pendingInteraction) {
@@ -229,7 +232,7 @@ export class AgentRunner {
         [
           ...memoryMessages,
           ...(validated.contextMessages ?? []),
-          ...pendingContextMessages(pending),
+          ...pendingContextMessages(pending, pendingReply),
         ],
         conversationBudgetChars(validated.model.numCtx),
       );
@@ -567,6 +570,7 @@ export class AgentRunner {
     let loopState = createResumableMcpLoopState(input.contextMessages);
     let response: AgentEngineResponse | undefined;
     let result: AgentRunResult;
+    let interactionStep: Extract<ResumableMcpLoopStep, { type: "interaction" }> | undefined;
     while (true) {
       const step = await advanceResumableMcpAgentLoop({
         runId: input.runId,
@@ -594,6 +598,7 @@ export class AgentRunner {
         break;
       }
       if (step.type === "interaction") {
+        interactionStep = step;
         result = {
           status: "waiting-user",
           output: { status: "waiting-user", question: step.question },
@@ -657,14 +662,17 @@ export class AgentRunner {
       });
     }
     if (result.status === "waiting-user") {
+      if (!interactionStep) throw new Error("Waiting agent result is missing its interaction");
       const question = waitingQuestion(result.output);
       input.state?.createPendingInteraction({
         id: `interaction_${randomUUID()}`,
-        kind: "clarification",
+        kind: interactionStep.kind,
         question,
         context: {
-          source: "iterative-loop",
+          ...interactionStep.context,
+          source: interactionStep.context.source ?? "resumable-loop",
           originalUserMessage: input.input.userMessage,
+          ...(interactionStep.options ? { options: interactionStep.options } : {}),
         },
       });
       if (input.sessionWriter && input.sessionTurnId) {
@@ -672,7 +680,7 @@ export class AgentRunner {
         input.sessionWriter.appendInteraction({
           turnId: input.sessionTurnId,
           messageId: message.id,
-          kind: "clarification",
+          kind: interactionStep.kind,
           question,
         });
         input.sessionWriter.updateTurn(input.sessionTurnId, "waiting-user");
@@ -951,6 +959,7 @@ function normalizeToolArgs(args: unknown): Record<string, any> {
 
 function pendingContextMessages(
   pending: AgentPendingInteraction | null,
+  reply?: ReturnType<typeof routePendingInteractionReply>,
 ): Array<{ role: "user" | "tool"; content: string }> {
   if (!pending) return [];
   const original = typeof pending.context.originalUserMessage === "string"
@@ -964,6 +973,8 @@ function pendingContextMessages(
         pendingInteraction: {
           kind: pending.kind,
           question: pending.question,
+          response: reply,
+          rejected: reply?.type === "confirm" && !reply.confirmed,
           interruptedOutput: pending.context.interruptedOutput,
         },
       }),

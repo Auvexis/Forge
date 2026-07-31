@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { AgentEngineToolRequest } from "../engine-protocol/agent-engine-request.ts";
 import type { AgentEngineResponse } from "../engine-protocol/agent-engine-response.ts";
+import type { AgentInteractionKind } from "../engine-protocol/agent-interaction-contract.ts";
 import { AgentRuntimeError } from "../agent-errors.ts";
 import type { IntentModel } from "../intent/agent-intent-gateway.ts";
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
@@ -44,7 +45,14 @@ export interface ResumableMcpLoopState {
 export type ResumableMcpLoopStep =
   | { type: "request"; request: AgentEngineToolRequest; state: ResumableMcpLoopState }
   | { type: "final"; response: string; state: ResumableMcpLoopState }
-  | { type: "interaction"; question: string; state: ResumableMcpLoopState };
+  | {
+      type: "interaction";
+      kind: AgentInteractionKind;
+      question: string;
+      options?: Array<{ value: string; label: string; description?: string }>;
+      context: Record<string, unknown>;
+      state: ResumableMcpLoopState;
+    };
 
 export function createResumableMcpLoopState(
   contextMessages: AgentModelMessage[] = [],
@@ -75,7 +83,11 @@ export async function advanceResumableMcpAgentLoop(input: {
 }): Promise<ResumableMcpLoopStep> {
   throwIfAborted(input.abortSignal);
   let state = cloneState(input.state);
-  state = consumeResponse(state, input.response);
+  const consumed = consumeResponse(state, input.response);
+  state = consumed.state;
+  if (consumed.interaction) {
+    return { type: "interaction", ...consumed.interaction, state };
+  }
   if (state.pendingRequest) {
     throw new AgentRuntimeError(
       "Agent is waiting for its pending engine response",
@@ -108,7 +120,13 @@ export async function advanceResumableMcpAgentLoop(input: {
     return { type: "final", response: decision.response, state };
   }
   if (decision.mode === "clarify") {
-    return { type: "interaction", question: decision.question, state };
+    return {
+      type: "interaction",
+      kind: "clarification",
+      question: decision.question,
+      context: { source: "model-decision" },
+      state,
+    };
   }
   if (state.toolCallCount >= input.maxToolCalls) {
     throw limitError("tool");
@@ -117,7 +135,13 @@ export async function advanceResumableMcpAgentLoop(input: {
   const descriptor = input.client.describeTool(decision.toolName);
   const argumentDecision = await prepareArguments(input, state, decision, descriptor.inputSchema);
   if (argumentDecision.action === "clarify") {
-    return { type: "interaction", question: argumentDecision.question, state };
+    return {
+      type: "interaction",
+      kind: "clarification",
+      question: argumentDecision.question,
+      context: { source: "tool-arguments", toolName: decision.toolName },
+      state,
+    };
   }
 
   const duplicate = state.completed.find((step) =>
@@ -132,7 +156,9 @@ export async function advanceResumableMcpAgentLoop(input: {
     });
     return {
       type: "interaction",
+      kind: "clarification",
       question: duplicateQuestion(duplicate),
+      context: { source: "repetition-guard", toolName: duplicate.toolName },
       state,
     };
   }
@@ -162,8 +188,16 @@ export async function advanceResumableMcpAgentLoop(input: {
 function consumeResponse(
   state: ResumableMcpLoopState,
   response?: AgentEngineResponse,
-): ResumableMcpLoopState {
-  if (!response) return state;
+): {
+  state: ResumableMcpLoopState;
+  interaction?: {
+    kind: AgentInteractionKind;
+    question: string;
+    options?: Array<{ value: string; label: string; description?: string }>;
+    context: Record<string, unknown>;
+  };
+} {
+  if (!response) return { state };
   const pending = state.pendingRequest;
   if (!pending && state.completed.some((step) => step.toolCallId === response.toolCallId)) {
     throw new AgentRuntimeError(
@@ -189,6 +223,26 @@ function consumeResponse(
       409,
     );
   }
+  if (response.status === "failed" && response.error.userActionRequired) {
+    const kind = interactionKindForError(response.error);
+    delete state.pendingRequest;
+    return {
+      state,
+      interaction: {
+        kind,
+        question: interactionQuestion(kind, response.error.message),
+        ...(interactionOptions(response.error.details) ? {
+          options: interactionOptions(response.error.details),
+        } : {}),
+        context: {
+          source: "tool-error",
+          requestId: response.requestId,
+          toolCallId: response.toolCallId,
+          error: response.error,
+        },
+      },
+    };
+  }
   if (response.status === "failed") {
     throw new AgentRuntimeError(
       response.error.message,
@@ -205,7 +259,40 @@ function consumeResponse(
     toolCallId: pending.toolCallId,
   });
   delete state.pendingRequest;
-  return state;
+  return { state };
+}
+
+function interactionOptions(
+  details?: Record<string, unknown>,
+): Array<{ value: string; label: string; description?: string }> | undefined {
+  if (!Array.isArray(details?.options)) return undefined;
+  const options = details.options.flatMap((value) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return [];
+    const option = value as Record<string, unknown>;
+    if (typeof option.value !== "string" || typeof option.label !== "string") return [];
+    return [{
+      value: option.value,
+      label: option.label,
+      ...(typeof option.description === "string" ? { description: option.description } : {}),
+    }];
+  });
+  return options.length ? options : undefined;
+}
+
+function interactionKindForError(error: { category: string; code: string }): AgentInteractionKind {
+  if (error.code === "AGENT_TOOL_APPROVAL_REQUIRED" || error.category === "policy") return "approval";
+  if (error.category === "ambiguous") return "selection";
+  if (error.category === "authentication") return "authentication";
+  if (error.category === "permission") return "permission";
+  return "clarification";
+}
+
+function interactionQuestion(kind: AgentInteractionKind, detail: string): string {
+  if (kind === "approval") return `Esta ação precisa da sua aprovação. ${detail}`;
+  if (kind === "selection") return `Escolha um dos resultados para continuar. ${detail}`;
+  if (kind === "authentication") return `Conecte ou autentique a conta necessária. ${detail}`;
+  if (kind === "permission") return `Conceda a permissão necessária para continuar. ${detail}`;
+  return detail;
 }
 
 async function prepareArguments(
