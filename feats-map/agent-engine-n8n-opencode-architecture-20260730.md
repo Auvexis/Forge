@@ -80,7 +80,7 @@
 
 - [x] Implement clarification requests
 - [x] Implement selection requests
-- [ ] Implement approval requests
+- [x] Implement approval requests
 - [ ] Implement authentication requests
 - [ ] Implement permission requests
 - [ ] Persist user responses before resume
