@@ -34,6 +34,29 @@ export class AgentContinuationRepository {
         }
       : null;
   }
+
+  update(input: {
+    metadata: AgentContinuationMetadata;
+    expectedRevision: number;
+  }): AgentContinuationRecord {
+    const now = new Date().toISOString();
+    const result = this.db.prepare(`
+      UPDATE agent_continuations
+      SET metadata_json = ?, revision = revision + 1, updated_at = ?
+      WHERE run_id = ? AND revision = ?
+    `).run(
+      JSON.stringify(input.metadata),
+      now,
+      input.metadata.runId,
+      input.expectedRevision,
+    );
+    if (result.changes !== 1) {
+      throw new Error(
+        `Concurrent agent continuation update rejected: ${input.metadata.runId}`,
+      );
+    }
+    return this.get(input.metadata.runId)!;
+  }
 }
 
 interface AgentContinuationRow {

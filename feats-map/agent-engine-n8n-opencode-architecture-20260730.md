@@ -27,7 +27,7 @@
 - [x] Add idempotency keys
 - [x] Add request lifecycle transitions
 - [x] Add response correlation indexes
-- [ ] Add atomic revision updates
+- [x] Add atomic revision updates
 - [ ] Add persistence tests
 - [ ] Remove replaced legacy tables
 
