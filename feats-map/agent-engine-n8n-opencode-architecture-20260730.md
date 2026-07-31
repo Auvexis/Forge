@@ -61,7 +61,7 @@
 - [x] Generate schema-bound arguments
 - [x] Validate arguments deterministically
 - [x] Repair invalid arguments once
-- [ ] Add tool aliases and descriptions
+- [x] Add tool aliases and descriptions
 - [ ] Add small-model discovery tests
 
 ## Batch 6 — Canonical Scratchpad
