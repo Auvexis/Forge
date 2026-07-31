@@ -105,7 +105,7 @@ export const useExecutionStore = defineStore('execution', () => {
     callId?: string
     toolName: string
     pluginName?: string
-    status: 'pending' | 'running' | 'retrying' | 'success' | 'failed'
+    status: 'pending' | 'running' | 'retrying' | 'waiting-approval' | 'success' | 'failed'
     requiresApproval?: boolean
     error?: string
   }
@@ -444,7 +444,12 @@ export const useExecutionStore = defineStore('execution', () => {
     const chatSessionId = editorChatSessionIdByExecution[ev.executionId]
     if (!chatSessionId) return
 
-    const eventStatus = toolPayloadValue(ev.data, 'status') === 'failed' ? 'failed' : 'success'
+    const rawStatus = toolPayloadValue(ev.data, 'status')
+    const eventStatus = rawStatus === 'failed'
+      ? 'failed'
+      : rawStatus === 'waiting-approval'
+        ? 'waiting-approval'
+        : 'success'
     const tool = extractToolStatusPayload(ev, eventStatus)
     upsertEditorChatToolStatus(chatSessionId, tool, ev.timestamp)
     if (eventStatus === 'success') lastSuccessfulToolByExecution.set(ev.executionId, tool)
@@ -1121,15 +1126,21 @@ export const useExecutionStore = defineStore('execution', () => {
             }, ev.data)
             break
 
-          case 'agent:tool-end':
+          case 'agent:tool-end': {
             recordEditorChatToolEnd(ev)
+            const toolEndStatus = toolPayloadValue(ev.data, 'status')
             patchConnectedAgentConfigNode(ev.nodeId, 'tool', {
-              status: toolPayloadValue(ev.data, 'status') === 'failed' ? 'failed' : 'success',
+              status: toolEndStatus === 'failed'
+                ? 'failed'
+                : toolEndStatus === 'waiting-approval'
+                  ? 'running'
+                  : 'success',
               output: ev.data,
               error: toolPayloadValue(ev.data, 'error') || ev.error,
               endedAt: ev.timestamp,
             }, ev.data)
             break
+          }
 
           case 'agent:end':
             recordEditorChatAgentEnd(ev)

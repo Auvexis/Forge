@@ -175,6 +175,6 @@ export interface AgentRunToolCall {
   name: string;
   pluginId?: string;
   pluginName?: string;
-  status: "success" | "failed";
+  status: "success" | "failed" | "waiting-approval";
 }
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";

@@ -24,6 +24,13 @@ describe("agent session contracts", () => {
       attempt: 1,
     })).toBe(false);
     expect(isTerminalToolState({
+      status: "waiting-approval",
+      input: {},
+      startedAt: "2026-07-29T00:00:00.000Z",
+      requestedAt: "2026-07-29T00:00:01.000Z",
+      attempt: 1,
+    })).toBe(false);
+    expect(isTerminalToolState({
       status: "completed",
       input: {},
       output: { ok: true },

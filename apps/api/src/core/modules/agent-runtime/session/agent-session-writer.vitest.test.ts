@@ -90,6 +90,41 @@ describe("AgentSessionWriter", () => {
     });
   });
 
+  it("persists approval as a non-error tool state", async () => {
+    db = new Database(":memory:");
+    db.pragma("foreign_keys = ON");
+    await createSessions(db);
+    await createRuns(db);
+    const repository = new AgentSessionRepository(db, () => "2026-07-29T00:00:00.000Z");
+    const session = repository.createSession({
+      id: "session_1",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "trigger_1",
+      title: "Session",
+    });
+    const writer = new AgentSessionWriter(repository, "profile_1", "session_1", session.revision);
+    const turn = writer.createTurn();
+    const message = writer.appendMessage(turn.id, "assistant");
+    const pending = writer.appendTool({
+      turnId: turn.id,
+      messageId: message.id,
+      callId: "call_approval",
+      toolName: "gmail_send",
+      arguments: { to: "person@example.com" },
+    });
+
+    writer.waitToolApproval(writer.startTool(pending, { to: "person@example.com" }));
+
+    expect(repository.getSnapshot({
+      profileId: "profile_1",
+      sessionId: "session_1",
+    }).messages[0]?.parts[0]).toMatchObject({
+      type: "tool",
+      state: { status: "waiting-approval", input: { to: "person@example.com" } },
+    });
+  });
+
   it("persists terminal errors as durable message parts", async () => {
     db = new Database(":memory:");
     db.pragma("foreign_keys = ON");

@@ -158,6 +158,8 @@ describe("AgentArtifactService", () => {
         attachments: {
           type: "array",
           "x-input-type": "files",
+          "x-fabric-artifact-content-field": "contentBase64",
+          "x-fabric-artifact-encoding": "base64",
           items: { type: ["string", "object"] },
         },
       },
@@ -166,7 +168,7 @@ describe("AgentArtifactService", () => {
         fileId: "provider-file-id",
         fileName: "andresimoes-jr-backend.pdf",
         mimeType: "application/pdf",
-        content: Buffer.from("pdf-content"),
+        contentBase64: Buffer.from("pdf-content").toString("base64"),
       }],
     });
   });

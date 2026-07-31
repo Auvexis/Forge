@@ -74,6 +74,14 @@ export interface AgentToolRunningState {
   attempt: number;
 }
 
+export interface AgentToolWaitingApprovalState {
+  status: "waiting-approval";
+  input: Record<string, unknown>;
+  startedAt: string;
+  requestedAt: string;
+  attempt: number;
+}
+
 export interface AgentToolCompletedState {
   status: "completed";
   input: Record<string, unknown>;
@@ -95,6 +103,7 @@ export interface AgentToolErrorState {
 export type AgentToolPartState =
   | AgentToolPendingState
   | AgentToolRunningState
+  | AgentToolWaitingApprovalState
   | AgentToolCompletedState
   | AgentToolErrorState;
 

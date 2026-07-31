@@ -169,11 +169,20 @@ export default definePluginManifest({
             "description": "Optional list of file attachments. Each file must be base64-encoded.",
             "x-label": "Attachments",
             "x-input-type": "files",
+            "x-fabric-artifact-input": true,
+            "x-fabric-artifact-content-field": "contentBase64",
+            "x-fabric-artifact-encoding": "base64",
             "items": {
               "type": [
                 "string",
                 "object"
-              ]
+              ],
+              "properties": {
+                "fileName": { "type": "string" },
+                "mimeType": { "type": "string" },
+                "contentBase64": { "type": "string" },
+                "fileId": { "type": "string" }
+              }
             }
           }
         },
@@ -381,11 +390,20 @@ export default definePluginManifest({
             "description": "Optional list of file attachments.",
             "x-label": "Attachments",
             "x-input-type": "files",
+            "x-fabric-artifact-input": true,
+            "x-fabric-artifact-content-field": "contentBase64",
+            "x-fabric-artifact-encoding": "base64",
             "items": {
               "type": [
                 "string",
                 "object"
-              ]
+              ],
+              "properties": {
+                "fileName": { "type": "string" },
+                "mimeType": { "type": "string" },
+                "contentBase64": { "type": "string" },
+                "fileId": { "type": "string" }
+              }
             }
           }
         },

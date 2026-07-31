@@ -101,6 +101,7 @@ function toolStateLabel(
   const suffix = attempt && attempt > 1 ? ` · attempt ${attempt}` : ''
   if (status === 'completed') return `Completed${suffix}`
   if (status === 'error') return `Failed${suffix}`
+  if (status === 'waiting-approval') return `Waiting approval${suffix}`
   if (status === 'running') return `Running${suffix}`
   return `Pending${suffix}`
 }

@@ -33,6 +33,15 @@
 - [x] Add handoff and latency regressions
 - [x] Run affected suites
 
+## Batch 7 — Attachment Metadata and Approval Status
+
+- [x] Declare plugin attachment contracts
+- [x] Preserve filename and MIME metadata
+- [x] Persist waiting-approval tool state
+- [x] Render approval without failure status
+- [x] Add metadata and status regressions
+- [x] Run affected suites
+
 ## Batch 3 — Artifact Foreign Keys
 
 - [x] Remove legacy action foreign keys from clean schema

@@ -677,6 +677,8 @@ export class AgentRunner {
         });
       }
       const succeeded = response.status === "succeeded";
+      const waitingApproval = response.status === "failed" &&
+        response.error.code === "AGENT_TOOL_APPROVAL_REQUIRED";
       const responseOutput = response.status === "succeeded" ? response.output : undefined;
       const responseError = response.status === "failed"
         ? response.error.message
@@ -690,7 +692,7 @@ export class AgentRunner {
           actionId: step.request.actionId,
           name: step.request.toolName,
           pluginId: descriptor.pluginId,
-          status: succeeded ? "success" : "failed",
+          status: succeeded ? "success" : waitingApproval ? "waiting-approval" : "failed",
           ...(succeeded ? { output: responseOutput } : { error: responseError }),
         },
       };
@@ -700,7 +702,7 @@ export class AgentRunner {
         toolCallId: step.request.toolCallId,
         name: step.request.toolName,
         pluginId: descriptor.pluginId,
-        status: succeeded ? "success" : "failed",
+        status: succeeded ? "success" : waitingApproval ? "waiting-approval" : "failed",
       });
     }
     if (result.status === "waiting-user") {
@@ -800,6 +802,10 @@ function persistLoopEvent(
       );
   if (payload.status === "success") {
     parts.set(callId, writer.completeTool(running, payload.output));
+    return;
+  }
+  if (payload.status === "waiting-approval") {
+    parts.set(callId, writer.waitToolApproval(running));
     return;
   }
   parts.set(callId, writer.failTool(running, {

@@ -331,12 +331,27 @@ export class AgentSessionWriter {
     });
   }
 
+  waitToolApproval(part: AgentToolPart): AgentToolPart {
+    if (part.state.status !== "running") {
+      throw new Error("Only running agent tools can wait for approval");
+    }
+    return this.updateTool(part, {
+      status: "waiting-approval",
+      input: part.state.input,
+      startedAt: part.state.startedAt,
+      requestedAt: this.now(),
+      attempt: part.state.attempt,
+    });
+  }
+
   failTool(part: AgentToolPart, error: AgentMcpError): AgentToolPart {
     const input = part.state.status === "pending"
       ? (isRecord(part.state.input) ? part.state.input : {})
       : part.state.input;
-    const startedAt = part.state.status === "running" ? part.state.startedAt : undefined;
-    const attempt = part.state.status === "running" || part.state.status === "completed" ||
+    const startedAt = part.state.status === "running" || part.state.status === "waiting-approval"
+      ? part.state.startedAt
+      : undefined;
+    const attempt = part.state.status === "running" || part.state.status === "waiting-approval" || part.state.status === "completed" ||
         part.state.status === "error"
       ? part.state.attempt
       : 1;

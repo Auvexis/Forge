@@ -146,12 +146,13 @@ export type AgentSessionPart =
       actionId?: string
       toolName: string
       state: {
-        status: 'pending' | 'running' | 'completed' | 'error'
+        status: 'pending' | 'running' | 'waiting-approval' | 'completed' | 'error'
         input?: unknown
         output?: unknown
         error?: unknown
         attempt?: number
         startedAt?: string
+        requestedAt?: string
         completedAt?: string
       }
     })
