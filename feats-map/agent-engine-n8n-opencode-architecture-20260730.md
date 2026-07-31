@@ -70,7 +70,7 @@
 - [x] Build correlated tool-result messages
 - [x] Reconstruct steps by tool call ID
 - [x] Preserve completed steps on resume
-- [ ] Detect duplicate responses
+- [x] Detect duplicate responses
 - [ ] Remove orphan tool messages
 - [ ] Bound tool result context
 - [ ] Preserve artifact references

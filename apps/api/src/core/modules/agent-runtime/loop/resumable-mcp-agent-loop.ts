@@ -165,6 +165,14 @@ function consumeResponse(
 ): ResumableMcpLoopState {
   if (!response) return state;
   const pending = state.pendingRequest;
+  if (!pending && state.completed.some((step) => step.toolCallId === response.toolCallId)) {
+    throw new AgentRuntimeError(
+      "Engine response was already consumed",
+      "AGENT_ENGINE_RESPONSE_DUPLICATE",
+      "Duplicate tool response was ignored",
+      409,
+    );
+  }
   if (!pending || response.requestId !== pending.id || response.toolCallId !== pending.toolCallId) {
     throw new AgentRuntimeError(
       "Engine response does not match the pending request",

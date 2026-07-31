@@ -89,6 +89,31 @@ describe("advanceResumableMcpAgentLoop", () => {
     })).rejects.toMatchObject({ code: "AGENT_ENGINE_RESPONSE_MISMATCH" });
   });
 
+  it("detects an engine response that was already consumed", async () => {
+    await expect(advanceResumableMcpAgentLoop({
+      ...baseInput([]),
+      state: {
+        ...createResumableMcpLoopState(),
+        completed: [{
+          toolCallId: "call_1",
+          toolName: "drive_list",
+          objective: "Find CV",
+          arguments: { query: "backend" },
+          output: [],
+        }],
+      },
+      response: {
+        id: "response_1",
+        requestId: "request_1",
+        runId: "run_1",
+        toolCallId: "call_1",
+        status: "succeeded",
+        output: [],
+        createdAt: new Date().toISOString(),
+      },
+    })).rejects.toMatchObject({ code: "AGENT_ENGINE_RESPONSE_DUPLICATE" });
+  });
+
   it("enforces independent iteration and tool-call limits", async () => {
     await expect(advanceResumableMcpAgentLoop({
       ...baseInput([]),
