@@ -82,7 +82,7 @@
 - [x] Implement selection requests
 - [x] Implement approval requests
 - [x] Implement authentication requests
-- [ ] Implement permission requests
+- [x] Implement permission requests
 - [ ] Persist user responses before resume
 - [ ] Feed rejection feedback to the model
 - [ ] Resume the same run and turn
