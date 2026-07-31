@@ -31,7 +31,7 @@
 
 ## Batch 3 — Workflow Tool Scheduler
 
-- [ ] Create workflow tool scheduler
+- [x] Create workflow tool scheduler
 - [ ] Resolve connected Tool Nodes
 - [ ] Dispatch one durable tool request
 - [ ] Execute through workflow engine
