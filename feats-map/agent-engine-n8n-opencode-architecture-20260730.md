@@ -57,7 +57,7 @@
 
 - [x] Build compact MCP catalog
 - [x] Select one tool from catalog
-- [ ] Load only selected tool schema
+- [x] Load only selected tool schema
 - [ ] Generate schema-bound arguments
 - [ ] Validate arguments deterministically
 - [ ] Repair invalid arguments once
