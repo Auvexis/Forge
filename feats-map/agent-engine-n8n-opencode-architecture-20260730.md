@@ -118,7 +118,7 @@
 - [x] Recover waiting interactions after restart
 - [x] Reconcile completed side effects
 - [x] Prevent duplicate side effects
-- [ ] Add lease expiration
+- [x] Add lease expiration
 - [ ] Add retry policy
 - [ ] Add dead-letter state
 - [ ] Add restart matrix tests
