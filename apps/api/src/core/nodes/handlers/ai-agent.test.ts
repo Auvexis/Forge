@@ -411,7 +411,7 @@ describe("AI workflow node handlers", () => {
     assert.equal((received as AgentRunInput | null)?.skipFinalResponseAfterToolUse, true);
   });
 
-  it("does not forward trigger history without a connected memory node", async () => {
+  it("forwards durable session history without requiring a memory node", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();
     const { memory: _memory, ...nodes } = fixture.nodes;
@@ -442,10 +442,12 @@ describe("AI workflow node handlers", () => {
       })));
 
     assert.ok(received);
-    assert.equal((received as AgentRunInput).contextMessages, undefined);
+    assert.deepEqual((received as AgentRunInput).contextMessages, [
+      { role: "user", content: "Previous message" },
+    ]);
   });
 
-  it("does not forward chat transcript to plugin-backed long-term memory", async () => {
+  it("keeps session transcript separate from plugin-backed long-term memory", async () => {
     const registry = createUtilityNodeRegistry();
     const fixture = workflowFixture();
     const memory = fixture.nodes.memory;
@@ -487,7 +489,9 @@ describe("AI workflow node handlers", () => {
       })));
 
     assert.ok(received);
-    assert.equal((received as AgentRunInput).contextMessages, undefined);
+    assert.deepEqual((received as AgentRunInput).contextMessages, [
+      { role: "user", content: "Previous message" },
+    ]);
   });
 
   it("does not forward SQLite history when the trigger has no session id", async () => {

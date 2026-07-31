@@ -155,6 +155,50 @@ describe("advanceResumableMcpAgentLoop", () => {
       state: duplicateState,
     })).rejects.toMatchObject({ code: "AGENT_COMPLETION_INVALID" });
   });
+
+  it("rejects a premature final answer and continues with the missing email tool", async () => {
+    const decisions = [
+      { mode: "chat", response: "O arquivo está pronto para envio." },
+      { mode: "tool", toolName: "gmail_send", objective: "Send the requested email" },
+      { action: "call", arguments: { to: "andre@example.com" } },
+    ];
+    const input = baseInput(decisions);
+    input.userMessage = "Busque e baixe o currículo, depois envie por email para andre@example.com";
+    input.client = {
+      listTools: () => [
+        { name: "drive_list", summary: "List Drive files", sideEffect: "read" },
+        { name: "drive_download", summary: "Download a Drive file", sideEffect: "read" },
+        { name: "gmail_send", summary: "Send an email", sideEffect: "external-message" },
+      ],
+      describeTool: (name: string) => ({
+        name,
+        pluginId: "google",
+        inputSchema: {
+          type: "object",
+          required: ["to"],
+          properties: { to: { type: "string" } },
+        },
+      }),
+      validateToolArguments: () => undefined,
+    } as any;
+    input.state = {
+      ...createResumableMcpLoopState(),
+      iterationCount: 2,
+      toolCallCount: 2,
+      completed: [
+        { toolName: "drive_list", objective: "Find", arguments: {}, output: [], toolCallId: "call_1" },
+        { toolName: "drive_download", objective: "Download", arguments: {}, output: {}, toolCallId: "call_2" },
+      ],
+    };
+
+    const step = await advanceResumableMcpAgentLoop(input);
+
+    expect(step).toMatchObject({
+      type: "request",
+      request: { toolName: "gmail_send", arguments: { to: "andre@example.com" } },
+      state: { iterationCount: 4, toolCallCount: 3 },
+    });
+  });
 });
 
 function baseInput(decisions: unknown[]) {

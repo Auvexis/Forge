@@ -11,7 +11,6 @@ import type {
 import { createNodeHandler } from "../handler.ts";
 import type { NodeHandlerInput } from "../types.ts";
 import { TemplateEngine } from "../../modules/workflows/template-engine.ts";
-import { usesShortTermMemory } from "../../modules/agent-runtime/memory/agent-memory-mode.ts";
 import { CancellationRegistry } from "../../modules/workflows/cancellation-registry.ts";
 import type { AgentToolRef, ChatModelRef, MemoryRef } from "../../modules/ai-services/ai-service-types.ts";
 import { ConfigDependencyResolver } from "../dependencies/config-dependency-resolver.ts";
@@ -26,11 +25,11 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
   const triggerPayload = input.context.trigger ?? {};
   const sessionId = optionalString(triggerPayload.sessionId ?? triggerPayload.session_id);
   const contextMessages = [
-    ...(usesShortTermMemory(memoryConfig) && sessionId
+    ...(sessionId
       ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages) ?? []
       : []),
   ];
-  const runScratchpadMessages = usesShortTermMemory(memoryConfig) && sessionId
+  const runScratchpadMessages = sessionId
     ? toContextMessages(triggerPayload.runScratchpadMessages) ?? []
     : [];
   const profileId = String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default");

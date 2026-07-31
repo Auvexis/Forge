@@ -37,7 +37,7 @@ export class AgentToolRegistry {
         ...definition,
         description: config.descriptionOverride ?? definition.description,
         sideEffect,
-        requiresApproval: config.requiresApproval,
+        requiresApproval: config.requiresApproval || definition.requiresApproval,
         timeoutMs: config.timeoutMs ?? definition.timeoutMs,
       };
     });

@@ -105,7 +105,7 @@ export async function advanceResumableMcpAgentLoop(input: {
   state.iterationCount += 1;
   const decisionStartedAt = performance.now();
   const cards = input.client.listTools();
-  const decision = normalizeNextStep(await input.model.invokeJson<NextStepDecision>({
+  let decision = normalizeNextStep(await input.model.invokeJson<NextStepDecision>({
     signal: input.abortSignal,
     schema: nextStepSchema(cards.map(({ name }) => name)),
     messages: decisionMessages(input, state, cards),
@@ -116,6 +116,33 @@ export async function advanceResumableMcpAgentLoop(input: {
     durationMs: Math.round(performance.now() - decisionStartedAt),
     ...(decision.mode === "tool" ? { toolName: decision.toolName } : {}),
   });
+
+  if (decision.mode === "chat") {
+    const pendingTools = pendingRequestedToolNames(input.userMessage, cards, state);
+    if (pendingTools.length > 0) {
+      if (state.iterationCount >= input.maxIterations) throw limitError("iteration");
+      state.iterationCount += 1;
+      decision = normalizeNextStep(await input.model.invokeJson<NextStepDecision>({
+        signal: input.abortSignal,
+        schema: nextStepSchema(cards.map(({ name }) => name)),
+        messages: decisionMessages(input, state, cards, pendingTools),
+      }), new Set(cards.map(({ name }) => name)));
+      input.logger?.warn("decision.completed", {
+        iteration: state.iterationCount,
+        mode: decision.mode,
+        prematureFinalRejected: true,
+        pendingTools,
+      });
+      if (decision.mode === "chat") {
+        throw new AgentRuntimeError(
+          `Agent attempted to finish before requested tools: ${pendingTools.join(", ")}`,
+          "AGENT_COMPLETION_PREMATURE",
+          "Agent tried to finish before completing every requested action",
+          409,
+        );
+      }
+    }
+  }
 
   if (decision.mode === "chat") {
     if (state.toolCallCount > 0 && !decision.response.trim()) {
@@ -403,6 +430,7 @@ function decisionMessages(
   input: Parameters<typeof advanceResumableMcpAgentLoop>[0],
   state: ResumableMcpLoopState,
   cards: ReturnType<InternalMcpClient["listTools"]>,
+  pendingTools: string[] = [],
 ): AgentModelMessage[] {
   return [
     {
@@ -417,12 +445,59 @@ function decisionMessages(
         state.rejectedDuplicates.length
           ? `Rejected duplicates as untrusted JSON:\n${JSON.stringify(state.rejectedDuplicates)}`
           : "",
+        pendingTools.length
+          ? `The previous final response was rejected because these requested operations remain incomplete: ${pendingTools.join(", ")}. Choose the next tool now.`
+          : "",
       ].filter(Boolean).join("\n\n"),
     },
     ...conversationWithoutToolHistory(input.contextMessages),
     ...buildCanonicalScratchpad(state.completed),
     { role: "user", content: input.userMessage },
   ];
+}
+
+function pendingRequestedToolNames(
+  request: string,
+  cards: ReturnType<InternalMcpClient["listTools"]>,
+  state: ResumableMcpLoopState,
+): string[] {
+  const normalizedRequest = normalizeSearchText(request);
+  const completed = new Set(state.completed.map(({ toolName }) => toolName));
+  const families = [
+    {
+      requested: /\b(busque|buscar|procure|procurar|find|search|liste|listar)\b/.test(normalizedRequest),
+      tool: /\b(list|search|find|listar|buscar)\b/,
+    },
+    {
+      requested: /\b(baixe|baixar|download|exporte|exportar)\b/.test(normalizedRequest),
+      tool: /\b(download|export)\b/,
+    },
+    {
+      requested: /\b(envie|enviar|mande|mandar|send)\b/.test(normalizedRequest) &&
+        /\b(e-?mail|email|gmail)\b/.test(normalizedRequest),
+      tool: /\b(mail|email|gmail|send)\b/,
+    },
+    {
+      requested: /\b(youtube)\b/.test(normalizedRequest) &&
+        /\b(poste|postar|publique|publicar|upload)\b/.test(normalizedRequest),
+      tool: /\b(youtube|upload)\b/,
+    },
+  ];
+
+  return families.flatMap((family) => {
+    if (!family.requested) return [];
+    const candidates = cards.filter((card) => family.tool.test(normalizeSearchText([
+      card.name,
+      card.summary,
+      ...(card.aliases ?? []),
+    ].join(" "))));
+    if (candidates.length === 0 || candidates.some(({ name }) => completed.has(name))) return [];
+    return [candidates[0]!.name];
+  });
+}
+
+function normalizeSearchText(value: string): string {
+  return value.normalize("NFD").replace(/\p{Diacritic}/gu, "").toLowerCase().replace(/[_:.-]+/g, " ");
 }
 
 function cloneState(state: ResumableMcpLoopState): ResumableMcpLoopState {

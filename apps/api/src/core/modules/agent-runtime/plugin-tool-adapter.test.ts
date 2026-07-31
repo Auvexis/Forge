@@ -157,6 +157,24 @@ describe("plugin tool adapter", () => {
       /requires approval/i,
     );
   });
+
+  it("does not allow node configuration to disable manifest approval", () => {
+    PluginManager.registerPlugin(createPlugin({
+      manifest: createManifest({ requiresApproval: true }),
+    } as Partial<FabricPlugin>));
+
+    const [resolved] = new AgentToolRegistry().resolveConfiguredTools([{
+      type: "ai-tool",
+      name: "Create issue",
+      pluginId: "github",
+      methodId: "createIssue",
+      timeoutMs: 30000,
+      requiresApproval: false,
+      sideEffect: "write",
+    }]);
+
+    assert.equal(resolved.requiresApproval, true);
+  });
 });
 
 function createPlugin(overrides: Partial<FabricPlugin> = {}): FabricPlugin {
