@@ -117,7 +117,7 @@
 - [x] Recover running requests after restart
 - [x] Recover waiting interactions after restart
 - [x] Reconcile completed side effects
-- [ ] Prevent duplicate side effects
+- [x] Prevent duplicate side effects
 - [ ] Add lease expiration
 - [ ] Add retry policy
 - [ ] Add dead-letter state
