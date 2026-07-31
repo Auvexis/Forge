@@ -96,7 +96,7 @@
 - [x] Implement OpenAI adapter
 - [x] Implement Anthropic adapter
 - [x] Implement Gemini adapter
-- [ ] Implement DeepSeek adapter
+- [x] Implement DeepSeek adapter
 - [ ] Keep reasoning metadata private
 - [ ] Add provider compatibility tests
 
