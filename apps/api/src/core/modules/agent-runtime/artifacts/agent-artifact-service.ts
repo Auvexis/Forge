@@ -81,6 +81,13 @@ export class AgentArtifactService {
     return this.resolveOne(profileId, ref, now);
   }
 
+  listRunReferences(
+    profileId: string,
+    runId: string,
+  ): Array<Pick<AgentArtifactRef, "ref" | "name" | "mimeType" | "size">> {
+    return this.repository.listByRun(profileId, runId).map(toReference);
+  }
+
   async cleanupExpired(profileId: string, now = new Date()): Promise<number> {
     const expired = this.repository.listExpired(profileId, now.toISOString());
     let removed = 0;

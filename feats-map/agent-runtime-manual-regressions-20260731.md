@@ -24,6 +24,15 @@
 - [x] Add approval execution regressions
 - [x] Run affected suites
 
+## Batch 6 — Deterministic Artifact Handoff
+
+- [x] Index run artifacts
+- [x] Bind file inputs by schema and metadata
+- [x] Preserve external-plugin overrides
+- [x] Remove redundant completion inference
+- [x] Add handoff and latency regressions
+- [x] Run affected suites
+
 ## Batch 3 — Artifact Foreign Keys
 
 - [x] Remove legacy action foreign keys from clean schema

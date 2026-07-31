@@ -47,6 +47,15 @@ export class AgentArtifactRepository {
     return row ? toArtifact(row) : null;
   }
 
+  listByRun(profileId: string, runId: string): AgentArtifactRecord[] {
+    const rows = this.db.prepare(`
+      SELECT * FROM agent_artifacts
+      WHERE profile_id = ? AND run_id = ?
+      ORDER BY created_at ASC, id ASC
+    `).all(profileId, runId) as ArtifactRow[];
+    return rows.map(toArtifact);
+  }
+
   listExpired(profileId: string, now: string, limit = 100): AgentArtifactRecord[] {
     const rows = this.db.prepare(`
       SELECT * FROM agent_artifacts

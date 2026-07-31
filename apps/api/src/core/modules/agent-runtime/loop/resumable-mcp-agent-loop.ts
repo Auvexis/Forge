@@ -149,26 +149,17 @@ export async function advanceResumableMcpAgentLoop(input: {
   if (decision.mode === "chat") {
     const pendingTools = pendingRequestedToolNames(input.userMessage, cards, state);
     if (pendingTools.length > 0) {
-      if (state.iterationCount >= input.maxIterations) throw limitError("iteration");
-      state.iterationCount += 1;
-      decision = normalizeNextStep(await input.model.invokeJson<NextStepDecision>({
-        signal: input.abortSignal,
-        schema: nextStepSchema(cards.map(({ name }) => name)),
-        messages: decisionMessages(input, state, cards, pendingTools),
-      }), new Set(cards.map(({ name }) => name)));
+      decision = {
+        mode: "tool",
+        toolName: pendingTools[0]!,
+        objective: `Complete the pending requested operation with ${pendingTools[0]}`,
+      };
       input.logger?.warn("decision.completed", {
         iteration: state.iterationCount,
         mode: decision.mode,
         prematureFinalRejected: true,
         pendingTools,
       });
-      if (decision.mode === "chat") {
-        decision = {
-          mode: "tool",
-          toolName: pendingTools[0]!,
-          objective: `Complete the pending requested operation with ${pendingTools[0]}`,
-        };
-      }
     }
   }
 

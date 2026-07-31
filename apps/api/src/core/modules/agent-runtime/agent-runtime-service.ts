@@ -46,11 +46,12 @@ const defaultRunner = new AgentRunner({
         new AgentSideEffectService(new AgentSideEffectRepository(database)),
       ),
       {
-        resolveArguments: async (_request, arguments_, target) => artifacts
+        resolveArguments: async (request, arguments_, target) => artifacts
           ? await new AgentArtifactArgumentResolver(artifacts).resolve(
               input.profileId,
               arguments_,
               target.inputSchema,
+              request.runId,
             ) as Record<string, unknown>
           : arguments_,
         transformOutput: async (request, output) => artifacts

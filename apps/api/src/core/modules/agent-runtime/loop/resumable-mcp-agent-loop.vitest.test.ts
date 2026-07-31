@@ -13,7 +13,6 @@ describe("advanceResumableMcpAgentLoop", () => {
       { mode: "chat", response: "Arquivo encontrado." },
     ];
     const input = baseInput(decisions);
-
     const requested = await advanceResumableMcpAgentLoop(input);
     expect(requested.type).toBe("request");
     if (requested.type !== "request") throw new Error("Expected request");
@@ -159,10 +158,16 @@ describe("advanceResumableMcpAgentLoop", () => {
   it("rejects a premature final answer and continues with the missing email tool", async () => {
     const decisions = [
       { mode: "chat", response: "O arquivo está pronto para envio." },
-      { mode: "chat", response: "O download foi concluído." },
       { action: "call", arguments: { to: "andre@example.com" } },
     ];
     const input = baseInput(decisions);
+    let modelCalls = 0;
+    input.model = {
+      invokeJson: async () => {
+        modelCalls += 1;
+        return decisions.shift() as any;
+      },
+    };
     input.userMessage = "Busque e baixe o currículo, depois envie por email para andre@example.com";
     input.client = {
       listTools: () => [
@@ -196,8 +201,9 @@ describe("advanceResumableMcpAgentLoop", () => {
     expect(step).toMatchObject({
       type: "request",
       request: { toolName: "gmail_send", arguments: { to: "andre@example.com" } },
-      state: { iterationCount: 4, toolCallCount: 3 },
+      state: { iterationCount: 3, toolCallCount: 3 },
     });
+    expect(modelCalls).toBe(2);
   });
 });
 

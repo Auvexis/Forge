@@ -133,6 +133,65 @@ describe("AgentArtifactService", () => {
     });
   });
 
+  it("binds a run artifact to a schema-declared file input by filename", async () => {
+    const { service } = await fixture();
+    await service.captureResult({
+      profileId: "profile_1",
+      runId: "run_1",
+      toolName: "external_download",
+      value: {
+        data: Buffer.from("pdf-content"),
+        name: "andresimoes-jr-backend.pdf",
+        mimeType: "application/pdf",
+      },
+    });
+    const resolver = new AgentArtifactArgumentResolver(service);
+
+    await expect(resolver.resolve("profile_1", {
+      attachments: [{
+        fileId: "provider-file-id",
+        fileName: "andresimoes-jr-backend.pdf",
+      }],
+    }, {
+      type: "object",
+      properties: {
+        attachments: {
+          type: "array",
+          "x-input-type": "files",
+          items: { type: ["string", "object"] },
+        },
+      },
+    }, "run_1")).resolves.toEqual({
+      attachments: [{
+        fileId: "provider-file-id",
+        fileName: "andresimoes-jr-backend.pdf",
+        mimeType: "application/pdf",
+        content: Buffer.from("pdf-content"),
+      }],
+    });
+  });
+
+  it("does not guess between ambiguous run artifacts", async () => {
+    const { service } = await fixture();
+    for (const name of ["first.pdf", "second.pdf"]) {
+      await service.captureResult({
+        profileId: "profile_1",
+        runId: "run_1",
+        toolName: "external_download",
+        value: { data: Buffer.from(name), name, mimeType: "application/pdf" },
+      });
+    }
+    const resolver = new AgentArtifactArgumentResolver(service);
+    const input = { files: [{ fileName: "unknown.pdf" }] };
+
+    await expect(resolver.resolve("profile_1", input, {
+      type: "object",
+      properties: {
+        files: { type: "array", "x-fabric-artifact-input": true },
+      },
+    }, "run_1")).resolves.toEqual(input);
+  });
+
   it("rejects expired references and cleans their storage", async () => {
     const { service } = await fixture();
     const now = new Date("2026-01-01T00:00:00.000Z");
