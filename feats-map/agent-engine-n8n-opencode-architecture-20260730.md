@@ -108,7 +108,7 @@
 - [x] Avoid duplicate memory writes
 - [x] Add token-aware compaction
 - [x] Retain recent complete tool sequences
-- [ ] Repair trimmed orphan messages
+- [x] Repair trimmed orphan messages
 - [ ] Add memory tests
 
 ## Batch 10 — Recovery and Idempotency
