@@ -159,7 +159,7 @@ describe("advanceResumableMcpAgentLoop", () => {
   it("rejects a premature final answer and continues with the missing email tool", async () => {
     const decisions = [
       { mode: "chat", response: "O arquivo está pronto para envio." },
-      { mode: "tool", toolName: "gmail_send", objective: "Send the requested email" },
+      { mode: "chat", response: "O download foi concluído." },
       { action: "call", arguments: { to: "andre@example.com" } },
     ];
     const input = baseInput(decisions);

@@ -39,6 +39,14 @@ export interface WorkflowToolSchedulerOptions {
   retryBaseMs?: number;
   owner?: string;
   now?: () => Date;
+  resolveArguments?: (
+    request: AgentEngineToolRequest,
+    arguments_: Record<string, unknown>,
+  ) => Promise<Record<string, unknown>>;
+  transformOutput?: (
+    request: AgentEngineToolRequest,
+    output: unknown,
+  ) => Promise<unknown>;
 }
 
 export class WorkflowToolScheduler {
@@ -89,8 +97,14 @@ export class WorkflowToolScheduler {
 
     try {
       const target = this.resolver.resolve(executing.toolName);
-      const invoke = () => this.executor.execute(target, executing.arguments, signal);
-      const output = this.guard ? await this.guard.execute(executing, invoke) : await invoke();
+      const resolvedArguments = this.options.resolveArguments
+        ? await this.options.resolveArguments(executing, executing.arguments)
+        : executing.arguments;
+      const invoke = () => this.executor.execute(target, resolvedArguments, signal);
+      const rawOutput = this.guard ? await this.guard.execute(executing, invoke) : await invoke();
+      const output = this.options.transformOutput
+        ? await this.options.transformOutput(executing, rawOutput)
+        : rawOutput;
       const response = this.responses.create({
         id: `response_${randomUUID()}`,
         requestId: executing.id,

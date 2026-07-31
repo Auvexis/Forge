@@ -134,12 +134,11 @@ export async function advanceResumableMcpAgentLoop(input: {
         pendingTools,
       });
       if (decision.mode === "chat") {
-        throw new AgentRuntimeError(
-          `Agent attempted to finish before requested tools: ${pendingTools.join(", ")}`,
-          "AGENT_COMPLETION_PREMATURE",
-          "Agent tried to finish before completing every requested action",
-          409,
-        );
+        decision = {
+          mode: "tool",
+          toolName: pendingTools[0]!,
+          objective: `Complete the pending requested operation with ${pendingTools[0]}`,
+        };
       }
     }
   }

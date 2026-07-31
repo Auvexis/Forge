@@ -79,6 +79,7 @@ export interface AgentRunnerOptions {
   } | undefined;
   engineRequestDispatcherFactory?: (
     input: AgentRunInput,
+    artifacts?: AgentArtifactService,
   ) => {
     dispatch(request: AgentEngineToolRequest, signal?: AbortSignal): Promise<AgentEngineResponse>;
   };
@@ -537,7 +538,7 @@ export class AgentRunner {
         throw error;
       }
     }
-    const dispatcher = this.engineRequestDispatcherFactory?.(input.input) ?? {
+    const dispatcher = this.engineRequestDispatcherFactory?.(input.input, input.artifacts) ?? {
       dispatch: async (request: AgentEngineToolRequest): Promise<AgentEngineResponse> => {
         const result = await client.callTool({
           id: request.toolCallId,

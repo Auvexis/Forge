@@ -84,6 +84,36 @@ describe("WorkflowToolScheduler", () => {
     expect(execute).not.toHaveBeenCalled();
   });
 
+  it("resolves artifact arguments and persists transformed binary outputs", async () => {
+    const execute = vi.fn(async (_target, arguments_) => ({
+      download: { content: Buffer.from(String(arguments_.fileId)) },
+    }));
+    const scheduler = new WorkflowToolScheduler(
+      requests,
+      responses,
+      { resolve: (toolName) => ({ nodeId: "tool_1", toolName }) },
+      { execute },
+      undefined,
+      {
+        resolveArguments: async (_request, arguments_) => ({ ...arguments_, fileId: "resolved_file" }),
+        transformOutput: async () => ({ ref: "artifact://file_1", name: "cv.pdf", size: 10 }),
+      },
+    );
+
+    const response = await scheduler.dispatch(request());
+
+    expect(execute).toHaveBeenCalledWith(
+      expect.anything(),
+      { query: "backend", fileId: "resolved_file" },
+      undefined,
+    );
+    expect(response).toMatchObject({
+      status: "succeeded",
+      output: { ref: "artifact://file_1", name: "cv.pdf", size: 10 },
+    });
+    expect(responses.getByRequestId("request_1")).toEqual(response);
+  });
+
   function createScheduler(execute: (target: any, arguments_: any) => Promise<unknown>) {
     return new WorkflowToolScheduler(
       requests,

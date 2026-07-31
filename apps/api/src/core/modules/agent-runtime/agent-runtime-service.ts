@@ -31,7 +31,7 @@ const defaultRunner = new AgentRunner({
   sideEffectServiceFactory: () => new AgentSideEffectService(
     new AgentSideEffectRepository(WorkflowRepository.database()),
   ),
-  engineRequestDispatcherFactory: (input) => {
+  engineRequestDispatcherFactory: (input, artifacts) => {
     const workflow = WorkflowRepository.getWorkflowById(input.workflowId);
     if (!workflow) throw new Error(`Workflow not found: ${input.workflowId}`);
     const database = WorkflowRepository.database();
@@ -44,6 +44,20 @@ const defaultRunner = new AgentRunner({
         input.profileId,
         new AgentSideEffectService(new AgentSideEffectRepository(database)),
       ),
+      {
+        resolveArguments: async (_request, arguments_) => artifacts
+          ? await artifacts.resolveReferences(input.profileId, arguments_) as Record<string, unknown>
+          : arguments_,
+        transformOutput: async (request, output) => artifacts
+          ? await artifacts.captureResult({
+              profileId: input.profileId,
+              runId: request.runId,
+              actionId: request.actionId,
+              toolName: request.toolName,
+              value: output,
+            })
+          : output,
+      },
     );
   },
   sessionWriterFactory: (input, runId) => {
