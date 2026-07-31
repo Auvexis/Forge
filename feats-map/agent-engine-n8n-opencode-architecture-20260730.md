@@ -129,7 +129,7 @@
 - [x] Add fallback model policy
 - [x] Classify retryable model failures
 - [x] Add structured decision repair
-- [ ] Add empty-result recovery
+- [x] Add empty-result recovery
 - [ ] Add ambiguous-result selection
 - [ ] Add deterministic stop reasons
 - [ ] Add 1B–20B Ollama fixtures
