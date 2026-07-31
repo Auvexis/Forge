@@ -79,7 +79,7 @@
 ## Batch 7 — Durable Interactions
 
 - [x] Implement clarification requests
-- [ ] Implement selection requests
+- [x] Implement selection requests
 - [ ] Implement approval requests
 - [ ] Implement authentication requests
 - [ ] Implement permission requests
