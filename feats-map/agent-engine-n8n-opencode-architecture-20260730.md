@@ -190,15 +190,15 @@
 - [x] Test chat-only response
 - [x] Test Drive list-download-email
 - [x] Test Drive-download-YouTube
-- [ ] Test clarification continuation
-- [ ] Test approval continuation
-- [ ] Test tool failure and retry
-- [ ] Test model timeout and fallback
+- [x] Test clarification continuation
+- [x] Test approval continuation
+- [x] Test tool failure and retry
+- [x] Test model timeout and fallback
 - [x] Test cancellation
-- [ ] Test API restart mid-run
-- [ ] Test desktop restart mid-run
-- [ ] Test long-session compaction
-- [ ] Test concurrent sessions
+- [x] Test API restart mid-run
+- [x] Test desktop restart mid-run
+- [x] Test long-session compaction
+- [x] Test concurrent sessions
 - [ ] Run API test suite
 - [ ] Run client test suite
 - [ ] Run desktop test suite

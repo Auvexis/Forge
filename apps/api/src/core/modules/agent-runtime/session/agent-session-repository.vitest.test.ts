@@ -68,6 +68,48 @@ describe("AgentSessionRepository", () => {
     })).toThrow(/revision conflict/);
   });
 
+  it("isolates interleaved mutations from concurrent sessions", async () => {
+    const repository = await setup();
+    const first = repository.createSession({
+      id: "session_a",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "trigger_1",
+      title: "A",
+    });
+    const second = repository.createSession({
+      id: "session_b",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "trigger_1",
+      title: "B",
+    });
+
+    repository.createTurn({
+      id: "turn_a",
+      profileId: "profile_1",
+      sessionId: first.id,
+      state: "running",
+      expectedRevision: first.revision,
+    });
+    repository.createTurn({
+      id: "turn_b",
+      profileId: "profile_1",
+      sessionId: second.id,
+      state: "running",
+      expectedRevision: second.revision,
+    });
+
+    expect(repository.getSnapshot({
+      profileId: "profile_1",
+      sessionId: first.id,
+    }).activeTurn?.id).toBe("turn_a");
+    expect(repository.getSnapshot({
+      profileId: "profile_1",
+      sessionId: second.id,
+    }).activeTurn?.id).toBe("turn_b");
+  });
+
   it("hydrates paginated messages and a recoverable snapshot", async () => {
     const repository = await setup();
     repository.createSession({
