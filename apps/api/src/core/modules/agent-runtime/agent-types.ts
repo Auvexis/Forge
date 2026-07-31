@@ -143,6 +143,7 @@ export interface AgentRunInput {
   abortSignal?: AbortSignal;
   userMessage: string;
   contextMessages?: AgentModelMessage[];
+  runScratchpadMessages?: AgentModelMessage[];
   triggerPayload: Record<string, any>;
   skipFinalResponseAfterToolUse?: boolean;
   agent: AiAgentNodeConfig;

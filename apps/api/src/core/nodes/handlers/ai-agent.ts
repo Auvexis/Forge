@@ -30,6 +30,9 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
       ? toContextMessages(triggerPayload.messages ?? triggerPayload.history ?? triggerPayload.contextMessages) ?? []
       : []),
   ];
+  const runScratchpadMessages = usesShortTermMemory(memoryConfig) && sessionId
+    ? toContextMessages(triggerPayload.runScratchpadMessages) ?? []
+    : [];
   const profileId = String(triggerPayload.profileId ?? triggerPayload.profile_id ?? "default");
   const runInput: AgentRunInput = {
     profileId,
@@ -40,6 +43,9 @@ export const aiAgentNodeHandler = createNodeHandler<AiAgentNode>("ai-agent", asy
     userId: optionalString(triggerPayload.userId ?? triggerPayload.user_id),
     userMessage: toUserMessage(input.node, input.context, triggerPayload),
     contextMessages: contextMessages.length > 0 ? contextMessages : undefined,
+    runScratchpadMessages: runScratchpadMessages.length > 0
+      ? runScratchpadMessages
+      : undefined,
     triggerPayload,
     skipFinalResponseAfterToolUse: triggerPayload.skipFinalResponseAfterToolUse === true,
     approvalToken: optionalString(triggerPayload.approvalToken ?? triggerPayload.approval_token),

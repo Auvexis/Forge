@@ -115,6 +115,7 @@ export class ChatTriggerService {
       userId: input.userId,
       message,
       messages: context.messages,
+      runScratchpadMessages: context.runScratchpadMessages,
       metadata: input.metadata ?? {},
     };
     const execution = await this.workflowEngine.executeWorkflowFromTrigger(

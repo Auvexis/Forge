@@ -8,6 +8,7 @@ import { sanitizeAgentToolValue } from "../loop/agent-tool-result-sanitizer.ts";
 
 export interface AgentContextProjection {
   messages: AgentModelMessage[];
+  runScratchpadMessages: AgentModelMessage[];
   prefixHash: string;
   estimatedChars: number;
   compactedTurnCount: number;
@@ -45,7 +46,15 @@ export class AgentContextEngine {
       return structuredClone(cached);
     }
 
-    const turns = groupByTurn(snapshot.messages)
+    const grouped = groupByTurn(snapshot.messages);
+    const activeTurnId = snapshot.activeTurn?.id;
+    const runScratchpadMessages = activeTurnId
+      ? grouped
+        .filter((entries) => entries[0]?.message.turnId === activeTurnId)
+        .flatMap((entries) => projectTurn(entries, maxToolResultChars))
+      : [];
+    const turns = grouped
+      .filter((entries) => entries[0]?.message.turnId !== activeTurnId)
       .map((entries) => projectTurn(entries, maxToolResultChars));
     const retained: AgentModelMessage[][] = [];
     const compacted: AgentModelMessage[][] = [];
@@ -66,6 +75,7 @@ export class AgentContextEngine {
     const messages = [...summary, ...retained.flat()];
     const projection: AgentContextProjection = {
       messages,
+      runScratchpadMessages,
       prefixHash: createHash("sha256")
         .update(JSON.stringify(summary.length > 0 ? summary : messages.slice(0, -1)))
         .digest("hex"),

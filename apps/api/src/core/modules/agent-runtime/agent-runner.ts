@@ -41,8 +41,7 @@ import { routePendingInteractionReply } from "./interactions/pending-interaction
 import type { AgentArtifactService } from "./artifacts/agent-artifact-service.ts";
 import type { AgentSideEffectService } from "./idempotency/agent-side-effect-service.ts";
 import {
-  compactAgentConversation,
-  conversationBudgetChars,
+  compactAgentConversationByTokens,
 } from "./conversation/agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
 import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
@@ -237,13 +236,16 @@ export class AgentRunner {
         userId: input.userId,
       });
       const memoryMessages = await this.readMemory(input, longTermMemory, namespace);
-      const contextMessages = compactAgentConversation(
+      const contextMessages = compactAgentConversationByTokens(
         [
           ...memoryMessages,
           ...(validated.contextMessages ?? []),
           ...pendingContextMessages(pending, pendingReply),
         ],
-        conversationBudgetChars(validated.model.numCtx),
+        {
+          contextWindowTokens: validated.model.numCtx,
+          reservedOutputTokens: validated.model.maxTokens,
+        },
       );
       const result = await this.runMcpRuntime({
         input,
@@ -262,7 +264,9 @@ export class AgentRunner {
         commitmentPart: sessionExecution?.commitmentPart,
       });
 
-      await this.writeMemory(input, longTermMemory, namespace, result.output);
+      if (result.status === "success") {
+        await this.writeMemory(input, longTermMemory, namespace, result.output, runId);
+      }
       if (result.status === "waiting-user") state?.markRunWaitingUser();
       else state?.markRunCompleted();
       logger.info("run.completed", {
@@ -401,12 +405,13 @@ export class AgentRunner {
     memory: AgentRunInput["memory"],
     namespace: string | null,
     output: AgentRunResult["output"],
+    runId: string,
   ): Promise<void> {
     if (!memory?.writeEnabled || !namespace || !isPluginMemoryConfig(memory)) return Promise.resolve();
 
     assertMemoryWriteAllowed({ memory, namespace, value: output });
     const putInput = {
-      id: `memory_${randomUUID()}`,
+      id: `memory_${runId}`,
       profileId: input.profileId,
       namespace,
       key: `agent:${input.nodeId}:last-output`,
@@ -576,7 +581,9 @@ export class AgentRunner {
     };
     const toolParts = new Map<string, AgentToolPart>();
     const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
-    let loopState = createResumableMcpLoopState(input.contextMessages);
+    let loopState = createResumableMcpLoopState(
+      input.input.runScratchpadMessages ?? [],
+    );
     let response: AgentEngineResponse | undefined;
     let result: AgentRunResult;
     let interactionStep: Extract<ResumableMcpLoopStep, { type: "interaction" }> | undefined;
@@ -673,8 +680,9 @@ export class AgentRunner {
     if (result.status === "waiting-user") {
       if (!interactionStep) throw new Error("Waiting agent result is missing its interaction");
       const question = waitingQuestion(result.output);
+      const interactionId = `interaction_${randomUUID()}`;
       input.state?.createPendingInteraction({
-        id: `interaction_${randomUUID()}`,
+        id: interactionId,
         kind: interactionStep.kind,
         question,
         context: {
@@ -689,6 +697,7 @@ export class AgentRunner {
         input.sessionWriter.appendInteraction({
           turnId: input.sessionTurnId,
           messageId: message.id,
+          interactionId,
           kind: interactionStep.kind,
           question,
         });
@@ -713,8 +722,7 @@ function persistAgentText(
   state: "completed" | "waiting-user",
 ): void {
   if (!writer || !turnId || !text.trim()) return;
-  const message = writer.appendMessage(turnId, "assistant");
-  writer.appendText({ turnId, messageId: message.id, text: text.trim() });
+  writer.appendFinalTextOnce({ turnId, text });
   writer.updateTurn(turnId, state);
 }
 
