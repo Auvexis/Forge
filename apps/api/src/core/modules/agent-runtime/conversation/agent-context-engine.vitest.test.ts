@@ -63,6 +63,35 @@ describe("AgentContextEngine", () => {
       reservedOutputTokens: 2_000,
     })).toBe(24_000);
   });
+
+  it("separates active run scratchpad from completed chat history", () => {
+    const snapshot = makeSnapshot([
+      message("old_user", "turn_old", "user", 1, [text("old_user", "turn_old", "Earlier")]),
+      message("active_assistant", "turn_active", "assistant", 2, [
+        tool("active_assistant", "turn_active", "call_active", "drive_list", []),
+      ]),
+    ]);
+    snapshot.activeTurn = {
+      id: "turn_active",
+      sessionId: "session_1",
+      sequence: 2,
+      state: "waiting-user",
+      createdAt: now,
+      updatedAt: now,
+    };
+    snapshot.revision = 42;
+
+    const projection = new AgentContextEngine().build(snapshot);
+
+    expect(JSON.stringify(projection.messages)).not.toContain("call_active");
+    expect(projection.runScratchpadMessages).toEqual([
+      expect.objectContaining({
+        role: "assistant",
+        tool_calls: [expect.objectContaining({ id: "call_active" })],
+      }),
+      expect.objectContaining({ role: "tool", tool_call_id: "call_active" }),
+    ]);
+  });
 });
 
 const now = "2026-07-30T00:00:00.000Z";

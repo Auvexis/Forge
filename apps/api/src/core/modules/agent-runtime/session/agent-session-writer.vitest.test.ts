@@ -95,4 +95,32 @@ describe("AgentSessionWriter", () => {
       response: { file: "X.mp4" },
     });
   });
+
+  it("persists a final assistant message only once per turn", async () => {
+    db = new Database(":memory:");
+    db.pragma("foreign_keys = ON");
+    await createLegacyChat(db);
+    await createRuns(db);
+    await createParts(db);
+    await replaceChat(db);
+    const repository = new AgentSessionRepository(db);
+    const session = repository.createSession({
+      id: "session_1",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "trigger_1",
+      title: "Session",
+    });
+    const writer = new AgentSessionWriter(repository, "profile_1", "session_1", session.revision);
+    const turn = writer.createTurn();
+    const first = writer.appendFinalTextOnce({ turnId: turn.id, text: "Concluído." });
+    const duplicate = writer.appendFinalTextOnce({ turnId: turn.id, text: " Concluído. " });
+
+    expect(duplicate.id).toBe(first.id);
+    const texts = repository.getSnapshot({
+      profileId: "profile_1",
+      sessionId: "session_1",
+    }).messages.flatMap((entry) => entry.parts).filter((part) => part.type === "text");
+    expect(texts).toHaveLength(1);
+  });
 });

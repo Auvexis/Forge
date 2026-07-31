@@ -109,7 +109,7 @@
 - [x] Add token-aware compaction
 - [x] Retain recent complete tool sequences
 - [x] Repair trimmed orphan messages
-- [ ] Add memory tests
+- [x] Add memory tests
 
 ## Batch 10 — Recovery and Idempotency
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   compactAgentConversation,
+  compactAgentConversationByTokens,
   conversationBudgetChars,
 } from "./agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
@@ -64,5 +65,33 @@ describe("compactAgentConversation", () => {
     expect(conversationBudgetChars(1_024)).toBe(4_000);
     expect(conversationBudgetChars(8_192)).toBe(12_288);
     expect(conversationBudgetChars(100_000)).toBe(32_000);
+  });
+
+  it("uses token-aware budgets and retains the newest complete tool sequence", () => {
+    const recent: AgentModelMessage[] = [
+      {
+        role: "assistant",
+        content: "",
+        tool_calls: [{ id: "call_recent", name: "email_send", arguments: { to: "a@b.com" } }],
+      },
+      {
+        role: "tool",
+        tool_call_id: "call_recent",
+        name: "email_send",
+        content: "{\"sent\":true}",
+      },
+      { role: "assistant", content: "Sent." },
+    ];
+    const compacted = compactAgentConversationByTokens([
+      { role: "user", content: "old ".repeat(2_000) },
+      { role: "assistant", content: "", tool_calls: [{ id: "orphan", name: "old", arguments: {} }] },
+      ...recent,
+    ], {
+      contextWindowTokens: 1_024,
+      reservedOutputTokens: 512,
+    });
+
+    expect(compacted).toEqual(expect.arrayContaining(recent));
+    expect(JSON.stringify(compacted)).not.toContain("\"orphan\"");
   });
 });
