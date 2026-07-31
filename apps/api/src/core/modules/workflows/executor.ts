@@ -111,6 +111,27 @@ function createNodeServices(
 }
 
 export const WorkflowEngine = {
+  executeAgentToolNode: async (
+    workflow: WorkflowItem,
+    nodeId: string,
+    arguments_: Record<string, unknown>,
+    executionId: string,
+    signal?: AbortSignal,
+  ): Promise<unknown> => {
+    void executionId;
+    if (signal?.aborted) throw signal.reason ?? new Error("Agent tool execution cancelled");
+    const node = workflow.nodes[nodeId];
+    if (!node || node.type !== "ai-tool" || node.disabled) {
+      throw new Error(`Agent tool node "${nodeId}" is unavailable`);
+    }
+    const result = await PluginExecutor.execute(node.pluginId, node.methodId, {
+      ...arguments_,
+      ...(node.inputDefaults ?? {}),
+    });
+    if (signal?.aborted) throw signal.reason ?? new Error("Agent tool execution cancelled");
+    return result;
+  },
+
   executeWorkflow: async (
     workflow: WorkflowItem,
     triggerPayload: any,

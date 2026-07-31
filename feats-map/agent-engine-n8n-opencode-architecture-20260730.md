@@ -34,7 +34,7 @@
 - [x] Create workflow tool scheduler
 - [x] Resolve connected Tool Nodes
 - [x] Dispatch one durable tool request
-- [ ] Execute through workflow engine
+- [x] Execute through workflow engine
 - [ ] Persist tool result before resume
 - [ ] Persist tool error before resume
 - [ ] Add cancellation propagation
