@@ -92,7 +92,7 @@
 
 - [x] Define provider adapter interface
 - [x] Preserve opaque continuation metadata
-- [ ] Implement Ollama adapter
+- [x] Implement Ollama adapter
 - [ ] Implement OpenAI adapter
 - [ ] Implement Anthropic adapter
 - [ ] Implement Gemini adapter
