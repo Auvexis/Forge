@@ -353,6 +353,15 @@ export class AgentRunner {
       }
       state?.markRunFailed();
       if (sessionExecution) {
+        const message = sessionExecution.writer.appendMessage(
+          sessionExecution.turnId,
+          "assistant",
+        );
+        sessionExecution.writer.appendError({
+          turnId: sessionExecution.turnId,
+          messageId: message.id,
+          error: toPersistedAgentError(error),
+        });
         const snapshot = sessionExecution.writer.currentRevision;
         if (snapshot > 0) {
           sessionExecution.writer.updateTurn(sessionExecution.turnId, "failed");
@@ -1012,6 +1021,17 @@ function serializeErrorPayload(error: unknown): Record<string, string> {
     return { code: error.code, message: error.publicMessage };
   }
   return { code: "AGENT_RUN_FAILED", message: "Agent execution failed" };
+}
+
+function toPersistedAgentError(error: unknown): AgentMcpError {
+  const payload = serializeErrorPayload(error);
+  return {
+    code: payload.code ?? "AGENT_RUN_FAILED",
+    category: "internal",
+    message: payload.message ?? "Agent execution failed",
+    retryable: false,
+    userActionRequired: false,
+  };
 }
 
 function safeErrorMessage(error: unknown): string {

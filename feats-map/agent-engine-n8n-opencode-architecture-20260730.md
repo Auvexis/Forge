@@ -142,7 +142,7 @@
 - [ ] Show user messages optimistically
 - [x] Show steps when requested
 - [ ] Update each step independently
-- [ ] Persist errors as message parts
+- [x] Persist errors as message parts
 - [ ] Route operational errors to notifications
 - [ ] Add cancel and retry controls
 - [ ] Add interface contract tests

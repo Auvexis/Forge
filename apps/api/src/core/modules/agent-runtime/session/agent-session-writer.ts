@@ -3,6 +3,7 @@ import type { AgentMcpError } from "../contracts/agent-domain-contracts.ts";
 import type {
   AgentMessage,
   AgentCommitmentPart,
+  AgentErrorPart,
   AgentTextPart,
   AgentInteractionPart,
   AgentToolPart,
@@ -91,6 +92,32 @@ export class AgentSessionWriter {
       expectedRevision: this.revision,
       part,
     }) as AgentTextPart;
+    this.revision += 1;
+    return saved;
+  }
+
+  appendError(input: {
+    turnId: string;
+    messageId: string;
+    error: AgentMcpError;
+  }): AgentErrorPart {
+    const now = this.now();
+    const part: AgentErrorPart = {
+      id: `part_${randomUUID()}`,
+      sessionId: this.sessionId,
+      turnId: input.turnId,
+      messageId: input.messageId,
+      type: "error",
+      sequence: this.nextPartSequence(input.messageId),
+      error: structuredClone(input.error),
+      createdAt: now,
+      updatedAt: now,
+    };
+    const saved = this.repository.appendPart({
+      profileId: this.profileId,
+      expectedRevision: this.revision,
+      part,
+    }) as AgentErrorPart;
     this.revision += 1;
     return saved;
   }
