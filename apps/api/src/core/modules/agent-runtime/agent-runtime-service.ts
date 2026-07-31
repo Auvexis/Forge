@@ -17,6 +17,9 @@ import { AgentEngineResponseRepository } from "./engine-protocol/agent-engine-re
 import { ConnectedToolNodeResolver } from "./execution/connected-tool-node-resolver.ts";
 import { WorkflowEngineToolExecutor } from "./execution/workflow-engine-tool-executor.ts";
 import { WorkflowToolScheduler } from "./execution/workflow-tool-scheduler.ts";
+import { SideEffectExecutionGuard } from "./execution/side-effect-execution-guard.ts";
+import { AgentPendingInteractionRepository } from "./persistence/agent-pending-interaction-repository.ts";
+import { AgentEngineRecoveryService } from "./recovery/agent-engine-recovery-service.ts";
 
 const defaultRunner = new AgentRunner({
   stateStoreFactory: () => new AgentRuntimeStateStore(WorkflowRepository.database()),
@@ -36,6 +39,10 @@ const defaultRunner = new AgentRunner({
       new AgentEngineResponseRepository(database),
       new ConnectedToolNodeResolver(workflow, input.nodeId),
       new WorkflowEngineToolExecutor(workflow, input.executionId),
+      new SideEffectExecutionGuard(
+        input.profileId,
+        new AgentSideEffectService(new AgentSideEffectRepository(database)),
+      ),
     );
   },
   sessionWriterFactory: (input, runId) => {
@@ -87,5 +94,39 @@ export const AgentRuntimeService = {
 
   listTools(): FabricAgentToolDefinition[] {
     return defaultRunner.listTools();
+  },
+
+  async recoverPendingEngineWork() {
+    const database = WorkflowRepository.database();
+    const requests = new AgentEngineRequestRepository(database);
+    const recovery = new AgentEngineRecoveryService(
+      requests,
+      new AgentPendingInteractionRepository(database),
+      (runId) => {
+        const run = database.prepare(`
+          SELECT profile_id, workflow_id, execution_id, node_id
+          FROM agent_runs WHERE id = ?
+        `).get(runId) as {
+          profile_id: string;
+          workflow_id: string;
+          execution_id: string;
+          node_id: string;
+        } | undefined;
+        if (!run) throw new Error(`Agent run not found during recovery: ${runId}`);
+        const workflow = WorkflowRepository.getWorkflowById(run.workflow_id);
+        if (!workflow) throw new Error(`Workflow not found during recovery: ${run.workflow_id}`);
+        return new WorkflowToolScheduler(
+          requests,
+          new AgentEngineResponseRepository(database),
+          new ConnectedToolNodeResolver(workflow, run.node_id),
+          new WorkflowEngineToolExecutor(workflow, run.execution_id),
+          new SideEffectExecutionGuard(
+            run.profile_id,
+            new AgentSideEffectService(new AgentSideEffectRepository(database)),
+          ),
+        );
+      },
+    );
+    return recovery.recover();
   },
 };

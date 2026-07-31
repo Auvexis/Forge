@@ -69,6 +69,15 @@ export class AgentPendingInteractionRepository {
     return row ? toInteraction(row) : null;
   }
 
+  listPending(limit = 100): AgentPendingInteraction[] {
+    return (this.db.prepare(`
+      SELECT * FROM agent_pending_interactions
+      WHERE status = 'pending'
+      ORDER BY updated_at ASC
+      LIMIT ?
+    `).all(limit) as PendingInteractionRow[]).map(toInteraction);
+  }
+
   resolve(input: {
     profileId: string;
     id: string;

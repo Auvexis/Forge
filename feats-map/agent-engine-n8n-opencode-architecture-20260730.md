@@ -113,7 +113,7 @@
 
 ## Batch 10 — Recovery and Idempotency
 
-- [ ] Recover queued requests after restart
+- [x] Recover queued requests after restart
 - [ ] Recover running requests after restart
 - [ ] Recover waiting interactions after restart
 - [ ] Reconcile completed side effects

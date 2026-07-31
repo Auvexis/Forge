@@ -4,7 +4,8 @@ export type AgentEngineRequestStatus =
   | "executing"
   | "completed"
   | "failed"
-  | "cancelled";
+  | "cancelled"
+  | "dead-letter";
 
 export interface AgentEngineToolRequest {
   kind: "tool";
@@ -22,6 +23,12 @@ export interface AgentEngineToolRequest {
   providerMetadata?: AgentProviderContinuationMetadata;
   createdAt: string;
   updatedAt: string;
+  attempt?: number;
+  maxAttempts?: number;
+  leaseOwner?: string;
+  leaseExpiresAt?: string;
+  nextRetryAt?: string;
+  lastError?: string;
 }
 
 export type AgentEngineRequest = AgentEngineToolRequest;

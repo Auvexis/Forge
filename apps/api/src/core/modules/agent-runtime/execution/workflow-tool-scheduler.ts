@@ -27,12 +27,28 @@ export interface AgentWorkflowToolExecutor {
   ): Promise<unknown>;
 }
 
+export interface AgentWorkflowExecutionGuard {
+  execute(
+    request: AgentEngineToolRequest,
+    invoke: () => Promise<unknown>,
+  ): Promise<unknown>;
+}
+
+export interface WorkflowToolSchedulerOptions {
+  leaseMs?: number;
+  retryBaseMs?: number;
+  owner?: string;
+  now?: () => Date;
+}
+
 export class WorkflowToolScheduler {
   constructor(
     private readonly requests: AgentEngineRequestRepository,
     private readonly responses: AgentEngineResponseRepository,
     private readonly resolver: AgentWorkflowToolResolver,
     private readonly executor: AgentWorkflowToolExecutor,
+    private readonly guard?: AgentWorkflowExecutionGuard,
+    private readonly options: WorkflowToolSchedulerOptions = {},
   ) {}
 
   enqueue(request: AgentEngineToolRequest): AgentEngineToolRequest {
@@ -52,8 +68,17 @@ export class WorkflowToolScheduler {
     if (existingResponse) return existingResponse;
     if (signal?.aborted) return this.cancel(queued, signal.reason);
 
-    const leased = queued.status === "queued"
-      ? this.requests.updateStatus(queued.id, "leased")
+    const owner = this.options.owner ?? `scheduler_${randomUUID()}`;
+    const now = this.options.now?.() ?? new Date();
+    const leased = queued.status === "queued" ||
+        ((queued.status === "leased" || queued.status === "executing") &&
+          Boolean(queued.leaseExpiresAt) && queued.leaseExpiresAt! <= now.toISOString())
+      ? this.requests.claimLease({
+          id: queued.id,
+          owner,
+          now,
+          leaseMs: this.options.leaseMs ?? 30_000,
+        })
       : queued;
     const executing = leased.status === "leased"
       ? this.requests.updateStatus(leased.id, "executing")
@@ -64,7 +89,8 @@ export class WorkflowToolScheduler {
 
     try {
       const target = this.resolver.resolve(executing.toolName);
-      const output = await this.executor.execute(target, executing.arguments, signal);
+      const invoke = () => this.executor.execute(target, executing.arguments, signal);
+      const output = this.guard ? await this.guard.execute(executing, invoke) : await invoke();
       const response = this.responses.create({
         id: `response_${randomUUID()}`,
         requestId: executing.id,
@@ -78,16 +104,35 @@ export class WorkflowToolScheduler {
       return response;
     } catch (cause) {
       if (signal?.aborted) return this.cancel(executing, signal.reason ?? cause);
+      const error = toMcpError(cause);
+      if (error.retryable) {
+        const attempt = executing.attempt ?? 1;
+        const delayMs = Math.min(
+          (this.options.retryBaseMs ?? 250) * 2 ** Math.max(0, attempt - 1),
+          5_000,
+        );
+        const retried = this.requests.scheduleRetry({
+          id: executing.id,
+          owner,
+          nextRetryAt: new Date((this.options.now?.() ?? new Date()).getTime() + delayMs),
+          error: error.message,
+        });
+        if (retried.status !== "dead-letter") {
+          if (delayMs > 0) await delay(delayMs, signal);
+          return this.dispatch(retried, signal);
+        }
+      }
       const response = this.responses.create({
         id: `response_${randomUUID()}`,
         requestId: executing.id,
         runId: executing.runId,
         toolCallId: executing.toolCallId,
         status: "failed",
-        error: toMcpError(cause),
+        error,
         createdAt: new Date().toISOString(),
       });
-      this.requests.updateStatus(executing.id, "failed");
+      const current = this.requests.getById(executing.id)!;
+      if (current.status !== "dead-letter") this.requests.updateStatus(executing.id, "failed");
       return response;
     }
   }
@@ -110,6 +155,17 @@ export class WorkflowToolScheduler {
   }
 }
 
+function delay(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(resolve, ms);
+    timeout.unref?.();
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timeout);
+      reject(signal.reason ?? new Error("Cancelled"));
+    }, { once: true });
+  });
+}
+
 function toMcpError(cause: unknown): AgentMcpError {
   if (cause instanceof AgentToolApprovalRequiredError) {
     return {
@@ -130,7 +186,8 @@ function toMcpError(cause: unknown): AgentMcpError {
       retryable: cause.statusCode >= 500,
       userActionRequired: category === "authentication" ||
         category === "permission" ||
-        category === "ambiguous",
+        category === "ambiguous" ||
+        category === "policy",
     };
   }
   return {
@@ -149,6 +206,7 @@ function errorCategory(
   if (/AUTH|CREDENTIAL|OAUTH/.test(code)) return "authentication";
   if (/PERMISSION|FORBIDDEN/.test(code)) return "permission";
   if (/AMBIGUOUS|MULTIPLE_MATCH/.test(code)) return "ambiguous";
+  if (/POLICY|OUTCOME_UNKNOWN/.test(code)) return "policy";
   if (/NOT_FOUND/.test(code)) return "not-found";
   return statusCode >= 500 ? "temporary" : "validation";
 }

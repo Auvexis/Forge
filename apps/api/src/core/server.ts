@@ -23,6 +23,7 @@ import { fabricHomePaths } from "./runtime/fabric-home.ts";
 import { formatRuntimeDiagnostics } from "./runtime/runtime-diagnostics.ts";
 import { activeProfileRuntime } from "./profiles/active-profile-runtime.ts";
 import { PublicUrlService } from "./modules/app/public-url-service.ts";
+import { AgentRuntimeService } from "./modules/agent-runtime/agent-runtime-service.ts";
 
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 23801;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:23802";
@@ -69,6 +70,12 @@ for (const line of formatRuntimeDiagnostics(fabricHomePaths)) {
 }
 
 await activeProfileRuntime.start();
+const agentRecovery = await AgentRuntimeService.recoverPendingEngineWork();
+console.log("[FABRIC | AGENT] recovery.completed", {
+  recoveredRequests: agentRecovery.recoveredRequestIds.length,
+  failedRequests: agentRecovery.failedRequestIds.length,
+  waitingInteractions: agentRecovery.waitingInteractions.length,
+});
 PublicUrlService.applyPendingOnStartup();
 
 fastify.register(rootRoutes);

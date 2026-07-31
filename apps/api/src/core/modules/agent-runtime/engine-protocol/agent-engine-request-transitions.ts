@@ -1,12 +1,13 @@
 import type { AgentEngineRequestStatus } from "./agent-engine-request.ts";
 
 const TRANSITIONS: Record<AgentEngineRequestStatus, ReadonlySet<AgentEngineRequestStatus>> = {
-  queued: new Set(["leased", "cancelled"]),
-  leased: new Set(["executing", "queued", "cancelled"]),
-  executing: new Set(["completed", "failed", "queued", "cancelled"]),
+  queued: new Set(["leased", "cancelled", "dead-letter"]),
+  leased: new Set(["executing", "queued", "cancelled", "dead-letter"]),
+  executing: new Set(["completed", "failed", "queued", "cancelled", "dead-letter"]),
   completed: new Set(),
   failed: new Set(),
   cancelled: new Set(),
+  "dead-letter": new Set(),
 };
 
 export function assertAgentEngineRequestTransition(
