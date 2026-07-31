@@ -94,7 +94,7 @@
 - [x] Preserve opaque continuation metadata
 - [x] Implement Ollama adapter
 - [x] Implement OpenAI adapter
-- [ ] Implement Anthropic adapter
+- [x] Implement Anthropic adapter
 - [ ] Implement Gemini adapter
 - [ ] Implement DeepSeek adapter
 - [ ] Keep reasoning metadata private
