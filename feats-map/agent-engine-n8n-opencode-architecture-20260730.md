@@ -42,7 +42,7 @@
 
 ## Batch 4 — Resumable MCP Loop
 
-- [ ] Split decision from execution
+- [x] Split decision from execution
 - [ ] Return engine requests from the loop
 - [ ] Resume from engine responses
 - [ ] Preserve one tool per iteration
