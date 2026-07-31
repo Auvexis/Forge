@@ -120,7 +120,7 @@
 - [x] Prevent duplicate side effects
 - [x] Add lease expiration
 - [x] Add retry policy
-- [ ] Add dead-letter state
+- [x] Add dead-letter state
 - [ ] Add restart matrix tests
 
 ## Batch 11 — Model Resilience
