@@ -107,7 +107,7 @@
 - [x] Save final conversation turns
 - [x] Avoid duplicate memory writes
 - [x] Add token-aware compaction
-- [ ] Retain recent complete tool sequences
+- [x] Retain recent complete tool sequences
 - [ ] Repair trimmed orphan messages
 - [ ] Add memory tests
 
