@@ -126,7 +126,7 @@
 ## Batch 11 — Model Resilience
 
 - [x] Add primary model policy
-- [ ] Add fallback model policy
+- [x] Add fallback model policy
 - [ ] Classify retryable model failures
 - [ ] Add structured decision repair
 - [ ] Add empty-result recovery
