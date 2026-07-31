@@ -33,10 +33,23 @@ export class AgentEngineRequestRepository {
     return this.getById(request.id)!;
   }
 
+  createOrGet(request: AgentEngineRequest): AgentEngineRequest {
+    const existing = this.getByIdempotencyKey(request.runId, request.idempotencyKey);
+    return existing ?? this.create(request);
+  }
+
   getById(id: string): AgentEngineRequest | null {
     const row = this.db.prepare(`
       SELECT * FROM agent_engine_requests WHERE id = ?
     `).get(id) as AgentEngineRequestRow | undefined;
+    return row ? toRequest(row) : null;
+  }
+
+  getByIdempotencyKey(runId: string, idempotencyKey: string): AgentEngineRequest | null {
+    const row = this.db.prepare(`
+      SELECT * FROM agent_engine_requests
+      WHERE run_id = ? AND idempotency_key = ?
+    `).get(runId, idempotencyKey) as AgentEngineRequestRow | undefined;
     return row ? toRequest(row) : null;
   }
 

@@ -24,7 +24,7 @@
 - [x] Add engine request persistence
 - [x] Add engine response persistence
 - [x] Add continuation persistence
-- [ ] Add idempotency keys
+- [x] Add idempotency keys
 - [ ] Add request lifecycle transitions
 - [ ] Add response correlation indexes
 - [ ] Add atomic revision updates
