@@ -187,14 +187,14 @@
 
 ## Batch 16 — End-to-End Validation
 
-- [ ] Test chat-only response
-- [ ] Test Drive list-download-email
-- [ ] Test Drive-download-YouTube
+- [x] Test chat-only response
+- [x] Test Drive list-download-email
+- [x] Test Drive-download-YouTube
 - [ ] Test clarification continuation
 - [ ] Test approval continuation
 - [ ] Test tool failure and retry
 - [ ] Test model timeout and fallback
-- [ ] Test cancellation
+- [x] Test cancellation
 - [ ] Test API restart mid-run
 - [ ] Test desktop restart mid-run
 - [ ] Test long-session compaction
