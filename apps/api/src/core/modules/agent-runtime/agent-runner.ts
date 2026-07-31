@@ -164,6 +164,15 @@ export class AgentRunner {
       }
       state?.resolvePendingInteraction(input.profileId, pending.id, reply);
       state?.markRunRunning();
+      if (pending.kind === "approval" && reply.type === "confirm" && reply.confirmed) {
+        input = {
+          ...input,
+          approvalToken: "approved",
+          ...(typeof pending.context.toolName === "string"
+            ? { approvalToolName: pending.context.toolName }
+            : {}),
+        };
+      }
       if (sessionExecution?.pendingInteraction) {
         sessionExecution.writer.resolveInteraction(sessionExecution.pendingInteraction, reply);
         sessionExecution.writer.updateTurn(sessionExecution.turnId, "running");

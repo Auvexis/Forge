@@ -238,6 +238,7 @@ function consumeResponse(
           source: "tool-error",
           requestId: response.requestId,
           toolCallId: response.toolCallId,
+          toolName: pending.toolName,
           error: response.error,
         },
       },
