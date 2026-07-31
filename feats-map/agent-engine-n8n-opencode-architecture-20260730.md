@@ -51,7 +51,7 @@
 - [x] Add repetition guard
 - [x] Add completion guard
 - [x] Remove inline tool execution
-- [ ] Add loop tests
+- [x] Add loop tests
 
 ## Batch 5 — Progressive Tool Discovery
 
