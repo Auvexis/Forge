@@ -3,6 +3,7 @@ import type {
   AgentEngineRequest,
   AgentEngineRequestStatus,
 } from "./agent-engine-request.ts";
+import { assertAgentEngineRequestTransition } from "./agent-engine-request-transitions.ts";
 
 export class AgentEngineRequestRepository {
   constructor(private readonly db: Database.Database) {}
@@ -59,6 +60,22 @@ export class AgentEngineRequestRepository {
       WHERE run_id = ?
       ORDER BY iteration ASC, created_at ASC
     `).all(runId) as AgentEngineRequestRow[]).map(toRequest);
+  }
+
+  updateStatus(id: string, status: AgentEngineRequestStatus): AgentEngineRequest {
+    const current = this.getById(id);
+    if (!current) throw new Error(`Agent engine request not found: ${id}`);
+    assertAgentEngineRequestTransition(current.status, status);
+    const now = new Date().toISOString();
+    const result = this.db.prepare(`
+      UPDATE agent_engine_requests
+      SET status = ?, updated_at = ?
+      WHERE id = ? AND status = ?
+    `).run(status, now, id, current.status);
+    if (result.changes !== 1) {
+      throw new Error(`Concurrent agent engine request update rejected: ${id}`);
+    }
+    return this.getById(id)!;
   }
 }
 
