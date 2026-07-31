@@ -32,6 +32,14 @@ export class WorkflowToolScheduler {
     private readonly executor: AgentWorkflowToolExecutor,
   ) {}
 
+  enqueue(request: AgentEngineToolRequest): AgentEngineToolRequest {
+    const persisted = this.requests.createOrGet(request);
+    if (persisted.kind !== "tool") {
+      throw new Error(`Unsupported agent engine request kind: ${(persisted as any).kind}`);
+    }
+    return persisted;
+  }
+
   async dispatch(
     _request: AgentEngineToolRequest,
     _signal?: AbortSignal,
