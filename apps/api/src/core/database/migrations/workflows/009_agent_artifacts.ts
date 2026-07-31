@@ -15,7 +15,6 @@ export async function up(db: Database.Database): Promise<void> {
       created_at TEXT NOT NULL,
       expires_at TEXT NOT NULL,
       FOREIGN KEY(run_id) REFERENCES agent_runs(id) ON DELETE CASCADE,
-      FOREIGN KEY(action_id) REFERENCES agent_actions(id) ON DELETE SET NULL,
       UNIQUE(profile_id, storage_key)
     );
 

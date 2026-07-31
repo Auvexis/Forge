@@ -8,6 +8,13 @@
 - [x] Add regression tests
 - [x] Run affected suites
 
+## Batch 3 — Artifact Foreign Keys
+
+- [x] Remove legacy action foreign keys from clean schema
+- [x] Migrate existing profile databases
+- [x] Add artifact correlation regression test
+- [x] Run affected suites
+
 ## Batch 2 — Deterministic Continuation
 
 - [x] Force a known pending tool after failed repair

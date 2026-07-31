@@ -24,6 +24,7 @@ describe("AgentArtifactRepository", () => {
       id: "artifact_1",
       profileId: "profile_1",
       runId: "run_1",
+      actionId: "action_from_engine_request",
       name: "X.mp4",
       mimeType: "video/mp4",
       size: 4,
@@ -37,6 +38,7 @@ describe("AgentArtifactRepository", () => {
       ref: "artifact://artifact_1",
       name: "X.mp4",
       size: 4,
+      actionId: "action_from_engine_request",
     });
     expect(repository.listExpired("profile_1", "2026-01-03T00:00:00.000Z"))
       .toHaveLength(1);

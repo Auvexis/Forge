@@ -14,8 +14,7 @@ export async function up(db: Database.Database): Promise<void> {
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
       resolved_at TEXT,
-      FOREIGN KEY(run_id) REFERENCES agent_runs(id) ON DELETE CASCADE,
-      FOREIGN KEY(action_id) REFERENCES agent_actions(id) ON DELETE CASCADE
+      FOREIGN KEY(run_id) REFERENCES agent_runs(id) ON DELETE CASCADE
     );
 
     CREATE UNIQUE INDEX IF NOT EXISTS idx_agent_pending_interactions_active
