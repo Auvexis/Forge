@@ -149,16 +149,16 @@
 
 ## Batch 13 — Observability
 
-- [ ] Add run lifecycle logs
-- [ ] Add decision logs
-- [ ] Add bounded tool input logs
-- [ ] Add bounded tool output logs
-- [ ] Add interaction logs
-- [ ] Add recovery logs
-- [ ] Add iteration metrics
-- [ ] Add tool latency metrics
-- [ ] Add failure classification metrics
-- [ ] Add run replay diagnostics
+- [x] Add run lifecycle logs
+- [x] Add decision logs
+- [x] Add bounded tool input logs
+- [x] Add bounded tool output logs
+- [x] Add interaction logs
+- [x] Add recovery logs
+- [x] Add iteration metrics
+- [x] Add tool latency metrics
+- [x] Add failure classification metrics
+- [x] Add run replay diagnostics
 
 ## Batch 14 — Security
 

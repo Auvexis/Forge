@@ -7,6 +7,7 @@ import type { IntentModel } from "../intent/agent-intent-gateway.ts";
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
 import type { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { sanitizeAgentToolValue } from "./agent-tool-result-sanitizer.ts";
+import type { AgentRuntimeLogger } from "../observability/agent-runtime-logger.ts";
 import {
   buildCanonicalScratchpad,
   conversationWithoutToolHistory,
@@ -80,6 +81,7 @@ export async function advanceResumableMcpAgentLoop(input: {
   maxIterations: number;
   maxToolCalls: number;
   abortSignal?: AbortSignal;
+  logger?: AgentRuntimeLogger;
 }): Promise<ResumableMcpLoopStep> {
   throwIfAborted(input.abortSignal);
   let state = cloneState(input.state);
@@ -101,12 +103,19 @@ export async function advanceResumableMcpAgentLoop(input: {
   }
 
   state.iterationCount += 1;
+  const decisionStartedAt = performance.now();
   const cards = input.client.listTools();
   const decision = normalizeNextStep(await input.model.invokeJson<NextStepDecision>({
     signal: input.abortSignal,
     schema: nextStepSchema(cards.map(({ name }) => name)),
     messages: decisionMessages(input, state, cards),
   }), new Set(cards.map(({ name }) => name)));
+  input.logger?.info("decision.completed", {
+    iteration: state.iterationCount,
+    mode: decision.mode,
+    durationMs: Math.round(performance.now() - decisionStartedAt),
+    ...(decision.mode === "tool" ? { toolName: decision.toolName } : {}),
+  });
 
   if (decision.mode === "chat") {
     if (state.toolCallCount > 0 && !decision.response.trim()) {

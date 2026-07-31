@@ -16,6 +16,10 @@ export class AgentEngineRecoveryService {
     private readonly interactions: AgentPendingInteractionRepository,
     private readonly schedulerFactory: (runId: string) => WorkflowToolScheduler,
     private readonly onResponse?: (response: AgentEngineResponse) => Promise<void> | void,
+    private readonly onRecoveryEvent?: (
+      event: "recovery.started" | "recovery.completed" | "recovery.failed",
+      data: Record<string, unknown>,
+    ) => void,
   ) {}
 
   async recover(input: {
@@ -24,6 +28,7 @@ export class AgentEngineRecoveryService {
     signal?: AbortSignal;
   } = {}): Promise<AgentRecoveryReport> {
     const recoverable = this.requests.listRecoverable(input.now, input.limit);
+    this.onRecoveryEvent?.("recovery.started", { requestCount: recoverable.length });
     const recoveredRequestIds: string[] = [];
     const failedRequestIds: string[] = [];
     for (const request of recoverable) {
@@ -33,8 +38,18 @@ export class AgentEngineRecoveryService {
           .dispatch(request, input.signal);
         await this.onResponse?.(response);
         recoveredRequestIds.push(request.id);
-      } catch {
+        this.onRecoveryEvent?.("recovery.completed", {
+          requestId: request.id,
+          runId: request.runId,
+          status: response.status,
+        });
+      } catch (error) {
         failedRequestIds.push(request.id);
+        this.onRecoveryEvent?.("recovery.failed", {
+          requestId: request.id,
+          runId: request.runId,
+          message: error instanceof Error ? error.message : String(error),
+        });
       }
     }
     return {

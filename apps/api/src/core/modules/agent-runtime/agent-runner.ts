@@ -36,7 +36,7 @@ import { InternalMcpServer } from "./mcp/internal-mcp-server.ts";
 import type { InternalMcpTool } from "./mcp/internal-mcp-types.ts";
 import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
 import type { AgentRuntimeStateLifecycle } from "./persistence/agent-runtime-state-store.ts";
-import type { AgentPendingInteraction } from "./contracts/agent-domain-contracts.ts";
+import type { AgentMcpError, AgentPendingInteraction } from "./contracts/agent-domain-contracts.ts";
 import { routePendingInteractionReply } from "./interactions/pending-interaction-router.ts";
 import type { AgentArtifactService } from "./artifacts/agent-artifact-service.ts";
 import type { AgentSideEffectService } from "./idempotency/agent-side-effect-service.ts";
@@ -58,6 +58,7 @@ import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
 import type { AgentToolPart } from "./session/agent-session-contracts.ts";
 import { AgentProcessorPause } from "./processor/agent-processor-pause.ts";
 import { withAgentModelResilience } from "./model-resilience/agent-model-resilience-policy.ts";
+import { sanitizeAgentToolValue } from "./loop/agent-tool-result-sanitizer.ts";
 
 export interface AgentRunnerOptions {
   modelRegistry?: Pick<AgentModelProviderRegistry, "createChatModel">;
@@ -125,6 +126,7 @@ export class AgentRunner {
   }
 
   private async runWithinDeadline(input: AgentRunInput): Promise<AgentRunResult> {
+    const runStartedAt = performance.now();
     const validated = validateRunInput(input);
     const state = this.stateStoreFactory?.();
     const artifacts = this.artifactServiceFactory?.();
@@ -275,6 +277,9 @@ export class AgentRunner {
         toolCallCount: result.toolCallCount,
         iterationCount: result.iterationCount,
       });
+      agentRuntimeMetrics.increment("agent_iterations", result.iterationCount);
+      agentRuntimeMetrics.increment("agent_tool_calls", result.toolCallCount);
+      agentRuntimeMetrics.observe("agent_run_latency_ms", performance.now() - runStartedAt);
       this.eventEmitter({ type: "agent:end", payload: { status: result.status, output: result.output } }, input);
       return result;
     } catch (error) {
@@ -368,6 +373,9 @@ export class AgentRunner {
         }
       }
       logger.error("run.failed", serializeErrorPayload(error));
+      agentRuntimeMetrics.increment("agent_run_failures");
+      agentRuntimeMetrics.classifyFailure(serializeErrorPayload(error).code ?? "AGENT_RUN_FAILED");
+      agentRuntimeMetrics.observe("agent_run_latency_ms", performance.now() - runStartedAt);
       this.eventEmitter({ type: "agent:error", payload: serializeErrorPayload(error) }, input);
       if (error instanceof AgentRuntimeError) throw error;
       const detail = safeErrorMessage(error);
@@ -611,6 +619,7 @@ export class AgentRunner {
         maxIterations: input.validated.agent.maxToolCalls * 2 + 2,
         maxToolCalls: input.validated.agent.maxToolCalls,
         abortSignal: input.input.abortSignal,
+        logger: input.logger,
       });
       loopState = step.state;
       response = undefined;
@@ -639,6 +648,16 @@ export class AgentRunner {
       }
 
       const descriptor = client.describeTool(step.request.toolName);
+      const toolLogger = input.logger.child({
+        actionId: step.request.actionId,
+        toolCallId: step.request.toolCallId,
+        toolName: step.request.toolName,
+      });
+      const toolStartedAt = performance.now();
+      toolLogger.info("tool.call_started", {
+        iteration: step.request.iteration,
+        input: sanitizeAgentToolValue(step.request.arguments),
+      });
       const intentEvent: AgentRuntimeEvent = {
         type: "agent:tool-intent",
         payload: {
@@ -663,6 +682,23 @@ export class AgentRunner {
         persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
       }
       response = await dispatcher.dispatch(step.request, input.input.abortSignal);
+      const toolDurationMs = performance.now() - toolStartedAt;
+      agentRuntimeMetrics.observe("agent_tool_latency_ms", toolDurationMs);
+      if (response.status === "succeeded") {
+        toolLogger.info("tool.call_completed", {
+          durationMs: Math.round(toolDurationMs),
+          output: sanitizeAgentToolValue(response.output),
+        });
+      } else {
+        agentRuntimeMetrics.increment("agent_tool_failures");
+        agentRuntimeMetrics.classifyFailure(
+          response.status === "failed" ? response.error.category : "cancelled",
+        );
+        toolLogger.error("tool.call_failed", {
+          durationMs: Math.round(toolDurationMs),
+          classification: response.status === "failed" ? response.error.category : "cancelled",
+        });
+      }
       const succeeded = response.status === "succeeded";
       const responseOutput = response.status === "succeeded" ? response.output : undefined;
       const responseError = response.status === "failed"

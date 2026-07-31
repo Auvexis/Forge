@@ -20,6 +20,7 @@ import { WorkflowToolScheduler } from "./execution/workflow-tool-scheduler.ts";
 import { SideEffectExecutionGuard } from "./execution/side-effect-execution-guard.ts";
 import { AgentPendingInteractionRepository } from "./persistence/agent-pending-interaction-repository.ts";
 import { AgentEngineRecoveryService } from "./recovery/agent-engine-recovery-service.ts";
+import { AgentRuntimeLogger } from "./observability/agent-runtime-logger.ts";
 
 const defaultRunner = new AgentRunner({
   stateStoreFactory: () => new AgentRuntimeStateStore(WorkflowRepository.database()),
@@ -125,6 +126,34 @@ export const AgentRuntimeService = {
             new AgentSideEffectService(new AgentSideEffectRepository(database)),
           ),
         );
+      },
+      undefined,
+      (event, data) => {
+        const runId = typeof data.runId === "string" ? data.runId : undefined;
+        const run = runId
+          ? database.prepare(`
+              SELECT profile_id, workflow_id, execution_id, node_id
+              FROM agent_runs WHERE id = ?
+            `).get(runId) as {
+              profile_id: string;
+              workflow_id: string;
+              execution_id: string;
+              node_id: string;
+            } | undefined
+          : undefined;
+        if (!run) {
+          console.info(`[FABRIC | AGENT] ${JSON.stringify({ event, data })}`);
+          return;
+        }
+        const logger = new AgentRuntimeLogger({
+          profileId: run.profile_id,
+          workflowId: run.workflow_id,
+          executionId: run.execution_id,
+          nodeId: run.node_id,
+          runId,
+        });
+        if (event === "recovery.failed") logger.error(event, data);
+        else logger.info(event, data);
       },
     );
     return recovery.recover();
