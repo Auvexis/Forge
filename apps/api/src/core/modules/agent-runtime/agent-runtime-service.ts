@@ -12,6 +12,11 @@ import { AgentSideEffectRepository } from "./idempotency/agent-side-effect-repos
 import { AgentSideEffectService } from "./idempotency/agent-side-effect-service.ts";
 import { AgentSessionRepository } from "./session/agent-session-repository.ts";
 import { AgentSessionWriter } from "./session/agent-session-writer.ts";
+import { AgentEngineRequestRepository } from "./engine-protocol/agent-engine-request-repository.ts";
+import { AgentEngineResponseRepository } from "./engine-protocol/agent-engine-response-repository.ts";
+import { ConnectedToolNodeResolver } from "./execution/connected-tool-node-resolver.ts";
+import { WorkflowEngineToolExecutor } from "./execution/workflow-engine-tool-executor.ts";
+import { WorkflowToolScheduler } from "./execution/workflow-tool-scheduler.ts";
 
 const defaultRunner = new AgentRunner({
   stateStoreFactory: () => new AgentRuntimeStateStore(WorkflowRepository.database()),
@@ -22,6 +27,17 @@ const defaultRunner = new AgentRunner({
   sideEffectServiceFactory: () => new AgentSideEffectService(
     new AgentSideEffectRepository(WorkflowRepository.database()),
   ),
+  engineRequestDispatcherFactory: (input) => {
+    const workflow = WorkflowRepository.getWorkflowById(input.workflowId);
+    if (!workflow) throw new Error(`Workflow not found: ${input.workflowId}`);
+    const database = WorkflowRepository.database();
+    return new WorkflowToolScheduler(
+      new AgentEngineRequestRepository(database),
+      new AgentEngineResponseRepository(database),
+      new ConnectedToolNodeResolver(workflow, input.nodeId),
+      new WorkflowEngineToolExecutor(workflow, input.executionId),
+    );
+  },
   sessionWriterFactory: (input, runId) => {
     if (!input.sessionId) return undefined;
     const repository = new AgentSessionRepository(WorkflowRepository.database());

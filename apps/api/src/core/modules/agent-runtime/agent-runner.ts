@@ -46,7 +46,12 @@ import {
 } from "./conversation/agent-conversation-compactor.ts";
 import type { AgentModelMessage } from "./model-adapters/agent-model-adapter.ts";
 import { agentRuntimeMetrics } from "./observability/agent-runtime-metrics.ts";
-import { runIterativeMcpAgentLoop } from "./loop/iterative-mcp-agent-loop.ts";
+import {
+  advanceResumableMcpAgentLoop,
+  createResumableMcpLoopState,
+} from "./loop/resumable-mcp-agent-loop.ts";
+import type { AgentEngineToolRequest } from "./engine-protocol/agent-engine-request.ts";
+import type { AgentEngineResponse } from "./engine-protocol/agent-engine-response.ts";
 import type { AgentSessionWriter } from "./session/agent-session-writer.ts";
 import type { AgentInteractionPart } from "./session/agent-session-contracts.ts";
 import type { AgentCommitmentPart } from "./session/agent-session-contracts.ts";
@@ -71,6 +76,11 @@ export interface AgentRunnerOptions {
     pendingInteraction?: AgentInteractionPart;
     commitmentPart?: AgentCommitmentPart;
   } | undefined;
+  engineRequestDispatcherFactory?: (
+    input: AgentRunInput,
+  ) => {
+    dispatch(request: AgentEngineToolRequest, signal?: AbortSignal): Promise<AgentEngineResponse>;
+  };
 }
 
 export type PluginMemoryExecutor = (
@@ -89,6 +99,7 @@ export class AgentRunner {
   private readonly artifactServiceFactory?: AgentRunnerOptions["artifactServiceFactory"];
   private readonly sideEffectServiceFactory?: AgentRunnerOptions["sideEffectServiceFactory"];
   private readonly sessionWriterFactory?: AgentRunnerOptions["sessionWriterFactory"];
+  private readonly engineRequestDispatcherFactory?: AgentRunnerOptions["engineRequestDispatcherFactory"];
 
   constructor(options: AgentRunnerOptions = {}) {
     this.modelRegistry = options.modelRegistry ?? new AgentModelProviderRegistry();
@@ -100,6 +111,7 @@ export class AgentRunner {
     this.artifactServiceFactory = options.artifactServiceFactory;
     this.sideEffectServiceFactory = options.sideEffectServiceFactory;
     this.sessionWriterFactory = options.sessionWriterFactory;
+    this.engineRequestDispatcherFactory = options.engineRequestDispatcherFactory;
   }
 
   async run(input: AgentRunInput): Promise<AgentRunResult> {
@@ -531,21 +543,119 @@ export class AgentRunner {
         throw error;
       }
     }
+    const dispatcher = this.engineRequestDispatcherFactory?.(input.input) ?? {
+      dispatch: async (request: AgentEngineToolRequest): Promise<AgentEngineResponse> => {
+        const result = await client.callTool({
+          id: request.toolCallId,
+          actionId: request.actionId,
+          name: request.toolName,
+          arguments: request.arguments,
+        });
+        return {
+          id: `response_${randomUUID()}`,
+          requestId: request.id,
+          runId: request.runId,
+          toolCallId: request.toolCallId,
+          status: "succeeded",
+          output: result.content,
+          createdAt: new Date().toISOString(),
+        };
+      },
+    };
     const toolParts = new Map<string, AgentToolPart>();
-    const result = await runIterativeMcpAgentLoop({
-      model,
-      client,
-      systemPrompt: input.validated.agent.prompt,
-      userMessage: input.input.userMessage,
-      contextMessages: input.contextMessages,
-      maxToolCalls: input.validated.agent.maxToolCalls,
-      abortSignal: input.input.abortSignal,
-      logger: input.logger,
-      emitEvent: (event) => {
+    const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
+    let loopState = createResumableMcpLoopState();
+    let response: AgentEngineResponse | undefined;
+    let result: AgentRunResult;
+    while (true) {
+      const step = await advanceResumableMcpAgentLoop({
+        runId: input.runId,
+        model,
+        client,
+        systemPrompt: input.validated.agent.prompt,
+        userMessage: input.input.userMessage,
+        contextMessages: input.contextMessages,
+        state: loopState,
+        response,
+        maxIterations: input.validated.agent.maxToolCalls * 2 + 2,
+        maxToolCalls: input.validated.agent.maxToolCalls,
+        abortSignal: input.input.abortSignal,
+      });
+      loopState = step.state;
+      response = undefined;
+      if (step.type === "final") {
+        result = {
+          status: "success",
+          output: step.response,
+          iterationCount: loopState.iterationCount,
+          toolCallCount: loopState.toolCallCount,
+          toolCalls,
+        };
+        break;
+      }
+      if (step.type === "interaction") {
+        result = {
+          status: "waiting-user",
+          output: { status: "waiting-user", question: step.question },
+          iterationCount: loopState.iterationCount,
+          toolCallCount: loopState.toolCallCount,
+          toolCalls,
+        };
+        break;
+      }
+
+      const descriptor = client.describeTool(step.request.toolName);
+      const intentEvent: AgentRuntimeEvent = {
+        type: "agent:tool-intent",
+        payload: {
+          callId: step.request.toolCallId,
+          actionId: step.request.actionId,
+          name: step.request.toolName,
+          pluginId: descriptor.pluginId,
+          params: step.request.arguments,
+        },
+      };
+      const startEvent: AgentRuntimeEvent = {
+        type: "agent:tool-start",
+        payload: {
+          callId: step.request.toolCallId,
+          actionId: step.request.actionId,
+          name: step.request.toolName,
+          pluginId: descriptor.pluginId,
+        },
+      };
+      for (const event of [intentEvent, startEvent]) {
         this.eventEmitter(event, input.input);
         persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
-      },
-    });
+      }
+      response = await dispatcher.dispatch(step.request, input.input.abortSignal);
+      const succeeded = response.status === "succeeded";
+      const responseOutput = response.status === "succeeded" ? response.output : undefined;
+      const responseError = response.status === "failed"
+        ? response.error.message
+        : response.status === "cancelled"
+        ? response.reason
+        : undefined;
+      const endEvent: AgentRuntimeEvent = {
+        type: "agent:tool-end",
+        payload: {
+          callId: step.request.toolCallId,
+          actionId: step.request.actionId,
+          name: step.request.toolName,
+          pluginId: descriptor.pluginId,
+          status: succeeded ? "success" : "failed",
+          ...(succeeded ? { output: responseOutput } : { error: responseError }),
+        },
+      };
+      this.eventEmitter(endEvent, input.input);
+      persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, endEvent);
+      toolCalls.push({
+        toolCallId: step.request.toolCallId,
+        name: step.request.toolName,
+        pluginId: descriptor.pluginId,
+        status: succeeded ? "success" : "failed",
+      });
+    }
     if (result.status === "waiting-user") {
       const question = waitingQuestion(result.output);
       input.state?.createPendingInteraction({

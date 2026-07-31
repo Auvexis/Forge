@@ -50,7 +50,7 @@
 - [x] Enforce tool call limits
 - [x] Add repetition guard
 - [x] Add completion guard
-- [ ] Remove inline tool execution
+- [x] Remove inline tool execution
 - [ ] Add loop tests
 
 ## Batch 5 — Progressive Tool Discovery
