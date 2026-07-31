@@ -131,7 +131,7 @@
 - [x] Add structured decision repair
 - [x] Add empty-result recovery
 - [x] Add ambiguous-result selection
-- [ ] Add deterministic stop reasons
+- [x] Add deterministic stop reasons
 - [ ] Add 1B–20B Ollama fixtures
 - [ ] Add resilience tests
 

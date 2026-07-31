@@ -160,6 +160,14 @@ export interface AgentRunResult {
   iterationCount: number;
   approvalId?: string;
   conversationMessages?: AgentModelMessage[];
+  stopReason?:
+    | "final-response"
+    | "interaction-required"
+    | "tool-error"
+    | "model-error"
+    | "tool-call-limit"
+    | "iteration-limit"
+    | "cancelled";
 }
 
 export interface AgentRunToolCall {
