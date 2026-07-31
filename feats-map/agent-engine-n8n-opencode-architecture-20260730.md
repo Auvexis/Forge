@@ -56,7 +56,7 @@
 ## Batch 5 — Progressive Tool Discovery
 
 - [x] Build compact MCP catalog
-- [ ] Select one tool from catalog
+- [x] Select one tool from catalog
 - [ ] Load only selected tool schema
 - [ ] Generate schema-bound arguments
 - [ ] Validate arguments deterministically
