@@ -50,6 +50,7 @@ export class WorkflowToolScheduler {
     const queued = this.enqueue(request);
     const existingResponse = this.responses.getByRequestId(queued.id);
     if (existingResponse) return existingResponse;
+    if (signal?.aborted) return this.cancel(queued, signal.reason);
 
     const leased = queued.status === "queued"
       ? this.requests.updateStatus(queued.id, "leased")
@@ -76,6 +77,7 @@ export class WorkflowToolScheduler {
       this.requests.updateStatus(executing.id, "completed");
       return response;
     } catch (cause) {
+      if (signal?.aborted) return this.cancel(executing, signal.reason ?? cause);
       const response = this.responses.create({
         id: `response_${randomUUID()}`,
         requestId: executing.id,
@@ -88,6 +90,23 @@ export class WorkflowToolScheduler {
       this.requests.updateStatus(executing.id, "failed");
       return response;
     }
+  }
+
+  private cancel(
+    request: AgentEngineToolRequest,
+    cause: unknown,
+  ): AgentEngineResponse {
+    const response = this.responses.create({
+      id: `response_${randomUUID()}`,
+      requestId: request.id,
+      runId: request.runId,
+      toolCallId: request.toolCallId,
+      status: "cancelled",
+      reason: cause instanceof Error ? cause.message : String(cause ?? "Cancelled"),
+      createdAt: new Date().toISOString(),
+    });
+    this.requests.updateStatus(request.id, "cancelled");
+    return response;
   }
 }
 

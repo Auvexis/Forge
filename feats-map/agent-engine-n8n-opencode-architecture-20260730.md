@@ -37,7 +37,7 @@
 - [x] Execute through workflow engine
 - [x] Persist tool result before resume
 - [x] Persist tool error before resume
-- [ ] Add cancellation propagation
+- [x] Add cancellation propagation
 - [ ] Add scheduler tests
 
 ## Batch 4 — Resumable MCP Loop
