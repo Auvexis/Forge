@@ -95,6 +95,37 @@ export class AgentSessionWriter {
     return saved;
   }
 
+  appendFinalTextOnce(input: {
+    turnId: string;
+    text: string;
+  }): AgentTextPart {
+    const normalized = input.text.trim();
+    const snapshot = this.repository.getSnapshot({
+      profileId: this.profileId,
+      sessionId: this.sessionId,
+      messageLimit: 200,
+    });
+    const existing = snapshot.messages
+      .filter((entry) =>
+        entry.message.turnId === input.turnId &&
+        entry.message.role === "assistant"
+      )
+      .flatMap((entry) => entry.parts)
+      .find((part) =>
+        part.type === "text" &&
+        part.state === "completed" &&
+        part.text.trim() === normalized
+      );
+    if (existing?.type === "text") return existing;
+    const message = this.appendMessage(input.turnId, "assistant");
+    return this.appendText({
+      turnId: input.turnId,
+      messageId: message.id,
+      text: normalized,
+      state: "completed",
+    });
+  }
+
   appendCommitments(input: {
     turnId: string;
     messageId: string;
