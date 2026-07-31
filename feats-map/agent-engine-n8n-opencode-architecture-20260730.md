@@ -13,7 +13,7 @@
 - [x] Define agent run contract
 - [x] Define engine request contract
 - [x] Define engine response contract
-- [ ] Define continuation metadata contract
+- [x] Define continuation metadata contract
 - [ ] Define typed interaction contract
 - [ ] Define provider metadata envelope
 - [ ] Add contract tests
