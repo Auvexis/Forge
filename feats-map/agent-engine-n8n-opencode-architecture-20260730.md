@@ -103,7 +103,7 @@
 ## Batch 9 — Conversation Memory
 
 - [x] Separate run scratchpad from chat history
-- [ ] Persist canonical message parts
+- [x] Persist canonical message parts
 - [ ] Save final conversation turns
 - [ ] Avoid duplicate memory writes
 - [ ] Add token-aware compaction
