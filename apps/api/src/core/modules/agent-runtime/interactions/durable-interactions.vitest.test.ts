@@ -64,6 +64,58 @@ describe("durable resumable interactions", () => {
       status: "pending",
     }, "não")).toEqual({ type: "confirm", confirmed: false });
   });
+
+  it("persists blocked arguments and resumes the approved tool before model inference", async () => {
+    const requested = await requestTool();
+    if (requested.type !== "request") throw new Error("Expected tool request");
+    const interaction = await advanceResumableMcpAgentLoop({
+      ...loopInput([]),
+      state: requested.state,
+      response: {
+        id: "response_approval",
+        requestId: requested.request.id,
+        runId: "run_1",
+        toolCallId: requested.request.toolCallId,
+        status: "failed",
+        error: {
+          category: "policy",
+          code: "AGENT_TOOL_APPROVAL_REQUIRED",
+          message: "Agent tool requires approval",
+          retryable: false,
+          userActionRequired: true,
+        },
+        createdAt: new Date().toISOString(),
+      },
+    });
+    expect(interaction).toMatchObject({
+      type: "interaction",
+      context: {
+        toolName: "drive_list",
+        toolArguments: { query: "backend" },
+      },
+    });
+
+    let modelCalls = 0;
+    const resumed = await advanceResumableMcpAgentLoop({
+      ...loopInput([]),
+      model: { invokeJson: async () => { modelCalls += 1; } } as any,
+      state: interaction.state,
+      approvedTool: {
+        toolName: "drive_list",
+        arguments: { query: "backend" },
+      },
+    });
+
+    expect(resumed).toMatchObject({
+      type: "request",
+      request: {
+        toolName: "drive_list",
+        arguments: { query: "backend" },
+        status: "queued",
+      },
+    });
+    expect(modelCalls).toBe(0);
+  });
 });
 
 async function requestTool() {

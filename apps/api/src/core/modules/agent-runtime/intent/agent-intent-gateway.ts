@@ -105,7 +105,7 @@ function normalizeDecision(value: AgentIntentDecision, tools: Set<string>): Agen
 
   return actions.length > 0
     ? { mode: "action", actions }
-    : { mode: "clarify", question: "Não encontrei uma ferramenta conectada capaz de executar esse pedido. Você pode esclarecer a ação?" };
+    : { mode: "clarify", question: "No connected tool can execute this request. Can you clarify the intended action?" };
 }
 
 function normalizeText(value: string): string {

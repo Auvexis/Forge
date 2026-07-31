@@ -158,7 +158,7 @@ export class AgentRunner {
         logger.info("interaction.resolved", { interactionId: pending.id, resolution: "cancelled" });
         return {
           status: "cancelled",
-          output: "Operação cancelada.",
+          output: "Operation cancelled.",
           toolCallCount: 0,
           iterationCount: 1,
           toolCalls: [],
@@ -167,12 +167,18 @@ export class AgentRunner {
       state?.resolvePendingInteraction(input.profileId, pending.id, reply);
       state?.markRunRunning();
       if (pending.kind === "approval" && reply.type === "confirm" && reply.confirmed) {
+        const toolArguments = pending.context.toolArguments &&
+            typeof pending.context.toolArguments === "object" &&
+            !Array.isArray(pending.context.toolArguments)
+          ? pending.context.toolArguments as Record<string, any>
+          : undefined;
         input = {
           ...input,
           approvalToken: "approved",
           ...(typeof pending.context.toolName === "string"
             ? { approvalToolName: pending.context.toolName }
             : {}),
+          ...(toolArguments ? { approvalToolArgs: toolArguments } : {}),
         };
       }
       if (sessionExecution?.pendingInteraction) {
@@ -291,7 +297,7 @@ export class AgentRunner {
         logger.info("run.completed", { status: "cancelled", toolCallCount: 0, iterationCount: 1 });
         return {
           status: "cancelled",
-          output: "OperaÃ§Ã£o cancelada.",
+          output: "Operation cancelled.",
           iterationCount: 1,
           toolCallCount: 0,
           toolCalls: [],
@@ -308,7 +314,7 @@ export class AgentRunner {
             turnId: sessionExecution.turnId,
             messageId: message.id,
             kind: "approval",
-            question: `Autorizar ${error.approvalRequest.toolName}?`,
+            question: `Approve ${error.approvalRequest.toolName}?`,
           });
           sessionExecution.writer.updateTurn(sessionExecution.turnId, "waiting-approval");
         }
@@ -563,6 +569,13 @@ export class AgentRunner {
       input.input.runScratchpadMessages ?? [],
     );
     let response: AgentEngineResponse | undefined;
+    let approvedTool = input.input.approvalToken === "approved" &&
+        input.input.approvalToolName && input.input.approvalToolArgs
+      ? {
+          toolName: input.input.approvalToolName,
+          arguments: input.input.approvalToolArgs,
+        }
+      : undefined;
     let result: AgentRunResult;
     let interactionStep: Extract<ResumableMcpLoopStep, { type: "interaction" }> | undefined;
     while (true) {
@@ -575,6 +588,7 @@ export class AgentRunner {
         contextMessages: input.contextMessages,
         state: loopState,
         response,
+        approvedTool,
         maxIterations: input.validated.agent.maxToolCalls * 2 + 2,
         maxToolCalls: input.validated.agent.maxToolCalls,
         abortSignal: input.input.abortSignal,
@@ -604,6 +618,10 @@ export class AgentRunner {
           stopReason: "interaction-required",
         };
         break;
+      }
+
+      if (approvedTool && step.request.toolName === approvedTool.toolName) {
+        approvedTool = undefined;
       }
 
       const descriptor = client.describeTool(step.request.toolName);
@@ -798,7 +816,7 @@ function waitingQuestion(output: AgentRunResult["output"]): string {
     const question = String(output.question ?? "").trim();
     if (question) return question;
   }
-  return "Preciso de uma informação adicional para continuar.";
+  return "I need additional information to continue.";
 }
 
 function isUserCancellation(signal?: AbortSignal): boolean {
@@ -1047,11 +1065,11 @@ function isToolCatalogQuestion(message: string): boolean {
 }
 
 function formatConfiguredToolsAnswer(tools: Array<Pick<InternalMcpTool, "name" | "summary" | "pluginName">>): string {
-  if (!tools.length) return "Nao tenho ferramentas configuradas para este agente no momento.";
+  if (!tools.length) return "This agent currently has no configured tools.";
 
   const lines = tools.map((tool) => {
     const owner = tool.pluginName ? `${tool.pluginName}: ` : "";
     return `- ${owner}${tool.summary || tool.name}`;
   });
-  return ["Tenho acesso a estas ferramentas configuradas:", ...lines].join("\n");
+  return ["I have access to these configured tools:", ...lines].join("\n");
 }

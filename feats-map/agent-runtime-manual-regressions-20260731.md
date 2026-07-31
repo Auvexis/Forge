@@ -16,6 +16,14 @@
 - [x] Add external-plugin artifact regression tests
 - [x] Run affected suites
 
+## Batch 5 — Deterministic Approval Resume
+
+- [x] Persist the blocked tool call
+- [x] Resume the approved call before model inference
+- [x] Use English runtime messages
+- [x] Add approval execution regressions
+- [x] Run affected suites
+
 ## Batch 3 — Artifact Foreign Keys
 
 - [x] Remove legacy action foreign keys from clean schema

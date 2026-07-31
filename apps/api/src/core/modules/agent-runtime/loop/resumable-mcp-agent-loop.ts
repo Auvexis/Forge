@@ -78,6 +78,10 @@ export async function advanceResumableMcpAgentLoop(input: {
   contextMessages: AgentModelMessage[];
   state: ResumableMcpLoopState;
   response?: AgentEngineResponse;
+  approvedTool?: {
+    toolName: string;
+    arguments: Record<string, unknown>;
+  };
   maxIterations: number;
   maxToolCalls: number;
   abortSignal?: AbortSignal;
@@ -97,6 +101,31 @@ export async function advanceResumableMcpAgentLoop(input: {
       "Agent is waiting for a tool result",
       409,
     );
+  }
+  if (input.approvedTool) {
+    if (state.toolCallCount >= input.maxToolCalls) throw limitError("tool");
+    const descriptor = input.client.describeTool(input.approvedTool.toolName);
+    const now = new Date().toISOString();
+    const toolCallId = `tool_call_${state.toolCallCount + 1}_${randomUUID()}`;
+    const request: AgentEngineToolRequest = {
+      kind: "tool",
+      id: `engine_request_${randomUUID()}`,
+      idempotencyKey: `${input.runId}:${toolCallId}`,
+      runId: input.runId,
+      iteration: state.iterationCount + 1,
+      toolCallId,
+      actionId: `action_${randomUUID()}`,
+      toolName: input.approvedTool.toolName,
+      pluginId: descriptor.pluginId,
+      arguments: input.approvedTool.arguments,
+      status: "queued",
+      createdAt: now,
+      updatedAt: now,
+    };
+    state.iterationCount += 1;
+    state.toolCallCount += 1;
+    state.pendingRequest = request;
+    return { type: "request", request, state };
   }
   if (state.iterationCount >= input.maxIterations) {
     throw limitError("iteration");
@@ -274,6 +303,7 @@ function consumeResponse(
           requestId: response.requestId,
           toolCallId: response.toolCallId,
           toolName: pending.toolName,
+          toolArguments: pending.arguments,
           error: response.error,
         },
       },
@@ -301,7 +331,7 @@ function consumeResponse(
       state,
       interaction: {
         kind: "selection",
-        question: "Encontrei mais de um resultado compatível. Escolha qual devo usar.",
+        question: "More than one matching result was found. Choose which one to use.",
         options: ambiguousOptions,
         context: {
           source: "ambiguous-tool-result",
@@ -316,8 +346,8 @@ function consumeResponse(
       interaction: {
         kind: "clarification",
         question: [
-          `A ferramenta ${pending.toolName} não encontrou resultados.`,
-          "Informe parte do nome, extensão, pasta ou outro critério para refazer a busca.",
+          `The ${pending.toolName} tool found no results.`,
+          "Provide part of the name, extension, folder, or another criterion to retry the search.",
         ].join(" "),
         context: {
           source: "empty-tool-result",
@@ -373,10 +403,10 @@ function interactionKindForError(error: { category: string; code: string }): Age
 }
 
 function interactionQuestion(kind: AgentInteractionKind, detail: string): string {
-  if (kind === "approval") return `Esta ação precisa da sua aprovação. ${detail}`;
-  if (kind === "selection") return `Escolha um dos resultados para continuar. ${detail}`;
-  if (kind === "authentication") return `Conecte ou autentique a conta necessária. ${detail}`;
-  if (kind === "permission") return `Conceda a permissão necessária para continuar. ${detail}`;
+  if (kind === "approval") return `This action requires your approval. ${detail}`;
+  if (kind === "selection") return `Choose one of the results to continue. ${detail}`;
+  if (kind === "authentication") return `Connect or authenticate the required account. ${detail}`;
+  if (kind === "permission") return `Grant the required permission to continue. ${detail}`;
   return detail;
 }
 
@@ -515,14 +545,14 @@ function cloneState(state: ResumableMcpLoopState): ResumableMcpLoopState {
 
 function normalizeNextStep(value: unknown, toolNames: Set<string>): NextStepDecision {
   if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return { mode: "clarify", question: "Qual resultado específico você espera agora?" };
+    return { mode: "clarify", question: "What specific result do you expect now?" };
   }
   const record = value as Record<string, unknown>;
   if (record.mode === "chat") return { mode: "chat", response: String(record.response ?? "").trim() };
   if (record.mode === "clarify") {
     return {
       mode: "clarify",
-      question: String(record.question ?? "").trim() || "Qual informação específica está faltando?",
+      question: String(record.question ?? "").trim() || "What specific information is missing?",
     };
   }
   const toolName = String(record.toolName ?? "");
@@ -533,7 +563,7 @@ function normalizeNextStep(value: unknown, toolNames: Set<string>): NextStepDeci
       objective: String(record.objective ?? "").trim() || `Execute ${toolName}`,
     };
   }
-  return { mode: "clarify", question: "Qual ação devo executar com as ferramentas conectadas?" };
+  return { mode: "clarify", question: "What action should I perform with the connected tools?" };
 }
 
 function compactStep(step: ResumableMcpCompletedStep) {
@@ -546,7 +576,7 @@ function compactStep(step: ResumableMcpCompletedStep) {
 }
 
 function duplicateQuestion(step: ResumableMcpCompletedStep): string {
-  return `A operação ${step.toolName} já foi concluída com esses parâmetros. Informe o que deve mudar para eu continuar.`;
+  return `The ${step.toolName} operation already completed with these parameters. Explain what should change before continuing.`;
 }
 
 function specificQuestion(question: string, objective: string, schema: Record<string, any>, detail = ""): string {
@@ -554,8 +584,8 @@ function specificQuestion(question: string, objective: string, schema: Record<st
   if (value) return value;
   const required = Array.isArray(schema.required) ? schema.required.map(String) : [];
   return [
-    `Para ${objective}, preciso de: ${required.join(", ") || "um valor específico"}.`,
-    detail ? `Validação: ${detail}.` : "",
+    `To ${objective}, I need: ${required.join(", ") || "a specific value"}.`,
+    detail ? `Validation: ${detail}.` : "",
   ].filter(Boolean).join(" ");
 }
 
