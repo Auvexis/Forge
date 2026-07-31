@@ -24,14 +24,6 @@ function getYoutubeClient(context: PluginContext) {
 }
 
 /** Full read — avoids Gaxios/resumable hangs with some upstream streams (e.g. multipart). */
-async function readableToBuffer(stream: Readable): Promise<Buffer> {
-  const chunks: Buffer[] = [];
-  for await (const chunk of stream) {
-    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk as Uint8Array));
-  }
-  return Buffer.concat(chunks);
-}
-
 export function createGoogleYoutubeMethods() {
   return {
     // ──────────── Videos ────────────
@@ -436,8 +428,7 @@ export function createGoogleYoutubeMethods() {
         description?: string;
         tags?: string;
         privacyStatus?: string;
-        content: string | Buffer | Readable;
-        mimeType?: string;
+        video: { name: string; mimeType: string; content: Buffer };
         categoryId?: string;
       },
       context?: PluginContext,
@@ -445,24 +436,7 @@ export function createGoogleYoutubeMethods() {
       const yt = getYoutubeClient(context!);
 
       try {
-        let stream: Readable;
-        if (
-          params.content &&
-          typeof (params.content as any).pipe === "function" &&
-          typeof (params.content as any).on === "function"
-        ) {
-          const raw = params.content as unknown as Readable;
-          const buffered = await readableToBuffer(raw);
-          stream = Readable.from(buffered);
-        } else if (params.content instanceof Buffer) {
-          stream = Readable.from(params.content);
-        } else if (typeof params.content === "string") {
-          const cleanBase64 = params.content.replace(/\s/g, "");
-          const buffer = Buffer.from(cleanBase64, "base64");
-          stream = Readable.from(buffer);
-        } else {
-          throw new Error("Invalid content type for upload");
-        }
+        const stream = Readable.from(params.video.content);
 
 
         const parsedTags = params.tags
@@ -484,7 +458,7 @@ export function createGoogleYoutubeMethods() {
               },
             },
             media: {
-              mimeType: params.mimeType || "video/mp4",
+              mimeType: params.video.mimeType,
               body: stream,
             },
           },

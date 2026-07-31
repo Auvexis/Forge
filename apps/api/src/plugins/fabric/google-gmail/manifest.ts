@@ -561,20 +561,16 @@ export default definePluginManifest({
       },
       "responseSchema": {
         "type": "object",
+        "x-fabric-value-type": "file",
+        "x-fabric-binary-encoding": "buffer",
         "properties": {
-          "attachmentId": {
-            "type": "string",
-            "x-label": "Attachment ID"
-          },
-          "size": {
-            "type": "number",
-            "x-label": "Size (bytes)"
-          },
-          "data": {
-            "type": "string",
-            "x-label": "Data (Base64)"
-          }
-        }
+          "name": { "type": "string" },
+          "mimeType": { "type": "string" },
+          "size": { "type": "number" },
+          "content": { "type": "object" }
+        },
+        "required": ["name", "mimeType", "content"],
+        "additionalProperties": false
       },
       "agentTool": {
         "enabled": true,

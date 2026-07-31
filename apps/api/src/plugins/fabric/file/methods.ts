@@ -37,31 +37,27 @@ export function cleanupSandbox(executionId: string): void {
 
 export function createMethods() {
   return {
-    async readFile(params: { filename: string; encoding?: BufferEncoding; executionId: string }) {
+    async readFile(params: { filename: string; executionId: string }) {
       const target = safePath(params.executionId, params.filename);
       if (!fs.existsSync(target)) throw new Error(`File not found: "${params.filename}"`);
       
-      const enc = params.encoding || "utf8";
-      const content = fs.readFileSync(target, enc);
+      const content = fs.readFileSync(target);
       
       return { 
-        content, 
-        filename: params.filename, 
-        encoding: enc,
-        bytes: fs.statSync(target).size 
+        name: params.filename,
+        mimeType: "application/octet-stream",
+        size: content.byteLength,
+        content,
       };
     },
 
-    async writeFile(params: { filename: string; content: string; encoding?: BufferEncoding; executionId: string }) {
+    async writeFile(params: { file: { name: string; mimeType: string; content: Buffer }; executionId: string }) {
       ensureSandbox(params.executionId);
-      const target = safePath(params.executionId, params.filename);
-      
-      const enc = params.encoding || "utf8";
-      fs.writeFileSync(target, params.content, enc);
+      const target = safePath(params.executionId, params.file.name);
+      fs.writeFileSync(target, params.file.content);
       
       return { 
-        filename: params.filename, 
-        encoding: enc,
+        name: params.file.name,
         bytes: fs.statSync(target).size, 
         ok: true 
       };
@@ -137,7 +133,7 @@ export function createMethods() {
 
       return {
         content: contentBuf,
-        filename: params.filename.trim(),
+        name: params.filename.trim(),
         mimeType: params.mimeType?.trim() || "application/octet-stream"
       };
     }

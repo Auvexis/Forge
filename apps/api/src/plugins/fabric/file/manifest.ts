@@ -24,7 +24,7 @@ export default definePluginManifest({
     "readFile": {
       "metadata": {
         "label": "Read File",
-        "description": "Read a file from the sandbox as text or base64."
+        "description": "Read a file from the sandbox as a canonical Fabric file."
       },
       "parameters": {
         "type": "object",
@@ -33,11 +33,6 @@ export default definePluginManifest({
             "type": "string",
             "description": "File name (relative to workflow sandbox).",
             "x-input-type": "text"
-          },
-          "encoding": {
-            "type": "string",
-            "description": "utf8 | base64 | hex. Default: utf8",
-            "x-input-type": "text"
           }
         },
         "required": [
@@ -45,12 +40,20 @@ export default definePluginManifest({
         ]
       },
       "responseSchema": {
-        "type": "object"
+        "type": "object",
+        "x-fabric-value-type": "file",
+        "x-fabric-binary-encoding": "buffer",
+        "properties": {
+          "name": { "type": "string" }, "mimeType": { "type": "string" },
+          "size": { "type": "number" }, "content": { "type": "object" }
+        },
+        "required": ["name", "mimeType", "content"],
+        "additionalProperties": false
       },
       "agentTool": {
         "enabled": true,
         "name": "file_read_file",
-        "description": "Read a file from the sandbox as text or base64.",
+        "description": "Read a file from the sandbox as a canonical Fabric file.",
         "sideEffect": "filesystem",
         "requiresApproval": true,
         "timeoutMs": 30000
@@ -59,30 +62,26 @@ export default definePluginManifest({
     "writeFile": {
       "metadata": {
         "label": "Write File",
-        "description": "Write data (text or base64) to a file in the sandbox."
+        "description": "Write a canonical Fabric file to the sandbox."
       },
       "parameters": {
         "type": "object",
         "properties": {
-          "filename": {
-            "type": "string",
-            "description": "File name.",
-            "x-input-type": "text"
-          },
-          "content": {
-            "type": "string",
-            "description": "Content to write (string or base64).",
-            "x-input-type": "text"
-          },
-          "encoding": {
-            "type": "string",
-            "description": "utf8 | base64 | hex. Default: utf8",
-            "x-input-type": "text"
+          "file": {
+            "type": "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
+            "x-input-type": "file",
+            "properties": {
+              "name": { "type": "string" }, "mimeType": { "type": "string" },
+              "size": { "type": "number" }, "content": { "type": "object" }
+            },
+            "required": ["name", "mimeType", "content"],
+            "additionalProperties": false
           }
         },
         "required": [
-          "filename",
-          "content"
+          "file"
         ]
       },
       "responseSchema": {
@@ -91,7 +90,7 @@ export default definePluginManifest({
       "agentTool": {
         "enabled": true,
         "name": "file_write_file",
-        "description": "Write data (text or base64) to a file in the sandbox.",
+        "description": "Write a canonical Fabric file to the sandbox.",
         "sideEffect": "filesystem",
         "requiresApproval": true,
         "timeoutMs": 30000
@@ -208,20 +207,17 @@ export default definePluginManifest({
     "setFileMetadata": {
       "metadata": {
         "label": "Set File Metadata",
-        "description": "Wraps a raw Buffer or Base64 string into the Fabric standard file object ({ content, filename, mimeType }) so it can be safely sent via email or APIs."
+        "description": "Wraps a raw Buffer or Base64 string into the canonical Fabric file object."
       },
       "parameters": {
         "type": "object",
         "properties": {
           "file": {
-            "type": [
-              "string",
-              "object"
-            ],
-            "description": "The raw file data (Buffer or Base64).",
+            "type": "string",
+            "format": "base64",
+            "description": "Base64-encoded file data.",
             "x-label": "File Input",
-            "x-input-type": "file",
-            "format": "binary"
+            "x-input-type": "textarea"
           },
           "filename": {
             "type": "string",
@@ -242,12 +238,20 @@ export default definePluginManifest({
         ]
       },
       "responseSchema": {
-        "type": "object"
+        "type": "object",
+        "x-fabric-value-type": "file",
+        "x-fabric-binary-encoding": "buffer",
+        "properties": {
+          "name": { "type": "string" }, "mimeType": { "type": "string" },
+          "size": { "type": "number" }, "content": { "type": "object" }
+        },
+        "required": ["name", "mimeType", "content"],
+        "additionalProperties": false
       },
       "agentTool": {
         "enabled": true,
         "name": "file_set_file_metadata",
-        "description": "Wraps a raw Buffer or Base64 string into the Fabric standard file object ({ content, filename, mimeType }) so it can be safely sent via email or APIs.",
+        "description": "Wraps raw Buffer or Base64 data into the canonical Fabric file object for downstream tools.",
         "sideEffect": "filesystem",
         "requiresApproval": true,
         "timeoutMs": 30000

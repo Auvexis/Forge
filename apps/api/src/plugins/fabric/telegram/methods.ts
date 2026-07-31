@@ -170,8 +170,7 @@ export function createTelegramMethods() {
     sendDocument: async (
       params: {
         chatId: string;
-        file: Buffer;
-        filename?: string;
+        file: { name: string; mimeType: string; content: Buffer };
         caption?: string;
         parseMode?: "MarkdownV2" | "HTML" | "";
       },
@@ -180,18 +179,12 @@ export function createTelegramMethods() {
       if (!params.chatId?.trim()) throw new Error("'chatId' is required.");
       if (!params.file) throw new Error("'file' is required. Connect a file output from a previous step.");
 
-      if (!Buffer.isBuffer(params.file)) {
-        throw new Error(
-          "'file' must be a Buffer. Ensure the previous step returns a file/binary output and the parameter is mapped correctly."
-        );
-      }
-
       const formData = new FormData();
       formData.append("chat_id", params.chatId.trim());
 
       // Convert Buffer to Blob for FormData — cast buffer to ArrayBuffer to satisfy TS strict types
-      const blob = new Blob([params.file.buffer as ArrayBuffer]);
-      formData.append("document", blob, params.filename?.trim() || "file");
+      const blob = new Blob([params.file.content.buffer as ArrayBuffer], { type: params.file.mimeType });
+      formData.append("document", blob, params.file.name);
 
       if (params.caption?.trim()) {
         formData.append("caption", params.caption.trim());
@@ -210,8 +203,7 @@ export function createTelegramMethods() {
         chatId: string;
         useUrl?: boolean;
         photoUrl?: string;
-        file?: Buffer;
-        filename?: string;
+        file?: { name: string; mimeType: string; content: Buffer };
         caption?: string;
         parseMode?: "MarkdownV2" | "HTML" | "";
       },
@@ -233,13 +225,9 @@ export function createTelegramMethods() {
 
       // Buffer mode — send as multipart
       if (!params.file) throw new Error("'file' is required when URL mode is disabled.");
-      if (!Buffer.isBuffer(params.file)) {
-        throw new Error("'file' must be a Buffer from a previous workflow step.");
-      }
-
       const formData = new FormData();
       formData.append("chat_id", params.chatId.trim());
-      formData.append("photo", new Blob([params.file.buffer as ArrayBuffer]), params.filename?.trim() || "photo.jpg");
+      formData.append("photo", new Blob([params.file.content.buffer as ArrayBuffer], { type: params.file.mimeType }), params.file.name);
 
       if (params.caption?.trim()) {
         formData.append("caption", params.caption.trim());

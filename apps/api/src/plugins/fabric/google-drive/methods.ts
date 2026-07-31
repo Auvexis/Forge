@@ -182,10 +182,9 @@ export function createGoogleDriveMethods(options: GoogleDriveMethodsOptions = {}
     uploadFile: async (
       params: {
         files: Array<{
-          filename: string;
+          name: string;
           mimeType: string;
-          contentBase64?: string | Buffer;
-          content?: Buffer;
+          content: Buffer;
         }>;
         parentId?: string;
       },
@@ -198,26 +197,18 @@ export function createGoogleDriveMethods(options: GoogleDriveMethodsOptions = {}
       }
 
       const uploadPromises = params.files.map(async (fileObj) => {
-        if (!fileObj.filename?.trim()) {
-          throw new Error("Each file must have a non-empty 'filename'.");
+        if (!fileObj.name?.trim()) {
+          throw new Error("Each file must have a non-empty 'name'.");
         }
 
         // Resolve content — prefer Buffer pipeline, fall back to base64
-        const rawContent = fileObj.content ?? fileObj.contentBase64;
-        if (!rawContent) {
-          throw new Error(
-            `File '${fileObj.filename}' has no content. ` +
-            "Provide 'content' (Buffer from pipeline) or 'contentBase64' (base64 string)."
-          );
-        }
-
-        const buffer = resolveFileBuffer(rawContent as Buffer | string);
+        const buffer = resolveFileBuffer(fileObj.content);
         const stream = Readable.from(buffer);
         const mimeType = fileObj.mimeType?.trim() || "application/octet-stream";
 
         const response = await driveClient.files.create({
           requestBody: {
-            name: fileObj.filename.trim(),
+            name: fileObj.name.trim(),
             mimeType,
             ...(params.parentId?.trim() && { parents: [params.parentId.trim()] }),
           },

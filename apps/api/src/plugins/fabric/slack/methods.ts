@@ -54,11 +54,10 @@ export async function slackApi(
   return data;
 }
 
-async function uploadContent(uploadUrl: string, contentBase64: string): Promise<void> {
-  const content = Buffer.from(contentBase64, "base64");
+async function uploadContent(uploadUrl: string, content: Buffer): Promise<void> {
   const response = await fetch(uploadUrl, {
     method: "POST",
-    body: content,
+    body: new Uint8Array(content),
   });
 
   if (!response.ok) {
@@ -157,24 +156,22 @@ export function createSlackMethods() {
     uploadFile: async (
       params: {
         channel: string;
-        filename: string;
-        contentBase64: string;
+        file: { name: string; mimeType: string; content: Buffer };
         title?: string;
         initialComment?: string;
       },
       context?: PluginContext,
     ) => {
       const channel = required(params.channel, "channel");
-      const filename = required(params.filename, "filename");
-      const contentBase64 = required(params.contentBase64, "contentBase64");
-      const length = Buffer.from(contentBase64, "base64").byteLength;
+      const filename = required(params.file.name, "file.name");
+      const length = params.file.content.byteLength;
 
       const upload = await slackApi(context!, "files.getUploadURLExternal", {
         filename,
         length,
       });
 
-      await uploadContent(upload.upload_url, contentBase64);
+      await uploadContent(upload.upload_url, params.file.content);
 
       return slackApi(context!, "files.completeUploadExternal", {
         channel_id: channel,

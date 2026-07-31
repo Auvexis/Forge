@@ -1,6 +1,5 @@
 import { google } from "googleapis";
 import type { PluginContext } from "@auvexis/fabric-sdk";
-import { buffer as readStreamBuffer } from "node:stream/consumers";
 
 // ──────────── Constants ────────────
 
@@ -376,14 +375,44 @@ export function createGoogleGmailMethods() {
         throw new Error("'messageId' and 'attachmentId' are required.");
       }
 
+      const message = await gmail.users.messages.get({
+        userId: "me",
+        id: params.messageId.trim(),
+        format: "full",
+      });
+      const metadata = findAttachmentMetadata(message.data.payload, params.attachmentId.trim());
       const response = await gmail.users.messages.attachments.get({
         userId: "me",
         messageId: params.messageId.trim(),
         id: params.attachmentId.trim(),
       });
-      return response.data;
+      const content = Buffer.from(response.data.data ?? "", "base64url");
+      return {
+        name: metadata?.name || `${params.attachmentId.trim()}.bin`,
+        mimeType: metadata?.mimeType || "application/octet-stream",
+        size: content.byteLength,
+        content,
+      };
     },
   };
+}
+
+function findAttachmentMetadata(
+  part: any,
+  attachmentId: string,
+): { name: string; mimeType: string } | null {
+  if (!part) return null;
+  if (part.body?.attachmentId === attachmentId) {
+    return {
+      name: part.filename?.trim() || `${attachmentId}.bin`,
+      mimeType: part.mimeType?.trim() || "application/octet-stream",
+    };
+  }
+  for (const child of part.parts ?? []) {
+    const found = findAttachmentMetadata(child, attachmentId);
+    if (found) return found;
+  }
+  return null;
 }
 
 export async function normalizeGmailAttachments(attachments?: any[]): Promise<GmailAttachment[] | undefined> {
@@ -397,21 +426,11 @@ export async function normalizeGmailAttachments(attachments?: any[]): Promise<Gm
 async function normalizeGmailAttachment(att: any): Promise<GmailAttachment | null> {
   if (!att) return null;
   if (typeof att === "string" && /^\s*\{\{[^{}]+\}\}\s*$/.test(att)) return null;
-  if (Buffer.isBuffer(att)) {
-    return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att.toString("base64") };
-  }
-  if (att.type === "Buffer" && Array.isArray(att.data)) {
-    return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: Buffer.from(att.data).toString("base64") };
-  }
-  if (typeof att === "string") {
-    return { filename: "attachment.bin", mimeType: "application/octet-stream", contentBase64: att };
-  }
-
-  const filename = att.name || att.filename || att.fileName || "attachment.bin";
-  const mimeType = att.mimetype || att.mimeType || "application/octet-stream";
-  const content = att.content ?? att.buffer ?? att.contentBase64;
+  const filename = att.name;
+  const mimeType = att.mimeType;
+  const content = att.content;
   if (!content) {
-    throw new Error(`Attachment '${filename}' has no content. Provide content, buffer, or contentBase64.`);
+    throw new Error(`Attachment '${filename ?? "unknown"}' has no canonical content.`);
   }
   const contentBase64 = await attachmentContentToBase64(content);
   if (!contentBase64) {
@@ -425,11 +444,5 @@ async function attachmentContentToBase64(content: any): Promise<string> {
   if (!content) return "";
   if (typeof content === "string") return content;
   if (Buffer.isBuffer(content)) return content.toString("base64");
-  if (content.type === "Buffer" && Array.isArray(content.data)) return Buffer.from(content.data).toString("base64");
-  if (isReadableLike(content)) return (await readStreamBuffer(content)).toString("base64");
   return "";
-}
-
-function isReadableLike(value: unknown): value is NodeJS.ReadableStream {
-  return Boolean(value && typeof value === "object" && typeof (value as { pipe?: unknown }).pipe === "function");
 }

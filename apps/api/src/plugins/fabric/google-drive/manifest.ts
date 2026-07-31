@@ -258,24 +258,19 @@ export default definePluginManifest({
             "x-input-type": "files",
             "items": {
               "type": "object",
+              "x-fabric-value-type": "file",
+              "x-fabric-binary-encoding": "buffer",
               "properties": {
-                "filename": {
-                  "type": "string",
-                  "description": "File name including extension."
-                },
+                "name": { "type": "string", "description": "File name including extension." },
                 "mimeType": {
                   "type": "string",
                   "description": "MIME type (e.g. 'application/pdf'). Use 'application/octet-stream' if unknown."
                 },
-                "contentBase64": {
-                  "type": "string",
-                  "description": "Base64-encoded file content. Used for manual uploads. Omit when connecting a pipeline Buffer."
-                }
+                "size": { "type": "number" },
+                "content": { "type": "object", "description": "Binary file content." }
               },
-              "required": [
-                "filename",
-                "mimeType"
-              ]
+              "required": ["name", "mimeType", "content"],
+              "additionalProperties": false
             }
           },
           "parentId": {

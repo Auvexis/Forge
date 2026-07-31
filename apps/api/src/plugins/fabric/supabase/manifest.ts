@@ -402,7 +402,7 @@ export default definePluginManifest({
     "uploadObject": {
       "metadata": {
         "label": "Upload Object",
-        "description": "Uploads text or base64 content to Supabase Storage."
+        "description": "Uploads a canonical Fabric file to Supabase Storage."
       },
       "parameters": {
         "type": "object",
@@ -417,25 +417,19 @@ export default definePluginManifest({
             "description": "Object path.",
             "x-input-type": "text"
           },
-          "content": {
-            "type": "string",
-            "description": "Text or base64 content.",
-            "x-input-type": "textarea"
-          },
-          "encoding": {
-            "type": "string",
-            "description": "text or base64. Default: text.",
-            "enum": [
-              "text",
-              "base64"
-            ],
-            "default": "text",
-            "x-input-type": "select"
-          },
-          "contentType": {
-            "type": "string",
-            "description": "MIME type.",
-            "x-input-type": "text"
+          "file": {
+            "type": "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
+            "x-input-type": "file",
+            "properties": {
+              "name": { "type": "string" },
+              "mimeType": { "type": "string" },
+              "size": { "type": "number" },
+              "content": { "type": "object" }
+            },
+            "required": ["name", "mimeType", "content"],
+            "additionalProperties": false
           },
           "upsert": {
             "type": "boolean",
@@ -446,7 +440,7 @@ export default definePluginManifest({
         "required": [
           "bucket",
           "path",
-          "content"
+          "file"
         ]
       },
       "responseSchema": {
@@ -456,7 +450,7 @@ export default definePluginManifest({
       "agentTool": {
         "enabled": true,
         "name": "supabase_upload_object",
-        "description": "Uploads text or base64 content to Supabase Storage.",
+        "description": "Uploads a canonical Fabric file to Supabase Storage.",
         "sideEffect": "write",
         "requiresApproval": true,
         "timeoutMs": 30000
@@ -465,7 +459,7 @@ export default definePluginManifest({
     "downloadObject": {
       "metadata": {
         "label": "Download Object",
-        "description": "Downloads a Storage object as base64."
+        "description": "Downloads a Storage object as a canonical Fabric file."
       },
       "parameters": {
         "type": "object",
@@ -488,25 +482,21 @@ export default definePluginManifest({
       },
       "responseSchema": {
         "type": "object",
+        "x-fabric-value-type": "file",
+        "x-fabric-binary-encoding": "buffer",
         "properties": {
-          "content": {
-            "type": "string"
-          },
-          "encoding": {
-            "type": "string"
-          },
-          "contentType": {
-            "type": "string"
-          },
-          "sizeBytes": {
-            "type": "number"
-          }
-        }
+          "name": { "type": "string" },
+          "mimeType": { "type": "string" },
+          "size": { "type": "number" },
+          "content": { "type": "object" }
+        },
+        "required": ["name", "mimeType", "content"],
+        "additionalProperties": false
       },
       "agentTool": {
         "enabled": true,
         "name": "supabase_download_object",
-        "description": "Downloads a Storage object as base64.",
+        "description": "Downloads a Storage object as a canonical Fabric file.",
         "sideEffect": "read",
         "requiresApproval": false,
         "timeoutMs": 30000

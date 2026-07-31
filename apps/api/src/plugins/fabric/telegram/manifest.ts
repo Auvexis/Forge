@@ -139,20 +139,18 @@ export default definePluginManifest({
             "x-input-type": "text"
           },
           "file": {
-            "type": [
-              "string",
-              "object"
-            ],
-            "format": "binary",
-            "description": "The file to send. Map this to the output of a step that returns a file/binary (e.g. Drive Download or Form Trigger). You can provide a Buffer, a Base64 string, or an object with { buffer, filename }. Use the 'Convert File / Data' method from the File plugin if you need to convert formats.",
+            "type": "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
+            "description": "Canonical Fabric file to send, usually from a previous file-producing step.",
             "x-label": "File",
-            "x-input-type": "file"
-          },
-          "filename": {
-            "type": "string",
-            "description": "Custom filename shown in Telegram (e.g. 'report.pdf'). Defaults to 'file' if not specified.",
-            "x-label": "Filename",
-            "x-input-type": "text"
+            "x-input-type": "file",
+            "properties": {
+              "name": { "type": "string" }, "mimeType": { "type": "string" },
+              "size": { "type": "number" }, "content": { "type": "object" }
+            },
+            "required": ["name", "mimeType", "content"],
+            "additionalProperties": false
           },
           "caption": {
             "type": "string",
@@ -236,25 +234,18 @@ export default definePluginManifest({
             }
           },
           "file": {
-            "type": [
-              "string",
-              "object"
-            ],
-            "format": "binary",
+            "type": "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
             "description": "Binary image file from a previous workflow step.",
             "x-label": "Image File",
             "x-input-type": "file",
-            "x-visible-if": {
-              "field": "useUrl",
-              "operator": "equals",
-              "value": false
-            }
-          },
-          "filename": {
-            "type": "string",
-            "description": "Custom filename (e.g. 'photo.jpg'). Used when uploading a buffer.",
-            "x-label": "Filename",
-            "x-input-type": "text",
+            "properties": {
+              "name": { "type": "string" }, "mimeType": { "type": "string" },
+              "size": { "type": "number" }, "content": { "type": "object" }
+            },
+            "required": ["name", "mimeType", "content"],
+            "additionalProperties": false,
             "x-visible-if": {
               "field": "useUrl",
               "operator": "equals",

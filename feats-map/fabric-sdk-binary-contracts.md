@@ -25,3 +25,16 @@
 - [x] Migrate Drive and Gmail file contracts
 - [x] Add engine compatibility tests
 - [x] Run affected suites
+
+## Batch 4 - Default Plugin Migration
+
+- [x] Audit binary inputs and outputs
+- [x] Migrate Drive upload
+- [x] Migrate Gmail download
+- [x] Migrate YouTube upload
+- [x] Migrate Slack upload
+- [x] Migrate Supabase storage
+- [x] Migrate Telegram media
+- [x] Migrate File utilities
+- [x] Validate every default manifest
+- [x] Run affected suites

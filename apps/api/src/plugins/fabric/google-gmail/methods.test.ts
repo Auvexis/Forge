@@ -1,15 +1,14 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { Readable } from "node:stream";
 import { normalizeGmailAttachments } from "./methods.ts";
 
 describe("google gmail methods", () => {
-  it("normalizes readable attachment content from Drive downloads", async () => {
+  it("normalizes canonical Buffer attachment content", async () => {
     const attachments = await normalizeGmailAttachments([
       {
-        filename: "curriculo.pdf",
+        name: "curriculo.pdf",
         mimeType: "application/pdf",
-        content: Readable.from(Buffer.from("pdf-content")),
+        content: Buffer.from("pdf-content"),
       },
     ]);
 

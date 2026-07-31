@@ -72,9 +72,7 @@ type StorageObjectParams = {
 };
 
 type UploadObjectParams = StorageObjectParams & {
-  content: string;
-  encoding?: string;
-  contentType?: string;
+  file: { name: string; mimeType: string; content: Buffer };
   upsert?: boolean;
 };
 
@@ -282,9 +280,9 @@ export function createSupabaseMethods() {
 
     async uploadObject(params: UploadObjectParams, context?: PluginContext) {
       const client = createClientFromContext(context);
-      const content = contentToBuffer(params);
+      const content = params.file.content;
       const { data, error } = await client.storage.from(params.bucket).upload(params.path, content, {
-        contentType: params.contentType,
+        contentType: params.file.mimeType,
         upsert: params.upsert === true,
       });
 
@@ -301,10 +299,10 @@ export function createSupabaseMethods() {
 
       const buffer = Buffer.from(await data.arrayBuffer());
       return {
-        content: buffer.toString("base64"),
-        encoding: "base64",
-        contentType: data.type || "application/octet-stream",
-        sizeBytes: buffer.byteLength,
+        name: params.path.split("/").pop() || "download.bin",
+        mimeType: data.type || "application/octet-stream",
+        size: buffer.byteLength,
+        content: buffer,
       };
     },
 

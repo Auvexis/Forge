@@ -407,7 +407,7 @@ export default definePluginManifest({
     "uploadFile": {
       "metadata": {
         "label": "Upload File",
-        "description": "Uploads a base64 file to Slack using the external upload flow."
+        "description": "Uploads a canonical Fabric file to Slack using the external upload flow."
       },
       "parameters": {
         "type": "object",
@@ -418,17 +418,19 @@ export default definePluginManifest({
             "x-label": "Channel",
             "x-input-type": "text"
           },
-          "filename": {
-            "type": "string",
-            "description": "Filename shown in Slack.",
-            "x-label": "Filename",
-            "x-input-type": "text"
-          },
-          "contentBase64": {
-            "type": "string",
-            "description": "File content encoded as base64.",
-            "x-label": "Content Base64",
-            "x-input-type": "textarea"
+          "file": {
+            "type": "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
+            "x-input-type": "file",
+            "properties": {
+              "name": { "type": "string" },
+              "mimeType": { "type": "string" },
+              "size": { "type": "number" },
+              "content": { "type": "object" }
+            },
+            "required": ["name", "mimeType", "content"],
+            "additionalProperties": false
           },
           "title": {
             "type": "string",
@@ -445,8 +447,7 @@ export default definePluginManifest({
         },
         "required": [
           "channel",
-          "filename",
-          "contentBase64"
+          "file"
         ]
       },
       "responseSchema": {
@@ -468,7 +469,7 @@ export default definePluginManifest({
       "agentTool": {
         "enabled": true,
         "name": "slack_upload_file",
-        "description": "Uploads a base64 file to Slack using the external upload flow.",
+        "description": "Uploads a canonical Fabric file to Slack using the external upload flow.",
         "sideEffect": "write",
         "requiresApproval": true,
         "timeoutMs": 30000

@@ -941,19 +941,20 @@ export default definePluginManifest({
             "default": "private",
             "x-input-type": "text"
           },
-          "content": {
-            "type": [
-              "string",
-              "object"
-            ],
-            "format": "binary",
+          "video": {
+            "type": "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "buffer",
             "description": "The video file to upload.",
-            "x-input-type": "file"
-          },
-          "mimeType": {
-            "type": "string",
-            "description": "MIME type of the video.",
-            "x-input-type": "text"
+            "x-input-type": "file",
+            "properties": {
+              "name": { "type": "string" },
+              "mimeType": { "type": "string" },
+              "size": { "type": "number" },
+              "content": { "type": "object" }
+            },
+            "required": ["name", "mimeType", "content"],
+            "additionalProperties": false
           },
           "categoryId": {
             "type": "string",
@@ -963,7 +964,7 @@ export default definePluginManifest({
         },
         "required": [
           "title",
-          "content"
+          "video"
         ]
       },
       "responseSchema": {
