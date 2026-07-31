@@ -91,7 +91,7 @@
 ## Batch 8 — Provider Continuation
 
 - [x] Define provider adapter interface
-- [ ] Preserve opaque continuation metadata
+- [x] Preserve opaque continuation metadata
 - [ ] Implement Ollama adapter
 - [ ] Implement OpenAI adapter
 - [ ] Implement Anthropic adapter
