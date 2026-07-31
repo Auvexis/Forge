@@ -16,6 +16,7 @@ export interface FabricAgentToolDefinition {
   pluginName?: string;
   methodId: string;
   inputSchema: Record<string, any>;
+  outputSchema?: Record<string, any>;
   sideEffect: AgentToolSideEffect;
   requiresApproval: boolean;
   timeoutMs: number;
@@ -84,6 +85,7 @@ function toToolDefinition(
     pluginName,
     methodId,
     inputSchema: methodManifest.parameters ?? { type: "object", properties: {} },
+    ...(methodManifest.responseSchema ? { outputSchema: methodManifest.responseSchema } : {}),
     sideEffect: metadata.sideEffect ?? "read",
     requiresApproval: metadata.requiresApproval ?? metadata.sideEffect !== "read",
     timeoutMs: metadata.timeoutMs ?? 30000,

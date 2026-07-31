@@ -1,10 +1,13 @@
 import { AgentRuntimeError } from "../agent-errors.ts";
 import { AGENT_LIMITS } from "../agent-limits.ts";
 import type { InternalMcpToolCall, InternalMcpToolResult } from "./internal-mcp-types.ts";
+import { Ajv } from "ajv";
+import addFormats from "ajv-formats";
 
 export function validateInternalMcpResult(
   expected: InternalMcpToolCall,
   value: unknown,
+  outputSchema?: Record<string, unknown>,
 ): asserts value is InternalMcpToolResult {
   if (!isRecord(value) || !isRecord(value.call) || !isRecord(value.toolCall)) {
     throw invalidResult("Result envelope is malformed");
@@ -21,6 +24,25 @@ export function validateInternalMcpResult(
     throw invalidResult("Successful MCP response has an invalid status");
   }
   assertResultPayload(value.content);
+  if (outputSchema) assertOutputSchema(expected.name, outputSchema, value.content);
+}
+
+function assertOutputSchema(
+  toolName: string,
+  schema: Record<string, unknown>,
+  content: unknown,
+): void {
+  const ajv = new Ajv({ allErrors: true, strict: false, coerceTypes: false });
+  (addFormats as unknown as (instance: Ajv) => void)(ajv);
+  let valid: boolean;
+  try {
+    valid = ajv.validate(schema, content);
+  } catch {
+    throw invalidResult(`Tool ${toolName} declares an invalid output schema`);
+  }
+  if (!valid) {
+    throw invalidResult(`Tool ${toolName} output does not match its declared schema`);
+  }
 }
 
 function assertResultPayload(value: unknown): void {

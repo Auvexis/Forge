@@ -40,7 +40,7 @@ export class InternalMcpClient {
   async callTool(call: InternalMcpToolCall) {
     this.validateToolArguments(call.name, call.arguments);
     const result: unknown = await this.server.callTool(call);
-    validateInternalMcpResult(call, result);
+    validateInternalMcpResult(call, result, this.describeTool(call.name).outputSchema);
     return result;
   }
 }

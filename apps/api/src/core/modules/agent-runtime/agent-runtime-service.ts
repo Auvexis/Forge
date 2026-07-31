@@ -51,6 +51,9 @@ const defaultRunner = new AgentRunner({
     const repository = new AgentSessionRepository(WorkflowRepository.database());
     const session = repository.getSession(input.profileId, input.sessionId);
     if (!session) throw new Error(`Agent session not found: ${input.sessionId}`);
+    if (session.workflowId !== input.workflowId) {
+      throw new Error("Agent session does not belong to the executing workflow");
+    }
     const writer = new AgentSessionWriter(
       repository,
       input.profileId,

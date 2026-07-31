@@ -36,6 +36,20 @@ describe("validateInternalMcpResult", () => {
     expect(() => validateInternalMcpResult(call, resultWith(cyclic)))
       .toThrow(/JSON serializable/);
   });
+
+  it("rejects output that violates the plugin response schema", () => {
+    const schema = {
+      type: "object",
+      required: ["id"],
+      additionalProperties: false,
+      properties: { id: { type: "string" } },
+    };
+
+    expect(() => validateInternalMcpResult(call, resultWith({ id: "file_1" }), schema))
+      .not.toThrow();
+    expect(() => validateInternalMcpResult(call, resultWith({ id: 42 }), schema))
+      .toThrow(/declared schema/);
+  });
 });
 
 function resultWith(content: unknown) {

@@ -11,6 +11,7 @@ export interface InternalMcpTool {
   requiresApproval: boolean;
   timeoutMs: number;
   inputSchema: Record<string, any>;
+  outputSchema?: Record<string, any>;
   invoke(arguments_: Record<string, unknown>): Promise<unknown>;
 }
 

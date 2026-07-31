@@ -162,15 +162,15 @@
 
 ## Batch 14 — Security
 
-- [ ] Validate all MCP inputs
-- [ ] Validate all MCP outputs
-- [ ] Isolate plugin credentials
-- [ ] Enforce profile ownership
-- [ ] Enforce workflow ownership
-- [ ] Sanitize persisted payloads
-- [ ] Redact secrets from logs
-- [ ] Bound binary and text payloads
-- [ ] Add security tests
+- [x] Validate all MCP inputs
+- [x] Validate all MCP outputs
+- [x] Isolate plugin credentials
+- [x] Enforce profile ownership
+- [x] Enforce workflow ownership
+- [x] Sanitize persisted payloads
+- [x] Redact secrets from logs
+- [x] Bound binary and text payloads
+- [x] Add security tests
 
 ## Batch 15 — Migration Cleanup
 

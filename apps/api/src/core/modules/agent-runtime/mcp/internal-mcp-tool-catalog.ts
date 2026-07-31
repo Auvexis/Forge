@@ -110,21 +110,30 @@ function validateTool(tool: InternalMcpTool): void {
     throw invalidCatalog(`Connected tool ${tool.name} has oversized instructions`);
   }
 
+  validateSchema(tool.name, "input", tool.inputSchema);
+  if (tool.outputSchema) validateSchema(tool.name, "output", tool.outputSchema);
+}
+
+function validateSchema(
+  toolName: string,
+  kind: "input" | "output",
+  schema: Record<string, unknown>,
+): void {
   let encoded: string;
   try {
-    encoded = JSON.stringify(tool.inputSchema);
+    encoded = JSON.stringify(schema);
   } catch {
-    throw invalidCatalog(`Connected tool ${tool.name} has a non-serializable schema`);
+    throw invalidCatalog(`Connected tool ${toolName} has a non-serializable ${kind} schema`);
   }
   if (Buffer.byteLength(encoded, "utf8") > AGENT_LIMITS.maxToolSchemaBytes) {
-    throw invalidCatalog(`Connected tool ${tool.name} has an oversized schema`);
+    throw invalidCatalog(`Connected tool ${toolName} has an oversized schema (${kind})`);
   }
-  const stats = inspectSchema(tool.inputSchema);
+  const stats = inspectSchema(schema);
   if (stats.depth > AGENT_LIMITS.maxToolSchemaDepth || stats.keys > AGENT_LIMITS.maxToolSchemaKeys) {
-    throw invalidCatalog(`Connected tool ${tool.name} has an overly complex schema`);
+    throw invalidCatalog(`Connected tool ${toolName} has an overly complex ${kind} schema`);
   }
   if (stats.hasExternalRef) {
-    throw invalidCatalog(`Connected tool ${tool.name} has an external schema reference`);
+    throw invalidCatalog(`Connected tool ${toolName} has an external schema reference (${kind})`);
   }
 }
 
@@ -136,6 +145,9 @@ function sanitizeTool(tool: InternalMcpTool): InternalMcpTool {
       ? { instructions: sanitizeMetadataText(tool.instructions) }
       : {}),
     inputSchema: sanitizeSchemaMetadata(tool.inputSchema),
+    ...(tool.outputSchema
+      ? { outputSchema: sanitizeSchemaMetadata(tool.outputSchema) }
+      : {}),
   });
 }
 
