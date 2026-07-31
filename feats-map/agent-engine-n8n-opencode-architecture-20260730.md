@@ -127,7 +127,7 @@
 
 - [x] Add primary model policy
 - [x] Add fallback model policy
-- [ ] Classify retryable model failures
+- [x] Classify retryable model failures
 - [ ] Add structured decision repair
 - [ ] Add empty-result recovery
 - [ ] Add ambiguous-result selection
