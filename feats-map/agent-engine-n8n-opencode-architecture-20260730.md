@@ -119,7 +119,7 @@
 - [x] Reconcile completed side effects
 - [x] Prevent duplicate side effects
 - [x] Add lease expiration
-- [ ] Add retry policy
+- [x] Add retry policy
 - [ ] Add dead-letter state
 - [ ] Add restart matrix tests
 
