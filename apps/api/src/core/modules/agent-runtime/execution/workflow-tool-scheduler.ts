@@ -2,12 +2,14 @@ import type { AgentEngineRequestRepository } from "../engine-protocol/agent-engi
 import type { AgentEngineResponseRepository } from "../engine-protocol/agent-engine-response-repository.ts";
 import type { AgentEngineToolRequest } from "../engine-protocol/agent-engine-request.ts";
 import type { AgentEngineResponse } from "../engine-protocol/agent-engine-response.ts";
+import type { WorkflowNode } from "../../../../shared/models/workflow-types.ts";
 
 export interface AgentWorkflowToolTarget {
   nodeId: string;
   toolName: string;
   pluginId?: string;
   methodId?: string;
+  node?: WorkflowNode;
 }
 
 export interface AgentWorkflowToolResolver {
