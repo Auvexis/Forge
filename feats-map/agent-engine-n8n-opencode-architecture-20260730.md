@@ -59,7 +59,7 @@
 - [x] Select one tool from catalog
 - [x] Load only selected tool schema
 - [x] Generate schema-bound arguments
-- [ ] Validate arguments deterministically
+- [x] Validate arguments deterministically
 - [ ] Repair invalid arguments once
 - [ ] Add tool aliases and descriptions
 - [ ] Add small-model discovery tests
