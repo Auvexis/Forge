@@ -71,7 +71,7 @@
 - [x] Reconstruct steps by tool call ID
 - [x] Preserve completed steps on resume
 - [x] Detect duplicate responses
-- [ ] Remove orphan tool messages
+- [x] Remove orphan tool messages
 - [ ] Bound tool result context
 - [ ] Preserve artifact references
 - [ ] Add scratchpad tests
