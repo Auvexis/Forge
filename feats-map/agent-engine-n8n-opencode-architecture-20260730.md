@@ -66,7 +66,7 @@
 
 ## Batch 6 — Canonical Scratchpad
 
-- [ ] Build assistant tool-call messages
+- [x] Build assistant tool-call messages
 - [ ] Build correlated tool-result messages
 - [ ] Reconstruct steps by tool call ID
 - [ ] Preserve completed steps on resume

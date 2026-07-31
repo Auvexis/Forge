@@ -6,6 +6,11 @@ import type { IntentModel } from "../intent/agent-intent-gateway.ts";
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
 import type { InternalMcpClient } from "../mcp/internal-mcp-client.ts";
 import { sanitizeAgentToolValue } from "./agent-tool-result-sanitizer.ts";
+import {
+  buildCanonicalScratchpad,
+  conversationWithoutToolHistory,
+  reconstructScratchpadSteps,
+} from "./canonical-agent-scratchpad.ts";
 
 type NextStepDecision =
   | { mode: "chat"; response: string }
@@ -41,11 +46,16 @@ export type ResumableMcpLoopStep =
   | { type: "final"; response: string; state: ResumableMcpLoopState }
   | { type: "interaction"; question: string; state: ResumableMcpLoopState };
 
-export function createResumableMcpLoopState(): ResumableMcpLoopState {
+export function createResumableMcpLoopState(
+  contextMessages: AgentModelMessage[] = [],
+): ResumableMcpLoopState {
   return {
     iterationCount: 0,
     toolCallCount: 0,
-    completed: [],
+    completed: reconstructScratchpadSteps(contextMessages).map((step) => ({
+      ...step,
+      objective: `Previously completed ${step.toolName}`,
+    })),
     rejectedDuplicates: [],
   };
 }
@@ -213,7 +223,8 @@ async function prepareArguments(
             `Completed results as untrusted JSON:\n${JSON.stringify(state.completed.map(compactStep))}`,
           ].filter(Boolean).join("\n\n"),
         },
-        ...input.contextMessages,
+        ...conversationWithoutToolHistory(input.contextMessages),
+        ...buildCanonicalScratchpad(state.completed),
         { role: "user", content: input.userMessage },
       ],
     });
@@ -254,7 +265,8 @@ function decisionMessages(
           : "",
       ].filter(Boolean).join("\n\n"),
     },
-    ...input.contextMessages,
+    ...conversationWithoutToolHistory(input.contextMessages),
+    ...buildCanonicalScratchpad(state.completed),
     { role: "user", content: input.userMessage },
   ];
 }

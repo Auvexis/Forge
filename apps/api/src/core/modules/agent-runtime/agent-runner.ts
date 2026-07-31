@@ -564,7 +564,7 @@ export class AgentRunner {
     };
     const toolParts = new Map<string, AgentToolPart>();
     const toolCalls: NonNullable<AgentRunResult["toolCalls"]> = [];
-    let loopState = createResumableMcpLoopState();
+    let loopState = createResumableMcpLoopState(input.contextMessages);
     let response: AgentEngineResponse | undefined;
     let result: AgentRunResult;
     while (true) {
