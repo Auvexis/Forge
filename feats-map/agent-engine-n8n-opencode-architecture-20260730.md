@@ -62,7 +62,7 @@
 - [x] Validate arguments deterministically
 - [x] Repair invalid arguments once
 - [x] Add tool aliases and descriptions
-- [ ] Add small-model discovery tests
+- [x] Add small-model discovery tests
 
 ## Batch 6 — Canonical Scratchpad
 
