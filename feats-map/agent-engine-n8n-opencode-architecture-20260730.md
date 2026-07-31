@@ -38,7 +38,7 @@
 - [x] Persist tool result before resume
 - [x] Persist tool error before resume
 - [x] Add cancellation propagation
-- [ ] Add scheduler tests
+- [x] Add scheduler tests
 
 ## Batch 4 — Resumable MCP Loop
 
