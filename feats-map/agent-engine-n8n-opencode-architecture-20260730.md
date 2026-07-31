@@ -86,7 +86,7 @@
 - [x] Persist user responses before resume
 - [x] Feed rejection feedback to the model
 - [x] Resume the same run and turn
-- [ ] Add interaction tests
+- [x] Add interaction tests
 
 ## Batch 8 — Provider Continuation
 
