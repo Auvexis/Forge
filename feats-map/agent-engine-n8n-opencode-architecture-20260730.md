@@ -81,7 +81,7 @@
 - [x] Implement clarification requests
 - [x] Implement selection requests
 - [x] Implement approval requests
-- [ ] Implement authentication requests
+- [x] Implement authentication requests
 - [ ] Implement permission requests
 - [ ] Persist user responses before resume
 - [ ] Feed rejection feedback to the model
