@@ -45,7 +45,7 @@
 - [x] Split decision from execution
 - [x] Return engine requests from the loop
 - [x] Resume from engine responses
-- [ ] Preserve one tool per iteration
+- [x] Preserve one tool per iteration
 - [ ] Enforce iteration limits
 - [ ] Enforce tool call limits
 - [ ] Add repetition guard
