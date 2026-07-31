@@ -73,7 +73,7 @@
 - [x] Detect duplicate responses
 - [x] Remove orphan tool messages
 - [x] Bound tool result context
-- [ ] Preserve artifact references
+- [x] Preserve artifact references
 - [ ] Add scratchpad tests
 
 ## Batch 7 — Durable Interactions
