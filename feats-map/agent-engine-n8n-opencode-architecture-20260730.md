@@ -106,7 +106,7 @@
 - [x] Persist canonical message parts
 - [x] Save final conversation turns
 - [x] Avoid duplicate memory writes
-- [ ] Add token-aware compaction
+- [x] Add token-aware compaction
 - [ ] Retain recent complete tool sequences
 - [ ] Repair trimmed orphan messages
 - [ ] Add memory tests
