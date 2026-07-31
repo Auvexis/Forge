@@ -10,7 +10,7 @@
 
 ## Batch 1 — Domain Contracts
 
-- [ ] Define agent run contract
+- [x] Define agent run contract
 - [ ] Define engine request contract
 - [ ] Define engine response contract
 - [ ] Define continuation metadata contract
