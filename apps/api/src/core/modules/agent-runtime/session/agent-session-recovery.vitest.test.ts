@@ -1,9 +1,7 @@
 import Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
-import { up as createLegacyChat } from "../../../database/migrations/workflows/005_agent_runtime_tables.ts";
+import { up as createSessions } from "../../../database/migrations/workflows/005_agent_sessions.ts";
 import { up as createRuns } from "../../../database/migrations/workflows/007_agent_mcp_runs.ts";
-import { up as createParts } from "../../../database/migrations/workflows/014_agent_session_parts.ts";
-import { up as replaceChat } from "../../../database/migrations/workflows/015_replace_agent_chat_storage.ts";
 import { AgentSessionRecovery } from "./agent-session-recovery.ts";
 import { AgentSessionRepository } from "./agent-session-repository.ts";
 import { AgentSessionWriter } from "./agent-session-writer.ts";
@@ -15,10 +13,8 @@ describe("AgentSessionRecovery", () => {
   it("turns a running tool into a durable retryable error after restart", async () => {
     db = new Database(":memory:");
     db.pragma("foreign_keys = ON");
-    await createLegacyChat(db);
+    await createSessions(db);
     await createRuns(db);
-    await createParts(db);
-    await replaceChat(db);
     const now = () => "2026-07-29T00:00:00.000Z";
     const firstProcess = new AgentSessionRepository(db, now);
     const session = firstProcess.createSession({

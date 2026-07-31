@@ -181,7 +181,7 @@
 - [x] Remove replaced legacy contracts
 - [x] Remove replaced legacy tables
 - [x] Remove legacy frontend hooks
-- [ ] Remove legacy migrations
+- [x] Remove legacy migrations
 - [x] Remove dead dependencies
 - [x] Verify clean architecture boundaries
 

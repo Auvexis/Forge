@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import Database from "better-sqlite3";
-import { up } from "../../database/migrations/workflows/005_agent_runtime_tables.ts";
+import { up } from "../../database/migrations/workflows/005_agent_sessions.ts";
 import { AgentApprovalService } from "./agent-approval-service.ts";
 import { ChatMessageRepository } from "./chat/chat-message-repository.ts";
 import { ChatSessionRepository } from "./chat/chat-session-repository.ts";

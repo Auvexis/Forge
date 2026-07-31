@@ -1,9 +1,7 @@
 import Database from "better-sqlite3";
 import { afterEach, describe, expect, it } from "vitest";
-import { up as createLegacyChat } from "../../../database/migrations/workflows/005_agent_runtime_tables.ts";
+import { up as createSessions } from "../../../database/migrations/workflows/005_agent_sessions.ts";
 import { up as createRuns } from "../../../database/migrations/workflows/007_agent_mcp_runs.ts";
-import { up as createParts } from "../../../database/migrations/workflows/014_agent_session_parts.ts";
-import { up as replaceChat } from "../../../database/migrations/workflows/015_replace_agent_chat_storage.ts";
 import { AgentSessionRepository } from "./agent-session-repository.ts";
 import { AgentSessionWriter } from "./agent-session-writer.ts";
 
@@ -14,10 +12,8 @@ describe("AgentSessionWriter", () => {
   it("persists a tool before execution and every subsequent transition", async () => {
     db = new Database(":memory:");
     db.pragma("foreign_keys = ON");
-    await createLegacyChat(db);
+    await createSessions(db);
     await createRuns(db);
-    await createParts(db);
-    await replaceChat(db);
     const repository = new AgentSessionRepository(db, () => "2026-07-29T00:00:00.000Z");
     const session = repository.createSession({
       id: "session_1",
@@ -63,10 +59,8 @@ describe("AgentSessionWriter", () => {
   it("persists and resolves a human interaction as a message part", async () => {
     db = new Database(":memory:");
     db.pragma("foreign_keys = ON");
-    await createLegacyChat(db);
+    await createSessions(db);
     await createRuns(db);
-    await createParts(db);
-    await replaceChat(db);
     const repository = new AgentSessionRepository(db, () => "2026-07-29T00:00:00.000Z");
     const session = repository.createSession({
       id: "session_1",
@@ -99,10 +93,8 @@ describe("AgentSessionWriter", () => {
   it("persists terminal errors as durable message parts", async () => {
     db = new Database(":memory:");
     db.pragma("foreign_keys = ON");
-    await createLegacyChat(db);
+    await createSessions(db);
     await createRuns(db);
-    await createParts(db);
-    await replaceChat(db);
     const repository = new AgentSessionRepository(db);
     const session = repository.createSession({
       id: "session_1",
@@ -138,10 +130,8 @@ describe("AgentSessionWriter", () => {
   it("persists a final assistant message only once per turn", async () => {
     db = new Database(":memory:");
     db.pragma("foreign_keys = ON");
-    await createLegacyChat(db);
+    await createSessions(db);
     await createRuns(db);
-    await createParts(db);
-    await replaceChat(db);
     const repository = new AgentSessionRepository(db);
     const session = repository.createSession({
       id: "session_1",
