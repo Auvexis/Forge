@@ -17,7 +17,6 @@
 - [x] Define typed interaction contract
 - [x] Define provider metadata envelope
 - [x] Add contract tests
-- [ ] Remove replaced legacy contracts
 
 ## Batch 2 — Durable Persistence
 
@@ -29,7 +28,6 @@
 - [x] Add response correlation indexes
 - [x] Add atomic revision updates
 - [x] Add persistence tests
-- [ ] Remove replaced legacy tables
 
 ## Batch 3 — Workflow Tool Scheduler
 
@@ -180,6 +178,8 @@
 - [ ] Remove legacy planner runtime
 - [ ] Remove legacy loop runtime
 - [ ] Remove legacy agent processors
+- [ ] Remove replaced legacy contracts
+- [ ] Remove replaced legacy tables
 - [ ] Remove legacy frontend hooks
 - [ ] Remove legacy migrations
 - [ ] Remove dead dependencies
