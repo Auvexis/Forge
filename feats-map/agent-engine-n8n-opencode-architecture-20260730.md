@@ -93,7 +93,7 @@
 - [x] Define provider adapter interface
 - [x] Preserve opaque continuation metadata
 - [x] Implement Ollama adapter
-- [ ] Implement OpenAI adapter
+- [x] Implement OpenAI adapter
 - [ ] Implement Anthropic adapter
 - [ ] Implement Gemini adapter
 - [ ] Implement DeepSeek adapter
