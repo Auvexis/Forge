@@ -133,7 +133,7 @@
 - [x] Add ambiguous-result selection
 - [x] Add deterministic stop reasons
 - [x] Add 1B–20B Ollama fixtures
-- [ ] Add resilience tests
+- [x] Add resilience tests
 
 ## Batch 12 — Live Session Interface
 
