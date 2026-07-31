@@ -152,7 +152,7 @@ export async function runIterativeMcpAgentLoop(input: {
         toolName: decision.toolName,
         duplicateRejected: true,
       });
-      if (rejectedDuplicates.length >= 3) {
+      if (isEmptyToolResult(duplicate.output) || rejectedDuplicates.length >= 3) {
         return {
           status: "waiting-user",
           output: {
@@ -193,7 +193,10 @@ export async function runIterativeMcpAgentLoop(input: {
       toolCallId: call.id,
       toolName: call.name,
     });
-    toolLogger?.info("tool.call_started", { iteration });
+    toolLogger?.info("tool.call_started", {
+      iteration,
+      arguments: sanitizeAgentToolValue(call.arguments),
+    });
     try {
       const result = await input.client.callTool(call);
       input.emitEvent({
@@ -214,7 +217,10 @@ export async function runIterativeMcpAgentLoop(input: {
         output: result.content,
       });
       toolCalls.push(result.toolCall);
-      toolLogger?.info("tool.call_completed", { iteration });
+      toolLogger?.info("tool.call_completed", {
+        iteration,
+        output: sanitizeAgentToolValue(result.content),
+      });
     } catch (error) {
       if (error instanceof AgentToolApprovalRequiredError) throw error;
       toolLogger?.error("tool.call_failed", {
@@ -364,11 +370,31 @@ function stableStringify(value: unknown): string {
 }
 
 function duplicateClarification(step: CompletedStep): string {
+  if (isEmptyToolResult(step.output)) {
+    const criteria = Object.entries(step.arguments)
+      .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+      .join(", ");
+    return [
+      `A busca com ${criteria || "os critérios informados"} não encontrou nenhum resultado.`,
+      "Informe uma parte do nome real do arquivo, a extensão ou a pasta onde ele está.",
+      "Você também pode fornecer o nome completo do arquivo.",
+    ].join(" ");
+  }
   return [
     `A ferramenta ${step.toolName} já foi executada com esses mesmos parâmetros.`,
     `Resultado obtido: ${JSON.stringify(sanitizeAgentToolValue(step.output))}.`,
     "Não vou repetir a mesma operação. Informe qual item desse resultado devo usar ou qual parâmetro da busca deve mudar.",
   ].join(" ");
+}
+
+function isEmptyToolResult(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length === 0;
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  if (Array.isArray(record.items)) return record.items.length === 0;
+  if (Array.isArray(record.files)) return record.files.length === 0;
+  if (Array.isArray(record.results)) return record.results.length === 0;
+  return false;
 }
 
 function hasPaginationHint(value: unknown): boolean {

@@ -160,6 +160,39 @@ describe("runIterativeMcpAgentLoop", () => {
 
     expect(calls).toEqual(["drive_download"]);
   });
+
+  it("explains an empty search result on the first duplicate attempt", async () => {
+    const decisions = [
+      { mode: "tool", toolName: "drive_list", objective: "Find CV" },
+      { action: "call", arguments: { query: "backend" } },
+      { mode: "tool", toolName: "drive_list", objective: "Find CV" },
+      { action: "call", arguments: { query: "backend" } },
+    ];
+    let executions = 0;
+
+    const result = await runIterativeMcpAgentLoop({
+      model: { invokeJson: async () => decisions.shift() as any },
+      client: client([
+        tool("drive_list", ["query"], async () => {
+          executions += 1;
+          return [];
+        }),
+      ]),
+      systemPrompt: "",
+      userMessage: "Find my backend CV",
+      contextMessages: [],
+      maxToolCalls: 4,
+      emitEvent: () => {},
+    });
+
+    expect(executions).toBe(1);
+    expect(result).toMatchObject({
+      status: "waiting-user",
+      iterationCount: 2,
+    });
+    expect(JSON.stringify(result.output)).toContain("não encontrou nenhum resultado");
+    expect(JSON.stringify(result.output)).not.toContain("qual item desse resultado");
+  });
 });
 
 function client(tools: ReturnType<typeof tool>[]) {

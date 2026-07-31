@@ -41,3 +41,12 @@
 - [x] Disable snapshot caching
 - [x] Render tool steps from each persisted revision
 - [x] Add live reconciliation contract tests
+
+## Batch 7 — Empty search recovery
+
+- [x] Diagnose duplicate decisions from runtime logs
+- [x] Make natural Google Drive searches broad and remove stop words
+- [x] Preserve explicit Google Drive query syntax
+- [x] Clarify immediately when a repeated search returned no results
+- [x] Include tool arguments and bounded output in runtime logs
+- [x] Add empty-result and Drive query regression tests

@@ -436,13 +436,19 @@ export function normalizeDriveListQuery(query: string): string {
 
   const terms = trimmed
     .split(/\s+/)
-    .map((term) => term.replace(/['\\]/g, "").trim())
-    .filter(Boolean)
+    .map((term) => term.replace(/['\\".,;:()[\]{}]/g, "").trim())
+    .filter((term) => term && !DRIVE_SEARCH_STOP_WORDS.has(term.toLocaleLowerCase()))
     .slice(0, 8);
 
   if (terms.length === 0) return "";
-  return terms.map((term) => `name contains '${term}'`).join(" and ");
+  if (terms.length === 1) return `name contains '${terms[0]}'`;
+  return `(${terms.map((term) => `name contains '${term}'`).join(" or ")})`;
 }
+
+const DRIVE_SEARCH_STOP_WORDS = new Set([
+  "a", "an", "and", "da", "das", "de", "do", "dos", "e", "em",
+  "file", "for", "o", "os", "the", "um", "uma",
+]);
 
 function googleAppsExportForMime(mimeType: unknown): GoogleAppsExportSpec | null {
   return typeof mimeType === "string" ? GOOGLE_APPS_EXPORTS[mimeType] ?? null : null;
