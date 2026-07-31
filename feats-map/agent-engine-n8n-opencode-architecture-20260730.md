@@ -48,7 +48,7 @@
 - [x] Preserve one tool per iteration
 - [x] Enforce iteration limits
 - [x] Enforce tool call limits
-- [ ] Add repetition guard
+- [x] Add repetition guard
 - [ ] Add completion guard
 - [ ] Remove inline tool execution
 - [ ] Add loop tests
