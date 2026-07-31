@@ -21,7 +21,7 @@
 
 ## Batch 2 — Durable Persistence
 
-- [ ] Add engine request persistence
+- [x] Add engine request persistence
 - [ ] Add engine response persistence
 - [ ] Add continuation persistence
 - [ ] Add idempotency keys
