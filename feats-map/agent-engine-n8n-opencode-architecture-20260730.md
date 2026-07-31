@@ -105,7 +105,7 @@
 - [x] Separate run scratchpad from chat history
 - [x] Persist canonical message parts
 - [x] Save final conversation turns
-- [ ] Avoid duplicate memory writes
+- [x] Avoid duplicate memory writes
 - [ ] Add token-aware compaction
 - [ ] Retain recent complete tool sequences
 - [ ] Repair trimmed orphan messages
