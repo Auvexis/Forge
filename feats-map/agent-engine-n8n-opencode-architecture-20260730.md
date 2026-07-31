@@ -49,7 +49,7 @@
 - [x] Enforce iteration limits
 - [x] Enforce tool call limits
 - [x] Add repetition guard
-- [ ] Add completion guard
+- [x] Add completion guard
 - [ ] Remove inline tool execution
 - [ ] Add loop tests
 
