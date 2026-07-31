@@ -16,7 +16,7 @@
 - [x] Define continuation metadata contract
 - [x] Define typed interaction contract
 - [x] Define provider metadata envelope
-- [ ] Add contract tests
+- [x] Add contract tests
 - [ ] Remove replaced legacy contracts
 
 ## Batch 2 — Durable Persistence
