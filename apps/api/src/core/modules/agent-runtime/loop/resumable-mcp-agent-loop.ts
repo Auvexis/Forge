@@ -260,7 +260,56 @@ function consumeResponse(
     toolCallId: pending.toolCallId,
   });
   delete state.pendingRequest;
+  const ambiguousOptions = resultSelectionOptions(response.output);
+  if (ambiguousOptions) {
+    return {
+      state,
+      interaction: {
+        kind: "selection",
+        question: "Encontrei mais de um resultado compatível. Escolha qual devo usar.",
+        options: ambiguousOptions,
+        context: {
+          source: "ambiguous-tool-result",
+          toolName: pending.toolName,
+        },
+      },
+    };
+  }
+  if (isEmptyToolResult(response.output) && /(list|search|find|buscar|listar)/i.test(pending.toolName)) {
+    return {
+      state,
+      interaction: {
+        kind: "clarification",
+        question: [
+          `A ferramenta ${pending.toolName} não encontrou resultados.`,
+          "Informe parte do nome, extensão, pasta ou outro critério para refazer a busca.",
+        ].join(" "),
+        context: {
+          source: "empty-tool-result",
+          toolName: pending.toolName,
+          previousArguments: pending.arguments,
+        },
+      },
+    };
+  }
   return { state };
+}
+
+function resultSelectionOptions(
+  value: unknown,
+): Array<{ value: string; label: string; description?: string }> | undefined {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return undefined;
+  const record = value as Record<string, unknown>;
+  if (record.ambiguous !== true || !Array.isArray(record.options)) return undefined;
+  return interactionOptions({ options: record.options });
+}
+
+function isEmptyToolResult(value: unknown): boolean {
+  if (Array.isArray(value)) return value.length === 0;
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return ["items", "files", "results", "data"]
+    .some((key) => Array.isArray(record[key]) && (record[key] as unknown[]).length === 0);
 }
 
 function interactionOptions(
@@ -453,30 +502,62 @@ function limitError(kind: "iteration" | "tool"): AgentRuntimeError {
 }
 
 function nextStepSchema(toolNames: string[]): Record<string, unknown> {
+  const variants: Record<string, unknown>[] = [
+    {
+      required: ["mode", "response"],
+      additionalProperties: false,
+      properties: {
+        mode: { const: "chat" },
+        response: { type: "string", minLength: 1 },
+      },
+    },
+    {
+      required: ["mode", "question"],
+      additionalProperties: false,
+      properties: {
+        mode: { const: "clarify" },
+        question: { type: "string", minLength: 1 },
+      },
+    },
+  ];
+  if (toolNames.length > 0) {
+    variants.push({
+      required: ["mode", "toolName", "objective"],
+      additionalProperties: false,
+      properties: {
+        mode: { const: "tool" },
+        toolName: { type: "string", enum: toolNames },
+        objective: { type: "string", minLength: 1 },
+      },
+    });
+  }
   return {
     type: "object",
-    required: ["mode"],
-    additionalProperties: false,
-    properties: {
-      mode: { enum: ["chat", "clarify", "tool"] },
-      response: { type: "string" },
-      question: { type: "string" },
-      toolName: { type: "string", enum: toolNames },
-      objective: { type: "string" },
-    },
+    oneOf: variants,
   };
 }
 
 function argumentSchema(toolSchema: Record<string, any>): Record<string, unknown> {
   return {
     type: "object",
-    required: ["action"],
-    additionalProperties: false,
-    properties: {
-      action: { enum: ["call", "clarify"] },
-      arguments: toolSchema,
-      question: { type: "string" },
-    },
+    oneOf: [
+      {
+        required: ["action", "arguments"],
+        additionalProperties: false,
+        properties: {
+          action: { const: "call" },
+          arguments: toolSchema,
+        },
+      },
+      {
+        required: ["action", "question"],
+        additionalProperties: false,
+        properties: {
+          action: { const: "clarify" },
+          question: { type: "string", minLength: 1 },
+        },
+      },
+    ],
   };
 }
 
