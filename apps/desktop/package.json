@@ -7,6 +7,7 @@
   "scripts": {
     "dev": "npm run build && tsx scripts/dev.mts",
     "build": "tsc && tsx scripts/copy-assets.mts",
+    "test": "node --test test/**/*.test.mjs",
     "type-check": "tsc --noEmit"
   },
   "devDependencies": {

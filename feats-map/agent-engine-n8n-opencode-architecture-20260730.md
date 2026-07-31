@@ -199,7 +199,7 @@
 - [x] Test desktop restart mid-run
 - [x] Test long-session compaction
 - [x] Test concurrent sessions
-- [ ] Run API test suite
-- [ ] Run client test suite
-- [ ] Run desktop test suite
-- [ ] Run all type checks
+- [x] Run API test suite
+- [x] Run client test suite
+- [x] Run desktop test suite
+- [x] Run all type checks
