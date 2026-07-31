@@ -28,7 +28,7 @@
 - [x] Add request lifecycle transitions
 - [x] Add response correlation indexes
 - [x] Add atomic revision updates
-- [ ] Add persistence tests
+- [x] Add persistence tests
 - [ ] Remove replaced legacy tables
 
 ## Batch 3 — Workflow Tool Scheduler
