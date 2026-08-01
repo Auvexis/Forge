@@ -24,7 +24,10 @@ describe("OpenRouterAdapter", () => {
     const adapter = new OpenRouterAdapter({ fetch });
 
     await expect(adapter.invokeJson(input, { type: "object" })).resolves.toEqual({ mode: "action" });
-    expect(JSON.parse(fetch.mock.calls[0][1].body).response_format).toEqual({ type: "json_object" });
+    expect(JSON.parse(fetch.mock.calls[0][1].body).response_format).toMatchObject({
+      type: "json_schema",
+      json_schema: { strict: true, schema: { type: "object" } },
+    });
   });
 
   it("retries JSON decisions without response_format for incompatible routed models", async () => {
@@ -35,7 +38,18 @@ describe("OpenRouterAdapter", () => {
 
     await expect(adapter.invokeJson(input, { type: "object" })).resolves.toEqual({ tool: "drive_list" });
     expect(JSON.parse(fetch.mock.calls[0][1].body)).toHaveProperty("response_format");
-    expect(JSON.parse(fetch.mock.calls[1][1].body)).not.toHaveProperty("response_format");
+    expect(JSON.parse(fetch.mock.calls[1][1].body).response_format).toEqual({ type: "json_object" });
+  });
+
+  it("falls back to prompt-only JSON when both structured modes are unsupported", async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(new Response("unsupported schema", { status: 400 }))
+      .mockResolvedValueOnce(new Response("unsupported JSON mode", { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: '{"mode":"chat"}' } }] }), { status: 200 }));
+    const adapter = new OpenRouterAdapter({ fetch });
+
+    await expect(adapter.invokeJson(input, { type: "object" })).resolves.toEqual({ mode: "chat" });
+    expect(JSON.parse(fetch.mock.calls[2][1].body)).not.toHaveProperty("response_format");
   });
 
   it("exposes the sanitized provider error instead of an OpenAI error", async () => {

@@ -132,9 +132,21 @@ async function invokeValidated<T extends object>(
 function normalizeModelDecision(value: unknown, schema: Record<string, any>): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const record = value as Record<string, unknown>;
+
+  if (isArgumentDecisionSchema(schema)) {
+    if (record.action === "call" || record.action === "clarify") return value;
+    if (record.action_input && typeof record.action_input === "object" && !Array.isArray(record.action_input)) {
+      return { action: "call", arguments: record.action_input };
+    }
+    if (record.arguments && typeof record.arguments === "object" && !Array.isArray(record.arguments)) {
+      return { action: "call", arguments: record.arguments };
+    }
+    return { action: "call", arguments: record };
+  }
+
   if (typeof record.mode === "string") return value;
 
-  const toolName = firstString(record.toolName, record.tool, record.name);
+  const toolName = firstString(record.toolName, record.tool, record.name, record.action);
   if (toolName && schemaAllowsTool(schema, toolName)) {
     return {
       mode: "tool",
@@ -147,6 +159,12 @@ function normalizeModelDecision(value: unknown, schema: Record<string, any>): un
   const response = firstString(record.response, record.answer, record.message);
   if (response) return { mode: "chat", response };
   return value;
+}
+
+function isArgumentDecisionSchema(schema: Record<string, any>): boolean {
+  return (Array.isArray(schema.oneOf) ? schema.oneOf : []).some((variant: any) =>
+    variant?.properties?.action?.const === "call" && Boolean(variant?.properties?.arguments),
+  );
 }
 
 function schemaAllowsTool(schema: Record<string, any>, toolName: string): boolean {

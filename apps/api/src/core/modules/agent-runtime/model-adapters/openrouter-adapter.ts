@@ -54,7 +54,12 @@ export class OpenRouterAdapter implements AgentModelAdapter {
         messages: input.messages.map(toOpenRouterMessage),
         ...(input.temperature !== undefined ? { temperature: input.temperature } : {}),
         ...(input.maxTokens !== undefined ? { max_tokens: input.maxTokens } : {}),
-        ...(schema ? { response_format: { type: "json_object" } } : {}),
+        ...(schema ? {
+          response_format: {
+            type: "json_schema",
+            json_schema: { name: "fabric_agent_decision", strict: true, schema },
+          },
+        } : {}),
         ...(input.thinkingEnabled === true ? { reasoning: input.thinkingRequest?.reasoning ?? { enabled: true } } : {}),
     };
     const request = (payload: Record<string, unknown>) => this.fetch(`${normalizeOpenRouterBaseUrl(input.baseUrl)}/chat/completions`, {
@@ -71,8 +76,11 @@ export class OpenRouterAdapter implements AgentModelAdapter {
     let response = await request(body);
 
     if (!response.ok && schema && [400, 404, 422].includes(response.status)) {
-      const { response_format: _unsupportedFormat, ...compatibleBody } = body;
-      response = await request(compatibleBody);
+      response = await request({ ...body, response_format: { type: "json_object" } });
+    }
+    if (!response.ok && schema && [400, 404, 422].includes(response.status)) {
+      const { response_format: _unsupportedFormat, ...promptOnlyBody } = body;
+      response = await request(promptOnlyBody);
     }
 
     if (!response.ok) {

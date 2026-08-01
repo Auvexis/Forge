@@ -39,6 +39,33 @@ const decisionSchema = {
   ],
 };
 
+const argumentDecisionSchema = {
+  type: "object",
+  oneOf: [
+    {
+      required: ["action", "arguments"],
+      additionalProperties: false,
+      properties: {
+        action: { const: "call" },
+        arguments: {
+          type: "object",
+          required: ["query"],
+          additionalProperties: false,
+          properties: { query: { type: "string" } },
+        },
+      },
+    },
+    {
+      required: ["action", "question"],
+      additionalProperties: false,
+      properties: {
+        action: { const: "clarify" },
+        question: { type: "string" },
+      },
+    },
+  ],
+};
+
 describe("agent model resilience policy", () => {
   it.each(fixtures())("repairs $modelClass Ollama-shaped decisions", async (fixture) => {
     const invokeJson = vi.fn()
@@ -86,6 +113,41 @@ describe("agent model resilience policy", () => {
       objective: "Execute drive_list",
     });
     expect(invokeJson).toHaveBeenCalledOnce();
+  });
+
+  it("wraps direct tool arguments in the internal call envelope", async () => {
+    const invokeJson = vi.fn(async () => ({ query: "andresimoes backend" }));
+    const model = withAgentModelResilience(runtimeModel(
+      invokeJson as unknown as AgentRuntimeModel["invokeJson"],
+    ));
+
+    await expect(model.invokeJson({ messages: [], schema: argumentDecisionSchema })).resolves.toEqual({
+      action: "call",
+      arguments: { query: "andresimoes backend" },
+    });
+  });
+
+  it("normalizes ReAct action and action_input output", async () => {
+    const selection = vi.fn(async () => ({
+      action: "drive_list",
+      action_input: { query: "andresimoes backend" },
+    }));
+    const selectionModel = withAgentModelResilience(runtimeModel(
+      selection as unknown as AgentRuntimeModel["invokeJson"],
+    ));
+    await expect(selectionModel.invokeJson({ messages: [], schema: decisionSchema })).resolves.toEqual({
+      mode: "tool",
+      toolName: "drive_list",
+      objective: "Execute drive_list",
+    });
+
+    const argumentsModel = withAgentModelResilience(runtimeModel(
+      selection as unknown as AgentRuntimeModel["invokeJson"],
+    ));
+    await expect(argumentsModel.invokeJson({ messages: [], schema: argumentDecisionSchema })).resolves.toEqual({
+      action: "call",
+      arguments: { query: "andresimoes backend" },
+    });
   });
 
   it.each([
