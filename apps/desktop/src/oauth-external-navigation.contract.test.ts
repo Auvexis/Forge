@@ -42,6 +42,8 @@ describe("desktop OS integrations", () => {
     const preload = readFileSync(new URL("./preload.ts", import.meta.url), "utf8");
 
     assert.match(main, /new Tray/);
+    assert.match(main, /createTrayIcon\(\)/);
+    assert.match(main, /icon\.resize\(\{ width: trayIconSize, height: trayIconSize \}\)/);
     assert.match(main, /setContextMenu/);
     assert.match(main, /fabric-desktop-preferences-set/);
     assert.match(main, /app\.setLoginItemSettings/);

@@ -38,5 +38,6 @@ describe('global settings nav contract', () => {
     assert.match(settingsSource, /window\.fabricDesktop\.checkForUpdates\('safe'\)/)
     assert.match(settingsSource, /Check Now/)
     assert.match(settingsSource, /No newer safe desktop release was found/)
+    assert.match(settingsSource, /Automatic install will be enabled after signed installers are available/)
   })
 })

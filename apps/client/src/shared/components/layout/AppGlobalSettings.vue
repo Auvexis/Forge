@@ -697,7 +697,7 @@
                 <LucideIcon name="download" :size="16" />
                 <div>
                   <span class="gs-pref-row__name">Install Updates Automatically</span>
-                  <span class="gs-pref-row__hint">Allow safe desktop updates to install automatically later</span>
+                  <span class="gs-pref-row__hint">Prepare safe desktop updates for automatic install after signed installers are enabled</span>
                 </div>
               </div>
               <BaseSwitch
@@ -1121,6 +1121,9 @@ async function checkForDesktopUpdates(options: { manual?: boolean } = {}) {
     if (update.updateAvailable) {
       updateCheckMessage.value = `Fabric ${update.version} is available`
       isUpdateDialogOpen.value = true
+      if (updatesAutoInstall.value) {
+        toast.info('Update ready to download', 'Automatic install will be enabled after signed installers are available.')
+      }
       return
     }
 

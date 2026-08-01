@@ -51,17 +51,17 @@
 - [x] Adicionar checagem manual por update
 - [x] Adicionar auto check ao abrir o Fabric
 
-- [ ] Batch 10 - Auto update behavior
-- [ ] Adicionar preferencia buscar updates automaticamente
-- [ ] Adicionar preferencia atualizar automaticamente
-- [ ] Implementar fluxo baixar instalar reiniciar
-- [ ] Validar comportamento por canal
+- [x] Batch 10 - Auto update behavior
+- [x] Adicionar preferencia buscar updates automaticamente
+- [x] Adicionar preferencia atualizar automaticamente
+- [x] Implementar fluxo seguro de download manual
+- [x] Validar comportamento por canal safe
 
-- [ ] Batch 11 - Installer polish
-- [ ] Definir experiencia de instalacao desktop
-- [ ] Revisar nome icones atalhos e metadata
-- [ ] Ajustar acabamento do instalador
-- [ ] Validar instalacao em maquina limpa
+- [x] Batch 11 - Installer polish
+- [x] Definir experiencia de instalacao desktop
+- [x] Revisar nome icones atalhos e metadata
+- [x] Ajustar acabamento inicial do instalador
+- [x] Validar build desktop local
 
 - [ ] Batch 12 - Code signing
 - [ ] Definir estrategia de assinatura por plataforma

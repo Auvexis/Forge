@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell, Menu, Tray } from "electron";
-import type { Event as ElectronEvent } from "electron";
+import type { Event as ElectronEvent, NativeImage } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -9,6 +9,7 @@ const desktopUrl = process.env.FABRIC_DESKTOP_URL ?? "http://127.0.0.1:23800";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const splashMinMs = 1400;
 const appIconPath = path.join(__dirname, "assets", "icon.svg");
+const trayIconSize = process.platform === "win32" ? 16 : 22;
 
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -26,6 +27,20 @@ const desktopPreferences: DesktopPreferences = {
   closeToTray: true,
   openAtLogin: false,
 };
+
+function createAppIcon(): NativeImage {
+  const icon = nativeImage.createFromPath(appIconPath);
+  if (icon.isEmpty()) return icon;
+  return icon;
+}
+
+function createTrayIcon(): NativeImage {
+  const icon = createAppIcon();
+  if (icon.isEmpty()) return icon;
+  const resized = icon.resize({ width: trayIconSize, height: trayIconSize });
+  resized.setTemplateImage(process.platform === "darwin");
+  return resized;
+}
 
 function resolveUrl(pathname: string): string {
   return new URL(pathname, desktopUrl).toString();
@@ -62,7 +77,7 @@ function createSplashWindow(): BrowserWindow {
     frame: false,
     transparent: true,
     show: false,
-    icon: nativeImage.createFromPath(appIconPath),
+    icon: createAppIcon(),
     webPreferences: {
       sandbox: true,
       contextIsolation: true,
@@ -83,7 +98,7 @@ function createMainWindow(): BrowserWindow {
     minHeight: 640,
     frame: false,
     show: false,
-    icon: nativeImage.createFromPath(appIconPath),
+    icon: createAppIcon(),
     backgroundColor: "#111318",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
@@ -196,7 +211,7 @@ ipcMain.handle(
       title,
       body,
       silent: payload?.silent === true,
-      icon: nativeImage.createFromPath(appIconPath),
+      icon: createAppIcon(),
     });
 
     notification.on("click", () => {
@@ -216,7 +231,7 @@ function sanitizeNotificationText(value: unknown, fallback: string): string {
 function createTray(): void {
   if (tray) return;
 
-  tray = new Tray(nativeImage.createFromPath(appIconPath));
+  tray = new Tray(createTrayIcon());
   tray.setToolTip("Fabric");
   tray.on("click", showMainWindow);
   updateTrayMenu();

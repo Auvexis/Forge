@@ -26,9 +26,9 @@
         <BaseButton variant="secondary" @click="$emit('close')">Later</BaseButton>
         <BaseButton variant="primary" :disabled="!update?.url" @click="openRelease">
           <template #left>
-            <LucideIcon name="external-link" :size="15" />
+            <LucideIcon name="download" :size="15" />
           </template>
-          Open Release
+          Download Update
         </BaseButton>
       </div>
     </div>
