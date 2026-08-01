@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { OpenRouterAdapter } from "./openrouter-adapter.ts";
+import { OpenRouterAdapter, parseOpenRouterJson } from "./openrouter-adapter.ts";
 
 const input = {
   model: "inclusionai/ling-3.0-flash:free",
@@ -8,6 +8,21 @@ const input = {
 };
 
 describe("OpenRouterAdapter", () => {
+  it("parses JSON wrapped in markdown fences", () => {
+    expect(parseOpenRouterJson('```json\n{"tool":"drive_list"}\n```')).toEqual({ tool: "drive_list" });
+  });
+
+  it("takes one next action from a model-generated JSON plan", () => {
+    expect(parseOpenRouterJson('[{"tool":"drive_list"},{"tool":"drive_download"}]')).toEqual({
+      tool: "drive_list",
+    });
+  });
+
+  it("rejects empty arrays and primitive JSON", () => {
+    expect(() => parseOpenRouterJson("[]")).toThrow("Expected a JSON object");
+    expect(() => parseOpenRouterJson('"answer"')).toThrow("Expected a JSON object");
+  });
+
   it("uses the native chat completions endpoint and OpenRouter headers", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 }));
     const adapter = new OpenRouterAdapter({ fetch });

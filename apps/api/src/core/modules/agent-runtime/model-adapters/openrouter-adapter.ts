@@ -20,9 +20,7 @@ export class OpenRouterAdapter implements AgentModelAdapter {
   async invokeJson<T extends object>(input: AgentModelInvokeInput, schema?: Record<string, any>): Promise<T> {
     const body = await this.chat(input, schema);
     try {
-      const parsed = JSON.parse(extractText(body).trim());
-      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) throw new Error("Expected a JSON object");
-      return parsed as T;
+      return parseOpenRouterJson<T>(extractText(body));
     } catch (error) {
       throw new AgentRuntimeError(
         `OpenRouter returned invalid JSON: ${safeMessage(error)}`,
@@ -94,6 +92,21 @@ export class OpenRouterAdapter implements AgentModelAdapter {
     }
     return response.json() as Promise<OpenRouterResponse>;
   }
+}
+
+export function parseOpenRouterJson<T extends object>(text: string): T {
+  const normalized = stripJsonFence(text.trim());
+  const parsed = JSON.parse(normalized);
+  const value = Array.isArray(parsed) ? parsed[0] : parsed;
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Expected a JSON object or a non-empty array of JSON objects");
+  }
+  return value as T;
+}
+
+function stripJsonFence(value: string): string {
+  const fenced = value.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return fenced?.[1]?.trim() ?? value;
 }
 
 export function normalizeOpenRouterBaseUrl(baseUrl?: string): string {
