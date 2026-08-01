@@ -6,6 +6,7 @@ export type AgentRuntimeLogEvent =
   | "run.failed"
   | "intent.classified"
   | "decision.completed"
+  | "clarification.rejected"
   | "iteration.completed"
   | "action.preparing"
   | "action.waiting_user"

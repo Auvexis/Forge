@@ -38,3 +38,12 @@
 - [x] Migrate File utilities
 - [x] Validate every default manifest
 - [x] Run affected suites
+
+## Batch 5 - Small Model Clarification Guard
+
+- [x] Preserve the canonical user objective
+- [x] Reject unnecessary clarifications
+- [x] Force the next safe pending tool
+- [x] Log rejected clarifications
+- [x] Add small-model regressions
+- [x] Run affected suites

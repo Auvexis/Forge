@@ -4,6 +4,7 @@ import {
   createResumableMcpLoopState,
   type ResumableMcpLoopState,
 } from "./resumable-mcp-agent-loop.ts";
+import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
 
 describe("advanceResumableMcpAgentLoop", () => {
   it("returns one durable request and resumes only from its correlated response", async () => {
@@ -205,6 +206,75 @@ describe("advanceResumableMcpAgentLoop", () => {
     });
     expect(modelCalls).toBe(2);
   });
+
+  it("rejects an unnecessary clarification and starts the safe pending tool", async () => {
+    const events: string[] = [];
+    const input = baseInput([
+      { mode: "clarify", question: "What is the Drive file id?" },
+      { action: "call", arguments: { query: "andresimoes backend pdf" } },
+    ]);
+    input.userMessage = "Find the PDF named andresimoes backend in Google Drive";
+    input.contextMessages = [
+      { role: "user", content: "Find my PDF in Drive and send it by email" },
+      { role: "assistant", content: "Which file?" },
+      { role: "user", content: "It contains andresimoes and backend" },
+    ];
+    input.logger = {
+      info: () => undefined,
+      warn: (event: string) => events.push(event),
+    } as any;
+
+    const step = await advanceResumableMcpAgentLoop(input);
+
+    expect(step).toMatchObject({
+      type: "request",
+      request: {
+        toolName: "drive_list",
+        arguments: { query: "andresimoes backend pdf" },
+      },
+    });
+    expect(events).toContain("clarification.rejected");
+  });
+
+  it("uses the original objective after a short clarification reply", async () => {
+    const input = baseInput([
+      { mode: "clarify", question: "Which storage service?" },
+      { action: "call", arguments: { fileId: "file_1" } },
+    ]);
+    input.userMessage = "Drive";
+    input.contextMessages = [{
+      role: "user",
+      content: "Find and download the backend PDF from Google Drive, then send it by email",
+    }];
+    input.client = {
+      listTools: () => [
+        { name: "drive_list", summary: "List and search Drive files", sideEffect: "read" },
+        { name: "drive_download", summary: "Download a Drive file", sideEffect: "read" },
+        { name: "gmail_send", summary: "Send an email", sideEffect: "external-message" },
+      ],
+      describeTool: (name: string) => ({
+        name,
+        pluginId: "google-drive",
+        inputSchema: { type: "object", required: ["fileId"], properties: { fileId: { type: "string" } } },
+      }),
+      validateToolArguments: () => undefined,
+    } as any;
+    input.state = {
+      ...createResumableMcpLoopState(),
+      toolCallCount: 1,
+      completed: [{
+        toolName: "drive_list",
+        objective: "Find PDF",
+        arguments: { query: "backend" },
+        output: [{ id: "file_1", name: "backend.pdf" }],
+        toolCallId: "call_1",
+      }],
+    };
+
+    const step = await advanceResumableMcpAgentLoop(input);
+
+    expect(step).toMatchObject({ type: "request", request: { toolName: "drive_download", arguments: { fileId: "file_1" } } });
+  });
 });
 
 function baseInput(decisions: unknown[]) {
@@ -229,9 +299,10 @@ function baseInput(decisions: unknown[]) {
     } as any,
     systemPrompt: "",
     userMessage: "Find my backend CV",
-    contextMessages: [],
+    contextMessages: [] as AgentModelMessage[],
     state: createResumableMcpLoopState(),
     maxIterations: 8,
     maxToolCalls: 4,
+    logger: undefined as any,
   };
 }
