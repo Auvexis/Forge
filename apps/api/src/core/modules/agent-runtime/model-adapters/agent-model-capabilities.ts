@@ -16,6 +16,12 @@ const CAPABILITY_MATRIX: Record<AgentModelAdapter, AgentModelCapabilities> = {
     defaultContextTokens: 128_000,
     maxContextTokens: 400_000,
   },
+  openrouter: {
+    structuredOutput: "json-object",
+    nativeToolHistory: true,
+    defaultContextTokens: 128_000,
+    maxContextTokens: 1_000_000,
+  },
   generic: {
     structuredOutput: "json-schema",
     nativeToolHistory: false,

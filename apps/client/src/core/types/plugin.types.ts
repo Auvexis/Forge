@@ -40,7 +40,7 @@ export interface PluginStatusResponse {
 
 // ── Plugin Metadata ──────────────────────────────────────────
 
-export type AgentModelAdapter = 'openai-compatible' | 'generic' | 'ollama'
+export type AgentModelAdapter = 'openai-compatible' | 'openrouter' | 'generic' | 'ollama'
 export type AgentMemoryAdapter = 'fabric-internal' | 'plugin-memory-store'
 
 export const PLUGIN_CATEGORIES = [

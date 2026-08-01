@@ -7,6 +7,27 @@ import type { AiModelNodeConfig } from "./agent-types.ts";
 import { PluginManager } from "../plugins/manager.ts";
 
 describe("agent model provider registry", () => {
+  it("routes OpenRouter configs through native Chat Completions", async () => {
+    let requestedUrl = "";
+    const registry = new AgentModelProviderRegistry({
+      credentialResolver: () => ({ api_key: "or-test" }),
+      fetch: async (url) => {
+        requestedUrl = String(url);
+        return response({ choices: [{ message: { content: "ok" } }] });
+      },
+    });
+    const model = await registry.createChatModel({
+      ...modelConfig(),
+      pluginId: "openrouter",
+      adapter: "openrouter",
+      model: "inclusionai/ling-3.0-flash:free",
+      baseUrl: "https://openrouter.ai/api/v1",
+    });
+
+    await (model as any).invoke([{ role: "user", content: "hello" }]);
+    assert.equal(requestedUrl, "https://openrouter.ai/api/v1/chat/completions");
+  });
+
   it("registers the first-class OpenAI model provider for openai-compatible configs", async () => {
     const registry = new AgentModelProviderRegistry({
       credentialResolver: () => ({ api_key: "sk-test" }),

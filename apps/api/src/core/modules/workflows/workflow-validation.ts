@@ -413,10 +413,11 @@ function validateNode(workflow: WorkflowItem, nodeId: string, node: WorkflowItem
         }
         if (
           modelNode.adapter !== "openai-compatible" &&
+          modelNode.adapter !== "openrouter" &&
           modelNode.adapter !== "generic" &&
           modelNode.adapter !== "ollama"
         ) {
-          return `AI Model node "${nodeId}" must have a supported adapter: openai-compatible, generic, or ollama`;
+          return `AI Model node "${nodeId}" must have a supported adapter: openai-compatible, openrouter, generic, or ollama`;
         }
         return !modelNode.model || typeof modelNode.model !== "string"
           ? `AI Model node "${nodeId}" must have a model string`

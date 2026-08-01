@@ -102,7 +102,7 @@ describe("agent runtime validation", () => {
     const model = validateAiModelConfig(legacyModel("openrouter"));
 
     assert.equal(model.pluginId, "openrouter");
-    assert.equal(model.adapter, "openai-compatible");
+    assert.equal(model.adapter, "openrouter");
     assert.equal(model.baseUrl, "https://openrouter.ai/api/v1");
     assert.equal("provider" in model, false);
   });
@@ -114,7 +114,7 @@ describe("agent runtime validation", () => {
     });
 
     assert.equal(model.pluginId, "openrouter");
-    assert.equal(model.adapter, "openai-compatible");
+    assert.equal(model.adapter, "openrouter");
     assert.equal(model.baseUrl, "https://custom-openrouter.example.test/v1");
     assert.equal("provider" in model, false);
   });

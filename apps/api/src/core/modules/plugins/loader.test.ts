@@ -299,7 +299,7 @@ describe("loadPlugins", () => {
   it("validates internal chat model provider manifests", () => {
     const expectedAdapters: Record<string, string> = {
       openai: "openai-compatible",
-      openrouter: "openai-compatible",
+      openrouter: "openrouter",
       ollama: "ollama",
     };
 

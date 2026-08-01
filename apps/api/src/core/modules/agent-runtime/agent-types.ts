@@ -1,7 +1,7 @@
 export type AgentMemoryScope = "none" | "session" | "workflow" | "profile" | "user";
 export type AgentMemoryAdapter = "fabric-internal" | "plugin-memory-store";
 
-export type AgentModelAdapter = "openai-compatible" | "generic" | "ollama";
+export type AgentModelAdapter = "openai-compatible" | "openrouter" | "generic" | "ollama";
 export type AgentExecutionMode = "loop";
 
 export type AgentToolSideEffect =

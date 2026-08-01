@@ -17,9 +17,9 @@ export default definePluginManifest({
     "agentCapabilities": {
       "chatModel": {
         "enabled": true,
-        "adapter": "openai-compatible",
+        "adapter": "openrouter",
         "label": "OpenRouter Chat Model",
-        "description": "Use OpenRouter's OpenAI-compatible API as an Agent Chat Model.",
+        "description": "Use OpenRouter's native Chat Completions API as an Agent Chat Model.",
         "defaultModel": "openai/gpt-4.1-mini",
         "defaultBaseUrl": "https://openrouter.ai/api/v1",
         "credentialPluginId": "openrouter",

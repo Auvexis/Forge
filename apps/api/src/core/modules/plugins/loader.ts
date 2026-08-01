@@ -45,7 +45,7 @@ function buildFabricManifestSchema(): any {
         additionalProperties: false,
         properties: {
           enabled: { type: "boolean" },
-          adapter: { enum: ["openai-compatible", "generic", "ollama"] },
+          adapter: { enum: ["openai-compatible", "openrouter", "generic", "ollama"] },
           label: { type: "string", minLength: 2, maxLength: 120 },
           description: { type: "string", minLength: 20, maxLength: 1000 },
           defaultModel: { type: "string", minLength: 1, maxLength: 200 },

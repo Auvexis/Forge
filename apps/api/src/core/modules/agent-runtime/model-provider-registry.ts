@@ -7,6 +7,7 @@ import {
 } from "./model-adapters/openai-model-provider.ts";
 import type { FetchLike } from "./model-adapters/openai-adapter.ts";
 import { OllamaModelProvider } from "./model-adapters/ollama-model-provider.ts";
+import { OpenRouterModelProvider } from "./model-adapters/openrouter-model-provider.ts";
 
 export interface AgentModelProvider {
   adapter: string;
@@ -31,6 +32,7 @@ export class AgentModelProviderRegistry {
           credentialResolver,
           fetch: options.fetch,
         }),
+        new OpenRouterModelProvider({ credentialResolver, fetch: options.fetch }),
         new OpenAiModelProvider({
           adapter: "generic",
           credentialResolver,
