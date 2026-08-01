@@ -1,0 +1,6 @@
+- [x] Configurar electron-builder
+- [x] Adicionar scripts de pacote desktop
+- [x] Publicar assets desktop na GitHub Release
+- [x] Documentar artefatos esperados
+- [x] Validar build local
+- [x] Commit e push

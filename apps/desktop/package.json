@@ -3,14 +3,82 @@
   "version": "0.1.0-alpha.10",
   "description": "Fabric desktop shell.",
   "productName": "Fabric",
+  "author": "Auvexis",
   "private": true,
   "type": "module",
   "main": "dist/main.js",
   "scripts": {
     "dev": "npm run build && tsx scripts/dev.mts",
-    "build": "tsc && tsx scripts/copy-assets.mts",
+    "generate-icons": "tsx scripts/generate-icons.mts",
+    "build": "npm run generate-icons && tsc && tsx scripts/copy-assets.mts",
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
+    "dist:mac": "npm run build && electron-builder --mac dmg --x64 --arm64 --publish never",
+    "dist:linux": "npm run build && electron-builder --linux AppImage deb --x64 --publish never",
     "test": "node --test test/**/*.test.mjs",
     "type-check": "tsc --noEmit"
+  },
+  "build": {
+    "appId": "com.auvexis.fabric",
+    "productName": "Fabric",
+    "electronVersion": "40.1.0",
+    "artifactName": "Fabric-${version}-${os}-${arch}.${ext}",
+    "icon": "assets/icon",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "assets/**",
+      "package.json"
+    ],
+    "extraMetadata": {
+      "main": "dist/main.js"
+    },
+    "asar": true,
+    "npmRebuild": false,
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Fabric"
+    },
+    "mac": {
+      "icon": "assets/icon.icns",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity"
+    },
+    "linux": {
+      "icon": "assets/icon.png",
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "category": "Utility",
+      "maintainer": "Auvexis"
+    },
+    "publish": null
   },
   "devDependencies": {
     "@types/node": "^25.5.0",

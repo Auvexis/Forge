@@ -10,6 +10,7 @@
 playwright-report/
 test-results/
 logs/
+**/release/
 PROJECT.md
 PROMPT.md
 IMPLEMENTATION.md
