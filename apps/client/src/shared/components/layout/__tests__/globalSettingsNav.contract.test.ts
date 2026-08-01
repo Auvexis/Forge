@@ -20,4 +20,14 @@ describe('global settings nav contract', () => {
     assert.match(stylesSource, /background:\s*var\(--fabric-button-ghost-active\)/)
     assert.match(stylesSource, /color:\s*var\(--fabric-button-ghost-active-text\)/)
   })
+
+  it('exposes desktop system and update preferences in their own tab', () => {
+    assert.match(settingsSource, /System\/Updates/)
+    assert.match(settingsSource, /desktop_minimize_to_tray/)
+    assert.match(settingsSource, /desktop_close_to_tray/)
+    assert.match(settingsSource, /desktop_open_at_login/)
+    assert.match(settingsSource, /updates_auto_check/)
+    assert.match(settingsSource, /updates_auto_install/)
+    assert.match(settingsSource, /window\.fabricDesktop\.setPreferences/)
+  })
 })

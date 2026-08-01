@@ -36,4 +36,17 @@ describe("desktop OS integrations", () => {
     assert.match(main, /window\?\.isFocused\(\)/);
     assert.match(main, /new NativeNotification/);
   });
+
+  it("supports tray behavior and desktop preference updates", () => {
+    const main = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+    const preload = readFileSync(new URL("./preload.ts", import.meta.url), "utf8");
+
+    assert.match(main, /new Tray/);
+    assert.match(main, /setContextMenu/);
+    assert.match(main, /fabric-desktop-preferences-set/);
+    assert.match(main, /app\.setLoginItemSettings/);
+    assert.match(main, /desktopPreferences\.minimizeToTray/);
+    assert.match(main, /desktopPreferences\.closeToTray/);
+    assert.match(preload, /fabric-desktop-preferences-set/);
+  });
 });

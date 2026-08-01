@@ -7,6 +7,8 @@ contextBridge.exposeInMainWorld("fabricDesktop", {
   restart: () => ipcRenderer.invoke("fabric-desktop-restart"),
   notify: (payload: { title?: string; body?: string; silent?: boolean }) =>
     ipcRenderer.invoke("fabric-desktop-notify", payload),
+  setPreferences: (preferences: { minimizeToTray?: boolean; closeToTray?: boolean; openAtLogin?: boolean }) =>
+    ipcRenderer.invoke("fabric-desktop-preferences-set", preferences),
   minimize: () => ipcRenderer.invoke("fabric-desktop-window-minimize"),
   toggleMaximize: () => ipcRenderer.invoke("fabric-desktop-window-toggle-maximize"),
   close: () => ipcRenderer.invoke("fabric-desktop-window-close"),

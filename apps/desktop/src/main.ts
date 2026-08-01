@@ -1,4 +1,5 @@
-import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell, Menu, Tray } from "electron";
+import type { Event as ElectronEvent } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -10,6 +11,20 @@ const appIconPath = path.join(__dirname, "assets", "icon.svg");
 
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
+let tray: Tray | null = null;
+let isQuitting = false;
+
+interface DesktopPreferences {
+  minimizeToTray: boolean;
+  closeToTray: boolean;
+  openAtLogin: boolean;
+}
+
+const desktopPreferences: DesktopPreferences = {
+  minimizeToTray: true,
+  closeToTray: true,
+  openAtLogin: false,
+};
 
 function resolveUrl(pathname: string): string {
   return new URL(pathname, desktopUrl).toString();
@@ -86,6 +101,16 @@ function createMainWindow(): BrowserWindow {
   window.on("maximize", sendWindowState);
   window.on("unmaximize", sendWindowState);
   window.on("restore", sendWindowState);
+  window.on("minimize" as never, (event: ElectronEvent) => {
+    if (!desktopPreferences.minimizeToTray) return;
+    event.preventDefault();
+    window.hide();
+  });
+  window.on("close", (event) => {
+    if (isQuitting || !desktopPreferences.closeToTray) return;
+    event.preventDefault();
+    window.hide();
+  });
   window.once("ready-to-show", () => window.show());
   window.webContents.setWindowOpenHandler(({ url }) => {
     void openExternalUrl(url);
@@ -94,6 +119,18 @@ function createMainWindow(): BrowserWindow {
   void window.loadURL(desktopUrl);
 
   return window;
+}
+
+function showMainWindow(): void {
+  if (!mainWindow) {
+    mainWindow = createMainWindow();
+  }
+
+  mainWindow.show();
+  if (mainWindow.isMinimized()) {
+    mainWindow.restore();
+  }
+  mainWindow.focus();
 }
 
 function getFocusedMainWindow(): BrowserWindow | null {
@@ -116,6 +153,10 @@ ipcMain.handle("fabric-desktop-window-toggle-maximize", () => {
 
 ipcMain.handle("fabric-desktop-window-close", () => {
   getFocusedMainWindow()?.close();
+});
+
+ipcMain.handle("fabric-desktop-preferences-set", (_event, preferences: Partial<DesktopPreferences>) => {
+  applyDesktopPreferences(preferences);
 });
 
 ipcMain.handle("fabric-desktop-open-external", async (_event, url: string) => {
@@ -167,6 +208,44 @@ function sanitizeNotificationText(value: unknown, fallback: string): string {
   return value.replace(/\s+/g, " ").trim().slice(0, 240) || fallback;
 }
 
+function createTray(): void {
+  if (tray) return;
+
+  tray = new Tray(nativeImage.createFromPath(appIconPath));
+  tray.setToolTip("Fabric");
+  tray.on("click", showMainWindow);
+  updateTrayMenu();
+}
+
+function updateTrayMenu(): void {
+  if (!tray) return;
+
+  tray.setContextMenu(Menu.buildFromTemplate([
+    { label: "Open Fabric", click: showMainWindow },
+    { type: "separator" },
+    {
+      label: "Quit Fabric",
+      click: () => {
+        isQuitting = true;
+        app.quit();
+      },
+    },
+  ]));
+}
+
+function applyDesktopPreferences(preferences: Partial<DesktopPreferences>): void {
+  desktopPreferences.minimizeToTray = preferences.minimizeToTray !== false;
+  desktopPreferences.closeToTray = preferences.closeToTray !== false;
+  desktopPreferences.openAtLogin = preferences.openAtLogin === true;
+
+  app.setLoginItemSettings({
+    openAtLogin: desktopPreferences.openAtLogin,
+  });
+
+  createTray();
+  updateTrayMenu();
+}
+
 ipcMain.handle("fabric-desktop-window-state", () => ({
   isMaximized: getFocusedMainWindow()?.isMaximized() ?? false,
 }));
@@ -188,6 +267,7 @@ ipcMain.handle("fabric-desktop-zoom-set", (_event, zoomFactor: number) => {
 
 app.whenReady().then(async () => {
   const splashStartedAt = Date.now();
+  createTray();
   splashWindow = createSplashWindow();
 
   try {

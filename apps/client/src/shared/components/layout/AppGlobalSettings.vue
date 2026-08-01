@@ -79,6 +79,12 @@
               <p class="gs-section__desc">System preferences for this Fabric instance.</p>
             </div>
           </div>
+          <div v-else-if="activeTab === 'system'" key="head-system" class="gs-section__head">
+            <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
+              <h2 class="gs-section__title">System/Updates</h2>
+              <p class="gs-section__desc">Desktop behavior and update preferences.</p>
+            </div>
+          </div>
           <div v-else-if="activeTab === 'auvexis'" key="head-auvexis" class="gs-section__head">
             <div style="display: flex; flex-direction: column; gap: var(--fabric-space-1)">
               <h2 class="gs-section__title">Auvexis</h2>
@@ -553,20 +559,6 @@
               </div>
             </div>
 
-            <div v-if="isDesktopWindow" class="gs-pref-row">
-              <div class="gs-pref-row__label">
-                <LucideIcon name="bell" :size="16" />
-                <div>
-                  <span class="gs-pref-row__name">Desktop Notifications</span>
-                  <span class="gs-pref-row__hint">Send native notifications when Fabric is not focused</span>
-                </div>
-              </div>
-              <BaseSwitch
-                :model-value="desktopNotificationsEnabled"
-                @update:model-value="handleDesktopNotificationsChange"
-              />
-            </div>
-
             <div class="gs-pref-row">
               <div class="gs-pref-row__label">
                 <LucideIcon name="globe" :size="16" />
@@ -604,6 +596,92 @@
                   </template>
                 </BaseButton>
               </div>
+            </div>
+          </div>
+
+          <div v-else-if="activeTab === 'system'" key="body-system" class="gs-pref-list">
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="bell" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Desktop Notifications</span>
+                  <span class="gs-pref-row__hint">Send native notifications when Fabric is not focused</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="desktopNotificationsEnabled"
+                @update:model-value="handleDesktopNotificationsChange"
+              />
+            </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="minus" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Minimize to Tray</span>
+                  <span class="gs-pref-row__hint">Hide Fabric in the system tray when minimized</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="desktopMinimizeToTray"
+                @update:model-value="handleDesktopMinimizeToTrayChange"
+              />
+            </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="panel-bottom-close" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Close to Tray</span>
+                  <span class="gs-pref-row__hint">Keep Fabric running in the tray when the window closes</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="desktopCloseToTray"
+                @update:model-value="handleDesktopCloseToTrayChange"
+              />
+            </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="power" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Open with OS</span>
+                  <span class="gs-pref-row__hint">Start Fabric automatically when you sign in</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="desktopOpenAtLogin"
+                @update:model-value="handleDesktopOpenAtLoginChange"
+              />
+            </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="refresh-cw" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Check for Updates</span>
+                  <span class="gs-pref-row__hint">Look for Fabric Desktop updates when the app opens</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="updatesAutoCheck"
+                @update:model-value="handleUpdatesAutoCheckChange"
+              />
+            </div>
+
+            <div class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="download" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Install Updates Automatically</span>
+                  <span class="gs-pref-row__hint">Allow safe desktop updates to install automatically later</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="updatesAutoInstall"
+                @update:model-value="handleUpdatesAutoInstallChange"
+              />
             </div>
           </div>
 
@@ -648,12 +726,18 @@ const windowZoomLabel = computed(() => `${Math.round(windowZoomFactor.value * 10
 const desktopNotificationsEnabled = computed(
   () => store.settings.desktop_notifications_enabled !== false,
 )
+const desktopMinimizeToTray = computed(() => store.settings.desktop_minimize_to_tray !== false)
+const desktopCloseToTray = computed(() => store.settings.desktop_close_to_tray !== false)
+const desktopOpenAtLogin = computed(() => store.settings.desktop_open_at_login === true)
+const updatesAutoCheck = computed(() => store.settings.updates_auto_check !== false)
+const updatesAutoInstall = computed(() => store.settings.updates_auto_install === true)
 let removeZoomChangeListener: (() => void) | undefined
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const tabs = [
   { id: 'preferences', label: 'Preferences', icon: 'sliders-horizontal' },
+  { id: 'system', label: 'System/Updates', icon: 'monitor-cog' },
   { id: 'auvexis', label: 'Auvexis', icon: 'shield-check' },
   { id: 'credentials', label: 'Credentials', icon: 'lock-keyhole' },
   { id: 'variables', label: 'Variables', icon: 'key-round' },
@@ -673,7 +757,7 @@ watch(
   (opened) => {
     if (opened) {
       store.fetchVariables()
-      store.fetchSettings()
+      store.fetchSettings().then(() => syncDesktopPreferences())
       loadPlugins()
     }
   },
@@ -952,6 +1036,38 @@ async function handleDesktopNotificationsChange(value: boolean) {
   await store.saveSetting('desktop_notifications_enabled', value)
 }
 
+async function handleDesktopMinimizeToTrayChange(value: boolean) {
+  await store.saveSetting('desktop_minimize_to_tray', value)
+  await syncDesktopPreferences()
+}
+
+async function handleDesktopCloseToTrayChange(value: boolean) {
+  await store.saveSetting('desktop_close_to_tray', value)
+  await syncDesktopPreferences()
+}
+
+async function handleDesktopOpenAtLoginChange(value: boolean) {
+  await store.saveSetting('desktop_open_at_login', value)
+  await syncDesktopPreferences()
+}
+
+async function handleUpdatesAutoCheckChange(value: boolean) {
+  await store.saveSetting('updates_auto_check', value)
+}
+
+async function handleUpdatesAutoInstallChange(value: boolean) {
+  await store.saveSetting('updates_auto_install', value)
+}
+
+async function syncDesktopPreferences() {
+  if (!window.fabricDesktop?.isDesktop) return
+  await window.fabricDesktop.setPreferences({
+    minimizeToTray: desktopMinimizeToTray.value,
+    closeToTray: desktopCloseToTray.value,
+    openAtLogin: desktopOpenAtLogin.value,
+  })
+}
+
 async function setWindowZoom(zoomFactor: number) {
   const nextZoomFactor = await window.fabricDesktop?.setZoomFactor(Number(zoomFactor.toFixed(2)))
   if (typeof nextZoomFactor === 'number') windowZoomFactor.value = nextZoomFactor
@@ -1011,6 +1127,7 @@ async function requestApplicationRestart(message: string) {
 
 onMounted(() => {
   if (!isDesktopWindow.value || !window.fabricDesktop) return
+  void syncDesktopPreferences()
   void window.fabricDesktop.getZoomFactor().then((zoomFactor) => {
     windowZoomFactor.value = zoomFactor
   })

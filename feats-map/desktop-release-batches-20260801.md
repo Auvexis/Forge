@@ -27,17 +27,17 @@
 - [x] Disparar so quando o app nao estiver focado
 - [x] Adicionar preferencia para habilitar desabilitar
 
-- [ ] Batch 6 - System settings foundation
-- [ ] Criar aba System Updates em AppGlobalSettings
-- [ ] Adicionar toggles de comportamento do OS
-- [ ] Adicionar estado inicial e persistencia
-- [ ] Validar UX da aba desktop
+- [x] Batch 6 - System settings foundation
+- [x] Criar aba System Updates em AppGlobalSettings
+- [x] Adicionar toggles de comportamento do OS
+- [x] Adicionar estado inicial e persistencia
+- [x] Validar UX da aba desktop
 
-- [ ] Batch 7 - Tray and window behavior
-- [ ] Implementar system tray
-- [ ] Adicionar abrir fechar minimizar para tray
-- [ ] Adicionar opcao abrir com o OS
-- [ ] Validar comportamento ao fechar janela
+- [x] Batch 7 - Tray and window behavior
+- [x] Implementar system tray
+- [x] Adicionar abrir fechar minimizar para tray
+- [x] Adicionar opcao abrir com o OS
+- [x] Validar comportamento ao fechar janela
 
 - [ ] Batch 8 - Desktop update service
 - [ ] Definir estrategia de canal safe alpha beta stable

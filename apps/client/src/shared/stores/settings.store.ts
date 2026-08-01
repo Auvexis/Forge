@@ -18,6 +18,11 @@ export interface AppSettings {
   public_url_restart_required?: boolean
   public_url_locked?: boolean
   desktop_notifications_enabled?: boolean
+  desktop_minimize_to_tray?: boolean
+  desktop_close_to_tray?: boolean
+  desktop_open_at_login?: boolean
+  updates_auto_check?: boolean
+  updates_auto_install?: boolean
   [key: string]: unknown
 }
 
