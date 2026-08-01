@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -6,6 +6,7 @@ import path from "node:path";
 const desktopUrl = process.env.FABRIC_DESKTOP_URL ?? "http://127.0.0.1:23800";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const splashMinMs = 1400;
+const appIconPath = path.join(__dirname, "assets", "icon.svg");
 
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -45,6 +46,7 @@ function createSplashWindow(): BrowserWindow {
     frame: false,
     transparent: true,
     show: false,
+    icon: nativeImage.createFromPath(appIconPath),
     webPreferences: {
       sandbox: true,
       contextIsolation: true,
@@ -65,6 +67,7 @@ function createMainWindow(): BrowserWindow {
     minHeight: 640,
     show: false,
     backgroundColor: "#111318",
+    icon: nativeImage.createFromPath(appIconPath),
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,

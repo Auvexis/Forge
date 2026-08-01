@@ -23,6 +23,7 @@ Ja esta pronto:
 - Publicacao de imagens Docker no GHCR.
 - Compose de producao com gateway publico e API/client internos.
 - Guia Docker em `docs/release-docker.md`.
+- Checklist final em `docs/release-readiness-v1.md`.
 
 ## Gate Local
 
@@ -34,6 +35,12 @@ npm run test:vitest
 npm run test:node
 npm run build
 docker compose -f docker-compose.prod.yml config
+```
+
+Checklist completa:
+
+```text
+docs/release-readiness-v1.md
 ```
 
 Observacao:
