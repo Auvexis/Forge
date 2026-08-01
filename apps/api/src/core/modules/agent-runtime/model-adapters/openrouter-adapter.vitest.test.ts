@@ -85,6 +85,21 @@ describe("OpenRouterAdapter", () => {
     expect(JSON.parse(fetch.mock.calls[2][1].body)).not.toHaveProperty("response_format");
   });
 
+  it("remembers the compatible structured mode for subsequent decisions", async () => {
+    const success = () => new Response(JSON.stringify({ choices: [{ message: { content: '{"mode":"chat"}' } }] }), { status: 200 });
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(new Response("schema unsupported", { status: 400 }))
+      .mockResolvedValueOnce(success())
+      .mockResolvedValueOnce(success());
+    const adapter = new OpenRouterAdapter({ fetch });
+
+    await adapter.invokeJson(input, { type: "object" });
+    await adapter.invokeJson(input, { type: "object" });
+
+    expect(fetch).toHaveBeenCalledTimes(3);
+    expect(JSON.parse(fetch.mock.calls[2][1].body).response_format).toEqual({ type: "json_object" });
+  });
+
   it("exposes the sanitized provider error instead of an OpenAI error", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { message: "No endpoints found for this model" } }), { status: 404, statusText: "Not Found" }));
     const adapter = new OpenRouterAdapter({ fetch });

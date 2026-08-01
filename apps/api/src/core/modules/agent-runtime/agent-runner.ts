@@ -582,6 +582,7 @@ export class AgentRunner {
     let result: AgentRunResult;
     let interactionStep: Extract<ResumableMcpLoopStep, { type: "interaction" }> | undefined;
     while (true) {
+      const loopAdvanceStartedAt = performance.now();
       const step = await advanceResumableMcpAgentLoop({
         runId: input.runId,
         model,
@@ -596,6 +597,11 @@ export class AgentRunner {
         maxToolCalls: input.validated.agent.maxToolCalls,
         abortSignal: input.input.abortSignal,
         logger: input.logger,
+      });
+      input.logger.info("loop.advance_completed", {
+        iteration: step.state.iterationCount,
+        stepType: step.type,
+        durationMs: Math.round(performance.now() - loopAdvanceStartedAt),
       });
       loopState = step.state;
       response = undefined;
@@ -661,7 +667,12 @@ export class AgentRunner {
         this.eventEmitter(event, input.input);
         persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, event);
       }
+      const dispatchStartedAt = performance.now();
       response = await dispatcher.dispatch(step.request, input.input.abortSignal);
+      toolLogger.info("tool.dispatch_completed", {
+        status: response.status,
+        durationMs: Math.round(performance.now() - dispatchStartedAt),
+      });
       const toolDurationMs = performance.now() - toolStartedAt;
       agentRuntimeMetrics.observe("agent_tool_latency_ms", toolDurationMs);
       if (response.status === "succeeded") {
@@ -699,8 +710,12 @@ export class AgentRunner {
           ...(succeeded ? { output: responseOutput } : { error: responseError }),
         },
       };
+      const persistenceStartedAt = performance.now();
       this.eventEmitter(endEvent, input.input);
       persistLoopEvent(input.sessionWriter, input.sessionTurnId, toolParts, endEvent);
+      toolLogger.info("event.persistence_completed", {
+        durationMs: Math.round(performance.now() - persistenceStartedAt),
+      });
       toolCalls.push({
         toolCallId: step.request.toolCallId,
         name: step.request.toolName,

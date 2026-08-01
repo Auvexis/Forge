@@ -201,7 +201,14 @@ export async function advanceResumableMcpAgentLoop(input: {
   }
 
   const descriptor = input.client.describeTool(decision.toolName);
+  const argumentsStartedAt = performance.now();
   const argumentDecision = await prepareArguments(input, state, decision, descriptor.inputSchema);
+  input.logger?.info("arguments.completed", {
+    iteration: state.iterationCount,
+    toolName: decision.toolName,
+    action: argumentDecision.action,
+    durationMs: Math.round(performance.now() - argumentsStartedAt),
+  });
   if (argumentDecision.action === "clarify") {
     return {
       type: "interaction",

@@ -8,6 +8,7 @@ interface OpenRouterResponse {
 
 export class OpenRouterAdapter implements AgentModelAdapter {
   private readonly fetch: FetchLike;
+  private readonly structuredModes = new Map<string, "json-schema" | "json-object" | "prompt">();
 
   constructor(options: { fetch?: FetchLike } = {}) {
     this.fetch = options.fetch ?? globalThis.fetch.bind(globalThis);
@@ -52,12 +53,6 @@ export class OpenRouterAdapter implements AgentModelAdapter {
         messages: input.messages.map(toOpenRouterMessage),
         ...(input.temperature !== undefined ? { temperature: input.temperature } : {}),
         ...(input.maxTokens !== undefined ? { max_tokens: input.maxTokens } : {}),
-        ...(schema ? {
-          response_format: {
-            type: "json_schema",
-            json_schema: { name: "fabric_agent_decision", strict: true, schema },
-          },
-        } : {}),
         ...(input.thinkingEnabled === true ? { reasoning: input.thinkingRequest?.reasoning ?? { enabled: true } } : {}),
     };
     const request = (payload: Record<string, unknown>) => this.fetch(`${normalizeOpenRouterBaseUrl(input.baseUrl)}/chat/completions`, {
@@ -71,17 +66,29 @@ export class OpenRouterAdapter implements AgentModelAdapter {
       signal: input.abortSignal,
       body: JSON.stringify(payload),
     });
-    let response = await request(body);
-
-    if (!response.ok && schema && [400, 404, 422].includes(response.status)) {
-      response = await request({ ...body, response_format: { type: "json_object" } });
+    const compatibilityKey = `${normalizeOpenRouterBaseUrl(input.baseUrl)}:${input.model}`;
+    const modes = schema
+      ? structuredModeCandidates(this.structuredModes.get(compatibilityKey))
+      : (["prompt"] as const);
+    let response: Response | undefined;
+    for (const mode of modes) {
+      const requestStartedAt = performance.now();
+      response = await request(withStructuredMode(body, schema, mode));
+      logOpenRouterTiming({
+        model: input.model,
+        mode,
+        status: response.status,
+        durationMs: Math.round(performance.now() - requestStartedAt),
+      });
+      if (response.ok) {
+        if (schema) this.structuredModes.set(compatibilityKey, mode);
+        break;
+      }
+      if (![400, 404, 422].includes(response.status)) break;
     }
-    if (!response.ok && schema && [400, 404, 422].includes(response.status)) {
-      const { response_format: _unsupportedFormat, ...promptOnlyBody } = body;
-      response = await request(promptOnlyBody);
-    }
 
-    if (!response.ok) {
+    if (!response?.ok) {
+      if (!response) throw new AgentRuntimeError("OpenRouter request was not attempted", "AGENT_MODEL_PROVIDER_ERROR", "OpenRouter model request failed", 502);
       const detail = await providerError(response);
       throw new AgentRuntimeError(
         `OpenRouter API error: ${response.status} ${detail}`,
@@ -92,6 +99,43 @@ export class OpenRouterAdapter implements AgentModelAdapter {
     }
     return response.json() as Promise<OpenRouterResponse>;
   }
+}
+
+function logOpenRouterTiming(data: {
+  model: string;
+  mode: "json-schema" | "json-object" | "prompt";
+  status: number;
+  durationMs: number;
+}): void {
+  console.info(`[FABRIC | AGENT | TIMING] ${JSON.stringify({
+    timestamp: new Date().toISOString(),
+    event: "model.request_completed",
+    data,
+  })}`);
+}
+
+function structuredModeCandidates(
+  cached?: "json-schema" | "json-object" | "prompt",
+): Array<"json-schema" | "json-object" | "prompt"> {
+  if (cached === "prompt") return ["prompt"];
+  if (cached === "json-object") return ["json-object", "prompt"];
+  return ["json-schema", "json-object", "prompt"];
+}
+
+function withStructuredMode(
+  body: Record<string, unknown>,
+  schema: Record<string, any> | undefined,
+  mode: "json-schema" | "json-object" | "prompt",
+): Record<string, unknown> {
+  if (!schema || mode === "prompt") return body;
+  if (mode === "json-object") return { ...body, response_format: { type: "json_object" } };
+  return {
+    ...body,
+    response_format: {
+      type: "json_schema",
+      json_schema: { name: "fabric_agent_decision", strict: true, schema },
+    },
+  };
 }
 
 export function parseOpenRouterJson<T extends object>(text: string): T {
