@@ -113,6 +113,43 @@ describe("AgentArtifactService", () => {
     });
   });
 
+  it("hydrates name and MIME type when the model provides only an artifact ref", async () => {
+    const { service } = await fixture();
+    const reference = await service.captureResult({
+      profileId: "profile_1",
+      runId: "run_1",
+      toolName: "google_drive_download_file",
+      value: {
+        data: Buffer.from("pdf-content"),
+        name: "andresimoes-jr-backend.pdf",
+        mimeType: "application/pdf",
+      },
+    }) as { ref: string };
+    const resolver = new AgentArtifactArgumentResolver(service);
+
+    await expect(resolver.resolve("profile_1", {
+      attachments: [{ ref: reference.ref }],
+    }, {
+      type: "object",
+      properties: {
+        attachments: {
+          type: "array",
+          items: {
+            type: "object",
+            "x-fabric-value-type": "file",
+            "x-fabric-binary-encoding": "base64",
+          },
+        },
+      },
+    }, "run_1")).resolves.toEqual({
+      attachments: [{
+        name: "andresimoes-jr-backend.pdf",
+        mimeType: "application/pdf",
+        content: Buffer.from("pdf-content").toString("base64"),
+      }],
+    });
+  });
+
   it("supports the canonical Base64 file encoding", async () => {
     const { service } = await fixture();
     const reference = await service.captureResult({

@@ -35,15 +35,16 @@ export class AgentArtifactArgumentResolver {
     if (!isRecord(value) || Buffer.isBuffer(value)) return value;
 
     if (typeof value.ref === "string" && value.ref.startsWith("artifact://")) {
+      const artifact = available.find((candidate) => candidate.ref === value.ref);
       const content = await this.artifacts.resolveReference(profileId, value.ref);
       const encoded = artifactEncoding(schema) === "base64"
         ? content.toString("base64")
         : content;
       return {
-        name: normalizedName(value),
+        name: normalizedName(value, artifact?.name),
         mimeType: typeof value.mimeType === "string" && value.mimeType.trim()
           ? value.mimeType
-          : "application/octet-stream",
+          : artifact?.mimeType ?? "application/octet-stream",
         ...(typeof value.size === "number" ? { size: value.size } : {}),
         content: encoded,
       };
@@ -107,10 +108,12 @@ function artifactEncoding(
   return schema["x-fabric-binary-encoding"] === "base64" ? "base64" : "buffer";
 }
 
-function normalizedName(value: Record<string, any>): string {
+function normalizedName(value: Record<string, any>, artifactName?: string): string {
   const name = [value.name, value.fileName, value.filename]
     .find((candidate) => typeof candidate === "string" && candidate.trim());
-  return typeof name === "string" ? name.trim() : "artifact.bin";
+  return typeof name === "string"
+    ? name.trim()
+    : artifactName?.trim() || "artifact.bin";
 }
 
 function isRecord(value: unknown): value is Record<string, any> {
