@@ -25,6 +25,10 @@ const ajv = new AjvCtor({
 });
 
 addFormats(ajv);
+ajv.addFormat("base64", {
+  type: "string",
+  validate: (value: string) => /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value),
+});
 
 // ──────────── Schema Cache ────────────
 // Compiled validators are cached per plugin+method key to avoid
