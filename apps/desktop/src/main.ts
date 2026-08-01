@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage, shell } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -65,9 +65,10 @@ function createMainWindow(): BrowserWindow {
     height: 820,
     minWidth: 960,
     minHeight: 640,
+    frame: false,
     show: false,
-    backgroundColor: "#111318",
     icon: nativeImage.createFromPath(appIconPath),
+    backgroundColor: "#111318",
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -76,6 +77,15 @@ function createMainWindow(): BrowserWindow {
     },
   });
 
+  const sendWindowState = () => {
+    window.webContents.send("fabric-desktop-window-state", {
+      isMaximized: window.isMaximized(),
+    });
+  };
+
+  window.on("maximize", sendWindowState);
+  window.on("unmaximize", sendWindowState);
+  window.on("restore", sendWindowState);
   window.once("ready-to-show", () => window.show());
   window.webContents.setWindowOpenHandler(({ url }) => {
     void openExternalUrl(url);
@@ -86,8 +96,35 @@ function createMainWindow(): BrowserWindow {
   return window;
 }
 
+function getFocusedMainWindow(): BrowserWindow | null {
+  return BrowserWindow.getFocusedWindow() ?? mainWindow;
+}
+
+ipcMain.handle("fabric-desktop-window-minimize", () => {
+  getFocusedMainWindow()?.minimize();
+});
+
+ipcMain.handle("fabric-desktop-window-toggle-maximize", () => {
+  const window = getFocusedMainWindow();
+  if (!window) return;
+  if (window.isMaximized()) {
+    window.unmaximize();
+  } else {
+    window.maximize();
+  }
+});
+
+ipcMain.handle("fabric-desktop-window-close", () => {
+  getFocusedMainWindow()?.close();
+});
+
 ipcMain.handle("fabric-desktop-open-external", async (_event, url: string) => {
   await openExternalUrl(url);
+});
+
+ipcMain.handle("fabric-desktop-restart", () => {
+  app.relaunch();
+  app.exit(0);
 });
 
 async function openExternalUrl(url: string): Promise<void> {
@@ -97,6 +134,57 @@ async function openExternalUrl(url: string): Promise<void> {
   }
   await shell.openExternal(parsed.toString());
 }
+
+ipcMain.handle(
+  "fabric-desktop-notify",
+  (_event, payload: { title?: string; body?: string; silent?: boolean }) => {
+    const title = sanitizeNotificationText(payload?.title, "Fabric");
+    const body = sanitizeNotificationText(payload?.body, "");
+    const window = mainWindow;
+
+    if (!NativeNotification.isSupported() || window?.isFocused()) {
+      return false;
+    }
+
+    const notification = new NativeNotification({
+      title,
+      body,
+      silent: payload?.silent === true,
+      icon: nativeImage.createFromPath(appIconPath),
+    });
+
+    notification.on("click", () => {
+      mainWindow?.show();
+      mainWindow?.focus();
+    });
+    notification.show();
+    return true;
+  },
+);
+
+function sanitizeNotificationText(value: unknown, fallback: string): string {
+  if (typeof value !== "string") return fallback;
+  return value.replace(/\s+/g, " ").trim().slice(0, 240) || fallback;
+}
+
+ipcMain.handle("fabric-desktop-window-state", () => ({
+  isMaximized: getFocusedMainWindow()?.isMaximized() ?? false,
+}));
+
+function clampZoomFactor(zoomFactor: number): number {
+  return Math.min(1.5, Math.max(0.75, zoomFactor));
+}
+
+ipcMain.handle("fabric-desktop-zoom-get", () => getFocusedMainWindow()?.webContents.getZoomFactor() ?? 1);
+
+ipcMain.handle("fabric-desktop-zoom-set", (_event, zoomFactor: number) => {
+  const window = getFocusedMainWindow();
+  if (!window || !Number.isFinite(zoomFactor)) return 1;
+  const nextZoomFactor = clampZoomFactor(zoomFactor);
+  window.webContents.setZoomFactor(nextZoomFactor);
+  window.webContents.send("fabric-desktop-zoom-change", { zoomFactor: nextZoomFactor });
+  return nextZoomFactor;
+});
 
 app.whenReady().then(async () => {
   const splashStartedAt = Date.now();

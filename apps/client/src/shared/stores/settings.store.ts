@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { apiRequest } from '@/core/api/client'
+import { apiRequest } from '../../core/api/client'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -17,6 +17,7 @@ export interface AppSettings {
   public_url?: string
   public_url_restart_required?: boolean
   public_url_locked?: boolean
+  desktop_notifications_enabled?: boolean
   [key: string]: unknown
 }
 

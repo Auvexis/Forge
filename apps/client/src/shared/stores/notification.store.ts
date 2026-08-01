@@ -8,6 +8,9 @@ import type {
   NotificationMutationCount,
   NotificationSummary,
 } from '../../core/types/notification.types.ts'
+import { sendDesktopNotification } from '../services/desktopNotification.service.ts'
+import type { AppSettings } from './settings.store.ts'
+import { useSettingsStore } from './settings.store.ts'
 
 export interface NotificationsApiClient {
   list: (filters?: NotificationFilters) => Promise<AppNotification[]>
@@ -17,6 +20,16 @@ export interface NotificationsApiClient {
   markAllRead: () => Promise<NotificationMutationCount>
   deleteOne: (id: string) => Promise<null>
   clear: () => Promise<NotificationMutationCount>
+}
+
+export interface NotificationStoreDeps {
+  getSettings: () => AppSettings
+  sendDesktopNotification: (notification: AppNotification, settings: AppSettings) => void
+}
+
+const defaultDeps: NotificationStoreDeps = {
+  getSettings: () => ({}),
+  sendDesktopNotification,
 }
 
 const defaultNotificationsApi: NotificationsApiClient = {
@@ -50,7 +63,10 @@ const defaultNotificationsApi: NotificationsApiClient = {
     ),
 }
 
-export function createNotificationStore(api: NotificationsApiClient) {
+export function createNotificationStore(
+  api: NotificationsApiClient,
+  deps: NotificationStoreDeps = defaultDeps,
+) {
   return defineStore('notifications', () => {
     const notifications = ref<AppNotification[]>([])
     const categories = ref<string[]>([])
@@ -92,6 +108,7 @@ export function createNotificationStore(api: NotificationsApiClient) {
         if (existingIndex >= 0) notifications.value.splice(existingIndex, 1)
         notifications.value.unshift(created)
         recomputeSummary()
+        deps.sendDesktopNotification(created, deps.getSettings())
         await load()
         return created
       } catch (cause) {
@@ -232,7 +249,10 @@ export function createNotificationStore(api: NotificationsApiClient) {
   })
 }
 
-export const useNotificationStore = createNotificationStore(defaultNotificationsApi)
+export const useNotificationStore = createNotificationStore(defaultNotificationsApi, {
+  getSettings: () => useSettingsStore().settings,
+  sendDesktopNotification,
+})
 
 function errorMessage(cause: unknown, fallback: string) {
   return cause instanceof Error ? cause.message : fallback

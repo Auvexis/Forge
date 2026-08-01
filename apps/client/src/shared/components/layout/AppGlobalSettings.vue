@@ -517,6 +517,55 @@
               />
             </div>
 
+            <div v-if="isDesktopWindow" class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="zoom-in" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Window Zoom</span>
+                  <span class="gs-pref-row__hint">Adjust the desktop interface scale</span>
+                </div>
+              </div>
+              <div class="gs-window-zoom">
+                <BaseButton
+                  variant="secondary"
+                  size="icon"
+                  title="Decrease zoom"
+                  @click="decreaseWindowZoom"
+                >
+                  <template #left>
+                    <LucideIcon name="minus" :size="15" />
+                  </template>
+                </BaseButton>
+                <BaseButton variant="ghost" title="Reset zoom" @click="resetWindowZoom">
+                  {{ windowZoomLabel }}
+                </BaseButton>
+                <BaseButton
+                  variant="secondary"
+                  size="icon"
+                  title="Increase zoom"
+                  @click="increaseWindowZoom"
+                >
+                  <template #left>
+                    <LucideIcon name="plus" :size="15" />
+                  </template>
+                </BaseButton>
+              </div>
+            </div>
+
+            <div v-if="isDesktopWindow" class="gs-pref-row">
+              <div class="gs-pref-row__label">
+                <LucideIcon name="bell" :size="16" />
+                <div>
+                  <span class="gs-pref-row__name">Desktop Notifications</span>
+                  <span class="gs-pref-row__hint">Send native notifications when Fabric is not focused</span>
+                </div>
+              </div>
+              <BaseSwitch
+                :model-value="desktopNotificationsEnabled"
+                @update:model-value="handleDesktopNotificationsChange"
+              />
+            </div>
+
             <div class="gs-pref-row">
               <div class="gs-pref-row__label">
                 <LucideIcon name="globe" :size="16" />
@@ -554,13 +603,14 @@
   </BaseModal>
 </template>
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useSettingsStore } from '@/shared/stores/settings.store'
 import { useTheme, type ThemeMode } from '@/shared/composables/useTheme'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
+import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseThemeSelect from '@/shared/components/base/BaseThemeSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
@@ -577,6 +627,15 @@ const { confirm } = useConfirm()
 
 const store = useSettingsStore()
 const { isDark, setMode } = useTheme()
+const isDesktopWindow = computed(
+  () => typeof window !== 'undefined' && window.fabricDesktop?.isDesktop === true,
+)
+const windowZoomFactor = ref(1)
+const windowZoomLabel = computed(() => `${Math.round(windowZoomFactor.value * 100)}%`)
+const desktopNotificationsEnabled = computed(
+  () => store.settings.desktop_notifications_enabled !== false,
+)
+let removeZoomChangeListener: (() => void) | undefined
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
@@ -870,6 +929,27 @@ async function handleLogRetentionChange(value: string | number) {
   await store.saveSetting('log_retention_days', String(value))
 }
 
+async function handleDesktopNotificationsChange(value: boolean) {
+  await store.saveSetting('desktop_notifications_enabled', value)
+}
+
+async function setWindowZoom(zoomFactor: number) {
+  const nextZoomFactor = await window.fabricDesktop?.setZoomFactor(Number(zoomFactor.toFixed(2)))
+  if (typeof nextZoomFactor === 'number') windowZoomFactor.value = nextZoomFactor
+}
+
+function decreaseWindowZoom() {
+  void setWindowZoom(windowZoomFactor.value - 0.1)
+}
+
+function increaseWindowZoom() {
+  void setWindowZoom(windowZoomFactor.value + 0.1)
+}
+
+function resetWindowZoom() {
+  void setWindowZoom(1)
+}
+
 async function handlePublicUrlSave() {
   isSavingPublicUrl.value = true
   try {
@@ -885,7 +965,11 @@ async function handlePublicUrlSave() {
         variant: 'warning',
       })
       if (restartNow) {
-        toast.info('Restart Fabric', 'Restart the Fabric process or Docker container to apply the public URL.')
+        if (window.fabricDesktop?.isDesktop) {
+          await window.fabricDesktop.restart()
+        } else {
+          toast.info('Restart Fabric', 'Restart the Fabric process or Docker container to apply the public URL.')
+        }
       }
     }
   } catch (err: any) {
@@ -894,4 +978,18 @@ async function handlePublicUrlSave() {
     isSavingPublicUrl.value = false
   }
 }
+
+onMounted(() => {
+  if (!isDesktopWindow.value || !window.fabricDesktop) return
+  void window.fabricDesktop.getZoomFactor().then((zoomFactor) => {
+    windowZoomFactor.value = zoomFactor
+  })
+  removeZoomChangeListener = window.fabricDesktop.onZoomChange((state) => {
+    windowZoomFactor.value = state.zoomFactor
+  })
+})
+
+onUnmounted(() => {
+  removeZoomChangeListener?.()
+})
 </script>

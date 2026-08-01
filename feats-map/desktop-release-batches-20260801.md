@@ -15,17 +15,17 @@
 - [ ] Ajustar transicao entre splash e app
 - [ ] Revisar startup frio API gateway client
 
-- [ ] Batch 4 - Desktop restart flow
-- [ ] Mapear fluxo atual de restart
-- [ ] Implementar restart automatico ao confirmar
-- [ ] Garantir restart seguro dos processos internos
-- [ ] Validar restart apos mudar public URL
+- [x] Batch 4 - Desktop restart flow
+- [x] Mapear fluxo atual de restart
+- [x] Implementar restart automatico ao confirmar
+- [x] Garantir restart seguro dos processos internos
+- [x] Validar restart apos mudar public URL
 
-- [ ] Batch 5 - Native notifications
-- [ ] Mapear eventos de notificacao do Fabric
-- [ ] Implementar notificacao nativa no desktop
-- [ ] Disparar so quando o app nao estiver focado
-- [ ] Adicionar preferencia para habilitar desabilitar
+- [x] Batch 5 - Native notifications
+- [x] Mapear eventos de notificacao do Fabric
+- [x] Implementar notificacao nativa no desktop
+- [x] Disparar so quando o app nao estiver focado
+- [x] Adicionar preferencia para habilitar desabilitar
 
 - [ ] Batch 6 - System settings foundation
 - [ ] Criar aba System Updates em AppGlobalSettings
