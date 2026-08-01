@@ -4,3 +4,4 @@
 - [x] Documentar artefatos esperados
 - [x] Validar build local
 - [x] Commit e push
+- [x] Sincronizar manifest API com lock
