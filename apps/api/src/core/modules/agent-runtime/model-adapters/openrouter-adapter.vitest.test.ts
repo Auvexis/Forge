@@ -23,6 +23,24 @@ describe("OpenRouterAdapter", () => {
     expect(() => parseOpenRouterJson('"answer"')).toThrow("Expected a JSON object");
   });
 
+  it("extracts JSON from XML-style native tool-call envelopes", () => {
+    expect(parseOpenRouterJson([
+      "<tool_call>",
+      '{"name":"drive_download","arguments":{"fileId":"file_1"}}',
+      "</tool_call>",
+    ].join("\n"))).toEqual({
+      name: "drive_download",
+      arguments: { fileId: "file_1" },
+    });
+  });
+
+  it("extracts balanced JSON around prose and escaped braces", () => {
+    expect(parseOpenRouterJson('I will call it: {"tool":"drive_list","query":"a } \\\"quoted\\\" value"} done.')).toEqual({
+      tool: "drive_list",
+      query: 'a } "quoted" value',
+    });
+  });
+
   it("uses the native chat completions endpoint and OpenRouter headers", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ choices: [{ message: { content: "ok" } }] }), { status: 200 }));
     const adapter = new OpenRouterAdapter({ fetch });

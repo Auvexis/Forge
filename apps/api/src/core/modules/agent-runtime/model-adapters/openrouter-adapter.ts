@@ -95,13 +95,49 @@ export class OpenRouterAdapter implements AgentModelAdapter {
 }
 
 export function parseOpenRouterJson<T extends object>(text: string): T {
-  const normalized = stripJsonFence(text.trim());
+  const normalized = extractEmbeddedJson(stripJsonFence(text.trim()));
   const parsed = JSON.parse(normalized);
   const value = Array.isArray(parsed) ? parsed[0] : parsed;
   if (!value || typeof value !== "object" || Array.isArray(value)) {
     throw new Error("Expected a JSON object or a non-empty array of JSON objects");
   }
   return value as T;
+}
+
+function extractEmbeddedJson(value: string): string {
+  const start = findJsonStart(value);
+  if (start < 0) return value;
+  const stack: string[] = [];
+  let quoted = false;
+  let escaped = false;
+  for (let index = start; index < value.length; index += 1) {
+    const character = value[index]!;
+    if (quoted) {
+      if (escaped) escaped = false;
+      else if (character === "\\") escaped = true;
+      else if (character === '"') quoted = false;
+      continue;
+    }
+    if (character === '"') {
+      quoted = true;
+      continue;
+    }
+    if (character === "{" || character === "[") stack.push(character);
+    if (character === "}" || character === "]") {
+      const opening = stack.pop();
+      if ((character === "}" && opening !== "{") || (character === "]" && opening !== "[")) return value;
+      if (stack.length === 0) return value.slice(start, index + 1);
+    }
+  }
+  return value;
+}
+
+function findJsonStart(value: string): number {
+  const objectIndex = value.indexOf("{");
+  const arrayIndex = value.indexOf("[");
+  if (objectIndex < 0) return arrayIndex;
+  if (arrayIndex < 0) return objectIndex;
+  return Math.min(objectIndex, arrayIndex);
 }
 
 function stripJsonFence(value: string): string {
