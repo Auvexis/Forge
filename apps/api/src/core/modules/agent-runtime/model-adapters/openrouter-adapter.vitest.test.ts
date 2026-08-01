@@ -27,6 +27,17 @@ describe("OpenRouterAdapter", () => {
     expect(JSON.parse(fetch.mock.calls[0][1].body).response_format).toEqual({ type: "json_object" });
   });
 
+  it("retries JSON decisions without response_format for incompatible routed models", async () => {
+    const fetch = vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ error: { message: "Provider returned error" } }), { status: 400 }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ choices: [{ message: { content: '{"tool":"drive_list"}' } }] }), { status: 200 }));
+    const adapter = new OpenRouterAdapter({ fetch });
+
+    await expect(adapter.invokeJson(input, { type: "object" })).resolves.toEqual({ tool: "drive_list" });
+    expect(JSON.parse(fetch.mock.calls[0][1].body)).toHaveProperty("response_format");
+    expect(JSON.parse(fetch.mock.calls[1][1].body)).not.toHaveProperty("response_format");
+  });
+
   it("exposes the sanitized provider error instead of an OpenAI error", async () => {
     const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({ error: { message: "No endpoints found for this model" } }), { status: 404, statusText: "Not Found" }));
     const adapter = new OpenRouterAdapter({ fetch });
@@ -34,6 +45,23 @@ describe("OpenRouterAdapter", () => {
     await expect(adapter.invokeText(input)).rejects.toMatchObject({
       code: "AGENT_MODEL_PROVIDER_ERROR",
       publicMessage: "OpenRouter model request failed: No endpoints found for this model",
+    });
+  });
+
+  it("preserves nested upstream errors returned by OpenRouter", async () => {
+    const fetch = vi.fn().mockResolvedValue(new Response(JSON.stringify({
+      error: {
+        message: "Provider returned error",
+        metadata: {
+          provider_name: "Example Provider",
+          raw: JSON.stringify({ error: { message: "response_format is not supported" } }),
+        },
+      },
+    }), { status: 400 }));
+    const adapter = new OpenRouterAdapter({ fetch });
+
+    await expect(adapter.invokeText(input)).rejects.toMatchObject({
+      publicMessage: "OpenRouter model request failed: response_format is not supported; provider: Example Provider",
     });
   });
 

@@ -112,7 +112,8 @@ async function invokeValidated<T extends object>(
     signal?: AbortSignal;
   },
 ): Promise<T> {
-  const value = await model.invokeJson<T>(input);
+  const rawValue = await model.invokeJson<T>(input);
+  const value = normalizeModelDecision(rawValue, input.schema) as T;
   if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length === 0) {
     throw emptyModelError();
   }
@@ -126,6 +127,40 @@ async function invokeValidated<T extends object>(
     );
   }
   return value;
+}
+
+function normalizeModelDecision(value: unknown, schema: Record<string, any>): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  if (typeof record.mode === "string") return value;
+
+  const toolName = firstString(record.toolName, record.tool, record.name);
+  if (toolName && schemaAllowsTool(schema, toolName)) {
+    return {
+      mode: "tool",
+      toolName,
+      objective: firstString(record.objective, record.reason, record.description) || `Execute ${toolName}`,
+    };
+  }
+  const question = firstString(record.question, record.clarification);
+  if (question) return { mode: "clarify", question };
+  const response = firstString(record.response, record.answer, record.message);
+  if (response) return { mode: "chat", response };
+  return value;
+}
+
+function schemaAllowsTool(schema: Record<string, any>, toolName: string): boolean {
+  return (Array.isArray(schema.oneOf) ? schema.oneOf : []).some((variant: any) => {
+    const property = variant?.properties?.toolName;
+    return property?.const === toolName || (Array.isArray(property?.enum) && property.enum.includes(toolName));
+  });
+}
+
+function firstString(...values: unknown[]): string {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return "";
 }
 
 function emptyModelError(): AgentRuntimeError {

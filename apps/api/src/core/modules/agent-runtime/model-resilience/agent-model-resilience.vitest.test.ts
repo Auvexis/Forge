@@ -44,7 +44,9 @@ describe("agent model resilience policy", () => {
     const invokeJson = vi.fn()
       .mockResolvedValueOnce(fixture.invalid)
       .mockResolvedValueOnce(fixture.repaired);
-    const model = withAgentModelResilience(runtimeModel(invokeJson));
+    const model = withAgentModelResilience(runtimeModel(
+      invokeJson as unknown as AgentRuntimeModel["invokeJson"],
+    ));
 
     await expect(model.invokeJson({
       messages: [{ role: "user", content: "Find my CV" }],
@@ -67,6 +69,23 @@ describe("agent model resilience policy", () => {
     await expect(model.invokeJson({ messages: [], schema: decisionSchema }))
       .resolves.toMatchObject({ response: "Recovered." });
     expect(fallbackInvoke).toHaveBeenCalledOnce();
+  });
+
+  it("normalizes common provider-native tool decisions before validation", async () => {
+    const invokeJson = vi.fn(async () => ({
+      tool: "drive_list",
+      arguments: { query: "backend" },
+    }));
+    const model = withAgentModelResilience(runtimeModel(
+      invokeJson as unknown as AgentRuntimeModel["invokeJson"],
+    ));
+
+    await expect(model.invokeJson({ messages: [], schema: decisionSchema })).resolves.toEqual({
+      mode: "tool",
+      toolName: "drive_list",
+      objective: "Execute drive_list",
+    });
+    expect(invokeJson).toHaveBeenCalledOnce();
   });
 
   it.each([

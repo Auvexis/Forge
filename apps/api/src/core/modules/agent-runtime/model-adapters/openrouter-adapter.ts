@@ -49,7 +49,15 @@ export class OpenRouterAdapter implements AgentModelAdapter {
     const apiKey = input.credentials?.api_key ?? input.credentials?.apiKey ?? input.credentials?.token;
     if (!apiKey) throw new AgentRuntimeError("Missing OpenRouter credentials", "AGENT_MODEL_CREDENTIAL_MISSING", "Model credentials are missing", 400);
 
-    const response = await this.fetch(`${normalizeOpenRouterBaseUrl(input.baseUrl)}/chat/completions`, {
+    const body: Record<string, unknown> = {
+        model: input.model,
+        messages: input.messages.map(toOpenRouterMessage),
+        ...(input.temperature !== undefined ? { temperature: input.temperature } : {}),
+        ...(input.maxTokens !== undefined ? { max_tokens: input.maxTokens } : {}),
+        ...(schema ? { response_format: { type: "json_object" } } : {}),
+        ...(input.thinkingEnabled === true ? { reasoning: input.thinkingRequest?.reasoning ?? { enabled: true } } : {}),
+    };
+    const request = (payload: Record<string, unknown>) => this.fetch(`${normalizeOpenRouterBaseUrl(input.baseUrl)}/chat/completions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -58,15 +66,14 @@ export class OpenRouterAdapter implements AgentModelAdapter {
         "X-Title": input.credentials?.x_title || "Fabric",
       },
       signal: input.abortSignal,
-      body: JSON.stringify({
-        model: input.model,
-        messages: input.messages.map(toOpenRouterMessage),
-        ...(input.temperature !== undefined ? { temperature: input.temperature } : {}),
-        ...(input.maxTokens !== undefined ? { max_tokens: input.maxTokens } : {}),
-        ...(schema ? { response_format: { type: "json_object" } } : {}),
-        ...(input.thinkingEnabled === true ? { reasoning: input.thinkingRequest?.reasoning ?? { enabled: true } } : {}),
-      }),
+      body: JSON.stringify(payload),
     });
+    let response = await request(body);
+
+    if (!response.ok && schema && [400, 404, 422].includes(response.status)) {
+      const { response_format: _unsupportedFormat, ...compatibleBody } = body;
+      response = await request(compatibleBody);
+    }
 
     if (!response.ok) {
       const detail = await providerError(response);
@@ -105,10 +112,30 @@ async function providerError(response: Response): Promise<string> {
   const text = await response.text();
   try {
     const body = JSON.parse(text);
-    return safeMessage(body?.error?.message ?? body?.message ?? response.statusText);
+    const error = body?.error;
+    const raw = parseNestedProviderError(error?.metadata?.raw);
+    const provider = safeOptionalMessage(error?.metadata?.provider_name ?? error?.metadata?.provider);
+    const primary = safeOptionalMessage(raw ?? error?.message ?? body?.message);
+    return [primary, provider ? `provider: ${provider}` : ""]
+      .filter(Boolean)
+      .join("; ") || safeMessage(response.statusText);
   } catch {
     return safeMessage(text || response.statusText);
   }
+}
+
+function parseNestedProviderError(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+  try {
+    const parsed = JSON.parse(value);
+    return parsed?.error?.message ?? parsed?.message ?? value;
+  } catch {
+    return value;
+  }
+}
+
+function safeOptionalMessage(value: unknown): string {
+  return value === undefined || value === null ? "" : safeMessage(value);
 }
 
 function safeMessage(value: unknown): string {
