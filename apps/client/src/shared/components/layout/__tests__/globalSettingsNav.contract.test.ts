@@ -30,4 +30,13 @@ describe('global settings nav contract', () => {
     assert.match(settingsSource, /updates_auto_install/)
     assert.match(settingsSource, /window\.fabricDesktop\.setPreferences/)
   })
+
+  it('wires desktop update checks to the system updates panel', () => {
+    assert.match(settingsSource, /BaseUpdateDialog/)
+    assert.match(settingsSource, /checkForDesktopUpdates/)
+    assert.match(settingsSource, /maybeAutoCheckForUpdates/)
+    assert.match(settingsSource, /window\.fabricDesktop\.checkForUpdates\('safe'\)/)
+    assert.match(settingsSource, /Check Now/)
+    assert.match(settingsSource, /No newer safe desktop release was found/)
+  })
 })

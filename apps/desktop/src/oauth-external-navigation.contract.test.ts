@@ -49,4 +49,18 @@ describe("desktop OS integrations", () => {
     assert.match(main, /desktopPreferences\.closeToTray/);
     assert.match(preload, /fabric-desktop-preferences-set/);
   });
+
+  it("exposes safe desktop update checks through the main process", () => {
+    const main = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+    const preload = readFileSync(new URL("./preload.ts", import.meta.url), "utf8");
+    const updates = readFileSync(new URL("./updates.ts", import.meta.url), "utf8");
+
+    assert.match(main, /checkDesktopUpdate\(app\.getVersion\(\), channel\)/);
+    assert.match(main, /ipcMain\.handle\("fabric-desktop-update-check"/);
+    assert.match(preload, /checkForUpdates/);
+    assert.match(preload, /ipcRenderer\.invoke\("fabric-desktop-update-check", channel\)/);
+    assert.match(updates, /DesktopUpdateChannel = "safe" \| "stable" \| "beta" \| "alpha"/);
+    assert.match(updates, /searchable\.includes\("safe"\)/);
+    assert.match(updates, /compareVersions\(version, currentVersion\) > 0/);
+  });
 });

@@ -13,6 +13,18 @@ declare global {
         closeToTray?: boolean
         openAtLogin?: boolean
       }) => Promise<void>
+      checkForUpdates: (
+        channel?: 'safe' | 'stable' | 'beta' | 'alpha',
+      ) => Promise<{
+        currentVersion: string
+        updateAvailable: boolean
+        channel: 'safe' | 'stable' | 'beta' | 'alpha'
+        version: string | null
+        title: string | null
+        notes: string | null
+        url: string | null
+        publishedAt: string | null
+      }>
       minimize: () => Promise<void>
       toggleMaximize: () => Promise<void>
       close: () => Promise<void>

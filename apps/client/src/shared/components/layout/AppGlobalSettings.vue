@@ -1,6 +1,11 @@
 <template>
   <BaseModal :is-open="store.isOpen" max-width="1000px" height="85vh" @close="store.close">
     <BaseRestartApplicationConfirm ref="restartConfirmRef" />
+    <BaseUpdateDialog
+      :is-open="isUpdateDialogOpen"
+      :update="desktopUpdateInfo"
+      @close="isUpdateDialogOpen = false"
+    />
     <div class="gs-shell">
       <!-- ── Left Aside ──────────────────────────────────────────── -->
       <aside class="gs-aside">
@@ -661,13 +666,30 @@
                 <LucideIcon name="refresh-cw" :size="16" />
                 <div>
                   <span class="gs-pref-row__name">Check for Updates</span>
-                  <span class="gs-pref-row__hint">Look for Fabric Desktop updates when the app opens</span>
+                  <span class="gs-pref-row__hint">
+                    {{ updateCheckMessage || 'Look for safe Fabric Desktop updates when the app opens' }}
+                  </span>
                 </div>
               </div>
-              <BaseSwitch
-                :model-value="updatesAutoCheck"
-                @update:model-value="handleUpdatesAutoCheckChange"
-              />
+              <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 10px; min-width: 0">
+                <BaseButton
+                  variant="secondary"
+                  size="sm"
+                  :loading="isCheckingUpdates"
+                  :disabled="!isDesktopWindow"
+                  title="Check for updates"
+                  @click="checkForDesktopUpdates({ manual: true })"
+                >
+                  <template #left>
+                    <LucideIcon name="refresh-cw" :size="14" />
+                  </template>
+                  Check Now
+                </BaseButton>
+                <BaseSwitch
+                  :model-value="updatesAutoCheck"
+                  @update:model-value="handleUpdatesAutoCheckChange"
+                />
+              </div>
             </div>
 
             <div class="gs-pref-row">
@@ -707,6 +729,9 @@ import BaseThemeSelect from '@/shared/components/base/BaseThemeSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
 import BaseRestartApplicationConfirm from '@/shared/components/base/BaseRestartApplicationConfirm.vue'
+import BaseUpdateDialog, {
+  type BaseUpdateDialogInfo,
+} from '@/shared/components/base/BaseUpdateDialog.vue'
 import AuvexisAccountSettings from '@/shared/components/layout/AuvexisAccountSettings.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
@@ -731,7 +756,12 @@ const desktopCloseToTray = computed(() => store.settings.desktop_close_to_tray !
 const desktopOpenAtLogin = computed(() => store.settings.desktop_open_at_login === true)
 const updatesAutoCheck = computed(() => store.settings.updates_auto_check !== false)
 const updatesAutoInstall = computed(() => store.settings.updates_auto_install === true)
+const isCheckingUpdates = ref(false)
+const isUpdateDialogOpen = ref(false)
+const desktopUpdateInfo = ref<BaseUpdateDialogInfo | null>(null)
+const updateCheckMessage = ref('')
 let removeZoomChangeListener: (() => void) | undefined
+let didAutoCheckUpdates = false
 
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
@@ -757,7 +787,10 @@ watch(
   (opened) => {
     if (opened) {
       store.fetchVariables()
-      store.fetchSettings().then(() => syncDesktopPreferences())
+      store.fetchSettings().then(() => {
+        syncDesktopPreferences()
+        maybeAutoCheckForUpdates()
+      })
       loadPlugins()
     }
   },
@@ -1053,6 +1086,7 @@ async function handleDesktopOpenAtLoginChange(value: boolean) {
 
 async function handleUpdatesAutoCheckChange(value: boolean) {
   await store.saveSetting('updates_auto_check', value)
+  if (value) maybeAutoCheckForUpdates()
 }
 
 async function handleUpdatesAutoInstallChange(value: boolean) {
@@ -1066,6 +1100,42 @@ async function syncDesktopPreferences() {
     closeToTray: desktopCloseToTray.value,
     openAtLogin: desktopOpenAtLogin.value,
   })
+}
+
+function maybeAutoCheckForUpdates() {
+  if (didAutoCheckUpdates || !updatesAutoCheck.value || !window.fabricDesktop?.isDesktop) return
+  didAutoCheckUpdates = true
+  void checkForDesktopUpdates()
+}
+
+async function checkForDesktopUpdates(options: { manual?: boolean } = {}) {
+  if (!window.fabricDesktop?.isDesktop) return
+
+  isCheckingUpdates.value = true
+  updateCheckMessage.value = 'Checking safe releases...'
+
+  try {
+    const update = await window.fabricDesktop.checkForUpdates('safe')
+    desktopUpdateInfo.value = update
+
+    if (update.updateAvailable) {
+      updateCheckMessage.value = `Fabric ${update.version} is available`
+      isUpdateDialogOpen.value = true
+      return
+    }
+
+    updateCheckMessage.value = `Fabric ${update.currentVersion} is up to date`
+    if (options.manual) {
+      toast.success('Fabric is up to date', 'No newer safe desktop release was found.')
+    }
+  } catch (err: any) {
+    updateCheckMessage.value = 'Could not check for updates'
+    if (options.manual) {
+      toast.error('Update check failed', err?.message ?? 'Could not reach GitHub releases.')
+    }
+  } finally {
+    isCheckingUpdates.value = false
+  }
 }
 
 async function setWindowZoom(zoomFactor: number) {
@@ -1127,7 +1197,10 @@ async function requestApplicationRestart(message: string) {
 
 onMounted(() => {
   if (!isDesktopWindow.value || !window.fabricDesktop) return
-  void syncDesktopPreferences()
+  void store.fetchSettings().then(() => {
+    void syncDesktopPreferences()
+    maybeAutoCheckForUpdates()
+  })
   void window.fabricDesktop.getZoomFactor().then((zoomFactor) => {
     windowZoomFactor.value = zoomFactor
   })

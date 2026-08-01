@@ -9,6 +9,8 @@ contextBridge.exposeInMainWorld("fabricDesktop", {
     ipcRenderer.invoke("fabric-desktop-notify", payload),
   setPreferences: (preferences: { minimizeToTray?: boolean; closeToTray?: boolean; openAtLogin?: boolean }) =>
     ipcRenderer.invoke("fabric-desktop-preferences-set", preferences),
+  checkForUpdates: (channel: "safe" | "stable" | "beta" | "alpha" = "safe") =>
+    ipcRenderer.invoke("fabric-desktop-update-check", channel),
   minimize: () => ipcRenderer.invoke("fabric-desktop-window-minimize"),
   toggleMaximize: () => ipcRenderer.invoke("fabric-desktop-window-toggle-maximize"),
   close: () => ipcRenderer.invoke("fabric-desktop-window-close"),

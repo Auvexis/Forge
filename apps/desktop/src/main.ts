@@ -3,6 +3,7 @@ import type { Event as ElectronEvent } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { checkDesktopUpdate, type DesktopUpdateChannel } from "./updates.js";
 
 const desktopUrl = process.env.FABRIC_DESKTOP_URL ?? "http://127.0.0.1:23800";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -158,6 +159,10 @@ ipcMain.handle("fabric-desktop-window-close", () => {
 ipcMain.handle("fabric-desktop-preferences-set", (_event, preferences: Partial<DesktopPreferences>) => {
   applyDesktopPreferences(preferences);
 });
+
+ipcMain.handle("fabric-desktop-update-check", async (_event, channel: DesktopUpdateChannel = "safe") =>
+  checkDesktopUpdate(app.getVersion(), channel),
+);
 
 ipcMain.handle("fabric-desktop-open-external", async (_event, url: string) => {
   await openExternalUrl(url);

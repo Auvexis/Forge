@@ -39,17 +39,17 @@
 - [x] Adicionar opcao abrir com o OS
 - [x] Validar comportamento ao fechar janela
 
-- [ ] Batch 8 - Desktop update service
-- [ ] Definir estrategia de canal safe alpha beta stable
-- [ ] Buscar release elegivel no GitHub
-- [ ] Comparar versao instalada com release remota
-- [ ] Expor servico de update para o frontend
+- [x] Batch 8 - Desktop update service
+- [x] Definir estrategia de canal safe alpha beta stable
+- [x] Buscar release elegivel no GitHub
+- [x] Comparar versao instalada com release remota
+- [x] Expor servico de update para o frontend
 
-- [ ] Batch 9 - Desktop update UI
-- [ ] Criar dialog base de atualizacao
-- [ ] Mostrar versao titulo e changelog
-- [ ] Adicionar checagem manual por update
-- [ ] Adicionar auto check ao abrir o Fabric
+- [x] Batch 9 - Desktop update UI
+- [x] Criar dialog base de atualizacao
+- [x] Mostrar versao titulo e changelog
+- [x] Adicionar checagem manual por update
+- [x] Adicionar auto check ao abrir o Fabric
 
 - [ ] Batch 10 - Auto update behavior
 - [ ] Adicionar preferencia buscar updates automaticamente
