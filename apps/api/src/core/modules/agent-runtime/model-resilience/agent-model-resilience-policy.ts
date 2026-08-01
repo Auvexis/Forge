@@ -117,7 +117,9 @@ async function invokeValidated<T extends object>(
   if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length === 0) {
     throw emptyModelError();
   }
-  const validate = new Ajv({ allErrors: true, strict: false }).compile(input.schema);
+  const ajv = new Ajv({ allErrors: true, strict: false });
+  ajv.addFormat("base64", true);
+  const validate = ajv.compile(input.schema);
   if (!validate(value)) {
     throw new AgentRuntimeError(
       `Agent model decision failed schema validation: ${JSON.stringify(validate.errors)}`,
@@ -152,6 +154,10 @@ function normalizeModelDecision(value: unknown, schema: Record<string, any>): un
       mode: "tool",
       toolName,
       objective: firstString(record.objective, record.reason, record.description) || `Execute ${toolName}`,
+      ...(schemaAllowsToolArguments(schema, toolName) &&
+        (record.arguments ?? record.action_input) && typeof (record.arguments ?? record.action_input) === "object"
+        ? { arguments: record.arguments ?? record.action_input }
+        : {}),
     };
   }
   const question = firstString(record.question, record.clarification);
@@ -159,6 +165,14 @@ function normalizeModelDecision(value: unknown, schema: Record<string, any>): un
   const response = firstString(record.response, record.answer, record.message);
   if (response) return { mode: "chat", response };
   return value;
+}
+
+function schemaAllowsToolArguments(schema: Record<string, any>, toolName: string): boolean {
+  return (Array.isArray(schema.oneOf) ? schema.oneOf : []).some((variant: any) => {
+    const property = variant?.properties?.toolName;
+    const matches = property?.const === toolName || (Array.isArray(property?.enum) && property.enum.includes(toolName));
+    return matches && Boolean(variant?.properties?.arguments);
+  });
 }
 
 function isArgumentDecisionSchema(schema: Record<string, any>): boolean {

@@ -7,6 +7,47 @@ import {
 import type { AgentModelMessage } from "../model-adapters/agent-model-adapter.ts";
 
 describe("advanceResumableMcpAgentLoop", () => {
+  it("executes valid arguments returned with the tool decision without a second model call", async () => {
+    const decisions = [{
+      mode: "tool",
+      toolName: "drive_list",
+      objective: "Find CV",
+      arguments: { query: "backend" },
+    }];
+    const input = baseInput(decisions);
+    let modelCalls = 0;
+    input.model = { invokeJson: async () => {
+      modelCalls += 1;
+      return decisions.shift() as any;
+    } };
+
+    const step = await advanceResumableMcpAgentLoop(input);
+
+    expect(step).toMatchObject({
+      type: "request",
+      request: { toolName: "drive_list", arguments: { query: "backend" } },
+    });
+    expect(modelCalls).toBe(1);
+  });
+
+  it("falls back to argument generation when decision arguments are invalid", async () => {
+    const decisions = [
+      { mode: "tool", toolName: "drive_list", objective: "Find CV", arguments: { wrong: true } },
+      { action: "call", arguments: { query: "backend" } },
+    ];
+    const input = baseInput(decisions);
+    let modelCalls = 0;
+    input.model = { invokeJson: async () => {
+      modelCalls += 1;
+      return decisions.shift() as any;
+    } };
+
+    const step = await advanceResumableMcpAgentLoop(input);
+
+    expect(step).toMatchObject({ type: "request", request: { arguments: { query: "backend" } } });
+    expect(modelCalls).toBe(2);
+  });
+
   it("returns one durable request and resumes only from its correlated response", async () => {
     const decisions = [
       { mode: "tool", toolName: "drive_list", objective: "Find CV" },

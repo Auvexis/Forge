@@ -120,7 +120,9 @@ function parseAndValidateFallbackJson<T extends object>(
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
       throw new Error("Expected object");
     }
-    const validate = new Ajv({ allErrors: true, strict: false }).compile(schema);
+    const ajv = new Ajv({ allErrors: true, strict: false });
+    ajv.addFormat("base64", true);
+    const validate = ajv.compile(schema);
     if (!validate(parsed)) throw new Error("Schema mismatch");
     return parsed as T;
   } catch {

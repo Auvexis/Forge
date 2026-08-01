@@ -74,16 +74,20 @@ export class OpenRouterAdapter implements AgentModelAdapter {
     for (const mode of modes) {
       const requestStartedAt = performance.now();
       response = await request(withStructuredMode(body, schema, mode));
-      logOpenRouterTiming({
-        model: input.model,
-        mode,
-        status: response.status,
-        durationMs: Math.round(performance.now() - requestStartedAt),
-      });
+      const headersMs = Math.round(performance.now() - requestStartedAt);
       if (response.ok) {
         if (schema) this.structuredModes.set(compatibilityKey, mode);
-        break;
+        const responseBody = await response.json() as OpenRouterResponse;
+        logOpenRouterTiming({
+          model: input.model,
+          mode,
+          status: response.status,
+          headersMs,
+          durationMs: Math.round(performance.now() - requestStartedAt),
+        });
+        return responseBody;
       }
+      logOpenRouterTiming({ model: input.model, mode, status: response.status, headersMs, durationMs: headersMs });
       if (![400, 404, 422].includes(response.status)) break;
     }
 
@@ -97,7 +101,7 @@ export class OpenRouterAdapter implements AgentModelAdapter {
         502,
       );
     }
-    return response.json() as Promise<OpenRouterResponse>;
+    throw new AgentRuntimeError("OpenRouter response handling failed", "AGENT_MODEL_PROVIDER_ERROR", "OpenRouter model request failed", 502);
   }
 }
 
@@ -105,6 +109,7 @@ function logOpenRouterTiming(data: {
   model: string;
   mode: "json-schema" | "json-object" | "prompt";
   status: number;
+  headersMs: number;
   durationMs: number;
 }): void {
   console.info(`[FABRIC | AGENT | TIMING] ${JSON.stringify({

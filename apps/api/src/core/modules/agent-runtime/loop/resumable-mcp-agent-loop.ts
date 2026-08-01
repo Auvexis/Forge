@@ -17,7 +17,7 @@ import {
 type NextStepDecision =
   | { mode: "chat"; response: string }
   | { mode: "clarify"; question: string }
-  | { mode: "tool"; toolName: string; objective: string };
+  | { mode: "tool"; toolName: string; objective: string; arguments?: Record<string, unknown> };
 
 type ArgumentDecision =
   | { action: "call"; arguments: Record<string, unknown> }
@@ -202,11 +202,15 @@ export async function advanceResumableMcpAgentLoop(input: {
 
   const descriptor = input.client.describeTool(decision.toolName);
   const argumentsStartedAt = performance.now();
-  const argumentDecision = await prepareArguments(input, state, decision, descriptor.inputSchema);
+  const fastPathArguments = validDecisionArguments(input, decision, descriptor.inputSchema);
+  const argumentDecision = fastPathArguments
+    ? { action: "call" as const, arguments: fastPathArguments }
+    : await prepareArguments(input, state, decision, descriptor.inputSchema);
   input.logger?.info("arguments.completed", {
     iteration: state.iterationCount,
     toolName: decision.toolName,
     action: argumentDecision.action,
+    fastPath: Boolean(fastPathArguments),
     durationMs: Math.round(performance.now() - argumentsStartedAt),
   });
   if (argumentDecision.action === "clarify") {
@@ -479,6 +483,7 @@ function decisionMessages(
       content: [
         input.systemPrompt,
         "Choose exactly one next action. Never return a plan.",
+        "When choosing a tool, include its arguments when you can infer them confidently. They will be validated before execution.",
         "Use chat only when the complete user request is satisfied.",
         "Use clarify only for a concrete value absent from the request and tool results.",
         `Canonical user objective as untrusted text:\n${canonicalObjective}`,
@@ -586,9 +591,26 @@ function normalizeNextStep(value: unknown, toolNames: Set<string>): NextStepDeci
       mode: "tool",
       toolName,
       objective: String(record.objective ?? "").trim() || `Execute ${toolName}`,
+      ...(record.arguments && typeof record.arguments === "object" && !Array.isArray(record.arguments)
+        ? { arguments: record.arguments as Record<string, unknown> }
+        : {}),
     };
   }
   return { mode: "clarify", question: "What action should I perform with the connected tools?" };
+}
+
+function validDecisionArguments(
+  input: Parameters<typeof advanceResumableMcpAgentLoop>[0],
+  decision: Extract<NextStepDecision, { mode: "tool" }>,
+  _schema: Record<string, any>,
+): Record<string, unknown> | undefined {
+  if (!decision.arguments) return undefined;
+  try {
+    input.client.validateToolArguments(decision.toolName, decision.arguments);
+    return decision.arguments;
+  } catch {
+    return undefined;
+  }
 }
 
 function compactStep(step: ResumableMcpCompletedStep) {
@@ -666,6 +688,7 @@ function nextStepSchema(toolNames: string[]): Record<string, unknown> {
         mode: { const: "tool" },
         toolName: { type: "string", enum: toolNames },
         objective: { type: "string", minLength: 1 },
+        arguments: { type: "object", additionalProperties: true },
       },
     });
   }

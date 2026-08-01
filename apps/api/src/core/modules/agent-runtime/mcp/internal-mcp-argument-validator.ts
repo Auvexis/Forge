@@ -38,6 +38,10 @@ function createAjv(): Ajv {
     useDefaults: false,
   });
   (addFormats as unknown as (instance: Ajv) => void)(ajv);
+  ajv.addFormat("base64", {
+    type: "string",
+    validate: (value: string) => /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value),
+  });
   return ajv;
 }
 
