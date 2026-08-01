@@ -11,14 +11,24 @@ const settingsStoreSource = readFileSync(
   fileURLToPath(new URL('../../../stores/settings.store.ts', import.meta.url)),
   'utf8',
 )
+const restartConfirmSource = readFileSync(
+  fileURLToPath(new URL('../../base/BaseRestartApplicationConfirm.vue', import.meta.url)),
+  'utf8',
+)
 
 describe('public URL settings contract', () => {
-  it('saves public URL changes as restart-required and uses the global confirm panel', () => {
-    assert.match(settingsSource, /useConfirm/)
-    assert.match(settingsSource, /Restart required/)
+  it('saves public URL changes as restart-required and uses the restart confirm component', () => {
+    assert.match(settingsSource, /BaseRestartApplicationConfirm/)
+    assert.match(settingsSource, /requestApplicationRestart/)
     assert.match(settingsSource, /store\.saveSetting<PublicUrlSaveResult>\('public_url'/)
     assert.match(settingsSource, /public_url_restart_required = result\.restartRequired/)
-    assert.match(settingsSource, /window\.fabricDesktop\?\.restart\(\)/)
+  })
+
+  it('clears public URL only when configured and asks for restart', () => {
+    assert.match(settingsSource, /hasConfiguredPublicUrl/)
+    assert.match(settingsSource, /Clear public URL/)
+    assert.match(settingsSource, /store\.deleteSetting<PublicUrlSaveResult>\('public_url'\)/)
+    assert.match(settingsSource, /return to the default localhost URL/)
   })
 
   it('disables public URL editing when backend reports it is locked by env', () => {
@@ -32,5 +42,12 @@ describe('public URL settings contract', () => {
     assert.match(settingsSource, /BaseSwitch/)
     assert.match(settingsSource, /desktop_notifications_enabled/)
     assert.match(settingsStoreSource, /desktop_notifications_enabled\?: boolean/)
+  })
+
+  it('keeps restart application confirmation reusable as a base component', () => {
+    assert.match(restartConfirmSource, /Restart Application/)
+    assert.match(restartConfirmSource, /defineExpose\(\{ requestRestart \}\)/)
+    assert.match(restartConfirmSource, /window\.fabricDesktop\?\.restart\(\)/)
+    assert.match(restartConfirmSource, /useConfirm/)
   })
 })

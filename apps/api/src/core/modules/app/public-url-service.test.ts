@@ -57,6 +57,23 @@ describe("PublicUrlService", () => {
     db.close();
   });
 
+  it("clears configured and pending public URLs back to the default URL", async () => {
+    const db = await createAppDb();
+    setAppDatabaseProvider(() => db);
+    AppRepository.setSetting("public_url", "https://old.example");
+    AppRepository.setSetting("public_url_pending", "https://pending.example");
+
+    const result = PublicUrlService.clearPending();
+
+    assert.equal(result.publicUrl, "http://localhost:23801");
+    assert.equal(result.pendingPublicUrl, null);
+    assert.equal(result.restartRequired, true);
+    assert.equal(AppRepository.getSetting("public_url"), null);
+    assert.equal(AppRepository.getSetting("public_url_pending"), null);
+
+    db.close();
+  });
+
   it("rejects unsafe external http URLs", async () => {
     const db = await createAppDb();
     setAppDatabaseProvider(() => db);

@@ -1,5 +1,6 @@
 <template>
   <BaseModal :is-open="store.isOpen" max-width="1000px" height="85vh" @close="store.close">
+    <BaseRestartApplicationConfirm ref="restartConfirmRef" />
     <div class="gs-shell">
       <!-- ── Left Aside ──────────────────────────────────────────── -->
       <aside class="gs-aside">
@@ -589,6 +590,19 @@
                 >
                   Save
                 </BaseButton>
+                <BaseButton
+                  v-if="hasConfiguredPublicUrl"
+                  variant="ghost"
+                  size="icon"
+                  title="Clear public URL"
+                  :loading="isClearingPublicUrl"
+                  :disabled="publicUrlLocked || isSavingPublicUrl"
+                  @click="handlePublicUrlClear"
+                >
+                  <template #left>
+                    <LucideIcon name="x" :size="15" />
+                  </template>
+                </BaseButton>
               </div>
             </div>
           </div>
@@ -614,14 +628,13 @@ import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseThemeSelect from '@/shared/components/base/BaseThemeSelect.vue'
 import BaseModal from '@/shared/components/base/BaseModal.vue'
 import BaseMiniMenu from '@/shared/components/base/BaseMiniMenu.vue'
+import BaseRestartApplicationConfirm from '@/shared/components/base/BaseRestartApplicationConfirm.vue'
 import AuvexisAccountSettings from '@/shared/components/layout/AuvexisAccountSettings.vue'
 import { usePluginAuth } from '@/shared/composables/usePluginAuth'
 import { useToast } from '@/shared/composables/useToast'
-import { useConfirm } from '@/shared/composables/useConfirm'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
 const toast = useToast()
-const { confirm } = useConfirm()
 
 // ─── Store ────────────────────────────────────────────────────────────────────
 
@@ -904,10 +917,16 @@ const logRetentionValue = computed(() => String(store.settings.log_retention_day
 const publicUrlLocked = computed(() => store.settings.public_url_locked === true)
 const publicUrlDraft = ref('')
 const isSavingPublicUrl = ref(false)
+const isClearingPublicUrl = ref(false)
+const hasConfiguredPublicUrl = computed(() => {
+  const value = store.settings.public_url
+  return typeof value === 'string' && value.trim().length > 0
+})
+const restartConfirmRef = ref<InstanceType<typeof BaseRestartApplicationConfirm> | null>(null)
 
 interface PublicUrlSaveResult {
   publicUrl: string
-  pendingPublicUrl: string
+  pendingPublicUrl: string | null
   restartRequired: true
 }
 
@@ -956,27 +975,38 @@ async function handlePublicUrlSave() {
     const result = await store.saveSetting<PublicUrlSaveResult>('public_url', publicUrlDraft.value.trim())
     store.settings.public_url_restart_required = result.restartRequired
     if (result.restartRequired) {
-      const restartNow = await confirm({
-        title: 'Restart required',
-        message:
-          'Fabric needs to restart to apply the new public URL. After restarting, open Fabric from the configured public URL.',
-        confirmText: 'Restart now',
-        cancelText: 'Later',
-        variant: 'warning',
-      })
-      if (restartNow) {
-        if (window.fabricDesktop?.isDesktop) {
-          await window.fabricDesktop.restart()
-        } else {
-          toast.info('Restart Fabric', 'Restart the Fabric process or Docker container to apply the public URL.')
-        }
-      }
+      await requestApplicationRestart(
+        'Fabric needs to restart to apply the new public URL. After restarting, open Fabric from the configured public URL.',
+      )
     }
   } catch (err: any) {
     toast.error('Public URL not saved', err?.message ?? 'Could not save the public URL.')
   } finally {
     isSavingPublicUrl.value = false
   }
+}
+
+async function handlePublicUrlClear() {
+  isClearingPublicUrl.value = true
+  try {
+    const result = await store.deleteSetting<PublicUrlSaveResult>('public_url')
+    publicUrlDraft.value = ''
+    store.settings.public_url = ''
+    store.settings.public_url_restart_required = result.restartRequired
+    if (result.restartRequired) {
+      await requestApplicationRestart(
+        'Fabric needs to restart to remove the public URL and return to the default localhost URL.',
+      )
+    }
+  } catch (err: any) {
+    toast.error('Public URL not cleared', err?.message ?? 'Could not clear the public URL.')
+  } finally {
+    isClearingPublicUrl.value = false
+  }
+}
+
+async function requestApplicationRestart(message: string) {
+  await restartConfirmRef.value?.requestRestart(message)
 }
 
 onMounted(() => {

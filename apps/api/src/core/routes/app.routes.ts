@@ -104,6 +104,26 @@ export default async function appRoutes(fastify: FastifyInstance, options: AppRo
    */
   fastify.delete("/app/settings/:key", async (req, reply) => {
     const { key } = req.params as { key: string };
+
+    if (key === PublicUrlService.settingKey) {
+      try {
+        const result = PublicUrlService.clearPending();
+        return sendResponse(reply, {
+          status_code: 200,
+          message: "Public URL cleared. Restart Fabric to apply it.",
+          error: null,
+          data: result,
+        });
+      } catch (error: any) {
+        return sendResponse(reply, {
+          status_code: 400,
+          message: error.message,
+          error: error.message,
+          data: null,
+        });
+      }
+    }
+
     AppRepository.deleteSetting(key);
     return sendResponse(reply, {
       status_code: 200,

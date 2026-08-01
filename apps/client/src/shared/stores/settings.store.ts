@@ -114,6 +114,14 @@ export const useSettingsStore = defineStore('settings', () => {
     return result
   }
 
+  async function deleteSetting<T = unknown>(key: string): Promise<T> {
+    const result = await apiRequest<T>(`/app/settings/${encodeURIComponent(key)}`, {
+      method: 'DELETE',
+    })
+    delete settings.value[key]
+    return result
+  }
+
   // ── Credentials ───────────────────────────────────────────────────────────
 
   const credentials = ref<Record<string, PluginCredential>>({})
@@ -193,6 +201,7 @@ export const useSettingsStore = defineStore('settings', () => {
     isLoadingSettings,
     fetchSettings,
     saveSetting,
+    deleteSetting,
     // Credentials
     credentials,
     isLoadingCredential,

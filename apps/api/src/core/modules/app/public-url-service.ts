@@ -14,6 +14,12 @@ export interface SavePublicUrlResult {
   restartRequired: true;
 }
 
+export interface ClearPublicUrlResult {
+  publicUrl: string;
+  pendingPublicUrl: null;
+  restartRequired: true;
+}
+
 const DEFAULT_PORT = 23801;
 const PUBLIC_URL_SETTING = "public_url";
 const PENDING_PUBLIC_URL_SETTING = "public_url_pending";
@@ -152,6 +158,21 @@ export const PublicUrlService = {
     return {
       publicUrl: this.getPublicUrl(),
       pendingPublicUrl: nextPublicUrl,
+      restartRequired: true,
+    };
+  },
+
+  clearPending(): ClearPublicUrlResult {
+    if (isPublicUrlLocked()) {
+      throw new Error("Public URL is locked by FABRIC_PUBLIC_URL_LOCKED.");
+    }
+
+    AppRepository.deleteSetting(PUBLIC_URL_SETTING);
+    AppRepository.deleteSetting(PENDING_PUBLIC_URL_SETTING);
+
+    return {
+      publicUrl: defaultPublicUrl(),
+      pendingPublicUrl: null,
       restartRequired: true,
     };
   },
