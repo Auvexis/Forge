@@ -22,8 +22,6 @@ import BaseRail from '@/shared/components/base/BaseRail.vue'
 import BaseRailItem from '@/shared/components/base/BaseRailItem.vue'
 import BaseRailButtonToggleItem from '@/shared/components/base/BaseRailButtonToggleItem.vue'
 import { useAppPanelStore, type AppPanelConfig } from '@/shared/stores/app-panel.store'
-import { useAgentPanelUiStore } from '@/features/agent-panel/stores/agentPanelUi.store'
-import { useAgentPanelStore } from '@/features/agent-panel/stores/agentPanel.store'
 import { useApi } from '@/shared/composables/useApi'
 import { useAuvexisProductEvents } from '@/shared/composables/useAuvexisProductEvents'
 import { useConfirm } from '@/shared/composables/useConfirm'
@@ -52,8 +50,6 @@ const executionStore = useExecutionStore()
 const commandPaletteStore = useCommandPaletteStore()
 const appPanelStore = useAppPanelStore()
 const nodeInspectorStore = useNodeInspectorStore()
-const agentPanelUi = useAgentPanelUiStore()
-const agentPanelStore = useAgentPanelStore()
 
 // Composables
 const { closeWorkflow, exportWorkflow } = useWorkflowActions()
@@ -207,9 +203,7 @@ const workflowRuntimeState = computed(() => {
   if (executionStore.workflowStatus) return executionStore.workflowStatus.toLowerCase()
   return 'idle'
 })
-const isDevChatOpen = computed(
-  () => agentPanelUi.isOpen && agentPanelStore.agentScope === 'dev-session',
-)
+const isDevChatOpen = computed(() => false)
 const isExecutionPanelOpen = computed(
   () => isBottomPanelOpen.value && activeBottomPanelView.value === 'execution',
 )
@@ -482,23 +476,10 @@ function isEditableShortcutTarget(target: EventTarget | null) {
 
 function openDevSessionChat(targetTriggerNodeId?: string) {
   if (targetTriggerNodeId) selectedChatTriggerNodeId.value = targetTriggerNodeId
-  if (!canOpenDevChat.value || !activeWorkflowId.value) return
-  agentPanelStore.prepareDevSession({
-    scope: 'dev-session',
-    workflowId: activeWorkflowId.value,
-    triggerNodeId: activeChatTriggerNodeId.value,
-  })
-  agentPanelUi.open()
 }
 
 function toggleChatPanel() {
-  if (!canOpenDevChat.value) return
-  if (isDevChatOpen.value) {
-    agentPanelUi.close()
-    return
-  }
-
-  openDevSessionChat()
+  return
 }
 
 function toggleExecutionPanel() {

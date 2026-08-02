@@ -9,12 +9,12 @@ function read(relativePath: string): string {
   return readFileSync(resolve(root, relativePath), 'utf8')
 }
 
-test('workflow editor status bar opens global dev chat and central workflow bottom panel', () => {
+test('workflow editor status bar exposes chat state and central workflow bottom panel', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.doesNotMatch(source, /WorkflowChatBottomPanel/)
-  assert.match(source, /useAgentPanelUiStore/)
-  assert.match(source, /useAgentPanelStore/)
+  assert.doesNotMatch(source, /useAgentPanelUiStore/)
+  assert.doesNotMatch(source, /useAgentPanelStore/)
   assert.match(source, /WorkflowWorkbenchBottomPanel/)
   assert.match(source, /workflow-status-bar__button/)
   assert.match(source, />\s*Chat\s*</)
@@ -45,12 +45,13 @@ test('workflow editor status bar tracks active panel state from the local bottom
 
   assert.match(source, /isDevChatOpen/)
   assert.match(source, /isExecutionPanelOpen/)
-  assert.match(source, /agentPanelUi\.isOpen/)
+  assert.match(source, /const isDevChatOpen = computed\(\(\) => false\)/)
   assert.match(source, /isBottomPanelOpen = ref\(false\)/)
   assert.match(source, /activeBottomPanelView = ref<WorkflowBottomPanelView>\('timeline'\)/)
   assert.match(source, /toggleChatPanel/)
   assert.match(source, /toggleExecutionPanel/)
-  assert.match(source, /agentPanelUi\.close\(\)/)
+  assert.doesNotMatch(source, /agentPanelUi/)
+  assert.doesNotMatch(source, /agentPanelStore/)
 })
 
 test('workflow editor forwards timeline node interactions to the canvas', () => {
@@ -124,16 +125,15 @@ test('workflow editor discards the local draft after a confirmed browser reload'
   assert.match(source, /consumeWorkflowReloadDiscard\(localStorage, sessionStorage\)/)
 })
 
-test('workflow editor opens dev session chat through global agent modal', () => {
+test('workflow editor keeps dev session chat disabled until a replacement surface exists', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /canOpenDevChat/)
   assert.match(source, /:disabled="!canOpenDevChat"/)
-  assert.match(source, /agentPanelStore\.prepareDevSession/)
-  assert.match(source, /scope: 'dev-session'/)
-  assert.match(source, /workflowId: activeWorkflowId\.value/)
-  assert.match(source, /triggerNodeId: activeChatTriggerNodeId\.value/)
-  assert.match(source, /agentPanelUi\.open\(\)/)
+  assert.match(source, /function openDevSessionChat\(targetTriggerNodeId\?: string\)/)
+  assert.match(source, /function toggleChatPanel\(\) \{\s+return\s+\}/)
+  assert.doesNotMatch(source, /prepareDevSession/)
+  assert.doesNotMatch(source, /agentPanelUi\.open\(\)/)
 })
 
 test('workflow editor saves dirty changes before publishing chat trigger workflows', () => {

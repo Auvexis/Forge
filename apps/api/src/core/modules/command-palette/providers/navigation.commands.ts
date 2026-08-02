@@ -75,25 +75,6 @@ function exitUniverseCommand(): CommandHandler {
   };
 }
 
-function openAgentPanelCommand(): CommandHandler {
-  return {
-    describe: (): CommandDescriptor => ({
-      id: "agent-panel.open",
-      group: "navigation",
-      label: "Open Agent Panel",
-      description: "Open the global published agent chat panel",
-      keywords: ["agents", "agent chat", "published agents", "global agent"],
-      icon: "bot",
-      availability: { enabled: true },
-    }),
-    execute: () => ({
-      ok: true,
-      message: "Agent panel opened",
-      uiIntent: { type: "agent-panel.open" },
-    }),
-  };
-}
-
 function openGuideBookCommand(): CommandHandler {
   return {
     describe: (): CommandDescriptor => ({
@@ -117,7 +98,6 @@ export const navigationCommandProvider: CommandProvider = {
   id: "navigation",
   order: 10,
   commands: [
-    openAgentPanelCommand(),
     openGuideBookCommand(),
     navigationCommand({
       id: "nav.home",

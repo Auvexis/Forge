@@ -1,0 +1,5 @@
+- [x] Mapear referencias agent-panel
+- [x] Validar recorte minimo
+- [x] Rodar type-checks
+- [x] Commitar fix de CI
+- [ ] Verificar pipeline
