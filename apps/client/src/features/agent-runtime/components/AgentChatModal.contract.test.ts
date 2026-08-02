@@ -14,10 +14,13 @@ test("agent chats are hosted by the global BaseModal", () => {
 
   assert.match(modal, /<BaseModal/);
   assert.match(app, /<AgentChatModal/);
+  assert.match(app, /:initial-chat-slug="agentChatInitialSlug"/);
   assert.match(app, /intent\?\.type === 'agents\.open'/);
   assert.match(navigation, /intent: \{ type: 'agents\.open' \}/);
   assert.doesNotMatch(router, /path: '\/agents'/);
   assert.doesNotMatch(router, /AgentsPage/);
+  assert.match(modal, /initialChatSlug\?: string/);
+  assert.match(modal, /selectChat\(nextChatSlug\)/);
 });
 
 test("agent messages and tool steps reconcile while a run is still active", () => {

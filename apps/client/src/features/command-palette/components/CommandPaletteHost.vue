@@ -291,6 +291,9 @@ function applyUiIntent(intent: { type: string; target?: string; payload?: Record
     return
   }
   if (type === 'settings.open') settingsStore.open()
+  if (type === 'agents.open') {
+    window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
+  }
   if (type === 'production-panel.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }

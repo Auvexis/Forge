@@ -94,10 +94,30 @@ function openGuideBookCommand(): CommandHandler {
   };
 }
 
+function openAgentsCommand(): CommandHandler {
+  return {
+    describe: (): CommandDescriptor => ({
+      id: "agents.open",
+      group: "navigation",
+      label: "Open Agents",
+      description: "Open the published agent chat modal",
+      keywords: ["agents", "agent chat", "published agents", "chat"],
+      icon: "bot",
+      availability: { enabled: true },
+    }),
+    execute: () => ({
+      ok: true,
+      message: "Agents opened",
+      uiIntent: { type: "agents.open" },
+    }),
+  };
+}
+
 export const navigationCommandProvider: CommandProvider = {
   id: "navigation",
   order: 10,
   commands: [
+    openAgentsCommand(),
     openGuideBookCommand(),
     navigationCommand({
       id: "nav.home",

@@ -50,6 +50,7 @@ test('workflow editor status bar tracks active panel state from the local bottom
   assert.match(source, /activeBottomPanelView = ref<WorkflowBottomPanelView>\('timeline'\)/)
   assert.match(source, /toggleChatPanel/)
   assert.match(source, /toggleExecutionPanel/)
+  assert.match(source, /type: 'agents\.open'/)
   assert.doesNotMatch(source, /agentPanelUi/)
   assert.doesNotMatch(source, /agentPanelStore/)
 })
@@ -125,13 +126,14 @@ test('workflow editor discards the local draft after a confirmed browser reload'
   assert.match(source, /consumeWorkflowReloadDiscard\(localStorage, sessionStorage\)/)
 })
 
-test('workflow editor keeps dev session chat disabled until a replacement surface exists', () => {
+test('workflow editor opens the global agent chat modal from the status bar', () => {
   const source = read('src/app/pages/WorkflowEditorPage.vue')
 
   assert.match(source, /canOpenDevChat/)
-  assert.match(source, /:disabled="!canOpenDevChat"/)
   assert.match(source, /function openDevSessionChat\(targetTriggerNodeId\?: string\)/)
-  assert.match(source, /function toggleChatPanel\(\) \{\s+return\s+\}/)
+  assert.match(source, /window\.dispatchEvent\(new CustomEvent\('fabric:command-palette:intent'/)
+  assert.match(source, /payload: selectedChatSlug\.value \? \{ chatSlug: selectedChatSlug\.value \} : undefined/)
+  assert.match(source, /function toggleChatPanel\(\) \{\s+openDevSessionChat\(\)\s+\}/)
   assert.doesNotMatch(source, /prepareDevSession/)
   assert.doesNotMatch(source, /agentPanelUi\.open\(\)/)
 })

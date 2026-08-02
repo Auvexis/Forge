@@ -104,6 +104,7 @@ import { useAgentErrorReporter } from '../composables/useAgentErrorReporter'
 
 const props = defineProps<{
   isOpen: boolean
+  initialChatSlug?: string
 }>()
 
 defineEmits<{ close: [] }>()
@@ -136,14 +137,23 @@ watch(() => props.isOpen, (isOpen) => {
   if (isOpen) void loadDirectory()
 })
 
+watch(() => props.initialChatSlug, (chatSlug) => {
+  if (props.isOpen && chatSlug) selectChat(chatSlug)
+})
+
 async function loadDirectory() {
   directoryLoading.value = true
   try {
     const entries = await agentChatApi.listChats()
     chats.value = entries
-    if (!entries.some((chat) => chat.chatSlug === activeChatSlug.value)) {
-      activeChatSlug.value = entries[0]?.chatSlug ?? ''
-      activeSessionId.value = entries[0]?.sessions[0]?.id ?? ''
+    const preferredChatSlug = props.initialChatSlug?.trim() ?? ''
+    const nextChatSlug = preferredChatSlug && entries.some((chat) => chat.chatSlug === preferredChatSlug)
+      ? preferredChatSlug
+      : activeChatSlug.value
+    if (!entries.some((chat) => chat.chatSlug === nextChatSlug)) {
+      selectChat(entries[0]?.chatSlug ?? '')
+    } else if (nextChatSlug !== activeChatSlug.value) {
+      selectChat(nextChatSlug)
     }
   } catch (error) {
     reportAgentError(error, 'Could not load published agents.', 'directory.load')

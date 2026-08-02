@@ -476,10 +476,16 @@ function isEditableShortcutTarget(target: EventTarget | null) {
 
 function openDevSessionChat(targetTriggerNodeId?: string) {
   if (targetTriggerNodeId) selectedChatTriggerNodeId.value = targetTriggerNodeId
+  window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', {
+    detail: {
+      type: 'agents.open',
+      payload: selectedChatSlug.value ? { chatSlug: selectedChatSlug.value } : undefined,
+    },
+  }))
 }
 
 function toggleChatPanel() {
-  return
+  openDevSessionChat()
 }
 
 function toggleExecutionPanel() {
@@ -1129,13 +1135,12 @@ watch(
               class="workflow-status-bar__button"
               :class="{ 'workflow-status-bar__button--active': isDevChatOpen }"
               type="button"
-              :disabled="!canOpenDevChat"
               @click="toggleChatPanel"
             >
               <span class="workflow-status-bar__dot" :class="{ 'is-active': canOpenDevChat }" />
               <span>Chat</span>
               <code>{{
-                canOpenDevChat ? selectedChatSlug || 'dev session' : 'dev session only'
+                selectedChatSlug || 'published agents'
               }}</code>
             </button>
 

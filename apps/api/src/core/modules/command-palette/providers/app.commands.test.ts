@@ -21,8 +21,21 @@ describe("app command providers", () => {
       commands
         .filter((command) => command.group === "navigation")
         .map((command) => command.id),
-      ["nav.home", "guide-book.open", "nav.settings", "nav.universe", "nav.workflows"],
+      ["nav.home", "agents.open", "guide-book.open", "nav.settings", "nav.universe", "nav.workflows"],
     );
+  });
+
+  it("returns a UI intent for opening the agent chat modal", async () => {
+    const registry = new CommandRegistry();
+    registry.registerProvider(navigationCommandProvider);
+
+    const entry = await registry.find("agents.open", {});
+
+    assert.deepEqual(await entry?.handler.execute({}, {}), {
+      ok: true,
+      message: "Agents opened",
+      uiIntent: { type: "agents.open" },
+    });
   });
 
   it("returns a UI intent for opening the guide book", async () => {

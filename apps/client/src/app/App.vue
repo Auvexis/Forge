@@ -91,6 +91,7 @@
       />
       <AgentChatModal
         :is-open="isAgentChatOpen"
+        :initial-chat-slug="agentChatInitialSlug"
         @close="isAgentChatOpen = false"
       />
     </template>
@@ -146,6 +147,7 @@ const isPublicRoute = computed(() => route.meta.public === true)
 const isSidebarCollapsed = ref(readStoredSidebarCollapsed())
 const isPluginInstallerOpen = ref(false)
 const isAgentChatOpen = ref(false)
+const agentChatInitialSlug = ref('')
 const isProfileSettingsOpen = ref(false)
 const hasEnteredProfile = ref(false)
 const activeSidebarWidth = computed(() =>
@@ -191,7 +193,11 @@ function openPluginInstallerPanel() {
 function handleUiIntent(event: Event) {
   const intent = (event as CustomEvent<SidebarNavIntent>).detail
   if (intent?.type === 'plugin-installer.open') openPluginInstallerPanel()
-  if (intent?.type === 'agents.open') isAgentChatOpen.value = true
+  if (intent?.type === 'agents.open') {
+    const chatSlug = intent.payload?.chatSlug
+    agentChatInitialSlug.value = typeof chatSlug === 'string' ? chatSlug : ''
+    isAgentChatOpen.value = true
+  }
   if (intent?.type === 'monitoring.open') {
     if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
   }
