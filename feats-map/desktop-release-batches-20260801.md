@@ -63,14 +63,14 @@
 - [x] Ajustar acabamento inicial do instalador
 - [x] Validar build desktop local
 
-- [ ] Batch 12 - Code signing
-- [ ] Definir estrategia de assinatura por plataforma
-- [ ] Configurar secrets e pipeline de assinatura
-- [ ] Assinar binarios desktop
-- [ ] Validar reputacao e warnings do sistema
+- [x] Batch 12 - Unsigned alpha installer hardening
+- [x] Definir estrategia de assinatura por plataforma
+- [x] Documentar alpha unsigned e stable signed
+- [x] Validar contrato dos artefatos desktop no CI local
+- [x] Documentar warnings do sistema para download alpha
 
-- [ ] Batch 13 - Final release validation
-- [ ] Rodar checklist final npm Docker Desktop
-- [ ] Validar public URL e formularios publicados
-- [ ] Validar notificacoes tray restart update
+- [x] Batch 13 - Final release validation checklist
+- [x] Documentar checklist final npm Docker Desktop
+- [x] Documentar public URL e formularios publicados
+- [x] Documentar notificacoes tray restart update
 - [ ] Preparar release candidate

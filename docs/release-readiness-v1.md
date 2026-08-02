@@ -34,13 +34,23 @@ Use este checklist antes de publicar uma versao alpha, beta ou stable do Fabric.
 
 - [ ] `npm run type-check --workspace apps/desktop`
 - [ ] `npm run build --workspace apps/desktop`
+- [ ] `npm run test --workspace @fabric/desktop`
 - [ ] `npm run dev:desktop`
+- [ ] `npm run dist:win --workspace @fabric/desktop` em Windows
+- [ ] `npm run dist:mac --workspace @fabric/desktop` em macOS
+- [ ] `npm run dist:linux --workspace @fabric/desktop` em Linux
+- [ ] Conferir assets esperados: `.exe`, `.dmg`, `.AppImage` e `.deb`
 - [ ] Splash inicial aparece com marca do Fabric
 - [ ] Janela principal abre somente apos API e gateway estarem prontos
 - [ ] Criar perfil
 - [ ] Reiniciar e validar persistencia do perfil
 - [ ] Abrir `/home` e `/workflows` sem erro de Network inicial
 - [ ] Links externos abrem fora do Electron
+- [ ] Tray respeita fechar/minimizar conforme configuracao
+- [ ] Notificacoes nativas aparecem somente quando Fabric nao esta focado
+- [ ] Restart automatico funciona apos alterar Public URL
+- [ ] Update check abre a release do GitHub
+- [ ] Download page informa que builds alpha desktop nao sao assinados
 
 ## Gate Public URL
 
