@@ -102,6 +102,7 @@ describe("chat trigger service", () => {
       userId: "user_1",
       message: "Payload please",
       messages: [],
+      runScratchpadMessages: [],
       metadata: { origin: "unit-test" },
     });
   });

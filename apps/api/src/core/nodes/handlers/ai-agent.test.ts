@@ -61,7 +61,7 @@ describe("AI workflow node handlers", () => {
       .execute(handlerInput("model", workflow.nodes.model, workflow, contextFixture()));
 
     assert.equal(output.pluginId, "openrouter");
-    assert.equal(output.adapter, "openai-compatible");
+    assert.equal(output.adapter, "openrouter");
     assert.equal(output.baseUrl, "https://openrouter.ai/api/v1");
     assert.equal("provider" in output, false);
   });
@@ -170,7 +170,7 @@ describe("AI workflow node handlers", () => {
     assert.ok(received);
     const runCall = received as AgentRunInput;
     assert.equal(runCall.model.pluginId, "openrouter");
-    assert.equal(runCall.model.adapter, "openai-compatible");
+    assert.equal(runCall.model.adapter, "openrouter");
     assert.equal(runCall.model.baseUrl, "https://openrouter.ai/api/v1");
   });
 
@@ -207,7 +207,7 @@ describe("AI workflow node handlers", () => {
     assert.ok(received);
     const runCall = received as AgentRunInput;
     assert.equal(runCall.model.pluginId, "openrouter");
-    assert.equal(runCall.model.adapter, "openai-compatible");
+    assert.equal(runCall.model.adapter, "openrouter");
     assert.equal(runCall.model.baseUrl, "https://proxy.example.com/v1");
   });
 

@@ -47,7 +47,12 @@ import type {
 export { sanitizeContextForLogging } from "./execution-context.ts";
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-const utilityNodeRegistry = createUtilityNodeRegistry();
+let utilityNodeRegistry: ReturnType<typeof createUtilityNodeRegistry> | null = null;
+
+function getUtilityNodeRegistry() {
+  utilityNodeRegistry ??= createUtilityNodeRegistry();
+  return utilityNodeRegistry;
+}
 
 class WorkflowWaitingApprovalError extends Error {
   public readonly approvalId: string;
@@ -73,7 +78,7 @@ async function dispatchNode(input: Omit<NodeHandlerInput, "services">): Promise<
   }
 
   const services = createNodeServices(input.workflow, input.executionId, input.context);
-  const handler = utilityNodeRegistry.get(input.node.type);
+  const handler = getUtilityNodeRegistry().get(input.node.type);
   return handler.execute({ ...input, services });
 }
 

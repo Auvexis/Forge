@@ -3,4 +3,5 @@
 - [x] Rodar type-checks
 - [x] Commitar fix de CI
 - [x] Corrigir TDZ do registry no CI
+- [x] Ajustar contratos antigos do Node test API
 - [ ] Verificar pipeline

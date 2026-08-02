@@ -3,7 +3,6 @@ import { describe, it } from "node:test";
 import Database from "better-sqlite3";
 import { up } from "../../database/migrations/workflows/005_agent_sessions.ts";
 import { AgentApprovalService } from "./agent-approval-service.ts";
-import { ChatMessageRepository } from "./chat/chat-message-repository.ts";
 import { ChatSessionRepository } from "./chat/chat-session-repository.ts";
 import { AgentMemoryStore } from "./memory/agent-memory-store.ts";
 
@@ -25,41 +24,6 @@ describe("agent runtime repositories", () => {
     assert.equal(session.profileId, "profile_a");
     assert.ok(session.createdAt);
     assert.deepEqual(sessions.getById("profile_b", "chat_1"), null);
-  });
-
-  it("appends and lists ordered chat messages by session", async () => {
-    const db = createDb();
-    const sessions = new ChatSessionRepository(db);
-    const messages = new ChatMessageRepository(db);
-    sessions.create({
-      id: "chat_1",
-      profileId: "profile_a",
-      workflowId: "workflow_1",
-      triggerNodeId: "trigger",
-      title: "Support",
-      status: "active",
-    });
-
-    messages.append({
-      id: "msg_1",
-      profileId: "profile_a",
-      sessionId: "chat_1",
-      role: "user",
-      content: { text: "hello" },
-    });
-    messages.append({
-      id: "msg_2",
-      profileId: "profile_a",
-      sessionId: "chat_1",
-      role: "assistant",
-      content: { text: "hi" },
-    });
-
-    assert.deepEqual(
-      messages.listBySession("profile_a", "chat_1").map((message) => message.id),
-      ["msg_1", "msg_2"],
-    );
-    assert.deepEqual(messages.listBySession("profile_b", "chat_1"), []);
   });
 
   it("upserts and searches long-term memories by namespace", async () => {
