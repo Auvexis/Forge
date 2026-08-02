@@ -2,4 +2,5 @@
 - [x] Validar recorte minimo
 - [x] Rodar type-checks
 - [x] Commitar fix de CI
+- [x] Corrigir TDZ do registry no CI
 - [ ] Verificar pipeline

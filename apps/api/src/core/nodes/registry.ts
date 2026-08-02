@@ -37,13 +37,13 @@ export class NodeHandlerRegistry {
 }
 
 const utilityNodeTypes = fabricCoreUtilityNodes.map((node) => node.manifest.type);
-const defaultUtilityHandlers: NodeHandler[] = fabricCoreUtilityNodes.map((node) => node.handler);
 
 export function createUtilityNodeRegistry(
-  handlers: NodeHandler[] = defaultUtilityHandlers,
+  handlers?: NodeHandler[],
 ): NodeHandlerRegistry {
   const registry = new NodeHandlerRegistry();
-  for (const handler of handlers) {
+  const activeHandlers = handlers ?? fabricCoreUtilityNodes.map((node) => node.handler);
+  for (const handler of activeHandlers) {
     if (!utilityNodeTypes.includes(handler.type as UtilityNodeType)) {
       throw new Error(`Node type "${handler.type}" is not a utility node handler`);
     }
