@@ -12,6 +12,7 @@ export function defineUtilityNodePack(pack: UtilityNodePackInput): UtilityNodePa
     }
     return [type, {
       ...input,
+      catalogVisible: input?.catalogVisible ?? true,
       role: input?.role ?? "flow",
       capabilities: input?.capabilities ?? [],
       handles,

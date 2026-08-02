@@ -111,12 +111,15 @@ function createMainWindow(): BrowserWindow {
   const sendWindowState = () => {
     window.webContents.send("fabric-desktop-window-state", {
       isMaximized: window.isMaximized(),
+      isFullScreen: window.isFullScreen(),
     });
   };
 
   window.on("maximize", sendWindowState);
   window.on("unmaximize", sendWindowState);
   window.on("restore", sendWindowState);
+  window.on("enter-full-screen", sendWindowState);
+  window.on("leave-full-screen", sendWindowState);
   window.on("minimize" as never, (event: ElectronEvent) => {
     if (!desktopPreferences.minimizeToTray) return;
     event.preventDefault();
@@ -268,6 +271,7 @@ function applyDesktopPreferences(preferences: Partial<DesktopPreferences>): void
 
 ipcMain.handle("fabric-desktop-window-state", () => ({
   isMaximized: getFocusedMainWindow()?.isMaximized() ?? false,
+  isFullScreen: getFocusedMainWindow()?.isFullScreen() ?? false,
 }));
 
 function clampZoomFactor(zoomFactor: number): number {

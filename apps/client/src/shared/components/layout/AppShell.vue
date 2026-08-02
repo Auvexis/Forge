@@ -38,7 +38,7 @@
   overflow: hidden;
 }
 
-:global(html.fabric-desktop-maximized) .app-shell--desktop {
+:global(html.fabric-desktop-full-bleed) .app-shell--desktop {
   border-radius: 0;
 }
 

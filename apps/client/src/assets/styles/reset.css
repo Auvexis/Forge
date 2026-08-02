@@ -42,13 +42,14 @@ html.fabric-desktop body {
   border: 1px solid var(--fabric-desktop-window-border);
 }
 
-html.fabric-desktop-maximized,
-html.fabric-desktop-maximized body,
-html.fabric-desktop-maximized #app {
+html.fabric-desktop-full-bleed,
+html.fabric-desktop-full-bleed body,
+html.fabric-desktop-full-bleed #app {
+  --fabric-desktop-window-radius: 0px;
   border-radius: 0;
 }
 
-html.fabric-desktop-maximized body {
+html.fabric-desktop-full-bleed body {
   border: 0;
 }
 

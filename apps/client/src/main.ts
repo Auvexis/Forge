@@ -13,6 +13,14 @@ import './assets/styles/main.css'
 
 if (window.fabricDesktop?.isDesktop) {
   document.documentElement.classList.add('fabric-desktop')
+  const syncDesktopWindowShape = (state: { isMaximized: boolean; isFullScreen: boolean }) => {
+    document.documentElement.classList.toggle(
+      'fabric-desktop-full-bleed',
+      state.isMaximized || state.isFullScreen,
+    )
+  }
+  void window.fabricDesktop.getWindowState().then(syncDesktopWindowShape)
+  window.fabricDesktop.onWindowStateChange(syncDesktopWindowShape)
   window.addEventListener('keydown', (event) => {
     if ((!event.ctrlKey && !event.metaKey) || event.altKey) return
     const key = event.key.toLowerCase()

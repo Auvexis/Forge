@@ -28,11 +28,11 @@ declare global {
       minimize: () => Promise<void>
       toggleMaximize: () => Promise<void>
       close: () => Promise<void>
-      getWindowState: () => Promise<{ isMaximized: boolean }>
+      getWindowState: () => Promise<{ isMaximized: boolean; isFullScreen: boolean }>
       getZoomFactor: () => Promise<number>
       setZoomFactor: (zoomFactor: number) => Promise<number>
       onZoomChange: (callback: (state: { zoomFactor: number }) => void) => () => void
-      onWindowStateChange: (callback: (state: { isMaximized: boolean }) => void) => () => void
+      onWindowStateChange: (callback: (state: { isMaximized: boolean; isFullScreen: boolean }) => void) => () => void
     }
   }
 }

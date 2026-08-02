@@ -210,11 +210,9 @@ onMounted(() => {
   if (isDesktopWindow.value && window.fabricDesktop) {
     void window.fabricDesktop.getWindowState().then((state) => {
       isWindowMaximized.value = state.isMaximized
-      syncDesktopWindowStateClass(state.isMaximized)
     })
     removeWindowStateListener = window.fabricDesktop.onWindowStateChange((state) => {
       isWindowMaximized.value = state.isMaximized
-      syncDesktopWindowStateClass(state.isMaximized)
     })
   }
 })
@@ -233,10 +231,6 @@ function toggleMaximizeWindow() {
 
 function closeWindow() {
   void window.fabricDesktop?.close()
-}
-
-function syncDesktopWindowStateClass(isMaximized: boolean) {
-  document.documentElement.classList.toggle('fabric-desktop-maximized', isMaximized)
 }
 
 function handleProfileDropdownOpen() {
@@ -295,7 +289,7 @@ function handleProfileDropdownAction(
   -webkit-app-region: drag;
 }
 
-:global(html.fabric-desktop-maximized) .app-topbar {
+:global(html.fabric-desktop-full-bleed) .app-topbar {
   border-radius: 0;
 }
 

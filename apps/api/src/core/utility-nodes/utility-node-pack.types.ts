@@ -46,6 +46,7 @@ export interface UtilityNodePresentation {
 
 export interface UtilityNodeManifestEntry {
   type: UtilityNodeType;
+  catalogVisible: boolean;
   label: string;
   description: string;
   category: "AI" | "Core" | "Flow" | "Data transformation" | "Developer";
@@ -56,8 +57,8 @@ export interface UtilityNodeManifestEntry {
   presentation: UtilityNodePresentation;
 }
 
-export type UtilityNodeManifestInput = Omit<UtilityNodeManifestEntry, "role" | "capabilities" | "handles" | "presentation"> &
-  Partial<Pick<UtilityNodeManifestEntry, "role" | "capabilities" | "handles" | "presentation">>;
+export type UtilityNodeManifestInput = Omit<UtilityNodeManifestEntry, "catalogVisible" | "role" | "capabilities" | "handles" | "presentation"> &
+  Partial<Pick<UtilityNodeManifestEntry, "catalogVisible" | "role" | "capabilities" | "handles" | "presentation">>;
 
 export interface UtilityNodePack {
   id: string;
@@ -71,7 +72,7 @@ export interface UtilityNodePackInput extends Omit<UtilityNodePack, "nodes"> {
   nodes: Partial<Record<UtilityNodeType, UtilityNodeManifestInput>>;
 }
 
-export interface UtilityNodeCatalogItem extends UtilityNodeManifestEntry {
+export interface UtilityNodeCatalogItem extends Omit<UtilityNodeManifestEntry, "catalogVisible"> {
   packId: string;
   packName: string;
 }

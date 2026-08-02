@@ -22,6 +22,9 @@ describe("workflow node catalog routes", () => {
     };
     const code = body.data.nodes.find((node) => node.type === "code");
     const agent = body.data.nodes.find((node) => node.type === "ai-agent");
+    const hiddenLegacyTypes = body.data.nodes.filter((node) =>
+      ["ai-model", "ai-memory", "ai-tool"].includes(node.type),
+    );
 
     assert.ok(code);
     if (!agent) throw new Error("AI Agent catalog entry was not found.");
@@ -42,6 +45,7 @@ describe("workflow node catalog routes", () => {
     assert.deepEqual(agent.capabilities, []);
     assert.equal(agent.presentation.base, "advanced");
     assert.deepEqual(agent.handles.map((handle: any) => handle.id), ["chatModel", "memory", "tool"]);
+    assert.deepEqual(hiddenLegacyTypes, []);
 
     await app.close();
   });

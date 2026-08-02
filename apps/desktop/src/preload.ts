@@ -24,8 +24,8 @@ contextBridge.exposeInMainWorld("fabricDesktop", {
     ipcRenderer.on("fabric-desktop-zoom-change", listener);
     return () => ipcRenderer.removeListener("fabric-desktop-zoom-change", listener);
   },
-  onWindowStateChange: (callback: (state: { isMaximized: boolean }) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, state: { isMaximized: boolean }) => {
+  onWindowStateChange: (callback: (state: { isMaximized: boolean; isFullScreen: boolean }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, state: { isMaximized: boolean; isFullScreen: boolean }) => {
       callback(state);
     };
     ipcRenderer.on("fabric-desktop-window-state", listener);
