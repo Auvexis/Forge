@@ -114,6 +114,11 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: var(--fabric-bg-base);
 }
+
+html.fabric-desktop .fabric-workspace-document {
+  border: 0;
+  border-radius: 0;
+}
 </style>
 
 <style scoped>

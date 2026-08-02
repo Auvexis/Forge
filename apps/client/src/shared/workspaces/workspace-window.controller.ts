@@ -91,7 +91,9 @@ export class WorkspaceWindowController {
 
   private syncDocumentTheme(document: Document): void {
     const source = window.document.documentElement
-    document.documentElement.className = source.className
+    document.documentElement.className = [...source.classList]
+      .filter((className) => className !== 'fabric-desktop-full-bleed')
+      .join(' ')
     const sourceStyle = source.getAttribute('style')
     if (sourceStyle) document.documentElement.setAttribute('style', sourceStyle)
     else document.documentElement.removeAttribute('style')

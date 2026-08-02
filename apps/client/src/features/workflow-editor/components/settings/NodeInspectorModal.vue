@@ -16,7 +16,7 @@ import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
-import BaseModal from '@/shared/components/base/BaseModal.vue'
+import BaseWorkspaceSurface from '@/shared/workspaces/BaseWorkspaceSurface.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 import {
@@ -73,6 +73,11 @@ const activeEditor = computed(() => {
 })
 
 const isTriggerNode = computed(() => inspectorStore.activeNode?.type === 'trigger')
+const workspaceTitle = computed(() => {
+  const data = enrichedNode.value?.data as Record<string, unknown> | undefined
+  const name = typeof data?.name === 'string' ? data.name.trim() : ''
+  return name || inspectorStore.activeNodeId || 'Node Inspector'
+})
 
 function close() {
   inspectorStore.closeInspector()
@@ -450,10 +455,14 @@ const copyToClipboard = async (path: string) => {
 </script>
 
 <template>
-  <BaseModal
-    :is-open="inspectorStore.isOpen"
-    max-width="1600px"
-    height="85vh"
+  <BaseWorkspaceSurface
+    :open="inspectorStore.isOpen"
+    workspace-id="workflow-node-inspectors"
+    :title="workspaceTitle"
+    modal-max-width="1600px"
+    modal-height="85vh"
+    :window-width="1400"
+    :window-height="860"
     @close="close"
   >
     <!-- 3-Column Grid -->
@@ -741,7 +750,7 @@ const copyToClipboard = async (path: string) => {
         </div>
       </div>
     </div>
-  </BaseModal>
+  </BaseWorkspaceSurface>
 </template>
 
 <style scoped>
