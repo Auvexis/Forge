@@ -139,7 +139,7 @@ onUnmounted(() => {
 }
 
 .base-dropdown-select__trigger {
-  border-radius: var(--fabric-base-dropdown-select-radius);
+  border-radius: var(--fabric-app-dropdown-select-radius);
 }
 
 .base-dropdown-select__menu {
@@ -151,9 +151,9 @@ onUnmounted(() => {
   max-height: 256px;
   gap: 1px;
   overflow-y: auto;
-  border: 1px solid var(--fabric-base-dropdown-select-border-strong);
-  border-radius: var(--fabric-base-dropdown-select-menu-radius);
-  background: var(--fabric-base-dropdown-select-bg-surface);
+  border: 1px solid var(--fabric-app-dropdown-select-border-strong);
+  border-radius: var(--fabric-app-dropdown-select-menu-radius);
+  background: var(--fabric-app-dropdown-select-bg-surface);
   padding: 3px;
   box-shadow: none;
 }
@@ -179,13 +179,13 @@ onUnmounted(() => {
 
 .base-dropdown-select__option:hover,
 .base-dropdown-select__option:active {
-  background: var(--fabric-base-dropdown-select-button-ghost-hover);
-  color: var(--fabric-base-dropdown-select-button-ghost-hover-text);
+  background: var(--fabric-app-dropdown-select-button-ghost-hover);
+  color: var(--fabric-app-dropdown-select-button-ghost-hover-text);
 }
 
 .base-dropdown-select__option--active {
-  background: var(--fabric-base-dropdown-select-button-ghost-active);
-  color: var(--fabric-base-dropdown-select-button-ghost-active-text);
+  background: var(--fabric-app-dropdown-select-button-ghost-active);
+  color: var(--fabric-app-dropdown-select-button-ghost-active-text);
 }
 
 .base-dropdown-select__option :deep(.base-button__label) {
@@ -197,7 +197,7 @@ onUnmounted(() => {
 
 .base-dropdown-select__option-meta {
   flex: 0 0 auto;
-  color: var(--fabric-base-dropdown-select-text-primary);
+  color: var(--fabric-app-dropdown-select-text-primary);
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   line-height: 1;
@@ -217,12 +217,12 @@ onUnmounted(() => {
 }
 
 .base-dropdown-select__option-copy strong {
-  color: var(--fabric-base-dropdown-select-text-primary);
+  color: var(--fabric-app-dropdown-select-text-primary);
   font-size: var(--fabric-text-xs);
 }
 
 .base-dropdown-select__option-copy small {
-  color: var(--fabric-base-dropdown-select-text-muted);
+  color: var(--fabric-app-dropdown-select-text-muted);
   font-size: 10px;
 }
 

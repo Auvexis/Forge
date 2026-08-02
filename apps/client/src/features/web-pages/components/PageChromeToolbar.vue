@@ -1,8 +1,8 @@
 <template>
   <div class="web-page-chrome">
     <Teleport defer to="#fabric-topbar-left">
-      <div class="web-page-chrome__topbar-menu">
-        <AppDropdownMenu
+      <div class="web-page-chrome__topbar-menu topbar-route-menu-bar">
+        <BaseDropdownMenu
           v-for="menu in resolvedMenus"
           :key="menu.id"
           :ref="(el) => registerMenuRef(menu.id, el)"
@@ -21,7 +21,7 @@
               {{ menu.label }}
             </button>
           </template>
-          <AppDropdownItem
+          <BaseDropdownItem
             v-for="item in menu.items"
             :key="item.id"
             :label="item.label"
@@ -31,8 +31,12 @@
             :danger="item.danger"
             @click="$emit('command', item.id)"
           />
-        </AppDropdownMenu>
+        </BaseDropdownMenu>
       </div>
+      <BaseTopbarOverflowMenu
+        :groups="overflowMenuGroups"
+        @command="$emit('command', $event as PageChromeCommand)"
+      />
     </Teleport>
 
     <BaseRail aria-label="Pages tools">
@@ -124,8 +128,11 @@ import { computed, nextTick, ref } from 'vue'
 import BaseRail from '@/shared/components/base/BaseRail.vue'
 import BaseRailItem from '@/shared/components/base/BaseRailItem.vue'
 import BaseRailButtonToggleItem from '@/shared/components/base/BaseRailButtonToggleItem.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
+import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
+import BaseTopbarOverflowMenu, {
+  type BaseTopbarOverflowMenuGroup,
+} from '@/shared/components/base/BaseTopbarOverflowMenu.vue'
 
 const props = defineProps<{
   isDirty?: boolean
@@ -207,7 +214,7 @@ const menus: Array<{
   },
 ]
 const activeMenuId = ref<string | null>(null)
-const menuRefs = ref<Record<string, InstanceType<typeof AppDropdownMenu> | null>>({})
+const menuRefs = ref<Record<string, InstanceType<typeof BaseDropdownMenu> | null>>({})
 
 defineEmits<{
   command: [command: PageChromeCommand]
@@ -236,9 +243,23 @@ const resolvedMenus = computed(() => menus.map((menu) => ({
     return item
   }),
 })))
+const overflowMenuGroups = computed<BaseTopbarOverflowMenuGroup[]>(() =>
+  resolvedMenus.value.map((menu) => ({
+    id: menu.id,
+    label: menu.label,
+    items: menu.items.map((item) => ({
+      id: item.id,
+      label: item.label,
+      icon: item.icon,
+      shortcut: item.shortcut,
+      danger: item.danger,
+      disabled: isCommandDisabled(item.id),
+    })),
+  })),
+)
 
 function registerMenuRef(menuId: string, menu: unknown) {
-  menuRefs.value[menuId] = menu as InstanceType<typeof AppDropdownMenu> | null
+  menuRefs.value[menuId] = menu as InstanceType<typeof BaseDropdownMenu> | null
 }
 
 function handleMenuMouseEnter(menuId: string) {

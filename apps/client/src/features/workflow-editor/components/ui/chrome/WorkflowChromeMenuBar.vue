@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
+import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
 import { workflowChromeMenus } from './workflowChromeActions'
 import type {
   WorkflowChromeActionOverrides,
@@ -19,9 +19,9 @@ const props = defineProps<{
 }>()
 
 const activeMenuId = ref<WorkflowChromeMenu['id'] | null>(null)
-const menuRefs = new Map<WorkflowChromeMenu['id'], InstanceType<typeof AppDropdownMenu>>()
+const menuRefs = new Map<WorkflowChromeMenu['id'], InstanceType<typeof BaseDropdownMenu>>()
 
-function setMenuRef(id: WorkflowChromeMenu['id'], value: InstanceType<typeof AppDropdownMenu> | null) {
+function setMenuRef(id: WorkflowChromeMenu['id'], value: InstanceType<typeof BaseDropdownMenu> | null) {
   if (value) menuRefs.set(id, value)
   else menuRefs.delete(id)
 }
@@ -59,11 +59,11 @@ function itemIcon(item: { id: WorkflowChromeCommandId; icon?: string }) {
 </script>
 
 <template>
-  <nav class="wec-menu-bar" aria-label="Workflow editor menu">
-    <AppDropdownMenu
+  <nav class="wec-menu-bar topbar-route-menu-bar" aria-label="Workflow editor menu">
+    <BaseDropdownMenu
       v-for="menu in workflowChromeMenus"
       :key="menu.id"
-      :ref="(value) => setMenuRef(menu.id, value as InstanceType<typeof AppDropdownMenu> | null)"
+      :ref="(value) => setMenuRef(menu.id, value as InstanceType<typeof BaseDropdownMenu> | null)"
       position="bottom-start"
       :offset="2"
       @open="handleMenuOpen(menu.id)"
@@ -80,7 +80,7 @@ function itemIcon(item: { id: WorkflowChromeCommandId; icon?: string }) {
         </button>
       </template>
 
-      <AppDropdownItem
+      <BaseDropdownItem
         v-for="item in menu.items"
         :key="item.id"
         :icon="itemIcon(item)"
@@ -89,6 +89,6 @@ function itemIcon(item: { id: WorkflowChromeCommandId; icon?: string }) {
         :disabled="!!(props.disabledReasons?.[item.id] ?? item.disabledReason)"
         @click="handleCommandClick(item.id)"
       />
-    </AppDropdownMenu>
+    </BaseDropdownMenu>
   </nav>
 </template>

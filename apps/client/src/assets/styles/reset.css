@@ -30,6 +30,28 @@ body {
   overflow: hidden;
 }
 
+html.fabric-desktop,
+html.fabric-desktop body,
+html.fabric-desktop #app {
+  border-radius: var(--fabric-desktop-window-radius);
+  background: transparent;
+  overflow: hidden;
+}
+
+html.fabric-desktop body {
+  border: 1px solid var(--fabric-desktop-window-border);
+}
+
+html.fabric-desktop-maximized,
+html.fabric-desktop-maximized body,
+html.fabric-desktop-maximized #app {
+  border-radius: 0;
+}
+
+html.fabric-desktop-maximized body {
+  border: 0;
+}
+
 h1,
 h2,
 h3,

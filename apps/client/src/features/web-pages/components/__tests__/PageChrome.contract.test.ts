@@ -51,7 +51,7 @@ describe('page chrome contract', () => {
     assert.match(editor, /:active-project="sitesStore\.activeSite"/)
     assert.match(editor, /:projects="sitesStore\.sites"/)
     assert.match(editor, /@select-project="openProject"/)
-    assert.match(dropdown, /AppDropdownMenu/)
+    assert.match(dropdown, /BaseDropdownMenu/)
     assert.match(dropdown, /Search projects/)
     assert.match(dropdown, /activeProject\?\.name/)
     assert.match(dropdown, /style="padding: 5px 8px"/)

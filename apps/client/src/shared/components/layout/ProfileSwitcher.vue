@@ -1,5 +1,5 @@
 <template>
-  <AppDropdownMenu
+  <BaseDropdownMenu
     class="profile-switcher"
     position="bottom-start"
     :offset="6"
@@ -29,7 +29,7 @@
       </div>
     </template>
 
-    <AppDropdownItem
+    <BaseDropdownItem
       v-for="action in actions"
       :key="action.id"
       :label="action.label"
@@ -38,13 +38,13 @@
       :danger="action.danger"
       @click="handleAction(action.id)"
     />
-  </AppDropdownMenu>
+  </BaseDropdownMenu>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
+import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import {
   buildProfileSwitcherActions,

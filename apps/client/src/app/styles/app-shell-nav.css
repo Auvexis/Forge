@@ -14,7 +14,7 @@
   width: 40px;
   height: 36px;
   border-radius: var(--fabric-radius-md);
-  color: var(--fabric-sidebar-text-muted);
+  color: var(--fabric-suite-nav-text-muted);
   transition: all var(--fabric-duration-fast) var(--fabric-ease-standard);
   text-decoration: none;
   cursor: pointer;
@@ -33,13 +33,13 @@ button.nav-link {
   min-height: 24px;
   gap: 8px;
   padding: 0;
-  color: var(--fabric-sidebar-text-muted);
+  color: var(--fabric-suite-nav-text-muted);
 }
 
 .suite-nav-link:hover,
 .suite-nav-link.nav-link--active {
   background: transparent;
-  color: var(--fabric-sidebar-link-text);
+  color: var(--fabric-suite-nav-text);
 }
 
 .suite-nav-link.nav-link--active::before {
@@ -60,7 +60,7 @@ button.nav-link {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  color: var(--fabric-sidebar-link-text);
+  color: var(--fabric-suite-nav-label-text);
   font-size: var(--fabric-text-sm);
   font-weight: var(--fabric-font-medium);
 }
@@ -98,7 +98,7 @@ button.nav-link {
 
 .sidebar-section__label {
   padding: 0;
-  color: var(--fabric-sidebar-text-muted);
+  color: var(--fabric-suite-nav-section-text);
   font-size: 0.7rem;
   font-weight: 600;
 }
@@ -113,5 +113,5 @@ button.nav-link {
 }
 
 .nav-link:hover {
-  color: var(--fabric-sidebar-link-text);
+  color: var(--fabric-suite-nav-text);
 }

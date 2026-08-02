@@ -66,13 +66,13 @@
       </span>
       <span class="web-page-tree__status" aria-hidden="true"></span>
       <span class="web-page-tree__action-menu" @click.stop>
-        <AppDropdownMenu position="bottom-end" :offset="4">
+        <BaseDropdownMenu position="bottom-end" :offset="4">
           <template #trigger>
             <button type="button" class="web-page-tree__row-action">
               <LucideIcon name="ellipsis" :size="14" />
             </button>
           </template>
-          <AppDropdownItem
+          <BaseDropdownItem
             v-for="action in actions"
             :key="action.id"
             :label="action.label"
@@ -81,7 +81,7 @@
             :disabled="action.disabled"
             @click="$emit('action', { actionId: action.id, item })"
           />
-        </AppDropdownMenu>
+        </BaseDropdownMenu>
       </span>
     </div>
 
@@ -104,8 +104,8 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
+import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
 import type { BaseWebPageTreeItem } from './BaseWebPageTree.vue'
 
 const props = defineProps<{

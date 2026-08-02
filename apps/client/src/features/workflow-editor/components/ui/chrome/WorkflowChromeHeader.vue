@@ -2,9 +2,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import type { WorkflowItem } from '@/core/types/workflow.types'
-import AppDropdownDivider from '@/shared/components/overlay/Dropdown/AppDropdownDivider.vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
+import BaseDropdownDivider from '@/shared/components/base/dropdown/BaseDropdownDivider.vue'
+import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useApi } from '@/shared/composables/useApi'
 import { useWorkflowActions } from '@/features/workflow-editor/composables/useWorkflowActions'
@@ -23,7 +23,7 @@ const props = defineProps<{
   variant?: 'chrome' | 'topbar'
 }>()
 
-const workflowMenuRef = ref<InstanceType<typeof AppDropdownMenu> | null>(null)
+const workflowMenuRef = ref<InstanceType<typeof BaseDropdownMenu> | null>(null)
 const searchQuery = ref('')
 const isWorkflowMenuOpen = ref(false)
 const { openWorkflow } = useWorkflowActions()
@@ -110,7 +110,7 @@ defineExpose({ openWorkflowMenu })
 <template>
   <div class="wec-row wec-header" :class="`wec-header--${variant ?? 'chrome'}`">
     <div class="wec-doc">
-      <AppDropdownMenu
+      <BaseDropdownMenu
         ref="workflowMenuRef"
         position="bottom-start"
         :offset="3"
@@ -139,11 +139,11 @@ defineExpose({ openWorkflowMenu })
               @click.stop
             />
           </div>
-          <AppDropdownDivider />
+          <BaseDropdownDivider />
         </template>
 
         <template v-if="filteredWorkflows.length > 0">
-          <AppDropdownItem
+          <BaseDropdownItem
             v-for="item in filteredWorkflows"
             :key="item.metadata.id"
             icon="workflow"
@@ -156,11 +156,11 @@ defineExpose({ openWorkflowMenu })
                 <span>{{ Object.keys(item.nodes).length }} nodes</span>
               </div>
             </template>
-          </AppDropdownItem>
+          </BaseDropdownItem>
         </template>
 
         <div v-else class="wec-menu-empty">No workflows match "{{ searchQuery }}"</div>
-      </AppDropdownMenu>
+      </BaseDropdownMenu>
 
       <span class="wec-doc__status">
         <LucideIcon

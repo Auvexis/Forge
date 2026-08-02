@@ -87,7 +87,7 @@ describe('block tree panel contract', () => {
     const source = read('src/features/web-pages/components/BlockTreePanel.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 
-    assert.match(source, /AppDropdownMenu/)
+    assert.match(source, /BaseDropdownMenu/)
     assert.match(source, /duplicate-page/)
     assert.match(source, /delete-page/)
     assert.match(source, /duplicate-block/)

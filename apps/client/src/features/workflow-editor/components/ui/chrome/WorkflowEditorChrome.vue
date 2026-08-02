@@ -4,6 +4,10 @@ import { useRoute } from 'vue-router'
 import type { WorkflowItem } from '@/core/types/workflow.types'
 import WorkflowChromeHeader from './WorkflowChromeHeader.vue'
 import WorkflowChromeMenuBar from './WorkflowChromeMenuBar.vue'
+import BaseTopbarOverflowMenu, {
+  type BaseTopbarOverflowMenuGroup,
+} from '@/shared/components/base/BaseTopbarOverflowMenu.vue'
+import { workflowChromeMenus } from './workflowChromeActions'
 import type { WorkflowChromeActionOverrides, WorkflowChromeCommandId } from './workflowChrome.types'
 
 const props = defineProps<{
@@ -81,6 +85,22 @@ const disabledMenuReasons = computed<Partial<Record<WorkflowChromeCommandId, str
     : {}),
   ...(!props.gitRepoPath ? { 'git.copy-repo-path': 'Git repository is not available yet' } : {}),
 }))
+const overflowMenuGroups = computed<BaseTopbarOverflowMenuGroup[]>(() =>
+  workflowChromeMenus.map((menu) => ({
+    id: menu.id,
+    label: menu.label,
+    items: menu.items.map((item) => {
+      const disabledReason = disabledMenuReasons.value[item.id] ?? item.disabledReason
+      return {
+        id: item.id,
+        label: dynamicMenuOverrides.value[item.id]?.label ?? item.label,
+        icon: dynamicMenuOverrides.value[item.id]?.icon ?? item.icon,
+        hint: disabledReason,
+        disabled: Boolean(disabledReason),
+      }
+    }),
+  })),
+)
 
 function handleCommand(id: WorkflowChromeCommandId) {
   const handlers: Partial<Record<WorkflowChromeCommandId, () => void>> = {
@@ -125,6 +145,10 @@ function handleCommand(id: WorkflowChromeCommandId) {
         :disabled-reasons="disabledMenuReasons"
         :action-overrides="dynamicMenuOverrides"
         @command="handleCommand"
+      />
+      <BaseTopbarOverflowMenu
+        :groups="overflowMenuGroups"
+        @command="handleCommand($event as WorkflowChromeCommandId)"
       />
     </Teleport>
 

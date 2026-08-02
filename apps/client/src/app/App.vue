@@ -6,7 +6,7 @@
 
   <ProfileSelectionPage v-else-if="!hasEnteredProfile" @entered="hasEnteredProfile = true" />
 
-  <AppShell v-else>
+  <AppShell v-else :class="{ 'app-shell--desktop': isDesktopWindow }">
     <!-- Use the AppSidebar in the sidebar slot -->
     <template #sidebar>
       <div
@@ -144,6 +144,9 @@ const route = useRoute()
 const router = useRouter()
 const SIDEBAR_COLLAPSED_STORAGE_KEY = 'fabric:app-sidebar-collapsed'
 const isPublicRoute = computed(() => route.meta.public === true)
+const isDesktopWindow = computed(
+  () => typeof window !== 'undefined' && window.fabricDesktop?.isDesktop === true,
+)
 const isSidebarCollapsed = ref(readStoredSidebarCollapsed())
 const isPluginInstallerOpen = ref(false)
 const isAgentChatOpen = ref(false)

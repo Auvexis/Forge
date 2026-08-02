@@ -45,8 +45,8 @@ describe('page editor panels contract', () => {
     const menu = read('src/features/web-pages/components/PageChromeToolbar.vue')
     const editor = read('src/features/web-pages/components/PageEditor.vue')
 
-    assert.match(menu, /AppDropdownMenu/)
-    assert.match(menu, /AppDropdownItem/)
+    assert.match(menu, /BaseDropdownMenu/)
+    assert.match(menu, /BaseDropdownItem/)
     assert.match(menu, /File/)
     assert.match(menu, /Edit/)
     assert.match(menu, /View/)

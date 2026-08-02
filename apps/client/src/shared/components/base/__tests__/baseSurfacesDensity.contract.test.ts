@@ -35,8 +35,8 @@ const appPopoverSource = readFileSync(
   fileURLToPath(new URL('../../overlay/AppPopover.vue', import.meta.url)),
   'utf8',
 )
-const appDropdownMenuSource = readFileSync(
-  fileURLToPath(new URL('../../overlay/Dropdown/AppDropdownMenu.vue', import.meta.url)),
+const BaseDropdownMenuSource = readFileSync(
+  fileURLToPath(new URL('../dropdown/BaseDropdownMenu.vue', import.meta.url)),
   'utf8',
 )
 
@@ -91,7 +91,7 @@ describe('base surface density', () => {
     assert.match(appPopoverSource, /contentClass/)
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*padding: 0;/)
     assert.match(appPopoverSource, /\.app-popover-content--dropdown\s*\{[\s\S]*border: 0;/)
-    assert.match(appDropdownMenuSource, /content-class="app-popover-content--dropdown"/)
-    assert.match(appDropdownMenuSource, /\.app-dropdown-menu\s*\{[\s\S]*border-radius: var\(--fabric-app-dropdown-menu-radius\);/)
+    assert.match(BaseDropdownMenuSource, /content-class="app-popover-content--dropdown"/)
+    assert.match(BaseDropdownMenuSource, /\.base-dropdown-menu\s*\{[\s\S]*border-radius: var\(--fabric-app-dropdown-menu-radius\);/)
   })
 })

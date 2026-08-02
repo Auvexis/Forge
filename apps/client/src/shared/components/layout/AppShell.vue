@@ -33,6 +33,15 @@
   color: var(--fabric-app-shell-text-primary);
 }
 
+.app-shell--desktop {
+  border-radius: var(--fabric-desktop-window-radius);
+  overflow: hidden;
+}
+
+:global(html.fabric-desktop-maximized) .app-shell--desktop {
+  border-radius: 0;
+}
+
 .app-shell__main {
   flex: 1;
   position: relative;

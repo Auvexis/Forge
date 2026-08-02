@@ -1,9 +1,9 @@
 <template>
-  <div class="app-dropdown-divider"></div>
+  <div class="base-dropdown-divider"></div>
 </template>
 
 <style scoped>
-.app-dropdown-divider {
+.base-dropdown-divider {
   height: 1px;
   background-color: var(--fabric-app-dropdown-divider-border);
   margin: var(--fabric-space-1) 0;

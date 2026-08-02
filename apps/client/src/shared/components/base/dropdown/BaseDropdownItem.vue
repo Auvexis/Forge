@@ -1,41 +1,41 @@
 <template>
   <button
-    class="app-dropdown-item"
-    :class="{ 'app-dropdown-item--danger': danger }"
+    class="base-dropdown-item"
+    :class="{ 'base-dropdown-item--danger': danger }"
     :disabled="disabled"
     @click="handleClick"
   >
     <template v-if="!$slots.element">
-      <div v-if="icon" class="app-dropdown-item__icon">
+      <div v-if="icon" class="base-dropdown-item__icon">
         <LucideIcon :name="icon" :size="14" />
       </div>
 
-      <div class="app-dropdown-item__content">
-        <span class="app-dropdown-item__label">
+      <div class="base-dropdown-item__content">
+        <span class="base-dropdown-item__label">
           <slot>{{ label }}</slot>
         </span>
-        <span v-if="hint" class="app-dropdown-item__hint">{{ hint }}</span>
+        <span v-if="hint" class="base-dropdown-item__hint">{{ hint }}</span>
       </div>
 
-      <div v-if="shortcut" class="app-dropdown-item__shortcut">
+      <div v-if="shortcut" class="base-dropdown-item__shortcut">
         {{ shortcut }}
       </div>
     </template>
 
     <template v-else>
-      <div v-if="icon" class="app-dropdown-item__icon">
+      <div v-if="icon" class="base-dropdown-item__icon">
         <LucideIcon :name="icon" :size="14" />
       </div>
 
-      <div class="app-dropdown-item__content">
-        <span class="app-dropdown-item__label">
+      <div class="base-dropdown-item__content">
+        <span class="base-dropdown-item__label">
           <slot>{{ label }}</slot>
         </span>
-        <span v-if="hint" class="app-dropdown-item__hint">{{ hint }}</span>
+        <span v-if="hint" class="base-dropdown-item__hint">{{ hint }}</span>
         <slot name="element"></slot>
       </div>
 
-      <div v-if="shortcut" class="app-dropdown-item__shortcut">
+      <div v-if="shortcut" class="base-dropdown-item__shortcut">
         {{ shortcut }}
       </div>
     </template>
@@ -73,7 +73,7 @@ const handleClick = (e: MouseEvent) => {
 </script>
 
 <style scoped>
-.app-dropdown-item {
+.base-dropdown-item {
   position: relative;
   z-index: 1;
   display: flex;
@@ -97,26 +97,26 @@ const handleClick = (e: MouseEvent) => {
   font-family: inherit;
 }
 
-.app-dropdown-item:disabled {
+.base-dropdown-item:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.app-dropdown-item--danger {
+.base-dropdown-item--danger {
   color: var(--fabric-app-dropdown-item-text-error);
 }
 
-.app-dropdown-item:hover:not(:disabled) {
+.base-dropdown-item:hover:not(:disabled) {
   background: var(--fabric-app-dropdown-item-button-ghost-hover);
   color: var(--fabric-app-dropdown-item-button-ghost-hover-text);
 }
 
-.app-dropdown-item--danger:hover:not(:disabled) {
+.base-dropdown-item--danger:hover:not(:disabled) {
   background: var(--fabric-app-dropdown-item-status-error-bg);
   color: var(--fabric-app-dropdown-item-text-error);
 }
 
-.app-dropdown-item__icon {
+.base-dropdown-item__icon {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -125,7 +125,7 @@ const handleClick = (e: MouseEvent) => {
   opacity: 0.8;
 }
 
-.app-dropdown-item__content {
+.base-dropdown-item__content {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -133,7 +133,7 @@ const handleClick = (e: MouseEvent) => {
   min-width: 0;
 }
 
-.app-dropdown-item__label {
+.base-dropdown-item__label {
   font-size: 13px;
   line-height: 1.2;
   white-space: nowrap;
@@ -141,12 +141,12 @@ const handleClick = (e: MouseEvent) => {
   text-overflow: ellipsis;
 }
 
-.app-dropdown-item__hint {
+.base-dropdown-item__hint {
   font-size: 11px;
   color: var(--fabric-app-dropdown-item-text-muted);
 }
 
-.app-dropdown-item__shortcut {
+.base-dropdown-item__shortcut {
   flex-shrink: 0;
   font-size: 11px;
   font-family: var(--fabric-font-mono);

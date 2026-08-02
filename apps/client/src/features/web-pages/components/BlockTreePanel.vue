@@ -24,15 +24,15 @@
             <span class="web-page-tree__name">{{ page.title }}</span>
           </span>
           <span class="web-page-tree__action-menu" @click.stop>
-            <AppDropdownMenu position="bottom-end" :offset="4">
+            <BaseDropdownMenu position="bottom-end" :offset="4">
               <template #trigger>
                 <button type="button" class="web-page-tree__row-action">
                   <LucideIcon name="ellipsis" :size="14" />
                 </button>
               </template>
-              <AppDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-page', page.id)" />
-              <AppDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-page', page.id)" />
-            </AppDropdownMenu>
+              <BaseDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-page', page.id)" />
+              <BaseDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-page', page.id)" />
+            </BaseDropdownMenu>
           </span>
         </div>
         <div v-if="page.id === activePageId && isPageExpanded(page.id) && blocks.length > 0" class="web-page-tree__children" role="group">
@@ -117,26 +117,26 @@
         </span>
         <span class="web-page-tree__status" aria-hidden="true"></span>
         <span class="web-page-tree__action-menu" @click.stop>
-          <AppDropdownMenu position="bottom-end" :offset="4">
+          <BaseDropdownMenu position="bottom-end" :offset="4">
             <template #trigger>
               <button type="button" class="web-page-tree__row-action">
                 <LucideIcon name="ellipsis" :size="14" />
               </button>
             </template>
-            <AppDropdownItem
+            <BaseDropdownItem
               label="Send to Blueprint"
               icon="send"
               @click="$emit('send-to-blueprint', actionBlockIds(block.id))"
             />
-            <AppDropdownItem
+            <BaseDropdownItem
               v-if="hasMultipleActionSelection(block.id)"
               label="Send to Blueprint as Group"
               icon="group"
               @click="$emit('send-to-blueprint-group', actionBlockIds(block.id))"
             />
-            <AppDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-block', block.id)" />
-            <AppDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-block', block.id)" />
-          </AppDropdownMenu>
+            <BaseDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-block', block.id)" />
+            <BaseDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-block', block.id)" />
+          </BaseDropdownMenu>
         </span>
       </div>
       <div
@@ -163,8 +163,8 @@
 
 <script setup lang="ts">
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
-import AppDropdownItem from '@/shared/components/overlay/Dropdown/AppDropdownItem.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
+import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
 import { ref, watch } from 'vue'
 import type { PageBlock, FabricPageSummary } from '../types/page.types.ts'
 import { blockChildCount, blockDisplayName, type InsertPosition } from '../utils/blockTree.ts'

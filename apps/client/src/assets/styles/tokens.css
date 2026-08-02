@@ -132,6 +132,10 @@
   --fabric-sidebar-text: var(--fabric-text-chrome);
   --fabric-sidebar-text-muted: var(--fabric-text-chrome-muted);
   --fabric-sidebar-link-text: var(--fabric-text-chrome);
+  --fabric-suite-nav-text: var(--fabric-sidebar-link-text);
+  --fabric-suite-nav-text-muted: var(--fabric-sidebar-text-muted);
+  --fabric-suite-nav-label-text: var(--fabric-sidebar-link-text);
+  --fabric-suite-nav-section-text: var(--fabric-sidebar-text-muted);
 
   --fabric-topbar-bg: var(--fabric-bg-chrome);
   --fabric-topbar-border: var(--fabric-border-chrome);
@@ -145,6 +149,15 @@
   --fabric-topbar-button-bg: rgba(255, 250, 244, 0.08);
   --fabric-topbar-button-text: var(--fabric-text-chrome);
   --fabric-topbar-notification-badge-text: var(--fabric-text-chrome);
+  --fabric-desktop-window-radius: 10px;
+  --fabric-desktop-window-border: rgba(255, 250, 244, 0.18);
+  --fabric-app-topbar-window-control-bg: transparent;
+  --fabric-app-topbar-window-control-text: var(--fabric-topbar-search-text);
+  --fabric-app-topbar-window-control-hover-bg: var(--fabric-topbar-search-hover-bg);
+  --fabric-app-topbar-window-control-hover-text: var(--fabric-topbar-search-hover-text);
+  --fabric-app-topbar-window-control-close-hover-bg: rgba(255, 143, 159, 0.16);
+  --fabric-app-topbar-window-control-close-hover-text: var(--fabric-text-error);
+  --fabric-app-topbar-window-control-radius: 0;
 
   /* ── Buttons ─────────────────────────────────────────────── */
   /* Primary */
@@ -238,8 +251,8 @@
   --fabric-base-select-radius: var(--fabric-radius-xs);
   --fabric-base-select-menu-radius: var(--fabric-radius-xs);
   --fabric-base-select-option-radius: var(--fabric-radius-xs);
-  --fabric-base-dropdown-select-radius: var(--fabric-radius-xs);
-  --fabric-base-dropdown-select-option-radius: var(--fabric-radius-xs);
+  --fabric-app-dropdown-select-radius: var(--fabric-radius-xs);
+  --fabric-app-dropdown-select-option-radius: var(--fabric-radius-xs);
   --fabric-base-segmented-select-radius: var(--fabric-radius-xs);
   --fabric-base-segmented-select-option-radius: var(--fabric-radius-xs);
   --fabric-base-badge-radius: var(--fabric-radius-full);
@@ -324,7 +337,7 @@
   --fabric-auvexis-account-settings-card-radius: var(--fabric-radius-md);
   --fabric-auvexis-account-settings-pill-radius: var(--fabric-radius-full);
   --fabric-workbench-bottom-panel-radius: 4px;
-  --fabric-base-dropdown-select-menu-radius: var(--fabric-radius-xs);
+  --fabric-app-dropdown-select-menu-radius: var(--fabric-radius-xs);
   --fabric-base-tool-dropdown-badge-radius: var(--fabric-radius-sm);
   --fabric-base-tool-dropdown-menu-radius: var(--fabric-radius-sm);
   --fabric-global-settings-preview-radius: 8px;
@@ -643,11 +656,11 @@
   --fabric-base-select-option-text: var(--fabric-text-primary);
   --fabric-base-select-option-hover-bg: var(--fabric-button-ghost-hover);
   --fabric-base-select-option-selected-bg: var(--fabric-button-ghost-active);
-  --fabric-base-dropdown-select-bg: var(--fabric-input-bg);
-  --fabric-base-dropdown-select-text: var(--fabric-input-text);
-  --fabric-base-dropdown-select-border: var(--fabric-input-border);
-  --fabric-base-dropdown-select-menu-bg: var(--fabric-bg-overlay);
-  --fabric-base-dropdown-select-option-hover-bg: var(--fabric-button-ghost-hover);
+  --fabric-app-dropdown-select-bg: var(--fabric-input-bg);
+  --fabric-app-dropdown-select-text: var(--fabric-input-text);
+  --fabric-app-dropdown-select-border: var(--fabric-input-border);
+  --fabric-app-dropdown-select-menu-bg: var(--fabric-bg-overlay);
+  --fabric-app-dropdown-select-option-hover-bg: var(--fabric-button-ghost-hover);
 
   --fabric-base-switch-track-bg: var(--fabric-bg-subtle);
   --fabric-base-switch-track-checked-bg: var(--fabric-accent);

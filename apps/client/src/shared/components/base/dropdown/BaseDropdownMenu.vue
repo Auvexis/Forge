@@ -11,17 +11,17 @@
       <slot name="trigger"></slot>
     </template>
 
-    <div class="app-dropdown-menu">
-      <div v-if="title" class="app-dropdown-menu__header">
-        <span class="app-dropdown-menu__title">{{ title }}</span>
+    <div class="base-dropdown-menu" :class="{ 'base-dropdown-menu--allow-overflow': allowOverflow }">
+      <div v-if="title" class="base-dropdown-menu__header">
+        <span class="base-dropdown-menu__title">{{ title }}</span>
       </div>
 
-      <div v-if="$slots.fixed" class="app-dropdown-menu__fixed">
+      <div v-if="$slots.fixed" class="base-dropdown-menu__fixed">
         <slot name="fixed"></slot>
       </div>
 
       <div
-        class="app-dropdown-menu__items custom-scrollbar"
+        class="base-dropdown-menu__items custom-scrollbar"
         :style="maxHeight ? { maxHeight, overflowY: 'auto', overflowX: 'hidden' } : {}"
       >
         <slot></slot>
@@ -32,7 +32,7 @@
 
 <script setup lang="ts">
 import { ref, provide } from 'vue'
-import AppPopover from '../AppPopover.vue'
+import AppPopover from '@/shared/components/overlay/AppPopover.vue'
 
 withDefaults(
   defineProps<{
@@ -40,10 +40,12 @@ withDefaults(
     position?: 'bottom-start' | 'bottom-end' | 'bottom-center'
     offset?: number
     maxHeight?: string
+    allowOverflow?: boolean
   }>(),
   {
     position: 'bottom-start',
     offset: 8,
+    allowOverflow: false,
   },
 )
 
@@ -65,14 +67,14 @@ const toggleDropdown = () => {
   popoverRef.value?.toggle()
 }
 
-// Provide close function for child items (AppDropdownItem)
+// Provide close function for child items (BaseDropdownItem)
 provide('closeDropdown', closeDropdown)
 
 defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown })
 </script>
 
 <style scoped>
-.app-dropdown-menu {
+.base-dropdown-menu {
   display: flex;
   flex-direction: column;
   min-width: 200px;
@@ -84,7 +86,11 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   overflow: hidden;
 }
 
-.app-dropdown-menu__header {
+.base-dropdown-menu--allow-overflow {
+  overflow: visible;
+}
+
+.base-dropdown-menu__header {
   height: 28px;
   padding: 0 10px;
   margin-bottom: 0;
@@ -94,7 +100,7 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   align-items: center;
 }
 
-.app-dropdown-menu__title {
+.base-dropdown-menu__title {
   font-size: var(--fabric-text-xs);
   font-weight: var(--fabric-font-semibold);
   color: var(--fabric-app-dropdown-menu-text-secondary);
@@ -102,14 +108,14 @@ defineExpose({ close: closeDropdown, open: openDropdown, toggle: toggleDropdown 
   letter-spacing: 0.05em;
 }
 
-.app-dropdown-menu__items {
+.base-dropdown-menu__items {
   display: flex;
   flex-direction: column;
   gap: 2px;
   padding: 5px;
 }
 
-.app-dropdown-menu__fixed {
+.base-dropdown-menu__fixed {
   display: flex;
   flex-direction: column;
   padding: 3px;

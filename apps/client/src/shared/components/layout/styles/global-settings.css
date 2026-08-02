@@ -395,6 +395,16 @@
   background: var(--fabric-bg-surface);
 }
 
+.gs-window-zoom {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--fabric-space-2);
+}
+
+.gs-window-zoom .base-button:not(.base-button--icon) {
+  min-width: 72px;
+}
+
 @media (max-width: 900px) {
   .gs-shell {
     flex-direction: column;

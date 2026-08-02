@@ -1,5 +1,5 @@
 <template>
-  <AppDropdownMenu
+  <BaseDropdownMenu
     ref="menuRef"
     class="base-profile-dropdown"
     position="bottom-center"
@@ -91,12 +91,12 @@
         <span>Logout</span>
       </button>
     </section>
-  </AppDropdownMenu>
+  </BaseDropdownMenu>
 </template>
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import AppDropdownMenu from '@/shared/components/overlay/Dropdown/AppDropdownMenu.vue'
+import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { AuvexisAccountProfile } from '@/core/api/auvexis-account.api'
 
@@ -119,7 +119,7 @@ const emit = defineEmits<{
   action: [action: ProfileDropdownAction]
 }>()
 
-const menuRef = ref<InstanceType<typeof AppDropdownMenu> | null>(null)
+const menuRef = ref<InstanceType<typeof BaseDropdownMenu> | null>(null)
 const isOpen = ref(false)
 
 const auvexisAvatarUrl = computed(
@@ -167,7 +167,7 @@ function handleAction(action: ProfileDropdownAction) {
   min-width: 0;
 }
 
-.base-profile-dropdown :deep(.app-dropdown-menu) {
+.base-profile-dropdown :deep(.base-dropdown-menu) {
   width: 284px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--fabric-base-profile-dropdown-border) 78%, transparent);

@@ -119,12 +119,39 @@
         </template>
         <span>Command</span>
       </BaseTopbarButton>
+
+      <div v-if="isDesktopWindow" class="app-topbar__window-controls" aria-label="Window controls">
+        <button
+          class="app-topbar__window-control"
+          type="button"
+          aria-label="Minimize window"
+          @click="minimizeWindow"
+        >
+          <LucideIcon name="minus" :size="14" />
+        </button>
+        <button
+          class="app-topbar__window-control"
+          type="button"
+          :aria-label="isWindowMaximized ? 'Restore window' : 'Maximize window'"
+          @click="toggleMaximizeWindow"
+        >
+          <LucideIcon :name="isWindowMaximized ? 'copy' : 'square'" :size="13" />
+        </button>
+        <button
+          class="app-topbar__window-control app-topbar__window-control--close"
+          type="button"
+          aria-label="Close window"
+          @click="closeWindow"
+        >
+          <LucideIcon name="x" :size="15" />
+        </button>
+      </div>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import BaseProfileDropdown from '@/shared/components/base/BaseProfileDropdown.vue'
 import BaseTopbarButton from '@/shared/components/base/BaseTopbarButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
@@ -159,9 +186,14 @@ const auvexisAccountStore = useAuvexisAccountStore()
 const settingsStore = useSettingsStore()
 const notificationStore = useNotificationStore()
 const notificationUi = useNotificationUiStore()
+const isWindowMaximized = ref(false)
+let removeWindowStateListener: (() => void) | undefined
 
 const activeName = computed(() => profileStore.currentProfile?.name ?? 'Profile')
 const activeAvatar = computed(() => profileStore.currentProfile?.avatarEmoji ?? 'F')
+const isDesktopWindow = computed(
+  () => typeof window !== 'undefined' && window.fabricDesktop?.isDesktop === true,
+)
 const notificationBadgeText = computed(() =>
   notificationStore.unreadCount > 99 ? '99+' : String(notificationStore.unreadCount),
 )
@@ -175,7 +207,37 @@ onMounted(() => {
   if (!profileStore.currentProfile && !profileStore.isLoading) {
     void profileStore.loadProfiles()
   }
+  if (isDesktopWindow.value && window.fabricDesktop) {
+    void window.fabricDesktop.getWindowState().then((state) => {
+      isWindowMaximized.value = state.isMaximized
+      syncDesktopWindowStateClass(state.isMaximized)
+    })
+    removeWindowStateListener = window.fabricDesktop.onWindowStateChange((state) => {
+      isWindowMaximized.value = state.isMaximized
+      syncDesktopWindowStateClass(state.isMaximized)
+    })
+  }
 })
+
+onUnmounted(() => {
+  removeWindowStateListener?.()
+})
+
+function minimizeWindow() {
+  void window.fabricDesktop?.minimize()
+}
+
+function toggleMaximizeWindow() {
+  void window.fabricDesktop?.toggleMaximize()
+}
+
+function closeWindow() {
+  void window.fabricDesktop?.close()
+}
+
+function syncDesktopWindowStateClass(isMaximized: boolean) {
+  document.documentElement.classList.toggle('fabric-desktop-maximized', isMaximized)
+}
 
 function handleProfileDropdownOpen() {
   if (!auvexisAccountStore.isLoading) {
@@ -227,14 +289,21 @@ function handleProfileDropdownAction(
   min-height: 30px;
   /* padding: 0 var(--fabric-space-4); */
   border-bottom: 1px solid var(--fabric-app-topbar-topbar-border);
+  border-radius: var(--fabric-desktop-window-radius) var(--fabric-desktop-window-radius) 0 0;
   background: var(--fabric-app-topbar-topbar-bg);
   flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+
+:global(html.fabric-desktop-maximized) .app-topbar {
+  border-radius: 0;
 }
 
 .app-topbar__section {
   display: flex;
   align-items: center;
   min-width: 0;
+  -webkit-app-region: drag;
 }
 
 .app-topbar__section--left {
@@ -263,6 +332,7 @@ function handleProfileDropdownAction(
   display: inline-flex;
   align-items: center;
   min-width: 0;
+  -webkit-app-region: no-drag;
 }
 
 .app-topbar__route-slot {
@@ -379,14 +449,58 @@ function handleProfileDropdownAction(
   min-width: 0;
 }
 
+.app-topbar__window-controls {
+  display: inline-flex;
+  align-items: stretch;
+  align-self: stretch;
+  margin-left: var(--fabric-space-1);
+  -webkit-app-region: no-drag;
+}
+
+.app-topbar__window-control {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  min-height: 40px;
+  border: 0;
+  border-radius: var(--fabric-app-topbar-window-control-radius);
+  background: var(--fabric-app-topbar-window-control-bg);
+  color: var(--fabric-app-topbar-window-control-text);
+  cursor: pointer;
+  transition:
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.app-topbar__window-control:hover {
+  background: var(--fabric-app-topbar-window-control-hover-bg);
+  color: var(--fabric-app-topbar-window-control-hover-text);
+}
+
+.app-topbar__window-control--close:hover {
+  background: var(--fabric-app-topbar-window-control-close-hover-bg);
+  color: var(--fabric-app-topbar-window-control-close-hover-text);
+}
+
 .app-topbar span {
   font-size: var(--fabric-text-sm);
+}
+
+.app-topbar :deep(button),
+.app-topbar :deep(a),
+.app-topbar :deep(input),
+.app-topbar :deep(textarea),
+.app-topbar :deep(select),
+.app-topbar :deep([role='button']) {
+  -webkit-app-region: no-drag;
 }
 
 @media (max-width: 1350px) {
   .app-topbar {
     grid-template-columns: auto minmax(0, 1fr) auto;
-    padding: 0 var(--fabric-space-3);
+    gap: var(--fabric-space-1);
+    padding: 0;
   }
 
   .app-topbar__section--center {
@@ -395,9 +509,40 @@ function handleProfileDropdownAction(
   }
 
   .app-topbar__profile-name,
-  .app-topbar__route-slot,
-  .app-topbar span {
+  .app-topbar__fallback,
+  .app-topbar__command :deep(.base-topbar-button__center) {
     display: none;
+  }
+
+  .app-topbar__route-slot {
+    max-width: 40px;
+  }
+
+  .app-topbar__route-slot :deep(.topbar-route-menu-bar) {
+    display: none;
+  }
+
+  .app-topbar__route-slot :deep(.base-topbar-overflow-menu) {
+    display: inline-flex;
+  }
+
+  .app-topbar__section--right {
+    min-width: max-content;
+  }
+
+  .app-topbar__command {
+    width: 40px;
+    padding: 0;
+  }
+}
+
+@media (max-width: 560px) {
+  .app-topbar__section--left .app-topbar__icon-button + .app-topbar__icon-button {
+    display: none;
+  }
+
+  .app-topbar__window-control {
+    width: 38px;
   }
 }
 </style>
