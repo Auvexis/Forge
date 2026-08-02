@@ -120,32 +120,13 @@
         <span>Command</span>
       </BaseTopbarButton>
 
-      <div v-if="isDesktopWindow" class="app-topbar__window-controls" aria-label="Window controls">
-        <button
-          class="app-topbar__window-control"
-          type="button"
-          aria-label="Minimize window"
-          @click="minimizeWindow"
-        >
-          <LucideIcon name="minus" :size="14" />
-        </button>
-        <button
-          class="app-topbar__window-control"
-          type="button"
-          :aria-label="isWindowMaximized ? 'Restore window' : 'Maximize window'"
-          @click="toggleMaximizeWindow"
-        >
-          <LucideIcon :name="isWindowMaximized ? 'copy' : 'square'" :size="13" />
-        </button>
-        <button
-          class="app-topbar__window-control app-topbar__window-control--close"
-          type="button"
-          aria-label="Close window"
-          @click="closeWindow"
-        >
-          <LucideIcon name="x" :size="15" />
-        </button>
-      </div>
+      <BaseWindowControls
+        v-if="isDesktopWindow"
+        :is-maximized="isWindowMaximized"
+        @minimize="minimizeWindow"
+        @toggle-maximize="toggleMaximizeWindow"
+        @close="closeWindow"
+      />
     </div>
   </header>
 </template>
@@ -154,6 +135,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import BaseProfileDropdown from '@/shared/components/base/BaseProfileDropdown.vue'
 import BaseTopbarButton from '@/shared/components/base/BaseTopbarButton.vue'
+import BaseWindowControls from '@/shared/components/base/BaseWindowControls.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useAuvexisAccountStore } from '@/shared/stores/auvexis-account.store'
 import { useNotificationStore } from '@/shared/stores/notification.store'
@@ -441,40 +423,6 @@ function handleProfileDropdownAction(
 
 .app-topbar__command {
   min-width: 0;
-}
-
-.app-topbar__window-controls {
-  display: inline-flex;
-  align-items: stretch;
-  align-self: stretch;
-  margin-left: var(--fabric-space-1);
-  -webkit-app-region: no-drag;
-}
-
-.app-topbar__window-control {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  min-height: 40px;
-  border: 0;
-  border-radius: var(--fabric-app-topbar-window-control-radius);
-  background: var(--fabric-app-topbar-window-control-bg);
-  color: var(--fabric-app-topbar-window-control-text);
-  cursor: pointer;
-  transition:
-    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
-    color var(--fabric-duration-fast) var(--fabric-ease-standard);
-}
-
-.app-topbar__window-control:hover {
-  background: var(--fabric-app-topbar-window-control-hover-bg);
-  color: var(--fabric-app-topbar-window-control-hover-text);
-}
-
-.app-topbar__window-control--close:hover {
-  background: var(--fabric-app-topbar-window-control-close-hover-bg);
-  color: var(--fabric-app-topbar-window-control-close-hover-text);
 }
 
 .app-topbar span {
