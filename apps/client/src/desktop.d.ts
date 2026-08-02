@@ -28,11 +28,29 @@ declare global {
       minimize: () => Promise<void>
       toggleMaximize: () => Promise<void>
       close: () => Promise<void>
+      workspaceReady: (workspaceId: string) => Promise<void>
+      controlWorkspace: (
+        workspaceId: string,
+        action: 'minimize' | 'toggle-maximize' | 'close',
+      ) => Promise<void>
+      getWorkspaceState: (
+        workspaceId: string,
+      ) => Promise<{ isMaximized: boolean; isFullScreen: boolean }>
       getWindowState: () => Promise<{ isMaximized: boolean; isFullScreen: boolean }>
       getZoomFactor: () => Promise<number>
       setZoomFactor: (zoomFactor: number) => Promise<number>
       onZoomChange: (callback: (state: { zoomFactor: number }) => void) => () => void
       onWindowStateChange: (callback: (state: { isMaximized: boolean; isFullScreen: boolean }) => void) => () => void
+      onWorkspaceStateChange: (
+        callback: (state: {
+          workspaceId: string
+          isMaximized: boolean
+          isFullScreen: boolean
+        }) => void,
+      ) => () => void
+      onWorkspaceClosed: (
+        callback: (state: { workspaceId: string }) => void,
+      ) => () => void
     }
   }
 }

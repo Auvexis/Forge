@@ -1,0 +1,4 @@
+- [x] Add secure Electron workspaces bridge.
+- [ ] Add modular Vue workspace host and tab chrome.
+- [ ] Integrate Node Inspector workspace fallback.
+- [ ] Validate desktop/client builds and essential contracts.

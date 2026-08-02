@@ -4,6 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import { checkDesktopUpdate, type DesktopUpdateChannel } from "./updates.js";
+import { WorkspaceWindowManager, type WorkspaceWindowAction } from "./workspace-window-manager.js";
 
 const desktopUrl = process.env.FABRIC_DESKTOP_URL ?? "http://127.0.0.1:23800";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -15,6 +16,7 @@ let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
+let workspaceWindowManager: WorkspaceWindowManager | null = null;
 
 interface DesktopPreferences {
   minimizeToTray: boolean;
@@ -131,10 +133,12 @@ function createMainWindow(): BrowserWindow {
     window.hide();
   });
   window.once("ready-to-show", () => window.show());
-  window.webContents.setWindowOpenHandler(({ url }) => {
-    void openExternalUrl(url);
-    return { action: "deny" };
-  });
+  workspaceWindowManager = new WorkspaceWindowManager(
+    path.join(__dirname, "preload.js"),
+    createAppIcon(),
+    openExternalUrl,
+  );
+  workspaceWindowManager.attachTo(window);
   void window.loadURL(desktopUrl);
 
   return window;
@@ -173,6 +177,24 @@ ipcMain.handle("fabric-desktop-window-toggle-maximize", () => {
 ipcMain.handle("fabric-desktop-window-close", () => {
   getFocusedMainWindow()?.close();
 });
+
+ipcMain.handle("fabric-desktop-workspace-ready", (event, workspaceId: string) => {
+  workspaceWindowManager?.show(event, workspaceId);
+});
+
+ipcMain.handle(
+  "fabric-desktop-workspace-control",
+  (event, workspaceId: string, action: WorkspaceWindowAction) => {
+    workspaceWindowManager?.control(event, workspaceId, action);
+  },
+);
+
+ipcMain.handle("fabric-desktop-workspace-state", (event, workspaceId: string) =>
+  workspaceWindowManager?.getState(event, workspaceId) ?? {
+    isMaximized: false,
+    isFullScreen: false,
+  },
+);
 
 ipcMain.handle("fabric-desktop-preferences-set", (_event, preferences: Partial<DesktopPreferences>) => {
   applyDesktopPreferences(preferences);
@@ -313,6 +335,10 @@ app.on("window-all-closed", () => {
   if (process.platform !== "darwin") {
     app.quit();
   }
+});
+
+app.on("before-quit", () => {
+  workspaceWindowManager?.closeAll();
 });
 
 app.on("activate", () => {

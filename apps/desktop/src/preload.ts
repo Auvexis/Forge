@@ -14,6 +14,14 @@ contextBridge.exposeInMainWorld("fabricDesktop", {
   minimize: () => ipcRenderer.invoke("fabric-desktop-window-minimize"),
   toggleMaximize: () => ipcRenderer.invoke("fabric-desktop-window-toggle-maximize"),
   close: () => ipcRenderer.invoke("fabric-desktop-window-close"),
+  workspaceReady: (workspaceId: string) =>
+    ipcRenderer.invoke("fabric-desktop-workspace-ready", workspaceId),
+  controlWorkspace: (
+    workspaceId: string,
+    action: "minimize" | "toggle-maximize" | "close",
+  ) => ipcRenderer.invoke("fabric-desktop-workspace-control", workspaceId, action),
+  getWorkspaceState: (workspaceId: string) =>
+    ipcRenderer.invoke("fabric-desktop-workspace-state", workspaceId),
   getWindowState: () => ipcRenderer.invoke("fabric-desktop-window-state"),
   getZoomFactor: () => ipcRenderer.invoke("fabric-desktop-zoom-get"),
   setZoomFactor: (zoomFactor: number) => ipcRenderer.invoke("fabric-desktop-zoom-set", zoomFactor),
@@ -30,5 +38,20 @@ contextBridge.exposeInMainWorld("fabricDesktop", {
     };
     ipcRenderer.on("fabric-desktop-window-state", listener);
     return () => ipcRenderer.removeListener("fabric-desktop-window-state", listener);
+  },
+  onWorkspaceStateChange: (
+    callback: (state: { workspaceId: string; isMaximized: boolean; isFullScreen: boolean }) => void,
+  ) => {
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      state: { workspaceId: string; isMaximized: boolean; isFullScreen: boolean },
+    ) => callback(state);
+    ipcRenderer.on("fabric-desktop-workspace-state", listener);
+    return () => ipcRenderer.removeListener("fabric-desktop-workspace-state", listener);
+  },
+  onWorkspaceClosed: (callback: (state: { workspaceId: string }) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, state: { workspaceId: string }) => callback(state);
+    ipcRenderer.on("fabric-desktop-workspace-closed", listener);
+    return () => ipcRenderer.removeListener("fabric-desktop-workspace-closed", listener);
   },
 });

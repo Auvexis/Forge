@@ -1,0 +1,20 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { test } from "node:test";
+
+const source = await readFile(
+  new URL("../src/workspace-window-manager.ts", import.meta.url),
+  "utf8",
+);
+
+test("workspace windows only allow trusted internal frame names and about:blank", () => {
+  assert.match(source, /fabric-workspace:/);
+  assert.match(source, /url !== "about:blank"/);
+  assert.match(source, /contextIsolation: true/);
+  assert.match(source, /nodeIntegration: false/);
+});
+
+test("workspace controls resolve windows owned by the main renderer", () => {
+  assert.match(source, /event\.sender !== this\.opener/);
+  assert.match(source, /"minimize" \| "toggle-maximize" \| "close"/);
+});
