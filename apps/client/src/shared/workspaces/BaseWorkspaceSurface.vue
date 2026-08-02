@@ -50,7 +50,9 @@ watch(
     @open-failed="externalOpenFailed = true"
   >
     <template #tabs>
-      <BaseWorkspaceTab :title="title" active @close="emit('close')" />
+      <slot name="tabs">
+        <BaseWorkspaceTab :title="title" active @close="emit('close')" />
+      </slot>
     </template>
     <slot />
   </BaseWorkspaceWindow>

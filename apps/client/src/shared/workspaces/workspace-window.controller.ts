@@ -46,6 +46,10 @@ export class WorkspaceWindowController {
     this.childWindow?.focus()
   }
 
+  updateTitle(title: string): void {
+    if (this.childWindow && !this.childWindow.closed) this.childWindow.document.title = title
+  }
+
   close(): void {
     this.childWindow?.close()
   }

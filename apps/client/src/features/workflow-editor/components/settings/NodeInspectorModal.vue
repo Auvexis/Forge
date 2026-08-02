@@ -17,6 +17,7 @@ import BaseInput from '@/shared/components/base/BaseInput.vue'
 import BaseSelect from '@/shared/components/base/BaseSelect.vue'
 import BaseSwitch from '@/shared/components/base/BaseSwitch.vue'
 import BaseWorkspaceSurface from '@/shared/workspaces/BaseWorkspaceSurface.vue'
+import BaseWorkspaceTab from '@/shared/workspaces/BaseWorkspaceTab.vue'
 import { workflowsApi } from '@/core/api/workflows.api'
 import { useToast } from '@/shared/composables/useToast'
 import {
@@ -81,6 +82,11 @@ const workspaceTitle = computed(() => {
 
 function close() {
   inspectorStore.closeInspector()
+}
+
+function inspectorTabTitle(node: GraphNode<NodeData>) {
+  const name = typeof node.data?.name === 'string' ? node.data.name.trim() : ''
+  return name || node.id
 }
 
 async function runStep() {
@@ -402,6 +408,7 @@ const handleIdChange = (newId: string) => {
 
   const success = workflowStore.renameNode(inspectorStore.activeNode.id, newId)
   if (success) {
+    inspectorStore.renameInspectorTab(inspectorStore.activeNode.id, newId)
     inspectorStore.activeNodeId = newId
     inspectorStore.activeNode.id = newId
   } else {
@@ -465,6 +472,16 @@ const copyToClipboard = async (path: string) => {
     :window-height="860"
     @close="close"
   >
+    <template #tabs>
+      <BaseWorkspaceTab
+        v-for="tab in inspectorStore.openTabs"
+        :key="tab.id"
+        :title="inspectorTabTitle(tab as GraphNode<NodeData>)"
+        :active="tab.id === inspectorStore.activeNodeId"
+        @select="inspectorStore.selectInspector(tab.id)"
+        @close="inspectorStore.closeInspectorTab(tab.id)"
+      />
+    </template>
     <!-- 3-Column Grid -->
     <div class="inspector-grid flex-1 min-h-0">
       <!-- Left Pane: Input -->

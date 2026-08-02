@@ -63,6 +63,14 @@ watch(
   { immediate: true },
 )
 
+watch(
+  () => props.title,
+  (title, previousTitle) => {
+    controller.value?.updateTitle(title)
+    if (props.open && previousTitle !== undefined) controller.value?.focus()
+  },
+)
+
 if (window.fabricDesktop) {
   removeStateListener = window.fabricDesktop.onWorkspaceStateChange((state) => {
     if (state.workspaceId !== props.workspaceId) return
