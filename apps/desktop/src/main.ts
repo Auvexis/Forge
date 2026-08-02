@@ -11,6 +11,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const splashMinMs = 1400;
 const appIconPath = path.join(__dirname, "assets", "icon.svg");
 const trayIconSize = process.platform === "win32" ? 16 : 22;
+const desktopAppId = "com.auvexis.fabric";
+
+if (process.platform === "win32") {
+  app.setAppUserModelId(desktopAppId);
+}
 
 let splashWindow: BrowserWindow | null = null;
 let mainWindow: BrowserWindow | null = null;
@@ -34,6 +39,12 @@ function createAppIcon(): NativeImage {
   const icon = nativeImage.createFromPath(appIconPath);
   if (icon.isEmpty()) return icon;
   return icon;
+}
+
+function applyWindowsAppIdentity(window: BrowserWindow): void {
+  if (process.platform === "win32") {
+    window.setAppDetails({ appId: desktopAppId });
+  }
 }
 
 function createTrayIcon(): NativeImage {
@@ -86,6 +97,8 @@ function createSplashWindow(): BrowserWindow {
     },
   });
 
+  applyWindowsAppIdentity(window);
+
   window.once("ready-to-show", () => window.show());
   void window.loadFile(path.join(__dirname, "splash.html"));
 
@@ -109,6 +122,8 @@ function createMainWindow(): BrowserWindow {
       sandbox: false,
     },
   });
+
+  applyWindowsAppIdentity(window);
 
   const sendWindowState = () => {
     window.webContents.send("fabric-desktop-window-state", {
@@ -137,6 +152,7 @@ function createMainWindow(): BrowserWindow {
     path.join(__dirname, "preload.js"),
     createAppIcon(),
     openExternalUrl,
+    desktopAppId,
   );
   workspaceWindowManager.attachTo(window);
   void window.loadURL(desktopUrl);

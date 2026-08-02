@@ -26,6 +26,7 @@ export class WorkspaceWindowManager {
     private readonly preloadPath: string,
     private readonly icon: NativeImage,
     private readonly openExternal: (url: string) => Promise<void>,
+    private readonly appId: string,
   ) {}
 
   attachTo(opener: BrowserWindow): void {
@@ -104,6 +105,9 @@ export class WorkspaceWindowManager {
     const previous = this.windows.get(workspaceId);
     if (previous && previous !== window && !previous.isDestroyed()) previous.destroy();
     this.windows.set(workspaceId, window);
+    if (process.platform === "win32") {
+      window.setAppDetails({ appId: this.appId });
+    }
 
     const sendState = () => {
       this.opener?.send("fabric-desktop-workspace-state", {

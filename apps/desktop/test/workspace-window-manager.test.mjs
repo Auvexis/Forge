@@ -6,6 +6,7 @@ const source = await readFile(
   new URL("../src/workspace-window-manager.ts", import.meta.url),
   "utf8",
 );
+const mainSource = await readFile(new URL("../src/main.ts", import.meta.url), "utf8");
 
 test("workspace windows only allow trusted internal frame names and about:blank", () => {
   assert.match(source, /fabric-workspace:/);
@@ -17,4 +18,10 @@ test("workspace windows only allow trusted internal frame names and about:blank"
 test("workspace controls resolve windows owned by the main renderer", () => {
   assert.match(source, /event\.sender !== this\.opener/);
   assert.match(source, /"minimize" \| "toggle-maximize" \| "close"/);
+});
+
+test("workspace windows share the Fabric taskbar application identity", () => {
+  assert.match(mainSource, /app\.setAppUserModelId\(desktopAppId\)/);
+  assert.match(mainSource, /applyWindowsAppIdentity\(window\)/);
+  assert.match(source, /window\.setAppDetails\(\{ appId: this\.appId \}\)/);
 });
