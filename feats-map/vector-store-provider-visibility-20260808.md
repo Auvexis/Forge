@@ -1,0 +1,4 @@
+- [x] Corrigir contraste do icone Vector Store
+- [x] Mostrar Vector Store como agrupador
+- [x] Listar providers em Integrations
+- [x] Validar e commitar

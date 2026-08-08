@@ -30,7 +30,7 @@
                 :description="item.description"
                 :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
                 :style-meta="item.kind === 'plugin' ? item.plugin.manifest.metadata.style : item.preset.style"
-                :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
+                :chevron="item.kind === 'preset' ? item.preset.nodeType === 'vector-store' : pluginNeedsMethodSubmenu(item.plugin)"
                 @click="selectGlobalSearchItem(item)"
               />
               <div v-if="globalSearchItems.length === 0" class="add-node-cascade__empty">
@@ -76,7 +76,7 @@
                 :icon="item.kind === 'plugin' ? pluginIcon(item.plugin) : item.icon"
                 :style-meta="item.kind === 'plugin' ? item.plugin.manifest.metadata.style : item.preset.style"
                 :active="methodSubmenuPlugin?.id === item.id.replace('plugin:', '')"
-                :chevron="item.kind === 'plugin' && pluginNeedsMethodSubmenu(item.plugin)"
+                :chevron="item.kind === 'preset' ? item.preset.nodeType === 'vector-store' : pluginNeedsMethodSubmenu(item.plugin)"
                 @click="selectSecondColumnItem(item)"
               />
               <div v-if="secondColumnItems.length === 0" class="add-node-cascade__empty">
@@ -249,7 +249,6 @@ const pickerPlugins = computed(() =>
           capabilities: pluginAllowedNodeCapabilities(plugin),
         }),
     )
-    .filter((plugin) => isContextualPicker.value || !isVectorStoreProvider(plugin)),
 )
 
 const catalogPresets = computed(() =>

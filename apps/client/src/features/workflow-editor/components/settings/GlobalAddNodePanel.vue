@@ -148,6 +148,12 @@
                     <LucideIcon :name="item.icon" :size="15" />
                   </span>
                   <span>{{ item.label }}</span>
+                  <span
+                    v-if="item.nodeType === 'vector-store'"
+                    class="global-add-node-panel__method-more"
+                  >
+                    <LucideIcon name="plus" :size="14" />
+                  </span>
                 </button>
                 <button
                   v-for="plugin in utilityPluginItems"

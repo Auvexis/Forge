@@ -90,8 +90,10 @@ test('vector store picker creates a provider-configured utility node instead of 
 
   assert.match(panel, /buildVectorStoreProviderItems/)
   assert.match(panel, /item\.preset\.nodeType === 'vector-store'/)
+  assert.match(panel, /item\.kind === 'preset' \? item\.preset\.nodeType === 'vector-store' : pluginNeedsMethodSubmenu\(item\.plugin\)/)
   assert.match(panel, /onAddLogicNode\?\.\('vector-store'/)
   assert.match(panel, /ensureCollectionMethodId: 'ensureCollection'/)
+  assert.doesNotMatch(panel, /!isVectorStoreProvider\(plugin\)/)
   assert.doesNotMatch(canvas, /defaultData\.pluginId = 'fabric-qdrant'/)
 })
 

@@ -325,7 +325,7 @@ export const fabricCoreUtilityNodePack = defineUtilityNodePack({
       ],
       style: {
         icon: "database-zap",
-        iconColor: "var(--fabric-node-plugin-icon)",
+        iconColor: "var(--fabric-text-primary)",
         bgColor: "transparent",
         borderColor: "var(--fabric-node-border)",
       },

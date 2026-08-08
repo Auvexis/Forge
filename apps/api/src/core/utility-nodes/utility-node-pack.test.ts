@@ -138,7 +138,7 @@ describe("Utility node pack contract", () => {
         borderColor: "var(--fabric-node-border)",
       },
       "vector-store": {
-        iconColor: "var(--fabric-node-plugin-icon)",
+        iconColor: "var(--fabric-text-primary)",
         bgColor: "transparent",
         borderColor: "var(--fabric-node-border)",
       },
