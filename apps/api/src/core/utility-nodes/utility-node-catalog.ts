@@ -19,5 +19,12 @@ export function listUtilityNodeCatalogItems(): UtilityNodeCatalogItem[] {
 }
 
 export function getUtilityNodeCatalogItem(type: UtilityNodeType): UtilityNodeCatalogItem | null {
-  return listUtilityNodeCatalogItems().find((node) => node.type === type) ?? null;
+  const node = fabricCoreUtilityNodePack.nodes[type];
+  if (!node) return null;
+  const { catalogVisible: _catalogVisible, ...catalogNode } = node;
+  return {
+    ...catalogNode,
+    packId: fabricCoreUtilityNodePack.id,
+    packName: fabricCoreUtilityNodePack.name,
+  };
 }
