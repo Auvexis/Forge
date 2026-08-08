@@ -95,6 +95,17 @@ test('vector store picker creates a provider-configured utility node instead of 
   assert.doesNotMatch(canvas, /defaultData\.pluginId = 'fabric-qdrant'/)
 })
 
+test('global add node panel opens vector store provider picker before adding a node', () => {
+  const panel = read('src/features/workflow-editor/components/settings/GlobalAddNodePanel.vue')
+
+  assert.match(panel, /buildVectorStoreProviderItems/)
+  assert.match(panel, /vectorStoreProviderPickerOpen/)
+  assert.match(panel, /item\.nodeType === 'vector-store'/)
+  assert.match(panel, /addVectorStoreNodeAtCenter/)
+  assert.match(panel, /onAddLogicNodeAtCenter\?\.\('vector-store'/)
+  assert.doesNotMatch(panel, /@click="props\.onAddLogicNodeAtCenter\?\.\(item\.nodeType, item\.defaults\)"/)
+})
+
 test('embedding quick-add uses a vector config context separate from agent config', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
   const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')

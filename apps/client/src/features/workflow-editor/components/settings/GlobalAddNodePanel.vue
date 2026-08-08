@@ -2,8 +2,8 @@
   <div class="global-add-node-panel" @click.capture="preventClickAfterDrag">
     <Transition name="global-add-node-view" mode="out-in">
       <div
-        v-if="selectedPlugin"
-        :key="selectedPlugin.id"
+        v-if="selectedPlugin || vectorStoreProviderPickerOpen"
+        :key="selectedPlugin?.id ?? 'vector-store-provider-picker'"
         class="global-add-node-panel__method-view"
       >
         <header class="global-add-node-panel__method-header">
@@ -17,19 +17,26 @@
             ref="methodSearchInput"
             v-model="methodSearch"
             icon-left="search"
-            :placeholder="`Search ${selectedPlugin.manifest.metadata.name}...`"
+            :placeholder="selectedPlugin ? `Search ${selectedPlugin.manifest.metadata.name}...` : 'Search Vector Store...'"
           />
         </header>
 
-        <div class="global-add-node-panel__method-title">
+        <div v-if="selectedPlugin" class="global-add-node-panel__method-title">
           <span class="global-add-node-panel__icon" :style="pluginStyle(selectedPlugin)">
             <LucideIcon :name="pluginIcon(selectedPlugin)" :size="15" />
           </span>
           <span>{{ selectedPlugin.manifest.metadata.name }}</span>
         </div>
+        <div v-else class="global-add-node-panel__method-title">
+          <span class="global-add-node-panel__icon">
+            <LucideIcon name="database-zap" :size="15" />
+          </span>
+          <span>Vector Store</span>
+        </div>
 
         <div class="global-add-node-panel__method-list">
-          <button
+          <template v-if="selectedPlugin">
+            <button
             v-for="action in filteredSelectedPluginActions"
             :key="action.id"
             class="global-add-node-panel__method-item"
@@ -54,10 +61,41 @@
               <span>{{ action.label }}</span>
               <small>{{ action.description }}</small>
             </span>
-          </button>
-          <div v-if="filteredSelectedPluginActions.length === 0" class="global-add-node-panel__empty">
-            No methods found.
-          </div>
+            </button>
+            <div v-if="filteredSelectedPluginActions.length === 0" class="global-add-node-panel__empty">
+              No methods found.
+            </div>
+          </template>
+          <template v-else>
+            <button
+              v-for="item in filteredVectorStoreProviderItems"
+              :key="item.id"
+              class="global-add-node-panel__method-item"
+              type="button"
+              @click="addVectorStoreNodeAtCenter(item.plugin)"
+              @pointerdown="handlePointerDragStart($event, {
+                kind: 'logic',
+                nodeType: 'vector-store',
+                defaults: vectorStoreDefaults(item.plugin),
+                preview: {
+                  icon: pluginIcon(item.plugin),
+                  label: item.label,
+                  subtitle: 'Vector Store',
+                },
+              })"
+            >
+              <span class="global-add-node-panel__method-icon" :style="pluginStyle(item.plugin)">
+                <LucideIcon :name="pluginIcon(item.plugin)" :size="15" />
+              </span>
+              <span class="global-add-node-panel__method-body">
+                <span>{{ item.label }}</span>
+                <small>{{ item.description }}</small>
+              </span>
+            </button>
+            <div v-if="filteredVectorStoreProviderItems.length === 0" class="global-add-node-panel__empty">
+              No vector store providers found.
+            </div>
+          </template>
         </div>
       </div>
 
@@ -96,17 +134,8 @@
                   :key="item.id"
                   class="global-add-node-panel__item"
                   type="button"
-                  @click="props.onAddLogicNodeAtCenter?.(item.nodeType, item.defaults)"
-                  @pointerdown="handlePointerDragStart($event, {
-                    kind: 'logic',
-                    nodeType: item.nodeType,
-                    defaults: item.defaults,
-                    preview: {
-                      icon: item.icon,
-                      label: item.label,
-                      subtitle: 'Utility',
-                    },
-                  })"
+                  @click="selectUtilityItem(item)"
+                  @pointerdown="handleUtilityPointerDragStart($event, item)"
                 >
                   <span
                     class="global-add-node-panel__icon"
@@ -226,6 +255,7 @@ import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 import { replaceNodeDefinitions } from '../../catalog/nodeDefinitionRegistry'
 import {
+  buildVectorStoreProviderItems,
   buildPickerActionItems,
   catalogItemsToPickerPresets,
   filterDefaultPickerPresets,
@@ -277,6 +307,7 @@ const methodSearchInput = ref<InstanceType<typeof BaseInput>>()
 const utilitiesOpen = ref(true)
 const integrationsOpen = ref(true)
 const selectedPlugin = ref<PluginSummary | null>(null)
+const vectorStoreProviderPickerOpen = ref(false)
 const dragPreview = ref<DragPreviewMeta | null>(null)
 const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
@@ -331,6 +362,16 @@ const matchesMethodSearch = (...values: Array<string | undefined>) => {
 const utilityItems = computed<AddNodePickerPreset[]>(() =>
   filterDefaultPickerPresets(catalogItemsToPickerPresets(workflowNodeCatalog.value?.nodes ?? []))
     .filter((item) => matchesSearch(item.label, item.description)),
+)
+
+const vectorStoreProviderItems = computed(() =>
+  buildVectorStoreProviderItems({ plugins: plugins.value ?? [] }),
+)
+
+const filteredVectorStoreProviderItems = computed(() =>
+  vectorStoreProviderItems.value.filter((item) =>
+    matchesMethodSearch(item.label, item.description, item.plugin.id),
+  ),
 )
 
 const pluginItems = computed(() => (plugins.value ?? []).filter((plugin) => !isVectorStoreProvider(plugin)))
@@ -527,6 +568,20 @@ const handlePluginPointerDragStart = (event: PointerEvent, plugin: PluginSummary
   })
 }
 
+const handleUtilityPointerDragStart = (event: PointerEvent, item: AddNodePickerPreset) => {
+  if (item.nodeType === 'vector-store') return
+  handlePointerDragStart(event, {
+    kind: 'logic',
+    nodeType: item.nodeType,
+    defaults: item.defaults,
+    preview: {
+      icon: item.icon,
+      label: item.label,
+      subtitle: 'Utility',
+    },
+  })
+}
+
 const handlePointerDragMove = (event: PointerEvent) => {
   if (activePointerId !== event.pointerId || !activePointerPayload) return
   const point = { x: event.clientX, y: event.clientY }
@@ -588,6 +643,7 @@ const preventClickAfterDrag = (event: MouseEvent) => {
 }
 
 const selectPlugin = (plugin: PluginSummary) => {
+  vectorStoreProviderPickerOpen.value = false
   const actions = pluginActionItems(plugin)
   if (actions.length === 1) {
     const action = actions[0]
@@ -602,8 +658,48 @@ const selectPlugin = (plugin: PluginSummary) => {
   void nextTick(() => methodSearchInput.value?.focus())
 }
 
+const vectorStoreDefaults = (plugin: PluginSummary): Record<string, unknown> => ({
+  name: plugin.manifest.metadata.name,
+  pluginId: plugin.id,
+  ensureCollectionMethodId: 'ensureCollection',
+  upsertMethodId: 'upsertDocuments',
+  queryMethodId: 'querySimilar',
+  deleteMethodId: 'deleteDocuments',
+  describeMethodId: 'describeCollection',
+  collectionName: 'documents',
+  dimension: 1536,
+  metric: 'cosine',
+  config: {},
+  retrievalMode: 'index-and-query',
+  query: '',
+  topK: 5,
+  outputMode: 'context',
+  maxContextChars: 8000,
+  filter: {},
+})
+
+const openVectorStoreProviderPicker = () => {
+  selectedPlugin.value = null
+  vectorStoreProviderPickerOpen.value = true
+  methodSearch.value = ''
+  void nextTick(() => methodSearchInput.value?.focus())
+}
+
+const addVectorStoreNodeAtCenter = (plugin: PluginSummary) => {
+  props.onAddLogicNodeAtCenter?.('vector-store', vectorStoreDefaults(plugin))
+}
+
+const selectUtilityItem = (item: AddNodePickerPreset) => {
+  if (item.nodeType === 'vector-store') {
+    openVectorStoreProviderPicker()
+    return
+  }
+  props.onAddLogicNodeAtCenter?.(item.nodeType, item.defaults)
+}
+
 const closePluginMethodView = () => {
   selectedPlugin.value = null
+  vectorStoreProviderPickerOpen.value = false
   methodSearch.value = ''
   void nextTick(() => searchInput.value?.focus())
 }
