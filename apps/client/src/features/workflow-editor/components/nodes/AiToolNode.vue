@@ -22,7 +22,7 @@ const pluginIcon = ref('box')
 const customBg = ref<string | undefined>(undefined)
 const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 
 async function loadPluginAppearance(currentPluginId: string) {
   pluginIcon.value = 'box'
@@ -40,14 +40,14 @@ async function loadPluginAppearance(currentPluginId: string) {
     customBg.value = metadata.style?.bgColor
     customBorder.value = metadata.style?.borderColor
     customIconColor.value = metadata.style?.iconColor
-    pluginIcon.value = resolvePluginIcon(metadata, { isDark: isDark.value, fallback: 'box' })
+    pluginIcon.value = resolvePluginIcon(metadata, { iconVariant: iconVariant.value, fallback: 'box' })
   } catch (err) {
     console.warn(`Failed to load tool plugin icon for ${currentPluginId}`, err)
   }
 }
 
 watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
-watch(() => isDark.value, () => loadPluginAppearance(pluginId.value))
+watch(() => iconVariant.value, () => loadPluginAppearance(pluginId.value))
 </script>
 
 <template>

@@ -269,7 +269,20 @@ describe('theme runtime contract', () => {
     assert.match(loader, /tokenNameToCssVar/)
     assert.match(loader, /--fabric-/)
     assert.match(useTheme, /applyFabricThemeByType\(resolved\)/)
+    assert.match(useTheme, /iconVariant/)
     assert.match(main, /import '\.\/shared\/composables\/useTheme'/)
+  })
+
+  it('declares icon variants in built-in and template themes', () => {
+    const darkTheme = JSON.parse(read('src/themes/json/dark.json')) as { iconVariant?: string }
+    const lightTheme = JSON.parse(read('src/themes/json/light.json')) as { iconVariant?: string }
+    const templateTheme = JSON.parse(read('src/themes/json/template.json')) as { iconVariant?: string }
+    const schema = read('src/themes/schema/fabric-theme.schema.json')
+
+    assert.equal(darkTheme.iconVariant, 'light')
+    assert.equal(lightTheme.iconVariant, 'dark')
+    assert.equal(typeof templateTheme.iconVariant, 'string')
+    assert.match(schema, /"iconVariant"/)
   })
 
   it('builds settings preview cards from JSON theme tokens', () => {

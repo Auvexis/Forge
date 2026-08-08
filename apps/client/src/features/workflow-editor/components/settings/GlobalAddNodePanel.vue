@@ -290,7 +290,7 @@ let pointerDragStarted = false
 let pointerStartPoint = { x: 0, y: 0 }
 let suppressClickUntil = 0
 let windAnimationFrame: number | null = null
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
   data: workflowNodeCatalog,
@@ -352,7 +352,7 @@ const integrationItems = computed(() =>
 )
 
 const pluginIcon = (plugin: PluginSummary) =>
-  resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
+  resolvePluginIcon(plugin.manifest.metadata, { iconVariant: iconVariant.value, fallback: 'box' })
 
 const pluginStyle = (plugin: PluginSummary) => ({
   '--node-icon-bg': plugin.manifest.metadata.style?.bgColor,

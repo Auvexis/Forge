@@ -9,7 +9,7 @@ export function usePluginNodePresentation(pluginId: Ref<string>, fallback = 'box
   const customBg = ref<string>()
   const customBorder = ref<string>()
   const customIconColor = ref<string>()
-  const { isDark } = useTheme()
+  const { iconVariant } = useTheme()
 
   async function load() {
     pluginIcon.value = fallback
@@ -24,13 +24,13 @@ export function usePluginNodePresentation(pluginId: Ref<string>, fallback = 'box
       customBg.value = metadata.style?.bgColor
       customBorder.value = metadata.style?.borderColor
       customIconColor.value = metadata.style?.iconColor
-      pluginIcon.value = resolvePluginIcon(metadata, { isDark: isDark.value, fallback })
+      pluginIcon.value = resolvePluginIcon(metadata, { iconVariant: iconVariant.value, fallback })
     } catch (error) {
       console.warn(`Failed to load plugin presentation for ${pluginId.value}`, error)
     }
   }
 
   watch(pluginId, load, { immediate: true })
-  watch(isDark, load)
+  watch(iconVariant, load)
   return { pluginIcon, customBg, customBorder, customIconColor }
 }

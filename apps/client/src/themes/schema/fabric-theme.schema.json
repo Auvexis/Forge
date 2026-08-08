@@ -10,6 +10,7 @@
     "id": { "type": "string", "minLength": 1 },
     "name": { "type": "string", "minLength": 1 },
     "type": { "enum": ["dark", "light"] },
+    "iconVariant": { "enum": ["dark", "light"] },
     "tokens": {
       "type": "object",
       "additionalProperties": { "type": "string" }

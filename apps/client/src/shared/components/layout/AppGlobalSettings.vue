@@ -104,9 +104,6 @@
           <div v-if="activeTab === 'variables'" key="body-var" class="gs-vars">
             <section class="gs-vars__composer" aria-label="Create environment variable">
               <div class="gs-vars__composer-head">
-                <span class="gs-vars__composer-icon">
-                  <LucideIcon name="plus" :size="15" />
-                </span>
                 <div>
                   <strong>Add Variable</strong>
                   <span>Create values available as <code class="gs-code" v-pre>{{ env.KEY }}</code></span>
@@ -187,6 +184,16 @@
                   >
                     {{ revealedVars[v.key] ? v.value : '••••••••••••••••' }}
                   </code>
+                  <BaseButton
+                    variant="ghost"
+                    size="icon"
+                    title="Copy variable token"
+                    @click="copyVariableToken(v.key)"
+                  >
+                    <template #left>
+                      <LucideIcon name="copy" :size="13" />
+                    </template>
+                  </BaseButton>
                   <BaseButton
                     variant="ghost"
                     size="icon"
@@ -733,7 +740,7 @@ const toast = useToast()
 // ─── Store ────────────────────────────────────────────────────────────────────
 
 const store = useSettingsStore()
-const { isDark, setMode } = useTheme()
+const { iconVariant, setMode } = useTheme()
 const isDesktopWindow = computed(
   () => typeof window !== 'undefined' && window.fabricDesktop?.isDesktop === true,
 )
@@ -800,6 +807,16 @@ function toggleVarVisibility(key: string) {
   revealedVars.value[key] = !revealedVars.value[key]
 }
 
+async function copyVariableToken(key: string) {
+  const token = `{{ env.${key} }}`
+  try {
+    await navigator.clipboard?.writeText(token)
+    toast.success('Variable copied')
+  } catch {
+    toast.error('Could not copy variable')
+  }
+}
+
 async function handleSaveVariable() {
   newVar.value.keyError = ''
   const key = newVar.value.key.trim().toUpperCase()
@@ -844,7 +861,7 @@ const credSearch = ref('')
 
 function pluginIcon(plugin: any): string {
   return resolvePluginIcon(plugin.manifest?.metadata ?? {}, {
-    isDark: isDark.value,
+    iconVariant: iconVariant.value,
     fallback: 'puzzle',
   })
 }

@@ -6,18 +6,18 @@ import { fileURLToPath } from 'node:url'
 import { resolvePluginIcon } from '../pluginIconResolver.ts'
 
 describe('plugin icon resolver', () => {
-  it('uses light icon on dark theme and dark icon on light theme', () => {
+  it('uses the requested theme icon variant', () => {
     const metadata = {
       icon: 'fallback.svg',
       iconLight: 'light.svg',
       iconDark: 'dark.svg',
     }
 
-    assert.equal(resolvePluginIcon(metadata, { isDark: true }), 'light.svg')
-    assert.equal(resolvePluginIcon(metadata, { isDark: false }), 'dark.svg')
+    assert.equal(resolvePluginIcon(metadata, { iconVariant: 'light' }), 'light.svg')
+    assert.equal(resolvePluginIcon(metadata, { iconVariant: 'dark' }), 'dark.svg')
   })
 
-  it('keeps style icon and legacy icon fallback compatibility', () => {
+  it('keeps style icon and legacy isDark fallback compatibility', () => {
     assert.equal(
       resolvePluginIcon({ style: { icon: 'sparkles' }, iconLight: 'light.svg' }),
       'sparkles',
@@ -46,16 +46,26 @@ describe('plugin icon resolver', () => {
         'utf8',
       ),
     )
+    const qdrantManifest = JSON.parse(
+      readFileSync(
+        fileURLToPath(
+          new URL('../../../../../api/src/plugins/fabric/qdrant/manifest.json', import.meta.url),
+        ),
+        'utf8',
+      ),
+    )
 
-    assert.match(resolvePluginIcon(ollamaManifest.metadata, { isDark: true }), /ollama-dark\.svg$/)
-    assert.match(resolvePluginIcon(ollamaManifest.metadata, { isDark: false }), /ollama\.svg$/)
+    assert.match(resolvePluginIcon(ollamaManifest.metadata, { iconVariant: 'light' }), /ollama-dark\.svg$/)
+    assert.match(resolvePluginIcon(ollamaManifest.metadata, { iconVariant: 'dark' }), /ollama\.svg$/)
     assert.match(
-      resolvePluginIcon(openRouterManifest.metadata, { isDark: true }),
+      resolvePluginIcon(openRouterManifest.metadata, { iconVariant: 'light' }),
       /dark\/openrouter\.png$/,
     )
     assert.match(
-      resolvePluginIcon(openRouterManifest.metadata, { isDark: false }),
+      resolvePluginIcon(openRouterManifest.metadata, { iconVariant: 'dark' }),
       /light\/openrouter\.png$/,
     )
+    assert.match(resolvePluginIcon(qdrantManifest.metadata, { iconVariant: 'light' }), /qdrant-light\.svg$/)
+    assert.match(resolvePluginIcon(qdrantManifest.metadata, { iconVariant: 'dark' }), /qdrant\.svg$/)
   })
 })

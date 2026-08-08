@@ -46,7 +46,7 @@ const props = defineProps<{
 }>()
 
 const executionStore = useExecutionStore()
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 
 const emit = defineEmits<{
   (e: 'inject', paramKey: string, path: string): void
@@ -430,7 +430,7 @@ const iconsMap = computed(() => {
       const pluginNodeData = upData as PluginNode
       const upPlugin = plugins.value?.find((p) => p.id === pluginNodeData.pluginId)
       map[`steps.${upNode.id}`] = upPlugin
-        ? resolvePluginIcon(upPlugin.manifest.metadata, { isDark: isDark.value, fallback: 'puzzle' })
+        ? resolvePluginIcon(upPlugin.manifest.metadata, { iconVariant: iconVariant.value, fallback: 'puzzle' })
         : 'puzzle'
     } else {
       map[`steps.${upNode.id}`] = upNode.type ? (typeIcons[upNode.type] || 'settings') : 'settings'

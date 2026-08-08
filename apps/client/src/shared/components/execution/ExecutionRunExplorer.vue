@@ -21,7 +21,7 @@ const props = withDefaults(defineProps<{
 
 const selectedRunId = ref<string | null>(null)
 const nodePresentations = ref<Record<string, ExecutionNodePresentation>>({})
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 const selectedRun = computed(() => props.runs.find((run) => run.id === selectedRunId.value) ?? null)
 const selectedDetail = computed(() => selectedRun.value ? buildExecutionRunDetail({
   workflow: props.workflow,
@@ -54,7 +54,7 @@ function presentationFor(
   if (plugin) {
     const metadata = plugin.manifest.metadata
     return {
-      icon: resolvePluginIcon(metadata, { isDark: isDark.value, fallback: node.ui?.icon ?? 'box' }),
+      icon: resolvePluginIcon(metadata, { iconVariant: iconVariant.value, fallback: node.ui?.icon ?? 'box' }),
       iconColor: metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)',
     }
   }
@@ -94,7 +94,7 @@ async function loadNodePresentations() {
 watch(() => props.runs, (runs) => {
   if (selectedRunId.value && !runs.some((run) => run.id === selectedRunId.value)) selectedRunId.value = null
 })
-watch([() => props.workflow, isDark], loadNodePresentations, { immediate: true })
+watch([() => props.workflow, iconVariant], loadNodePresentations, { immediate: true })
 </script>
 
 <template>

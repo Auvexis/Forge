@@ -32,7 +32,7 @@ const store = useWorkflowStore()
 const executionStore = useExecutionStore()
 const panelStore = useAppPanelStore()
 const toast = useToast()
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 const selectedPlugin = ref<PluginSummary | null>(null)
 const pluginIcon = ref('plug')
 const pluginIconColor = ref('var(--fabric-node-plugin-icon)')
@@ -153,7 +153,7 @@ async function loadSelectedPlugin() {
     const plugin = await apiRequest<PluginSummary>(ENDPOINTS.PLUGIN_BY_ID(pluginId))
     selectedPlugin.value = plugin
     pluginIcon.value = resolvePluginIcon(plugin.manifest.metadata, {
-      isDark: isDark.value,
+      iconVariant: iconVariant.value,
       fallback: 'plug',
     })
     pluginIconColor.value = plugin.manifest.metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)'
@@ -163,7 +163,7 @@ async function loadSelectedPlugin() {
 }
 
 onMounted(loadSelectedPlugin)
-watch(() => [triggerData.value?.pluginId, triggerData.value?.triggerName, isDark.value], loadSelectedPlugin)
+watch(() => [triggerData.value?.pluginId, triggerData.value?.triggerName, iconVariant.value], loadSelectedPlugin)
 
 const onExecuteWorkflow = async () => {
   const workflow = store.activeWorkflow

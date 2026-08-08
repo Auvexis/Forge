@@ -3,6 +3,7 @@
   "id": "fabric.light",
   "name": "Fabric Light",
   "type": "light",
+  "iconVariant": "dark",
   "tokens": {
     "bg.base": "#F4F5F7",
     "bg.surface": "#FFFFFF",

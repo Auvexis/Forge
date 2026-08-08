@@ -29,7 +29,7 @@ const pluginIcon = ref(defaultMemoryIcon.value)
 const customBg = ref<string | undefined>(undefined)
 const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 
 async function loadPluginAppearance() {
   pluginIcon.value = defaultMemoryIcon.value
@@ -45,7 +45,7 @@ async function loadPluginAppearance() {
     customBg.value = metadata.style?.bgColor
     customBorder.value = metadata.style?.borderColor
     customIconColor.value = metadata.style?.iconColor
-    pluginIcon.value = resolvePluginIcon(metadata, { isDark: isDark.value, fallback: 'database' })
+    pluginIcon.value = resolvePluginIcon(metadata, { iconVariant: iconVariant.value, fallback: 'database' })
   } catch (err) {
     pluginIcon.value = defaultMemoryIcon.value
     console.warn(`Failed to load memory plugin icon for ${pluginId.value}`, err)
@@ -53,7 +53,7 @@ async function loadPluginAppearance() {
 }
 
 watch(() => pluginId.value, loadPluginAppearance, { immediate: true })
-watch(() => isDark.value, loadPluginAppearance)
+watch(() => iconVariant.value, loadPluginAppearance)
 </script>
 
 <template>

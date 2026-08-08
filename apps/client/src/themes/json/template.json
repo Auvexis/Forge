@@ -3,6 +3,7 @@
   "id": "fabric.custom-template",
   "name": "Fabric Custom Template",
   "type": "dark",
+  "iconVariant": "dark",
   "tokens": {
     "bg.base": "#f4f1eb",
     "bg.surface": "#ffffff",

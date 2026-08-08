@@ -99,7 +99,7 @@ const executionStore = useExecutionStore()
 const timelineTrackRef = ref<HTMLElement | null>(null)
 const nodePresentations = ref<Record<string, WorkflowTimelineNodePresentation>>({})
 const nodePresentationRequestId = ref(0)
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 
 const workflowNodes = computed(() =>
   Object.entries(workflowStore.activeWorkflow?.nodes ?? {}).map(([id, node]) => ({
@@ -303,7 +303,7 @@ function presentationForNode(
   if (plugin) {
     const metadata = plugin.manifest.metadata
     return {
-      icon: resolvePluginIcon(metadata, { isDark: isDark.value, fallback }),
+      icon: resolvePluginIcon(metadata, { iconVariant: iconVariant.value, fallback }),
       iconColor: metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)',
     }
   }
@@ -987,7 +987,7 @@ watch(timelineEntryPoints, (entryPoints) => {
   if (entryPoints.some((entry) => entry.id === selectedTimelineEntryId.value)) return
   selectedTimelineEntryId.value = 'all'
 })
-watch([workflowNodePresentationKey, isDark], loadNodePresentations, { immediate: true })
+watch([workflowNodePresentationKey, iconVariant], loadNodePresentations, { immediate: true })
 
 watch(
   () => props.focusedNodeId,

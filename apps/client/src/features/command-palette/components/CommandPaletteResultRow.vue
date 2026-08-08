@@ -16,9 +16,9 @@ const emit = defineEmits<{
   select: []
 }>()
 
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 const commandIcon = computed(() =>
-  resolvePluginIcon(props.command, { isDark: isDark.value, fallback: 'command' }),
+  resolvePluginIcon(props.command, { iconVariant: iconVariant.value, fallback: 'command' }),
 )
 </script>
 

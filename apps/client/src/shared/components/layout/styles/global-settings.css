@@ -380,7 +380,7 @@
   gap: 12px;
   padding: 14px 24px;
   border-bottom: 1px solid var(--fabric-border);
-  background: var(--fabric-bg-surface);
+  background: transparent;
 }
 
 .gs-vars__composer-head,
@@ -417,7 +417,6 @@
   font-size: 11px;
 }
 
-.gs-vars__composer-icon,
 .gs-vars__key-icon {
   justify-content: center;
   flex: 0 0 auto;
@@ -425,11 +424,6 @@
   border-radius: var(--fabric-global-settings-nav-item-radius);
   background: var(--fabric-bg-base);
   color: var(--fabric-text-muted);
-}
-
-.gs-vars__composer-icon {
-  width: 28px;
-  height: 28px;
 }
 
 .gs-vars__form {
@@ -497,7 +491,7 @@
 
 .gs-vars__row {
   display: grid;
-  grid-template-columns: 24px minmax(150px, 1fr) minmax(110px, 0.65fr) minmax(180px, 0.85fr);
+  grid-template-columns: 24px minmax(150px, 1fr) minmax(140px, 0.72fr) minmax(220px, 0.95fr);
   gap: 10px;
   min-height: 42px;
   padding: 6px 24px;

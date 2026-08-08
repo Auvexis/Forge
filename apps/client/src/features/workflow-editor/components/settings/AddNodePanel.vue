@@ -192,7 +192,7 @@ const searchInput = ref<InstanceType<typeof BaseInput>>()
 const hoveredCategory = ref<AddNodePickerCategory | null>(null)
 const methodSubmenuPlugin = ref<PluginSummary | null>(null)
 const vectorStoreProviderPickerOpen = ref(false)
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 const { data: plugins, loading: pluginsLoading, execute: loadPlugins } = useApi(pluginsApi.getAll)
 const {
   data: workflowNodeCatalog,
@@ -402,7 +402,7 @@ const globalSearchItems = computed(() => {
 })
 
 const pluginIcon = (plugin: PluginSummary) =>
-  resolvePluginIcon(plugin.manifest.metadata, { isDark: isDark.value, fallback: 'box' })
+  resolvePluginIcon(plugin.manifest.metadata, { iconVariant: iconVariant.value, fallback: 'box' })
 
 const hoverCategory = (category: AddNodePickerCategory) => {
   if (hoveredCategory.value !== category) {

@@ -20,7 +20,7 @@ const pluginIcon = ref<string>('box')
 const customBg = ref<string | undefined>(undefined)
 const customBorder = ref<string | undefined>(undefined)
 const customIconColor = ref<string | undefined>(undefined)
-const { isDark } = useTheme()
+const { iconVariant } = useTheme()
 
 async function loadPluginAppearance() {
   const pid = props.data?.pluginId
@@ -42,7 +42,7 @@ async function loadPluginAppearance() {
           customIconColor.value = style.iconColor
         }
         pluginIcon.value = resolvePluginIcon(plugin.manifest.metadata, {
-          isDark: isDark.value,
+          iconVariant: iconVariant.value,
           fallback: 'box',
         })
       }
@@ -53,7 +53,7 @@ async function loadPluginAppearance() {
 }
 
 watch(() => props.data?.pluginId, loadPluginAppearance, { immediate: true })
-watch(() => isDark.value, loadPluginAppearance)
+watch(() => iconVariant.value, loadPluginAppearance)
 
 // Computar os parâmetros restritos a 3 (design React)
 const paramEntries = computed(() => {

@@ -40,4 +40,13 @@ describe('global settings nav contract', () => {
     assert.match(settingsSource, /No newer safe desktop release was found/)
     assert.match(settingsSource, /Automatic install will be enabled after signed installers are available/)
   })
+
+  it('keeps variables composer transparent and exposes copyable env tokens', () => {
+    assert.doesNotMatch(settingsSource, /gs-vars__composer-icon/)
+    assert.match(settingsSource, /copyVariableToken/)
+    assert.match(settingsSource, /`{{ env\.\$\{key\} }}`/)
+    assert.match(settingsSource, /name="copy"/)
+    assert.match(stylesSource, /\.gs-vars__composer \{[\s\S]*background:\s*transparent;/)
+    assert.doesNotMatch(stylesSource, /\.gs-vars__composer-icon/)
+  })
 })

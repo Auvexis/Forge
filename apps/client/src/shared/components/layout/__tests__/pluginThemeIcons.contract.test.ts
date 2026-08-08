@@ -51,7 +51,7 @@ const variableTreeSource = readFileSync(
 describe('plugin theme icons', () => {
   it('resolves credentials plugin icons through the theme-aware plugin icon resolver', () => {
     assert.match(globalSettingsSource, /import \{ resolvePluginIcon \}/)
-    assert.match(globalSettingsSource, /const \{ isDark, setMode \} = useTheme\(\)/)
+    assert.match(globalSettingsSource, /const \{ iconVariant, setMode \} = useTheme\(\)/)
     assert.match(globalSettingsSource, /function pluginIcon\(plugin: any\): string/)
     assert.match(globalSettingsSource, /:src="pluginIcon\(plugin\)"/)
     assert.match(globalSettingsSource, /:logo="selectedPluginIcon"/)
@@ -60,16 +60,16 @@ describe('plugin theme icons', () => {
 
   it('resolves command palette icons through the theme-aware plugin icon resolver', () => {
     assert.match(commandPaletteRowSource, /import \{ resolvePluginIcon \}/)
-    assert.match(commandPaletteRowSource, /const \{ isDark \} = useTheme\(\)/)
+    assert.match(commandPaletteRowSource, /const \{ iconVariant \} = useTheme\(\)/)
     assert.match(commandPaletteRowSource, /const commandIcon = computed/)
     assert.match(commandPaletteRowSource, /:name="commandIcon"/)
   })
 
   it('refreshes canvas plugin icons when the active theme changes', () => {
     for (const source of [pluginNodeSource, aiModelNodeSource]) {
-      assert.match(source, /const \{ isDark \} = useTheme\(\)/)
+      assert.match(source, /useTheme\(\)/)
       assert.match(source, /watch\(/)
-      assert.match(source, /\(\) => isDark\.value/)
+      assert.match(source, /(iconVariant|isDark)\.value/)
       assert.match(source, /loadPluginAppearance/)
       assert.match(source, /resolvePluginIcon/)
     }
@@ -78,8 +78,8 @@ describe('plugin theme icons', () => {
   it('resolves variable tree plugin icons through the theme-aware plugin icon resolver', () => {
     assert.match(variableTreeSource, /import \{ useTheme \}/)
     assert.match(variableTreeSource, /import \{ resolvePluginIcon \}/)
-    assert.match(variableTreeSource, /const \{ isDark \} = useTheme\(\)/)
-    assert.match(variableTreeSource, /resolvePluginIcon\(upPlugin\.manifest\.metadata, \{ isDark: isDark\.value, fallback: 'puzzle' \}\)/)
+    assert.match(variableTreeSource, /const \{ iconVariant \} = useTheme\(\)/)
+    assert.match(variableTreeSource, /resolvePluginIcon\(upPlugin\.manifest\.metadata, \{ iconVariant: iconVariant\.value, fallback: 'puzzle' \}\)/)
     assert.doesNotMatch(variableTreeSource, /upPlugin\.manifest\.metadata\.icon/)
   })
 })

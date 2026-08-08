@@ -16,6 +16,8 @@
 
 import { ref, computed, watchEffect, onUnmounted } from 'vue'
 import { applyFabricThemeByType } from '@/themes/runtime/theme.loader'
+import { getFabricTheme, themeIdForType } from '@/themes/runtime/theme.registry'
+import type { FabricThemeIconVariant } from '@/themes/runtime/theme.types'
 
 export type ThemeMode = 'dark' | 'light' | 'system'
 
@@ -88,6 +90,10 @@ watchEffect(() => {
 export function useTheme() {
   const resolvedTheme = computed<'dark' | 'light'>(() => resolveTheme(mode.value))
   const isDark = computed(() => resolvedTheme.value === 'dark')
+  const iconVariant = computed<FabricThemeIconVariant>(() => {
+    const theme = getFabricTheme(themeIdForType(resolvedTheme.value))
+    return theme.iconVariant ?? (resolvedTheme.value === 'dark' ? 'light' : 'dark')
+  })
 
   /**
    * Theme-aware logo source.
@@ -119,6 +125,8 @@ export function useTheme() {
     resolvedTheme,
     /** Shorthand boolean for resolved dark state */
     isDark,
+    /** Preferred plugin/icon asset variant for the active theme */
+    iconVariant,
     /** Theme-aware logo path ('/LOGO_LIGHT.svg' or '/LOGO_DARK.svg') */
     logoSrc,
     /** Set a specific mode */
