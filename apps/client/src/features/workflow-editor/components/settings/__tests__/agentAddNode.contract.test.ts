@@ -117,6 +117,7 @@ test('vector store provider plugins add the configured vector store template ins
   assert.match(picker, /item\.plugin\.manifest\.metadata\.nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNode\(item\.plugin\)/)
   assert.match(picker, /selectGlobalSearchItem[\s\S]*nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNode\(item\.plugin\)/)
   assert.match(globalPanel, /plugin\.manifest\.metadata\.nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNodeAtCenter\(plugin\)/)
+  assert.match(globalPanel, /handlePluginPointerDragStart[\s\S]*nodePresentation\?\.template === 'vector-store'[\s\S]*nodeType: 'vector-store'[\s\S]*vectorStoreDefaults\(plugin\)/)
 })
 
 test('embedding quick-add uses a vector config context separate from agent config', () => {

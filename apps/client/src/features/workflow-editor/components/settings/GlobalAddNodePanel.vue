@@ -559,6 +559,20 @@ const handlePointerDragStart = (event: PointerEvent, payload: GlobalAddNodeDragP
 }
 
 const handlePluginPointerDragStart = (event: PointerEvent, plugin: PluginSummary) => {
+  if (plugin.manifest.metadata.nodePresentation?.template === 'vector-store') {
+    handlePointerDragStart(event, {
+      kind: 'logic',
+      nodeType: 'vector-store',
+      defaults: vectorStoreDefaults(plugin),
+      preview: {
+        icon: pluginIcon(plugin),
+        label: plugin.manifest.metadata.nodePresentation.label ?? plugin.manifest.metadata.name,
+        subtitle: 'Vector Store',
+      },
+    })
+    return
+  }
+
   const action = pluginActionItems(plugin)[0]
   if (!action || pluginActionItems(plugin).length !== 1) {
     return
