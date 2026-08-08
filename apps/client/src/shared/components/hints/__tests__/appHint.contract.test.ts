@@ -26,10 +26,11 @@ describe('AppHint contract', () => {
   it('teleports hover content and keeps position reactive', () => {
     const source = read('AppHint.vue')
 
-    assert.match(source, /Teleport to="body"/)
+    assert.match(source, /useOverlayTarget\(wrapperRef\)/)
+    assert.match(source, /<Teleport :to="overlayTarget">/)
     assert.match(source, /ResizeObserver/)
-    assert.match(source, /window\.addEventListener\('resize'/)
-    assert.match(source, /window\.addEventListener\('scroll'/)
+    assert.match(source, /ownerWindow\.addEventListener\('resize'/)
+    assert.match(source, /ownerWindow\.addEventListener\('scroll'/)
     assert.match(source, /position/)
   })
 

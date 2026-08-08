@@ -1,5 +1,5 @@
 <template>
-  <div class="global-add-node-panel" @click.capture="preventClickAfterDrag">
+  <div ref="panelRef" class="global-add-node-panel" @click.capture="preventClickAfterDrag">
     <Transition name="global-add-node-view" mode="out-in">
       <div
         v-if="selectedPlugin || vectorStoreProviderPickerOpen"
@@ -227,7 +227,7 @@
       </div>
     </Transition>
 
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <div
         v-if="dragPreview"
         class="global-add-node-drag-preview"
@@ -256,6 +256,7 @@ import type { WorkflowNodeType } from '@/core/types/workflow.types'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
 import BaseInput from '@/shared/components/base/BaseInput.vue'
 import { useApi } from '@/shared/composables/useApi'
+import { ownerDocumentOf, ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 import { useTheme } from '@/shared/composables/useTheme'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
@@ -307,6 +308,7 @@ const props = defineProps<{
 
 const search = ref('')
 const methodSearch = ref('')
+const panelRef = ref<HTMLElement | null>(null)
 const searchInput = ref<InstanceType<typeof BaseInput>>()
 const methodSearchInput = ref<InstanceType<typeof BaseInput>>()
 const utilitiesOpen = ref(true)
@@ -318,6 +320,7 @@ const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
 const dragPreviewBodyOffset = ref({ x: 0, y: 0, rotate: 0 })
+const overlayTarget = useOverlayTarget(panelRef)
 let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
 let lastDragPoint = { x: 0, y: 0, t: 0 }
 let activePointerPayload: GlobalAddNodeDragPayload | null = null
@@ -505,12 +508,14 @@ const moveDragPreview = (
 }
 
 const removePointerDragListeners = () => {
-  document.removeEventListener('pointermove', handlePointerDragMove, true)
-  document.removeEventListener('pointerup', handlePointerDragEnd, true)
-  document.removeEventListener('pointercancel', handlePointerDragCancel, true)
-  window.removeEventListener('pointermove', handlePointerDragMove, true)
-  window.removeEventListener('pointerup', handlePointerDragEnd, true)
-  window.removeEventListener('pointercancel', handlePointerDragCancel, true)
+  const ownerDocument = ownerDocumentOf(panelRef.value)
+  const ownerWindow = ownerWindowOf(panelRef.value)
+  ownerDocument.removeEventListener('pointermove', handlePointerDragMove, true)
+  ownerDocument.removeEventListener('pointerup', handlePointerDragEnd, true)
+  ownerDocument.removeEventListener('pointercancel', handlePointerDragCancel, true)
+  ownerWindow.removeEventListener('pointermove', handlePointerDragMove, true)
+  ownerWindow.removeEventListener('pointerup', handlePointerDragEnd, true)
+  ownerWindow.removeEventListener('pointercancel', handlePointerDragCancel, true)
 }
 
 const handleDragEnd = () => {
@@ -550,12 +555,14 @@ const handlePointerDragStart = (event: PointerEvent, payload: GlobalAddNodeDragP
   pointerStartPoint = { x: event.clientX, y: event.clientY }
   lastDragPoint = { ...pointerStartPoint, t: performance.now() }
   startDragPreview(pointerStartPoint, payload.preview)
-  document.addEventListener('pointermove', handlePointerDragMove, true)
-  document.addEventListener('pointerup', handlePointerDragEnd, true)
-  document.addEventListener('pointercancel', handlePointerDragCancel, true)
-  window.addEventListener('pointermove', handlePointerDragMove, true)
-  window.addEventListener('pointerup', handlePointerDragEnd, true)
-  window.addEventListener('pointercancel', handlePointerDragCancel, true)
+  const ownerDocument = ownerDocumentOf(event.target instanceof Element ? event.target : panelRef.value)
+  const ownerWindow = ownerDocument.defaultView ?? window
+  ownerDocument.addEventListener('pointermove', handlePointerDragMove, true)
+  ownerDocument.addEventListener('pointerup', handlePointerDragEnd, true)
+  ownerDocument.addEventListener('pointercancel', handlePointerDragCancel, true)
+  ownerWindow.addEventListener('pointermove', handlePointerDragMove, true)
+  ownerWindow.addEventListener('pointerup', handlePointerDragEnd, true)
+  ownerWindow.addEventListener('pointercancel', handlePointerDragCancel, true)
 }
 
 const handlePluginPointerDragStart = (event: PointerEvent, plugin: PluginSummary) => {
@@ -644,7 +651,7 @@ const handlePointerDragEnd = (event: PointerEvent) => {
   if (payload) {
     event.preventDefault()
     suppressClickUntil = Date.now() + 250
-    const target = document.elementFromPoint(point.x, point.y)
+    const target = ownerDocumentOf(panelRef.value).elementFromPoint(point.x, point.y)
     if (target?.closest('.fabric-workflow-canvas')) {
       addPayloadAtPoint(payload, { x: point.x - 52, y: point.y - 52 })
     }

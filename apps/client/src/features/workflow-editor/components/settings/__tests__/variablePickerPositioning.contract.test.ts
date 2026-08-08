@@ -31,21 +31,23 @@ describe('variable picker positioning', () => {
     assert.match(pickerPositionSource, /position: 'fixed'/)
     assert.match(pickerPositionSource, /desiredLeft/)
     assert.match(pickerPositionSource, /rect\.right - pickerWidth/)
-    assert.match(pickerPositionSource, /window\.innerHeight/)
+    assert.match(pickerPositionSource, /ownerWindow\.innerHeight/)
   })
 
-  it('teleports variable pickers and binds computed position styles', () => {
+  it('teleports variable pickers to the local overlay host and binds computed position styles', () => {
     for (const source of [expressionInputSource, expressionTextareaSource, triggerEditorSource]) {
       assert.match(source, /useVariablePickerPosition/)
-      assert.match(source, /<Teleport to="body">/)
+      assert.match(source, /<Teleport :to="overlayTarget">/)
       assert.match(source, /:style="pickerStyle"/)
     }
   })
 
-  it('closes teleported pickers from captured outside pointer events', () => {
-    for (const source of [expressionInputSource, expressionTextareaSource, triggerEditorSource]) {
-      assert.match(source, /document\.addEventListener\('pointerdown', [^,\n]+, true\)/)
-      assert.match(source, /document\.removeEventListener\('pointerdown', [^,\n]+, true\)/)
+  it('closes teleported pickers from owner-document captured outside pointer events', () => {
+    for (const source of [expressionInputSource, expressionTextareaSource]) {
+      assert.match(source, /ownerDocument\.addEventListener\('pointerdown', [^,\n]+, true\)/)
+      assert.match(source, /ownerDocumentOf\(rootRef\.value\)\.removeEventListener\('pointerdown', [^,\n]+, true\)/)
     }
+    assert.match(triggerEditorSource, /ownerDocumentOf\(activeTriggerParamAnchor\.value \?\? editorRef\.value\)\.addEventListener/)
+    assert.match(triggerEditorSource, /ownerDocument\.removeEventListener\('pointerdown', onTriggerParamDocumentPointerDown, true\)/)
   })
 })

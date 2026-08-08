@@ -1,5 +1,5 @@
 <template>
-  <div class="editor-stack">
+  <div ref="editorRef" class="editor-stack">
     <!-- ── Trigger Type ── -->
     <EditorField label="Trigger Type">
       <BaseSelect
@@ -457,7 +457,7 @@
                     @variable-click="toggleTriggerParamPicker(String(propKey), $event)"
                   />
 
-                  <Teleport to="body">
+                  <Teleport :to="overlayTarget">
                     <div
                       v-if="activeTriggerParamPicker === String(propKey)"
                       ref="pickerRef"
@@ -552,11 +552,14 @@ import { buildTriggerFormProdUrl, buildTriggerFormTestUrl, buildTriggerWebhookPr
 import type { ExpressionItem, TextSelectionRange } from '../expressions/expressionVariables'
 import { insertExpressionToken } from '../expressions/expressionVariables'
 import { useVariablePickerPosition } from '../expressions/useVariablePickerPosition'
+import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const props = defineProps<NodeEditorProps>()
 const workflowStore = useWorkflowStore()
 const profileStore = useProfileStore()
 const toast = useToast()
+const editorRef = ref<HTMLElement | null>(null)
+const overlayTarget = useOverlayTarget(editorRef)
 
 const isMounted = ref(false)
 onMounted(() => {
@@ -856,9 +859,10 @@ function rememberTriggerParamSelection(key: string, event: Event) {
 }
 
 function closeTriggerParamPicker() {
+  const ownerDocument = ownerDocumentOf(activeTriggerParamAnchor.value ?? editorRef.value)
   activeTriggerParamPicker.value = null
   activeTriggerParamAnchor.value = null
-  document.removeEventListener('pointerdown', onTriggerParamDocumentPointerDown, true)
+  ownerDocument.removeEventListener('pointerdown', onTriggerParamDocumentPointerDown, true)
   removePickerPositionListeners()
 }
 
@@ -877,7 +881,11 @@ async function toggleTriggerParamPicker(key: string, event: MouseEvent) {
 
   activeTriggerParamPicker.value = key
   activeTriggerParamAnchor.value = (event.currentTarget as HTMLElement | null)?.closest('.te-variable-field') as HTMLElement | null
-  document.addEventListener('pointerdown', onTriggerParamDocumentPointerDown, true)
+  ownerDocumentOf(activeTriggerParamAnchor.value ?? editorRef.value).addEventListener(
+    'pointerdown',
+    onTriggerParamDocumentPointerDown,
+    true,
+  )
   await preparePickerPosition()
 }
 

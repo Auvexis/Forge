@@ -6,6 +6,7 @@ export interface WorkspaceWindowOptions {
 }
 
 const copiedStyleSelector = 'link[rel="stylesheet"], style'
+const overlayRootId = 'fabric-overlay-root'
 
 export class WorkspaceWindowController {
   private childWindow: Window | null = null
@@ -79,6 +80,12 @@ export class WorkspaceWindowController {
     target.id = `fabric-workspace-${this.options.workspaceId}`
     target.className = 'fabric-workspace-mount'
     document.body.append(target)
+
+    const overlayRoot = document.createElement('div')
+    overlayRoot.id = overlayRootId
+    overlayRoot.setAttribute('data-fabric-overlay-root', '')
+    document.body.append(overlayRoot)
+
     this.mountTarget = target
   }
 

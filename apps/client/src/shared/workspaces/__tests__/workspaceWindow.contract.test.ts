@@ -12,6 +12,8 @@ test('workspace host teleports one Vue tree into a native window document', () =
   assert.match(host, /<slot name="tabs"/)
   assert.match(host, /<slot \/>/)
   assert.match(controller, /window\.open\(/)
+  assert.match(controller, /fabric-overlay-root/)
+  assert.match(controller, /data-fabric-overlay-root/)
   assert.match(controller, /syncStyles/)
   assert.match(controller, /syncDocumentTheme/)
 })

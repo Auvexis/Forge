@@ -1,5 +1,5 @@
 <template>
-  <Teleport to="body">
+  <Teleport :to="overlayTarget">
     <div class="app-toaster">
       <TransitionGroup name="toast">
         <div
@@ -29,8 +29,10 @@
 <script setup lang="ts">
 import { useToast, type ToastVariant } from '@/shared/composables/useToast'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const { toasts, removeToast } = useToast()
+const overlayTarget = useOverlayTarget()
 
 const getIcon = (variant: ToastVariant) => {
   switch (variant) {

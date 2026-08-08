@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { AppHintContent, HintPosition } from './AppHint.types'
+import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const props = defineProps<{
   hint: AppHintContent
@@ -9,6 +10,7 @@ const props = defineProps<{
 const isVisible = ref(false)
 const wrapperRef = ref<HTMLElement | null>(null)
 const anchorRect = ref<DOMRect | null>(null)
+const overlayTarget = useOverlayTarget(wrapperRef)
 let hoverTimer: number | null = null
 let resizeObserver: ResizeObserver | null = null
 
@@ -53,11 +55,12 @@ function preferredPosition(position: HintPosition, rect: DOMRect) {
 const hintStyle = computed(() => {
   const rect = anchorRect.value
   if (!rect) return {}
+  const ownerWindow = ownerWindowOf(wrapperRef.value)
 
   const preferred = preferredPosition(props.hint.position ?? 'right', rect)
   return {
-    left: `${clamp(preferred.left, VIEWPORT_MARGIN, window.innerWidth - CARD_WIDTH - VIEWPORT_MARGIN)}px`,
-    top: `${clamp(preferred.top, VIEWPORT_MARGIN, window.innerHeight - CARD_HEIGHT - VIEWPORT_MARGIN)}px`,
+    left: `${clamp(preferred.left, VIEWPORT_MARGIN, ownerWindow.innerWidth - CARD_WIDTH - VIEWPORT_MARGIN)}px`,
+    top: `${clamp(preferred.top, VIEWPORT_MARGIN, ownerWindow.innerHeight - CARD_HEIGHT - VIEWPORT_MARGIN)}px`,
   }
 })
 
@@ -79,8 +82,9 @@ watch(isVisible, (visible) => {
 })
 
 onMounted(() => {
-  window.addEventListener('resize', updatePosition)
-  window.addEventListener('scroll', updatePosition, true)
+  const ownerWindow = ownerWindowOf(wrapperRef.value)
+  ownerWindow.addEventListener('resize', updatePosition)
+  ownerWindow.addEventListener('scroll', updatePosition, true)
 
   if (wrapperRef.value) {
     resizeObserver = new ResizeObserver(updatePosition)
@@ -90,8 +94,9 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   if (hoverTimer) clearTimeout(hoverTimer)
-  window.removeEventListener('resize', updatePosition)
-  window.removeEventListener('scroll', updatePosition, true)
+  const ownerWindow = ownerWindowOf(wrapperRef.value)
+  ownerWindow.removeEventListener('resize', updatePosition)
+  ownerWindow.removeEventListener('scroll', updatePosition, true)
   resizeObserver?.disconnect()
 })
 </script>
@@ -100,7 +105,7 @@ onBeforeUnmount(() => {
   <span ref="wrapperRef" class="app-hint" @mouseenter="showHint" @mouseleave="hideHint">
     <slot />
 
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <Transition name="app-hint-fade">
         <aside v-if="isVisible" class="app-hint__card surface" :style="hintStyle">
           <div class="app-hint__media">

@@ -4,6 +4,7 @@ const clickOutsideEvents = ['click', 'touchstart']
 
 interface ClickOutsideElement extends HTMLElement {
   __click_outside__: (event: Event) => void
+  __click_outside_document__?: Document
 }
 
 /**
@@ -20,14 +21,16 @@ export const vClickOutside: ObjectDirective<ClickOutsideElement> = {
       }
     }
 
+    el.__click_outside_document__ = el.ownerDocument
     clickOutsideEvents.forEach((eventName) => {
-      document.addEventListener(eventName, el.__click_outside__)
+      el.__click_outside_document__?.addEventListener(eventName, el.__click_outside__)
     })
   },
   unmounted(el) {
     clickOutsideEvents.forEach((eventName) => {
-      document.removeEventListener(eventName, el.__click_outside__)
+      el.__click_outside_document__?.removeEventListener(eventName, el.__click_outside__)
     })
     delete (el as any).__click_outside__
+    delete el.__click_outside_document__
   },
 }

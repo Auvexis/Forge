@@ -31,7 +31,7 @@
 
     </div>
 
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <Transition name="fade-down">
         <div
           v-if="isOpen"
@@ -65,9 +65,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, onMounted, onUnmounted } from 'vue'
+import { computed, nextTick, ref, onBeforeUnmount, onMounted } from 'vue'
 import { generateId } from '@/shared/utils/id'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 export interface SelectOption {
   value: string | number
@@ -107,6 +108,7 @@ const isOpen = ref(false)
 const wrapperRef = ref<HTMLElement | null>(null)
 const dropdownRef = ref<HTMLElement | null>(null)
 const dropdownStyle = ref<Record<string, string>>({})
+const overlayTarget = useOverlayTarget(wrapperRef)
 
 const selectedOption = computed(() => {
   return props.options.find((opt) => opt.value === props.modelValue)
@@ -117,10 +119,11 @@ function updateDropdownPosition() {
   if (!wrapper) return
 
   const rect = wrapper.getBoundingClientRect()
+  const ownerWindow = ownerWindowOf(wrapper)
   const viewportGap = 8
   const preferredMaxHeight = 240
   
-  const spaceBelow = window.innerHeight - rect.bottom - viewportGap
+  const spaceBelow = ownerWindow.innerHeight - rect.bottom - viewportGap
   const spaceAbove = rect.top - viewportGap
 
   const openUp = spaceBelow < preferredMaxHeight && spaceAbove > spaceBelow
@@ -130,7 +133,7 @@ function updateDropdownPosition() {
   dropdownStyle.value = {
     position: 'fixed',
     top: openUp ? 'auto' : `${rect.bottom + 5}px`,
-    bottom: openUp ? `${window.innerHeight - rect.top + 5}px` : 'auto',
+    bottom: openUp ? `${ownerWindow.innerHeight - rect.top + 5}px` : 'auto',
     left: `${rect.left}px`,
     width: `${rect.width}px`,
     maxHeight: `${Math.min(preferredMaxHeight, availableHeight)}px`,
@@ -168,15 +171,19 @@ const handleClickOutside = (e: MouseEvent) => {
 }
 
 onMounted(() => {
-  document.addEventListener('click', handleClickOutside)
-  window.addEventListener('resize', updateDropdownPosition)
-  window.addEventListener('scroll', updateDropdownPosition, true)
+  const ownerDocument = wrapperRef.value?.ownerDocument ?? document
+  const ownerWindow = ownerDocument.defaultView ?? window
+  ownerDocument.addEventListener('click', handleClickOutside)
+  ownerWindow.addEventListener('resize', updateDropdownPosition)
+  ownerWindow.addEventListener('scroll', updateDropdownPosition, true)
 })
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-  window.removeEventListener('resize', updateDropdownPosition)
-  window.removeEventListener('scroll', updateDropdownPosition, true)
+onBeforeUnmount(() => {
+  const ownerDocument = wrapperRef.value?.ownerDocument ?? document
+  const ownerWindow = ownerDocument.defaultView ?? window
+  ownerDocument.removeEventListener('click', handleClickOutside)
+  ownerWindow.removeEventListener('resize', updateDropdownPosition)
+  ownerWindow.removeEventListener('scroll', updateDropdownPosition, true)
 })
 
 defineOptions({ inheritAttrs: false })

@@ -13,7 +13,7 @@
       @click="toggle"
       @mouseenter="handleTriggerMouseEnter"
     />
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <div
         v-if="isOpen"
         ref="menuRef"
@@ -45,6 +45,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import BaseButton from './BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { ownerDocumentOf, ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 export interface BaseToolDropdownItem {
   id: string
@@ -81,6 +82,8 @@ const menuRef = ref<HTMLElement | null>(null)
 const isOpen = ref(false)
 const isDragging = ref(false)
 const menuRect = ref({ left: 0, top: 0 })
+const triggerElement = computed(() => triggerRef.value?.$el as HTMLElement | null)
+const overlayTarget = useOverlayTarget(triggerElement)
 
 const menuStyle = computed(() => ({
   left: `${menuRect.value.left}px`,
@@ -140,7 +143,7 @@ function requestClose() {
 }
 
 function updateMenuPosition() {
-  const trigger = triggerRef.value?.$el as HTMLElement | undefined
+  const trigger = triggerElement.value ?? undefined
   const menu = menuRef.value
   if (!trigger || !menu) return
 
@@ -152,14 +155,15 @@ function updateMenuPosition() {
     ? triggerBox.top - menuBox.height - gap
     : triggerBox.bottom + gap
 
+  const ownerWindow = ownerWindowOf(trigger)
   menuRect.value = {
-    left: Math.min(Math.max(8, left), window.innerWidth - menuBox.width - 8),
-    top: Math.min(Math.max(8, top), window.innerHeight - menuBox.height - 8),
+    left: Math.min(Math.max(8, left), ownerWindow.innerWidth - menuBox.width - 8),
+    top: Math.min(Math.max(8, top), ownerWindow.innerHeight - menuBox.height - 8),
   }
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
-  const trigger = triggerRef.value?.$el as HTMLElement | undefined
+  const trigger = triggerElement.value ?? undefined
   if (!isOpen.value) return
   if (isDragging.value) return
   if (trigger?.contains(event.target as Node) || menuRef.value?.contains(event.target as Node)) return
@@ -176,13 +180,17 @@ watch(
 )
 
 onMounted(() => {
-  document.addEventListener('pointerdown', onDocumentPointerDown, true)
-  window.addEventListener('resize', updateMenuPosition)
+  const ownerDocument = ownerDocumentOf(triggerElement.value)
+  const ownerWindow = ownerWindowOf(triggerElement.value)
+  ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true)
+  ownerWindow.addEventListener('resize', updateMenuPosition)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
-  window.removeEventListener('resize', updateMenuPosition)
+  const ownerDocument = ownerDocumentOf(triggerElement.value)
+  const ownerWindow = ownerWindowOf(triggerElement.value)
+  ownerDocument.removeEventListener('pointerdown', onDocumentPointerDown, true)
+  ownerWindow.removeEventListener('resize', updateMenuPosition)
 })
 </script>
 

@@ -17,6 +17,7 @@ import {
   isAutomationMonitorOpen,
   toggleAutomationMonitor,
 } from '@/shared/components/layout/AppGlobalAutomationMonitor.vue'
+import { useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const route = useRoute()
 const router = useRouter()
@@ -30,8 +31,10 @@ const { toggle: toggleTheme } = useTheme()
 const toast = useToast()
 const searchInput = ref<{ focus: () => void } | null>(null)
 const drilldownInput = ref<HTMLInputElement | null>(null)
+const anchorRef = ref<HTMLElement | null>(null)
 const dialogRef = ref<HTMLElement | null>(null)
 const confirmRef = ref<HTMLElement | null>(null)
+const overlayTarget = useOverlayTarget(anchorRef)
 const drilldownInputValue = ref('')
 const confirmingAction = ref<{ command: CommandDescriptor; payload: Record<string, unknown> } | null>(null)
 
@@ -346,7 +349,8 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
 </script>
 
 <template>
-  <Teleport to="body">
+  <span ref="anchorRef" hidden aria-hidden="true"></span>
+  <Teleport :to="overlayTarget">
     <Transition name="cp-fade">
       <div v-if="palette.isOpen" class="cp-backdrop" @mousedown.self="palette.close">
         <section

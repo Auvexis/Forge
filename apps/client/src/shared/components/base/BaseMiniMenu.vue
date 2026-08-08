@@ -1,5 +1,6 @@
 <template>
-  <Teleport to="body">
+  <span ref="anchorRef" class="bmm-anchor" aria-hidden="true"></span>
+  <Teleport :to="overlayTarget">
     <transition name="bmm-fade">
       <div v-if="isOpen" class="bmm-overlay" @click.self="$emit('close')">
         <div class="bmm-dialog" :style="{ maxWidth, maxHeight }">
@@ -25,8 +26,13 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import BaseButton from './BaseButton.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+
+const anchorRef = ref<HTMLElement | null>(null)
+const overlayTarget = useOverlayTarget(anchorRef)
 
 defineProps({
   isOpen: {
@@ -61,6 +67,10 @@ const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
 </script>
 
 <style scoped>
+.bmm-anchor {
+  display: none;
+}
+
 .bmm-overlay {
   position: fixed;
   inset: 0;

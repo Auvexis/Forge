@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const props = withDefaults(defineProps<{
   isOpen: boolean
@@ -14,6 +15,9 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const anchorRef = ref<HTMLElement | null>(null)
+const overlayTarget = useOverlayTarget(anchorRef)
+
 function close() {
   emit('close')
 }
@@ -25,16 +29,17 @@ function handleKeydown(e: KeyboardEvent) {
 }
 
 onMounted(() => {
-  window.addEventListener('keydown', handleKeydown)
+  ownerWindowOf(anchorRef.value).addEventListener('keydown', handleKeydown)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeydown)
+onBeforeUnmount(() => {
+  ownerWindowOf(anchorRef.value).removeEventListener('keydown', handleKeydown)
 })
 </script>
 
 <template>
-  <Teleport to="body">
+  <span ref="anchorRef" class="base-modal-anchor" aria-hidden="true"></span>
+  <Teleport :to="overlayTarget">
     <Transition name="base-modal-window">
       <div
         v-if="isOpen"
@@ -54,6 +59,10 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+.base-modal-anchor {
+  display: none;
+}
+
 .base-modal-backdrop {
   position: fixed;
   inset: 0;

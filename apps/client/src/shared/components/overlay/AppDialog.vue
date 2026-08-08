@@ -1,5 +1,6 @@
 <template>
-  <Teleport to="body">
+  <span ref="anchorRef" class="app-dialog-anchor" aria-hidden="true"></span>
+  <Teleport :to="overlayTarget">
     <Transition name="fade">
       <div
         v-if="modelValue"
@@ -47,9 +48,10 @@
 </template>
 
 <script setup lang="ts">
-import { watch, onMounted, onUnmounted } from 'vue'
+import { watch, onBeforeUnmount, ref } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useKeyboard } from '@/shared/composables/useKeyboard'
+import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const props = withDefaults(
   defineProps<{
@@ -73,6 +75,9 @@ const emit = defineEmits<{
   'update:modelValue': [value: boolean]
   close: []
 }>()
+
+const anchorRef = ref<HTMLElement | null>(null)
+const overlayTarget = useOverlayTarget(anchorRef)
 
 const close = () => {
   emit('update:modelValue', false)
@@ -98,20 +103,25 @@ useKeyboard(
 watch(
   () => props.modelValue,
   (isOpen) => {
+    const ownerDocument = ownerDocumentOf(anchorRef.value)
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
+      ownerDocument.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = ''
+      ownerDocument.body.style.overflow = ''
     }
   },
 )
 
-onUnmounted(() => {
-  document.body.style.overflow = ''
+onBeforeUnmount(() => {
+  ownerDocumentOf(anchorRef.value).body.style.overflow = ''
 })
 </script>
 
 <style scoped>
+.app-dialog-anchor {
+  display: none;
+}
+
 .app-dialog-backdrop {
   position: fixed;
   inset: 0;

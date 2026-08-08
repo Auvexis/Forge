@@ -6,7 +6,7 @@
     </div>
 
     <!-- Content -->
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <Transition name="scale">
         <div
           v-if="isOpen"
@@ -23,8 +23,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
 import { vClickOutside } from '@/shared/directives/v-click-outside'
+import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const props = withDefaults(
   defineProps<{
@@ -51,6 +52,7 @@ const isOpen = ref(false)
 const triggerRef = ref<HTMLElement | null>(null)
 const contentRef = ref<HTMLElement | null>(null)
 const triggerRect = ref<DOMRect | null>(null)
+const overlayTarget = useOverlayTarget(triggerRef)
 const emit = defineEmits<{
   open: []
   close: []
@@ -143,13 +145,15 @@ const handleScrollResize = () => {
 }
 
 onMounted(() => {
-  window.addEventListener('scroll', handleScrollResize, true) // capture phase for any scrolling container
-  window.addEventListener('resize', handleScrollResize)
+  const ownerWindow = ownerWindowOf(triggerRef.value)
+  ownerWindow.addEventListener('scroll', handleScrollResize, true) // capture phase for any scrolling container
+  ownerWindow.addEventListener('resize', handleScrollResize)
 })
 
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScrollResize, true)
-  window.removeEventListener('resize', handleScrollResize)
+onBeforeUnmount(() => {
+  const ownerWindow = ownerWindowOf(triggerRef.value)
+  ownerWindow.removeEventListener('scroll', handleScrollResize, true)
+  ownerWindow.removeEventListener('resize', handleScrollResize)
 })
 
 defineExpose({ open, close, toggle, isOpen })

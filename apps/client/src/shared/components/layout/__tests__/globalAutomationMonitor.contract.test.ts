@@ -124,7 +124,7 @@ describe('global automation monitor wiring', () => {
   it('keeps global BaseModal overlays above immersive Pages and Universe layers', () => {
     assert.match(appSource, /<template #overlay>/)
     assert.doesNotMatch(appSource, /<template v-if="!appUiStore\.isUniverseMode" #overlay>/)
-    assert.match(baseModalSource, /<Teleport to="body">/)
+    assert.match(baseModalSource, /<Teleport :to="overlayTarget">/)
     assert.match(baseModalSource, /z-index:\s*2147483000/)
   })
 

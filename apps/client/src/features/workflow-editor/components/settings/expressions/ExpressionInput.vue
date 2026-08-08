@@ -6,6 +6,7 @@ import { insertExpressionToken } from './expressionVariables'
 import ExpressionBadges from './ExpressionBadges.vue'
 import VariablePicker from './VariablePicker.vue'
 import { useVariablePickerPosition } from './useVariablePickerPosition'
+import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 
 const props = withDefaults(
   defineProps<{
@@ -35,6 +36,7 @@ const emit = defineEmits<{
 const isOpen = ref(false)
 const selection = ref<TextSelectionRange | null>(null)
 const rootRef = ref<HTMLElement | null>(null)
+const overlayTarget = useOverlayTarget(rootRef)
 const { pickerRef, pickerStyle, preparePickerPosition, removePickerPositionListeners } =
   useVariablePickerPosition(rootRef)
 
@@ -51,7 +53,7 @@ function selectItem(item: ExpressionItem) {
   const next = insertExpressionToken(String(props.modelValue ?? ''), item.token, selection.value)
   emit('update:modelValue', next)
   isOpen.value = false
-  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
+  ownerDocumentOf(rootRef.value).removeEventListener('pointerdown', onDocumentPointerDown, true)
   removePickerPositionListeners()
 }
 
@@ -65,17 +67,18 @@ function onDocumentPointerDown(event: PointerEvent) {
 
 async function togglePicker() {
   isOpen.value = !isOpen.value
+  const ownerDocument = ownerDocumentOf(rootRef.value)
   if (isOpen.value) {
-    document.addEventListener('pointerdown', onDocumentPointerDown, true)
+    ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true)
     await preparePickerPosition()
   } else {
-    document.removeEventListener('pointerdown', onDocumentPointerDown, true)
+    ownerDocument.removeEventListener('pointerdown', onDocumentPointerDown, true)
     removePickerPositionListeners()
   }
 }
 
 onBeforeUnmount(() => {
-  document.removeEventListener('pointerdown', onDocumentPointerDown, true)
+  ownerDocumentOf(rootRef.value).removeEventListener('pointerdown', onDocumentPointerDown, true)
   removePickerPositionListeners()
 })
 
@@ -111,7 +114,7 @@ defineOptions({ inheritAttrs: false })
 
     <ExpressionBadges :value="modelValue" />
 
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <div
         v-if="isOpen"
         ref="pickerRef"

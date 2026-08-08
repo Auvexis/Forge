@@ -1,5 +1,6 @@
 <template>
-  <Teleport to="body">
+  <span ref="anchorRef" class="app-context-menu-anchor" aria-hidden="true"></span>
+  <Teleport :to="overlayTarget">
     <Transition name="scale">
       <div
         v-if="isOpen"
@@ -17,9 +18,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, provide, onMounted, onUnmounted } from 'vue'
+import { computed, ref, provide, onMounted, onUnmounted } from 'vue'
 import { vClickOutside } from '@/shared/directives/v-click-outside'
 import { useKeyboard } from '@/shared/composables/useKeyboard'
+import { ensureOverlayRoot, ownerDocumentOf, ownerWindowOf } from '@/shared/composables/useOverlayTarget'
 
 const props = withDefaults(
   defineProps<{
@@ -31,7 +33,9 @@ const props = withDefaults(
 const isOpen = ref(false)
 const x = ref(0)
 const y = ref(0)
+const anchorRef = ref<HTMLElement | null>(null)
 const menuRef = ref<HTMLElement | null>(null)
+const overlayTarget = computed(() => ensureOverlayRoot(ownerDocumentOf(props.targetRef ?? anchorRef.value)))
 
 const open = (e: MouseEvent) => {
   e.preventDefault()
@@ -44,12 +48,14 @@ const open = (e: MouseEvent) => {
   let left = e.clientX
   let top = e.clientY
 
-  if (left + menuWidth > window.innerWidth) {
-    left = window.innerWidth - menuWidth - 10
+  const ownerWindow = ownerWindowOf(e.target instanceof Element ? e.target : props.targetRef)
+
+  if (left + menuWidth > ownerWindow.innerWidth) {
+    left = ownerWindow.innerWidth - menuWidth - 10
   }
 
-  if (top + menuHeight > window.innerHeight) {
-    top = window.innerHeight - menuHeight - 10
+  if (top + menuHeight > ownerWindow.innerHeight) {
+    top = ownerWindow.innerHeight - menuHeight - 10
   }
 
   x.value = left
@@ -80,7 +86,7 @@ onMounted(() => {
   if (props.targetRef) {
     props.targetRef.addEventListener('contextmenu', open)
   } else {
-    document.addEventListener('contextmenu', handleGlobalContext)
+    ownerDocumentOf(anchorRef.value).addEventListener('contextmenu', handleGlobalContext)
   }
 })
 
@@ -88,7 +94,7 @@ onUnmounted(() => {
   if (props.targetRef) {
     props.targetRef.removeEventListener('contextmenu', open)
   } else {
-    document.removeEventListener('contextmenu', handleGlobalContext)
+    ownerDocumentOf(anchorRef.value).removeEventListener('contextmenu', handleGlobalContext)
   }
 })
 
@@ -98,6 +104,10 @@ defineExpose({ open, close, isOpen })
 </script>
 
 <style scoped>
+.app-context-menu-anchor {
+  display: none;
+}
+
 .app-context-menu {
   position: fixed;
   z-index: var(--fabric-z-modal);
