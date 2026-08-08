@@ -12,6 +12,8 @@ test('BaseCanvas pans with M2 drag without removing context menu click support',
   assert.match(source, /event\.button === 2/)
   assert.match(source, /startViewportPan\(event\)/)
   assert.match(source, /suppressNextContextMenu/)
+  assert.match(source, /suppressContextMenuUntil = performance\.now\(\) \+ 800/)
+  assert.match(source, /function shouldSuppressContextMenu\(\)/)
   assert.match(source, /pan\.moved && pan\.button === 2/)
   assert.match(source, /emit\('context-menu'/)
 })

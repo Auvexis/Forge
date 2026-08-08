@@ -156,6 +156,7 @@ const canvasRef = ref<HTMLElement | null>(null)
 const suppressNextCanvasClick = ref(false)
 const suppressNextItemClick = ref(false)
 const suppressNextContextMenu = ref(false)
+let suppressContextMenuUntil = 0
 let viewportAnimationFrame: number | null = null
 
 const viewportStyle = computed(() => ({
@@ -262,7 +263,7 @@ function handleItemClick(itemId: string) {
 }
 
 function handleCanvasContextMenu(event: MouseEvent) {
-  if (suppressNextContextMenu.value) {
+  if (shouldSuppressContextMenu()) {
     suppressNextContextMenu.value = false
     event.preventDefault()
     return
@@ -278,7 +279,7 @@ function handleCanvasContextMenu(event: MouseEvent) {
 }
 
 function handleItemContextMenu(event: MouseEvent, itemId: string) {
-  if (suppressNextContextMenu.value) {
+  if (shouldSuppressContextMenu()) {
     suppressNextContextMenu.value = false
     event.preventDefault()
     return
@@ -329,7 +330,7 @@ function moveViewport(event: PointerEvent) {
   const pan = activePan.value
   if (!pan || event.pointerId !== pan.pointerId) return
   pan.moved = pan.moved || Math.hypot(event.clientX - pan.start.x, event.clientY - pan.start.y) >= 3
-  if (pan.moved && pan.button === 2) suppressNextContextMenu.value = true
+  if (pan.moved && pan.button === 2) suppressContextMenuAfterSecondaryPan()
   emit('update:viewport', {
     ...pan.viewport,
     x: pan.viewport.x + event.clientX - pan.start.x,
@@ -340,10 +341,19 @@ function moveViewport(event: PointerEvent) {
 function stopViewportPan(event?: PointerEvent) {
   const pan = activePan.value
   if (event?.type === 'pointerup' && pan?.moved && pan.button === 0) suppressNextCanvasClick.value = true
-  if (event?.type === 'pointerup' && pan?.moved && pan.button === 2) suppressNextContextMenu.value = true
+  if (event?.type === 'pointerup' && pan?.moved && pan.button === 2) suppressContextMenuAfterSecondaryPan()
   activePan.value = null
   window.removeEventListener('pointermove', moveViewport)
   window.removeEventListener('pointercancel', stopViewportPan)
+}
+
+function suppressContextMenuAfterSecondaryPan() {
+  suppressNextContextMenu.value = true
+  suppressContextMenuUntil = performance.now() + 800
+}
+
+function shouldSuppressContextMenu() {
+  return suppressNextContextMenu.value || performance.now() < suppressContextMenuUntil
 }
 
 function handleWheelZoom(event: WheelEvent) {
