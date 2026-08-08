@@ -112,6 +112,8 @@ test('vector store provider plugins add the configured vector store template ins
   const picker = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
   const globalPanel = read('src/features/workflow-editor/components/settings/GlobalAddNodePanel.vue')
 
+  assert.match(picker, /const pluginNeedsMethodSubmenu = \(plugin: PluginSummary\) =>[\s\S]*nodePresentation\?\.template !== 'vector-store'/)
+  assert.match(globalPanel, /const pluginNeedsMethodSubmenu = \(plugin: PluginSummary\) =>[\s\S]*nodePresentation\?\.template !== 'vector-store'/)
   assert.match(picker, /item\.plugin\.manifest\.metadata\.nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNode\(item\.plugin\)/)
   assert.match(picker, /selectGlobalSearchItem[\s\S]*nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNode\(item\.plugin\)/)
   assert.match(globalPanel, /plugin\.manifest\.metadata\.nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNodeAtCenter\(plugin\)/)

@@ -1,0 +1,2 @@
+- [x] Remover indicadores dos providers
+- [x] Validar e commitar

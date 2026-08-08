@@ -168,7 +168,7 @@
                   </span>
                   <span>{{ plugin.manifest.metadata.name }}</span>
                   <span
-                    v-if="pluginActionItems(plugin).length > 1"
+                    v-if="pluginNeedsMethodSubmenu(plugin)"
                     class="global-add-node-panel__method-more"
                   >
                     <LucideIcon name="plus" :size="14" />
@@ -211,7 +211,7 @@
                   </span>
                   <span>{{ plugin.manifest.metadata.name }}</span>
                   <span
-                    v-if="pluginActionItems(plugin).length > 1"
+                    v-if="pluginNeedsMethodSubmenu(plugin)"
                     class="global-add-node-panel__method-more"
                   >
                     <LucideIcon name="plus" :size="14" />
@@ -407,6 +407,10 @@ const pluginStyle = (plugin: PluginSummary) => ({
 })
 
 const pluginActionItems = (plugin: PluginSummary) => buildPickerActionItems({ plugin, search: '' })
+
+const pluginNeedsMethodSubmenu = (plugin: PluginSummary) =>
+  plugin.manifest.metadata.nodePresentation?.template !== 'vector-store' &&
+  pluginActionItems(plugin).length > 1
 
 const filteredSelectedPluginActions = computed(() => {
   if (!selectedPlugin.value) return []

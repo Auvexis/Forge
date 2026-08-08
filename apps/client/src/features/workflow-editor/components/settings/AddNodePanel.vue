@@ -423,9 +423,10 @@ const pluginActionItems = (plugin: PluginSummary) =>
   })
 
 const pluginNeedsMethodSubmenu = (plugin: PluginSummary) =>
-  isEmbeddingContext.value
+  plugin.manifest.metadata.nodePresentation?.template !== 'vector-store' &&
+  (isEmbeddingContext.value
     ? buildEmbeddingProviderItems({ plugins: [plugin] }).length > 0
-    : pluginActionItems(plugin).length > 1
+    : pluginActionItems(plugin).length > 1)
 
 const openMethodSubmenu = (plugin: PluginSummary) => {
   vectorStoreProviderPickerOpen.value = false
