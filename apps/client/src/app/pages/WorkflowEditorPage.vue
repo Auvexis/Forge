@@ -1162,20 +1162,6 @@ watch(
               class="workflow-status-bar__button"
               :class="{
                 'workflow-status-bar__button--active':
-                  isBottomPanelOpen && activeBottomPanelView === 'tree',
-              }"
-              type="button"
-              @click="toggleBottomPanel('tree')"
-            >
-              <LucideIcon name="list-tree" :size="13" />
-              <span>Tree</span>
-              <code>{{ workflowNodeCount }} nodes</code>
-            </button>
-
-            <button
-              class="workflow-status-bar__button"
-              :class="{
-                'workflow-status-bar__button--active':
                   isBottomPanelOpen && activeBottomPanelView === 'variables',
               }"
               type="button"

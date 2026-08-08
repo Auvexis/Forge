@@ -27,7 +27,7 @@ export async function checkDesktopUpdate(
   currentVersion: string,
   channel: DesktopUpdateChannel = "safe",
 ): Promise<DesktopUpdateInfo> {
-  const releases = await fetchReleases();
+  const releases = await fetchReleases().catch(() => []);
   const release = releases.find((candidate) => isEligibleRelease(candidate, channel));
 
   if (!release) {

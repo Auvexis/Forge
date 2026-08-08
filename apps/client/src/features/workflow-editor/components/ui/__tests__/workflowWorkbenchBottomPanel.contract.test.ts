@@ -21,7 +21,7 @@ const workflowPageSource = readFileSync(
 )
 
 test('workflow bottom panel renders the selected view without internal tabs', () => {
-  assert.match(source, /export type WorkflowBottomPanelView = 'timeline' \| 'tree' \| 'execution' \| 'variables'/)
+  assert.match(source, /export type WorkflowBottomPanelView = 'timeline' \| 'execution' \| 'variables'/)
   assert.match(source, /activeView === 'timeline'/)
   assert.match(source, /orderedTimelineNodes/)
   assert.match(source, /pluginsApi/)
@@ -207,7 +207,7 @@ test('workflow bottom panel renders the selected view without internal tabs', ()
   assert.doesNotMatch(source, /scrollIntoView/)
   assert.match(source, /scrollTimelineNodeIntoView\(nodeId\)/)
   assert.match(source, /<ExecutionBottomPanel v-else-if="activeView === 'execution'"/)
-  assert.match(source, /activeView === 'tree'/)
+  assert.doesNotMatch(source, /activeView === 'tree'/)
   assert.match(source, /v-else class="workflow-bottom-panel__view workflow-variables"/)
   assert.match(source, /saveVariable/)
   assert.match(source, /editVariable/)

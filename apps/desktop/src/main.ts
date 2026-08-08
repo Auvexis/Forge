@@ -137,6 +137,7 @@ function createMainWindow(): BrowserWindow {
   window.on("restore", sendWindowState);
   window.on("enter-full-screen", sendWindowState);
   window.on("leave-full-screen", sendWindowState);
+  window.webContents.once("did-finish-load", sendWindowState);
   window.on("minimize" as never, (event: ElectronEvent) => {
     if (!desktopPreferences.minimizeToTray) return;
     event.preventDefault();
@@ -147,7 +148,10 @@ function createMainWindow(): BrowserWindow {
     event.preventDefault();
     window.hide();
   });
-  window.once("ready-to-show", () => window.show());
+  window.once("ready-to-show", () => {
+    sendWindowState();
+    window.show();
+  });
   workspaceWindowManager = new WorkspaceWindowManager(
     path.join(__dirname, "preload.js"),
     createAppIcon(),

@@ -16,7 +16,7 @@ import type { WorkflowNode, WorkflowVariable } from '@/core/types/workflow.types
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
 
-export type WorkflowBottomPanelView = 'timeline' | 'tree' | 'execution' | 'variables'
+export type WorkflowBottomPanelView = 'timeline' | 'execution' | 'variables'
 
 type TimelineNodeStatus = NodeExecutionStatus | 'cancelled' | 'info'
 interface WorkflowTimelineNode {
@@ -723,14 +723,12 @@ const timelineBranchLanes = computed<WorkflowTimelineLane[]>(() => {
 })
 
 const panelTitle = computed(() => {
-  if (props.activeView === 'tree') return 'Workflow tree'
   if (props.activeView === 'execution') return 'Execution'
   if (props.activeView === 'variables') return 'Variables'
   return 'Timeline'
 })
 
 const panelMeta = computed(() => {
-  if (props.activeView === 'tree') return `${workflowNodes.value.length} nodes`
   if (props.activeView === 'variables') return `${workflowVariables.value.length} local`
   if (props.activeView === 'execution') return `${executionStore.timeline.length} events`
   return ''
@@ -1169,22 +1167,6 @@ onBeforeUnmount(() => {
           </div>
         </div>
       </div>
-    </div>
-
-    <div v-else-if="activeView === 'tree'" class="workflow-bottom-panel__view">
-      <div v-if="workflowNodes.length" class="workflow-bottom-panel__rows">
-        <button
-          v-for="node in workflowNodes"
-          :key="node.id"
-          class="workflow-bottom-panel__row"
-          type="button"
-        >
-          <LucideIcon name="box" :size="14" />
-          <span>{{ node.name }}</span>
-          <code>{{ node.type }}</code>
-        </button>
-      </div>
-      <div v-else class="workflow-bottom-panel__empty">No nodes added.</div>
     </div>
 
     <ExecutionBottomPanel v-else-if="activeView === 'execution'" />

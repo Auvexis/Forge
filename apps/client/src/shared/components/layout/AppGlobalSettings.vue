@@ -101,52 +101,50 @@
         <!-- ── Bodies (Slide Up) ────────────────────────────────────── -->
         <transition name="slide-up" mode="out-in">
           <!-- Variables Body -->
-          <div v-if="activeTab === 'variables'" key="body-var" class="gs-pref-list">
-            <!-- Add form -->
-            <div
-              class="gs-pref-row"
-              style="
-                flex-direction: column;
-                align-items: stretch;
-                gap: 1rem;
-                border-bottom: 1px solid var(--fabric-app-global-settings-border);
-                padding-bottom: 1.5rem;
-                margin-bottom: 0.5rem;
-              "
-            >
-              <div class="gs-pref-row__label">
-                <LucideIcon name="plus" :size="16" />
+          <div v-if="activeTab === 'variables'" key="body-var" class="gs-vars">
+            <section class="gs-vars__composer" aria-label="Create environment variable">
+              <div class="gs-vars__composer-head">
+                <span class="gs-vars__composer-icon">
+                  <LucideIcon name="plus" :size="15" />
+                </span>
                 <div>
-                  <span class="gs-pref-row__name">Add Variable</span>
-                  <span class="gs-pref-row__hint">Create a new environment variable</span>
+                  <strong>Add Variable</strong>
+                  <span>Create values available as <code class="gs-code" v-pre>{{ env.KEY }}</code></span>
                 </div>
               </div>
-              <div style="display: flex; gap: 0.75rem; align-items: flex-start">
-                <div style="flex: 1">
-                  <BaseInput v-model="newVar.key" placeholder="KEY_NAME" :error="newVar.keyError" />
-                </div>
-                <div style="flex: 1; display: flex; align-items: center; gap: 0.25rem">
-                  <BaseInput
-                    v-model="newVar.value"
-                    placeholder="Value"
-                    :type="showNewVarValue ? 'text' : 'password'"
-                    style="flex: 1"
-                  />
-                  <BaseButton
-                    variant="ghost"
-                    size="icon"
-                    :title="showNewVarValue ? 'Hide value' : 'Show value'"
-                    @click="showNewVarValue = !showNewVarValue"
-                  >
-                    <template #left>
-                      <LucideIcon :name="showNewVarValue ? 'eye-off' : 'eye'" :size="15" />
-                    </template>
-                  </BaseButton>
-                </div>
-                <div style="flex: 1.5">
-                  <BaseInput v-model="newVar.description" placeholder="Description (optional)" />
-                </div>
+
+              <div class="gs-vars__form">
+                <label class="gs-vars__field">
+                  <span>Key</span>
+                  <BaseInput v-model="newVar.key" placeholder="KEY_NAME" :error="newVar.keyError" spellcheck="false" />
+                </label>
+                <label class="gs-vars__field">
+                  <span>Value</span>
+                  <div class="gs-vars__secret-field">
+                    <BaseInput
+                      v-model="newVar.value"
+                      placeholder="Value"
+                      :type="showNewVarValue ? 'text' : 'password'"
+                      spellcheck="false"
+                    />
+                    <BaseButton
+                      variant="ghost"
+                      size="icon"
+                      :title="showNewVarValue ? 'Hide value' : 'Show value'"
+                      @click="showNewVarValue = !showNewVarValue"
+                    >
+                      <template #left>
+                        <LucideIcon :name="showNewVarValue ? 'eye-off' : 'eye'" :size="15" />
+                      </template>
+                    </BaseButton>
+                  </div>
+                </label>
+                <label class="gs-vars__field gs-vars__field--description">
+                  <span>Description</span>
+                  <BaseInput v-model="newVar.description" placeholder="Optional" />
+                </label>
                 <BaseButton
+                  class="gs-vars__add"
                   variant="primary"
                   :loading="isSavingVar"
                   :disabled="!newVar.key.trim()"
@@ -155,43 +153,36 @@
                   Add
                 </BaseButton>
               </div>
+            </section>
+
+            <div class="gs-vars__list-head">
+              <span>{{ store.variables.length }} variables</span>
+              <code>env.*</code>
             </div>
 
-            <!-- Loading -->
-            <div v-if="store.isLoadingVariables" class="gs-state" style="padding: 2rem">
+            <div v-if="store.isLoadingVariables" class="gs-state">
               <LucideIcon name="loader-2" :size="18" class="gs-spin" />
             </div>
 
-            <!-- Empty -->
-            <div v-else-if="store.variables.length === 0" class="gs-state" style="padding: 2rem">
+            <div v-else-if="store.variables.length === 0" class="gs-state gs-vars__empty">
               <LucideIcon name="key-round" :size="24" />
-              <p>No variables yet</p>
+              <strong>No variables yet</strong>
+              <span>Add the first environment variable above.</span>
             </div>
 
-            <!-- List -->
-            <template v-else>
-              <div v-for="v in store.variables" :key="v.key" class="gs-pref-row">
-                <div class="gs-pref-row__label">
-                  <LucideIcon name="key-round" :size="16" />
-                  <div>
-                    <span
-                      class="gs-pref-row__name"
-                      style="font-family: monospace; font-size: 0.9em"
-                      >{{ v.key }}</span
-                    >
-                    <span class="gs-pref-row__hint">{{ v.description || 'No description' }}</span>
-                  </div>
+            <div v-else class="gs-vars__rows">
+              <article v-for="v in store.variables" :key="v.key" class="gs-vars__row">
+                <span class="gs-vars__key-icon">
+                  <LucideIcon name="key-round" :size="14" />
+                </span>
+                <div class="gs-vars__identity">
+                  <strong>{{ v.key }}</strong>
+                  <span>{{ v.description || 'No description' }}</span>
                 </div>
-
-                <div style="display: flex; align-items: center; gap: 0.5rem">
+                <code class="gs-vars__token">env.{{ v.key }}</code>
+                <div class="gs-vars__actions">
                   <code
-                    class="gs-code"
-                    style="
-                      max-width: 200px;
-                      overflow: hidden;
-                      text-overflow: ellipsis;
-                      white-space: nowrap;
-                    "
+                    class="gs-vars__value"
                     :title="revealedVars[v.key] ? v.value : 'Click eye to reveal'"
                   >
                     {{ revealedVars[v.key] ? v.value : '••••••••••••••••' }}
@@ -218,8 +209,8 @@
                     </template>
                   </BaseButton>
                 </div>
-              </div>
-            </template>
+              </article>
+            </div>
           </div>
 
           <!-- Credentials Body -->

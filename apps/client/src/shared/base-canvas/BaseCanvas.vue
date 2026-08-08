@@ -155,6 +155,7 @@ const isSpacePressed = ref(false)
 const canvasRef = ref<HTMLElement | null>(null)
 const suppressNextCanvasClick = ref(false)
 const suppressNextItemClick = ref(false)
+const suppressNextContextMenu = ref(false)
 let viewportAnimationFrame: number | null = null
 
 const viewportStyle = computed(() => ({
@@ -261,6 +262,11 @@ function handleItemClick(itemId: string) {
 }
 
 function handleCanvasContextMenu(event: MouseEvent) {
+  if (suppressNextContextMenu.value) {
+    suppressNextContextMenu.value = false
+    event.preventDefault()
+    return
+  }
   if (!props.contextMenu) return
   event.preventDefault()
   emit('context-menu', {
@@ -272,6 +278,11 @@ function handleCanvasContextMenu(event: MouseEvent) {
 }
 
 function handleItemContextMenu(event: MouseEvent, itemId: string) {
+  if (suppressNextContextMenu.value) {
+    suppressNextContextMenu.value = false
+    event.preventDefault()
+    return
+  }
   if (!props.contextMenu) return
   event.preventDefault()
   emit('context-menu', {
@@ -283,7 +294,7 @@ function handleItemContextMenu(event: MouseEvent, itemId: string) {
 }
 
 function startCanvasPointer(event: PointerEvent) {
-  if (event.button === 1 || (event.button === 0 && isSpacePressed.value)) {
+  if (event.button === 1 || event.button === 2 || (event.button === 0 && isSpacePressed.value)) {
     startViewportPan(event)
     return
   }
@@ -292,7 +303,7 @@ function startCanvasPointer(event: PointerEvent) {
 }
 
 function handleItemPointerDown(event: PointerEvent, item: BaseCanvasItem) {
-  if (event.button === 1 || (event.button === 0 && isSpacePressed.value)) {
+  if (event.button === 1 || event.button === 2 || (event.button === 0 && isSpacePressed.value)) {
     startViewportPan(event)
     return
   }
@@ -318,6 +329,7 @@ function moveViewport(event: PointerEvent) {
   const pan = activePan.value
   if (!pan || event.pointerId !== pan.pointerId) return
   pan.moved = pan.moved || Math.hypot(event.clientX - pan.start.x, event.clientY - pan.start.y) >= 3
+  if (pan.moved && pan.button === 2) suppressNextContextMenu.value = true
   emit('update:viewport', {
     ...pan.viewport,
     x: pan.viewport.x + event.clientX - pan.start.x,
@@ -328,6 +340,7 @@ function moveViewport(event: PointerEvent) {
 function stopViewportPan(event?: PointerEvent) {
   const pan = activePan.value
   if (event?.type === 'pointerup' && pan?.moved && pan.button === 0) suppressNextCanvasClick.value = true
+  if (event?.type === 'pointerup' && pan?.moved && pan.button === 2) suppressNextContextMenu.value = true
   activePan.value = null
   window.removeEventListener('pointermove', moveViewport)
   window.removeEventListener('pointercancel', stopViewportPan)
