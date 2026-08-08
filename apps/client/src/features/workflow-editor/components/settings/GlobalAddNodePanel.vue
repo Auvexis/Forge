@@ -649,6 +649,11 @@ const preventClickAfterDrag = (event: MouseEvent) => {
 
 const selectPlugin = (plugin: PluginSummary) => {
   vectorStoreProviderPickerOpen.value = false
+  if (plugin.manifest.metadata.nodePresentation?.template === 'vector-store') {
+    addVectorStoreNodeAtCenter(plugin)
+    return
+  }
+
   const actions = pluginActionItems(plugin)
   if (actions.length === 1) {
     const action = actions[0]

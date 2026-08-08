@@ -108,6 +108,15 @@ test('global add node panel opens vector store provider picker before adding a n
   assert.doesNotMatch(panel, /@click="props\.onAddLogicNodeAtCenter\?\.\(item\.nodeType, item\.defaults\)"/)
 })
 
+test('vector store provider plugins add the configured vector store template instead of raw plugin methods', () => {
+  const picker = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
+  const globalPanel = read('src/features/workflow-editor/components/settings/GlobalAddNodePanel.vue')
+
+  assert.match(picker, /item\.plugin\.manifest\.metadata\.nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNode\(item\.plugin\)/)
+  assert.match(picker, /selectGlobalSearchItem[\s\S]*nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNode\(item\.plugin\)/)
+  assert.match(globalPanel, /plugin\.manifest\.metadata\.nodePresentation\?\.template === 'vector-store'[\s\S]*addVectorStoreNodeAtCenter\(plugin\)/)
+})
+
 test('embedding quick-add uses a vector config context separate from agent config', () => {
   const panel = read('src/features/workflow-editor/components/settings/AddNodePanel.vue')
   const canvas = read('src/features/workflow-editor/components/WorkflowBaseCanvas.vue')

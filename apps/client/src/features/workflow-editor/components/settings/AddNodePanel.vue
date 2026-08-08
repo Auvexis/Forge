@@ -469,6 +469,11 @@ const selectSecondColumnItem = (item: AddNodePickerSecondColumnItem) => {
     return
   }
 
+  if (item.plugin.manifest.metadata.nodePresentation?.template === 'vector-store') {
+    addVectorStoreNode(item.plugin)
+    return
+  }
+
   if (isAgentModelContext.value) {
     addAgentModelNode(item.plugin)
     return
@@ -527,6 +532,14 @@ const addVectorStoreNode = (plugin: PluginSummary) => {
 }
 
 const selectGlobalSearchItem = (item: AddNodePickerSecondColumnItem) => {
+  if (
+    item.kind === 'plugin' &&
+    item.plugin.manifest.metadata.nodePresentation?.template === 'vector-store'
+  ) {
+    addVectorStoreNode(item.plugin)
+    return
+  }
+
   if (item.kind === 'plugin') {
     const category = item.plugin.manifest.metadata.utility === true
       ? 'Utilities'
