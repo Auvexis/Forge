@@ -84,7 +84,7 @@
   },
   "dependencies": {
     "@auvexis/accounts": "^0.1.13",
-    "@auvexis/fabric-sdk": "3.0.0",
+    "@auvexis/fabric-sdk": "3.1.0",
     "@fastify/cors": "^11.2.0",
     "@fastify/formbody": "^8.0.2",
     "@fastify/multipart": "^9.4.0",

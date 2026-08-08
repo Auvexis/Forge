@@ -79,7 +79,8 @@ const CONTEXTUAL_ONLY_NODE_TYPES = new Set<WorkflowNodeType>([
 ])
 
 export function isVectorStoreProvider(plugin: PluginSummary): boolean {
-  return VECTOR_STORE_METHODS.every((methodKey) => methodKey in plugin.manifest.methods)
+  return plugin.manifest.metadata.nodePresentation?.template === 'vector-store' ||
+    VECTOR_STORE_METHODS.every((methodKey) => methodKey in plugin.manifest.methods)
 }
 
 export function buildVectorStoreProviderItems(options: {
@@ -96,8 +97,8 @@ export function buildVectorStoreProviderItems(options: {
     .map((plugin) => ({
       id: `vector-store-provider:${plugin.id}`,
       plugin,
-      label: plugin.manifest.metadata.name,
-      description: plugin.manifest.metadata.description,
+      label: plugin.manifest.metadata.nodePresentation?.label ?? plugin.manifest.metadata.name,
+      description: plugin.manifest.metadata.nodePresentation?.description ?? plugin.manifest.metadata.description,
       icon: plugin.manifest.metadata.icon || 'database-zap',
     }))
 }

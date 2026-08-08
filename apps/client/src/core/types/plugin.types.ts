@@ -83,6 +83,21 @@ export interface PluginAgentCapabilities {
   memoryStore?: PluginAgentMemoryStoreCapability
 }
 
+export type PluginNodeTemplate =
+  | 'default'
+  | 'vector-store'
+  | 'embedding-model'
+  | 'chat-model'
+  | 'memory-store'
+  | 'agent-tool'
+
+export interface PluginNodePresentation {
+  template: PluginNodeTemplate
+  createsNodeType?: string
+  label?: string
+  description?: string
+}
+
 export interface PluginMetadata {
   id: string
   name: string
@@ -95,6 +110,7 @@ export interface PluginMetadata {
   version: string
   repository: string
   utility?: boolean
+  nodePresentation?: PluginNodePresentation
   agentCapabilities?: PluginAgentCapabilities
   style?: {
     icon?: string

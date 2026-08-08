@@ -141,6 +141,43 @@ test('vector store preset lists only plugins implementing the generic provider c
   assert.deepEqual(items.map((item) => item.plugin.id), ['vector-provider'])
 })
 
+test('vector store provider picker prefers explicit SDK node presentation metadata', () => {
+  const vectorProvider = plugin({
+    id: 'vector-provider',
+    manifest: {
+      metadata: {
+        id: 'vector-provider',
+        name: 'Vector Provider',
+        description: 'Stores vectors',
+        icon: 'database-zap',
+        categories: ['AI'],
+        author: 'Test',
+        version: '1.0.0',
+        repository: '',
+        nodePresentation: {
+          template: 'vector-store',
+          createsNodeType: 'vector-store',
+          label: 'Vector Provider Store',
+          description: 'Create a vector store from this provider',
+        },
+      },
+      methods: {
+        ping: {
+          metadata: { label: 'Ping', description: 'Ping' },
+          parameters: { type: 'object' },
+          responseSchema: { type: 'object' },
+        },
+      },
+    },
+  })
+
+  const items = buildVectorStoreProviderItems({ plugins: [vectorProvider] })
+
+  assert.deepEqual(items.map((item) => [item.label, item.description]), [
+    ['Vector Provider Store', 'Create a vector store from this provider'],
+  ])
+})
+
 test('embedding picker exposes provider models first and their embedding methods second', () => {
   const openai = plugin({
     id: 'fabric-openai',

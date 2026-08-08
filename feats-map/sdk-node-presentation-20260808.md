@@ -1,0 +1,4 @@
+- [x] Atualizar contrato no SDK
+- [x] Publicar nova versao do SDK
+- [x] Usar nodePresentation no Fabric
+- [x] Validar e commitar

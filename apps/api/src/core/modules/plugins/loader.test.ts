@@ -417,6 +417,36 @@ describe("loadPlugins", () => {
     assert.deepEqual(errors, []);
   });
 
+  it("accepts plugin node presentation metadata through the public Fabric SDK contract", () => {
+    const errors = validateManifest({
+      metadata: {
+        id: "sdk-contract-plugin",
+        name: "SDK Contract Plugin",
+        description: "Checks SDK node presentation metadata",
+        icon: "plug",
+        categories: ["AI"],
+        nodePresentation: {
+          template: "vector-store",
+          createsNodeType: "vector-store",
+          label: "SDK Vector Store",
+          description: "Create a configured vector store node.",
+        },
+        author: "FABRIC",
+        version: "1.0.0",
+        repository: "",
+      },
+      methods: {
+        ping: {
+          metadata: { label: "Ping", description: "Ping" },
+          parameters: { type: "object", properties: {} },
+          responseSchema: { type: "object", properties: {} },
+        },
+      },
+    });
+
+    assert.deepEqual(errors, []);
+  });
+
   it("rejects legacy method ui metadata through the public Fabric SDK contract", () => {
     const errors = validateManifest({
       metadata: {

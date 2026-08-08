@@ -45,7 +45,9 @@ export function pluginAllowedNodeCapabilities(plugin: PluginSummary): string[] {
   if (buildEmbeddingProviderItems({ plugins: [plugin] }).length > 0) {
     capabilities.push('embedding-model')
   }
-  if (isVectorStoreProvider(plugin)) capabilities.push('vector-store-provider')
+  if (plugin.manifest.metadata.nodePresentation?.template === 'vector-store' || isVectorStoreProvider(plugin)) {
+    capabilities.push('vector-store-provider')
+  }
 
   return capabilities
 }

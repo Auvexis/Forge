@@ -8,6 +8,12 @@ export default definePluginManifest({
     iconDark: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qdrant.svg",
     iconLight: "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/qdrant-light.svg",
     categories: ["AI", "Data transformation"],
+    nodePresentation: {
+      template: "vector-store",
+      createsNodeType: "vector-store",
+      label: "Qdrant Vector Store",
+      description: "Create a provider-backed Vector Store node using Qdrant.",
+    },
     author: "Fabric",
     version: "1.0.0",
     repository: "https://github.com/Auvexis/fabric",

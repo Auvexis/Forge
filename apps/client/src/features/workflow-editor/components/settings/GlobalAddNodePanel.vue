@@ -265,7 +265,6 @@ import {
   buildPickerActionItems,
   catalogItemsToPickerPresets,
   filterDefaultPickerPresets,
-  isVectorStoreProvider,
   type AddNodePickerPreset,
 } from './addNodePickerModel'
 
@@ -380,7 +379,7 @@ const filteredVectorStoreProviderItems = computed(() =>
   ),
 )
 
-const pluginItems = computed(() => (plugins.value ?? []).filter((plugin) => !isVectorStoreProvider(plugin)))
+const pluginItems = computed(() => plugins.value ?? [])
 
 const utilityPluginItems = computed(() =>
   pluginItems.value

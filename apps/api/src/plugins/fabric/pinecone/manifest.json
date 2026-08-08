@@ -5,6 +5,12 @@
     "description": "Use Pinecone Cloud or Pinecone Local as a vector store provider.",
     "icon": "https://cdn.brandfetch.io/idCLuo1dQ8/w/178/h/178/theme/dark/icon.png?c=1dxbfHSJFAPEGdCLU4o5B",
     "categories": ["AI", "Data transformation"],
+    "nodePresentation": {
+      "template": "vector-store",
+      "createsNodeType": "vector-store",
+      "label": "Pinecone Vector Store",
+      "description": "Create a provider-backed Vector Store node using Pinecone."
+    },
     "author": "Fabric",
     "version": "1.0.0",
     "repository": "https://github.com/Auvexis/fabric"

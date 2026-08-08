@@ -14,6 +14,7 @@ function plugin(options: {
   agentTool?: boolean
   embedding?: boolean
   vectorStore?: boolean
+  vectorStorePresentation?: boolean
 }): PluginSummary {
   const methods: Record<string, any> = {}
   if (options.agentTool) {
@@ -55,6 +56,9 @@ function plugin(options: {
         author: 'Test',
         version: '1.0.0',
         repository: '',
+        nodePresentation: options.vectorStorePresentation
+          ? { template: 'vector-store', createsNodeType: 'vector-store' }
+          : undefined,
         agentCapabilities: {
           chatModel: options.chatModel ? { enabled: true } : undefined,
           memoryStore: options.memoryStore ? { enabled: true } : undefined,
@@ -147,4 +151,5 @@ test('plugin capabilities derive from manifests instead of plugin names', () => 
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'tool', agentTool: true })), ['agent-tool'])
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'embedding', embedding: true })), ['embedding-model'])
   assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'vector', vectorStore: true })), ['vector-store-provider'])
+  assert.deepEqual(pluginAllowedNodeCapabilities(plugin({ id: 'vector-meta', vectorStorePresentation: true })), ['vector-store-provider'])
 })
