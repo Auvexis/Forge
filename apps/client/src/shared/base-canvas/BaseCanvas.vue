@@ -226,12 +226,14 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeyDown)
   window.addEventListener('keyup', handleKeyUp)
   window.addEventListener('blur', stopActiveGestures)
+  window.addEventListener('contextmenu', handleSuppressedWindowContextMenu, true)
 })
 
 onBeforeUnmount(() => {
   window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('keyup', handleKeyUp)
   window.removeEventListener('blur', stopActiveGestures)
+  window.removeEventListener('contextmenu', handleSuppressedWindowContextMenu, true)
   cancelViewportAnimation()
   stopActiveGestures()
 })
@@ -264,8 +266,7 @@ function handleItemClick(itemId: string) {
 
 function handleCanvasContextMenu(event: MouseEvent) {
   if (shouldSuppressContextMenu()) {
-    suppressNextContextMenu.value = false
-    event.preventDefault()
+    suppressContextMenuEvent(event)
     return
   }
   if (!props.contextMenu) return
@@ -280,8 +281,7 @@ function handleCanvasContextMenu(event: MouseEvent) {
 
 function handleItemContextMenu(event: MouseEvent, itemId: string) {
   if (shouldSuppressContextMenu()) {
-    suppressNextContextMenu.value = false
-    event.preventDefault()
+    suppressContextMenuEvent(event)
     return
   }
   if (!props.contextMenu) return
@@ -349,11 +349,23 @@ function stopViewportPan(event?: PointerEvent) {
 
 function suppressContextMenuAfterSecondaryPan() {
   suppressNextContextMenu.value = true
-  suppressContextMenuUntil = performance.now() + 800
+  suppressContextMenuUntil = performance.now() + 1500
 }
 
 function shouldSuppressContextMenu() {
   return suppressNextContextMenu.value || performance.now() < suppressContextMenuUntil
+}
+
+function suppressContextMenuEvent(event: Event) {
+  suppressNextContextMenu.value = false
+  event.preventDefault()
+  event.stopPropagation()
+  if ('stopImmediatePropagation' in event) event.stopImmediatePropagation()
+}
+
+function handleSuppressedWindowContextMenu(event: MouseEvent) {
+  if (!shouldSuppressContextMenu()) return
+  suppressContextMenuEvent(event)
 }
 
 function handleWheelZoom(event: WheelEvent) {
