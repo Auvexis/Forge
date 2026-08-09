@@ -1,5 +1,10 @@
 <template>
-  <main class="pe" :class="{ 'page-exit': exiting }" data-testid="profile-selection-page">
+  <main
+    class="pe"
+    :class="{ 'page-exit': exiting, 'pe--desktop': isDesktopWindow }"
+    data-testid="profile-selection-page"
+  >
+    <BaseDesktopTopBar title="Fabric" />
     <Transition name="pe-fade" mode="out-in">
       <!-- ══ LIST VIEW — full screen ══════════════════════ -->
       <div v-if="mode === 'list'" class="pe__full" key="list">
@@ -260,8 +265,9 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import BaseDesktopTopBar from '@/shared/components/base/BaseDesktopTopBar.vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useProfileStore } from '@/shared/stores/profile.store'
 import type { ProfileSummary } from '@/core/api/profiles.api'
@@ -274,6 +280,9 @@ import { useTheme } from '@/shared/composables/useTheme'
 const emit = defineEmits<{ entered: [] }>()
 const { logoSrc } = useTheme()
 const profileStore = useProfileStore()
+const isDesktopWindow = computed(
+  () => typeof window !== 'undefined' && window.fabricDesktop?.isDesktop === true,
+)
 const mode = ref<'list' | 'password' | 'create' | 'delete'>('list')
 const selectedProfile = ref<ProfileSummary | null>(null)
 const password = ref('')
@@ -412,6 +421,10 @@ function canDeleteProfile(profile: ProfileSummary) {
   background-color: var(--fabric-profile-selection-page-bg-base);
 }
 
+.pe--desktop {
+  min-height: 100vh;
+}
+
 /* ── Full-screen list view ────────────────────────────── */
 .pe__full {
   min-height: 100vh;
@@ -423,11 +436,19 @@ function canDeleteProfile(profile: ProfileSummary) {
   position: relative;
 }
 
+.pe--desktop .pe__full {
+  min-height: calc(100vh - 40px);
+}
+
 /* ── Split layout ───────────────────────────────────── */
 .pe__split {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 1fr 1fr;
+}
+
+.pe--desktop .pe__split {
+  min-height: calc(100vh - 40px);
 }
 
 .pe__split--password {

@@ -46,3 +46,12 @@ describe('profile form back buttons', () => {
     assert.match(source, /icon-left="arrow-left"/)
   })
 })
+
+describe('profile selection desktop chrome', () => {
+  it('renders the reusable desktop topbar on profile selection screens', () => {
+    assert.match(source, /<BaseDesktopTopBar title="Fabric" \/>/)
+    assert.match(source, /import BaseDesktopTopBar/)
+    assert.match(source, /'pe--desktop': isDesktopWindow/)
+    assert.match(source, /window\.fabricDesktop\?\.isDesktop === true/)
+  })
+})
