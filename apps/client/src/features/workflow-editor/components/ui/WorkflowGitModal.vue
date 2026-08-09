@@ -1,70 +1,100 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch } from "vue";
 import {
   workflowsApi,
   type WorkflowGitSnapshotFile,
   type WorkflowGitSnapshotStatus,
   type WorkflowGitSnapshotSummary,
-} from '@/core/api/workflows.api'
-import type { WorkflowItem } from '@/core/types/workflow.types'
-import { buildWorkflowJsonDiff, type WorkflowGitDiffLine } from '@/features/workflow-editor/utils/workflowGitDiff'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
-import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
-import BaseInput from '@/shared/components/base/BaseInput.vue'
-import BaseModal from '@/shared/components/base/BaseModal.vue'
-import BaseTextarea from '@/shared/components/base/BaseTextarea.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
+} from "@/core/api/workflows.api";
+import type { WorkflowItem } from "@/core/types/workflow.types";
+import {
+  buildWorkflowJsonDiff,
+  type WorkflowGitDiffLine,
+} from "@/features/workflow-editor/utils/workflowGitDiff";
+import BaseButton from "@/shared/components/base/BaseButton.vue";
+import BaseDropdownSelect, {
+  type BaseDropdownSelectOption,
+} from "@/shared/components/base/BaseDropdownSelect.vue";
+import BaseInput from "@/shared/components/base/BaseInput.vue";
+import BaseModal from "@/shared/components/base/BaseModal.vue";
+import BaseTextarea from "@/shared/components/base/BaseTextarea.vue";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
 
 const props = defineProps<{
-  isOpen: boolean
-  workflow: WorkflowItem
-  gitStatus: WorkflowGitSnapshotStatus | null
-  isCommitting?: boolean
-  refreshKey?: number
-}>()
+  isOpen: boolean;
+  workflow: WorkflowItem;
+  gitStatus: WorkflowGitSnapshotStatus | null;
+  isCommitting?: boolean;
+  refreshKey?: number;
+}>();
 
 const emit = defineEmits<{
-  (e: 'close'): void
-  (e: 'commit', message: string): void
-  (e: 'restore', hash: string): void
-}>()
+  (e: "close"): void;
+  (e: "commit", message: string): void;
+  (e: "restore", hash: string): void;
+}>();
 
-const latestSnapshot = ref<WorkflowGitSnapshotFile | null>(null)
-const snapshots = ref<WorkflowGitSnapshotSummary[]>([])
-const selectedSnapshotHash = ref('')
-const isLoadingSnapshots = ref(false)
-const snapshotError = ref('')
-const summary = ref('')
-const description = ref('')
+const latestSnapshot = ref<WorkflowGitSnapshotFile | null>(null);
+const snapshots = ref<WorkflowGitSnapshotSummary[]>([]);
+const selectedSnapshotHash = ref("");
+const isLoadingSnapshots = ref(false);
+const snapshotError = ref("");
+const summary = ref("");
+const description = ref("");
 
 interface JsonToken {
-  value: string
-  type: 'key' | 'string' | 'number' | 'boolean' | 'null' | 'punctuation' | 'plain'
+  value: string;
+  type:
+    | "key"
+    | "string"
+    | "number"
+    | "boolean"
+    | "null"
+    | "punctuation"
+    | "plain";
 }
 
-const liveWorkflowJson = computed(() => JSON.stringify(props.workflow, null, 2))
-const latestWorkflowJson = computed(() => latestSnapshot.value?.rawWorkflowJson ?? '')
+const liveWorkflowJson = computed(() =>
+  JSON.stringify(props.workflow, null, 2),
+);
+const latestWorkflowJson = computed(
+  () => latestSnapshot.value?.rawWorkflowJson ?? "",
+);
 const diffLines = computed<WorkflowGitDiffLine[]>(() =>
   buildWorkflowJsonDiff(latestWorkflowJson.value, liveWorkflowJson.value),
-)
-const changedLines = computed(() => diffLines.value.filter((line) => line.type !== 'unchanged'))
-const changedFileCount = computed(() => (changedLines.value.length > 0 ? 1 : 0))
-const commitHash = computed(() => props.gitStatus?.latestCommit?.shortHash ?? 'no commits')
-const branchLabel = computed(() => props.gitStatus?.branch ?? 'HEAD')
+);
+const changedLines = computed(() =>
+  diffLines.value.filter((line) => line.type !== "unchanged"),
+);
+const changedFileCount = computed(() =>
+  changedLines.value.length > 0 ? 1 : 0,
+);
+const commitHash = computed(
+  () => props.gitStatus?.latestCommit?.shortHash ?? "no commits",
+);
+const branchLabel = computed(() => props.gitStatus?.branch ?? "HEAD");
 const selectedSnapshotLabel = computed(() => {
-  const selected = snapshots.value.find((snapshot) => snapshot.hash === selectedSnapshotHash.value)
-  if (!selected) return 'Latest commit'
-  return `${selected.shortHash} - ${selected.message}`
-})
+  const selected = snapshots.value.find(
+    (snapshot) => snapshot.hash === selectedSnapshotHash.value,
+  );
+  if (!selected) return "Latest commit";
+  return `${selected.shortHash} - ${selected.message}`;
+});
 const versionOptions = computed<BaseDropdownSelectOption[]>(() => {
   if (snapshots.value.length === 0) {
-    return [{
-      value: '',
-      label: isLoadingSnapshots.value ? 'Loading versions...' : 'No commits yet',
-      shortLabel: isLoadingSnapshots.value ? 'Loading versions...' : 'No commits yet',
-      description: 'Create a commit to restore versions',
-      meta: '--',
-    }]
+    return [
+      {
+        value: "",
+        label: isLoadingSnapshots.value
+          ? "Loading versions..."
+          : "No commits yet",
+        shortLabel: isLoadingSnapshots.value
+          ? "Loading versions..."
+          : "No commits yet",
+        description: "Create a commit to restore versions",
+        meta: "--",
+      },
+    ];
   }
 
   return snapshots.value.map((snapshot) => ({
@@ -73,119 +103,145 @@ const versionOptions = computed<BaseDropdownSelectOption[]>(() => {
     shortLabel: `${snapshot.shortHash} - ${snapshot.message}`,
     description: formatSnapshotDate(snapshot.committedAt),
     meta: snapshot.shortHash,
-  }))
-})
+  }));
+});
 const commitMessage = computed(() => {
-  const title = summary.value.trim()
-  const body = description.value.trim()
-  return body ? `${title}\n\n${body}` : title
-})
-const canCommit = computed(() => commitMessage.value.length > 0 && !props.isCommitting)
-const canRestore = computed(() => selectedSnapshotHash.value.length > 0 && !props.isCommitting)
+  const title = summary.value.trim();
+  const body = description.value.trim();
+  return body ? `${title}\n\n${body}` : title;
+});
+const canCommit = computed(
+  () => commitMessage.value.length > 0 && !props.isCommitting,
+);
+const canRestore = computed(
+  () => selectedSnapshotHash.value.length > 0 && !props.isCommitting,
+);
 const diffStats = computed(() => ({
-  added: diffLines.value.filter((line) => line.type === 'added').length,
-  removed: diffLines.value.filter((line) => line.type === 'removed').length,
-  modified: diffLines.value.filter((line) => line.type === 'modified').length,
-}))
+  added: diffLines.value.filter((line) => line.type === "added").length,
+  removed: diffLines.value.filter((line) => line.type === "removed").length,
+  modified: diffLines.value.filter((line) => line.type === "modified").length,
+}));
 
 watch(
   () => [props.isOpen, props.workflow.metadata.id, props.refreshKey],
   () => {
-    if (!props.isOpen) return
-    resetCommitInputs()
-    void loadLatestSnapshot()
+    if (!props.isOpen) return;
+    resetCommitInputs();
+    void loadLatestSnapshot();
   },
   { immediate: true },
-)
+);
 
 watch(selectedSnapshotHash, (hash) => {
-  void loadSelectedSnapshot(hash)
-})
+  void loadSelectedSnapshot(hash);
+});
 
 function resetCommitInputs() {
-  summary.value = `Update ${props.workflow.metadata.name}`
-  description.value = ''
+  summary.value = `Update ${props.workflow.metadata.name}`;
+  description.value = "";
 }
 
 async function loadLatestSnapshot() {
-  isLoadingSnapshots.value = true
-  snapshotError.value = ''
+  isLoadingSnapshots.value = true;
+  snapshotError.value = "";
   try {
-    snapshots.value = await workflowsApi.listGitSnapshots(props.workflow.metadata.id)
-    const latest = snapshots.value[0]
-    selectedSnapshotHash.value = latest?.hash ?? ''
+    snapshots.value = await workflowsApi.listGitSnapshots(
+      props.workflow.metadata.id,
+    );
+    const latest = snapshots.value[0];
+    selectedSnapshotHash.value = latest?.hash ?? "";
     latestSnapshot.value = latest
-      ? await workflowsApi.getGitSnapshot(props.workflow.metadata.id, latest.hash)
-      : null
+      ? await workflowsApi.getGitSnapshot(
+          props.workflow.metadata.id,
+          latest.hash,
+        )
+      : null;
   } catch (error) {
-    latestSnapshot.value = null
-    snapshotError.value = error instanceof Error ? error.message : 'Failed to load latest commit'
+    latestSnapshot.value = null;
+    snapshotError.value =
+      error instanceof Error ? error.message : "Failed to load latest commit";
   } finally {
-    isLoadingSnapshots.value = false
+    isLoadingSnapshots.value = false;
   }
 }
 
 async function loadSelectedSnapshot(hash: string) {
   if (!hash) {
-    latestSnapshot.value = null
-    return
+    latestSnapshot.value = null;
+    return;
   }
 
-  snapshotError.value = ''
+  snapshotError.value = "";
   try {
-    latestSnapshot.value = await workflowsApi.getGitSnapshot(props.workflow.metadata.id, hash)
+    latestSnapshot.value = await workflowsApi.getGitSnapshot(
+      props.workflow.metadata.id,
+      hash,
+    );
   } catch (error) {
-    latestSnapshot.value = null
-    snapshotError.value = error instanceof Error ? error.message : 'Failed to load selected commit'
+    latestSnapshot.value = null;
+    snapshotError.value =
+      error instanceof Error ? error.message : "Failed to load selected commit";
   }
 }
 
 function requestCommit() {
-  if (!canCommit.value) return
-  emit('commit', commitMessage.value)
+  if (!canCommit.value) return;
+  emit("commit", commitMessage.value);
 }
 
 function requestRestore() {
-  if (!canRestore.value) return
-  emit('restore', selectedSnapshotHash.value)
+  if (!canRestore.value) return;
+  emit("restore", selectedSnapshotHash.value);
 }
 
 function formatSnapshotDate(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return value
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
   return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
 
 function tokenizeJsonLine(line: string): JsonToken[] {
-  const tokens: JsonToken[] = []
-  const pattern = /("(?:\\.|[^"\\])*"(?=\s*:))|("(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\bnull\b|([{}[\]:,])/g
-  let index = 0
+  const tokens: JsonToken[] = [];
+  const pattern =
+    /("(?:\\.|[^"\\])*"(?=\s*:))|("(?:\\.|[^"\\])*")|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\bnull\b|([{}[\]:,])/g;
+  let index = 0;
   for (const match of line.matchAll(pattern)) {
-    const start = match.index ?? 0
-    if (start > index) tokens.push({ value: line.slice(index, start), type: 'plain' })
+    const start = match.index ?? 0;
+    if (start > index)
+      tokens.push({ value: line.slice(index, start), type: "plain" });
 
-    const value = match[0]
-    if (match[1]) tokens.push({ value, type: 'key' })
-    else if (match[2]) tokens.push({ value, type: 'string' })
-    else if (match[3]) tokens.push({ value, type: 'number' })
-    else if (match[4]) tokens.push({ value, type: 'boolean' })
-    else if (value === 'null') tokens.push({ value, type: 'null' })
-    else tokens.push({ value, type: 'punctuation' })
-    index = start + value.length
+    const value = match[0];
+    if (match[1]) tokens.push({ value, type: "key" });
+    else if (match[2]) tokens.push({ value, type: "string" });
+    else if (match[3]) tokens.push({ value, type: "number" });
+    else if (match[4]) tokens.push({ value, type: "boolean" });
+    else if (value === "null") tokens.push({ value, type: "null" });
+    else tokens.push({ value, type: "punctuation" });
+    index = start + value.length;
   }
 
-  if (index < line.length) tokens.push({ value: line.slice(index), type: 'plain' })
-  return tokens.length ? tokens : [{ value: line, type: 'plain' }]
+  if (index < line.length)
+    tokens.push({ value: line.slice(index), type: "plain" });
+  return tokens.length ? tokens : [{ value: line, type: "plain" }];
 }
 </script>
 
 <template>
-  <BaseModal :is-open="isOpen" max-width="1180px" height="760px" @close="emit('close')">
+  <BaseModal
+    :is-open="isOpen"
+    surface="window"
+    window-id="workflow-git"
+    config-id="workflow-git"
+    title="Workflow Git"
+    max-width="1180px"
+    height="760px"
+    @close="emit('close')"
+  >
     <section class="workflow-git-modal" aria-label="Workflow git">
       <header class="workflow-git-modal__topbar">
         <div class="workflow-git-modal__repo-field">
@@ -227,12 +283,19 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             >
               <template #trigger="{ option }">
                 <span class="workflow-git-modal__version-trigger-copy">
-                  {{ option?.shortLabel ?? 'No commits yet' }}
+                  {{ option?.shortLabel ?? "No commits yet" }}
                 </span>
               </template>
               <template #option="{ option, selected }">
-                <span class="workflow-git-modal__version-option" :class="{ 'workflow-git-modal__version-option--active': selected }">
-                  <span class="workflow-git-modal__version-option-hash">{{ option.meta }}</span>
+                <span
+                  class="workflow-git-modal__version-option"
+                  :class="{
+                    'workflow-git-modal__version-option--active': selected,
+                  }"
+                >
+                  <span class="workflow-git-modal__version-option-hash">{{
+                    option.meta
+                  }}</span>
                   <span class="workflow-git-modal__version-option-copy">
                     <strong>{{ option.label }}</strong>
                     <small>{{ option.description }}</small>
@@ -255,7 +318,9 @@ function tokenizeJsonLine(line: string): JsonToken[] {
             type="button"
             variant="ghost"
             size="sm"
-            :class="{ 'workflow-git-modal__file--active': changedFileCount > 0 }"
+            :class="{
+              'workflow-git-modal__file--active': changedFileCount > 0,
+            }"
           >
             <LucideIcon name="file-json" :size="14" />
             <span>workflow.json</span>
@@ -315,20 +380,39 @@ function tokenizeJsonLine(line: string): JsonToken[] {
               <small>{{ selectedSnapshotLabel }}</small>
             </div>
             <div class="workflow-git-modal__stats" aria-label="Diff summary">
-              <span class="workflow-git-modal__stat workflow-git-modal__stat--added">+{{ diffStats.added }}</span>
-              <span class="workflow-git-modal__stat workflow-git-modal__stat--removed">-{{ diffStats.removed }}</span>
-              <span class="workflow-git-modal__stat workflow-git-modal__stat--modified">~{{ diffStats.modified }}</span>
+              <span
+                class="workflow-git-modal__stat workflow-git-modal__stat--added"
+                >+{{ diffStats.added }}</span
+              >
+              <span
+                class="workflow-git-modal__stat workflow-git-modal__stat--removed"
+                >-{{ diffStats.removed }}</span
+              >
+              <span
+                class="workflow-git-modal__stat workflow-git-modal__stat--modified"
+                >~{{ diffStats.modified }}</span
+              >
             </div>
           </div>
 
-          <div class="workflow-git-modal__diff" role="table" aria-label="Workflow JSON diff">
+          <div
+            class="workflow-git-modal__diff"
+            role="table"
+            aria-label="Workflow JSON diff"
+          >
             <div v-if="isLoadingSnapshots" class="workflow-git-modal__state">
               Loading latest commit...
             </div>
-            <div v-else-if="snapshotError" class="workflow-git-modal__state workflow-git-modal__state--error">
+            <div
+              v-else-if="snapshotError"
+              class="workflow-git-modal__state workflow-git-modal__state--error"
+            >
               {{ snapshotError }}
             </div>
-            <div v-else-if="changedLines.length === 0" class="workflow-git-modal__state">
+            <div
+              v-else-if="changedLines.length === 0"
+              class="workflow-git-modal__state"
+            >
               No changes in workflow.json
             </div>
             <div
@@ -339,17 +423,32 @@ function tokenizeJsonLine(line: string): JsonToken[] {
               :class="`workflow-git-modal__line--${line.type}`"
               role="row"
             >
-              <span class="workflow-git-modal__gutter workflow-git-modal__line-number">{{ line.oldLineNumber ?? '' }}</span>
-              <span class="workflow-git-modal__gutter workflow-git-modal__line-number">{{ line.newLineNumber ?? '' }}</span>
+              <span
+                class="workflow-git-modal__gutter workflow-git-modal__line-number"
+                >{{ line.oldLineNumber ?? "" }}</span
+              >
+              <span
+                class="workflow-git-modal__gutter workflow-git-modal__line-number"
+                >{{ line.newLineNumber ?? "" }}</span
+              >
               <span class="workflow-git-modal__line-marker">
-                {{ line.type === 'added' ? '+' : line.type === 'removed' ? '-' : line.type === 'modified' ? '~' : ' ' }}
+                {{
+                  line.type === "added"
+                    ? "+"
+                    : line.type === "removed"
+                      ? "-"
+                      : line.type === "modified"
+                        ? "~"
+                        : " "
+                }}
               </span>
               <code class="workflow-git-modal__line-code">
                 <span
                   v-for="(token, tokenIndex) in tokenizeJsonLine(line.content)"
                   :key="tokenIndex"
                   :class="`json-token json-token--${token.type}`"
-                >{{ token.value }}</span>
+                  >{{ token.value }}</span
+                >
               </code>
             </div>
           </div>
@@ -373,7 +472,10 @@ function tokenizeJsonLine(line: string): JsonToken[] {
 .workflow-git-modal__topbar {
   flex: 0 0 auto;
   display: grid;
-  grid-template-columns: minmax(190px, 1fr) minmax(150px, 0.7fr) minmax(130px, 0.6fr) minmax(280px, 1.35fr);
+  grid-template-columns: minmax(190px, 1fr) minmax(150px, 0.7fr) minmax(
+      130px,
+      0.6fr
+    ) minmax(280px, 1.35fr);
   gap: 1px;
   min-height: 38px;
   padding: 1px;
@@ -419,7 +521,8 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   width: 100%;
 }
 
-.workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger) {
+.workflow-git-modal__version-dropdown
+  :deep(.workflow-git-modal__version-trigger) {
   width: 100%;
   height: 22px;
   min-height: 22px;
@@ -433,7 +536,8 @@ function tokenizeJsonLine(line: string): JsonToken[] {
   font-weight: var(--fabric-font-semibold);
 }
 
-.workflow-git-modal__version-dropdown :deep(.workflow-git-modal__version-trigger:hover) {
+.workflow-git-modal__version-dropdown
+  :deep(.workflow-git-modal__version-trigger:hover) {
   border-color: var(--fabric-workflow-git-topbar-trigger-hover-border);
   background: var(--fabric-workflow-git-topbar-trigger-hover-bg);
   color: var(--fabric-workflow-git-text);

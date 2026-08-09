@@ -1,6 +1,40 @@
 <template>
   <span ref="anchorRef" class="bmm-anchor" aria-hidden="true"></span>
-  <RenderPortal>
+  <RenderWindow
+    v-if="useWindowSurface"
+    :open="isOpen"
+    :window-id="resolvedWindowId"
+    :title="title"
+    :config-id="configId"
+    :width="windowWidth"
+    :height="windowHeight"
+    frame-prefix="fabric-workspace"
+    fallback="none"
+    :exclude-document-classes="['fabric-desktop-full-bleed']"
+    @closed="emit('close')"
+    @open-failed="externalOpenFailed = true"
+  >
+    <template #default="{ isMaximized, control }">
+      <section
+        class="bmm-window"
+        :class="{ 'bmm-window--maximized': isMaximized }"
+      >
+        <header class="bmm-window__topbar">
+          <span class="bmm-window__title">{{ title }}</span>
+          <BaseWindowControls
+            :is-maximized="isMaximized"
+            @minimize="control('minimize')"
+            @toggle-maximize="control('toggle-maximize')"
+            @close="control('close')"
+          />
+        </header>
+        <main class="bmm-window__content">
+          <slot />
+        </main>
+      </section>
+    </template>
+  </RenderWindow>
+  <RenderPortal v-else>
     <transition name="bmm-fade">
       <div v-if="isOpen" class="bmm-overlay" @click.self="$emit('close')">
         <div class="bmm-dialog" :style="{ maxWidth, maxHeight }">
@@ -47,14 +81,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import BaseButton from "./BaseButton.vue";
+import BaseWindowControls from "./BaseWindowControls.vue";
 import LucideIcon from "@/shared/icons/LucideIcon.vue";
-import { RenderPortal } from "@renderizer/vue";
+import { RenderPortal, RenderWindow } from "@renderizer/vue";
 
 const anchorRef = ref<HTMLElement | null>(null);
+const externalOpenFailed = ref(false);
 
-defineProps({
+const props = defineProps({
   isOpen: {
     type: Boolean,
     default: false,
@@ -79,9 +115,39 @@ defineProps({
     type: String,
     default: "90vh",
   },
+  surface: {
+    type: String as () => "modal" | "window",
+    default: "modal",
+  },
+  windowId: {
+    type: String,
+    default: undefined,
+  },
+  configId: {
+    type: String,
+    default: undefined,
+  },
+  windowWidth: {
+    type: Number,
+    default: undefined,
+  },
+  windowHeight: {
+    type: Number,
+    default: undefined,
+  },
 });
 
-defineEmits(["close"]);
+const emit = defineEmits(["close"]);
+const resolvedWindowId = computed(
+  () => props.windowId ?? `base-mini-menu-${props.configId ?? "window"}`,
+);
+const useWindowSurface = computed(
+  () =>
+    props.surface === "window" &&
+    props.isOpen &&
+    window.fabricDesktop?.isDesktop === true &&
+    !externalOpenFailed.value,
+);
 
 const isUrl = (str: string) => str?.startsWith("http") || str?.startsWith("/");
 </script>
@@ -155,6 +221,50 @@ const isUrl = (str: string) => str?.startsWith("http") || str?.startsWith("/");
   align-items: center;
   justify-content: flex-end;
   gap: var(--fabric-space-2);
+}
+
+.bmm-window {
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid var(--fabric-desktop-window-border);
+  border-radius: var(--fabric-desktop-window-radius);
+  background: var(--fabric-base-mini-menu-bg-surface);
+  color: var(--fabric-base-mini-menu-text-primary);
+}
+
+.bmm-window--maximized {
+  border: 0;
+  border-radius: 0;
+}
+
+.bmm-window__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+  border-bottom: 1px solid var(--fabric-app-topbar-topbar-border);
+  background: var(--fabric-app-topbar-topbar-bg);
+  -webkit-app-region: drag;
+}
+
+.bmm-window__title {
+  padding-left: 12px;
+  color: var(--fabric-text-primary);
+  font-size: var(--fabric-text-xs);
+  font-weight: var(--fabric-font-semibold);
+}
+
+.bmm-window__content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Transitions */

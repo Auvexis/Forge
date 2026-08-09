@@ -1,0 +1,4 @@
+- [x] Adicionar window fallback em BaseModal e BaseMiniMenu
+- [x] Migrar paineis pesados para window surface
+- [x] Remover VariablesModal se estiver sem uso
+- [x] Validar e commitar

@@ -1,12 +1,22 @@
 <template>
   <BaseModal
     :is-open="isAutomationMonitorOpen"
+    surface="window"
+    window-id="automation-monitor"
+    config-id="automation-monitor"
+    title="Monitoring"
     max-width="1320px"
     height="86vh"
     @close="isAutomationMonitorOpen = false"
   >
-    <section class="gam-shell" :class="{ 'gam-shell--sidebar-collapsed': sidebarCollapsed }">
-      <aside class="gam-sidebar" :class="{ 'gam-sidebar--collapsed': sidebarCollapsed }">
+    <section
+      class="gam-shell"
+      :class="{ 'gam-shell--sidebar-collapsed': sidebarCollapsed }"
+    >
+      <aside
+        class="gam-sidebar"
+        :class="{ 'gam-sidebar--collapsed': sidebarCollapsed }"
+      >
         <header class="gam-header">
           <div class="gam-title">
             <span class="gam-header-icon">
@@ -38,14 +48,15 @@
           </div>
         </header>
 
-        <div
-          class="gam-workflow-list"
-        >
+        <div class="gam-workflow-list">
           <BaseButton
             v-for="workflow in filteredWorkflows"
             :key="workflowKey(workflow)"
             class="gam-workflow"
-            :class="{ 'gam-workflow--active': workflowKey(workflow) === selectedWorkflowKey }"
+            :class="{
+              'gam-workflow--active':
+                workflowKey(workflow) === selectedWorkflowKey,
+            }"
             type="button"
             variant="ghost"
             @click="selectWorkflow(workflow)"
@@ -53,13 +64,22 @@
             <span class="gam-workflow__copy">
               <span class="gam-workflow__title">
                 <strong>{{ workflow.name }}</strong>
-                <BaseBadge variant="outline" size="sm" :text="triggerLabel(workflow.triggerType)" />
+                <BaseBadge
+                  variant="outline"
+                  size="sm"
+                  :text="triggerLabel(workflow.triggerType)"
+                />
               </span>
               <small>
-                <span>{{ workflow.profileName ?? workflow.profileId ?? 'Global' }}</span>
+                <span>{{
+                  workflow.profileName ?? workflow.profileId ?? "Global"
+                }}</span>
                 <span>{{ workflowRunLabel(workflow) }}</span>
               </small>
-              <span v-if="workflowResultSummary(workflow)" class="gam-run-result">
+              <span
+                v-if="workflowResultSummary(workflow)"
+                class="gam-run-result"
+              >
                 <LucideIcon name="corner-down-left" :size="11" />
                 <span>{{ workflowResultSummary(workflow) }}</span>
               </span>
@@ -82,7 +102,7 @@
                 menu-class="gam-profile-menu"
               />
             </div>
-            <h2>{{ selectedWorkflow?.name ?? 'Select a workflow' }}</h2>
+            <h2>{{ selectedWorkflow?.name ?? "Select a workflow" }}</h2>
           </div>
           <div class="gam-main-meta" aria-label="Automation runtime summary">
             <span>
@@ -106,9 +126,7 @@
         </div>
 
         <template v-else>
-          <div
-            class="gam-tabs"
-          >
+          <div class="gam-tabs">
             <BaseButton
               v-for="tab in triggerTabs"
               :key="tab.id"
@@ -118,7 +136,10 @@
               variant="ghost"
               @click="activeTriggerTabId = tab.id"
             >
-              <LucideIcon :name="tab.id === 'all' ? 'list-tree' : 'radio'" :size="13" />
+              <LucideIcon
+                :name="tab.id === 'all' ? 'list-tree' : 'radio'"
+                :size="13"
+              />
               <span>{{ tab.label }}</span>
               <small>{{ tab.runs.length }}</small>
             </BaseButton>
@@ -146,75 +167,90 @@
 </template>
 
 <script lang="ts">
-import { ref } from 'vue'
+import { ref } from "vue";
 
-export const isAutomationMonitorOpen = ref(false)
+export const isAutomationMonitorOpen = ref(false);
 
 export function toggleAutomationMonitor() {
-  isAutomationMonitorOpen.value = !isAutomationMonitorOpen.value
+  isAutomationMonitorOpen.value = !isAutomationMonitorOpen.value;
 }
 </script>
 
 <script setup lang="ts">
-import { computed, watch } from 'vue'
-import BaseBadge from '@/shared/components/base/BaseBadge.vue'
-import BaseButton from '@/shared/components/base/BaseButton.vue'
-import BaseDropdownSelect, { type BaseDropdownSelectOption } from '@/shared/components/base/BaseDropdownSelect.vue'
-import BaseModal from '@/shared/components/base/BaseModal.vue'
-import ExecutionRunExplorer from '@/shared/components/execution/ExecutionRunExplorer.vue'
-import ProfilePasswordConfirmationDialog from '@/shared/components/overlay/ProfilePasswordConfirmationDialog.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { workflowsApi, type ProductionWorkflowStatus } from '@/core/api/workflows.api'
-import type { ExecutionLog } from '@/core/types/execution.types'
-import { useToast } from '@/shared/composables/useToast'
-import { useProfileStore } from '@/shared/stores/profile.store'
-import type { ProfileSummary } from '@/core/api/profiles.api'
+import { computed, watch } from "vue";
+import BaseBadge from "@/shared/components/base/BaseBadge.vue";
+import BaseButton from "@/shared/components/base/BaseButton.vue";
+import BaseDropdownSelect, {
+  type BaseDropdownSelectOption,
+} from "@/shared/components/base/BaseDropdownSelect.vue";
+import BaseModal from "@/shared/components/base/BaseModal.vue";
+import ExecutionRunExplorer from "@/shared/components/execution/ExecutionRunExplorer.vue";
+import ProfilePasswordConfirmationDialog from "@/shared/components/overlay/ProfilePasswordConfirmationDialog.vue";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import {
+  workflowsApi,
+  type ProductionWorkflowStatus,
+} from "@/core/api/workflows.api";
+import type { ExecutionLog } from "@/core/types/execution.types";
+import { useToast } from "@/shared/composables/useToast";
+import { useProfileStore } from "@/shared/stores/profile.store";
+import type { ProfileSummary } from "@/core/api/profiles.api";
 
-const toast = useToast()
-const profileStore = useProfileStore()
-const loading = ref(false)
-const sidebarCollapsed = ref(false)
-const workflows = ref<ProductionWorkflowStatus[]>([])
-const selectedProfileId = ref('')
-const pendingProfile = ref<ProfileSummary | null>(null)
-const selectedWorkflowKey = ref<string | null>(null)
-const selectedExecutions = ref<ExecutionLog[]>([])
-const activeTriggerTabId = ref('all')
+const toast = useToast();
+const profileStore = useProfileStore();
+const loading = ref(false);
+const sidebarCollapsed = ref(false);
+const workflows = ref<ProductionWorkflowStatus[]>([]);
+const selectedProfileId = ref("");
+const pendingProfile = ref<ProfileSummary | null>(null);
+const selectedWorkflowKey = ref<string | null>(null);
+const selectedExecutions = ref<ExecutionLog[]>([]);
+const activeTriggerTabId = ref("all");
 
 const profileNameById = computed(() =>
-  Object.fromEntries(profileStore.profiles.map((profile) => [profile.id, profile.name])),
-)
+  Object.fromEntries(
+    profileStore.profiles.map((profile) => [profile.id, profile.name]),
+  ),
+);
 
 const profileAvatarById = computed(() =>
-  Object.fromEntries(profileStore.profiles.map((profile) => [profile.id, profile.avatarEmoji])),
-)
+  Object.fromEntries(
+    profileStore.profiles.map((profile) => [profile.id, profile.avatarEmoji]),
+  ),
+);
 
 const enrichedWorkflows = computed(() =>
   workflows.value.map((workflow) => ({
     ...workflow,
-    profileName: workflow.profileName ?? profileNameById.value[workflow.profileId ?? ''],
+    profileName:
+      workflow.profileName ?? profileNameById.value[workflow.profileId ?? ""],
   })),
-)
+);
 
 const filteredWorkflows = computed(() => {
-  if (!selectedProfileId.value) return []
-  return enrichedWorkflows.value.filter((workflow) => workflow.profileId === selectedProfileId.value)
-})
+  if (!selectedProfileId.value) return [];
+  return enrichedWorkflows.value.filter(
+    (workflow) => workflow.profileId === selectedProfileId.value,
+  );
+});
 
-const selectedWorkflow = computed(() =>
-  filteredWorkflows.value.find((workflow) => workflowKey(workflow) === selectedWorkflowKey.value) ?? null,
-)
+const selectedWorkflow = computed(
+  () =>
+    filteredWorkflows.value.find(
+      (workflow) => workflowKey(workflow) === selectedWorkflowKey.value,
+    ) ?? null,
+);
 
 const selectedProfileValue = computed({
   get: () => selectedProfileId.value,
   set: (value: string) => selectProfile(value),
-})
+});
 
 const profileOptions = computed(() => {
-  const counts = new Map<string, number>()
+  const counts = new Map<string, number>();
   for (const workflow of workflows.value) {
     if (workflow.profileId) {
-      counts.set(workflow.profileId, (counts.get(workflow.profileId) ?? 0) + 1)
+      counts.set(workflow.profileId, (counts.get(workflow.profileId) ?? 0) + 1);
     }
   }
 
@@ -222,8 +258,8 @@ const profileOptions = computed(() => {
     id: profile.id,
     label: profile.name,
     count: counts.get(profile.id) ?? 0,
-  }))
-})
+  }));
+});
 
 const profileSelectOptions = computed<BaseDropdownSelectOption[]>(() =>
   profileOptions.value.map((profile) => ({
@@ -231,193 +267,219 @@ const profileSelectOptions = computed<BaseDropdownSelectOption[]>(() =>
     label: profile.label,
     shortLabel: profile.label,
     description: `${profile.count} published`,
-    meta: profileAvatarById.value[profile.id] ?? 'P',
+    meta: profileAvatarById.value[profile.id] ?? "P",
   })),
-)
+);
 
 const runningCount = computed(
-  () => filteredWorkflows.value.filter((workflow) => workflow.lastExecution?.status === 'RUNNING').length,
-)
+  () =>
+    filteredWorkflows.value.filter(
+      (workflow) => workflow.lastExecution?.status === "RUNNING",
+    ).length,
+);
 
 const failedCount = computed(
   () =>
     filteredWorkflows.value.filter((workflow) =>
-      ['ERROR', 'FAILED'].includes(workflow.lastExecution?.status ?? ''),
+      ["ERROR", "FAILED"].includes(workflow.lastExecution?.status ?? ""),
     ).length,
-)
+);
 
 const triggerTabs = computed(() => {
-  const grouped = new Map<string, ExecutionLog[]>()
-  grouped.set('all', selectedExecutions.value)
+  const grouped = new Map<string, ExecutionLog[]>();
+  grouped.set("all", selectedExecutions.value);
   for (const run of selectedExecutions.value) {
-    const triggerId = executionTriggerId(run)
-    const runs = grouped.get(triggerId) ?? []
-    runs.push(run)
-    grouped.set(triggerId, runs)
+    const triggerId = executionTriggerId(run);
+    const runs = grouped.get(triggerId) ?? [];
+    runs.push(run);
+    grouped.set(triggerId, runs);
   }
 
   return Array.from(grouped.entries()).map(([id, runs]) => ({
     id,
-    label: id === 'all' ? 'All' : id,
+    label: id === "all" ? "All" : id,
     runs,
-  }))
-})
+  }));
+});
 
 const activeTriggerRuns = computed(
-  () => triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)?.runs ?? [],
-)
+  () =>
+    triggerTabs.value.find((tab) => tab.id === activeTriggerTabId.value)
+      ?.runs ?? [],
+);
 
 function workflowKey(workflow: ProductionWorkflowStatus): string {
-  return `${workflow.profileId ?? 'global'}:${workflow.id}`
+  return `${workflow.profileId ?? "global"}:${workflow.id}`;
 }
 
 function selectProfile(profileId: string) {
-  if (profileId === selectedProfileId.value) return
+  if (profileId === selectedProfileId.value) return;
 
-  const profile = profileStore.profiles.find((item) => item.id === profileId)
+  const profile = profileStore.profiles.find((item) => item.id === profileId);
   if (profile?.passwordProtected) {
-    pendingProfile.value = profile
-    return
+    pendingProfile.value = profile;
+    return;
   }
 
-  applyProfileSelection(profileId)
+  applyProfileSelection(profileId);
 }
 
 function applyProfileSelection(profileId: string) {
-  selectedProfileId.value = profileId
-  ensureSelectedWorkflow()
-  void loadSelectedWorkflowExecutions()
+  selectedProfileId.value = profileId;
+  ensureSelectedWorkflow();
+  void loadSelectedWorkflowExecutions();
 }
 
 function confirmProtectedProfile() {
-  const profileId = pendingProfile.value?.id
-  pendingProfile.value = null
-  if (profileId) applyProfileSelection(profileId)
+  const profileId = pendingProfile.value?.id;
+  pendingProfile.value = null;
+  if (profileId) applyProfileSelection(profileId);
 }
 
 function cancelProtectedProfile() {
-  pendingProfile.value = null
+  pendingProfile.value = null;
 }
 
 function selectWorkflow(workflow: ProductionWorkflowStatus) {
-  selectedWorkflowKey.value = workflowKey(workflow)
-  activeTriggerTabId.value = 'all'
-  void loadSelectedWorkflowExecutions()
+  selectedWorkflowKey.value = workflowKey(workflow);
+  activeTriggerTabId.value = "all";
+  void loadSelectedWorkflowExecutions();
 }
 
 function ensureSelectedWorkflow() {
-  if (filteredWorkflows.value.some((workflow) => workflowKey(workflow) === selectedWorkflowKey.value)) return
-  selectedWorkflowKey.value = filteredWorkflows.value[0] ? workflowKey(filteredWorkflows.value[0]) : null
-  activeTriggerTabId.value = 'all'
+  if (
+    filteredWorkflows.value.some(
+      (workflow) => workflowKey(workflow) === selectedWorkflowKey.value,
+    )
+  )
+    return;
+  selectedWorkflowKey.value = filteredWorkflows.value[0]
+    ? workflowKey(filteredWorkflows.value[0])
+    : null;
+  activeTriggerTabId.value = "all";
 }
 
 async function refreshLiveData() {
-  if (!isAutomationMonitorOpen.value) return
-  loading.value = true
+  if (!isAutomationMonitorOpen.value) return;
+  loading.value = true;
   try {
-    workflows.value = await workflowsApi.getGlobalProductionStatus()
-    ensureSelectedWorkflow()
-    await loadSelectedWorkflowExecutions()
+    workflows.value = await workflowsApi.getGlobalProductionStatus();
+    ensureSelectedWorkflow();
+    await loadSelectedWorkflowExecutions();
   } catch (err: any) {
-    toast.error(err?.message ?? 'Failed to load automation monitor')
+    toast.error(err?.message ?? "Failed to load automation monitor");
   } finally {
-    loading.value = false
+    loading.value = false;
   }
 }
 
 async function loadSelectedWorkflowExecutions() {
   if (!selectedWorkflow.value) {
-    selectedExecutions.value = []
-    return
+    selectedExecutions.value = [];
+    return;
   }
 
   selectedExecutions.value = await workflowsApi.getExecutions(
     selectedWorkflow.value.id,
     selectedWorkflow.value.profileId,
-  )
+  );
 }
 
 function executionTriggerId(execution: ExecutionLog): string {
-  const trigger = execution.context.trigger as { triggerNodeId?: string; source?: string } | undefined
-  return trigger?.triggerNodeId ?? trigger?.source ?? 'workflow'
+  const trigger = execution.context.trigger as
+    | { triggerNodeId?: string; source?: string }
+    | undefined;
+  return trigger?.triggerNodeId ?? trigger?.source ?? "workflow";
 }
 
-function triggerLabel(type: ProductionWorkflowStatus['triggerType']): string {
+function triggerLabel(type: ProductionWorkflowStatus["triggerType"]): string {
   const labels: Record<string, string> = {
-    webhook: 'Webhook',
-    cron: 'Cron',
-    schedule: 'Schedule',
-    event: 'Event',
-    'event-listener': 'Event',
-    manual: 'Manual',
-    plugin: 'Plugin',
-    form: 'Form',
-    'webhook-form': 'Form',
-    chat: 'Chat',
-    'call-workflow': 'Call Workflow',
-  }
-  return labels[type] ?? type
+    webhook: "Webhook",
+    cron: "Cron",
+    schedule: "Schedule",
+    event: "Event",
+    "event-listener": "Event",
+    manual: "Manual",
+    plugin: "Plugin",
+    form: "Form",
+    "webhook-form": "Form",
+    chat: "Chat",
+    "call-workflow": "Call Workflow",
+  };
+  return labels[type] ?? type;
 }
 
 function workflowRunLabel(workflow: ProductionWorkflowStatus): string {
   if (!workflow.lastExecution) {
-    return `${workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : 'Published'} / No runs`
+    return `${workflow.publishedAt ? `Published ${formatDate(workflow.publishedAt)}` : "Published"} / No runs`;
   }
-  return `Last run ${formatTime(workflow.lastExecution.startTime)}`
+  return `Last run ${formatTime(workflow.lastExecution.startTime)}`;
 }
 
 function workflowResultLabel(execution: ExecutionLog): string {
-  return execution.context.resultSource?.type === 'return'
-    ? 'Returned result'
-    : 'Executed steps result'
+  return execution.context.resultSource?.type === "return"
+    ? "Returned result"
+    : "Executed steps result";
 }
 
-function workflowResultSummary(input: ProductionWorkflowStatus | ExecutionLog): string {
-  const execution = 'context' in input ? input : null
-  const value = execution?.context.result
-  if (!execution || execution.status === 'RUNNING' || !execution.context.resultSource) return ''
-  const label = workflowResultLabel(execution)
-  return `${label}: ${summarizeJson(value)}`
+function workflowResultSummary(
+  input: ProductionWorkflowStatus | ExecutionLog,
+): string {
+  const execution = "context" in input ? input : null;
+  const value = execution?.context.result;
+  if (
+    !execution ||
+    execution.status === "RUNNING" ||
+    !execution.context.resultSource
+  )
+    return "";
+  const label = workflowResultLabel(execution);
+  return `${label}: ${summarizeJson(value)}`;
 }
 
 function summarizeJson(value: unknown): string {
-  if (value === undefined) return 'No data'
-  if (typeof value === 'string') return truncate(value)
-  if (typeof value === 'number' || typeof value === 'boolean' || value === null) return String(value)
-  if (Array.isArray(value)) return `${value.length} item${value.length === 1 ? '' : 's'}`
-  if (typeof value === 'object') {
-    const keys = Object.keys(value as Record<string, unknown>)
-    return keys.length ? keys.slice(0, 3).join(', ') : 'Empty object'
+  if (value === undefined) return "No data";
+  if (typeof value === "string") return truncate(value);
+  if (typeof value === "number" || typeof value === "boolean" || value === null)
+    return String(value);
+  if (Array.isArray(value))
+    return `${value.length} item${value.length === 1 ? "" : "s"}`;
+  if (typeof value === "object") {
+    const keys = Object.keys(value as Record<string, unknown>);
+    return keys.length ? keys.slice(0, 3).join(", ") : "Empty object";
   }
-  return truncate(String(value))
+  return truncate(String(value));
 }
 
 function truncate(value: string): string {
-  return value.length > 80 ? `${value.slice(0, 77)}...` : value
+  return value.length > 80 ? `${value.slice(0, 77)}...` : value;
 }
 
 function formatTime(timestamp: number): string {
-  return new Date(timestamp).toLocaleTimeString()
+  return new Date(timestamp).toLocaleTimeString();
 }
 
 function formatDate(value: string): string {
-  return new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  return new Date(value).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 watch(isAutomationMonitorOpen, async (open) => {
   if (open) {
-    await profileStore.loadProfiles()
-    selectedProfileId.value = profileStore.currentProfile?.id ?? ''
-    await refreshLiveData()
+    await profileStore.loadProfiles();
+    selectedProfileId.value = profileStore.currentProfile?.id ?? "";
+    await refreshLiveData();
   } else {
-    selectedExecutions.value = []
+    selectedExecutions.value = [];
   }
-})
+});
 
 watch(triggerTabs, (next) => {
-  if (!next.some((tab) => tab.id === activeTriggerTabId.value)) activeTriggerTabId.value = 'all'
-})
-
+  if (!next.some((tab) => tab.id === activeTriggerTabId.value))
+    activeTriggerTabId.value = "all";
+});
 </script>
 
 <style scoped>
@@ -436,7 +498,8 @@ watch(triggerTabs, (next) => {
   border-radius: var(--fabric-automation-monitor-panel-radius);
   background: var(--fabric-automation-monitor-bg);
   color: var(--fabric-automation-monitor-text);
-  transition: grid-template-columns var(--fabric-duration-base) var(--fabric-ease-standard);
+  transition: grid-template-columns var(--fabric-duration-base)
+    var(--fabric-ease-standard);
 }
 
 .gam-shell--sidebar-collapsed {
@@ -830,6 +893,5 @@ watch(triggerTabs, (next) => {
   .gam-profile-trigger {
     width: 136px;
   }
-
 }
 </style>

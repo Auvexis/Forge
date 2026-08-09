@@ -1,6 +1,10 @@
 <template>
   <BaseModal
     :is-open="isOpen"
+    surface="window"
+    window-id="agent-chat"
+    config-id="agent-chat"
+    title="Agents"
     max-width="1180px"
     height="min(820px, 88vh)"
     @close="$emit('close')"
@@ -9,16 +13,27 @@
       <header class="agent-chat-modal__titlebar">
         <div>
           <strong>Agents</strong>
-          <span>{{ activeChat?.title ?? 'Choose an agent' }}</span>
+          <span>{{ activeChat?.title ?? "Choose an agent" }}</span>
         </div>
-        <button type="button" aria-label="Close agent chat" @click="$emit('close')">×</button>
+        <button
+          type="button"
+          aria-label="Close agent chat"
+          @click="$emit('close')"
+        >
+          ×
+        </button>
       </header>
 
       <div class="agent-chat-modal__workspace">
         <aside class="agent-chat-modal__sidebar">
           <div class="agent-chat-modal__sidebar-header">
             <span>Published agents</span>
-            <button type="button" title="Reload agents" :disabled="directoryLoading" @click="loadDirectory">
+            <button
+              type="button"
+              title="Reload agents"
+              :disabled="directoryLoading"
+              @click="loadDirectory"
+            >
               Refresh
             </button>
           </div>
@@ -34,7 +49,10 @@
                 <span>{{ chat.title }}</span>
                 <small>{{ chat.workflowName }}</small>
               </button>
-              <div v-if="chat.chatSlug === activeChatSlug" class="agent-chat-modal__sessions">
+              <div
+                v-if="chat.chatSlug === activeChatSlug"
+                class="agent-chat-modal__sessions"
+              >
                 <button
                   type="button"
                   :class="{ 'is-active': !activeSessionId }"
@@ -55,7 +73,10 @@
               </div>
             </section>
 
-            <p v-if="!directoryLoading && !chats.length" class="agent-chat-modal__empty">
+            <p
+              v-if="!directoryLoading && !chats.length"
+              class="agent-chat-modal__empty"
+            >
               No published chat agents.
             </p>
           </div>
@@ -70,11 +91,21 @@
             :chat-slug="activeChat.chatSlug"
           />
           <div v-else class="agent-chat-modal__welcome">
-            <strong>{{ activeChat ? `Start with ${activeChat.title}` : 'Select a published agent' }}</strong>
-            <span v-if="activeChat">Messages and tool states will be saved in this conversation.</span>
+            <strong>{{
+              activeChat
+                ? `Start with ${activeChat.title}`
+                : "Select a published agent"
+            }}</strong>
+            <span v-if="activeChat"
+              >Messages and tool states will be saved in this
+              conversation.</span
+            >
           </div>
 
-          <form class="agent-chat-modal__composer" @submit.prevent="sendMessage">
+          <form
+            class="agent-chat-modal__composer"
+            @submit.prevent="sendMessage"
+          >
             <textarea
               v-model="draft"
               rows="2"
@@ -84,10 +115,9 @@
               @keydown.ctrl.enter.prevent="sendMessage"
             />
             <button type="submit" :disabled="!canSend">
-              {{ sending ? 'Sending' : 'Send' }}
+              {{ sending ? "Sending" : "Send" }}
             </button>
           </form>
-
         </main>
       </div>
     </section>
@@ -95,127 +125,146 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
-import { agentChatApi } from '@/core/api/agent-chat.api'
-import BaseModal from '@/shared/components/base/BaseModal.vue'
-import type { AgentChatDirectoryEntry } from '../types/agent.types'
-import AgentSessionPanel from './AgentSessionPanel.vue'
-import { useAgentErrorReporter } from '../composables/useAgentErrorReporter'
+import { computed, nextTick, onMounted, ref, watch } from "vue";
+import { agentChatApi } from "@/core/api/agent-chat.api";
+import BaseModal from "@/shared/components/base/BaseModal.vue";
+import type { AgentChatDirectoryEntry } from "../types/agent.types";
+import AgentSessionPanel from "./AgentSessionPanel.vue";
+import { useAgentErrorReporter } from "../composables/useAgentErrorReporter";
 
 const props = defineProps<{
-  isOpen: boolean
-  initialChatSlug?: string
-}>()
+  isOpen: boolean;
+  initialChatSlug?: string;
+}>();
 
-defineEmits<{ close: [] }>()
+defineEmits<{ close: [] }>();
 
-const chats = ref<AgentChatDirectoryEntry[]>([])
-const activeChatSlug = ref('')
-const activeSessionId = ref('')
-const draft = ref('')
-const directoryLoading = ref(false)
-const sending = ref(false)
+const chats = ref<AgentChatDirectoryEntry[]>([]);
+const activeChatSlug = ref("");
+const activeSessionId = ref("");
+const draft = ref("");
+const directoryLoading = ref(false);
+const sending = ref(false);
 const sessionPanel = ref<{
-  invalidate: (revision?: number) => void
-  startLiveMessage: (message: string) => string
-  finishLiveMessage: (id: string) => Promise<void>
-} | null>(null)
-const { reportAgentError } = useAgentErrorReporter()
+  invalidate: (revision?: number) => void;
+  startLiveMessage: (message: string) => string;
+  finishLiveMessage: (id: string) => Promise<void>;
+} | null>(null);
+const { reportAgentError } = useAgentErrorReporter();
 
-const activeChat = computed(() =>
-  chats.value.find((chat) => chat.chatSlug === activeChatSlug.value) ?? null,
-)
+const activeChat = computed(
+  () =>
+    chats.value.find((chat) => chat.chatSlug === activeChatSlug.value) ?? null,
+);
 const canSend = computed(() =>
   Boolean(activeChat.value && draft.value.trim() && !sending.value),
-)
+);
 
 onMounted(() => {
-  if (props.isOpen) void loadDirectory()
-})
+  if (props.isOpen) void loadDirectory();
+});
 
-watch(() => props.isOpen, (isOpen) => {
-  if (isOpen) void loadDirectory()
-})
+watch(
+  () => props.isOpen,
+  (isOpen) => {
+    if (isOpen) void loadDirectory();
+  },
+);
 
-watch(() => props.initialChatSlug, (chatSlug) => {
-  if (props.isOpen && chatSlug) selectChat(chatSlug)
-})
+watch(
+  () => props.initialChatSlug,
+  (chatSlug) => {
+    if (props.isOpen && chatSlug) selectChat(chatSlug);
+  },
+);
 
 async function loadDirectory() {
-  directoryLoading.value = true
+  directoryLoading.value = true;
   try {
-    const entries = await agentChatApi.listChats()
-    chats.value = entries
-    const preferredChatSlug = props.initialChatSlug?.trim() ?? ''
-    const nextChatSlug = preferredChatSlug && entries.some((chat) => chat.chatSlug === preferredChatSlug)
-      ? preferredChatSlug
-      : activeChatSlug.value
+    const entries = await agentChatApi.listChats();
+    chats.value = entries;
+    const preferredChatSlug = props.initialChatSlug?.trim() ?? "";
+    const nextChatSlug =
+      preferredChatSlug &&
+      entries.some((chat) => chat.chatSlug === preferredChatSlug)
+        ? preferredChatSlug
+        : activeChatSlug.value;
     if (!entries.some((chat) => chat.chatSlug === nextChatSlug)) {
-      selectChat(entries[0]?.chatSlug ?? '')
+      selectChat(entries[0]?.chatSlug ?? "");
     } else if (nextChatSlug !== activeChatSlug.value) {
-      selectChat(nextChatSlug)
+      selectChat(nextChatSlug);
     }
   } catch (error) {
-    reportAgentError(error, 'Could not load published agents.', 'directory.load')
+    reportAgentError(
+      error,
+      "Could not load published agents.",
+      "directory.load",
+    );
   } finally {
-    directoryLoading.value = false
+    directoryLoading.value = false;
   }
 }
 
 function selectChat(chatSlug: string) {
-  activeChatSlug.value = chatSlug
-  activeSessionId.value = chats.value
-    .find((chat) => chat.chatSlug === chatSlug)
-    ?.sessions[0]?.id ?? ''
+  activeChatSlug.value = chatSlug;
+  activeSessionId.value =
+    chats.value.find((chat) => chat.chatSlug === chatSlug)?.sessions[0]?.id ??
+    "";
 }
 
 function startNewSession() {
-  activeSessionId.value = ''
-  draft.value = ''
+  activeSessionId.value = "";
+  draft.value = "";
 }
 
 async function sendMessage() {
-  const chat = activeChat.value
-  const message = draft.value.trim()
-  if (!chat || !message || sending.value) return
-  sending.value = true
-  let optimisticId: string | null = null
+  const chat = activeChat.value;
+  const message = draft.value.trim();
+  if (!chat || !message || sending.value) return;
+  sending.value = true;
+  let optimisticId: string | null = null;
   try {
     if (!activeSessionId.value) {
-      const session = await agentChatApi.createSession(chat.chatSlug, message.slice(0, 80))
-      activeSessionId.value = session.id
-      await nextTick()
+      const session = await agentChatApi.createSession(
+        chat.chatSlug,
+        message.slice(0, 80),
+      );
+      activeSessionId.value = session.id;
+      await nextTick();
     }
-    optimisticId = sessionPanel.value?.startLiveMessage(message) ?? null
-    draft.value = ''
+    optimisticId = sessionPanel.value?.startLiveMessage(message) ?? null;
+    draft.value = "";
     const result = await agentChatApi.sendMessage(chat.chatSlug, {
       message,
       sessionId: activeSessionId.value,
-      metadata: { source: 'agent-chat-modal' },
-    })
-    activeSessionId.value = result.session.id
-    await loadDirectory()
-    activeSessionId.value = result.session.id
+      metadata: { source: "agent-chat-modal" },
+    });
+    activeSessionId.value = result.session.id;
+    await loadDirectory();
+    activeSessionId.value = result.session.id;
   } catch (error) {
-    reportAgentError(error, 'The agent could not process this message.', 'message.send')
-    sessionPanel.value?.invalidate()
+    reportAgentError(
+      error,
+      "The agent could not process this message.",
+      "message.send",
+    );
+    sessionPanel.value?.invalidate();
   } finally {
-    if (optimisticId) await sessionPanel.value?.finishLiveMessage(optimisticId)
-    sending.value = false
+    if (optimisticId) await sessionPanel.value?.finishLiveMessage(optimisticId);
+    sending.value = false;
   }
 }
 
 function formatSessionTime(value: string) {
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
   return new Intl.DateTimeFormat(undefined, {
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date)
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
 }
-
 </script>
 
 <style scoped>

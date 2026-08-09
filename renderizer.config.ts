@@ -1,7 +1,7 @@
-import { defineRenderizerConfig } from '@renderizer/vue'
+import { defineRenderizerConfig } from "@renderizer/vue";
 
 export default defineRenderizerConfig({
-  adapter: 'vue',
+  adapter: "vue",
   windows: {
     default: {
       width: 1180,
@@ -10,8 +10,8 @@ export default defineRenderizerConfig({
     },
     presets: [
       {
-        id: 'workflow-node-inspector',
-        title: 'Node Inspector',
+        id: "workflow-node-inspector",
+        title: "Node Inspector",
         width: 1400,
         height: 860,
         popup: true,
@@ -19,6 +19,56 @@ export default defineRenderizerConfig({
         minWidth: 980,
         minHeight: 620,
       },
+      {
+        id: "global-settings",
+        title: "Settings",
+        width: 1120,
+        height: 820,
+        popup: true,
+        resizable: true,
+        minWidth: 920,
+        minHeight: 640,
+      },
+      {
+        id: "automation-monitor",
+        title: "Monitoring",
+        width: 1320,
+        height: 860,
+        popup: true,
+        resizable: true,
+        minWidth: 1040,
+        minHeight: 680,
+      },
+      {
+        id: "agent-chat",
+        title: "Agents",
+        width: 1180,
+        height: 820,
+        popup: true,
+        resizable: true,
+        minWidth: 900,
+        minHeight: 620,
+      },
+      {
+        id: "workflow-git",
+        title: "Workflow Git",
+        width: 1180,
+        height: 760,
+        popup: true,
+        resizable: true,
+        minWidth: 940,
+        minHeight: 620,
+      },
+      {
+        id: "form-theme",
+        title: "Form Theme",
+        width: 1580,
+        height: 880,
+        popup: true,
+        resizable: true,
+        minWidth: 980,
+        minHeight: 640,
+      },
     ],
   },
-})
+});
