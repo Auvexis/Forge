@@ -51,8 +51,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import BaseButton, { type ButtonSize, type ButtonVariant } from '@/shared/components/base/BaseButton.vue'
+import { ownerDocumentOf } from '@/shared/composables/useOverlayTarget'
 
 export type BaseDropdownSelectOption = {
   value: string
@@ -124,11 +125,11 @@ function handleOutsidePointerDown(event: PointerEvent) {
 }
 
 onMounted(() => {
-  document.addEventListener('pointerdown', handleOutsidePointerDown, true)
+  ownerDocumentOf(rootRef.value).addEventListener('pointerdown', handleOutsidePointerDown, true)
 })
 
-onUnmounted(() => {
-  document.removeEventListener('pointerdown', handleOutsidePointerDown, true)
+onBeforeUnmount(() => {
+  ownerDocumentOf(rootRef.value).removeEventListener('pointerdown', handleOutsidePointerDown, true)
 })
 </script>
 

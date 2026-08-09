@@ -1,5 +1,5 @@
 <template>
-  <aside class="web-page-toolbox" aria-label="HTML element toolbox">
+  <aside ref="panelRef" class="web-page-toolbox" aria-label="HTML element toolbox">
     <label class="web-page-toolbox__search">
       <LucideIcon name="search" :size="14" />
       <input v-model="query" type="search" placeholder="Search elements" />
@@ -39,7 +39,7 @@
       </div>
     </section>
 
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <div
         v-if="dragPreview"
         class="web-page-toolbox-drag-preview"
@@ -61,6 +61,7 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { PageBlockTag } from '../types/page.types.ts'
 
@@ -85,12 +86,14 @@ interface DragPreviewMeta {
 }
 
 const query = ref('')
+const panelRef = ref<HTMLElement | null>(null)
 const collapsedSections = ref<string[]>([])
 const dragPreview = ref<DragPreviewMeta | null>(null)
 const dragPreviewPoint = ref({ x: 0, y: 0 })
 const dragPreviewVelocity = ref({ x: 0, y: 0 })
 const dragPreviewScale = ref(0.72)
 const dragPreviewBodyOffset = ref({ x: 0, y: 0, rotate: 0 })
+const overlayTarget = useOverlayTarget(panelRef)
 const recentItemIds = ref<string[]>([])
 let targetBodyOffset = { x: 0, y: 0, rotate: 0 }
 let lastDragPoint = { x: 0, y: 0, t: 0 }
@@ -197,13 +200,15 @@ const dragPreviewBodyStyle = computed(() => ({
 
 onMounted(() => {
   loadRecentItems()
-  document.addEventListener('dragover', moveDragPreviewFromDragEvent, true)
-  document.addEventListener('drop', handleDragEnd, true)
+  const ownerDocument = ownerDocumentOf(panelRef.value)
+  ownerDocument.addEventListener('dragover', moveDragPreviewFromDragEvent, true)
+  ownerDocument.addEventListener('drop', handleDragEnd, true)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('dragover', moveDragPreviewFromDragEvent, true)
-  document.removeEventListener('drop', handleDragEnd, true)
+  const ownerDocument = ownerDocumentOf(panelRef.value)
+  ownerDocument.removeEventListener('dragover', moveDragPreviewFromDragEvent, true)
+  ownerDocument.removeEventListener('drop', handleDragEnd, true)
   cancelWindAnimation()
 })
 
@@ -254,10 +259,11 @@ function loadRecentItems() {
 
 function setTransparentDragImage(event: DragEvent) {
   if (!event.dataTransfer) return
-  const preview = document.createElement('div')
+  const ownerDocument = ownerDocumentOf(event.target instanceof Element ? event.target : panelRef.value)
+  const preview = ownerDocument.createElement('div')
   preview.className = 'web-page-drag-preview'
   preview.style.opacity = '0'
-  document.body.appendChild(preview)
+  ownerDocument.body.appendChild(preview)
   event.dataTransfer.setDragImage(preview, 0, 0)
   window.setTimeout(() => preview.remove(), 0)
 }

@@ -165,6 +165,7 @@
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
 import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
+import { ownerDocumentOf } from '@/shared/composables/useOverlayTarget'
 import { ref, watch } from 'vue'
 import type { PageBlock, FabricPageSummary } from '../types/page.types.ts'
 import { blockChildCount, blockDisplayName, type InsertPosition } from '../utils/blockTree.ts'
@@ -334,10 +335,11 @@ function isContainer(block: PageBlock): boolean {
 
 function setDragPreview(event: DragEvent, label: string) {
   if (!event.dataTransfer) return
-  const preview = document.createElement('div')
+  const ownerDocument = ownerDocumentOf(event.target instanceof Element ? event.target : null)
+  const preview = ownerDocument.createElement('div')
   preview.className = 'web-page-drag-preview'
   preview.textContent = label
-  document.body.appendChild(preview)
+  ownerDocument.body.appendChild(preview)
   event.dataTransfer.setDragImage(preview, 16, 16)
   window.setTimeout(() => preview.remove(), 0)
 }

@@ -1,5 +1,6 @@
 <template>
   <div
+    ref="panelRef"
     class="web-page-assets-panel"
     @dragover.prevent
     @drop.prevent="dropUploadAssets"
@@ -50,7 +51,7 @@
     </div>
 
     <input ref="assetInput" type="file" accept="image/*,font/*,.ttf,.otf,.woff,.woff2" multiple @change="uploadAsset" />
-    <Teleport to="body">
+    <Teleport :to="overlayTarget">
       <div
         v-if="dragPreview"
         class="web-page-toolbox-drag-preview web-page-asset-drag-preview"
@@ -75,6 +76,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { API_BASE_URL } from '@/core/constants/app.ts'
 import BaseButton from '@/shared/components/base/BaseButton.vue'
+import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import type { FabricSite, SiteFile } from '../types/page.types.ts'
 
@@ -85,22 +87,26 @@ const emit = defineEmits<{
   'delete-file': [path: string]
 }>()
 const assetInput = ref<HTMLInputElement | null>(null)
+const panelRef = ref<HTMLElement | null>(null)
 const uploadingAssets = ref<Array<{ name: string }>>([])
 const dragPreview = ref<{ label: string; thumbnail: string } | null>(null)
 const dragPreviewPoint = ref({ x: 0, y: 0 })
 const assetFiles = computed(() => (props.site?.files ?? []).filter((file) => file.kind === 'asset' || file.path.startsWith('assets/')))
+const overlayTarget = useOverlayTarget(panelRef)
 const dragPreviewStyle = computed(() => ({
   transform: `translate3d(${dragPreviewPoint.value.x - 72}px, ${dragPreviewPoint.value.y - 56}px, 0) scale(${dragPreview.value ? 1 : 0.72})`,
 }))
 
 onMounted(() => {
-  document.addEventListener('dragover', moveAssetDragPreview, true)
-  document.addEventListener('drop', stopAssetDragPreview, true)
+  const ownerDocument = ownerDocumentOf(panelRef.value)
+  ownerDocument.addEventListener('dragover', moveAssetDragPreview, true)
+  ownerDocument.addEventListener('drop', stopAssetDragPreview, true)
 })
 
 onBeforeUnmount(() => {
-  document.removeEventListener('dragover', moveAssetDragPreview, true)
-  document.removeEventListener('drop', stopAssetDragPreview, true)
+  const ownerDocument = ownerDocumentOf(panelRef.value)
+  ownerDocument.removeEventListener('dragover', moveAssetDragPreview, true)
+  ownerDocument.removeEventListener('drop', stopAssetDragPreview, true)
 })
 
 function thumbnailUrl(asset: SiteFile) {
@@ -150,10 +156,11 @@ function startAssetDrag(event: DragEvent, asset: SiteFile) {
 
 function setTransparentDragImage(event: DragEvent) {
   if (!event.dataTransfer) return
-  const preview = document.createElement('div')
+  const ownerDocument = ownerDocumentOf(event.target instanceof Element ? event.target : panelRef.value)
+  const preview = ownerDocument.createElement('div')
   preview.className = 'web-page-drag-preview'
   preview.style.opacity = '0'
-  document.body.appendChild(preview)
+  ownerDocument.body.appendChild(preview)
   event.dataTransfer.setDragImage(preview, 0, 0)
   window.setTimeout(() => preview.remove(), 0)
 }

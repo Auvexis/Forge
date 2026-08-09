@@ -32,6 +32,7 @@ import { onBeforeUnmount, onMounted, ref } from 'vue'
 import EmojiPicker from 'vue3-emoji-picker'
 import 'vue3-emoji-picker/css'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
+import { ownerDocumentOf } from '@/shared/composables/useOverlayTarget'
 import {
   rememberProfileAvatar,
   PROFILE_AVATAR_RECENT_STORAGE_KEY,
@@ -65,8 +66,8 @@ function onClickOutside(event: MouseEvent) {
   }
 }
 
-onMounted(() => document.addEventListener('mousedown', onClickOutside))
-onBeforeUnmount(() => document.removeEventListener('mousedown', onClickOutside))
+onMounted(() => ownerDocumentOf(wrapperRef.value).addEventListener('mousedown', onClickOutside))
+onBeforeUnmount(() => ownerDocumentOf(wrapperRef.value).removeEventListener('mousedown', onClickOutside))
 </script>
 
 <style scoped>

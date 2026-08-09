@@ -1,0 +1,5 @@
+- [x] Auditar overlays restantes no Fabric
+- [x] Corrigir riscos reais
+- [ ] Criar RenderPortal no Renderizer
+- [ ] Publicar e migrar Fabric
+- [ ] Validar e commitar
