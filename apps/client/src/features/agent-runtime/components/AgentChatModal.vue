@@ -12,30 +12,9 @@
     <section class="agent-chat-modal" aria-label="Agent chats">
       <div class="agent-chat-modal__workspace">
         <aside class="agent-chat-modal__sidebar">
-          <header class="agent-chat-modal__sidebar-header">
-            <div>
-              <strong>Agents</strong>
-              <span>{{ chats.length }} published</span>
-            </div>
-            <button
-              type="button"
-              class="agent-chat-modal__icon-button"
-              aria-label="Reload agents"
-              :disabled="directoryLoading"
-              @click="loadDirectory"
-            >
-              <LucideIcon name="refresh-cw" :size="14" />
-            </button>
-          </header>
-
-          <label class="agent-chat-modal__search">
-            <LucideIcon name="search" :size="14" />
-            <input v-model="search" type="search" placeholder="Search agents" />
-          </label>
-
           <div class="agent-chat-modal__directory">
             <section
-              v-for="chat in filteredChats"
+              v-for="chat in chats"
               :key="chat.chatSlug"
               class="agent-chat-modal__group"
             >
@@ -43,7 +22,7 @@
                 type="button"
                 class="agent-chat-modal__agent"
                 :class="{ 'is-active': chat.chatSlug === activeChatSlug }"
-                @click="selectChat(chat.chatSlug)"
+                @click="toggleChat(chat.chatSlug)"
               >
                 <span class="agent-chat-modal__agent-avatar" aria-hidden="true">
                   {{ agentInitial(chat.title) }}
@@ -55,17 +34,29 @@
                 <span class="agent-chat-modal__agent-count">
                   {{ chat.sessions.length }}
                 </span>
+                <span
+                  class="agent-chat-modal__agent-action"
+                  role="button"
+                  tabindex="0"
+                  title="New conversation"
+                  aria-label="New conversation"
+                  @click.stop="startNewSessionFor(chat.chatSlug)"
+                  @keydown.enter.stop.prevent="startNewSessionFor(chat.chatSlug)"
+                  @keydown.space.stop.prevent="startNewSessionFor(chat.chatSlug)"
+                >
+                  <LucideIcon name="pen-line" :size="13" />
+                </span>
               </button>
 
               <div
-                v-if="chat.chatSlug === activeChatSlug"
+                v-if="chat.chatSlug === expandedChatSlug"
                 class="agent-chat-modal__sessions"
               >
                 <button
                   type="button"
                   class="agent-chat-modal__new-session"
                   :class="{ 'is-active': !activeSessionId }"
-                  @click="startNewSession"
+                  @click="startNewSessionFor(chat.chatSlug)"
                 >
                   <LucideIcon name="plus" :size="13" />
                   <span>New conversation</span>
@@ -84,14 +75,10 @@
             </section>
 
             <p
-              v-if="!directoryLoading && !filteredChats.length"
+              v-if="!directoryLoading && !chats.length"
               class="agent-chat-modal__empty"
             >
-              {{
-                chats.length
-                  ? "No agents match your search."
-                  : "No published chat agents yet."
-              }}
+              No published chat agents yet.
             </p>
           </div>
         </aside>
@@ -185,9 +172,9 @@ defineEmits<{ close: [] }>();
 
 const chats = ref<AgentChatDirectoryEntry[]>([]);
 const activeChatSlug = ref("");
+const expandedChatSlug = ref("");
 const activeSessionId = ref("");
 const draft = ref("");
-const search = ref("");
 const directoryLoading = ref(false);
 const sending = ref(false);
 const sessionPanel = ref<{
@@ -201,15 +188,6 @@ const activeChat = computed(
   () =>
     chats.value.find((chat) => chat.chatSlug === activeChatSlug.value) ?? null,
 );
-const filteredChats = computed(() => {
-  const query = search.value.trim().toLowerCase();
-  if (!query) return chats.value;
-  return chats.value.filter((chat) =>
-    [chat.title, chat.workflowName, chat.chatSlug]
-      .filter(Boolean)
-      .some((value) => value.toLowerCase().includes(query)),
-  );
-});
 const canSend = computed(() =>
   Boolean(activeChat.value && draft.value.trim() && !sending.value),
 );
@@ -261,12 +239,20 @@ async function loadDirectory() {
 
 function selectChat(chatSlug: string) {
   activeChatSlug.value = chatSlug;
+  expandedChatSlug.value = chatSlug;
   activeSessionId.value =
     chats.value.find((chat) => chat.chatSlug === chatSlug)?.sessions[0]?.id ??
     "";
 }
 
-function startNewSession() {
+function toggleChat(chatSlug: string) {
+  activeChatSlug.value = chatSlug;
+  expandedChatSlug.value = expandedChatSlug.value === chatSlug ? "" : chatSlug;
+}
+
+function startNewSessionFor(chatSlug = activeChatSlug.value) {
+  activeChatSlug.value = chatSlug;
+  expandedChatSlug.value = chatSlug;
   activeSessionId.value = "";
   draft.value = "";
 }
@@ -339,7 +325,7 @@ function agentInitial(value: string) {
   display: grid;
   width: 100%;
   min-height: 0;
-  grid-template-columns: 300px minmax(0, 1fr);
+  grid-template-columns: 280px minmax(0, 1fr);
 }
 
 .agent-chat-modal__sidebar {
@@ -351,7 +337,6 @@ function agentInitial(value: string) {
   background: var(--fabric-agent-chat-sidebar-bg);
 }
 
-.agent-chat-modal__sidebar-header,
 .agent-chat-modal__conversation-header {
   display: flex;
   min-height: 54px;
@@ -364,7 +349,6 @@ function agentInitial(value: string) {
   padding: 0 14px;
 }
 
-.agent-chat-modal__sidebar-header > div,
 .agent-chat-modal__active-agent > div {
   display: flex;
   min-width: 0;
@@ -372,7 +356,6 @@ function agentInitial(value: string) {
   gap: 2px;
 }
 
-.agent-chat-modal__sidebar-header strong,
 .agent-chat-modal__active-agent strong,
 .agent-chat-modal__welcome strong {
   overflow: hidden;
@@ -383,7 +366,6 @@ function agentInitial(value: string) {
   white-space: nowrap;
 }
 
-.agent-chat-modal__sidebar-header span,
 .agent-chat-modal__active-agent span,
 .agent-chat-modal__welcome span,
 .agent-chat-modal__meta {
@@ -391,52 +373,11 @@ function agentInitial(value: string) {
   font-size: 11px;
 }
 
-.agent-chat-modal__icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid var(--fabric-agent-chat-border);
-  border-radius: 6px;
-  background: transparent;
-  color: var(--fabric-agent-chat-text-secondary);
-  cursor: pointer;
-}
-
-.agent-chat-modal__icon-button:hover:not(:disabled) {
-  background: var(--fabric-agent-chat-row-active-bg);
-  color: var(--fabric-agent-chat-text-primary);
-}
-
-.agent-chat-modal__search {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 10px;
-  padding: 0 9px;
-  min-height: 32px;
-  border: 1px solid var(--fabric-agent-chat-input-border);
-  border-radius: 7px;
-  background: var(--fabric-agent-chat-input-bg);
-  color: var(--fabric-agent-chat-text-muted);
-}
-
-.agent-chat-modal__search input {
-  min-width: 0;
-  flex: 1;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--fabric-agent-chat-text-primary);
-  font: 12px var(--fabric-font-ui);
-}
-
 .agent-chat-modal__directory {
   min-height: 0;
   flex: 1;
   overflow-y: auto;
-  padding: 0 8px 10px;
+  padding: 8px;
 }
 
 .agent-chat-modal__group {
@@ -461,7 +402,9 @@ function agentInitial(value: string) {
 .agent-chat-modal__agent {
   align-items: center;
   gap: 9px;
-  padding: 8px;
+  min-height: 40px;
+  padding: 5px 6px;
+  position: relative;
 }
 
 .agent-chat-modal__agent-avatar,
@@ -522,6 +465,31 @@ function agentInitial(value: string) {
   font-size: 10px;
 }
 
+.agent-chat-modal__agent-action {
+  display: inline-flex;
+  width: 24px;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  color: var(--fabric-agent-chat-text-muted);
+  opacity: 0;
+  transition:
+    opacity var(--fabric-duration-fast) var(--fabric-ease-standard),
+    background-color var(--fabric-duration-fast) var(--fabric-ease-standard),
+    color var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.agent-chat-modal__agent:hover .agent-chat-modal__agent-action,
+.agent-chat-modal__agent:focus-visible .agent-chat-modal__agent-action {
+  opacity: 1;
+}
+
+.agent-chat-modal__agent-action:hover {
+  background: var(--fabric-agent-chat-input-bg);
+  color: var(--fabric-agent-chat-text-primary);
+}
+
 .agent-chat-modal__agent:hover,
 .agent-chat-modal__sessions button:hover,
 .agent-chat-modal__agent.is-active,
@@ -533,7 +501,7 @@ function agentInitial(value: string) {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  margin: 0 0 8px 46px;
+  margin: 0 0 8px 39px;
   padding-left: 8px;
   border-left: 1px solid var(--fabric-agent-chat-border);
 }
@@ -657,7 +625,7 @@ function agentInitial(value: string) {
 }
 
 .agent-chat-modal__composer button:disabled,
-.agent-chat-modal__icon-button:disabled {
+.agent-chat-modal__composer button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }

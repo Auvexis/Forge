@@ -42,11 +42,13 @@ test("agent messages and tool steps reconcile while a run is still active", () =
 test("agent chat modal exposes a polished directory and composer shell", () => {
   const modal = read("src/features/agent-runtime/components/AgentChatModal.vue");
 
-  assert.match(modal, /agent-chat-modal__search/);
-  assert.match(modal, /filteredChats/);
+  assert.match(modal, /agent-chat-modal__agent-action/);
+  assert.match(modal, /toggleChat\(chat\.chatSlug\)/);
+  assert.match(modal, /startNewSessionFor\(chat\.chatSlug\)/);
   assert.match(modal, /agent-chat-modal__conversation-header/);
   assert.match(modal, /agent-chat-modal__composer-box/);
   assert.match(modal, /agent-chat-modal__welcome-icon/);
   assert.match(modal, /LucideIcon/);
   assert.doesNotMatch(modal, /agent-chat-modal__titlebar/);
+  assert.doesNotMatch(modal, /agent-chat-modal__search/);
 });
