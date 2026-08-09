@@ -16,6 +16,43 @@ export type WorkspaceWindowAction =
 const workspaceFramePrefix = "fabric-workspace:";
 const workspaceIdPattern = /^[a-z0-9][a-z0-9:_-]{0,127}$/;
 
+type WindowFeatures = Record<string, string>;
+
+function parseWindowFeatures(features: string): WindowFeatures {
+  return features
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .reduce<WindowFeatures>((parsed, item) => {
+      const [rawKey, ...rawValue] = item.split("=");
+      const key = rawKey.trim().toLowerCase();
+      if (!key) return parsed;
+      parsed[key] = rawValue.join("=").trim();
+      return parsed;
+    }, {});
+}
+
+function readNumberFeature(
+  features: WindowFeatures,
+  key: string,
+  fallback: number,
+): number {
+  const value = Number(features[key.toLowerCase()]);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+function readBooleanFeature(
+  features: WindowFeatures,
+  key: string,
+  fallback: boolean,
+): boolean {
+  const value = features[key.toLowerCase()];
+  if (value === undefined || value === "") return fallback;
+  if (["1", "true", "yes"].includes(value.toLowerCase())) return true;
+  if (["0", "false", "no"].includes(value.toLowerCase())) return false;
+  return fallback;
+}
+
 export function workspaceIdFromFrameName(frameName: string): string | null {
   if (!frameName.startsWith(workspaceFramePrefix)) return null;
   const workspaceId = frameName.slice(workspaceFramePrefix.length);
@@ -35,7 +72,7 @@ export class WorkspaceWindowManager {
 
   attachTo(opener: BrowserWindow): void {
     this.opener = opener.webContents;
-    opener.webContents.setWindowOpenHandler(({ url, frameName }) => {
+    opener.webContents.setWindowOpenHandler(({ url, frameName, features }) => {
       const workspaceId = workspaceIdFromFrameName(frameName);
       if (url !== "about:blank" || !workspaceId) {
         if (url.startsWith("https://") || url.startsWith("http://")) {
@@ -44,13 +81,21 @@ export class WorkspaceWindowManager {
         return { action: "deny" };
       }
 
+      const windowFeatures = parseWindowFeatures(features);
+      const width = readNumberFeature(windowFeatures, "width", 1180);
+      const height = readNumberFeature(windowFeatures, "height", 780);
+      const minWidth = readNumberFeature(windowFeatures, "minwidth", 720);
+      const minHeight = readNumberFeature(windowFeatures, "minheight", 480);
+      const resizable = readBooleanFeature(windowFeatures, "resizable", true);
+
       return {
         action: "allow",
         overrideBrowserWindowOptions: {
-          width: 1180,
-          height: 780,
-          minWidth: 720,
-          minHeight: 480,
+          width,
+          height,
+          minWidth,
+          minHeight,
+          resizable,
           frame: false,
           show: false,
           backgroundColor: "#111318",

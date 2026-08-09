@@ -231,8 +231,8 @@ const isUrl = (str: string) => str?.startsWith("http") || str?.startsWith("/");
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  border: 1px solid var(--fabric-desktop-window-border);
-  border-radius: var(--fabric-desktop-window-radius);
+  border: 0;
+  border-radius: 0;
   background: var(--fabric-base-mini-menu-bg-surface);
   color: var(--fabric-base-mini-menu-text-primary);
 }

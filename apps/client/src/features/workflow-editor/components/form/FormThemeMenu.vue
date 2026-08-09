@@ -17,8 +17,8 @@
     config-id="form-theme"
     title="Form Theme"
     icon="palette"
-    max-width="1580px"
-    max-height="88vh"
+    max-width="1180px"
+    max-height="720px"
     @close="isOpen = false"
   >
     <div class="ftm-menu">
@@ -1266,11 +1266,14 @@ function updateNumber<K extends "container" | "typography" | "fields">(
 }
 
 .ftm-menu {
-  height: min(680px, calc(88vh - 112px));
+  width: 100%;
+  height: 100%;
   display: grid;
-  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.35fr);
+  grid-template-columns: 360px minmax(0, 1fr);
   gap: 16px;
+  padding: 16px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .ftm-preview {
@@ -1280,7 +1283,7 @@ function updateNumber<K extends "container" | "typography" | "fields">(
   place-items: center;
   padding: 20px;
   border: 1px solid var(--fabric-form-theme-menu-border);
-  border-radius: var(--fabric-radius-md);
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -1304,6 +1307,7 @@ function updateNumber<K extends "container" | "typography" | "fields">(
 
 .ftm-preview-card {
   width: min(100%, 340px);
+  max-height: 100%;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -1446,13 +1450,14 @@ function updateNumber<K extends "container" | "typography" | "fields">(
 }
 
 .ftm-controls {
+  height: 100%;
   min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
   overflow-y: auto;
-  overflow-x: visible;
-  padding-right: 4px;
+  overflow-x: hidden;
+  padding-right: 6px;
 }
 
 /* Preset cards */
