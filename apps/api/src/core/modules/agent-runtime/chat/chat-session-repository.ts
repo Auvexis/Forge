@@ -83,6 +83,19 @@ export class ChatSessionRepository {
       .run(new Date().toISOString(), profileId, id);
   }
 
+  rename(profileId: string, id: string, title: string): AgentChatSession | null {
+    const now = new Date().toISOString();
+    const result = this.db
+      .prepare(`
+        UPDATE agent_sessions
+        SET title = ?, updated_at = ?, revision = revision + 1
+        WHERE profile_id = ? AND id = ?
+      `)
+      .run(title, now, profileId, id);
+    if (result.changes === 0) return null;
+    return this.getById(profileId, id);
+  }
+
   delete(profileId: string, id: string): boolean {
     const result = this.db
       .prepare(`DELETE FROM agent_sessions WHERE profile_id = ? AND id = ?`)

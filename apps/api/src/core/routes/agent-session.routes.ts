@@ -86,6 +86,66 @@ export default async function agentSessionRoutes(
     return reply.code(201).send(response);
   });
 
+  fastify.patch("/agent-chat/sessions/:sessionId", async (request, reply) => {
+    const profileId = getProfileId();
+    const chatSessions = new ChatSessionRepository(getDb());
+    const { sessionId } = request.params as { sessionId: string };
+    const requestedTitle = (request.body as { title?: unknown } | undefined)?.title;
+    const title = typeof requestedTitle === "string" ? requestedTitle.trim().slice(0, 80) : "";
+    if (!title) {
+      const response: ApiResponse<null> = {
+        status_code: 400,
+        message: "Chat title is required",
+        error: "Chat title is required",
+        data: null,
+      };
+      return reply.code(400).send(response);
+    }
+
+    const session = chatSessions.rename(profileId, sessionId, title);
+    if (!session) {
+      const response: ApiResponse<null> = {
+        status_code: 404,
+        message: "Agent chat session not found",
+        error: "Agent chat session not found",
+        data: null,
+      };
+      return reply.code(404).send(response);
+    }
+
+    const response: ApiResponse<typeof session> = {
+      status_code: 200,
+      message: "Agent chat session renamed",
+      error: null,
+      data: session,
+    };
+    return reply.code(200).send(response);
+  });
+
+  fastify.delete("/agent-chat/sessions/:sessionId", async (request, reply) => {
+    const profileId = getProfileId();
+    const chatSessions = new ChatSessionRepository(getDb());
+    const { sessionId } = request.params as { sessionId: string };
+    const deleted = chatSessions.delete(profileId, sessionId);
+    if (!deleted) {
+      const response: ApiResponse<null> = {
+        status_code: 404,
+        message: "Agent chat session not found",
+        error: "Agent chat session not found",
+        data: null,
+      };
+      return reply.code(404).send(response);
+    }
+
+    const response: ApiResponse<{ deleted: true }> = {
+      status_code: 200,
+      message: "Agent chat session deleted",
+      error: null,
+      data: { deleted: true },
+    };
+    return reply.code(200).send(response);
+  });
+
   fastify.get("/agent-sessions/:sessionId/snapshot", async (request, reply) => {
     reply.header("Cache-Control", "no-store, no-cache, must-revalidate");
     const { sessionId } = request.params as { sessionId: string };

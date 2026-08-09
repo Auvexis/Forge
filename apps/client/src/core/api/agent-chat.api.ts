@@ -29,6 +29,17 @@ export const agentChatApi = {
   listSessionMessages: (sessionId: string) =>
     apiRequest<AgentChatMessage[]>(ENDPOINTS.AGENT_CHAT_SESSION_MESSAGES(sessionId)),
 
+  renameSession: (sessionId: string, title: string) =>
+    apiRequest<AgentChatSession>(ENDPOINTS.AGENT_CHAT_SESSION(sessionId), {
+      method: 'PATCH',
+      body: { title },
+    }),
+
+  deleteSession: (sessionId: string) =>
+    apiRequest<{ deleted: true }>(ENDPOINTS.AGENT_CHAT_SESSION(sessionId), {
+      method: 'DELETE',
+    }),
+
   getSessionSnapshot: (sessionId: string) =>
     apiRequest<AgentSessionSnapshot>(ENDPOINTS.AGENT_SESSION_SNAPSHOT(sessionId), {
       cache: 'no-store',

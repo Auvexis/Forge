@@ -45,12 +45,18 @@ test("agent chat modal exposes a polished directory and composer shell", () => {
   assert.match(modal, /agent-chat-modal__agent-action/);
   assert.match(modal, /chat\.agentAvatar/);
   assert.match(modal, /chat\.agentName/);
+  assert.match(modal, /BaseToolDropdown/);
+  assert.match(modal, /Rename chat/);
+  assert.match(modal, /Delete chat/);
   assert.match(modal, /toggleChat\(chat\.chatSlug\)/);
   assert.match(modal, /startNewSessionFor\(chat\.chatSlug\)/);
   assert.match(modal, /agent-chat-modal__conversation-header/);
   assert.match(modal, /agent-chat-modal__composer-box/);
   assert.match(modal, /agent-chat-modal__welcome-icon/);
   assert.match(modal, /LucideIcon/);
+  assert.doesNotMatch(modal, /agent-chat-modal__agent-count/);
+  assert.doesNotMatch(modal, /agent-chat-modal__new-session/);
+  assert.doesNotMatch(modal, /formatSessionTime/);
   assert.doesNotMatch(modal, /agent-chat-modal__titlebar/);
   assert.doesNotMatch(modal, /agent-chat-modal__search/);
 });

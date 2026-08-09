@@ -2,6 +2,7 @@ import Database from "better-sqlite3";
 import Fastify from "fastify";
 import { afterEach, describe, expect, it } from "vitest";
 import { createMigrationEngine } from "../database/migration-engine.ts";
+import { ChatSessionRepository } from "../modules/agent-runtime/chat/chat-session-repository.ts";
 import { AgentSessionRepository } from "../modules/agent-runtime/session/agent-session-repository.ts";
 import { AgentSessionWriter } from "../modules/agent-runtime/session/agent-session-writer.ts";
 import agentSessionRoutes from "./agent-session.routes.ts";
@@ -182,6 +183,56 @@ describe("agent session routes", () => {
       profileId: "profile_1",
       sessionId: response.json().data.id,
     }).messages).toEqual([]);
+    await app.close();
+  });
+
+  it("renames and deletes durable chat sessions inside the active profile", async () => {
+    db = new Database(":memory:");
+    await createMigrationEngine(db, "workflows").up();
+    const chatSessions = new ChatSessionRepository(db);
+    const visible = chatSessions.create({
+      id: "session_visible",
+      profileId: "profile_1",
+      workflowId: "workflow_1",
+      triggerNodeId: "chat_trigger",
+      title: "Original title",
+      status: "active",
+    });
+    chatSessions.create({
+      id: "session_other",
+      profileId: "profile_2",
+      workflowId: "workflow_1",
+      triggerNodeId: "chat_trigger",
+      title: "Other profile",
+      status: "active",
+    });
+    const app = Fastify();
+    await app.register(agentSessionRoutes, {
+      db,
+      getActiveProfileId: () => "profile_1",
+      getActiveWorkflows: () => [chatWorkflow()],
+    });
+
+    const rename = await app.inject({
+      method: "PATCH",
+      url: `/agent-chat/sessions/${visible.id}`,
+      payload: { title: "Renamed chat" },
+    });
+    const deleteHidden = await app.inject({
+      method: "DELETE",
+      url: "/agent-chat/sessions/session_other",
+    });
+    const deleted = await app.inject({
+      method: "DELETE",
+      url: `/agent-chat/sessions/${visible.id}`,
+    });
+
+    expect(rename.statusCode).toBe(200);
+    expect(rename.json().data).toMatchObject({ id: visible.id, title: "Renamed chat" });
+    expect(deleteHidden.statusCode).toBe(404);
+    expect(deleted.statusCode).toBe(200);
+    expect(chatSessions.getById("profile_1", visible.id)).toBeNull();
+    expect(chatSessions.getById("profile_2", "session_other")).not.toBeNull();
     await app.close();
   });
 

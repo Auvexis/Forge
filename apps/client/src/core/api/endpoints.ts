@@ -126,6 +126,8 @@ export const ENDPOINTS = {
     `/agent-chat/${encodeURIComponent(chatSlug)}/messages`,
   AGENT_CHAT_SESSION_MESSAGES: (sessionId: string) =>
     `/agent-chat/sessions/${encodeURIComponent(sessionId)}/messages`,
+  AGENT_CHAT_SESSION: (sessionId: string) =>
+    `/agent-chat/sessions/${encodeURIComponent(sessionId)}`,
   AGENT_SESSION_SNAPSHOT: (sessionId: string) =>
     `/agent-sessions/${encodeURIComponent(sessionId)}/snapshot`,
   AGENT_CHATS: '/agent-chats',

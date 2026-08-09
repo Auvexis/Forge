@@ -29,10 +29,6 @@
                 </span>
                 <span class="agent-chat-modal__agent-copy">
                   <strong>{{ chat.agentName }}</strong>
-                  <small>{{ chat.title }}</small>
-                </span>
-                <span class="agent-chat-modal__agent-count">
-                  {{ chat.sessions.length }}
                 </span>
                 <span
                   class="agent-chat-modal__agent-action"
@@ -52,25 +48,31 @@
                 v-if="chat.chatSlug === expandedChatSlug"
                 class="agent-chat-modal__sessions"
               >
-                <button
-                  type="button"
-                  class="agent-chat-modal__new-session"
-                  :class="{ 'is-active': !activeSessionId }"
-                  @click="startNewSessionFor(chat.chatSlug)"
-                >
-                  <LucideIcon name="plus" :size="13" />
-                  <span>New conversation</span>
-                </button>
-                <button
+                <div
                   v-for="session in chat.sessions"
                   :key="session.id"
-                  type="button"
+                  class="agent-chat-modal__session"
                   :class="{ 'is-active': session.id === activeSessionId }"
-                  @click="activeSessionId = session.id"
                 >
-                  <span>{{ session.title || "Untitled conversation" }}</span>
-                  <time>{{ formatSessionTime(session.updatedAt) }}</time>
-                </button>
+                  <button type="button" @click="activeSessionId = session.id">
+                    <span>{{ session.title || "Untitled conversation" }}</span>
+                  </button>
+                  <BaseToolDropdown
+                    class="agent-chat-modal__session-menu"
+                    :dropdown-id="`agent-chat-session-${session.id}`"
+                    label="Chat actions"
+                    icon="ellipsis"
+                    hint="Chat actions"
+                    position="bottom"
+                    :tools="sessionActionTools"
+                    :active-dropdown-id="activeSessionMenuId"
+                    :is-any-dropdown-open="Boolean(activeSessionMenuId)"
+                    @open="activeSessionMenuId = $event"
+                    @close="closeSessionMenu"
+                    @select="handleSessionAction(session, $event.id)"
+                    @dragstart.prevent
+                  />
+                </div>
               </div>
             </section>
 
@@ -158,8 +160,9 @@
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { agentChatApi } from "@/core/api/agent-chat.api";
 import BaseModal from "@/shared/components/base/BaseModal.vue";
+import BaseToolDropdown from "@/shared/components/base/BaseToolDropdown.vue";
 import LucideIcon from "@/shared/icons/LucideIcon.vue";
-import type { AgentChatDirectoryEntry } from "../types/agent.types";
+import type { AgentChatDirectoryEntry, AgentChatSession } from "../types/agent.types";
 import { useAgentErrorReporter } from "../composables/useAgentErrorReporter";
 import AgentSessionPanel from "./AgentSessionPanel.vue";
 
@@ -177,12 +180,17 @@ const activeSessionId = ref("");
 const draft = ref("");
 const directoryLoading = ref(false);
 const sending = ref(false);
+const activeSessionMenuId = ref<string | null>(null);
 const sessionPanel = ref<{
   invalidate: (revision?: number) => void;
   startLiveMessage: (message: string) => string;
   finishLiveMessage: (id: string) => Promise<void>;
 } | null>(null);
 const { reportAgentError } = useAgentErrorReporter();
+const sessionActionTools = [
+  { id: "rename", label: "Rename chat", icon: "pencil" },
+  { id: "delete", label: "Delete chat", icon: "trash-2" },
+];
 
 const activeChat = computed(
   () =>
@@ -295,15 +303,44 @@ async function sendMessage() {
   }
 }
 
-function formatSessionTime(value: string) {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat(undefined, {
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+function closeSessionMenu(id: string) {
+  if (activeSessionMenuId.value === id) activeSessionMenuId.value = null;
+}
+
+async function handleSessionAction(session: AgentChatSession, actionId: string) {
+  if (actionId === "rename") {
+    await renameSession(session);
+    return;
+  }
+  if (actionId === "delete") await deleteSession(session);
+}
+
+async function renameSession(session: AgentChatSession) {
+  const nextTitle = window.prompt(
+    "Rename chat",
+    session.title || "Untitled conversation",
+  )?.trim();
+  if (!nextTitle || nextTitle === session.title) return;
+  try {
+    await agentChatApi.renameSession(session.id, nextTitle.slice(0, 80));
+    await loadDirectory();
+  } catch (error) {
+    reportAgentError(error, "Could not rename chat.", "session.rename");
+  }
+}
+
+async function deleteSession(session: AgentChatSession) {
+  const shouldDelete = window.confirm(
+    `Delete "${session.title || "Untitled conversation"}"?`,
+  );
+  if (!shouldDelete) return;
+  try {
+    await agentChatApi.deleteSession(session.id);
+    if (activeSessionId.value === session.id) activeSessionId.value = "";
+    await loadDirectory();
+  } catch (error) {
+    reportAgentError(error, "Could not delete chat.", "session.delete");
+  }
 }
 
 function agentInitial(value: string) {
@@ -387,7 +424,7 @@ function agentInitial(value: string) {
 }
 
 .agent-chat-modal__agent,
-.agent-chat-modal__sessions button {
+.agent-chat-modal__session {
   display: flex;
   width: 100%;
   min-width: 0;
@@ -436,33 +473,12 @@ function agentInitial(value: string) {
 }
 
 .agent-chat-modal__agent-copy strong,
-.agent-chat-modal__sessions button span {
+.agent-chat-modal__session span {
   overflow: hidden;
   color: var(--fabric-agent-chat-text-primary);
   font-size: 12px;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.agent-chat-modal__agent-copy small,
-.agent-chat-modal__sessions time {
-  overflow: hidden;
-  color: var(--fabric-agent-chat-text-muted);
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.agent-chat-modal__agent-count {
-  display: inline-flex;
-  min-width: 20px;
-  height: 20px;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: rgba(128, 128, 128, 0.08);
-  color: var(--fabric-agent-chat-text-muted);
-  font-size: 10px;
 }
 
 .agent-chat-modal__agent-action {
@@ -491,9 +507,9 @@ function agentInitial(value: string) {
 }
 
 .agent-chat-modal__agent:hover,
-.agent-chat-modal__sessions button:hover,
+.agent-chat-modal__session:hover,
 .agent-chat-modal__agent.is-active,
-.agent-chat-modal__sessions button.is-active {
+.agent-chat-modal__session.is-active {
   background: rgba(128, 128, 128, 0.08);
 }
 
@@ -502,21 +518,39 @@ function agentInitial(value: string) {
   flex-direction: column;
   gap: 2px;
   margin: 0 0 8px 39px;
-  padding-left: 8px;
-  border-left: 1px solid var(--fabric-agent-chat-border);
 }
 
-.agent-chat-modal__sessions button {
+.agent-chat-modal__session {
   min-height: 28px;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 5px 8px;
+  padding: 2px 2px 2px 8px;
   font-size: 11px;
 }
 
-.agent-chat-modal__new-session {
-  justify-content: flex-start !important;
+.agent-chat-modal__session > button {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.agent-chat-modal__session-menu {
+  flex: 0 0 auto;
+  opacity: 0;
+  transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.agent-chat-modal__session:hover .agent-chat-modal__session-menu,
+.agent-chat-modal__session:focus-within .agent-chat-modal__session-menu {
+  opacity: 1;
 }
 
 .agent-chat-modal__conversation {

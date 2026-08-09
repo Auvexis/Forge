@@ -1,0 +1,4 @@
+- [x] Clean agent and chat sidebar labels
+- [x] Add chat item actions menu
+- [x] Expose rename and delete session API
+- [x] Verify and commit
