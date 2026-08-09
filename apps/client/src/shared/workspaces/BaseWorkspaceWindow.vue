@@ -8,10 +8,12 @@ const props = withDefaults(
     open: boolean;
     workspaceId: string;
     title: string;
+    configId?: string;
     width?: number;
     height?: number;
   }>(),
   {
+    configId: undefined,
     width: 1180,
     height: 780,
   },
@@ -31,6 +33,7 @@ const isDesktop = computed(() => window.fabricDesktop?.isDesktop === true);
     :open="open"
     :window-id="workspaceId"
     :title="title"
+    :config-id="configId"
     :width="width"
     :height="height"
     fallback="none"

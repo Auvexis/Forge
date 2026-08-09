@@ -465,6 +465,7 @@ const copyToClipboard = async (path: string) => {
   <BaseWorkspaceSurface
     :open="inspectorStore.isOpen"
     workspace-id="workflow-node-inspectors"
+    config-id="workflow-node-inspector"
     :title="workspaceTitle"
     modal-max-width="1600px"
     modal-height="85vh"

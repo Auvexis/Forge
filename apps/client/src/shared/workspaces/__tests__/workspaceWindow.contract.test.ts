@@ -10,6 +10,7 @@ test("workspace host delegates native windows to Renderizer", () => {
   const main = read("../../../main.ts");
 
   assert.match(host, /<RenderWindow/);
+  assert.match(host, /:config-id="configId"/);
   assert.match(host, /<slot name="tabs"/);
   assert.match(host, /<slot \/>/);
   assert.match(host, /exclude-document-classes/);

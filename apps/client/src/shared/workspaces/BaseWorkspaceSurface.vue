@@ -8,6 +8,7 @@ const props = withDefaults(defineProps<{
   open: boolean
   workspaceId: string
   title: string
+  configId?: string
   modalMaxWidth?: string
   modalHeight?: string
   windowWidth?: number
@@ -19,6 +20,7 @@ const props = withDefaults(defineProps<{
   windowWidth: 1180,
   windowHeight: 780,
   desktopExternal: true,
+  configId: undefined,
 })
 
 const emit = defineEmits<{
@@ -44,6 +46,7 @@ watch(
     :open="open"
     :workspace-id="workspaceId"
     :title="title"
+    :config-id="configId"
     :width="windowWidth"
     :height="windowHeight"
     @closed="emit('close')"
