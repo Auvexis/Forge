@@ -13,6 +13,9 @@ test('desktop sends window shape state after load and ready-to-show', () => {
 
 test('desktop keeps the main renderer active while minimized for child window portals', () => {
   assert.match(main, /backgroundThrottling: false/);
+  assert.match(main, /appendSwitch\("disable-background-timer-throttling"\)/);
+  assert.match(main, /appendSwitch\("disable-renderer-backgrounding"\)/);
+  assert.match(main, /appendSwitch\("disable-backgrounding-occluded-windows"\)/);
 });
 
 test('desktop update check treats unavailable GitHub releases as no update', () => {

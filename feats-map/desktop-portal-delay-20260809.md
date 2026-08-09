@@ -1,0 +1,2 @@
+- [x] Remover delay de portal com janela minimizada
+- [x] Validar e commitar

@@ -13,6 +13,10 @@ const appIconPath = path.join(__dirname, "assets", "icon.svg");
 const trayIconSize = process.platform === "win32" ? 16 : 22;
 const desktopAppId = "com.auvexis.fabric";
 
+app.commandLine.appendSwitch("disable-background-timer-throttling");
+app.commandLine.appendSwitch("disable-renderer-backgrounding");
+app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
+
 if (process.platform === "win32") {
   app.setAppUserModelId(desktopAppId);
 }
