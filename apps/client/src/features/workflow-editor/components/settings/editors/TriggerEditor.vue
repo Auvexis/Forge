@@ -748,11 +748,15 @@ import type {
 import { insertExpressionToken } from "../expressions/expressionVariables";
 import { useVariablePickerPosition } from "../expressions/useVariablePickerPosition";
 import { RenderPortal, ownerDocumentOf } from "@renderizer/vue";
+import { useTheme } from "@/shared/composables/useTheme";
+import { resolvePluginIcon } from "@/shared/icons/pluginIconResolver";
+import { isIconUrl } from "@/shared/icons/iconRendering";
 
 const props = defineProps<NodeEditorProps>();
 const workflowStore = useWorkflowStore();
 const profileStore = useProfileStore();
 const toast = useToast();
+const { iconVariant } = useTheme();
 const editorRef = ref<HTMLElement | null>(null);
 
 const isMounted = ref(false);
@@ -1061,16 +1065,15 @@ const pluginsWithTriggers = computed(() =>
 
 const pluginTriggerOptions = computed(() =>
   pluginsWithTriggers.value.map((p) => {
-    const iconStr = p.manifest.metadata.icon;
-    const isImage =
-      iconStr &&
-      (iconStr.startsWith("http") ||
-        iconStr.startsWith("/") ||
-        iconStr.startsWith("data:"));
+    const iconStr = resolvePluginIcon(p.manifest.metadata, {
+      iconVariant: iconVariant.value,
+      fallback: "plug",
+    });
+    const isImage = isIconUrl(iconStr);
     return {
       value: p.id,
       label: p.manifest.metadata.name,
-      ...(isImage ? { image: iconStr } : { icon: iconStr || "plug" }),
+      ...(isImage ? { image: iconStr } : { icon: iconStr }),
     };
   }),
 );

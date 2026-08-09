@@ -11,6 +11,10 @@ test('desktop sends window shape state after load and ready-to-show', () => {
   assert.match(main, /ready-to-show"[\s\S]*sendWindowState\(\)[\s\S]*window\.show\(\)/);
 });
 
+test('desktop keeps the main renderer active while minimized for child window portals', () => {
+  assert.match(main, /backgroundThrottling: false/);
+});
+
 test('desktop update check treats unavailable GitHub releases as no update', () => {
   assert.match(updates, /fetchReleases\(\)\.catch\(\(\) => \[\]\)/);
   assert.match(updates, /return emptyUpdate\(currentVersion, channel\)/);

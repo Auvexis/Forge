@@ -48,6 +48,26 @@ const variableTreeSource = readFileSync(
   'utf8',
 )
 
+const triggerEditorSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      '../../../../features/workflow-editor/components/settings/editors/TriggerEditor.vue',
+      import.meta.url,
+    ),
+  ),
+  'utf8',
+)
+
+const triggerNodeSource = readFileSync(
+  fileURLToPath(
+    new URL(
+      '../../../../features/workflow-editor/components/nodes/TriggerNode.vue',
+      import.meta.url,
+    ),
+  ),
+  'utf8',
+)
+
 describe('plugin theme icons', () => {
   it('resolves credentials plugin icons through the theme-aware plugin icon resolver', () => {
     assert.match(globalSettingsSource, /import \{ resolvePluginIcon \}/)
@@ -81,5 +101,19 @@ describe('plugin theme icons', () => {
     assert.match(variableTreeSource, /const \{ iconVariant \} = useTheme\(\)/)
     assert.match(variableTreeSource, /resolvePluginIcon\(upPlugin\.manifest\.metadata, \{ iconVariant: iconVariant\.value, fallback: 'puzzle' \}\)/)
     assert.doesNotMatch(variableTreeSource, /upPlugin\.manifest\.metadata\.icon/)
+  })
+
+  it('resolves plugin trigger select and canvas icons through theme-aware assets', () => {
+    assert.match(triggerEditorSource, /import \{ useTheme \}/)
+    assert.match(triggerEditorSource, /import \{ resolvePluginIcon \}/)
+    assert.match(triggerEditorSource, /import \{ isIconUrl \}/)
+    assert.match(triggerEditorSource, /const \{ iconVariant \} = useTheme\(\)/)
+    assert.match(triggerEditorSource, /resolvePluginIcon\(p\.manifest\.metadata, \{[\s\S]*iconVariant: iconVariant\.value/)
+    assert.match(triggerEditorSource, /isIconUrl\(iconStr\)/)
+    assert.doesNotMatch(triggerEditorSource, /const iconStr = p\.manifest\.metadata\.icon/)
+
+    assert.match(triggerNodeSource, /import \{ isIconUrl \}/)
+    assert.match(triggerNodeSource, /isIconUrl\(pluginIcon\.value\)/)
+    assert.match(triggerNodeSource, /resolvePluginIcon\(plugin\.manifest\.metadata, \{[\s\S]*iconVariant: iconVariant\.value/)
   })
 })

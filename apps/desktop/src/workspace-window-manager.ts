@@ -105,6 +105,7 @@ export class WorkspaceWindowManager {
             contextIsolation: true,
             nodeIntegration: false,
             sandbox: false,
+            backgroundThrottling: false,
           },
         },
       };

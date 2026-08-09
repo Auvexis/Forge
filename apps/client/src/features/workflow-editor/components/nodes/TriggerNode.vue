@@ -20,6 +20,7 @@ import { apiRequest } from '@/core/api/client'
 import { ENDPOINTS } from '@/core/api/endpoints'
 import { useTheme } from '@/shared/composables/useTheme'
 import { resolvePluginIcon } from '@/shared/icons/pluginIconResolver'
+import { isIconUrl } from '@/shared/icons/iconRendering'
 import type { PluginSummary } from '@/core/types/plugin.types'
 
 defineOptions({ inheritAttrs: false })
@@ -156,7 +157,9 @@ async function loadSelectedPlugin() {
       iconVariant: iconVariant.value,
       fallback: 'plug',
     })
-    pluginIconColor.value = plugin.manifest.metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)'
+    pluginIconColor.value = isIconUrl(pluginIcon.value)
+      ? 'var(--fabric-node-plugin-icon)'
+      : plugin.manifest.metadata.style?.iconColor ?? 'var(--fabric-node-plugin-icon)'
   } catch (err) {
     console.warn(`Failed to load plugin trigger icon for ${pluginId}`, err)
   }

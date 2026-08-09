@@ -33,3 +33,7 @@ test("workspace windows honor Renderizer window open features", () => {
   assert.match(source, /readBooleanFeature\(windowFeatures, "resizable", true\)/);
   assert.match(source, /resizable,/);
 });
+
+test("workspace windows keep portals responsive while the opener is minimized", () => {
+  assert.match(source, /backgroundThrottling: false/);
+});

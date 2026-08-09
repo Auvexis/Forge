@@ -1,0 +1,3 @@
+- [x] Manter portals ativos com janela principal minimizada
+- [x] Corrigir icones de Plugin Trigger por tema
+- [x] Validar e commitar
