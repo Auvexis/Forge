@@ -9,8 +9,22 @@
     height="min(820px, 88vh)"
     @close="$emit('close')"
   >
+    <template #window-title>
+      <button
+        type="button"
+        class="agent-chat-modal__sidebar-toggle"
+        :title="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        :aria-label="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+        @click="sidebarCollapsed = !sidebarCollapsed"
+      >
+        <LucideIcon :name="sidebarCollapsed ? 'panel-left-open' : 'panel-left-close'" :size="15" />
+      </button>
+    </template>
     <section class="agent-chat-modal" aria-label="Agent chats">
-      <div class="agent-chat-modal__workspace">
+      <div
+        class="agent-chat-modal__workspace"
+        :class="{ 'agent-chat-modal__workspace--collapsed': sidebarCollapsed }"
+      >
         <aside class="agent-chat-modal__sidebar">
           <div class="agent-chat-modal__directory">
             <section
@@ -181,6 +195,7 @@ const draft = ref("");
 const directoryLoading = ref(false);
 const sending = ref(false);
 const activeSessionMenuId = ref<string | null>(null);
+const sidebarCollapsed = ref(false);
 const sessionPanel = ref<{
   invalidate: (revision?: number) => void;
   startLiveMessage: (message: string) => string;
@@ -363,6 +378,11 @@ function agentInitial(value: string) {
   width: 100%;
   min-height: 0;
   grid-template-columns: 280px minmax(0, 1fr);
+  transition: grid-template-columns var(--fabric-duration-fast) var(--fabric-ease-standard);
+}
+
+.agent-chat-modal__workspace--collapsed {
+  grid-template-columns: 48px minmax(0, 1fr);
 }
 
 .agent-chat-modal__sidebar {
@@ -370,8 +390,29 @@ function agentInitial(value: string) {
   min-width: 0;
   min-height: 0;
   flex-direction: column;
+  overflow: hidden;
   border-right: 1px solid var(--fabric-agent-chat-border);
   background: var(--fabric-agent-chat-sidebar-bg);
+}
+
+.agent-chat-modal__sidebar-toggle {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  border: 0;
+  border-radius: var(--fabric-base-topbar-button-radius);
+  background: transparent;
+  color: var(--fabric-app-topbar-topbar-button-text);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+.agent-chat-modal__sidebar-toggle:hover {
+  background: var(--fabric-base-topbar-button-topbar-search-hover-bg);
+  color: var(--fabric-base-topbar-button-topbar-search-hover-text);
 }
 
 .agent-chat-modal__conversation-header {
@@ -413,8 +454,10 @@ function agentInitial(value: string) {
 .agent-chat-modal__directory {
   min-height: 0;
   flex: 1;
+  overflow-x: hidden;
   overflow-y: auto;
   padding: 8px;
+  scrollbar-gutter: stable;
 }
 
 .agent-chat-modal__group {
@@ -551,6 +594,27 @@ function agentInitial(value: string) {
 .agent-chat-modal__session:hover .agent-chat-modal__session-menu,
 .agent-chat-modal__session:focus-within .agent-chat-modal__session-menu {
   opacity: 1;
+}
+
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__directory {
+  padding: 8px 6px;
+  scrollbar-gutter: auto;
+}
+
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__group {
+  align-items: center;
+}
+
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__agent {
+  justify-content: center;
+  gap: 0;
+  padding: 5px;
+}
+
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__agent-copy,
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__agent-action,
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__sessions {
+  display: none;
 }
 
 .agent-chat-modal__conversation {

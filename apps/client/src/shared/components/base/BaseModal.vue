@@ -89,7 +89,9 @@ onBeforeUnmount(() => {
         :class="{ 'base-modal-window-surface--maximized': isMaximized }"
       >
         <header class="base-modal-window-surface__topbar">
-          <span class="base-modal-window-surface__title">{{ title }}</span>
+          <slot name="window-title">
+            <span class="base-modal-window-surface__title">{{ title }}</span>
+          </slot>
           <BaseWindowControls
             :is-maximized="isMaximized"
             @minimize="control('minimize')"

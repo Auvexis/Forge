@@ -46,6 +46,9 @@ test("agent chat modal exposes a polished directory and composer shell", () => {
   assert.match(modal, /chat\.agentAvatar/);
   assert.match(modal, /chat\.agentName/);
   assert.match(modal, /BaseToolDropdown/);
+  assert.match(modal, /#window-title/);
+  assert.match(modal, /sidebarCollapsed/);
+  assert.match(modal, /agent-chat-modal__workspace--collapsed/);
   assert.match(modal, /Rename chat/);
   assert.match(modal, /Delete chat/);
   assert.match(modal, /toggleChat\(chat\.chatSlug\)/);
