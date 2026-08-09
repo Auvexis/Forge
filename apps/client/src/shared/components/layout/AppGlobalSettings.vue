@@ -1100,6 +1100,7 @@ import AuvexisAccountSettings from "@/shared/components/layout/AuvexisAccountSet
 import { usePluginAuth } from "@/shared/composables/usePluginAuth";
 import { useToast } from "@/shared/composables/useToast";
 import { resolvePluginIcon } from "@/shared/icons/pluginIconResolver";
+import { copyTextToClipboard } from "@/shared/utils/clipboard";
 
 const toast = useToast();
 
@@ -1193,7 +1194,7 @@ function toggleVarVisibility(key: string) {
 async function copyVariableToken(key: string) {
   const token = `{{ env.${key} }}`;
   try {
-    await navigator.clipboard?.writeText(token);
+    await copyTextToClipboard(token);
     toast.success("Variable copied");
   } catch {
     toast.error("Could not copy variable");
