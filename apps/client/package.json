@@ -18,7 +18,7 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
-    "@renderizer/vue": "^1.1.0-beta.0",
+    "@renderizer/vue": "^1.1.0-beta.1",
     "@tresjs/core": "^5.8.0",
     "@vueuse/core": "^14.2.1",
     "lucide-vue-next": "^1.0.0",
