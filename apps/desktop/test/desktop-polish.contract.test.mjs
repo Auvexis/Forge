@@ -48,3 +48,12 @@ test('desktop build uses committed icon assets without regenerating from SVG', (
   assert.doesNotMatch(desktopPackage, /generate-icons/);
   assert.match(desktopPackage, /"build": "tsc && tsx scripts\/copy-assets\.mts"/);
 });
+
+test('desktop runtime uses platform icon assets instead of SVG icons', () => {
+  assert.match(main, /function resolvePlatformIconPath\(\)/);
+  assert.match(main, /icon\.ico/);
+  assert.match(main, /icon\.icns/);
+  assert.match(main, /icon\.png/);
+  assert.doesNotMatch(main, /appIconPath = path\.join\(__dirname, "assets", "icon\.svg"\)/);
+  assert.match(main, /app\.setName\("Fabric"\)/);
+});

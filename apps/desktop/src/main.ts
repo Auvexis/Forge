@@ -11,12 +11,17 @@ import { WorkspaceWindowManager, type WorkspaceWindowAction } from "./workspace-
 const desktopUrl = process.env.FABRIC_DESKTOP_URL ?? "http://127.0.0.1:23800";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const splashMinMs = 1400;
-const appIconPath = path.join(__dirname, "assets", "icon.svg");
+const iconAssetsDir = path.join(__dirname, "assets");
+const appIconPath = resolvePlatformIconPath();
+const trayIconPath = process.platform === "darwin"
+  ? path.join(iconAssetsDir, "icon.png")
+  : appIconPath;
 const trayIconSize = process.platform === "win32" ? 16 : 22;
 const desktopAppId = "com.auvexis.fabric";
 const renderizerElectronConfig = readRenderizerElectronConfig();
 
 applyRenderizerElectronConfig(app, renderizerElectronConfig);
+app.setName("Fabric");
 
 if (process.platform === "win32") {
   app.setAppUserModelId(desktopAppId);
@@ -52,9 +57,15 @@ function readRenderizerElectronConfig(): RenderizerElectronConfig {
   }
 }
 
+function resolvePlatformIconPath(): string {
+  if (process.platform === "win32") return path.join(iconAssetsDir, "icon.ico");
+  if (process.platform === "darwin") return path.join(iconAssetsDir, "icon.icns");
+  return path.join(iconAssetsDir, "icon.png");
+}
+
 function createAppIcon(): NativeImage {
   const icon = nativeImage.createFromPath(appIconPath);
-  if (icon.isEmpty()) return icon;
+  if (icon.isEmpty()) return nativeImage.createFromPath(path.join(iconAssetsDir, "icon.png"));
   return icon;
 }
 
@@ -92,7 +103,7 @@ function restoreParkedMainWindow(window: BrowserWindow): void {
 }
 
 function createTrayIcon(): NativeImage {
-  const icon = createAppIcon();
+  const icon = nativeImage.createFromPath(trayIconPath);
   if (icon.isEmpty()) return icon;
   const resized = icon.resize({ width: trayIconSize, height: trayIconSize });
   resized.setTemplateImage(process.platform === "darwin");

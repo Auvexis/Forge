@@ -1,0 +1,2 @@
+- [x] Use packaged icon assets at runtime
+- [x] Validate and commit
