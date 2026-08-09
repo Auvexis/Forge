@@ -16,6 +16,8 @@ describe("AgentChatModal", () => {
     expect(source).toMatch(/sessionPanel\.value\?\.invalidate/);
     expect(source).toMatch(/toggleChat/);
     expect(source).toMatch(/agent-chat-modal__agent-action/);
+    expect(source).toMatch(/chat\.agentAvatar/);
+    expect(source).toMatch(/chat\.agentName/);
     expect(source).toMatch(/agent-chat-modal__composer-box/);
     expect(source).not.toMatch(/EventSource|WebSocket|agent:tool-start|agent:output-delta/);
   });

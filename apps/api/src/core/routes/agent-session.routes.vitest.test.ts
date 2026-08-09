@@ -120,8 +120,23 @@ describe("agent session routes", () => {
               chatTitle: "Support agent",
             },
           },
+          agent_1: {
+            id: "agent_1",
+            type: "ai-agent",
+            name: "Internal name",
+            agentDisplayName: "YouTube Agent",
+            agentEmoji: "🎬",
+            position: { x: 0, y: 0 },
+            prompt: "Help",
+            executionMode: "loop",
+            maxToolCalls: 3,
+            maxRetriesPerTool: 1,
+            timeoutMs: 30000,
+            requireApprovalForSideEffects: [],
+            outputMode: "text",
+          },
         },
-        edges: [],
+        edges: [{ id: "trigger-agent", source: "chat_trigger", target: "agent_1" }],
         trigger: { type: "manual" },
       }],
     });
@@ -132,6 +147,8 @@ describe("agent session routes", () => {
     expect(response.json().data).toEqual([expect.objectContaining({
       chatSlug: "support",
       title: "Support agent",
+      agentName: "YouTube Agent",
+      agentAvatar: "🎬",
       sessions: [expect.objectContaining({ id: "session_visible" })],
     })]);
     await app.close();
@@ -218,8 +235,23 @@ function chatWorkflow() {
           chatTitle: "Support agent",
         },
       },
+      agent_1: {
+        id: "agent_1",
+        type: "ai-agent" as const,
+        name: "Support Agent",
+        agentDisplayName: "Support Captain",
+        agentEmoji: "⚓",
+        position: { x: 0, y: 0 },
+        prompt: "Help",
+        executionMode: "loop" as const,
+        maxToolCalls: 3,
+        maxRetriesPerTool: 1,
+        timeoutMs: 30000,
+        requireApprovalForSideEffects: [],
+        outputMode: "text" as const,
+      },
     },
-    edges: [],
+    edges: [{ id: "trigger-agent", source: "chat_trigger", target: "agent_1" }],
     trigger: { type: "manual" as const },
   };
 }

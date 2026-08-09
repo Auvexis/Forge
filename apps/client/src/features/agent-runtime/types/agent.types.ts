@@ -83,6 +83,8 @@ export interface AgentChatSession {
 export interface AgentChatDirectoryEntry {
   chatSlug: string
   title: string
+  agentName: string
+  agentAvatar: string
   workflowId: string
   workflowName: string
   triggerNodeId: string

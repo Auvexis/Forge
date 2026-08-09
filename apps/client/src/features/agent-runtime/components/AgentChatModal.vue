@@ -25,11 +25,11 @@
                 @click="toggleChat(chat.chatSlug)"
               >
                 <span class="agent-chat-modal__agent-avatar" aria-hidden="true">
-                  {{ agentInitial(chat.title) }}
+                  {{ chat.agentAvatar || agentInitial(chat.agentName) }}
                 </span>
                 <span class="agent-chat-modal__agent-copy">
-                  <strong>{{ chat.title }}</strong>
-                  <small>{{ chat.workflowName }}</small>
+                  <strong>{{ chat.agentName }}</strong>
+                  <small>{{ chat.title }}</small>
                 </span>
                 <span class="agent-chat-modal__agent-count">
                   {{ chat.sessions.length }}
@@ -87,12 +87,12 @@
           <header class="agent-chat-modal__conversation-header">
             <div class="agent-chat-modal__active-agent">
               <span class="agent-chat-modal__active-avatar" aria-hidden="true">
-                {{ activeChat ? agentInitial(activeChat.title) : "A" }}
+                {{ activeChat ? activeChat.agentAvatar || agentInitial(activeChat.agentName) : "AI" }}
               </span>
               <div>
-                <strong>{{ activeChat?.title ?? "Select an agent" }}</strong>
+                <strong>{{ activeChat?.agentName ?? "Select an agent" }}</strong>
                 <span>{{
-                  activeChat?.workflowName ??
+                  activeChat?.title ??
                   "Choose a published chat agent to begin."
                 }}</span>
               </div>
@@ -119,7 +119,7 @@
             </div>
             <strong>{{
               activeChat
-                ? `Start with ${activeChat.title}`
+                ? `Start with ${activeChat.agentName}`
                 : "Select a published agent"
             }}</strong>
             <span>{{
@@ -414,8 +414,8 @@ function agentInitial(value: string) {
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
-  border: 1px solid var(--fabric-agent-chat-border);
-  background: var(--fabric-agent-chat-row-active-bg);
+  border: 1px solid rgba(128, 128, 128, 0.18);
+  background: rgba(128, 128, 128, 0.08);
   color: var(--fabric-agent-chat-text-primary);
 }
 
@@ -460,7 +460,7 @@ function agentInitial(value: string) {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  background: var(--fabric-agent-chat-row-active-bg);
+  background: rgba(128, 128, 128, 0.08);
   color: var(--fabric-agent-chat-text-muted);
   font-size: 10px;
 }
@@ -486,7 +486,7 @@ function agentInitial(value: string) {
 }
 
 .agent-chat-modal__agent-action:hover {
-  background: var(--fabric-agent-chat-input-bg);
+  background: rgba(128, 128, 128, 0.12);
   color: var(--fabric-agent-chat-text-primary);
 }
 
@@ -494,7 +494,7 @@ function agentInitial(value: string) {
 .agent-chat-modal__sessions button:hover,
 .agent-chat-modal__agent.is-active,
 .agent-chat-modal__sessions button.is-active {
-  background: var(--fabric-agent-chat-row-active-bg);
+  background: rgba(128, 128, 128, 0.08);
 }
 
 .agent-chat-modal__sessions {

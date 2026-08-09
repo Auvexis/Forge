@@ -43,6 +43,8 @@ test("agent chat modal exposes a polished directory and composer shell", () => {
   const modal = read("src/features/agent-runtime/components/AgentChatModal.vue");
 
   assert.match(modal, /agent-chat-modal__agent-action/);
+  assert.match(modal, /chat\.agentAvatar/);
+  assert.match(modal, /chat\.agentName/);
   assert.match(modal, /toggleChat\(chat\.chatSlug\)/);
   assert.match(modal, /startNewSessionFor\(chat\.chatSlug\)/);
   assert.match(modal, /agent-chat-modal__conversation-header/);

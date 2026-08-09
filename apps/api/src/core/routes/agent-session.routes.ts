@@ -6,6 +6,7 @@ import { ChatSessionRepository } from "../modules/agent-runtime/chat/chat-sessio
 import { activeProfileRuntime } from "../profiles/active-profile-runtime.ts";
 import { WorkflowRepository } from "../modules/workflows/repository.ts";
 import { listTriggerEntries, resolveChatTrigger } from "../modules/workflows/workflow-triggers.ts";
+import type { AiAgentNode, WorkflowItem } from "../../shared/models/workflow-types.ts";
 
 export interface AgentSessionRoutesOptions {
   db?: Database.Database;
@@ -29,9 +30,12 @@ export default async function agentSessionRoutes(
     const chats = getActiveWorkflows().flatMap((workflow) =>
       listTriggerEntries(workflow).flatMap((entry) => {
         if (entry.disabled || entry.trigger.type !== "chat" || !entry.trigger.chatSlug) return [];
+        const agentIdentity = resolveConnectedAgentIdentity(workflow, entry.id);
         return [{
           chatSlug: entry.trigger.chatSlug,
           title: entry.trigger.chatTitle?.trim() || entry.name || workflow.metadata.name,
+          agentName: agentIdentity.name,
+          agentAvatar: agentIdentity.avatar,
           workflowId: workflow.metadata.id,
           workflowName: workflow.metadata.name,
           triggerNodeId: entry.id,
@@ -109,3 +113,33 @@ export default async function agentSessionRoutes(
   });
 }
 import { randomUUID } from "node:crypto";
+
+function resolveConnectedAgentIdentity(
+  workflow: WorkflowItem,
+  triggerNodeId: string,
+): { name: string; avatar: string } {
+  const visited = new Set<string>([triggerNodeId]);
+  const queue = [triggerNodeId];
+
+  while (queue.length > 0) {
+    const source = queue.shift()!;
+    for (const edge of workflow.edges) {
+      if (edge.source !== source || visited.has(edge.target)) continue;
+      visited.add(edge.target);
+      const target = workflow.nodes[edge.target];
+      if (target?.type === "ai-agent") {
+        return {
+          name: agentDisplayName(target),
+          avatar: target.agentEmoji?.trim() || "AI",
+        };
+      }
+      queue.push(edge.target);
+    }
+  }
+
+  return { name: "Agent", avatar: "AI" };
+}
+
+function agentDisplayName(agent: AiAgentNode): string {
+  return agent.agentDisplayName?.trim() || agent.name?.trim() || "AI Agent";
+}
