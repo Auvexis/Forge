@@ -1,0 +1,3 @@
+- [x] Migrar overlays para RenderPortal
+- [x] Migrar workspace window para RenderWindow
+- [x] Validar e commitar

@@ -1,113 +1,128 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { AppHintContent, HintPosition } from './AppHint.types'
-import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+import type { AppHintContent, HintPosition } from "./AppHint.types";
+import { RenderPortal, ownerWindowOf } from "@renderizer/vue";
 
 const props = defineProps<{
-  hint: AppHintContent
-}>()
+  hint: AppHintContent;
+}>();
 
-const isVisible = ref(false)
-const wrapperRef = ref<HTMLElement | null>(null)
-const anchorRect = ref<DOMRect | null>(null)
-const overlayTarget = useOverlayTarget(wrapperRef)
-let hoverTimer: number | null = null
-let resizeObserver: ResizeObserver | null = null
+const isVisible = ref(false);
+const wrapperRef = ref<HTMLElement | null>(null);
+const anchorRect = ref<DOMRect | null>(null);
+let hoverTimer: number | null = null;
+let resizeObserver: ResizeObserver | null = null;
 
-const CARD_WIDTH = 260
-const CARD_HEIGHT = 230
-const GAP = 12
-const VIEWPORT_MARGIN = 16
+const CARD_WIDTH = 260;
+const CARD_HEIGHT = 230;
+const GAP = 12;
+const VIEWPORT_MARGIN = 16;
 
 function clamp(value: number, min: number, max: number) {
-  return Math.min(Math.max(value, min), max)
+  return Math.min(Math.max(value, min), max);
 }
 
 function updatePosition() {
-  anchorRect.value = wrapperRef.value?.getBoundingClientRect() ?? null
+  anchorRect.value = wrapperRef.value?.getBoundingClientRect() ?? null;
 }
 
 function preferredPosition(position: HintPosition, rect: DOMRect) {
-  if (position === 'left') {
+  if (position === "left") {
     return {
       left: rect.left - CARD_WIDTH - GAP,
       top: rect.top + rect.height / 2 - CARD_HEIGHT / 2,
-    }
+    };
   }
-  if (position === 'top') {
+  if (position === "top") {
     return {
       left: rect.left + rect.width / 2 - CARD_WIDTH / 2,
       top: rect.top - CARD_HEIGHT - GAP,
-    }
+    };
   }
-  if (position === 'bottom') {
+  if (position === "bottom") {
     return {
       left: rect.left + rect.width / 2 - CARD_WIDTH / 2,
       top: rect.bottom + GAP,
-    }
+    };
   }
   return {
     left: rect.right + GAP,
     top: rect.top + rect.height / 2 - CARD_HEIGHT / 2,
-  }
+  };
 }
 
 const hintStyle = computed(() => {
-  const rect = anchorRect.value
-  if (!rect) return {}
-  const ownerWindow = ownerWindowOf(wrapperRef.value)
+  const rect = anchorRect.value;
+  if (!rect) return {};
+  const ownerWindow = ownerWindowOf(wrapperRef.value);
 
-  const preferred = preferredPosition(props.hint.position ?? 'right', rect)
+  const preferred = preferredPosition(props.hint.position ?? "right", rect);
   return {
     left: `${clamp(preferred.left, VIEWPORT_MARGIN, ownerWindow.innerWidth - CARD_WIDTH - VIEWPORT_MARGIN)}px`,
     top: `${clamp(preferred.top, VIEWPORT_MARGIN, ownerWindow.innerHeight - CARD_HEIGHT - VIEWPORT_MARGIN)}px`,
-  }
-})
+  };
+});
 
 function showHint() {
-  if (hoverTimer) clearTimeout(hoverTimer)
+  if (hoverTimer) clearTimeout(hoverTimer);
   hoverTimer = window.setTimeout(() => {
-    isVisible.value = true
-    void nextTick(updatePosition)
-  }, 150)
+    isVisible.value = true;
+    void nextTick(updatePosition);
+  }, 150);
 }
 
 function hideHint() {
-  if (hoverTimer) clearTimeout(hoverTimer)
-  isVisible.value = false
+  if (hoverTimer) clearTimeout(hoverTimer);
+  isVisible.value = false;
 }
 
 watch(isVisible, (visible) => {
-  if (visible) updatePosition()
-})
+  if (visible) updatePosition();
+});
 
 onMounted(() => {
-  const ownerWindow = ownerWindowOf(wrapperRef.value)
-  ownerWindow.addEventListener('resize', updatePosition)
-  ownerWindow.addEventListener('scroll', updatePosition, true)
+  const ownerWindow = ownerWindowOf(wrapperRef.value);
+  ownerWindow.addEventListener("resize", updatePosition);
+  ownerWindow.addEventListener("scroll", updatePosition, true);
 
   if (wrapperRef.value) {
-    resizeObserver = new ResizeObserver(updatePosition)
-    resizeObserver.observe(wrapperRef.value)
+    resizeObserver = new ResizeObserver(updatePosition);
+    resizeObserver.observe(wrapperRef.value);
   }
-})
+});
 
 onBeforeUnmount(() => {
-  if (hoverTimer) clearTimeout(hoverTimer)
-  const ownerWindow = ownerWindowOf(wrapperRef.value)
-  ownerWindow.removeEventListener('resize', updatePosition)
-  ownerWindow.removeEventListener('scroll', updatePosition, true)
-  resizeObserver?.disconnect()
-})
+  if (hoverTimer) clearTimeout(hoverTimer);
+  const ownerWindow = ownerWindowOf(wrapperRef.value);
+  ownerWindow.removeEventListener("resize", updatePosition);
+  ownerWindow.removeEventListener("scroll", updatePosition, true);
+  resizeObserver?.disconnect();
+});
 </script>
 
 <template>
-  <span ref="wrapperRef" class="app-hint" @mouseenter="showHint" @mouseleave="hideHint">
+  <span
+    ref="wrapperRef"
+    class="app-hint"
+    @mouseenter="showHint"
+    @mouseleave="hideHint"
+  >
     <slot />
 
-    <Teleport :to="overlayTarget">
+    <RenderPortal>
       <Transition name="app-hint-fade">
-        <aside v-if="isVisible" class="app-hint__card surface" :style="hintStyle">
+        <aside
+          v-if="isVisible"
+          class="app-hint__card surface"
+          :style="hintStyle"
+        >
           <div class="app-hint__media">
             <img
               v-if="hint.gif"
@@ -129,7 +144,7 @@ onBeforeUnmount(() => {
           </div>
         </aside>
       </Transition>
-    </Teleport>
+    </RenderPortal>
   </span>
 </template>
 

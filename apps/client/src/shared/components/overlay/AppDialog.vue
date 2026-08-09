@@ -1,6 +1,6 @@
 <template>
   <span ref="anchorRef" class="app-dialog-anchor" aria-hidden="true"></span>
-  <Teleport :to="overlayTarget">
+  <RenderPortal>
     <Transition name="fade">
       <div
         v-if="modelValue"
@@ -24,7 +24,9 @@
             <div class="app-dialog__header">
               <div class="app-dialog__title-block">
                 <h2 v-if="title" class="app-dialog__title">{{ title }}</h2>
-                <p v-if="description" class="app-dialog__description">{{ description }}</p>
+                <p v-if="description" class="app-dialog__description">
+                  {{ description }}
+                </p>
               </div>
               <button class="app-dialog__close" @click="close">
                 <LucideIcon name="X" :size="20" />
@@ -44,77 +46,76 @@
         </Transition>
       </div>
     </Transition>
-  </Teleport>
+  </RenderPortal>
 </template>
 
 <script setup lang="ts">
-import { watch, onBeforeUnmount, ref } from 'vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useKeyboard } from '@/shared/composables/useKeyboard'
-import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import { watch, onBeforeUnmount, ref } from "vue";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import { useKeyboard } from "@/shared/composables/useKeyboard";
+import { RenderPortal, ownerDocumentOf } from "@renderizer/vue";
 
 const props = withDefaults(
   defineProps<{
-    modelValue: boolean
-    title?: string
-    description?: string
-    maxWidth?: 'sm' | 'md' | 'lg' | 'xl'
-    closeOnBackdrop?: boolean
-    layer?: 'default' | 'top'
-    backdrop?: 'default' | 'modal'
+    modelValue: boolean;
+    title?: string;
+    description?: string;
+    maxWidth?: "sm" | "md" | "lg" | "xl";
+    closeOnBackdrop?: boolean;
+    layer?: "default" | "top";
+    backdrop?: "default" | "modal";
   }>(),
   {
-    maxWidth: 'md',
+    maxWidth: "md",
     closeOnBackdrop: true,
-    layer: 'default',
-    backdrop: 'default',
+    layer: "default",
+    backdrop: "default",
   },
-)
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  close: []
-}>()
+  "update:modelValue": [value: boolean];
+  close: [];
+}>();
 
-const anchorRef = ref<HTMLElement | null>(null)
-const overlayTarget = useOverlayTarget(anchorRef)
+const anchorRef = ref<HTMLElement | null>(null);
 
 const close = () => {
-  emit('update:modelValue', false)
-  emit('close')
-}
+  emit("update:modelValue", false);
+  emit("close");
+};
 
 const onBackdropClick = () => {
   if (props.closeOnBackdrop) {
-    close()
+    close();
   }
-}
+};
 
 // Close on Escape
 useKeyboard(
-  'escape',
+  "escape",
   () => {
-    if (props.modelValue) close()
+    if (props.modelValue) close();
   },
   { prevent: true, exact: true },
-)
+);
 
 // Lock body scroll when open
 watch(
   () => props.modelValue,
   (isOpen) => {
-    const ownerDocument = ownerDocumentOf(anchorRef.value)
+    const ownerDocument = ownerDocumentOf(anchorRef.value);
     if (isOpen) {
-      ownerDocument.body.style.overflow = 'hidden'
+      ownerDocument.body.style.overflow = "hidden";
     } else {
-      ownerDocument.body.style.overflow = ''
+      ownerDocument.body.style.overflow = "";
     }
   },
-)
+);
 
 onBeforeUnmount(() => {
-  ownerDocumentOf(anchorRef.value).body.style.overflow = ''
-})
+  ownerDocumentOf(anchorRef.value).body.style.overflow = "";
+});
 </script>
 
 <style scoped>

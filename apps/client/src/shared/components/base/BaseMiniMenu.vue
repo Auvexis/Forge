@@ -1,17 +1,38 @@
 <template>
   <span ref="anchorRef" class="bmm-anchor" aria-hidden="true"></span>
-  <Teleport :to="overlayTarget">
+  <RenderPortal>
     <transition name="bmm-fade">
       <div v-if="isOpen" class="bmm-overlay" @click.self="$emit('close')">
         <div class="bmm-dialog" :style="{ maxWidth, maxHeight }">
           <div class="bmm-header">
-            <div style="display: flex; align-items: center; gap: var(--fabric-space-3)">
-              <img v-if="logo && isUrl(logo)" :src="logo" alt="Logo" class="bmm-logo" />
-              <LucideIcon v-else-if="icon" :name="icon" :size="18" style="opacity: 0.7;" />
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: var(--fabric-space-3);
+              "
+            >
+              <img
+                v-if="logo && isUrl(logo)"
+                :src="logo"
+                alt="Logo"
+                class="bmm-logo"
+              />
+              <LucideIcon
+                v-else-if="icon"
+                :name="icon"
+                :size="18"
+                style="opacity: 0.7"
+              />
               <h1 v-if="title" class="bmm-title">{{ title }}</h1>
             </div>
 
-            <BaseButton variant="ghost" size="icon" icon-left="x" @click="$emit('close')" />
+            <BaseButton
+              variant="ghost"
+              size="icon"
+              icon-left="x"
+              @click="$emit('close')"
+            />
           </div>
           <div class="bmm-body">
             <slot />
@@ -22,17 +43,16 @@
         </div>
       </div>
     </transition>
-  </Teleport>
+  </RenderPortal>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import BaseButton from './BaseButton.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import { ref } from "vue";
+import BaseButton from "./BaseButton.vue";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import { RenderPortal } from "@renderizer/vue";
 
-const anchorRef = ref<HTMLElement | null>(null)
-const overlayTarget = useOverlayTarget(anchorRef)
+const anchorRef = ref<HTMLElement | null>(null);
 
 defineProps({
   isOpen: {
@@ -41,29 +61,29 @@ defineProps({
   },
   logo: {
     type: String,
-    default: '',
+    default: "",
   },
   icon: {
     type: String,
-    default: '',
+    default: "",
   },
   title: {
     type: String,
-    default: '',
+    default: "",
   },
   maxWidth: {
     type: String,
-    default: '480px',
+    default: "480px",
   },
   maxHeight: {
     type: String,
-    default: '90vh',
+    default: "90vh",
   },
-})
+});
 
-defineEmits(['close'])
+defineEmits(["close"]);
 
-const isUrl = (str: string) => str?.startsWith('http') || str?.startsWith('/')
+const isUrl = (str: string) => str?.startsWith("http") || str?.startsWith("/");
 </script>
 
 <style scoped>

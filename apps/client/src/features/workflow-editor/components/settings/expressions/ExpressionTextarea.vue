@@ -1,87 +1,107 @@
 <script setup lang="ts">
-import { onBeforeUnmount, ref } from 'vue'
-import BaseVariableInput from '@/shared/components/base/BaseVariableInput.vue'
-import type { ExpressionItem, TextSelectionRange } from './expressionVariables'
-import { insertExpressionToken } from './expressionVariables'
-import ExpressionBadges from './ExpressionBadges.vue'
-import VariablePicker from './VariablePicker.vue'
-import { useVariablePickerPosition } from './useVariablePickerPosition'
-import { ownerDocumentOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import { onBeforeUnmount, ref } from "vue";
+import BaseVariableInput from "@/shared/components/base/BaseVariableInput.vue";
+import type { ExpressionItem, TextSelectionRange } from "./expressionVariables";
+import { insertExpressionToken } from "./expressionVariables";
+import ExpressionBadges from "./ExpressionBadges.vue";
+import VariablePicker from "./VariablePicker.vue";
+import { useVariablePickerPosition } from "./useVariablePickerPosition";
+import { RenderPortal, ownerDocumentOf } from "@renderizer/vue";
 
 const props = withDefaults(
   defineProps<{
-    modelValue?: string
-    label?: string
-    placeholder?: string
-    error?: string
-    hint?: string
-    disabled?: boolean
-    required?: boolean
-    rows?: number
-    id?: string
+    modelValue?: string;
+    label?: string;
+    placeholder?: string;
+    error?: string;
+    hint?: string;
+    disabled?: boolean;
+    required?: boolean;
+    rows?: number;
+    id?: string;
   }>(),
   {
-    modelValue: '',
+    modelValue: "",
     rows: 4,
   },
-)
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  blur: [event: FocusEvent]
-  focus: [event: FocusEvent]
-}>()
+  "update:modelValue": [value: string];
+  blur: [event: FocusEvent];
+  focus: [event: FocusEvent];
+}>();
 
-const isOpen = ref(false)
-const selection = ref<TextSelectionRange | null>(null)
-const rootRef = ref<HTMLElement | null>(null)
-const overlayTarget = useOverlayTarget(rootRef)
-const { pickerRef, pickerStyle, preparePickerPosition, removePickerPositionListeners } =
-  useVariablePickerPosition(rootRef)
+const isOpen = ref(false);
+const selection = ref<TextSelectionRange | null>(null);
+const rootRef = ref<HTMLElement | null>(null);
+const {
+  pickerRef,
+  pickerStyle,
+  preparePickerPosition,
+  removePickerPositionListeners,
+} = useVariablePickerPosition(rootRef);
 
 function rememberSelection(event: Event) {
-  const target = event.target as HTMLTextAreaElement | null
-  if (!target || typeof target.selectionStart !== 'number') return
+  const target = event.target as HTMLTextAreaElement | null;
+  if (!target || typeof target.selectionStart !== "number") return;
   selection.value = {
     start: target.selectionStart ?? props.modelValue.length,
-    end: target.selectionEnd ?? target.selectionStart ?? props.modelValue.length,
-  }
+    end:
+      target.selectionEnd ?? target.selectionStart ?? props.modelValue.length,
+  };
 }
 
 function selectItem(item: ExpressionItem) {
-  const next = insertExpressionToken(props.modelValue, item.token, selection.value)
-  emit('update:modelValue', next)
-  isOpen.value = false
-  ownerDocumentOf(rootRef.value).removeEventListener('pointerdown', onDocumentPointerDown, true)
-  removePickerPositionListeners()
+  const next = insertExpressionToken(
+    props.modelValue,
+    item.token,
+    selection.value,
+  );
+  emit("update:modelValue", next);
+  isOpen.value = false;
+  ownerDocumentOf(rootRef.value).removeEventListener(
+    "pointerdown",
+    onDocumentPointerDown,
+    true,
+  );
+  removePickerPositionListeners();
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
-  const target = event.target as Node
+  const target = event.target as Node;
   if (!rootRef.value?.contains(target) && !pickerRef.value?.contains(target)) {
-    isOpen.value = false
-    removePickerPositionListeners()
+    isOpen.value = false;
+    removePickerPositionListeners();
   }
 }
 
 async function togglePicker() {
-  isOpen.value = !isOpen.value
-  const ownerDocument = ownerDocumentOf(rootRef.value)
+  isOpen.value = !isOpen.value;
+  const ownerDocument = ownerDocumentOf(rootRef.value);
   if (isOpen.value) {
-    ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true)
-    await preparePickerPosition()
+    ownerDocument.addEventListener("pointerdown", onDocumentPointerDown, true);
+    await preparePickerPosition();
   } else {
-    ownerDocument.removeEventListener('pointerdown', onDocumentPointerDown, true)
-    removePickerPositionListeners()
+    ownerDocument.removeEventListener(
+      "pointerdown",
+      onDocumentPointerDown,
+      true,
+    );
+    removePickerPositionListeners();
   }
 }
 
 onBeforeUnmount(() => {
-  ownerDocumentOf(rootRef.value).removeEventListener('pointerdown', onDocumentPointerDown, true)
-  removePickerPositionListeners()
-})
+  ownerDocumentOf(rootRef.value).removeEventListener(
+    "pointerdown",
+    onDocumentPointerDown,
+    true,
+  );
+  removePickerPositionListeners();
+});
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ inheritAttrs: false });
 </script>
 
 <template>
@@ -100,8 +120,8 @@ defineOptions({ inheritAttrs: false })
       @update:model-value="$emit('update:modelValue', String($event))"
       @focus="
         (event) => {
-          rememberSelection(event)
-          $emit('focus', event)
+          rememberSelection(event);
+          $emit('focus', event);
         }
       "
       @blur="$emit('blur', $event)"
@@ -113,7 +133,7 @@ defineOptions({ inheritAttrs: false })
 
     <ExpressionBadges :value="modelValue" />
 
-    <Teleport :to="overlayTarget">
+    <RenderPortal>
       <div
         v-if="isOpen"
         ref="pickerRef"
@@ -122,7 +142,7 @@ defineOptions({ inheritAttrs: false })
       >
         <VariablePicker @select="selectItem" />
       </div>
-    </Teleport>
+    </RenderPortal>
   </div>
 </template>
 

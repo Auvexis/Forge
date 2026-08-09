@@ -18,7 +18,6 @@
     "format": "prettier --write --experimental-cli src/"
   },
   "dependencies": {
-    "@renderizer/core": "^1.1.0-beta.0",
     "@renderizer/vue": "^1.1.0-beta.0",
     "@tresjs/core": "^5.8.0",
     "@vueuse/core": "^14.2.1",

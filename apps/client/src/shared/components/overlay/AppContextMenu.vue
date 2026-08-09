@@ -1,6 +1,10 @@
 <template>
-  <span ref="anchorRef" class="app-context-menu-anchor" aria-hidden="true"></span>
-  <Teleport :to="overlayTarget">
+  <span
+    ref="anchorRef"
+    class="app-context-menu-anchor"
+    aria-hidden="true"
+  ></span>
+  <RenderPortal>
     <Transition name="scale">
       <div
         v-if="isOpen"
@@ -14,93 +18,100 @@
         </div>
       </div>
     </Transition>
-  </Teleport>
+  </RenderPortal>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, provide, onMounted, onUnmounted } from 'vue'
-import { vClickOutside } from '@/shared/directives/v-click-outside'
-import { useKeyboard } from '@/shared/composables/useKeyboard'
-import { ensureOverlayRoot, ownerDocumentOf, ownerWindowOf } from '@/shared/composables/useOverlayTarget'
+import { ref, provide, onMounted, onUnmounted } from "vue";
+import { RenderPortal, ownerDocumentOf, ownerWindowOf } from "@renderizer/vue";
+import { vClickOutside } from "@/shared/directives/v-click-outside";
+import { useKeyboard } from "@/shared/composables/useKeyboard";
 
 const props = withDefaults(
   defineProps<{
-    targetRef?: HTMLElement | null // Optional bound element, else global body
+    targetRef?: HTMLElement | null; // Optional bound element, else global body
   }>(),
   {},
-)
+);
 
-const isOpen = ref(false)
-const x = ref(0)
-const y = ref(0)
-const anchorRef = ref<HTMLElement | null>(null)
-const menuRef = ref<HTMLElement | null>(null)
-const overlayTarget = computed(() => ensureOverlayRoot(ownerDocumentOf(props.targetRef ?? anchorRef.value)))
+const isOpen = ref(false);
+const x = ref(0);
+const y = ref(0);
+const anchorRef = ref<HTMLElement | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
 
 const open = (e: MouseEvent) => {
-  e.preventDefault()
+  e.preventDefault();
 
   // Basic boundary check to not go off-screen right/bottom
   // In a real app we'd measure after mounting, but here's a rough estimate
-  const menuWidth = 220
-  const menuHeight = 300
+  const menuWidth = 220;
+  const menuHeight = 300;
 
-  let left = e.clientX
-  let top = e.clientY
+  let left = e.clientX;
+  let top = e.clientY;
 
-  const ownerWindow = ownerWindowOf(e.target instanceof Element ? e.target : props.targetRef)
+  const ownerWindow = ownerWindowOf(
+    e.target instanceof Element ? e.target : props.targetRef,
+  );
 
   if (left + menuWidth > ownerWindow.innerWidth) {
-    left = ownerWindow.innerWidth - menuWidth - 10
+    left = ownerWindow.innerWidth - menuWidth - 10;
   }
 
   if (top + menuHeight > ownerWindow.innerHeight) {
-    top = ownerWindow.innerHeight - menuHeight - 10
+    top = ownerWindow.innerHeight - menuHeight - 10;
   }
 
-  x.value = left
-  y.value = top
-  isOpen.value = true
-}
+  x.value = left;
+  y.value = top;
+  isOpen.value = true;
+};
 
 const close = () => {
-  isOpen.value = false
-}
+  isOpen.value = false;
+};
 
 const handleGlobalContext = (e: MouseEvent) => {
   if (props.targetRef) {
     if (props.targetRef.contains(e.target as Node)) {
-      open(e)
+      open(e);
     }
   } else {
     // If no target bound, attach to the document
-    open(e)
+    open(e);
   }
-}
+};
 
-useKeyboard('escape', () => {
-  if (isOpen.value) close()
-})
+useKeyboard("escape", () => {
+  if (isOpen.value) close();
+});
 
 onMounted(() => {
   if (props.targetRef) {
-    props.targetRef.addEventListener('contextmenu', open)
+    props.targetRef.addEventListener("contextmenu", open);
   } else {
-    ownerDocumentOf(anchorRef.value).addEventListener('contextmenu', handleGlobalContext)
+    ownerDocumentOf(anchorRef.value).addEventListener(
+      "contextmenu",
+      handleGlobalContext,
+    );
   }
-})
+});
 
 onUnmounted(() => {
   if (props.targetRef) {
-    props.targetRef.removeEventListener('contextmenu', open)
+    props.targetRef.removeEventListener("contextmenu", open);
   } else {
-    ownerDocumentOf(anchorRef.value).removeEventListener('contextmenu', handleGlobalContext)
+    ownerDocumentOf(anchorRef.value).removeEventListener(
+      "contextmenu",
+      handleGlobalContext,
+    );
   }
-})
+});
 
-provide('closeDropdown', close)
+provide("closeDropdown", close);
 
-defineExpose({ open, close, isOpen })
+defineExpose({ open, close, isOpen });
 </script>
 
 <style scoped>

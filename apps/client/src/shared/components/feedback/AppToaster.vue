@@ -1,5 +1,5 @@
 <template>
-  <Teleport :to="overlayTarget">
+  <RenderPortal>
     <div class="app-toaster">
       <TransitionGroup name="toast">
         <div
@@ -13,7 +13,9 @@
           </div>
 
           <div class="app-toast__content">
-            <h4 v-if="toast.title" class="app-toast__title">{{ toast.title }}</h4>
+            <h4 v-if="toast.title" class="app-toast__title">
+              {{ toast.title }}
+            </h4>
             <p class="app-toast__message">{{ toast.message }}</p>
           </div>
 
@@ -23,31 +25,30 @@
         </div>
       </TransitionGroup>
     </div>
-  </Teleport>
+  </RenderPortal>
 </template>
 
 <script setup lang="ts">
-import { useToast, type ToastVariant } from '@/shared/composables/useToast'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import { useToast, type ToastVariant } from "@/shared/composables/useToast";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import { RenderPortal } from "@renderizer/vue";
 
-const { toasts, removeToast } = useToast()
-const overlayTarget = useOverlayTarget()
+const { toasts, removeToast } = useToast();
 
 const getIcon = (variant: ToastVariant) => {
   switch (variant) {
-    case 'reward':
-      return 'gift'
-    case 'success':
-      return 'bell-ring'
-    case 'error':
-      return 'bell-ring'
-    case 'warning':
-      return 'bell-ring'
+    case "reward":
+      return "gift";
+    case "success":
+      return "bell-ring";
+    case "error":
+      return "bell-ring";
+    case "warning":
+      return "bell-ring";
     default:
-      return 'bell-ring'
+      return "bell-ring";
   }
-}
+};
 </script>
 
 <style scoped>
@@ -81,7 +82,7 @@ const getIcon = (variant: ToastVariant) => {
 
 /* Adds a subtle left border matching the variant */
 .app-toast::before {
-  content: '';
+  content: "";
   position: absolute;
   left: 5px;
   top: 6px;

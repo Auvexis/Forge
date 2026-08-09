@@ -21,10 +21,7 @@
       <div
         v-if="isOpen"
         class="base-dropdown-select__menu"
-        :class="[
-          `base-dropdown-select__menu--${direction}`,
-          menuClass,
-        ]"
+        :class="[`base-dropdown-select__menu--${direction}`, menuClass]"
         role="menu"
       >
         <BaseButton
@@ -32,13 +29,23 @@
           :key="option.value"
           type="button"
           class="base-dropdown-select__option"
-          :class="{ 'base-dropdown-select__option--active': option.value === modelValue }"
+          :class="{
+            'base-dropdown-select__option--active': option.value === modelValue,
+          }"
           variant="ghost"
           full-width
           @click="selectOption(option.value)"
         >
-          <slot name="option" :option="option" :selected="option.value === modelValue">
-            <span v-if="option.meta" class="base-dropdown-select__option-meta">{{ option.meta }}</span>
+          <slot
+            name="option"
+            :option="option"
+            :selected="option.value === modelValue"
+          >
+            <span
+              v-if="option.meta"
+              class="base-dropdown-select__option-meta"
+              >{{ option.meta }}</span
+            >
             <span class="base-dropdown-select__option-copy">
               <strong>{{ option.label }}</strong>
               <small v-if="option.description">{{ option.description }}</small>
@@ -51,86 +58,102 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import BaseButton, { type ButtonSize, type ButtonVariant } from '@/shared/components/base/BaseButton.vue'
-import { ownerDocumentOf } from '@/shared/composables/useOverlayTarget'
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import BaseButton, {
+  type ButtonSize,
+  type ButtonVariant,
+} from "@/shared/components/base/BaseButton.vue";
+import { ownerDocumentOf } from "@renderizer/vue";
 
 export type BaseDropdownSelectOption = {
-  value: string
-  label: string
-  shortLabel?: string
-  description?: string
-  meta?: string
-}
+  value: string;
+  label: string;
+  shortLabel?: string;
+  description?: string;
+  meta?: string;
+};
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string
-    options: BaseDropdownSelectOption[]
-    placeholder?: string
-    title?: string
-    disabled?: boolean
-    variant?: ButtonVariant
-    size?: ButtonSize
-    iconLeft?: string
-    openIcon?: string
-    closeIcon?: string
-    direction?: 'up' | 'down'
-    triggerClass?: string
-    menuClass?: string
+    modelValue: string;
+    options: BaseDropdownSelectOption[];
+    placeholder?: string;
+    title?: string;
+    disabled?: boolean;
+    variant?: ButtonVariant;
+    size?: ButtonSize;
+    iconLeft?: string;
+    openIcon?: string;
+    closeIcon?: string;
+    direction?: "up" | "down";
+    triggerClass?: string;
+    menuClass?: string;
   }>(),
   {
-    placeholder: 'Select',
-    title: '',
+    placeholder: "Select",
+    title: "",
     disabled: false,
-    variant: 'outline',
-    size: 'sm',
-    iconLeft: '',
-    openIcon: 'chevron-up',
-    closeIcon: 'chevron-down',
-    direction: 'up',
-    triggerClass: '',
-    menuClass: '',
+    variant: "outline",
+    size: "sm",
+    iconLeft: "",
+    openIcon: "chevron-up",
+    closeIcon: "chevron-down",
+    direction: "up",
+    triggerClass: "",
+    menuClass: "",
   },
-)
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+  "update:modelValue": [value: string];
+}>();
 
-const rootRef = ref<HTMLElement | null>(null)
-const isOpen = ref(false)
+const rootRef = ref<HTMLElement | null>(null);
+const isOpen = ref(false);
 
-const selectedOption = computed(() =>
-  props.options.find((option) => option.value === props.modelValue) ?? props.options[0] ?? null,
-)
+const selectedOption = computed(
+  () =>
+    props.options.find((option) => option.value === props.modelValue) ??
+    props.options[0] ??
+    null,
+);
 const transitionName = computed(() =>
-  props.direction === 'up' ? 'base-dropdown-select-up' : 'base-dropdown-select-down',
-)
+  props.direction === "up"
+    ? "base-dropdown-select-up"
+    : "base-dropdown-select-down",
+);
 
 function toggle() {
-  if (props.disabled) return
-  isOpen.value = !isOpen.value
+  if (props.disabled) return;
+  isOpen.value = !isOpen.value;
 }
 
 function selectOption(value: string) {
-  emit('update:modelValue', value)
-  isOpen.value = false
+  emit("update:modelValue", value);
+  isOpen.value = false;
 }
 
 function handleOutsidePointerDown(event: PointerEvent) {
-  const target = event.target as Node | null
-  if (!target || rootRef.value?.contains(target)) return
-  isOpen.value = false
+  const target = event.target as Node | null;
+  if (!target || rootRef.value?.contains(target)) return;
+  isOpen.value = false;
 }
 
 onMounted(() => {
-  ownerDocumentOf(rootRef.value).addEventListener('pointerdown', handleOutsidePointerDown, true)
-})
+  ownerDocumentOf(rootRef.value).addEventListener(
+    "pointerdown",
+    handleOutsidePointerDown,
+    true,
+  );
+});
 
 onBeforeUnmount(() => {
-  ownerDocumentOf(rootRef.value).removeEventListener('pointerdown', handleOutsidePointerDown, true)
-})
+  ownerDocumentOf(rootRef.value).removeEventListener(
+    "pointerdown",
+    handleOutsidePointerDown,
+    true,
+  );
+});
 </script>
 
 <style scoped>

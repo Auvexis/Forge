@@ -13,7 +13,7 @@
       @click="toggle"
       @mouseenter="handleTriggerMouseEnter"
     />
-    <Teleport :to="overlayTarget">
+    <RenderPortal>
       <div
         v-if="isOpen"
         ref="menuRef"
@@ -37,161 +37,184 @@
           <span>{{ tool.label }}</span>
         </button>
       </div>
-    </Teleport>
+    </RenderPortal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import BaseButton from './BaseButton.vue'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { ownerDocumentOf, ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import {
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  ref,
+  watch,
+} from "vue";
+import BaseButton from "./BaseButton.vue";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import { RenderPortal, ownerDocumentOf, ownerWindowOf } from "@renderizer/vue";
 
 export interface BaseToolDropdownItem {
-  id: string
-  label: string
-  icon: string
+  id: string;
+  label: string;
+  icon: string;
 }
 
-const props = withDefaults(defineProps<{
-  dropdownId?: string
-  label: string
-  icon: string
-  hint?: string
-  tools: BaseToolDropdownItem[]
-  activeDropdownId?: string | null
-  isAnyDropdownOpen?: boolean
-  position?: 'top' | 'bottom'
-}>(), {
-  dropdownId: undefined,
-  hint: undefined,
-  activeDropdownId: null,
-  isAnyDropdownOpen: false,
-  position: 'top',
-})
+const props = withDefaults(
+  defineProps<{
+    dropdownId?: string;
+    label: string;
+    icon: string;
+    hint?: string;
+    tools: BaseToolDropdownItem[];
+    activeDropdownId?: string | null;
+    isAnyDropdownOpen?: boolean;
+    position?: "top" | "bottom";
+  }>(),
+  {
+    dropdownId: undefined,
+    hint: undefined,
+    activeDropdownId: null,
+    isAnyDropdownOpen: false,
+    position: "top",
+  },
+);
 
 const emit = defineEmits<{
-  open: [id: string]
-  close: [id: string]
-  select: [tool: BaseToolDropdownItem]
-  dragstart: [event: DragEvent, tool: BaseToolDropdownItem]
-}>()
+  open: [id: string];
+  close: [id: string];
+  select: [tool: BaseToolDropdownItem];
+  dragstart: [event: DragEvent, tool: BaseToolDropdownItem];
+}>();
 
-const triggerRef = ref<InstanceType<typeof BaseButton> | null>(null)
-const menuRef = ref<HTMLElement | null>(null)
-const isOpen = ref(false)
-const isDragging = ref(false)
-const menuRect = ref({ left: 0, top: 0 })
-const triggerElement = computed(() => triggerRef.value?.$el as HTMLElement | null)
-const overlayTarget = useOverlayTarget(triggerElement)
+const triggerRef = ref<InstanceType<typeof BaseButton> | null>(null);
+const menuRef = ref<HTMLElement | null>(null);
+const isOpen = ref(false);
+const isDragging = ref(false);
+const menuRect = ref({ left: 0, top: 0 });
+const triggerElement = computed(
+  () => triggerRef.value?.$el as HTMLElement | null,
+);
 
 const menuStyle = computed(() => ({
   left: `${menuRect.value.left}px`,
   top: `${menuRect.value.top}px`,
-}))
+}));
 
 function toggle() {
   if (isOpen.value) {
-    requestClose()
-    return
+    requestClose();
+    return;
   }
-  requestOpen()
+  requestOpen();
 }
 
 function close() {
-  isOpen.value = false
+  isOpen.value = false;
 }
 
 function open() {
-  isOpen.value = true
-  void nextTick(updateMenuPosition)
+  isOpen.value = true;
+  void nextTick(updateMenuPosition);
 }
 
 function selectTool(tool: BaseToolDropdownItem) {
-  emit('select', tool)
-  requestClose()
+  emit("select", tool);
+  requestClose();
 }
 
 function onToolDragStart(event: DragEvent, tool: BaseToolDropdownItem) {
-  isDragging.value = true
-  emit('dragstart', event, tool)
+  isDragging.value = true;
+  emit("dragstart", event, tool);
 }
 
 function onToolDragEnd() {
-  isDragging.value = false
-  requestClose()
+  isDragging.value = false;
+  requestClose();
 }
 
 function handleTriggerMouseEnter() {
-  if (props.isAnyDropdownOpen && props.activeDropdownId !== props.dropdownId) requestOpen()
+  if (props.isAnyDropdownOpen && props.activeDropdownId !== props.dropdownId)
+    requestOpen();
 }
 
 function requestOpen() {
   if (props.dropdownId) {
-    emit('open', props.dropdownId)
-    return
+    emit("open", props.dropdownId);
+    return;
   }
-  open()
+  open();
 }
 
 function requestClose() {
   if (props.dropdownId) {
-    emit('close', props.dropdownId)
-    return
+    emit("close", props.dropdownId);
+    return;
   }
-  close()
+  close();
 }
 
 function updateMenuPosition() {
-  const trigger = triggerElement.value ?? undefined
-  const menu = menuRef.value
-  if (!trigger || !menu) return
+  const trigger = triggerElement.value ?? undefined;
+  const menu = menuRef.value;
+  if (!trigger || !menu) return;
 
-  const triggerBox = trigger.getBoundingClientRect()
-  const menuBox = menu.getBoundingClientRect()
-  const gap = 8
-  const left = triggerBox.left + (triggerBox.width - menuBox.width) / 2
-  const top = props.position === 'top'
-    ? triggerBox.top - menuBox.height - gap
-    : triggerBox.bottom + gap
+  const triggerBox = trigger.getBoundingClientRect();
+  const menuBox = menu.getBoundingClientRect();
+  const gap = 8;
+  const left = triggerBox.left + (triggerBox.width - menuBox.width) / 2;
+  const top =
+    props.position === "top"
+      ? triggerBox.top - menuBox.height - gap
+      : triggerBox.bottom + gap;
 
-  const ownerWindow = ownerWindowOf(trigger)
+  const ownerWindow = ownerWindowOf(trigger);
   menuRect.value = {
-    left: Math.min(Math.max(8, left), ownerWindow.innerWidth - menuBox.width - 8),
-    top: Math.min(Math.max(8, top), ownerWindow.innerHeight - menuBox.height - 8),
-  }
+    left: Math.min(
+      Math.max(8, left),
+      ownerWindow.innerWidth - menuBox.width - 8,
+    ),
+    top: Math.min(
+      Math.max(8, top),
+      ownerWindow.innerHeight - menuBox.height - 8,
+    ),
+  };
 }
 
 function onDocumentPointerDown(event: PointerEvent) {
-  const trigger = triggerElement.value ?? undefined
-  if (!isOpen.value) return
-  if (isDragging.value) return
-  if (trigger?.contains(event.target as Node) || menuRef.value?.contains(event.target as Node)) return
-  requestClose()
+  const trigger = triggerElement.value ?? undefined;
+  if (!isOpen.value) return;
+  if (isDragging.value) return;
+  if (
+    trigger?.contains(event.target as Node) ||
+    menuRef.value?.contains(event.target as Node)
+  )
+    return;
+  requestClose();
 }
 
 watch(
   () => props.activeDropdownId,
   (activeDropdownId) => {
-    if (!props.dropdownId) return
-    if (activeDropdownId === props.dropdownId) open()
-    else close()
+    if (!props.dropdownId) return;
+    if (activeDropdownId === props.dropdownId) open();
+    else close();
   },
-)
+);
 
 onMounted(() => {
-  const ownerDocument = ownerDocumentOf(triggerElement.value)
-  const ownerWindow = ownerWindowOf(triggerElement.value)
-  ownerDocument.addEventListener('pointerdown', onDocumentPointerDown, true)
-  ownerWindow.addEventListener('resize', updateMenuPosition)
-})
+  const ownerDocument = ownerDocumentOf(triggerElement.value);
+  const ownerWindow = ownerWindowOf(triggerElement.value);
+  ownerDocument.addEventListener("pointerdown", onDocumentPointerDown, true);
+  ownerWindow.addEventListener("resize", updateMenuPosition);
+});
 
 onBeforeUnmount(() => {
-  const ownerDocument = ownerDocumentOf(triggerElement.value)
-  const ownerWindow = ownerWindowOf(triggerElement.value)
-  ownerDocument.removeEventListener('pointerdown', onDocumentPointerDown, true)
-  ownerWindow.removeEventListener('resize', updateMenuPosition)
-})
+  const ownerDocument = ownerDocumentOf(triggerElement.value);
+  const ownerWindow = ownerWindowOf(triggerElement.value);
+  ownerDocument.removeEventListener("pointerdown", onDocumentPointerDown, true);
+  ownerWindow.removeEventListener("resize", updateMenuPosition);
+});
 </script>
 
 <style scoped>

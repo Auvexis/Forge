@@ -9,7 +9,7 @@
       :class="{
         'base-select-container--error': !!error,
         'base-select-container--disabled': disabled,
-        'base-select-container--open': isOpen
+        'base-select-container--open': isOpen,
       }"
       @click="toggleDropdown"
       tabindex="0"
@@ -17,21 +17,29 @@
       <!-- Trigger -->
       <div class="base-select-trigger">
         <template v-if="selectedOption">
-          <LucideIcon v-if="selectedOption.icon" :name="selectedOption.icon" :size="16" class="option-icon text-muted" />
-          <img v-else-if="selectedOption.image" :src="selectedOption.image" class="option-image" />
+          <LucideIcon
+            v-if="selectedOption.icon"
+            :name="selectedOption.icon"
+            :size="16"
+            class="option-icon text-muted"
+          />
+          <img
+            v-else-if="selectedOption.image"
+            :src="selectedOption.image"
+            class="option-image"
+          />
           <span class="truncate">{{ selectedOption.label }}</span>
         </template>
-        <span v-else class="placeholder">{{ placeholder || 'Select...' }}</span>
+        <span v-else class="placeholder">{{ placeholder || "Select..." }}</span>
       </div>
 
       <!-- Arrow -->
       <span class="base-select__icon" :class="{ 'rotate-180': isOpen }">
         <LucideIcon name="chevron-down" :size="16" />
       </span>
-
     </div>
 
-    <Teleport :to="overlayTarget">
+    <RenderPortal>
       <Transition name="fade-down">
         <div
           v-if="isOpen"
@@ -40,24 +48,44 @@
           :style="dropdownStyle"
           @click.stop
         >
-          <div 
-            v-for="option in options" 
+          <div
+            v-for="option in options"
             :key="option.value"
             class="base-select-option"
-            :class="{ 'base-select-option--selected': option.value === modelValue }"
+            :class="{
+              'base-select-option--selected': option.value === modelValue,
+            }"
             @click.stop="selectOption(option)"
           >
-            <LucideIcon v-if="option.icon" :name="option.icon" :size="16" class="option-icon text-muted" />
-            <img v-else-if="option.image" :src="option.image" class="option-image" />
+            <LucideIcon
+              v-if="option.icon"
+              :name="option.icon"
+              :size="16"
+              class="option-icon text-muted"
+            />
+            <img
+              v-else-if="option.image"
+              :src="option.image"
+              class="option-image"
+            />
             <span class="truncate">{{ option.label }}</span>
-            <LucideIcon v-if="option.value === modelValue" name="check" :size="14" class="ml-auto text-fabric-accent" />
+            <LucideIcon
+              v-if="option.value === modelValue"
+              name="check"
+              :size="14"
+              class="ml-auto text-fabric-accent"
+            />
           </div>
-          <div v-if="!options.length" class="base-select-empty" style="position: relative; z-index: 1;">
+          <div
+            v-if="!options.length"
+            class="base-select-empty"
+            style="position: relative; z-index: 1"
+          >
             No options available
           </div>
         </div>
       </Transition>
-    </Teleport>
+    </RenderPortal>
 
     <p v-if="error" class="base-input-wrapper__error">{{ error }}</p>
     <p v-else-if="hint" class="base-input-wrapper__hint">{{ hint }}</p>
@@ -65,128 +93,127 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, onBeforeUnmount, onMounted } from 'vue'
-import { generateId } from '@/shared/utils/id'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import { computed, nextTick, ref, onBeforeUnmount, onMounted } from "vue";
+import { generateId } from "@/shared/utils/id";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import { RenderPortal, ownerWindowOf } from "@renderizer/vue";
 
 export interface SelectOption {
-  value: string | number
-  label: string
-  icon?: string
-  image?: string
+  value: string | number;
+  label: string;
+  icon?: string;
+  image?: string;
 }
 
 const props = withDefaults(
   defineProps<{
-    modelValue: string | number | null
-    options?: SelectOption[]
-    label?: string
-    placeholder?: string
-    error?: string
-    hint?: string
-    disabled?: boolean
-    required?: boolean
-    id?: string
+    modelValue: string | number | null;
+    options?: SelectOption[];
+    label?: string;
+    placeholder?: string;
+    error?: string;
+    hint?: string;
+    disabled?: boolean;
+    required?: boolean;
+    id?: string;
   }>(),
   {
     disabled: false,
     required: false,
     options: () => [],
   },
-)
+);
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string | number]
-  blur: [event: FocusEvent]
-  focus: [event: FocusEvent]
-}>()
+  "update:modelValue": [value: string | number];
+  blur: [event: FocusEvent];
+  focus: [event: FocusEvent];
+}>();
 
-const id = computed(() => props.id || generateId('select'))
+const id = computed(() => props.id || generateId("select"));
 
-const isOpen = ref(false)
-const wrapperRef = ref<HTMLElement | null>(null)
-const dropdownRef = ref<HTMLElement | null>(null)
-const dropdownStyle = ref<Record<string, string>>({})
-const overlayTarget = useOverlayTarget(wrapperRef)
+const isOpen = ref(false);
+const wrapperRef = ref<HTMLElement | null>(null);
+const dropdownRef = ref<HTMLElement | null>(null);
+const dropdownStyle = ref<Record<string, string>>({});
 
 const selectedOption = computed(() => {
-  return props.options.find((opt) => opt.value === props.modelValue)
-})
+  return props.options.find((opt) => opt.value === props.modelValue);
+});
 
 function updateDropdownPosition() {
-  const wrapper = wrapperRef.value
-  if (!wrapper) return
+  const wrapper = wrapperRef.value;
+  if (!wrapper) return;
 
-  const rect = wrapper.getBoundingClientRect()
-  const ownerWindow = ownerWindowOf(wrapper)
-  const viewportGap = 8
-  const preferredMaxHeight = 240
-  
-  const spaceBelow = ownerWindow.innerHeight - rect.bottom - viewportGap
-  const spaceAbove = rect.top - viewportGap
+  const rect = wrapper.getBoundingClientRect();
+  const ownerWindow = ownerWindowOf(wrapper);
+  const viewportGap = 8;
+  const preferredMaxHeight = 240;
 
-  const openUp = spaceBelow < preferredMaxHeight && spaceAbove > spaceBelow
+  const spaceBelow = ownerWindow.innerHeight - rect.bottom - viewportGap;
+  const spaceAbove = rect.top - viewportGap;
 
-  const availableHeight = openUp ? spaceAbove : spaceBelow
+  const openUp = spaceBelow < preferredMaxHeight && spaceAbove > spaceBelow;
+
+  const availableHeight = openUp ? spaceAbove : spaceBelow;
 
   dropdownStyle.value = {
-    position: 'fixed',
-    top: openUp ? 'auto' : `${rect.bottom + 5}px`,
-    bottom: openUp ? `${ownerWindow.innerHeight - rect.top + 5}px` : 'auto',
+    position: "fixed",
+    top: openUp ? "auto" : `${rect.bottom + 5}px`,
+    bottom: openUp ? `${ownerWindow.innerHeight - rect.top + 5}px` : "auto",
     left: `${rect.left}px`,
     width: `${rect.width}px`,
     maxHeight: `${Math.min(preferredMaxHeight, availableHeight)}px`,
-    zIndex: '2147483400',
-  }
+    zIndex: "2147483400",
+  };
 }
 
 const toggleDropdown = async () => {
-  if (props.disabled) return
-  isOpen.value = !isOpen.value
+  if (props.disabled) return;
+  isOpen.value = !isOpen.value;
   if (isOpen.value) {
-    await nextTick()
-    updateDropdownPosition()
+    await nextTick();
+    updateDropdownPosition();
   }
-}
+};
 
 const closeDropdown = () => {
-  isOpen.value = false
-}
+  isOpen.value = false;
+};
 
 const selectOption = (option: SelectOption) => {
-  emit('update:modelValue', option.value)
-  closeDropdown()
-}
+  emit("update:modelValue", option.value);
+  closeDropdown();
+};
 
 const handleClickOutside = (e: MouseEvent) => {
-  const target = e.target as Node
+  const target = e.target as Node;
   if (
     wrapperRef.value &&
     !wrapperRef.value.contains(target) &&
     !dropdownRef.value?.contains(target)
   ) {
-    closeDropdown()
+    closeDropdown();
   }
-}
+};
 
 onMounted(() => {
-  const ownerDocument = wrapperRef.value?.ownerDocument ?? document
-  const ownerWindow = ownerDocument.defaultView ?? window
-  ownerDocument.addEventListener('click', handleClickOutside)
-  ownerWindow.addEventListener('resize', updateDropdownPosition)
-  ownerWindow.addEventListener('scroll', updateDropdownPosition, true)
-})
+  const ownerDocument = wrapperRef.value?.ownerDocument ?? document;
+  const ownerWindow = ownerDocument.defaultView ?? window;
+  ownerDocument.addEventListener("click", handleClickOutside);
+  ownerWindow.addEventListener("resize", updateDropdownPosition);
+  ownerWindow.addEventListener("scroll", updateDropdownPosition, true);
+});
 
 onBeforeUnmount(() => {
-  const ownerDocument = wrapperRef.value?.ownerDocument ?? document
-  const ownerWindow = ownerDocument.defaultView ?? window
-  ownerDocument.removeEventListener('click', handleClickOutside)
-  ownerWindow.removeEventListener('resize', updateDropdownPosition)
-  ownerWindow.removeEventListener('scroll', updateDropdownPosition, true)
-})
+  const ownerDocument = wrapperRef.value?.ownerDocument ?? document;
+  const ownerWindow = ownerDocument.defaultView ?? window;
+  ownerDocument.removeEventListener("click", handleClickOutside);
+  ownerWindow.removeEventListener("resize", updateDropdownPosition);
+  ownerWindow.removeEventListener("scroll", updateDropdownPosition, true);
+});
 
-defineOptions({ inheritAttrs: false })
+defineOptions({ inheritAttrs: false });
 </script>
 
 <style scoped>
@@ -351,7 +378,9 @@ defineOptions({ inheritAttrs: false })
 /* Transition */
 .fade-down-enter-active,
 .fade-down-leave-active {
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 .fade-down-enter-from,
 .fade-down-leave-to {

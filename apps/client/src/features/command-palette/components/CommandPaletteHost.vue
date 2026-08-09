@@ -1,199 +1,212 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import CommandPaletteFooterHints from './CommandPaletteFooterHints.vue'
-import CommandPaletteResultList from './CommandPaletteResultList.vue'
-import CommandPaletteSearchInput from './CommandPaletteSearchInput.vue'
-import { useCommandPaletteStore } from '../stores/commandPalette.store'
-import { useWorkflowStore } from '@/features/workflow-editor/stores/workflow.store'
-import { useExecutionStore } from '@/features/workflow-editor/stores/execution.store'
-import { useAppUiStore } from '@/shared/stores/app-ui.store'
-import { useSidebarPanelStore } from '@/shared/stores/sidebar-panel.store'
-import { useSettingsStore } from '@/shared/stores/settings.store'
-import { useTheme } from '@/shared/composables/useTheme'
-import { useToast } from '@/shared/composables/useToast'
-import type { CommandDescriptor, CommandExecutionContext } from '../types/command-palette.types'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import CommandPaletteFooterHints from "./CommandPaletteFooterHints.vue";
+import CommandPaletteResultList from "./CommandPaletteResultList.vue";
+import CommandPaletteSearchInput from "./CommandPaletteSearchInput.vue";
+import { useCommandPaletteStore } from "../stores/commandPalette.store";
+import { useWorkflowStore } from "@/features/workflow-editor/stores/workflow.store";
+import { useExecutionStore } from "@/features/workflow-editor/stores/execution.store";
+import { useAppUiStore } from "@/shared/stores/app-ui.store";
+import { useSidebarPanelStore } from "@/shared/stores/sidebar-panel.store";
+import { useSettingsStore } from "@/shared/stores/settings.store";
+import { useTheme } from "@/shared/composables/useTheme";
+import { useToast } from "@/shared/composables/useToast";
+import type {
+  CommandDescriptor,
+  CommandExecutionContext,
+} from "../types/command-palette.types";
 import {
   isAutomationMonitorOpen,
   toggleAutomationMonitor,
-} from '@/shared/components/layout/AppGlobalAutomationMonitor.vue'
-import { useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+} from "@/shared/components/layout/AppGlobalAutomationMonitor.vue";
+import { RenderPortal } from "@renderizer/vue";
 
-const route = useRoute()
-const router = useRouter()
-const palette = useCommandPaletteStore()
-const workflowStore = useWorkflowStore()
-const executionStore = useExecutionStore()
-const appUiStore = useAppUiStore()
-const sidebarStore = useSidebarPanelStore()
-const settingsStore = useSettingsStore()
-const { toggle: toggleTheme } = useTheme()
-const toast = useToast()
-const searchInput = ref<{ focus: () => void } | null>(null)
-const drilldownInput = ref<HTMLInputElement | null>(null)
-const anchorRef = ref<HTMLElement | null>(null)
-const dialogRef = ref<HTMLElement | null>(null)
-const confirmRef = ref<HTMLElement | null>(null)
-const overlayTarget = useOverlayTarget(anchorRef)
-const drilldownInputValue = ref('')
-const confirmingAction = ref<{ command: CommandDescriptor; payload: Record<string, unknown> } | null>(null)
+const route = useRoute();
+const router = useRouter();
+const palette = useCommandPaletteStore();
+const workflowStore = useWorkflowStore();
+const executionStore = useExecutionStore();
+const appUiStore = useAppUiStore();
+const sidebarStore = useSidebarPanelStore();
+const settingsStore = useSettingsStore();
+const { toggle: toggleTheme } = useTheme();
+const toast = useToast();
+const searchInput = ref<{ focus: () => void } | null>(null);
+const drilldownInput = ref<HTMLInputElement | null>(null);
+const anchorRef = ref<HTMLElement | null>(null);
+const dialogRef = ref<HTMLElement | null>(null);
+const confirmRef = ref<HTMLElement | null>(null);
+const drilldownInputValue = ref("");
+const confirmingAction = ref<{
+  command: CommandDescriptor;
+  payload: Record<string, unknown>;
+} | null>(null);
 
 const activeDescendant = computed(() => {
-  if (palette.isInDrilldown && palette.drilldownInput) return undefined
-  if (palette.visibleCommands.length === 0) return undefined
-  return `cp-row-${palette.highlightedIndex}`
-})
+  if (palette.isInDrilldown && palette.drilldownInput) return undefined;
+  if (palette.visibleCommands.length === 0) return undefined;
+  return `cp-row-${palette.highlightedIndex}`;
+});
 
 const commandContext = computed<CommandExecutionContext>(() => ({
   routePath: route.path,
   activeWorkflowId: workflowStore.activeWorkflow?.metadata.id,
   activeExecutionId: executionStore.activeExecutionId ?? undefined,
   isUniverseMode: appUiStore.isUniverseMode,
-}))
+}));
 
-let queryTimer: number | undefined
+let queryTimer: number | undefined;
 
 watch(
   () => palette.query,
   () => {
-    if (!palette.isOpen || palette.isInDrilldown) return
-    window.clearTimeout(queryTimer)
+    if (!palette.isOpen || palette.isInDrilldown) return;
+    window.clearTimeout(queryTimer);
     queryTimer = window.setTimeout(() => {
-      void palette.refresh()
-    }, 120)
+      void palette.refresh();
+    }, 120);
   },
-)
+);
 
 watch(
   () => palette.drilldownInput,
   (input) => {
-    if (input) drilldownInputValue.value = ''
+    if (input) drilldownInputValue.value = "";
   },
-)
+);
 
 watch(
-  [() => palette.isOpen, () => palette.drilldownInput, () => confirmingAction.value, () => palette.isInDrilldown],
+  [
+    () => palette.isOpen,
+    () => palette.drilldownInput,
+    () => confirmingAction.value,
+    () => palette.isInDrilldown,
+  ],
   async ([isOpen, isDrilldownInput, isConfirming]) => {
     if (!isOpen) {
-      confirmingAction.value = null
-      return
+      confirmingAction.value = null;
+      return;
     }
-    
-    await nextTick()
-    
+
+    await nextTick();
+
     if (isConfirming) {
-      confirmRef.value?.focus()
+      confirmRef.value?.focus();
     } else if (isDrilldownInput) {
-      drilldownInput.value?.focus()
+      drilldownInput.value?.focus();
     } else {
-      searchInput.value?.focus()
+      searchInput.value?.focus();
     }
   },
-)
+);
 
 // Scroll active row into view on highlight change
 watch(
   () => palette.highlightedIndex,
   async (index) => {
-    await nextTick()
-    const el = document.getElementById(`cp-row-${index}`)
-    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    await nextTick();
+    const el = document.getElementById(`cp-row-${index}`);
+    el?.scrollIntoView({ block: "nearest", behavior: "smooth" });
   },
-)
+);
 
 function isTextInput(target: EventTarget | null) {
-  const element = target as HTMLElement | null
-  if (!element) return false
-  return Boolean(element.closest('input, textarea, select, [contenteditable="true"]'))
+  const element = target as HTMLElement | null;
+  if (!element) return false;
+  return Boolean(
+    element.closest('input, textarea, select, [contenteditable="true"]'),
+  );
 }
 
 async function openPalette() {
-  await palette.open(commandContext.value)
+  await palette.open(commandContext.value);
 }
 
 function onGlobalKeydown(event: KeyboardEvent) {
-  const isCommandK = (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'k'
-  if (!isCommandK) return
-  if (!palette.isOpen && isTextInput(event.target)) return
-  event.preventDefault()
-  palette.toggle(commandContext.value)
+  const isCommandK =
+    (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k";
+  if (!isCommandK) return;
+  if (!palette.isOpen && isTextInput(event.target)) return;
+  event.preventDefault();
+  palette.toggle(commandContext.value);
 }
 
 function onDialogKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    event.preventDefault()
+  if (event.key === "Escape") {
+    event.preventDefault();
     if (confirmingAction.value) {
-      confirmingAction.value = null
+      confirmingAction.value = null;
     } else if (palette.isInDrilldown) {
-      palette.exitDrilldown()
+      palette.exitDrilldown();
     } else {
-      palette.close()
+      palette.close();
     }
-    return
+    return;
   }
-  if (event.key === 'Tab') {
+  if (event.key === "Tab") {
     // Focus trap: keep focus inside the dialog
-    event.preventDefault()
-    return
+    event.preventDefault();
+    return;
   }
 
   if (confirmingAction.value) {
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      const action = confirmingAction.value
-      confirmingAction.value = null
-      void handleExecuteResult(action.command, action.payload, true)
+    if (event.key === "Enter") {
+      event.preventDefault();
+      const action = confirmingAction.value;
+      confirmingAction.value = null;
+      void handleExecuteResult(action.command, action.payload, true);
     }
-    return // Prevent arrow navigation while confirming
+    return; // Prevent arrow navigation while confirming
   }
 
   // Arrow navigation only in list mode (not in drilldown input)
   if (!palette.drilldownInput) {
-    if (event.key === 'ArrowDown') {
-      event.preventDefault()
-      palette.moveHighlight(1)
-      return
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      palette.moveHighlight(1);
+      return;
     }
-    if (event.key === 'ArrowUp') {
-      event.preventDefault()
-      palette.moveHighlight(-1)
-      return
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      palette.moveHighlight(-1);
+      return;
     }
-    if (event.key === 'Home') {
-      event.preventDefault()
-      palette.setHighlight(0)
-      return
+    if (event.key === "Home") {
+      event.preventDefault();
+      palette.setHighlight(0);
+      return;
     }
-    if (event.key === 'End') {
-      event.preventDefault()
-      palette.setHighlight(palette.visibleCommands.length - 1)
-      return
+    if (event.key === "End") {
+      event.preventDefault();
+      palette.setHighlight(palette.visibleCommands.length - 1);
+      return;
     }
-    if (event.key === 'Enter') {
-      event.preventDefault()
-      selectCommand(palette.highlightedCommand)
+    if (event.key === "Enter") {
+      event.preventDefault();
+      selectCommand(palette.highlightedCommand);
     }
   }
 }
 
 async function commitDrilldownInput() {
-  const input = palette.drilldownInput
-  if (!input || !drilldownInputValue.value.trim()) return
+  const input = palette.drilldownInput;
+  if (!input || !drilldownInputValue.value.trim()) return;
 
-  const payload = { [input.payloadKey]: drilldownInputValue.value.trim() }
+  const payload = { [input.payloadKey]: drilldownInputValue.value.trim() };
   const fakeCommand: CommandDescriptor = {
     id: input.targetCommandId,
-    group: 'workflow',
+    group: "workflow",
     label: input.title,
     availability: { enabled: true },
-  }
-  await handleExecuteResult(fakeCommand, payload)
+  };
+  await handleExecuteResult(fakeCommand, payload);
 }
 
 async function selectCommand(command: CommandDescriptor | null) {
-  if (!command || !command.availability.enabled) return
-  if (palette.isExecuting) return
-  await handleExecuteResult(command, {})
+  if (!command || !command.availability.enabled) return;
+  if (palette.isExecuting) return;
+  await handleExecuteResult(command, {});
 }
 
 async function handleExecuteResult(
@@ -202,157 +215,187 @@ async function handleExecuteResult(
   skipConfirm = false,
 ) {
   if (command.destructive && !skipConfirm) {
-    confirmingAction.value = { command, payload: extraPayload }
-    return
+    confirmingAction.value = { command, payload: extraPayload };
+    return;
   }
 
-  confirmingAction.value = null
+  confirmingAction.value = null;
 
   // When in drilldown list mode, map the picked command id to its parent's ".picked" variant
-  const isPickCommand = palette.isInDrilldown && palette.drilldownList && command.id.startsWith('_pick.')
-  let targetCommand = command
-  let targetPayload = extraPayload
+  const isPickCommand =
+    palette.isInDrilldown &&
+    palette.drilldownList &&
+    command.id.startsWith("_pick.");
+  let targetCommand = command;
+  let targetPayload = extraPayload;
 
   if (isPickCommand) {
-    const workflowId = command.id.slice('_pick.'.length)
+    const workflowId = command.id.slice("_pick.".length);
     // Find the parent command's ".picked" equivalent
-    const parentTitle = palette.drilldownTitle ?? ''
-    const pickedCommandId = resolvePrimaryPickedCommandId(parentTitle)
+    const parentTitle = palette.drilldownTitle ?? "";
+    const pickedCommandId = resolvePrimaryPickedCommandId(parentTitle);
     if (!pickedCommandId) {
-      toast.error('Unknown drilldown action')
-      return
+      toast.error("Unknown drilldown action");
+      return;
     }
     targetCommand = {
       id: pickedCommandId,
-      group: 'workflow',
+      group: "workflow",
       label: command.label,
       availability: { enabled: true },
-    }
-    targetPayload = { workflowId }
+    };
+    targetPayload = { workflowId };
   }
 
-  const result = await palette.execute(targetCommand, targetPayload)
+  const result = await palette.execute(targetCommand, targetPayload);
 
   if (!result) {
-    if (palette.error) toast.error(palette.error, 'Command failed')
-    return
+    if (palette.error) toast.error(palette.error, "Command failed");
+    return;
   }
 
   // Drilldown result — palette stays open, store already updated
-  if (result.drilldown) return
+  if (result.drilldown) return;
 
   // Normal result handling
   if (result.navigation) {
-    if (result.navigation.path === '/settings') {
-      settingsStore.open()
+    if (result.navigation.path === "/settings") {
+      settingsStore.open();
     } else if (result.navigation.replace) {
-      await router.replace(result.navigation.path)
+      await router.replace(result.navigation.path);
     } else {
-      await router.push(result.navigation.path)
+      await router.push(result.navigation.path);
     }
   }
 
-  if (result.uiIntent) applyUiIntent(result.uiIntent)
+  if (result.uiIntent) applyUiIntent(result.uiIntent);
 
   if (result.clipboardText) {
     try {
-      await navigator.clipboard.writeText(result.clipboardText)
-      toast.success('Copied to clipboard')
+      await navigator.clipboard.writeText(result.clipboardText);
+      toast.success("Copied to clipboard");
     } catch {
-      toast.error('Clipboard write failed')
-      return
+      toast.error("Clipboard write failed");
+      return;
     }
   } else if (result.message) {
-    toast.success(result.message)
+    toast.success(result.message);
   }
 
-  if (result.refreshHints?.some((h) => !h.startsWith('_drilldown_ctx:'))) {
-    await palette.refresh()
+  if (result.refreshHints?.some((h) => !h.startsWith("_drilldown_ctx:"))) {
+    await palette.refresh();
   }
-  palette.close()
+  palette.close();
 }
 
 /** Maps a drilldown title to the ".picked" command id */
 function resolvePrimaryPickedCommandId(title: string): string | null {
   const map: Record<string, string> = {
-    'Open Workflow': 'workflow.open.picked',
-    'Delete Workflow': 'workflow.delete.picked',
-    'Rename Workflow': 'workflow.rename.picked',
-    'Publish Workflow': 'workflow.publish.picked',
-    'Unpublish Workflow': 'workflow.unpublish.picked',
-    'Export Workflow': 'workflow.export.picked',
-    'Open Workflow Logs': 'workflow.logs.open.picked',
-    'Run Workflow': 'workflow.run.picked',
-  }
-  return map[title] ?? null
+    "Open Workflow": "workflow.open.picked",
+    "Delete Workflow": "workflow.delete.picked",
+    "Rename Workflow": "workflow.rename.picked",
+    "Publish Workflow": "workflow.publish.picked",
+    "Unpublish Workflow": "workflow.unpublish.picked",
+    "Export Workflow": "workflow.export.picked",
+    "Open Workflow Logs": "workflow.logs.open.picked",
+    "Run Workflow": "workflow.run.picked",
+  };
+  return map[title] ?? null;
 }
 
-function applyUiIntent(intent: { type: string; target?: string; payload?: Record<string, unknown> }) {
-  const { type } = intent
-  if (type === 'theme.toggle') {
-    toggleTheme()
-    return
+function applyUiIntent(intent: {
+  type: string;
+  target?: string;
+  payload?: Record<string, unknown>;
+}) {
+  const { type } = intent;
+  if (type === "theme.toggle") {
+    toggleTheme();
+    return;
   }
-  if (type === 'settings.open') settingsStore.open()
-  if (type === 'agents.open') {
-    window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
+  if (type === "settings.open") settingsStore.open();
+  if (type === "agents.open") {
+    window.dispatchEvent(
+      new CustomEvent("fabric:command-palette:intent", { detail: intent }),
+    );
   }
-  if (type === 'production-panel.open') {
-    if (!isAutomationMonitorOpen.value) toggleAutomationMonitor()
+  if (type === "production-panel.open") {
+    if (!isAutomationMonitorOpen.value) toggleAutomationMonitor();
   }
-  if (type === 'production-panel.close') {
-    if (isAutomationMonitorOpen.value) toggleAutomationMonitor()
+  if (type === "production-panel.close") {
+    if (isAutomationMonitorOpen.value) toggleAutomationMonitor();
   }
-  if (type === 'plugin-installer.open') {
-    window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
+  if (type === "plugin-installer.open") {
+    window.dispatchEvent(
+      new CustomEvent("fabric:command-palette:intent", { detail: intent }),
+    );
   }
-  if (type === 'universe.enter') appUiStore.enterUniverseMode()
-  if (type === 'universe.exit') appUiStore.quitUniverseMode()
-  if (type === 'plugin.open') {
-    if (route.path !== '/universe') {
-      void router.push('/universe')
+  if (type === "universe.enter") appUiStore.enterUniverseMode();
+  if (type === "universe.exit") appUiStore.quitUniverseMode();
+  if (type === "plugin.open") {
+    if (route.path !== "/universe") {
+      void router.push("/universe");
       // Wait for Universe to mount
       setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
-      }, 400)
+        window.dispatchEvent(
+          new CustomEvent("fabric:command-palette:intent", { detail: intent }),
+        );
+      }, 400);
     } else {
-      window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
+      window.dispatchEvent(
+        new CustomEvent("fabric:command-palette:intent", { detail: intent }),
+      );
     }
   }
-  if (type === 'plugin.oauth.open' || type === 'plugin.credentials.open') {
+  if (type === "plugin.oauth.open" || type === "plugin.credentials.open") {
     if (intent.target) {
-      settingsStore.openCredentialsFor(intent.target)
+      settingsStore.openCredentialsFor(intent.target);
     }
-    window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
+    window.dispatchEvent(
+      new CustomEvent("fabric:command-palette:intent", { detail: intent }),
+    );
   }
-  if (type === 'workflow-settings.open' || type === 'workflow-logs.open' || type === 'workflow-variables.open') {
-    if (intent.target && intent.target !== commandContext.value.activeWorkflowId) {
+  if (
+    type === "workflow-settings.open" ||
+    type === "workflow-logs.open" ||
+    type === "workflow-variables.open"
+  ) {
+    if (
+      intent.target &&
+      intent.target !== commandContext.value.activeWorkflowId
+    ) {
       void router.push({
         path: `/workflows/${intent.target}`,
         query: {
           panel:
-            type === 'workflow-logs.open'
-              ? 'logs'
-              : type === 'workflow-variables.open'
-                ? 'variables'
-                : 'settings',
+            type === "workflow-logs.open"
+              ? "logs"
+              : type === "workflow-variables.open"
+                ? "variables"
+                : "settings",
         },
-      })
+      });
     } else {
-      window.dispatchEvent(new CustomEvent('fabric:command-palette:intent', { detail: intent }))
+      window.dispatchEvent(
+        new CustomEvent("fabric:command-palette:intent", { detail: intent }),
+      );
     }
   }
 }
 
-onMounted(() => window.addEventListener('keydown', onGlobalKeydown))
-onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
+onMounted(() => window.addEventListener("keydown", onGlobalKeydown));
+onUnmounted(() => window.removeEventListener("keydown", onGlobalKeydown));
 </script>
 
 <template>
   <span ref="anchorRef" hidden aria-hidden="true"></span>
-  <Teleport :to="overlayTarget">
+  <RenderPortal>
     <Transition name="cp-fade">
-      <div v-if="palette.isOpen" class="cp-backdrop" @mousedown.self="palette.close">
+      <div
+        v-if="palette.isOpen"
+        class="cp-backdrop"
+        @mousedown.self="palette.close"
+      >
         <section
           ref="dialogRef"
           class="cp-dialog"
@@ -365,18 +408,35 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
 
           <!-- Drilldown breadcrumb header -->
           <div v-if="palette.isInDrilldown" class="cp-breadcrumb">
-            <button class="cp-breadcrumb__back" type="button" @click="palette.exitDrilldown">
+            <button
+              class="cp-breadcrumb__back"
+              type="button"
+              @click="palette.exitDrilldown"
+            >
               ← Back
             </button>
-            <span class="cp-breadcrumb__title">{{ palette.drilldownTitle }}</span>
+            <span class="cp-breadcrumb__title">{{
+              palette.drilldownTitle
+            }}</span>
           </div>
 
           <!-- Confirm step -->
-          <div v-if="confirmingAction" ref="confirmRef" class="cp-confirm" tabindex="-1" style="outline: none;">
+          <div
+            v-if="confirmingAction"
+            ref="confirmRef"
+            class="cp-confirm"
+            tabindex="-1"
+            style="outline: none"
+          >
             <div class="cp-confirm__title">Confirm Action</div>
             <div class="cp-confirm__message">
-              You are about to execute <strong>{{ confirmingAction.command.label }}</strong>.<br />
-              <span class="cp-confirm__description">{{ confirmingAction.command.description ?? 'This action cannot be undone.' }}</span>
+              You are about to execute
+              <strong>{{ confirmingAction.command.label }}</strong
+              >.<br />
+              <span class="cp-confirm__description">{{
+                confirmingAction.command.description ??
+                "This action cannot be undone."
+              }}</span>
             </div>
           </div>
 
@@ -412,9 +472,12 @@ onUnmounted(() => window.removeEventListener('keydown', onGlobalKeydown))
             />
           </template>
 
-          <CommandPaletteFooterHints :in-drilldown-input="!!palette.drilldownInput" :in-confirm="!!confirmingAction" />
+          <CommandPaletteFooterHints
+            :in-drilldown-input="!!palette.drilldownInput"
+            :in-confirm="!!confirmingAction"
+          />
         </section>
       </div>
     </Transition>
-  </Teleport>
+  </RenderPortal>
 </template>

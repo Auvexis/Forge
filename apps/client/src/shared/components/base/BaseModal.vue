@@ -1,45 +1,47 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import { RenderPortal, ownerWindowOf } from "@renderizer/vue";
 
-const props = withDefaults(defineProps<{
-  isOpen: boolean
-  maxWidth?: string
-  height?: string
-  dimBackdrop?: boolean
-}>(), {
-  dimBackdrop: true,
-})
+const props = withDefaults(
+  defineProps<{
+    isOpen: boolean;
+    maxWidth?: string;
+    height?: string;
+    dimBackdrop?: boolean;
+  }>(),
+  {
+    dimBackdrop: true,
+  },
+);
 
 const emit = defineEmits<{
-  (e: 'close'): void
-}>()
+  (e: "close"): void;
+}>();
 
-const anchorRef = ref<HTMLElement | null>(null)
-const overlayTarget = useOverlayTarget(anchorRef)
+const anchorRef = ref<HTMLElement | null>(null);
 
 function close() {
-  emit('close')
+  emit("close");
 }
 
 function handleKeydown(e: KeyboardEvent) {
-  if (e.key === 'Escape' && props.isOpen) {
-    close()
+  if (e.key === "Escape" && props.isOpen) {
+    close();
   }
 }
 
 onMounted(() => {
-  ownerWindowOf(anchorRef.value).addEventListener('keydown', handleKeydown)
-})
+  ownerWindowOf(anchorRef.value).addEventListener("keydown", handleKeydown);
+});
 
 onBeforeUnmount(() => {
-  ownerWindowOf(anchorRef.value).removeEventListener('keydown', handleKeydown)
-})
+  ownerWindowOf(anchorRef.value).removeEventListener("keydown", handleKeydown);
+});
 </script>
 
 <template>
   <span ref="anchorRef" class="base-modal-anchor" aria-hidden="true"></span>
-  <Teleport :to="overlayTarget">
+  <RenderPortal>
     <Transition name="base-modal-window">
       <div
         v-if="isOpen"
@@ -49,13 +51,17 @@ onBeforeUnmount(() => {
       >
         <div
           class="base-modal-container flex flex-col overflow-hidden"
-          :style="{ maxWidth: maxWidth || '1600px', height: height || '85vh', width: '95vw' }"
+          :style="{
+            maxWidth: maxWidth || '1600px',
+            height: height || '85vh',
+            width: '95vw',
+          }"
         >
           <slot />
         </div>
       </div>
     </Transition>
-  </Teleport>
+  </RenderPortal>
 </template>
 
 <style scoped>
@@ -90,7 +96,7 @@ onBeforeUnmount(() => {
 }
 
 .base-modal-container::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;

@@ -7,7 +7,11 @@ export interface WorkspaceWindowState {
   isFullScreen: boolean;
 }
 
-export type WorkspaceWindowAction = "minimize" | "toggle-maximize" | "close";
+export type WorkspaceWindowAction =
+  | "minimize"
+  | "toggle-maximize"
+  | "close"
+  | "focus";
 
 const workspaceFramePrefix = "fabric-workspace:";
 const workspaceIdPattern = /^[a-z0-9][a-z0-9:_-]{0,127}$/;
@@ -77,11 +81,16 @@ export class WorkspaceWindowManager {
     window?.focus();
   }
 
-  control(event: IpcMainInvokeEvent, workspaceId: string, action: WorkspaceWindowAction): void {
+  control(
+    event: IpcMainInvokeEvent,
+    workspaceId: string,
+    action: WorkspaceWindowAction,
+  ): void {
     const window = this.resolveOwnedWindow(event, workspaceId);
     if (!window) return;
 
     if (action === "minimize") window.minimize();
+    if (action === "focus") window.focus();
     if (action === "toggle-maximize") {
       if (window.isMaximized()) window.unmaximize();
       else window.maximize();
@@ -89,7 +98,10 @@ export class WorkspaceWindowManager {
     if (action === "close") window.close();
   }
 
-  getState(event: IpcMainInvokeEvent, workspaceId: string): WorkspaceWindowState {
+  getState(
+    event: IpcMainInvokeEvent,
+    workspaceId: string,
+  ): WorkspaceWindowState {
     const window = this.resolveOwnedWindow(event, workspaceId);
     return this.readState(window);
   }
@@ -103,7 +115,8 @@ export class WorkspaceWindowManager {
 
   private register(workspaceId: string, window: BrowserWindow): void {
     const previous = this.windows.get(workspaceId);
-    if (previous && previous !== window && !previous.isDestroyed()) previous.destroy();
+    if (previous && previous !== window && !previous.isDestroyed())
+      previous.destroy();
     this.windows.set(workspaceId, window);
     if (process.platform === "win32") {
       window.setAppDetails({ appId: this.appId });
@@ -121,18 +134,25 @@ export class WorkspaceWindowManager {
     window.on("enter-full-screen", sendState);
     window.on("leave-full-screen", sendState);
     window.on("closed", () => {
-      if (this.windows.get(workspaceId) === window) this.windows.delete(workspaceId);
+      if (this.windows.get(workspaceId) === window)
+        this.windows.delete(workspaceId);
       this.opener?.send("fabric-desktop-workspace-closed", { workspaceId });
     });
   }
 
-  private resolveOwnedWindow(event: IpcMainInvokeEvent, workspaceId: string): BrowserWindow | null {
-    if (event.sender !== this.opener || !workspaceIdPattern.test(workspaceId)) return null;
+  private resolveOwnedWindow(
+    event: IpcMainInvokeEvent,
+    workspaceId: string,
+  ): BrowserWindow | null {
+    if (event.sender !== this.opener || !workspaceIdPattern.test(workspaceId))
+      return null;
     const window = this.windows.get(workspaceId);
     return window && !window.isDestroyed() ? window : null;
   }
 
-  private readState(window: BrowserWindow | null | undefined): WorkspaceWindowState {
+  private readState(
+    window: BrowserWindow | null | undefined,
+  ): WorkspaceWindowState {
     return {
       isMaximized: window?.isMaximized() ?? false,
       isFullScreen: window?.isFullScreen() ?? false,

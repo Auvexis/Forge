@@ -3,19 +3,35 @@
     <template v-if="pages.length">
       <div class="web-page-tree__section">
         <span>Pages</span>
-        <button type="button" class="web-page-tree__section-action" title="Add page" @click="$emit('add-page')">
+        <button
+          type="button"
+          class="web-page-tree__section-action"
+          title="Add page"
+          @click="$emit('add-page')"
+        >
           <LucideIcon name="plus" :size="14" />
         </button>
       </div>
-      <div v-for="page in pages" :key="page.id" class="web-page-tree__node web-page-tree__node--page">
+      <div
+        v-for="page in pages"
+        :key="page.id"
+        class="web-page-tree__node web-page-tree__node--page"
+      >
         <div
           class="web-page-tree__item web-page-tree__item--page"
           :class="{ 'web-page-tree__item--selected': page.id === activePageId }"
           role="treeitem"
           @click="$emit('select-page', page.id)"
         >
-          <button type="button" class="web-page-tree__collapse" @click.stop="togglePage(page.id)">
-            <LucideIcon :name="isPageExpanded(page.id) ? 'chevron-down' : 'chevron-right'" :size="14" />
+          <button
+            type="button"
+            class="web-page-tree__collapse"
+            @click.stop="togglePage(page.id)"
+          >
+            <LucideIcon
+              :name="isPageExpanded(page.id) ? 'chevron-down' : 'chevron-right'"
+              :size="14"
+            />
           </button>
           <span class="web-page-tree__icon">
             <LucideIcon name="file" :size="14" />
@@ -30,12 +46,29 @@
                   <LucideIcon name="ellipsis" :size="14" />
                 </button>
               </template>
-              <BaseDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-page', page.id)" />
-              <BaseDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-page', page.id)" />
+              <BaseDropdownItem
+                label="Duplicate"
+                icon="copy"
+                @click="$emit('duplicate-page', page.id)"
+              />
+              <BaseDropdownItem
+                label="Delete"
+                icon="trash-2"
+                danger
+                @click="$emit('delete-page', page.id)"
+              />
             </BaseDropdownMenu>
           </span>
         </div>
-        <div v-if="page.id === activePageId && isPageExpanded(page.id) && blocks.length > 0" class="web-page-tree__children" role="group">
+        <div
+          v-if="
+            page.id === activePageId &&
+            isPageExpanded(page.id) &&
+            blocks.length > 0
+          "
+          class="web-page-tree__children"
+          role="group"
+        >
           <div class="web-page-tree__section web-page-tree__section--nested">
             <span>Layers</span>
             <LucideIcon name="list-filter" :size="14" />
@@ -56,12 +89,22 @@
       </div>
     </template>
 
-    <div v-for="block in pages.length ? [] : blocks" :key="block.id" class="web-page-tree__node">
+    <div
+      v-for="block in pages.length ? [] : blocks"
+      :key="block.id"
+      class="web-page-tree__node"
+    >
       <div
         class="web-page-tree__item"
         :class="[
-          { 'web-page-tree__item--selected': selectedBlockIds.includes(block.id) || block.id === selectedBlockId },
-          treeDropIntent?.targetId === block.id ? `web-page-tree__item--drop-${treeDropIntent.position}` : '',
+          {
+            'web-page-tree__item--selected':
+              selectedBlockIds.includes(block.id) ||
+              block.id === selectedBlockId,
+          },
+          treeDropIntent?.targetId === block.id
+            ? `web-page-tree__item--drop-${treeDropIntent.position}`
+            : '',
         ]"
         draggable="true"
         role="treeitem"
@@ -84,7 +127,14 @@
           :disabled="blockChildCount(block) === 0"
           @click.stop="editorStore.toggleBlockCollapsed(block.id)"
         >
-          <LucideIcon :name="editorStore.isBlockCollapsed(block.id) ? 'chevron-right' : 'chevron-down'" :size="14" />
+          <LucideIcon
+            :name="
+              editorStore.isBlockCollapsed(block.id)
+                ? 'chevron-right'
+                : 'chevron-down'
+            "
+            :size="14"
+          />
         </button>
         <span class="web-page-tree__icon">
           <LucideIcon :name="iconFor(block)" :size="15" />
@@ -132,10 +182,21 @@
               v-if="hasMultipleActionSelection(block.id)"
               label="Send to Blueprint as Group"
               icon="group"
-              @click="$emit('send-to-blueprint-group', actionBlockIds(block.id))"
+              @click="
+                $emit('send-to-blueprint-group', actionBlockIds(block.id))
+              "
             />
-            <BaseDropdownItem label="Duplicate" icon="copy" @click="$emit('duplicate-block', block.id)" />
-            <BaseDropdownItem label="Delete" icon="trash-2" danger @click="$emit('delete-block', block.id)" />
+            <BaseDropdownItem
+              label="Duplicate"
+              icon="copy"
+              @click="$emit('duplicate-block', block.id)"
+            />
+            <BaseDropdownItem
+              label="Delete"
+              icon="trash-2"
+              danger
+              @click="$emit('delete-block', block.id)"
+            />
           </BaseDropdownMenu>
         </span>
       </div>
@@ -162,141 +223,168 @@
 </template>
 
 <script setup lang="ts">
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import BaseDropdownMenu from '@/shared/components/base/dropdown/BaseDropdownMenu.vue'
-import BaseDropdownItem from '@/shared/components/base/dropdown/BaseDropdownItem.vue'
-import { ownerDocumentOf } from '@/shared/composables/useOverlayTarget'
-import { ref, watch } from 'vue'
-import type { PageBlock, FabricPageSummary } from '../types/page.types.ts'
-import { blockChildCount, blockDisplayName, type InsertPosition } from '../utils/blockTree.ts'
-import { resolveBlockDropIntent } from '../utils/dropIntent.ts'
-import { usePageEditorStore } from '../stores/page-editor.store.ts'
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import BaseDropdownMenu from "@/shared/components/base/dropdown/BaseDropdownMenu.vue";
+import BaseDropdownItem from "@/shared/components/base/dropdown/BaseDropdownItem.vue";
+import { ownerDocumentOf } from "@renderizer/vue";
+import { ref, watch } from "vue";
+import type { PageBlock, FabricPageSummary } from "../types/page.types.ts";
+import {
+  blockChildCount,
+  blockDisplayName,
+  type InsertPosition,
+} from "../utils/blockTree.ts";
+import { resolveBlockDropIntent } from "../utils/dropIntent.ts";
+import { usePageEditorStore } from "../stores/page-editor.store.ts";
 
-const props = withDefaults(defineProps<{
-  blocks: PageBlock[]
-  selectedBlockId: string | null
-  selectedBlockIds?: string[]
-  pages?: FabricPageSummary[]
-  activePageId?: string
-}>(), {
-  pages: () => [],
-  activePageId: undefined,
-  selectedBlockIds: () => [],
-})
+const props = withDefaults(
+  defineProps<{
+    blocks: PageBlock[];
+    selectedBlockId: string | null;
+    selectedBlockIds?: string[];
+    pages?: FabricPageSummary[];
+    activePageId?: string;
+  }>(),
+  {
+    pages: () => [],
+    activePageId: undefined,
+    selectedBlockIds: () => [],
+  },
+);
 
-const editorStore = usePageEditorStore()
-const collapsedPageIds = ref<Record<string, boolean>>({})
-const editingBlockId = ref<string | null>(null)
-const draftBlockId = ref('')
-const treeDropIntent = ref<{ targetId: string; position: InsertPosition } | null>(null)
+const editorStore = usePageEditorStore();
+const collapsedPageIds = ref<Record<string, boolean>>({});
+const editingBlockId = ref<string | null>(null);
+const draftBlockId = ref("");
+const treeDropIntent = ref<{
+  targetId: string;
+  position: InsertPosition;
+} | null>(null);
 
 const emit = defineEmits<{
-  'add-page': []
-  select: [blockId: string]
-  'select-page': [pageId: string]
-  'delete-page': [pageId: string]
-  'duplicate-page': [pageId: string]
-  'delete-block': [blockId: string]
-  'duplicate-block': [blockId: string]
-  'send-to-blueprint': [blockIds: string[]]
-  'send-to-blueprint-group': [blockIds: string[]]
-  'move-block': [payload: { targetId: string; position: InsertPosition; draggedId: string }]
-}>()
+  "add-page": [];
+  select: [blockId: string];
+  "select-page": [pageId: string];
+  "delete-page": [pageId: string];
+  "duplicate-page": [pageId: string];
+  "delete-block": [blockId: string];
+  "duplicate-block": [blockId: string];
+  "send-to-blueprint": [blockIds: string[]];
+  "send-to-blueprint-group": [blockIds: string[]];
+  "move-block": [
+    payload: { targetId: string; position: InsertPosition; draggedId: string },
+  ];
+}>();
 
 watch(
   () => [props.activePageId, props.pages.length] as const,
   ([activePageId]) => {
     if (activePageId && collapsedPageIds.value[activePageId] === undefined) {
-      collapsedPageIds.value = { ...collapsedPageIds.value, [activePageId]: false }
+      collapsedPageIds.value = {
+        ...collapsedPageIds.value,
+        [activePageId]: false,
+      };
     }
   },
   { immediate: true },
-)
+);
 
 function isPageExpanded(pageId: string) {
-  return !collapsedPageIds.value[pageId]
+  return !collapsedPageIds.value[pageId];
 }
 
 function togglePage(pageId: string) {
   collapsedPageIds.value = {
     ...collapsedPageIds.value,
     [pageId]: !collapsedPageIds.value[pageId],
-  }
+  };
 }
 
 function selectTreeBlock(event: MouseEvent, blockId: string) {
   if (event.shiftKey) {
-    editorStore.selectBlockRange(blockId)
-    return
+    editorStore.selectBlockRange(blockId);
+    return;
   }
   if (event.ctrlKey || event.metaKey) {
-    editorStore.toggleBlockSelection(blockId)
-    return
+    editorStore.toggleBlockSelection(blockId);
+    return;
   }
-  emit('select', blockId)
+  emit("select", blockId);
 }
 
 function actionBlockIds(blockId: string) {
-  return props.selectedBlockIds.includes(blockId) && props.selectedBlockIds.length > 1
+  return props.selectedBlockIds.includes(blockId) &&
+    props.selectedBlockIds.length > 1
     ? props.selectedBlockIds
-    : [blockId]
+    : [blockId];
 }
 
 function hasMultipleActionSelection(blockId: string) {
-  return actionBlockIds(blockId).length > 1
+  return actionBlockIds(blockId).length > 1;
 }
 
 function startBlockIdEdit(blockId: string) {
-  editingBlockId.value = blockId
-  draftBlockId.value = blockId
+  editingBlockId.value = blockId;
+  draftBlockId.value = blockId;
 }
 
 function cancelBlockIdEdit() {
-  editingBlockId.value = null
-  draftBlockId.value = ''
+  editingBlockId.value = null;
+  draftBlockId.value = "";
 }
 
 function commitBlockId(blockId: string) {
-  const nextId = normalizeDraftBlockId(draftBlockId.value)
+  const nextId = normalizeDraftBlockId(draftBlockId.value);
   if (nextId && nextId !== blockId) {
-    editorStore.renameBlockId(blockId, nextId)
+    editorStore.renameBlockId(blockId, nextId);
   }
-  cancelBlockIdEdit()
+  cancelBlockIdEdit();
 }
 
 function normalizeDraftBlockId(value: string) {
-  return value.trim().replace(/\s+/g, '_')
+  return value.trim().replace(/\s+/g, "_");
 }
 
 function onDragStart(event: DragEvent, blockId: string) {
-  event.dataTransfer?.setData('application/x-fabric-page-block', JSON.stringify({ blockId }))
-  if (event.dataTransfer) event.dataTransfer.effectAllowed = 'move'
-  setDragPreview(event, blockId)
+  event.dataTransfer?.setData(
+    "application/x-fabric-page-block",
+    JSON.stringify({ blockId }),
+  );
+  if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+  setDragPreview(event, blockId);
 }
 
 function onDragOver(event: DragEvent, block: PageBlock) {
-  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-  const intent = resolveTreeDropIntent(event, block)
-  treeDropIntent.value = { targetId: block.id, position: intent.position }
+  if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+  const intent = resolveTreeDropIntent(event, block);
+  treeDropIntent.value = { targetId: block.id, position: intent.position };
 }
 
 function onDrop(event: DragEvent, block: PageBlock) {
-  const raw = event.dataTransfer?.getData('application/x-fabric-page-block')
-  if (!raw) return
+  const raw = event.dataTransfer?.getData("application/x-fabric-page-block");
+  if (!raw) return;
 
-  const parsed = JSON.parse(raw) as { blockId?: string }
-  if (!parsed.blockId) return
+  const parsed = JSON.parse(raw) as { blockId?: string };
+  if (!parsed.blockId) return;
 
-  const intent = resolveTreeDropIntent(event, block)
-  clearTreeDropIntent()
-  emit('move-block', { targetId: block.id, position: intent.position, draggedId: parsed.blockId })
+  const intent = resolveTreeDropIntent(event, block);
+  clearTreeDropIntent();
+  emit("move-block", {
+    targetId: block.id,
+    position: intent.position,
+    draggedId: parsed.blockId,
+  });
 }
 
-function resolveTreeDropIntent(event: DragEvent, block: PageBlock): { position: InsertPosition } {
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const previous = treeDropIntent.value?.targetId === block.id
-    ? { position: treeDropIntent.value.position, dropEdge: 'center' as const }
-    : null
+function resolveTreeDropIntent(
+  event: DragEvent,
+  block: PageBlock,
+): { position: InsertPosition } {
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect();
+  const previous =
+    treeDropIntent.value?.targetId === block.id
+      ? { position: treeDropIntent.value.position, dropEdge: "center" as const }
+      : null;
   return resolveBlockDropIntent({
     x: event.clientX - rect.left,
     y: event.clientY - rect.top,
@@ -304,43 +392,50 @@ function resolveTreeDropIntent(event: DragEvent, block: PageBlock): { position: 
     height: rect.height,
     isContainer: isContainer(block),
     previous,
-  })
+  });
 }
 
 function onDragLeave(event: DragEvent, blockId: string) {
-  if ((event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) return
-  if (treeDropIntent.value?.targetId === blockId) clearTreeDropIntent()
+  if (
+    (event.currentTarget as HTMLElement).contains(
+      event.relatedTarget as Node | null,
+    )
+  )
+    return;
+  if (treeDropIntent.value?.targetId === blockId) clearTreeDropIntent();
 }
 
 function clearTreeDropIntent() {
-  treeDropIntent.value = null
+  treeDropIntent.value = null;
 }
 
 function iconFor(block: PageBlock): string {
-  if (block.tag === 'image') return 'image'
-  if (block.tag === 'audio') return 'music'
-  if (block.tag === 'video') return 'clapperboard'
-  if (block.tag === 'youtube') return 'youtube'
-  if (block.tag === 'form') return 'clipboard-list'
-  if (block.tag === 'button') return 'square-mouse-pointer'
-  if (block.tag === 'input') return 'text-cursor-input'
-  if (block.tag === 'link') return 'link'
-  if (block.tag === 'text') return 'type'
-  return 'hash'
+  if (block.tag === "image") return "image";
+  if (block.tag === "audio") return "music";
+  if (block.tag === "video") return "clapperboard";
+  if (block.tag === "youtube") return "youtube";
+  if (block.tag === "form") return "clipboard-list";
+  if (block.tag === "button") return "square-mouse-pointer";
+  if (block.tag === "input") return "text-cursor-input";
+  if (block.tag === "link") return "link";
+  if (block.tag === "text") return "type";
+  return "hash";
 }
 
 function isContainer(block: PageBlock): boolean {
-  return ['header', 'section', 'div', 'footer', 'form'].includes(block.tag)
+  return ["header", "section", "div", "footer", "form"].includes(block.tag);
 }
 
 function setDragPreview(event: DragEvent, label: string) {
-  if (!event.dataTransfer) return
-  const ownerDocument = ownerDocumentOf(event.target instanceof Element ? event.target : null)
-  const preview = ownerDocument.createElement('div')
-  preview.className = 'web-page-drag-preview'
-  preview.textContent = label
-  ownerDocument.body.appendChild(preview)
-  event.dataTransfer.setDragImage(preview, 16, 16)
-  window.setTimeout(() => preview.remove(), 0)
+  if (!event.dataTransfer) return;
+  const ownerDocument = ownerDocumentOf(
+    event.target instanceof Element ? event.target : null,
+  );
+  const preview = ownerDocument.createElement("div");
+  preview.className = "web-page-drag-preview";
+  preview.textContent = label;
+  ownerDocument.body.appendChild(preview);
+  event.dataTransfer.setDragImage(preview, 16, 16);
+  window.setTimeout(() => preview.remove(), 0);
 }
 </script>

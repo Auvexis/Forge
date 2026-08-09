@@ -6,7 +6,7 @@
     </div>
 
     <!-- Content -->
-    <Teleport :to="overlayTarget">
+    <RenderPortal>
       <Transition name="scale">
         <div
           v-if="isOpen"
@@ -18,145 +18,151 @@
           <slot></slot>
         </div>
       </Transition>
-    </Teleport>
+    </RenderPortal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, nextTick, onBeforeUnmount, onMounted, watch } from 'vue'
-import { vClickOutside } from '@/shared/directives/v-click-outside'
-import { ownerWindowOf, useOverlayTarget } from '@/shared/composables/useOverlayTarget'
+import {
+  ref,
+  computed,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  watch,
+} from "vue";
+import { vClickOutside } from "@/shared/directives/v-click-outside";
+import { RenderPortal, ownerWindowOf } from "@renderizer/vue";
 
 const props = withDefaults(
   defineProps<{
     position?:
-      | 'bottom-start'
-      | 'bottom-end'
-      | 'bottom-center'
-      | 'top-start'
-      | 'top-end'
-      | 'top-center'
-      | 'left'
-      | 'right'
-    offset?: number
-    contentClass?: string
+      | "bottom-start"
+      | "bottom-end"
+      | "bottom-center"
+      | "top-start"
+      | "top-end"
+      | "top-center"
+      | "left"
+      | "right";
+    offset?: number;
+    contentClass?: string;
   }>(),
   {
-    position: 'bottom-start',
+    position: "bottom-start",
     offset: 8,
-    contentClass: '',
+    contentClass: "",
   },
-)
+);
 
-const isOpen = ref(false)
-const triggerRef = ref<HTMLElement | null>(null)
-const contentRef = ref<HTMLElement | null>(null)
-const triggerRect = ref<DOMRect | null>(null)
-const overlayTarget = useOverlayTarget(triggerRef)
+const isOpen = ref(false);
+const triggerRef = ref<HTMLElement | null>(null);
+const contentRef = ref<HTMLElement | null>(null);
+const triggerRect = ref<DOMRect | null>(null);
 const emit = defineEmits<{
-  open: []
-  close: []
-}>()
+  open: [];
+  close: [];
+}>();
 
 const toggle = () => {
   if (isOpen.value) {
-    close()
+    close();
   } else {
-    open()
+    open();
   }
-}
+};
 
 const open = () => {
-  updateRect()
-  isOpen.value = true
-  emit('open')
-}
+  updateRect();
+  isOpen.value = true;
+  emit("open");
+};
 
 const close = () => {
-  if (!isOpen.value) return
-  isOpen.value = false
-  emit('close')
-}
+  if (!isOpen.value) return;
+  isOpen.value = false;
+  emit("close");
+};
 
 const updateRect = () => {
   if (triggerRef.value) {
-    triggerRect.value = triggerRef.value.getBoundingClientRect()
+    triggerRect.value = triggerRef.value.getBoundingClientRect();
   }
-}
+};
 
 // Calculate absolute positioning based on fixed trigger bounds
 const contentStyle = computed(() => {
-  if (!triggerRect.value) return {}
+  if (!triggerRect.value) return {};
 
-  const rect = triggerRect.value
-  let top = 0
-  let left = 0
+  const rect = triggerRect.value;
+  let top = 0;
+  let left = 0;
 
   // We don't know the content size until it renders, so we use top/left with CSS transforms for alignment where needed.
   // A complete implementation would use a library like Floating UI for robust collision detection.
   // Here we do a basic calculation.
 
   switch (props.position) {
-    case 'bottom-start':
-      top = rect.bottom + props.offset
-      left = rect.left
-      break
-    case 'bottom-end':
-      top = rect.bottom + props.offset
-      left = rect.right
-      break
-    case 'bottom-center':
-      top = rect.bottom + props.offset
-      left = rect.left + rect.width / 2
-      break
-    case 'top-start':
-      top = rect.top - props.offset
-      left = rect.left
-      break
-    case 'top-end':
-      top = rect.top - props.offset
-      left = rect.right
-      break
-    case 'top-center':
-      top = rect.top - props.offset
-      left = rect.left + rect.width / 2
-      break
-    case 'right':
-      top = rect.top + rect.height / 2
-      left = rect.right + props.offset
-      break
-    case 'left':
-      top = rect.top + rect.height / 2
-      left = rect.left - props.offset
-      break
+    case "bottom-start":
+      top = rect.bottom + props.offset;
+      left = rect.left;
+      break;
+    case "bottom-end":
+      top = rect.bottom + props.offset;
+      left = rect.right;
+      break;
+    case "bottom-center":
+      top = rect.bottom + props.offset;
+      left = rect.left + rect.width / 2;
+      break;
+    case "top-start":
+      top = rect.top - props.offset;
+      left = rect.left;
+      break;
+    case "top-end":
+      top = rect.top - props.offset;
+      left = rect.right;
+      break;
+    case "top-center":
+      top = rect.top - props.offset;
+      left = rect.left + rect.width / 2;
+      break;
+    case "right":
+      top = rect.top + rect.height / 2;
+      left = rect.right + props.offset;
+      break;
+    case "left":
+      top = rect.top + rect.height / 2;
+      left = rect.left - props.offset;
+      break;
   }
 
   return {
     top: `${top}px`,
     left: `${left}px`,
-  }
-})
+  };
+});
 
 // Auto-update position on window resize/scroll if open
 const handleScrollResize = () => {
   if (isOpen.value) {
-    updateRect()
+    updateRect();
   }
-}
+};
 
 onMounted(() => {
-  const ownerWindow = ownerWindowOf(triggerRef.value)
-  ownerWindow.addEventListener('scroll', handleScrollResize, true) // capture phase for any scrolling container
-  ownerWindow.addEventListener('resize', handleScrollResize)
-})
+  const ownerWindow = ownerWindowOf(triggerRef.value);
+  ownerWindow.addEventListener("scroll", handleScrollResize, true); // capture phase for any scrolling container
+  ownerWindow.addEventListener("resize", handleScrollResize);
+});
 
 onBeforeUnmount(() => {
-  const ownerWindow = ownerWindowOf(triggerRef.value)
-  ownerWindow.removeEventListener('scroll', handleScrollResize, true)
-  ownerWindow.removeEventListener('resize', handleScrollResize)
-})
+  const ownerWindow = ownerWindowOf(triggerRef.value);
+  ownerWindow.removeEventListener("scroll", handleScrollResize, true);
+  ownerWindow.removeEventListener("resize", handleScrollResize);
+});
 
-defineExpose({ open, close, toggle, isOpen })
+defineExpose({ open, close, toggle, isOpen });
 </script>
 
 <style scoped>

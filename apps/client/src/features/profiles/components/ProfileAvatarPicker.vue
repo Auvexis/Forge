@@ -13,7 +13,12 @@
     </button>
 
     <Transition name="picker-fade">
-      <div v-if="open" class="avatar-btn__dropdown" role="dialog" aria-label="Escolher emoji">
+      <div
+        v-if="open"
+        class="avatar-btn__dropdown"
+        role="dialog"
+        aria-label="Escolher emoji"
+      >
         <EmojiPicker
           :native="true"
           :hide-search="false"
@@ -28,33 +33,38 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import EmojiPicker from 'vue3-emoji-picker'
-import 'vue3-emoji-picker/css'
-import LucideIcon from '@/shared/icons/LucideIcon.vue'
-import { ownerDocumentOf } from '@/shared/composables/useOverlayTarget'
+import { onBeforeUnmount, onMounted, ref } from "vue";
+import EmojiPicker from "vue3-emoji-picker";
+import "vue3-emoji-picker/css";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
+import { ownerDocumentOf } from "@renderizer/vue";
 import {
   rememberProfileAvatar,
   PROFILE_AVATAR_RECENT_STORAGE_KEY,
-} from '../profileAvatarPickerOptions'
+} from "../profileAvatarPickerOptions";
 
-const model = defineModel<string>({ required: true })
-const open = ref(false)
-const wrapperRef = ref<HTMLElement | null>(null)
+const model = defineModel<string>({ required: true });
+const open = ref(false);
+const wrapperRef = ref<HTMLElement | null>(null);
 
 function togglePicker() {
-  open.value = !open.value
+  open.value = !open.value;
 }
 
 function onSelect(emoji: { i: string }) {
-  model.value = emoji.i
-  open.value = false
+  model.value = emoji.i;
+  open.value = false;
 
   try {
-    const stored = window.localStorage.getItem(PROFILE_AVATAR_RECENT_STORAGE_KEY)
-    const current: string[] = stored ? JSON.parse(stored) : []
-    const updated = rememberProfileAvatar(current, emoji.i)
-    window.localStorage.setItem(PROFILE_AVATAR_RECENT_STORAGE_KEY, JSON.stringify(updated))
+    const stored = window.localStorage.getItem(
+      PROFILE_AVATAR_RECENT_STORAGE_KEY,
+    );
+    const current: string[] = stored ? JSON.parse(stored) : [];
+    const updated = rememberProfileAvatar(current, emoji.i);
+    window.localStorage.setItem(
+      PROFILE_AVATAR_RECENT_STORAGE_KEY,
+      JSON.stringify(updated),
+    );
   } catch {
     // ignore
   }
@@ -62,12 +72,22 @@ function onSelect(emoji: { i: string }) {
 
 function onClickOutside(event: MouseEvent) {
   if (wrapperRef.value && !wrapperRef.value.contains(event.target as Node)) {
-    open.value = false
+    open.value = false;
   }
 }
 
-onMounted(() => ownerDocumentOf(wrapperRef.value).addEventListener('mousedown', onClickOutside))
-onBeforeUnmount(() => ownerDocumentOf(wrapperRef.value).removeEventListener('mousedown', onClickOutside))
+onMounted(() =>
+  ownerDocumentOf(wrapperRef.value).addEventListener(
+    "mousedown",
+    onClickOutside,
+  ),
+);
+onBeforeUnmount(() =>
+  ownerDocumentOf(wrapperRef.value).removeEventListener(
+    "mousedown",
+    onClickOutside,
+  ),
+);
 </script>
 
 <style scoped>
@@ -138,21 +158,24 @@ onBeforeUnmount(() => ownerDocumentOf(wrapperRef.value).removeEventListener('mou
   --v3-picker-border: var(--fabric-profile-avatar-picker-border-strong);
   --v3-picker-input-bg: var(--fabric-profile-avatar-picker-input-bg);
   --v3-picker-input-border: var(--fabric-profile-avatar-picker-input-border);
-  --v3-picker-input-focus-border: var(--fabric-profile-avatar-picker-input-border-focus);
+  --v3-picker-input-focus-border: var(
+    --fabric-profile-avatar-picker-input-border-focus
+  );
   --v3-picker-emoji-hover: var(--fabric-profile-avatar-picker-bg-overlay);
-  --avatar-picker-tab-icon-filter: brightness(0) saturate(100%) invert(68%) sepia(0%) saturate(0%)
-    hue-rotate(144deg) brightness(92%) contrast(89%);
-  --avatar-picker-tab-icon-hover-filter: brightness(0) saturate(100%) invert(97%) sepia(0%)
-    saturate(7500%) hue-rotate(45deg) brightness(113%) contrast(90%);
+  --avatar-picker-tab-icon-filter: brightness(0) saturate(100%) invert(68%)
+    sepia(0%) saturate(0%) hue-rotate(144deg) brightness(92%) contrast(89%);
+  --avatar-picker-tab-icon-hover-filter: brightness(0) saturate(100%)
+    invert(97%) sepia(0%) saturate(7500%) hue-rotate(45deg) brightness(113%)
+    contrast(90%);
   border-radius: var(--fabric-radius-md);
   border: 1px solid var(--fabric-profile-avatar-picker-border);
 }
 
 :global(html.light) .avatar-btn__dropdown :deep(.v3-emoji-picker) {
-  --avatar-picker-tab-icon-filter: brightness(0) saturate(100%) invert(32%) sepia(0%) saturate(0%)
-    hue-rotate(179deg) brightness(90%) contrast(89%);
-  --avatar-picker-tab-icon-hover-filter: brightness(0) saturate(100%) invert(4%) sepia(2%)
-    saturate(674%) hue-rotate(314deg) brightness(100%) contrast(86%);
+  --avatar-picker-tab-icon-filter: brightness(0) saturate(100%) invert(32%)
+    sepia(0%) saturate(0%) hue-rotate(179deg) brightness(90%) contrast(89%);
+  --avatar-picker-tab-icon-hover-filter: brightness(0) saturate(100%) invert(4%)
+    sepia(2%) saturate(674%) hue-rotate(314deg) brightness(100%) contrast(86%);
 }
 
 /* Cabeçalho e rodapé */
