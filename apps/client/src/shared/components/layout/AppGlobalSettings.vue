@@ -43,7 +43,7 @@
 
       <!-- ── Right Content ───────────────────────────────────────── -->
       <main class="gs-main">
-        <div class="gs-header">
+        <div v-if="!isDesktopWindow" class="gs-header">
           <h2 class="gs-header__title">{{ activeTabTitle }}</h2>
           <button
             class="gs-header__close"

@@ -1,0 +1,2 @@
+- [x] Hide settings header on desktop
+- [x] Validate and commit
