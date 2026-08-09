@@ -58,5 +58,7 @@ describe('public URL settings contract', () => {
   it('renders global confirmations through RenderPortal for desktop windows', () => {
     assert.match(confirmPanelSource, /RenderPortal/)
     assert.match(confirmPanelSource, /<RenderPortal>/)
+    assert.match(confirmPanelSource, /hostId/)
+    assert.match(confirmPanelSource, /targetHostId === props\.hostId/)
   })
 })

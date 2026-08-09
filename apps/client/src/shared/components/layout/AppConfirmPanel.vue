@@ -8,8 +8,19 @@ import { RenderPortal } from '@renderizer/vue'
 // ── Wired directly to the global singleton ───────────────────────────────────
 
 const { current, _resolve } = useConfirm()
+const props = withDefaults(
+  defineProps<{
+    hostId?: string
+  }>(),
+  {
+    hostId: 'global',
+  },
+)
 
-const isOpen = computed(() => current.value !== null)
+const isOpen = computed(() => {
+  const targetHostId = current.value?.hostId ?? 'global'
+  return current.value !== null && targetHostId === props.hostId
+})
 const title = computed(() => current.value?.title ?? '')
 const message = computed(() => current.value?.message ?? '')
 const confirmText = computed(() => current.value?.confirmText ?? 'Confirm')

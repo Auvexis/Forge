@@ -31,6 +31,7 @@ export interface ConfirmOptions {
   confirmText?: string
   cancelText?: string
   variant?: ConfirmVariant
+  hostId?: string
 }
 
 interface ConfirmRequest extends ConfirmOptions {

@@ -255,7 +255,7 @@ onBeforeUnmount(() => {
 
 .base-tool-dropdown__menu {
   position: fixed;
-  z-index: calc(var(--fabric-z-modal) + 1);
+  z-index: calc(var(--fabric-z-modal) + 20);
   display: grid;
   min-width: 156px;
   gap: 2px;

@@ -20,6 +20,7 @@
         <LucideIcon :name="sidebarCollapsed ? 'panel-left-open' : 'panel-left-close'" :size="15" />
       </button>
     </template>
+    <AppConfirmPanel host-id="agent-chat" />
     <section class="agent-chat-modal" aria-label="Agent chats">
       <div
         class="agent-chat-modal__workspace"
@@ -70,6 +71,7 @@
                     'is-active': session.id === activeSessionId,
                     'is-renaming': renamingSessionId === session.id,
                   }"
+                  @click="activeSessionId = session.id"
                 >
                   <input
                     v-if="renamingSessionId === session.id"
@@ -82,7 +84,7 @@
                     @keydown.esc.prevent="cancelRenameSession"
                     @blur="commitRenameSession(session)"
                   />
-                  <button v-else type="button" @click="activeSessionId = session.id">
+                  <button v-else type="button">
                     <span>{{ session.title || "Untitled conversation" }}</span>
                   </button>
                   <BaseToolDropdown
@@ -94,11 +96,12 @@
                     position="bottom"
                     :tools="sessionActionTools"
                     :active-dropdown-id="activeSessionMenuId"
-                    :is-any-dropdown-open="Boolean(activeSessionMenuId)"
+                    :is-any-dropdown-open="false"
                     @open="activeSessionMenuId = $event"
                     @close="closeSessionMenu"
                     @select="handleSessionAction(session, $event.id)"
                     @dragstart.prevent
+                    @click.stop
                   />
                 </div>
               </div>
@@ -189,6 +192,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { agentChatApi } from "@/core/api/agent-chat.api";
 import BaseModal from "@/shared/components/base/BaseModal.vue";
 import BaseToolDropdown from "@/shared/components/base/BaseToolDropdown.vue";
+import AppConfirmPanel from "@/shared/components/layout/AppConfirmPanel.vue";
 import { useConfirm } from "@/shared/composables/useConfirm";
 import LucideIcon from "@/shared/icons/LucideIcon.vue";
 import type { AgentChatDirectoryEntry, AgentChatSession } from "../types/agent.types";
@@ -355,6 +359,7 @@ async function renameSession(session: AgentChatSession) {
 
 async function deleteSession(session: AgentChatSession) {
   const shouldDelete = await confirm({
+    hostId: "agent-chat",
     title: "Delete chat",
     message: `Delete "${session.title || "Untitled conversation"}"? This cannot be undone.`,
     confirmText: "Delete",
@@ -598,6 +603,7 @@ function agentInitial(value?: string) {
 }
 
 .agent-chat-modal__session {
+  position: relative;
   min-height: 28px;
   align-items: center;
   justify-content: space-between;
@@ -607,6 +613,7 @@ function agentInitial(value?: string) {
 }
 
 .agent-chat-modal__session > button {
+  height: 100%;
   display: flex;
   min-width: 0;
   flex: 1;
@@ -637,6 +644,8 @@ function agentInitial(value?: string) {
 }
 
 .agent-chat-modal__session-menu {
+  position: relative;
+  z-index: 2;
   flex: 0 0 auto;
   opacity: 0;
   transition: opacity var(--fabric-duration-fast) var(--fabric-ease-standard);
