@@ -1,7 +1,7 @@
-import { defineRenderizerConfig } from "@renderizer/vue";
+import { defineRenderizerConfig } from '@renderizer/vue'
 
 export default defineRenderizerConfig({
-  adapter: "vue",
+  adapter: 'vue',
   windows: {
     default: {
       width: 1180,
@@ -9,4 +9,4 @@ export default defineRenderizerConfig({
       popup: true,
     },
   },
-});
+})

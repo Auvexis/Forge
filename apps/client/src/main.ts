@@ -4,7 +4,7 @@ import { createRenderizer } from "@renderizer/vue";
 
 import App from "./app/App.vue";
 import router from "./app/router";
-import renderizerConfig from "./renderizer.config";
+import renderizerConfig from "../../../renderizer.config";
 import { installGlobalErrorToasts } from "./shared/composables/globalErrorToasts";
 import "./shared/composables/useTheme";
 
