@@ -31,10 +31,22 @@ test("agent messages and tool steps reconcile while a run is still active", () =
   const api = read("src/core/api/agent-chat.api.ts");
 
   assert.match(modal, /startLiveMessage\(message\)/);
-  assert.match(modal, /draft\.value = ''[\s\S]*await agentChatApi\.sendMessage/);
+  assert.match(modal, /draft\.value = ["'][\s\S]*await agentChatApi\.sendMessage/);
   assert.match(panel, /visibleOptimisticMessages/);
   assert.match(timeline, /pendingUserMessages/);
   assert.match(snapshot, /liveRuns > 0/);
   assert.match(snapshot, /active \? 300 : 1_000/);
   assert.match(api, /getSessionSnapshot[\s\S]*cache: 'no-store'/);
+});
+
+test("agent chat modal exposes a polished directory and composer shell", () => {
+  const modal = read("src/features/agent-runtime/components/AgentChatModal.vue");
+
+  assert.match(modal, /agent-chat-modal__search/);
+  assert.match(modal, /filteredChats/);
+  assert.match(modal, /agent-chat-modal__conversation-header/);
+  assert.match(modal, /agent-chat-modal__composer-box/);
+  assert.match(modal, /agent-chat-modal__welcome-icon/);
+  assert.match(modal, /LucideIcon/);
+  assert.doesNotMatch(modal, /agent-chat-modal__titlebar/);
 });

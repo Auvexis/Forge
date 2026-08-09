@@ -10,55 +10,65 @@
     @close="$emit('close')"
   >
     <section class="agent-chat-modal" aria-label="Agent chats">
-      <header class="agent-chat-modal__titlebar">
-        <div>
-          <strong>Agents</strong>
-          <span>{{ activeChat?.title ?? "Choose an agent" }}</span>
-        </div>
-        <button
-          type="button"
-          aria-label="Close agent chat"
-          @click="$emit('close')"
-        >
-          ×
-        </button>
-      </header>
-
       <div class="agent-chat-modal__workspace">
         <aside class="agent-chat-modal__sidebar">
-          <div class="agent-chat-modal__sidebar-header">
-            <span>Published agents</span>
+          <header class="agent-chat-modal__sidebar-header">
+            <div>
+              <strong>Agents</strong>
+              <span>{{ chats.length }} published</span>
+            </div>
             <button
               type="button"
-              title="Reload agents"
+              class="agent-chat-modal__icon-button"
+              aria-label="Reload agents"
               :disabled="directoryLoading"
               @click="loadDirectory"
             >
-              Refresh
+              <LucideIcon name="refresh-cw" :size="14" />
             </button>
-          </div>
+          </header>
+
+          <label class="agent-chat-modal__search">
+            <LucideIcon name="search" :size="14" />
+            <input v-model="search" type="search" placeholder="Search agents" />
+          </label>
 
           <div class="agent-chat-modal__directory">
-            <section v-for="chat in chats" :key="chat.chatSlug">
+            <section
+              v-for="chat in filteredChats"
+              :key="chat.chatSlug"
+              class="agent-chat-modal__group"
+            >
               <button
                 type="button"
                 class="agent-chat-modal__agent"
                 :class="{ 'is-active': chat.chatSlug === activeChatSlug }"
                 @click="selectChat(chat.chatSlug)"
               >
-                <span>{{ chat.title }}</span>
-                <small>{{ chat.workflowName }}</small>
+                <span class="agent-chat-modal__agent-avatar" aria-hidden="true">
+                  {{ agentInitial(chat.title) }}
+                </span>
+                <span class="agent-chat-modal__agent-copy">
+                  <strong>{{ chat.title }}</strong>
+                  <small>{{ chat.workflowName }}</small>
+                </span>
+                <span class="agent-chat-modal__agent-count">
+                  {{ chat.sessions.length }}
+                </span>
               </button>
+
               <div
                 v-if="chat.chatSlug === activeChatSlug"
                 class="agent-chat-modal__sessions"
               >
                 <button
                   type="button"
+                  class="agent-chat-modal__new-session"
                   :class="{ 'is-active': !activeSessionId }"
                   @click="startNewSession"
                 >
-                  + New conversation
+                  <LucideIcon name="plus" :size="13" />
+                  <span>New conversation</span>
                 </button>
                 <button
                   v-for="session in chat.sessions"
@@ -67,22 +77,45 @@
                   :class="{ 'is-active': session.id === activeSessionId }"
                   @click="activeSessionId = session.id"
                 >
-                  <span>{{ session.title }}</span>
+                  <span>{{ session.title || "Untitled conversation" }}</span>
                   <time>{{ formatSessionTime(session.updatedAt) }}</time>
                 </button>
               </div>
             </section>
 
             <p
-              v-if="!directoryLoading && !chats.length"
+              v-if="!directoryLoading && !filteredChats.length"
               class="agent-chat-modal__empty"
             >
-              No published chat agents.
+              {{
+                chats.length
+                  ? "No agents match your search."
+                  : "No published chat agents yet."
+              }}
             </p>
           </div>
         </aside>
 
         <main class="agent-chat-modal__conversation">
+          <header class="agent-chat-modal__conversation-header">
+            <div class="agent-chat-modal__active-agent">
+              <span class="agent-chat-modal__active-avatar" aria-hidden="true">
+                {{ activeChat ? agentInitial(activeChat.title) : "A" }}
+              </span>
+              <div>
+                <strong>{{ activeChat?.title ?? "Select an agent" }}</strong>
+                <span>{{
+                  activeChat?.workflowName ??
+                  "Choose a published chat agent to begin."
+                }}</span>
+              </div>
+            </div>
+            <div v-if="activeChat" class="agent-chat-modal__meta">
+              <span>{{ activeChat.sessions.length }} sessions</span>
+              <span>{{ activeSessionId ? "Active conversation" : "New conversation" }}</span>
+            </div>
+          </header>
+
           <AgentSessionPanel
             v-if="activeSessionId && activeChat"
             ref="sessionPanel"
@@ -91,32 +124,42 @@
             :chat-slug="activeChat.chatSlug"
           />
           <div v-else class="agent-chat-modal__welcome">
+            <div class="agent-chat-modal__welcome-icon">
+              <LucideIcon
+                :name="activeChat ? 'message-square-plus' : 'bot'"
+                :size="24"
+              />
+            </div>
             <strong>{{
               activeChat
                 ? `Start with ${activeChat.title}`
                 : "Select a published agent"
             }}</strong>
-            <span v-if="activeChat"
-              >Messages and tool states will be saved in this
-              conversation.</span
-            >
+            <span>{{
+              activeChat
+                ? "Send the first message to create a saved conversation."
+                : "Published chat triggers appear here when workflows are available."
+            }}</span>
           </div>
 
-          <form
-            class="agent-chat-modal__composer"
-            @submit.prevent="sendMessage"
-          >
-            <textarea
-              v-model="draft"
-              rows="2"
-              :disabled="sending || !activeChat"
-              placeholder="Message the agent…"
-              aria-label="Agent message"
-              @keydown.ctrl.enter.prevent="sendMessage"
-            />
-            <button type="submit" :disabled="!canSend">
-              {{ sending ? "Sending" : "Send" }}
-            </button>
+          <form class="agent-chat-modal__composer" @submit.prevent="sendMessage">
+            <div class="agent-chat-modal__composer-box">
+              <textarea
+                v-model="draft"
+                rows="2"
+                :disabled="sending || !activeChat"
+                placeholder="Message the agent..."
+                aria-label="Agent message"
+                @keydown.ctrl.enter.prevent="sendMessage"
+              />
+              <button type="submit" :disabled="!canSend">
+                <LucideIcon
+                  :name="sending ? 'loader-2' : 'send-horizontal'"
+                  :size="15"
+                />
+                <span>{{ sending ? "Sending" : "Send" }}</span>
+              </button>
+            </div>
           </form>
         </main>
       </div>
@@ -128,9 +171,10 @@
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { agentChatApi } from "@/core/api/agent-chat.api";
 import BaseModal from "@/shared/components/base/BaseModal.vue";
+import LucideIcon from "@/shared/icons/LucideIcon.vue";
 import type { AgentChatDirectoryEntry } from "../types/agent.types";
-import AgentSessionPanel from "./AgentSessionPanel.vue";
 import { useAgentErrorReporter } from "../composables/useAgentErrorReporter";
+import AgentSessionPanel from "./AgentSessionPanel.vue";
 
 const props = defineProps<{
   isOpen: boolean;
@@ -143,6 +187,7 @@ const chats = ref<AgentChatDirectoryEntry[]>([]);
 const activeChatSlug = ref("");
 const activeSessionId = ref("");
 const draft = ref("");
+const search = ref("");
 const directoryLoading = ref(false);
 const sending = ref(false);
 const sessionPanel = ref<{
@@ -156,6 +201,15 @@ const activeChat = computed(
   () =>
     chats.value.find((chat) => chat.chatSlug === activeChatSlug.value) ?? null,
 );
+const filteredChats = computed(() => {
+  const query = search.value.trim().toLowerCase();
+  if (!query) return chats.value;
+  return chats.value.filter((chat) =>
+    [chat.title, chat.workflowName, chat.chatSlug]
+      .filter(Boolean)
+      .some((value) => value.toLowerCase().includes(query)),
+  );
+});
 const canSend = computed(() =>
   Boolean(activeChat.value && draft.value.trim() && !sending.value),
 );
@@ -265,6 +319,10 @@ function formatSessionTime(value: string) {
     minute: "2-digit",
   }).format(date);
 }
+
+function agentInitial(value: string) {
+  return value.trim().charAt(0).toUpperCase() || "A";
+}
 </script>
 
 <style scoped>
@@ -272,78 +330,119 @@ function formatSessionTime(value: string) {
   display: flex;
   min-height: 0;
   flex: 1;
-  flex-direction: column;
   overflow: hidden;
   background: var(--fabric-agent-chat-bg);
   color: var(--fabric-agent-chat-text-primary);
 }
 
-.agent-chat-modal__titlebar {
-  display: flex;
-  min-height: 36px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--fabric-agent-chat-border);
-  background: var(--fabric-agent-chat-header-bg);
-  padding: 0 10px;
-}
-
-.agent-chat-modal__titlebar > div {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-}
-
-.agent-chat-modal__titlebar strong {
-  font-size: 12px;
-}
-
-.agent-chat-modal__titlebar span,
-.agent-chat-modal__sidebar-header,
-.agent-chat-modal__welcome span {
-  color: var(--fabric-agent-chat-text-muted);
-  font-size: 10px;
-}
-
-.agent-chat-modal__titlebar button,
-.agent-chat-modal__sidebar-header button {
-  border: 0;
-  background: transparent;
-  color: var(--fabric-agent-chat-text-muted);
-  cursor: pointer;
-  font-size: 12px;
-}
-
 .agent-chat-modal__workspace {
   display: grid;
+  width: 100%;
   min-height: 0;
-  flex: 1;
-  grid-template-columns: 250px minmax(0, 1fr);
+  grid-template-columns: 300px minmax(0, 1fr);
 }
 
 .agent-chat-modal__sidebar {
   display: flex;
+  min-width: 0;
   min-height: 0;
   flex-direction: column;
   border-right: 1px solid var(--fabric-agent-chat-border);
   background: var(--fabric-agent-chat-sidebar-bg);
 }
 
-.agent-chat-modal__sidebar-header {
+.agent-chat-modal__sidebar-header,
+.agent-chat-modal__conversation-header {
   display: flex;
-  min-height: 28px;
+  min-height: 54px;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   border-bottom: 1px solid var(--fabric-agent-chat-border);
-  padding: 0 8px;
-  text-transform: uppercase;
+  background: var(--fabric-agent-chat-header-bg);
+  padding: 0 14px;
+}
+
+.agent-chat-modal__sidebar-header > div,
+.agent-chat-modal__active-agent > div {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.agent-chat-modal__sidebar-header strong,
+.agent-chat-modal__active-agent strong,
+.agent-chat-modal__welcome strong {
+  overflow: hidden;
+  color: var(--fabric-agent-chat-text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-chat-modal__sidebar-header span,
+.agent-chat-modal__active-agent span,
+.agent-chat-modal__welcome span,
+.agent-chat-modal__meta {
+  color: var(--fabric-agent-chat-text-muted);
+  font-size: 11px;
+}
+
+.agent-chat-modal__icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--fabric-agent-chat-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--fabric-agent-chat-text-secondary);
+  cursor: pointer;
+}
+
+.agent-chat-modal__icon-button:hover:not(:disabled) {
+  background: var(--fabric-agent-chat-row-active-bg);
+  color: var(--fabric-agent-chat-text-primary);
+}
+
+.agent-chat-modal__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px;
+  padding: 0 9px;
+  min-height: 32px;
+  border: 1px solid var(--fabric-agent-chat-input-border);
+  border-radius: 7px;
+  background: var(--fabric-agent-chat-input-bg);
+  color: var(--fabric-agent-chat-text-muted);
+}
+
+.agent-chat-modal__search input {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--fabric-agent-chat-text-primary);
+  font: 12px var(--fabric-font-ui);
 }
 
 .agent-chat-modal__directory {
   min-height: 0;
+  flex: 1;
   overflow-y: auto;
-  padding: 4px;
+  padding: 0 8px 10px;
+}
+
+.agent-chat-modal__group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .agent-chat-modal__agent,
@@ -352,7 +451,7 @@ function formatSessionTime(value: string) {
   width: 100%;
   min-width: 0;
   border: 0;
-  border-radius: 3px;
+  border-radius: 7px;
   background: transparent;
   color: var(--fabric-agent-chat-text-secondary);
   cursor: pointer;
@@ -360,21 +459,67 @@ function formatSessionTime(value: string) {
 }
 
 .agent-chat-modal__agent {
+  align-items: center;
+  gap: 9px;
+  padding: 8px;
+}
+
+.agent-chat-modal__agent-avatar,
+.agent-chat-modal__active-avatar,
+.agent-chat-modal__welcome-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--fabric-agent-chat-border);
+  background: var(--fabric-agent-chat-row-active-bg);
+  color: var(--fabric-agent-chat-text-primary);
+}
+
+.agent-chat-modal__agent-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agent-chat-modal__agent-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
   flex-direction: column;
   gap: 2px;
-  padding: 7px 8px;
 }
 
-.agent-chat-modal__agent span {
+.agent-chat-modal__agent-copy strong,
+.agent-chat-modal__sessions button span {
+  overflow: hidden;
   color: var(--fabric-agent-chat-text-primary);
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.agent-chat-modal__agent small,
+.agent-chat-modal__agent-copy small,
 .agent-chat-modal__sessions time {
+  overflow: hidden;
   color: var(--fabric-agent-chat-text-muted);
-  font-size: 9px;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-chat-modal__agent-count {
+  display: inline-flex;
+  min-width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--fabric-agent-chat-row-active-bg);
+  color: var(--fabric-agent-chat-text-muted);
+  font-size: 10px;
 }
 
 .agent-chat-modal__agent:hover,
@@ -387,25 +532,23 @@ function formatSessionTime(value: string) {
 .agent-chat-modal__sessions {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  margin: 1px 0 5px 10px;
+  gap: 2px;
+  margin: 0 0 8px 46px;
+  padding-left: 8px;
   border-left: 1px solid var(--fabric-agent-chat-border);
-  padding-left: 4px;
 }
 
 .agent-chat-modal__sessions button {
-  min-height: 24px;
+  min-height: 28px;
   align-items: center;
   justify-content: space-between;
-  gap: 6px;
-  padding: 4px 7px;
-  font-size: 10px;
+  gap: 8px;
+  padding: 5px 8px;
+  font-size: 11px;
 }
 
-.agent-chat-modal__sessions button span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.agent-chat-modal__new-session {
+  justify-content: flex-start !important;
 }
 
 .agent-chat-modal__conversation {
@@ -414,6 +557,33 @@ function formatSessionTime(value: string) {
   min-height: 0;
   flex-direction: column;
   background: var(--fabric-agent-chat-conversation-bg);
+}
+
+.agent-chat-modal__active-agent {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+}
+
+.agent-chat-modal__active-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.agent-chat-modal__meta {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.agent-chat-modal__meta span {
+  padding: 3px 7px;
+  border: 1px solid var(--fabric-agent-chat-border);
+  border-radius: 999px;
 }
 
 .agent-chat-modal__conversation > :deep(.agent-session-panel) {
@@ -426,75 +596,89 @@ function formatSessionTime(value: string) {
   display: flex;
   min-height: 0;
   flex: 1;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  gap: 5px;
+  gap: 8px;
+  padding: 24px;
+  text-align: center;
 }
 
-.agent-chat-modal__welcome strong {
-  font-size: 12px;
+.agent-chat-modal__welcome-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 11px;
+  margin-bottom: 4px;
 }
 
 .agent-chat-modal__composer {
-  display: grid;
   flex: 0 0 auto;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 6px;
   border-top: 1px solid var(--fabric-agent-chat-border);
   background: var(--fabric-agent-chat-composer-bg);
+  padding: 10px;
+}
+
+.agent-chat-modal__composer-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+  border: 1px solid var(--fabric-agent-chat-input-border);
+  border-radius: 8px;
+  background: var(--fabric-agent-chat-input-bg);
   padding: 8px;
 }
 
 .agent-chat-modal__composer textarea {
-  min-height: 48px;
+  min-height: 44px;
   max-height: 120px;
   resize: vertical;
-  border: 1px solid var(--fabric-agent-chat-input-border);
-  border-radius: 3px;
+  border: 0;
   outline: none;
-  background: var(--fabric-agent-chat-input-bg);
+  background: transparent;
   color: var(--fabric-agent-chat-text-primary);
-  font: 11px/1.45 var(--fabric-font-ui);
-  padding: 7px 8px;
-}
-
-.agent-chat-modal__composer textarea:focus {
-  border-color: var(--fabric-agent-chat-accent);
+  font: 12px/1.45 var(--fabric-font-ui);
 }
 
 .agent-chat-modal__composer button {
-  min-width: 58px;
-  height: 26px;
+  display: inline-flex;
+  height: 32px;
+  min-width: 76px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   border: 1px solid var(--fabric-agent-chat-accent);
-  border-radius: 3px;
+  border-radius: 6px;
   background: var(--fabric-agent-chat-accent);
   color: var(--fabric-agent-chat-accent-text);
   cursor: pointer;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
 }
 
-.agent-chat-modal__composer button:disabled {
+.agent-chat-modal__composer button:disabled,
+.agent-chat-modal__icon-button:disabled {
   cursor: not-allowed;
   opacity: 0.45;
 }
 
 .agent-chat-modal__empty {
-  margin: 0;
-  color: var(--fabric-agent-chat-danger);
-  font-size: 10px;
-  padding: 6px 8px;
-}
-
-.agent-chat-modal__empty {
+  margin: 8px 2px;
+  padding: 14px 10px;
+  border: 1px dashed var(--fabric-agent-chat-border);
+  border-radius: 8px;
   color: var(--fabric-agent-chat-text-muted);
+  font-size: 11px;
+  text-align: center;
 }
 
-@media (max-width: 760px) {
+@media (max-width: 860px) {
   .agent-chat-modal__workspace {
-    grid-template-columns: 190px minmax(0, 1fr);
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+
+  .agent-chat-modal__meta {
+    display: none;
   }
 }
 </style>
