@@ -38,4 +38,5 @@ test("workspace windows keep portals responsive while the opener is minimized", 
   assert.match(source, /RenderizerElectronConfig/);
   assert.match(source, /renderizerElectronConfig: RenderizerElectronConfig/);
   assert.match(source, /\.\.\.this\.renderizerElectronConfig\.defaultWebPreferences/);
+  assert.match(source, /hasOpenWindows\(\): boolean/);
 });

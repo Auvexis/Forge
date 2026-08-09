@@ -22,6 +22,11 @@ test('desktop keeps the main renderer active while minimized for child window po
   assert.match(copyAssets, /renderizer-electron-config\.json/);
   assert.match(main, /applyRenderizerElectronConfig\(app, renderizerElectronConfig\)/);
   assert.match(main, /\.\.\.renderizerElectronConfig\.defaultWebPreferences/);
+  assert.match(main, /function shouldKeepMainRendererVisible\(\)/);
+  assert.match(main, /function parkMainWindow\(window/);
+  assert.match(main, /setIgnoreMouseEvents\(true\)/);
+  assert.match(main, /setOpacity\(0\.01\)/);
+  assert.match(main, /restoreParkedMainWindow\(mainWindow\)/);
   assert.doesNotMatch(main, /appendSwitch\("disable-background-timer-throttling"\)/);
 });
 

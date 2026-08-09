@@ -1,5 +1,5 @@
 import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell, Menu, Tray } from "electron";
-import type { Event as ElectronEvent, NativeImage } from "electron";
+import type { Event as ElectronEvent, NativeImage, Rectangle } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
 import { readFileSync } from "node:fs";
@@ -27,6 +27,8 @@ let mainWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let isQuitting = false;
 let workspaceWindowManager: WorkspaceWindowManager | null = null;
+let parkedMainWindowBounds: Rectangle | null = null;
+let isMainWindowParked = false;
 
 interface DesktopPreferences {
   minimizeToTray: boolean;
@@ -59,6 +61,33 @@ function createAppIcon(): NativeImage {
 function applyWindowsAppIdentity(window: BrowserWindow): void {
   if (process.platform === "win32") {
     window.setAppDetails({ appId: desktopAppId });
+  }
+}
+
+function shouldKeepMainRendererVisible(): boolean {
+  return workspaceWindowManager?.hasOpenWindows() === true;
+}
+
+function parkMainWindow(window: BrowserWindow): void {
+  if (isMainWindowParked) return;
+  parkedMainWindowBounds = window.getBounds();
+  isMainWindowParked = true;
+  window.setSkipTaskbar(true);
+  window.setIgnoreMouseEvents(true);
+  window.setFocusable(false);
+  window.setOpacity(0.01);
+}
+
+function restoreParkedMainWindow(window: BrowserWindow): void {
+  if (!isMainWindowParked) return;
+  isMainWindowParked = false;
+  window.setOpacity(1);
+  window.setFocusable(true);
+  window.setIgnoreMouseEvents(false);
+  window.setSkipTaskbar(false);
+  if (parkedMainWindowBounds) {
+    window.setBounds(parkedMainWindowBounds);
+    parkedMainWindowBounds = null;
   }
 }
 
@@ -157,11 +186,19 @@ function createMainWindow(): BrowserWindow {
   window.on("minimize" as never, (event: ElectronEvent) => {
     if (!desktopPreferences.minimizeToTray) return;
     event.preventDefault();
+    if (shouldKeepMainRendererVisible()) {
+      parkMainWindow(window);
+      return;
+    }
     window.hide();
   });
   window.on("close", (event) => {
     if (isQuitting || !desktopPreferences.closeToTray) return;
     event.preventDefault();
+    if (shouldKeepMainRendererVisible()) {
+      parkMainWindow(window);
+      return;
+    }
     window.hide();
   });
   window.once("ready-to-show", () => {
@@ -186,6 +223,7 @@ function showMainWindow(): void {
     mainWindow = createMainWindow();
   }
 
+  restoreParkedMainWindow(mainWindow);
   mainWindow.show();
   if (mainWindow.isMinimized()) {
     mainWindow.restore();

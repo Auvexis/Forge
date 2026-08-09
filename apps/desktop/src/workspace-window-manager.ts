@@ -161,6 +161,13 @@ export class WorkspaceWindowManager {
     this.windows.clear();
   }
 
+  hasOpenWindows(): boolean {
+    for (const window of this.windows.values()) {
+      if (!window.isDestroyed()) return true;
+    }
+    return false;
+  }
+
   private register(workspaceId: string, window: BrowserWindow): void {
     const previous = this.windows.get(workspaceId);
     if (previous && previous !== window && !previous.isDestroyed())
