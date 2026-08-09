@@ -36,6 +36,7 @@ const isDesktop = computed(() => window.fabricDesktop?.isDesktop === true);
     :config-id="configId"
     :width="width"
     :height="height"
+    frame-prefix="fabric-workspace"
     fallback="none"
     :exclude-document-classes="['fabric-desktop-full-bleed']"
     @closed="emit('closed')"
@@ -67,14 +68,17 @@ const isDesktop = computed(() => window.fabricDesktop?.isDesktop === true);
 
 <style>
 .fabric-workspace-document,
-.fabric-workspace-document .fabric-workspace-mount {
+.renderizer-document,
+.fabric-workspace-document .fabric-workspace-mount,
+.renderizer-document .renderizer-mount {
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: var(--fabric-bg-base);
 }
 
-html.fabric-desktop .fabric-workspace-document {
+html.fabric-desktop .fabric-workspace-document,
+html.fabric-desktop .renderizer-document {
   border: 0;
   border-radius: 0;
 }

@@ -11,6 +11,7 @@ test("workspace host delegates native windows to Renderizer", () => {
 
   assert.match(host, /<RenderWindow/);
   assert.match(host, /:config-id="configId"/);
+  assert.match(host, /frame-prefix="fabric-workspace"/);
   assert.match(host, /<slot name="tabs"/);
   assert.match(host, /<slot \/>/);
   assert.match(host, /exclude-document-classes/);
