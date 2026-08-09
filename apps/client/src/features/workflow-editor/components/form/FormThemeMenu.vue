@@ -1306,6 +1306,7 @@ function updateNumber<K extends "container" | "typography" | "fields">(
 }
 
 .ftm-preview-card {
+  position: relative;
   width: min(100%, 340px);
   max-height: 100%;
   display: flex;
@@ -1324,8 +1325,8 @@ function updateNumber<K extends "container" | "typography" | "fields">(
 
 .ftm-preview-badge {
   position: absolute;
-  top: -12px;
-  right: -12px;
+  top: 10px;
+  right: 10px;
   background: var(--fabric-form-theme-menu-accent);
   color: white;
   font-size: 10px;
