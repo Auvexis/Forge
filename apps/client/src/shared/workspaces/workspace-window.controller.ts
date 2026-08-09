@@ -1,3 +1,5 @@
+import { ensureWindowSurfaceOverlayTarget } from '@renderizer/core'
+
 export interface WorkspaceWindowOptions {
   workspaceId: string
   title: string
@@ -6,7 +8,6 @@ export interface WorkspaceWindowOptions {
 }
 
 const copiedStyleSelector = 'link[rel="stylesheet"], style'
-const overlayRootId = 'fabric-overlay-root'
 
 export class WorkspaceWindowController {
   private childWindow: Window | null = null
@@ -81,10 +82,7 @@ export class WorkspaceWindowController {
     target.className = 'fabric-workspace-mount'
     document.body.append(target)
 
-    const overlayRoot = document.createElement('div')
-    overlayRoot.id = overlayRootId
-    overlayRoot.setAttribute('data-fabric-overlay-root', '')
-    document.body.append(overlayRoot)
+    ensureWindowSurfaceOverlayTarget(document)
 
     this.mountTarget = target
   }

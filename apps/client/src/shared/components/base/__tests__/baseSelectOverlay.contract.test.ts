@@ -16,7 +16,7 @@ test('BaseSelect dropdown renders above modal overlays in the local overlay host
 
   assert.match(selectSource, /useOverlayTarget\(wrapperRef\)/)
   assert.match(selectSource, /<Teleport :to="overlayTarget">/)
-  assert.match(overlaySource, /ownerDocumentOf/)
+  assert.match(overlaySource, /useRenderizerOverlayTarget/)
   assert.match(modalSource, /z-index:\s*2147483000/)
   assert.match(selectSource, /zIndex:\s*'2147483400'/)
 })
