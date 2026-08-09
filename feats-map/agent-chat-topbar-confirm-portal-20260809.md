@@ -1,0 +1,3 @@
+- [x] Tighten agent chat topbar toggle
+- [x] Portal confirm panel per window
+- [x] Verify and commit

@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import { useConfirm } from '@/shared/composables/useConfirm'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import BaseButton from '../base/BaseButton.vue'
+import { RenderPortal } from '@renderizer/vue'
 
 // ── Wired directly to the global singleton ───────────────────────────────────
 
@@ -25,45 +26,47 @@ const iconName = computed(() => {
 </script>
 
 <template>
-  <Transition name="acp-fade">
-    <div v-if="isOpen" class="acp-backdrop" @mousedown.self="_resolve(null)">
-      <Transition name="acp-pop" appear>
-        <div v-if="isOpen" class="acp-dialog" role="alertdialog" aria-modal="true">
-          <!-- Icon -->
-          <div class="acp-icon" :class="`acp-icon--${variant}`">
-            <LucideIcon :name="iconName" :size="20" />
+  <RenderPortal>
+    <Transition name="acp-fade">
+      <div v-if="isOpen" class="acp-backdrop" @mousedown.self="_resolve(null)">
+        <Transition name="acp-pop" appear>
+          <div v-if="isOpen" class="acp-dialog" role="alertdialog" aria-modal="true">
+            <!-- Icon -->
+            <div class="acp-icon" :class="`acp-icon--${variant}`">
+              <LucideIcon :name="iconName" :size="20" />
+            </div>
+
+            <!-- Header -->
+            <div class="acp-header">
+              <h3 class="acp-title">{{ title }}</h3>
+              <button class="acp-close" title="Cancel" @click="_resolve(null)">
+                <LucideIcon name="x" :size="16" />
+              </button>
+            </div>
+
+            <!-- Message -->
+            <p class="acp-message">{{ message }}</p>
+
+            <!-- Actions -->
+            <div class="acp-actions">
+              <BaseButton variant="ghost" @click="_resolve(false)">
+                {{ cancelText }}
+              </BaseButton>
+
+              <BaseButton
+                :variant="
+                  variant === 'danger' ? 'danger' : variant === 'warning' ? 'outline' : 'primary'
+                "
+                @click="_resolve(true)"
+              >
+                {{ confirmText }}
+              </BaseButton>
+            </div>
           </div>
-
-          <!-- Header -->
-          <div class="acp-header">
-            <h3 class="acp-title">{{ title }}</h3>
-            <button class="acp-close" title="Cancel" @click="_resolve(null)">
-              <LucideIcon name="x" :size="16" />
-            </button>
-          </div>
-
-          <!-- Message -->
-          <p class="acp-message">{{ message }}</p>
-
-          <!-- Actions -->
-          <div class="acp-actions">
-            <BaseButton variant="ghost" @click="_resolve(false)">
-              {{ cancelText }}
-            </BaseButton>
-
-            <BaseButton
-              :variant="
-                variant === 'danger' ? 'danger' : variant === 'warning' ? 'outline' : 'primary'
-              "
-              @click="_resolve(true)"
-            >
-              {{ confirmText }}
-            </BaseButton>
-          </div>
-        </div>
-      </Transition>
-    </div>
-  </Transition>
+        </Transition>
+      </div>
+    </Transition>
+  </RenderPortal>
 </template>
 
 <style scoped>

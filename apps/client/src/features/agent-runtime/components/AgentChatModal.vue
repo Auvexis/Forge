@@ -431,15 +431,15 @@ function agentInitial(value?: string) {
 
 .agent-chat-modal__sidebar-toggle {
   display: inline-flex;
-  width: 32px;
-  height: 32px;
+  width: 40px;
+  height: 100%;
   align-items: center;
   justify-content: center;
   margin-left: 0;
   border: 0;
-  border-radius: var(--fabric-base-topbar-button-radius);
+  border-radius: 0;
   background: transparent;
-  color: var(--fabric-app-topbar-topbar-button-text);
+  color: var(--fabric-app-topbar-topbar-search-text);
   cursor: pointer;
   -webkit-app-region: no-drag;
 }

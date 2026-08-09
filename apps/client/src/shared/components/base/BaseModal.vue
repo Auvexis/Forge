@@ -89,9 +89,11 @@ onBeforeUnmount(() => {
         :class="{ 'base-modal-window-surface--maximized': isMaximized }"
       >
         <header class="base-modal-window-surface__topbar">
-          <slot name="window-title">
-            <span class="base-modal-window-surface__title">{{ title }}</span>
-          </slot>
+          <div class="base-modal-window-surface__title-slot">
+            <slot name="window-title">
+              <span class="base-modal-window-surface__title">{{ title }}</span>
+            </slot>
+          </div>
           <BaseWindowControls
             :is-maximized="isMaximized"
             @minimize="control('minimize')"
@@ -199,7 +201,16 @@ onBeforeUnmount(() => {
   -webkit-app-region: drag;
 }
 
+.base-modal-window-surface__title-slot {
+  display: flex;
+  height: 100%;
+  min-width: 0;
+  align-items: stretch;
+}
+
 .base-modal-window-surface__title {
+  display: inline-flex;
+  align-items: center;
   padding-left: 12px;
   color: var(--fabric-text-primary);
   font-size: var(--fabric-text-xs);

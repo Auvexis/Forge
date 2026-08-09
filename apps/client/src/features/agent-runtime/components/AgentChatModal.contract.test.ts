@@ -49,6 +49,8 @@ test("agent chat modal exposes a polished directory and composer shell", () => {
   assert.match(modal, /#window-title/);
   assert.match(modal, /sidebarCollapsed/);
   assert.match(modal, /agent-chat-modal__workspace--collapsed/);
+  assert.match(modal, /height: 100%/);
+  assert.match(modal, /var\(--fabric-app-topbar-topbar-search-text\)/);
   assert.match(modal, /renamingSessionId/);
   assert.match(modal, /commitRenameSession/);
   assert.match(modal, /useConfirm/);
