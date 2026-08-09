@@ -1,0 +1,3 @@
+- [x] Fix BaseSelect opening delay in child windows
+- [x] Install desktop icons
+- [x] Validate and commit

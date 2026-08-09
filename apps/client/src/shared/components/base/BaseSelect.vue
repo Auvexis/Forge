@@ -11,7 +11,9 @@
         'base-select-container--disabled': disabled,
         'base-select-container--open': isOpen,
       }"
-      @click="toggleDropdown"
+      @pointerdown.prevent="toggleDropdown"
+      @keydown.enter.prevent="toggleDropdown"
+      @keydown.space.prevent="toggleDropdown"
       tabindex="0"
     >
       <!-- Trigger -->

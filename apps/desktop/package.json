@@ -9,8 +9,7 @@
   "main": "dist/main.js",
   "scripts": {
     "dev": "npm run build && tsx scripts/dev.mts",
-    "generate-icons": "tsx scripts/generate-icons.mts",
-    "build": "npm run generate-icons && tsc && tsx scripts/copy-assets.mts",
+    "build": "tsc && tsx scripts/copy-assets.mts",
     "dist": "npm run build && electron-builder --publish never",
     "dist:win": "npm run build && electron-builder --win nsis --x64 --publish never",
     "dist:mac": "npm run build && electron-builder --mac dmg --x64 --arm64 --publish never",

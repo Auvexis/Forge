@@ -7,6 +7,7 @@ const updates = await readFile(new URL('../src/updates.ts', import.meta.url), 'u
 const splash = await readFile(new URL('../src/splash.html', import.meta.url), 'utf8');
 const copyAssets = await readFile(new URL('../scripts/copy-assets.mts', import.meta.url), 'utf8');
 const renderizerConfig = await readFile(new URL('../../../renderizer.config.ts', import.meta.url), 'utf8');
+const desktopPackage = await readFile(new URL('../package.json', import.meta.url), 'utf8');
 
 test('desktop sends window shape state after load and ready-to-show', () => {
   assert.match(main, /did-finish-load", sendWindowState/);
@@ -41,4 +42,9 @@ test('desktop splash uses a blurred dark card with rotating startup statuses', (
   assert.match(splash, /status-list/);
   assert.match(splash, /Starting local services/);
   assert.match(splash, /loading-bar/);
+});
+
+test('desktop build uses committed icon assets without regenerating from SVG', () => {
+  assert.doesNotMatch(desktopPackage, /generate-icons/);
+  assert.match(desktopPackage, /"build": "tsc && tsx scripts\/copy-assets\.mts"/);
 });
