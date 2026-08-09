@@ -35,5 +35,7 @@ test("workspace windows honor Renderizer window open features", () => {
 });
 
 test("workspace windows keep portals responsive while the opener is minimized", () => {
-  assert.match(source, /backgroundThrottling: false/);
+  assert.match(source, /RenderizerElectronConfig/);
+  assert.match(source, /renderizerElectronConfig: RenderizerElectronConfig/);
+  assert.match(source, /\.\.\.this\.renderizerElectronConfig\.defaultWebPreferences/);
 });

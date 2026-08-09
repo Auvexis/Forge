@@ -1,5 +1,6 @@
 import { BrowserWindow } from "electron";
 import type { IpcMainInvokeEvent, NativeImage, WebContents } from "electron";
+import type { RenderizerElectronConfig } from "@renderizer/vue/electron";
 import path from "node:path";
 
 export interface WorkspaceWindowState {
@@ -68,6 +69,7 @@ export class WorkspaceWindowManager {
     private readonly icon: NativeImage,
     private readonly openExternal: (url: string) => Promise<void>,
     private readonly appId: string,
+    private readonly renderizerElectronConfig: RenderizerElectronConfig = {},
   ) {}
 
   attachTo(opener: BrowserWindow): void {
@@ -105,7 +107,7 @@ export class WorkspaceWindowManager {
             contextIsolation: true,
             nodeIntegration: false,
             sandbox: false,
-            backgroundThrottling: false,
+            ...this.renderizerElectronConfig.defaultWebPreferences,
           },
         },
       };

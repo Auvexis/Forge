@@ -2,6 +2,14 @@ import { defineRenderizerConfig } from "@renderizer/vue";
 
 export default defineRenderizerConfig({
   adapter: "vue",
+  electron: {
+    disableBackgroundTimerThrottling: true,
+    disableRendererBackgrounding: true,
+    disableBackgroundingOccludedWindows: true,
+    defaultWebPreferences: {
+      backgroundThrottling: false,
+    },
+  },
   windows: {
     default: {
       width: 1180,

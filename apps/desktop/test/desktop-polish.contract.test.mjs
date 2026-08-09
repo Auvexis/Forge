@@ -5,6 +5,8 @@ import { test } from 'node:test';
 const main = await readFile(new URL('../src/main.ts', import.meta.url), 'utf8');
 const updates = await readFile(new URL('../src/updates.ts', import.meta.url), 'utf8');
 const splash = await readFile(new URL('../src/splash.html', import.meta.url), 'utf8');
+const copyAssets = await readFile(new URL('../scripts/copy-assets.mts', import.meta.url), 'utf8');
+const renderizerConfig = await readFile(new URL('../../../renderizer.config.ts', import.meta.url), 'utf8');
 
 test('desktop sends window shape state after load and ready-to-show', () => {
   assert.match(main, /did-finish-load", sendWindowState/);
@@ -12,10 +14,15 @@ test('desktop sends window shape state after load and ready-to-show', () => {
 });
 
 test('desktop keeps the main renderer active while minimized for child window portals', () => {
-  assert.match(main, /backgroundThrottling: false/);
-  assert.match(main, /appendSwitch\("disable-background-timer-throttling"\)/);
-  assert.match(main, /appendSwitch\("disable-renderer-backgrounding"\)/);
-  assert.match(main, /appendSwitch\("disable-backgrounding-occluded-windows"\)/);
+  assert.match(renderizerConfig, /electron:\s*\{/);
+  assert.match(renderizerConfig, /disableBackgroundTimerThrottling:\s*true/);
+  assert.match(renderizerConfig, /disableRendererBackgrounding:\s*true/);
+  assert.match(renderizerConfig, /disableBackgroundingOccludedWindows:\s*true/);
+  assert.match(renderizerConfig, /backgroundThrottling:\s*false/);
+  assert.match(copyAssets, /renderizer-electron-config\.json/);
+  assert.match(main, /applyRenderizerElectronConfig\(app, renderizerElectronConfig\)/);
+  assert.match(main, /\.\.\.renderizerElectronConfig\.defaultWebPreferences/);
+  assert.doesNotMatch(main, /appendSwitch\("disable-background-timer-throttling"\)/);
 });
 
 test('desktop update check treats unavailable GitHub releases as no update', () => {

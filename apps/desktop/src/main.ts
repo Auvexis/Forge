@@ -2,7 +2,9 @@ import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotific
 import type { Event as ElectronEvent, NativeImage } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import path from "node:path";
+import { applyRenderizerElectronConfig, type RenderizerElectronConfig } from "@renderizer/vue/electron";
 import { checkDesktopUpdate, type DesktopUpdateChannel } from "./updates.js";
 import { WorkspaceWindowManager, type WorkspaceWindowAction } from "./workspace-window-manager.js";
 
@@ -12,10 +14,9 @@ const splashMinMs = 1400;
 const appIconPath = path.join(__dirname, "assets", "icon.svg");
 const trayIconSize = process.platform === "win32" ? 16 : 22;
 const desktopAppId = "com.auvexis.fabric";
+const renderizerElectronConfig = readRenderizerElectronConfig();
 
-app.commandLine.appendSwitch("disable-background-timer-throttling");
-app.commandLine.appendSwitch("disable-renderer-backgrounding");
-app.commandLine.appendSwitch("disable-backgrounding-occluded-windows");
+applyRenderizerElectronConfig(app, renderizerElectronConfig);
 
 if (process.platform === "win32") {
   app.setAppUserModelId(desktopAppId);
@@ -38,6 +39,16 @@ const desktopPreferences: DesktopPreferences = {
   closeToTray: true,
   openAtLogin: false,
 };
+
+function readRenderizerElectronConfig(): RenderizerElectronConfig {
+  try {
+    return JSON.parse(
+      readFileSync(path.join(__dirname, "renderizer-electron-config.json"), "utf8"),
+    ) as RenderizerElectronConfig;
+  } catch {
+    return {};
+  }
+}
 
 function createAppIcon(): NativeImage {
   const icon = nativeImage.createFromPath(appIconPath);
@@ -124,7 +135,7 @@ function createMainWindow(): BrowserWindow {
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,
-      backgroundThrottling: false,
+      ...renderizerElectronConfig.defaultWebPreferences,
     },
   });
 
@@ -162,6 +173,7 @@ function createMainWindow(): BrowserWindow {
     createAppIcon(),
     openExternalUrl,
     desktopAppId,
+    renderizerElectronConfig,
   );
   workspaceWindowManager.attachTo(window);
   void window.loadURL(desktopUrl);
