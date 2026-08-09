@@ -66,9 +66,23 @@
                   v-for="session in chat.sessions"
                   :key="session.id"
                   class="agent-chat-modal__session"
-                  :class="{ 'is-active': session.id === activeSessionId }"
+                  :class="{
+                    'is-active': session.id === activeSessionId,
+                    'is-renaming': renamingSessionId === session.id,
+                  }"
                 >
-                  <button type="button" @click="activeSessionId = session.id">
+                  <input
+                    v-if="renamingSessionId === session.id"
+                    v-model="renamingTitle"
+                    class="agent-chat-modal__session-input"
+                    autofocus
+                    aria-label="Chat name"
+                    @click.stop
+                    @keydown.enter.prevent="commitRenameSession(session)"
+                    @keydown.esc.prevent="cancelRenameSession"
+                    @blur="commitRenameSession(session)"
+                  />
+                  <button v-else type="button" @click="activeSessionId = session.id">
                     <span>{{ session.title || "Untitled conversation" }}</span>
                   </button>
                   <BaseToolDropdown
@@ -175,6 +189,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { agentChatApi } from "@/core/api/agent-chat.api";
 import BaseModal from "@/shared/components/base/BaseModal.vue";
 import BaseToolDropdown from "@/shared/components/base/BaseToolDropdown.vue";
+import { useConfirm } from "@/shared/composables/useConfirm";
 import LucideIcon from "@/shared/icons/LucideIcon.vue";
 import type { AgentChatDirectoryEntry, AgentChatSession } from "../types/agent.types";
 import { useAgentErrorReporter } from "../composables/useAgentErrorReporter";
@@ -196,12 +211,15 @@ const directoryLoading = ref(false);
 const sending = ref(false);
 const activeSessionMenuId = ref<string | null>(null);
 const sidebarCollapsed = ref(false);
+const renamingSessionId = ref("");
+const renamingTitle = ref("");
 const sessionPanel = ref<{
   invalidate: (revision?: number) => void;
   startLiveMessage: (message: string) => string;
   finishLiveMessage: (id: string) => Promise<void>;
 } | null>(null);
 const { reportAgentError } = useAgentErrorReporter();
+const { confirm } = useConfirm();
 const sessionActionTools = [
   { id: "rename", label: "Rename chat", icon: "pencil" },
   { id: "delete", label: "Delete chat", icon: "trash-2" },
@@ -331,23 +349,18 @@ async function handleSessionAction(session: AgentChatSession, actionId: string) 
 }
 
 async function renameSession(session: AgentChatSession) {
-  const nextTitle = window.prompt(
-    "Rename chat",
-    session.title || "Untitled conversation",
-  )?.trim();
-  if (!nextTitle || nextTitle === session.title) return;
-  try {
-    await agentChatApi.renameSession(session.id, nextTitle.slice(0, 80));
-    await loadDirectory();
-  } catch (error) {
-    reportAgentError(error, "Could not rename chat.", "session.rename");
-  }
+  renamingSessionId.value = session.id;
+  renamingTitle.value = session.title || "Untitled conversation";
 }
 
 async function deleteSession(session: AgentChatSession) {
-  const shouldDelete = window.confirm(
-    `Delete "${session.title || "Untitled conversation"}"?`,
-  );
+  const shouldDelete = await confirm({
+    title: "Delete chat",
+    message: `Delete "${session.title || "Untitled conversation"}"? This cannot be undone.`,
+    confirmText: "Delete",
+    cancelText: "Cancel",
+    variant: "danger",
+  });
   if (!shouldDelete) return;
   try {
     await agentChatApi.deleteSession(session.id);
@@ -358,8 +371,29 @@ async function deleteSession(session: AgentChatSession) {
   }
 }
 
-function agentInitial(value: string) {
-  return value.trim().charAt(0).toUpperCase() || "A";
+function cancelRenameSession() {
+  renamingSessionId.value = "";
+  renamingTitle.value = "";
+}
+
+async function commitRenameSession(session: AgentChatSession) {
+  if (renamingSessionId.value !== session.id) return;
+  const nextTitle = renamingTitle.value.trim().slice(0, 80);
+  if (!nextTitle || nextTitle === session.title) {
+    cancelRenameSession();
+    return;
+  }
+  try {
+    await agentChatApi.renameSession(session.id, nextTitle);
+    cancelRenameSession();
+    await loadDirectory();
+  } catch (error) {
+    reportAgentError(error, "Could not rename chat.", "session.rename");
+  }
+}
+
+function agentInitial(value?: string) {
+  return value?.trim().charAt(0).toUpperCase() || "A";
 }
 </script>
 
@@ -382,7 +416,7 @@ function agentInitial(value: string) {
 }
 
 .agent-chat-modal__workspace--collapsed {
-  grid-template-columns: 48px minmax(0, 1fr);
+  grid-template-columns: 0 minmax(0, 1fr);
 }
 
 .agent-chat-modal__sidebar {
@@ -401,7 +435,7 @@ function agentInitial(value: string) {
   height: 32px;
   align-items: center;
   justify-content: center;
-  margin-left: 4px;
+  margin-left: 0;
   border: 0;
   border-radius: var(--fabric-base-topbar-button-radius);
   background: transparent;
@@ -585,6 +619,23 @@ function agentInitial(value: string) {
   text-align: left;
 }
 
+.agent-chat-modal__session-input {
+  min-width: 0;
+  flex: 1;
+  height: 24px;
+  border: 1px solid var(--fabric-agent-chat-border);
+  border-radius: 5px;
+  background: var(--fabric-agent-chat-conversation-bg);
+  color: var(--fabric-agent-chat-text-primary);
+  font: inherit;
+  outline: none;
+  padding: 0 6px;
+}
+
+.agent-chat-modal__session-input:focus {
+  border-color: var(--fabric-agent-chat-text-muted);
+}
+
 .agent-chat-modal__session-menu {
   flex: 0 0 auto;
   opacity: 0;
@@ -596,25 +647,9 @@ function agentInitial(value: string) {
   opacity: 1;
 }
 
-.agent-chat-modal__workspace--collapsed .agent-chat-modal__directory {
-  padding: 8px 6px;
-  scrollbar-gutter: auto;
-}
-
-.agent-chat-modal__workspace--collapsed .agent-chat-modal__group {
-  align-items: center;
-}
-
-.agent-chat-modal__workspace--collapsed .agent-chat-modal__agent {
-  justify-content: center;
-  gap: 0;
-  padding: 5px;
-}
-
-.agent-chat-modal__workspace--collapsed .agent-chat-modal__agent-copy,
-.agent-chat-modal__workspace--collapsed .agent-chat-modal__agent-action,
-.agent-chat-modal__workspace--collapsed .agent-chat-modal__sessions {
-  display: none;
+.agent-chat-modal__workspace--collapsed .agent-chat-modal__sidebar {
+  border-right: 0;
+  visibility: hidden;
 }
 
 .agent-chat-modal__conversation {

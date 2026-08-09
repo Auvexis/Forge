@@ -1,0 +1,4 @@
+- [x] Hide collapsed sidebar fully
+- [x] Replace native chat delete confirm
+- [x] Add inline chat rename
+- [x] Verify and commit
