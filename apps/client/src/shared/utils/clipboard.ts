@@ -1,4 +1,9 @@
 export async function copyTextToClipboard(text: string): Promise<void> {
+  if (window.fabricDesktop?.isDesktop && window.fabricDesktop.copyText) {
+    await window.fabricDesktop.copyText(text);
+    return;
+  }
+
   try {
     if (navigator.clipboard?.writeText) {
       await navigator.clipboard.writeText(text);

@@ -6,6 +6,7 @@ declare global {
       isDesktop: boolean;
       platform: string;
       openExternal: (url: string) => Promise<void>;
+      copyText: (text: string) => Promise<void>;
       restart: () => Promise<void>;
       notify: (payload: {
         title?: string;

@@ -2,8 +2,19 @@ import { describe, expect, it, vi } from 'vitest'
 import { copyTextToClipboard } from '../clipboard'
 
 describe('copyTextToClipboard', () => {
+  it('uses the native desktop clipboard bridge when running in Fabric Desktop', async () => {
+    const copyText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('window', { fabricDesktop: { isDesktop: true, copyText } })
+
+    await copyTextToClipboard('{{ env.API_KEY }}')
+
+    expect(copyText).toHaveBeenCalledWith('{{ env.API_KEY }}')
+    vi.unstubAllGlobals()
+  })
+
   it('uses navigator clipboard when available', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('window', {})
     vi.stubGlobal('navigator', { clipboard: { writeText } })
 
     await copyTextToClipboard('hello')
@@ -23,6 +34,7 @@ describe('copyTextToClipboard', () => {
     const appendChild = vi.fn()
     const removeChild = vi.fn()
     const execCommand = vi.fn().mockReturnValue(true)
+    vi.stubGlobal('window', {})
     vi.stubGlobal('navigator', { clipboard: { writeText } })
     vi.stubGlobal('HTMLElement', class HTMLElement {})
     vi.stubGlobal('document', {

@@ -37,6 +37,16 @@ describe("desktop OS integrations", () => {
     assert.match(main, /new NativeNotification/);
   });
 
+  it("uses the main process for clipboard writes", () => {
+    const main = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
+    const preload = readFileSync(new URL("./preload.ts", import.meta.url), "utf8");
+
+    assert.match(preload, /copyText: \(text: string\) =>/);
+    assert.match(preload, /ipcRenderer\.invoke\("fabric-desktop-clipboard-write", text\)/);
+    assert.match(main, /ipcMain\.handle\("fabric-desktop-clipboard-write"/);
+    assert.match(main, /clipboard\.writeText\(text\)/);
+  });
+
   it("supports tray behavior and desktop preference updates", () => {
     const main = readFileSync(new URL("./main.ts", import.meta.url), "utf8");
     const preload = readFileSync(new URL("./preload.ts", import.meta.url), "utf8");

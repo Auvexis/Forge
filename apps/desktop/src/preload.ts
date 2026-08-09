@@ -5,6 +5,8 @@ contextBridge.exposeInMainWorld("fabricDesktop", {
   platform: process.platform,
   openExternal: (url: string) =>
     ipcRenderer.invoke("fabric-desktop-open-external", url),
+  copyText: (text: string) =>
+    ipcRenderer.invoke("fabric-desktop-clipboard-write", text),
   restart: () => ipcRenderer.invoke("fabric-desktop-restart"),
   notify: (payload: { title?: string; body?: string; silent?: boolean }) =>
     ipcRenderer.invoke("fabric-desktop-notify", payload),

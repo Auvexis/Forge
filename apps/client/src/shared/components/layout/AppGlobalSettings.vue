@@ -1196,7 +1196,8 @@ async function copyVariableToken(key: string) {
   try {
     await copyTextToClipboard(token);
     toast.success("Variable copied");
-  } catch {
+  } catch (err) {
+    console.error("Could not copy variable token", err);
     toast.error("Could not copy variable");
   }
 }

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell, Menu, Tray } from "electron";
+import { app, BrowserWindow, ipcMain, nativeImage, Notification as NativeNotification, shell, Menu, Tray, clipboard } from "electron";
 import type { Event as ElectronEvent, NativeImage, Rectangle } from "electron";
 import { setTimeout as sleep } from "node:timers/promises";
 import { fileURLToPath } from "node:url";
@@ -292,6 +292,13 @@ ipcMain.handle("fabric-desktop-update-check", async (_event, channel: DesktopUpd
 
 ipcMain.handle("fabric-desktop-open-external", async (_event, url: string) => {
   await openExternalUrl(url);
+});
+
+ipcMain.handle("fabric-desktop-clipboard-write", (_event, text: string) => {
+  if (typeof text !== "string") {
+    throw new Error("Clipboard text must be a string");
+  }
+  clipboard.writeText(text);
 });
 
 ipcMain.handle("fabric-desktop-restart", () => {
