@@ -1,0 +1,4 @@
+- [x] Replace Home UI with two action tiles
+- [x] Add Home theme tokens
+- [x] Update Home contract
+- [x] Verify and commit
