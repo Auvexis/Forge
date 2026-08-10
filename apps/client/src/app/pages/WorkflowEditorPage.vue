@@ -976,6 +976,7 @@ watch(
 
         <AppPanel
           class="workflow-inspector-panel"
+          panel-id="workflow-inspector-panel"
           :is-open="showInspector"
           title="Inspector"
           position="right"

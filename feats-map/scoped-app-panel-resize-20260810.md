@@ -1,0 +1,4 @@
+- [x] Add AppPanel resize identity
+- [x] Scope workflow panels
+- [x] Scope pages panels
+- [x] Verify and commit

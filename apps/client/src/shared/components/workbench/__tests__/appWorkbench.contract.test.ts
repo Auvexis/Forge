@@ -26,7 +26,8 @@ test('workflow editor renders inside the shared workbench shell', () => {
   assert.doesNotMatch(source, /workflow-status-bar__button--git"\s*:class="\{ 'workflow-status-bar__button--active'/)
   assert.match(source, /workflow-workbench__canvas/)
   assert.match(source, /<AppPanel[\s\S]*class="workflow-inspector-panel"/)
-  assert.match(source, /const showInspector = ref\(true\)/)
+  assert.match(source, /panel-id="workflow-inspector-panel"/)
+  assert.match(source, /const showInspector = ref\(false\)/)
   assert.match(source, /:is-open="showInspector"/)
   assert.match(source, /@close="showInspector = false"/)
   assert.doesNotMatch(source, /title="Open workflow settings"/)
@@ -85,7 +86,7 @@ test('workbench components expose toolstrip body and status slots', () => {
   assert.match(bottomPanel, /workbench-bottom-panel__close/)
   assert.match(bottomPanel, /resize-start/)
   assert.match(bottomPanel, /close: \[\]/)
-  assert.match(bottomPanel, /var\(--fabric-workbench-border\)/)
+  assert.match(bottomPanel, /var\(--fabric-workbench-bottom-panel-workbench-border\)/)
 })
 
 test('fabric themes define workbench tokens', () => {

@@ -43,7 +43,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref } from 'vue'
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
 import LucideIcon from '@/shared/icons/LucideIcon.vue'
 import { useKeyboard } from '@/shared/composables/useKeyboard'
 
@@ -51,6 +51,7 @@ const props = withDefaults(
   defineProps<{
     isOpen: boolean
     title: string
+    panelId?: string
     position?: 'left' | 'right' | 'bottom'
     width?: 'md' | 'lg' | 'xl'
     showClose?: boolean
@@ -63,6 +64,7 @@ const props = withDefaults(
     showClose: true,
     resizable: false,
     resizeSide: 'top',
+    panelId: '',
   },
 )
 
@@ -156,6 +158,19 @@ function resetResize() {
   emit('resizeReset')
   emitResize()
 }
+
+function resetResizeForPanelIdentity() {
+  if (isResizing.value) return
+  if (resizedWidth.value === null && resizedHeight.value === null) return
+  resizedWidth.value = null
+  resizedHeight.value = null
+  emitResize()
+}
+
+watch(
+  () => [props.panelId, props.position, props.width] as const,
+  resetResizeForPanelIdentity,
+)
 
 onBeforeUnmount(() => {
   window.removeEventListener('mousemove', resizePanel)

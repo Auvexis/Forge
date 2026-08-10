@@ -86,6 +86,7 @@ async function handleDeleteClick() {
 <template>
   <AppPanel
     :is-open="isOpen"
+    panel-id="workflow-settings-panel"
     title="Workflow Settings"
     resizable
     resize-side="left"

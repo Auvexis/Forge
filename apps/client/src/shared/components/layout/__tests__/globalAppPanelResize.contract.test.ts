@@ -29,6 +29,7 @@ describe('global app panel resize', () => {
   })
 
   it('passes resize props from GlobalAppPanel to AppPanel', () => {
+    assert.match(globalPanelSource, /panelId: panelStore\.panelId/)
     assert.match(globalPanelSource, /resizable: panelStore\.resizable/)
     assert.match(globalPanelSource, /resizeSide: panelStore\.resizeSide/)
     assert.match(globalPanelSource, /@resize="emitPanelResize"/)
@@ -36,6 +37,9 @@ describe('global app panel resize', () => {
   })
 
   it('implements directional resize handles in AppPanel', () => {
+    assert.match(appPanelSource, /panelId\?: string/)
+    assert.match(appPanelSource, /watch\([\s\S]*props\.panelId/)
+    assert.match(appPanelSource, /resetResizeForPanelIdentity/)
     assert.match(appPanelSource, /resizable\?: boolean/)
     assert.match(appPanelSource, /resizeSide\?: 'top' \| 'bottom' \| 'left' \| 'right'/)
     assert.match(appPanelSource, /app-panel__resize-handle/)
@@ -54,7 +58,7 @@ describe('global app panel resize', () => {
 
   it('keeps AppPanel chrome compact for dense workspaces', () => {
     assert.match(appPanelSource, /\.app-panel__header\s*\{[\s\S]*height: 36px;/)
-    assert.match(appPanelSource, /\.app-panel__header\s*\{[\s\S]*background: var\(--fabric-workbench-panel-header-bg/)
+    assert.match(appPanelSource, /\.app-panel__header\s*\{[\s\S]*background: var\(--fabric-app-panel-workbench-panel-header-bg/)
     assert.match(appPanelSource, /\.app-panel__title\s*\{[\s\S]*font-size: var\(--fabric-text-xs\);/)
     assert.match(appPanelSource, /\.app-panel__footer\s*\{[\s\S]*padding: var\(--fabric-space-2\) var\(--fabric-space-3\);/)
   })

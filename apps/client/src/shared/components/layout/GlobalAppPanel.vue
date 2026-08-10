@@ -36,6 +36,7 @@ const emit = defineEmits<{
 const panelAttrs = computed(() => ({
   isOpen: panelStore.isOpen,
   title: panelStore.title,
+  panelId: panelStore.panelId,
   position: panelStore.position,
   width: panelStore.width,
   resizable: panelStore.resizable,

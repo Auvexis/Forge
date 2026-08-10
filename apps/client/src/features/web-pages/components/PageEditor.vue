@@ -46,6 +46,7 @@
     <AppPanel
       v-if="activePageDocument === 'design'"
       :is-open="isExplorerVisible"
+      panel-id="pages-design-explorer"
       title="Explorer"
       position="left"
       width="md"
@@ -83,6 +84,7 @@
     <AppPanel
       v-if="activePageDocument === 'blueprint'"
       :is-open="isBlueprintToolboxVisible"
+      panel-id="pages-blueprint-toolbox"
       title="Toolbox"
       position="left"
       width="md"
@@ -275,6 +277,7 @@
     <AppPanel
       v-if="activePageDocument === 'design'"
       :is-open="isInspectorVisible"
+      panel-id="pages-design-inspector"
       title="Inspector"
       position="right"
       width="md"
@@ -347,6 +350,7 @@
       v-if="activePageDocument === 'blueprint'"
       class="web-page-editor__blueprint-inspector-panel"
       :is-open="isInspectorVisible"
+      panel-id="pages-blueprint-inspector"
       title="Inspector"
       position="right"
       width="md"
