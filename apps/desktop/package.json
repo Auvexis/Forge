@@ -1,6 +1,6 @@
 {
   "name": "@fabric/desktop",
-  "version": "0.1.0-alpha.10",
+  "version": "0.1.0-alpha.11",
   "description": "Fabric desktop shell.",
   "productName": "Fabric",
   "author": "Auvexis",
@@ -20,7 +20,7 @@
   "build": {
     "appId": "com.auvexis.fabric",
     "productName": "Fabric",
-    "electronVersion": "40.1.0",
+    "electronVersion": "43.3.0",
     "artifactName": "Fabric-${version}-${os}-${arch}.${ext}",
     "icon": "assets/icon",
     "directories": {
@@ -81,7 +81,7 @@
   },
   "devDependencies": {
     "@types/node": "^25.5.0",
-    "electron": "^40.1.0",
+    "electron": "^43.3.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   },

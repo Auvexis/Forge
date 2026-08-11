@@ -1,5 +1,0 @@
-- [x] Remover dependencia circular do desktop
-- [x] Regenerar lockfile
-- [x] Validar npm ci
-- [x] Validar desktop e client
-- [x] Commitar batch

@@ -1,5 +1,0 @@
-- [x] Add call workflow canvas description contract
-- [x] Store target workflow name
-- [x] Render workflow name and trigger id
-- [x] Run focused frontend tests
-- [x] Commit changes

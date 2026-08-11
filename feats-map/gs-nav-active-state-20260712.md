@@ -1,4 +1,0 @@
-- [x] Mapear estado ativo do gs-nav
-- [x] Corrigir estilo ativo
-- [x] Validar frontend
-- [x] Commitar mudanças

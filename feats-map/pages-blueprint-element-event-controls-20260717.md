@@ -1,4 +1,0 @@
-- [x] Adicionar tipo selecionavel no evento do elemento
-- [x] Adicionar remover evento
-- [x] Validar typecheck
-- [x] Commitar alterações

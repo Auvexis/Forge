@@ -1,5 +1,0 @@
-- [x] Mapear espacos ocupados pelos paineis
-- [x] Aplicar insets no canvas
-- [x] Sincronizar resize dos paineis
-- [x] Validar frontend
-- [x] Commitar mudancas

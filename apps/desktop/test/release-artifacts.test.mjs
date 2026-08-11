@@ -9,8 +9,8 @@ const ciWorkflow = await readFile(
   new URL('../../../.github/workflows/ci.yml', import.meta.url),
   'utf8',
 );
-const desktopReleaseDoc = await readFile(
-  new URL('../../../docs/release-desktop.md', import.meta.url),
+const readme = await readFile(
+  new URL('../../../README.md', import.meta.url),
   'utf8',
 );
 
@@ -42,12 +42,12 @@ test('desktop CI uploads every alpha installer format', () => {
   assert.match(ciWorkflow, /CSC_IDENTITY_AUTO_DISCOVERY:\s+"false"/);
 });
 
-test('desktop release docs disclose unsigned alpha installers', () => {
-  assert.match(desktopReleaseDoc, /unsigned alpha installers/);
-  assert.match(desktopReleaseDoc, /Do not claim/);
-  assert.match(desktopReleaseDoc, /Fabric-<version>-win-x64\.exe/);
-  assert.match(desktopReleaseDoc, /Fabric-<version>-mac-x64\.dmg/);
-  assert.match(desktopReleaseDoc, /Fabric-<version>-mac-arm64\.dmg/);
-  assert.match(desktopReleaseDoc, /Fabric-<version>-linux-x64\.AppImage/);
-  assert.match(desktopReleaseDoc, /Fabric-<version>-linux-amd64\.deb/);
+test('README discloses unsigned alpha installers', () => {
+  assert.match(readme, /unsigned alpha installers/);
+  assert.match(readme, /Do not claim/);
+  assert.match(readme, /Fabric-<version>-win-x64\.exe/);
+  assert.match(readme, /Fabric-<version>-mac-x64\.dmg/);
+  assert.match(readme, /Fabric-<version>-mac-arm64\.dmg/);
+  assert.match(readme, /Fabric-<version>-linux-x64\.AppImage/);
+  assert.match(readme, /Fabric-<version>-linux-amd64\.deb/);
 });

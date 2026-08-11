@@ -1,6 +1,0 @@
-- [x] Mapear nome npm e fluxo atual
-- [x] Ajustar package npm scoped
-- [x] Adicionar scripts de publish alpha
-- [x] Documentar publicacao npm
-- [x] Validar pack e build
-- [x] Commitar batch 19

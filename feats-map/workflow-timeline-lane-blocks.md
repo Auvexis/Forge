@@ -1,5 +1,0 @@
-- [x] Mapear layout atual
-- [x] Criar lanes por branches
-- [x] Simplificar blocos
-- [x] Validar contratos
-- [x] Commitar mudancas

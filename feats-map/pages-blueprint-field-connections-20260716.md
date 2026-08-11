@@ -1,6 +1,0 @@
-- [x] Criar helper reutilizavel de fields
-- [x] Adicionar actions de connections no store
-- [x] Conectar pick whip output/input
-- [x] Mostrar expression em fields conectados
-- [x] Validar type-check
-- [x] Commitar ajuste

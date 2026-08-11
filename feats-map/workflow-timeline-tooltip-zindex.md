@@ -1,3 +1,0 @@
-- [x] Corrigir camada real do tooltip da timeline
-- [x] Deixar tooltip opaco
-- [x] Validar e commitar

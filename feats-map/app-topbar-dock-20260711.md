@@ -1,4 +1,0 @@
-- [x] Reestruturar AppTopbar
-- [x] Conectar acoes globais
-- [x] Validar frontend
-- [x] Commitar mudanças

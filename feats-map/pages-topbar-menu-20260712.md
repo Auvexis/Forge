@@ -1,5 +1,0 @@
-- [x] Mapear chrome de Pages
-- [x] Mover File/Edit/View para topbar
-- [x] Manter toolbar local com ações principais
-- [x] Validar frontend
-- [x] Commitar mudanças

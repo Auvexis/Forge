@@ -1,4 +1,0 @@
-- [x] Mapear splits da timeline
-- [x] Centralizar pais com multiplos filhos
-- [x] Validar timeline
-- [x] Commitar mudancas

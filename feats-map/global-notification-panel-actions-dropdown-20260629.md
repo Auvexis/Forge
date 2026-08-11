@@ -1,5 +1,0 @@
-- [x] Add dropdown action contract.
-- [x] Move filters and actions into BaseDropdownSelect.
-- [x] Hide controls when list is empty.
-- [x] Verify focused tests and type-check.
-- [x] Commit.

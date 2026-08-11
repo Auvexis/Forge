@@ -1,3 +1,0 @@
-- [x] Corrigir Add Event silencioso
-- [x] Validar type-check
-- [x] Commitar ajuste

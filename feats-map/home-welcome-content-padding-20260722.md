@@ -1,3 +1,0 @@
-- [x] Add HomeWelcome page padding
-- [x] Update contract
-- [x] Run checks

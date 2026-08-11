@@ -1,4 +1,0 @@
-- [x] Mapear fechamento do painel horizontal
-- [x] Separar settings de paineis laterais
-- [x] Validar frontend
-- [x] Commitar mudancas

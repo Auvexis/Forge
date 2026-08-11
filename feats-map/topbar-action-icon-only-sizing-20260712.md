@@ -1,4 +1,0 @@
-- [x] Mapear sizing icon-only
-- [x] Ajustar botão sem label
-- [x] Validar frontend
-- [x] Commitar mudanças

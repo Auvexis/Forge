@@ -15,15 +15,6 @@ Before implementing anything:
 * Understand the current architecture
 * Understand how each affected module works
 
-Task planning rule:
-
-* Always create a markdown file inside `feats-map/` before coding
-* The file must contain only short, essential tasks
-* No long explanations
-* Keep it concise
-* Update the file after each completed task
-* Mark completed tasks as done
-
 Git rules:
 
 * Never create a new branch

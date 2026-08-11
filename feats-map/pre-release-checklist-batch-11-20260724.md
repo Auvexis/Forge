@@ -1,5 +1,0 @@
-- [x] Revisar estado da Fase 1
-- [x] Criar checklist pre-release
-- [x] Mapear gates Docker, npm e desktop
-- [x] Validar docs
-- [x] Commitar batch 11

@@ -1,2 +1,0 @@
-- [x] Trocar borda de status por outline
-- [x] Validar e commitar

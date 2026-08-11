@@ -1,5 +1,0 @@
-- [x] Adicionar action de node utilitario no store
-- [x] Emitir selecao do Toolbox
-- [x] Renderizar utility nodes no canvas
-- [x] Validar type-check
-- [x] Commitar ajuste

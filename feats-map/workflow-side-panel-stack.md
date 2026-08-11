@@ -1,4 +1,0 @@
-- [x] Respeitar largura redimensionada do painel global
-- [x] Tornar Inspector exclusivo com Add Node e Settings
-- [x] Alinhar header do Inspector ao AppPanel
-- [x] Validar e commitar

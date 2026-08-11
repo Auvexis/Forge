@@ -1,6 +1,0 @@
-- [x] Add theme selector base
-- [x] Add emoji segmented icons
-- [x] Rework welcome guide steps
-- [x] Use theme selector in guide
-- [x] Update contracts
-- [x] Run checks

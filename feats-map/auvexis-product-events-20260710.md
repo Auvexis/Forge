@@ -1,6 +1,0 @@
-- [x] Map Auvexis account backend/frontend integration
-- [x] Add backend route to emit Auvexis product events
-- [x] Add frontend API and hook for triggering Auvexis events
-- [x] Add contract tests
-- [x] Run validation
-- [x] Trigger `fabric.workflow.published` after successful workflow publish

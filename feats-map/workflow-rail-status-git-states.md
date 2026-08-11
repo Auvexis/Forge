@@ -1,5 +1,0 @@
-- [x] Mapear estados autosave/git/statusbar
-- [x] Corrigir estados ativos do rail
-- [x] Ajustar espacamento da statusbar
-- [x] Validar frontend
-- [x] Commitar mudancas

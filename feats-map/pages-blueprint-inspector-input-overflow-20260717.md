@@ -1,3 +1,0 @@
-- [x] Separar overflow de leitura e edição
-- [x] Validar build/typecheck
-- [x] Commitar alterações

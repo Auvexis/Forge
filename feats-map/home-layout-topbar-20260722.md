@@ -1,4 +1,0 @@
-- [x] Adjust home layout
-- [x] Move home nav to topbar
-- [x] Update contracts
-- [x] Run checks

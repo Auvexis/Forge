@@ -1,5 +1,0 @@
-- [x] Mapear secrets e tags atuais
-- [x] Documentar setup seguro do NPM_TOKEN
-- [x] Documentar tag alpha de release
-- [x] Validar diff
-- [x] Commitar batch 20

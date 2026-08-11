@@ -1,5 +1,0 @@
-- [x] Identificar falhas antigas
-- [x] Corrigir bugs reais no runner/client
-- [x] Reclassificar contratos legacy instaveis
-- [x] Rodar suites relevantes
-- [x] Indicar proximo passo

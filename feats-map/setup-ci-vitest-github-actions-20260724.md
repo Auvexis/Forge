@@ -1,6 +1,0 @@
-- [x] Auditar testes e scripts atuais
-- [x] Padronizar Vitest nos workspaces
-- [x] Adicionar testes criticos minimos
-- [x] Criar workflow de CI
-- [x] Adicionar Docker build check
-- [x] Rodar validacoes locais

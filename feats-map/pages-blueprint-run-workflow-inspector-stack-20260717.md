@@ -1,4 +1,0 @@
-- [x] Criar fluxo em subviews para Run Workflow
-- [x] Ajustar visual flat das seções do Inspector
-- [x] Validar build/typecheck
-- [x] Commitar alterações

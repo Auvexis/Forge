@@ -1,4 +1,0 @@
-- [x] Comparar trigger do workflow
-- [x] Ajustar trigger de Pages
-- [x] Validar frontend
-- [x] Commitar mudanças

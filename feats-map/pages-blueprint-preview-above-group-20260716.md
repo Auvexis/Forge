@@ -1,4 +1,0 @@
-- [x] Analisar preview do grupo
-- [x] Posicionar preview acima do header
-- [x] Validar type-check
-- [x] Commitar ajuste

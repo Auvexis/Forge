@@ -1,4 +1,0 @@
-- [x] Criar helper reutilizavel de label de evento
-- [x] Aplicar label On Event nos nodes
-- [x] Validar build/typecheck
-- [x] Commitar alterações

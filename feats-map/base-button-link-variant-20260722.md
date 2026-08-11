@@ -1,3 +1,0 @@
-- [x] Add link variant
-- [x] Update contract
-- [x] Run checks

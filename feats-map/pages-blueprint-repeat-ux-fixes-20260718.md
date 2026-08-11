@@ -1,6 +1,0 @@
-- [x] Ocultar workflow nodes derivados
-- [x] Dim apenas targets de repeat
-- [x] Ativar Repeat pelo Inspector
-- [x] Remover repeat desativado
-- [x] Validar build/typecheck
-- [x] Commitar alterações

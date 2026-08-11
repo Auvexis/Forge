@@ -1,6 +1,6 @@
 {
   "name": "@auvexis/fabric",
-  "version": "0.1.0-alpha.10",
+  "version": "0.1.0-alpha.11",
   "description": "Local automation workspace for workflows, forms, webhooks and agent tools.",
   "main": "index.js",
   "bin": {
@@ -19,15 +19,8 @@
     "apps/client/dist/",
     "apps/client/package.json",
     "apps/gateway/dist/",
-    "apps/gateway/package.json",
-    "docs/release-docker.md",
-    "docs/release-desktop.md",
-    "docs/release-npm.md",
-    "docs/remote-release-validation.md"
+    "apps/gateway/package.json"
   ],
-  "directories": {
-    "doc": "docs"
-  },
   "private": false,
   "scripts": {
     "dev": "concurrently -n api,client,gateway -c blue,green,magenta \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/client\" \"npm run dev --workspace apps/gateway\"",
@@ -37,7 +30,7 @@
     "dev:gateway": "npm run dev --workspace apps/gateway",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
-    "test:vitest": "npm run test:vitest --workspaces",
+    "test:vitest": "npm run test:vitest --workspaces --if-present",
     "test:node": "npm run test:node --workspaces --if-present",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",

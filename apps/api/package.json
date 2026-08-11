@@ -1,6 +1,6 @@
 {
   "name": "@fabric/api",
-  "version": "0.1.0-alpha.10",
+  "version": "0.1.0-alpha.11",
   "description": "",
   "main": "src/core/server.ts",
   "type": "module",

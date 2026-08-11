@@ -1,5 +1,0 @@
-- [x] Analisar BaseCanvas e Blueprint antigo
-- [x] Criar BaseElement reutilizavel
-- [x] Migrar Blueprint para BaseCanvas square
-- [x] Validar type-check
-- [x] Commitar ajuste

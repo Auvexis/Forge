@@ -1,4 +1,0 @@
-- [x] Adicionar cards de tema
-- [x] Estilizar preview mock
-- [x] Validar frontend
-- [x] Commitar mudancas

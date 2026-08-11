@@ -1,3 +1,0 @@
-- [x] Update intro links
-- [x] Add editor link icons
-- [x] Run checks

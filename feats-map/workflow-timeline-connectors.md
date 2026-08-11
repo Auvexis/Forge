@@ -1,5 +1,0 @@
-- [x] Mapear conectores atuais
-- [x] Remover linha bugada
-- [x] Desenhar conexoes por edge
-- [x] Validar contratos
-- [x] Commitar mudancas

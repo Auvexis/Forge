@@ -1,4 +1,0 @@
-- [x] Add regression test for AI model without persisted temperature
-- [x] Apply backend default temperature during validation
-- [x] Persist default temperature when creating AI Model nodes
-- [x] Verify focused tests and commit

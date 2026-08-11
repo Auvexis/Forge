@@ -1,8 +1,0 @@
-- [x] BaseCanvas M2 drag pan
-- [x] Remover Tree do statusbar
-- [x] Remover borda desktop maximized/fullscreen
-- [x] Corrigir update check 404
-- [x] Recriar UI Variables settings
-- [x] Melhorar splash desktop
-- [x] Validar
-- [x] Commitar

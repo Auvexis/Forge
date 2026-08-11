@@ -1,5 +1,0 @@
-- [x] Definir schema central de nodes
-- [x] Integrar schema ao documento JSON
-- [x] Normalizar nodes e connections
-- [x] Validar type-check
-- [x] Commitar ajuste

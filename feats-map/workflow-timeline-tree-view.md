@@ -1,5 +1,0 @@
-- [x] Mapear timeline atual
-- [x] Ordenar nodes por arvore
-- [x] Melhorar blocos e trilho
-- [x] Validar contratos
-- [x] Commitar mudancas

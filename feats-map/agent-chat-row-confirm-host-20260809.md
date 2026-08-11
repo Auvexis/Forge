@@ -1,4 +1,0 @@
-- [x] Make chat row fully clickable
-- [x] Stop chat actions hover switching
-- [x] Scope confirm panel to modal window
-- [x] Verify and commit

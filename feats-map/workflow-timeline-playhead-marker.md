@@ -1,2 +1,0 @@
-- [x] Reposicionar marcador do playhead
-- [x] Validar e commitar

@@ -1,4 +1,0 @@
-- [x] Map Plugin Creator remnants
-- [x] Remove Plugin Creator frontend files
-- [x] Remove Plugin Creator API endpoints and backend schema remnants
-- [x] Run validation

@@ -1,3 +1,0 @@
-- [x] Ajustar estrutura do AppShell
-- [x] Validar layout
-- [x] Commitar mudanças

@@ -1,3 +1,0 @@
-- [x] Separar tooltip do stacking dos blocos
-- [x] Limitar auto-scroll do cursor na timeline
-- [x] Validar e commitar

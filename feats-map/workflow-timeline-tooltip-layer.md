@@ -1,4 +1,0 @@
-- [x] Elevar bloco da timeline durante hover
-- [x] Colocar tooltip no layer de popover
-- [x] Evitar playhead bloqueando hover dos blocos
-- [x] Validar e commitar

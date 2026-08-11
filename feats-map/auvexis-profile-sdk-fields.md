@@ -1,6 +1,0 @@
-- [x] Atualizar API Auvexis profile
-- [x] Atualizar SDK @auvexis/accounts
-- [x] Atualizar cache e mapper do Fabric
-- [x] Validar pacotes
-- [x] Publicar e instalar SDK
-- [x] Commitar mudancas

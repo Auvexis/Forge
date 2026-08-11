@@ -1,6 +1,0 @@
-- [x] Criar contrato base de data flow
-- [x] Resolver outputs por node genérico
-- [x] Ligar Run Workflow ao contrato
-- [x] Atualizar preview/inspector/runtime
-- [x] Validar build/typecheck
-- [x] Commitar alterações

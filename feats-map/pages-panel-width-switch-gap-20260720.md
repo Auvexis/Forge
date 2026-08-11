@@ -1,4 +1,0 @@
-- [x] Resetar widths ao trocar documento
-- [x] Evitar gap entre painel e canvas
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

@@ -1,6 +1,0 @@
-- [x] Add plugin method tests for Ollama advanced options
-- [x] Add model adapter tests for Ollama advanced options
-- [x] Implement plugin advanced option payloads
-- [x] Implement AI Model Ollama advanced option payloads
-- [x] Run focused tests
-- [x] Commit changes

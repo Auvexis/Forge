@@ -1,3 +1,0 @@
-- [x] Remover controles visuais de navegacao da timeline
-- [x] Manter navegacao por ArrowLeft e ArrowRight no track
-- [x] Validar e commitar

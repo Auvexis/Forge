@@ -1,4 +1,0 @@
-- [x] Add topbar order contract
-- [x] Move page actions into left group
-- [x] Place undo and redo after autosave
-- [x] Verify and commit

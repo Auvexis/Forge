@@ -1,4 +1,0 @@
-- [x] Return connected agent identity in chat directory
-- [x] Render real agent avatar and name in sidebar
-- [x] Make sidebar colors neutral
-- [x] Validate and commit

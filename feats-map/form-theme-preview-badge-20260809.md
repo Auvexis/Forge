@@ -1,2 +1,0 @@
-- [x] Prender badge Preview ao card
-- [x] Validar e commitar

@@ -1,2 +1,0 @@
-- [x] Remove dropdown menu radius
-- [x] Validate and commit

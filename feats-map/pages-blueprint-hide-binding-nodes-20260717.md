@@ -1,4 +1,0 @@
-- [x] Remover binding nodes automáticos do canvas
-- [x] Limpar imports/helpers não usados
-- [x] Validar build/typecheck
-- [x] Commitar alterações

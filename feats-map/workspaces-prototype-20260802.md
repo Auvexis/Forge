@@ -1,7 +1,0 @@
-- [x] Add secure Electron workspaces bridge.
-- [x] Add modular Vue workspace host and tab chrome.
-- [x] Integrate Node Inspector workspace fallback.
-- [x] Validate desktop/client builds and essential contracts.
-- [x] Add persistent Node Inspector workspace tabs.
-- [x] Group workspace windows with Fabric on Windows.
-- [ ] Revalidate workspace prototype.

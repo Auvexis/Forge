@@ -1,5 +1,0 @@
-- [x] Ler skill professional software UI
-- [x] Mapear componentes base
-- [x] Adaptar inputs e selects
-- [x] Adaptar botoes e menus
-- [x] Validar contratos frontend

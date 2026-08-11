@@ -1,4 +1,0 @@
-- [x] Revisar CI atual
-- [x] Adicionar node:test ao CI
-- [x] Rodar validacoes locais
-- [x] Commitar batch 2

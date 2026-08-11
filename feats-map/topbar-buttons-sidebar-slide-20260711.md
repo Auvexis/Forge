@@ -1,4 +1,0 @@
-- [x] Padronizar botoes da topbar
-- [x] Fazer sidebar sumir pela esquerda
-- [x] Validar frontend
-- [x] Commitar mudanças

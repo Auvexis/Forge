@@ -1,4 +1,0 @@
-- [x] Add welcome profile guide
-- [x] Mount guide on home
-- [x] Add contracts
-- [x] Run checks

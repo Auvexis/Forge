@@ -1,2 +1,0 @@
-- [x] Remover inset do playhead
-- [x] Validar e commitar

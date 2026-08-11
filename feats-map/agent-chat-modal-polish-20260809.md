@@ -1,3 +1,0 @@
-- [x] Redesign agent chat modal shell
-- [x] Improve directory, empty states, and composer
-- [x] Validate and commit

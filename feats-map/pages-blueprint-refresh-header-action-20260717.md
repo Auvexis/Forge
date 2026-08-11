@@ -1,4 +1,0 @@
-- [x] Adicionar ação no header da seção
-- [x] Mover Refresh para direita do header
-- [x] Validar typecheck
-- [x] Commitar alterações

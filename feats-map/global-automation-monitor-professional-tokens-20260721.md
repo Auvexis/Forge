@@ -1,4 +1,0 @@
-- [x] Remove result panel and runs header
-- [x] Add automation monitor JSON tokens
-- [x] Apply professional tokenized styling
-- [x] Validate and commit

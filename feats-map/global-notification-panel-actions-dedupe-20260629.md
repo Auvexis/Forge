@@ -1,5 +1,0 @@
-- [x] Add regression contracts.
-- [x] Move mark/read clear actions out of filter dropdown.
-- [x] Avoid persisting duplicate visible toasts.
-- [x] Verify focused tests and type-check.
-- [x] Commit.

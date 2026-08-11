@@ -1,3 +1,0 @@
-- [x] Mapear estado inicial dos paineis
-- [x] Fechar Inspector e Timeline por padrao
-- [x] Validar contrato do Workflow Editor

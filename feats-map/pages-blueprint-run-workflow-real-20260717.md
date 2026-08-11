@@ -1,7 +1,0 @@
-- [x] Analisar Run Workflow antigo
-- [x] Mapear APIs e stores atuais
-- [x] Recriar selecao workflow e trigger
-- [x] Recriar propriedades evento e parametros
-- [x] Ligar Test Run real e fields inferidos
-- [x] Validar type-check e contratos
-- [x] Commitar ajuste

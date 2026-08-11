@@ -1,5 +1,0 @@
-- [x] Criar section flat reutilizavel
-- [x] Criar row de propriedade flat
-- [x] Atualizar panel Blueprint Inspector
-- [x] Validar type-check
-- [x] Commitar ajuste

@@ -1,4 +1,0 @@
-- [x] Reproduce invalid JSON after text ref guard
-- [x] Make fallback choose pending message tool with text ref
-- [x] Verify focused tests and builds
-- [x] Commit fix

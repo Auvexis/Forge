@@ -1,4 +1,0 @@
-- [x] Marcar repeat de componente como self
-- [x] Ajustar preview/runtime repeat
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

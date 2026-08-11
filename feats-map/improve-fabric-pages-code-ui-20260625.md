@@ -1,7 +1,0 @@
-- [x] Disable unavailable topbar actions.
-- [x] Fix empty canvas deselection.
-- [x] Make toolbox calmer.
-- [x] Open Code in modal.
-- [x] Support page folders and auto imports.
-- [x] Replace Workflow ID with published workflow select.
-- [ ] Verify and commit.

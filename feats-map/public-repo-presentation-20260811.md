@@ -1,4 +1,0 @@
-- [x] Add source-available license files
-- [x] Add contribution policy
-- [x] Rewrite public README
-- [x] Verify docs and commit

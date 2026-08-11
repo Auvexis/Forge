@@ -1,5 +1,0 @@
-- [x] Remover status visual do runtime
-- [x] Centralizar tabs Design/Blueprint
-- [x] Atualizar contrato do runtime
-- [x] Validar build/typecheck
-- [x] Commitar alterações

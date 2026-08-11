@@ -1,5 +1,0 @@
-- [x] Definir hierarquia de z-index dos overlays
-- [x] Reservar topo para command palette
-- [x] Atualizar contratos afetados
-- [x] Validar frontend
-- [x] Commitar mudancas

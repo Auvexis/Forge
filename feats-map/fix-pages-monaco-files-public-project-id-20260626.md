@@ -1,6 +1,0 @@
-- [x] Review recent Pages commits
-- [x] Reproduce Monaco worker/file bugs
-- [x] Add regression tests
-- [x] Fix editor workers and page assets
-- [x] Add project public NanoID routing
-- [x] Verify and commit

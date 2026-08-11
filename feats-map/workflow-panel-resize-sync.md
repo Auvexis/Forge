@@ -1,5 +1,0 @@
-- [x] Mapear resize dos paineis
-- [x] Sincronizar offsets com resize
-- [x] Remover shadow dos paineis
-- [x] Validar frontend
-- [x] Commitar mudancas

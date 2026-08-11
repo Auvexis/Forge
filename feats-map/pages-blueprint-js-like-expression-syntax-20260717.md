@@ -1,4 +1,0 @@
-- [x] Suportar ternario fora das chaves
-- [x] Manter path simples compatível
-- [x] Validar build/typecheck
-- [x] Commitar alterações

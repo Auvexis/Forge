@@ -1,4 +1,0 @@
-- [x] Criar arquitetura Blueprint v2
-- [x] Integrar aba Blueprint no Pages
-- [x] Validar type-check
-- [x] Commitar Blueprint v2

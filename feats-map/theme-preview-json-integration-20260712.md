@@ -1,4 +1,0 @@
-- [x] Criar preview a partir dos JSONs
-- [x] Integrar cards do settings
-- [x] Validar frontend
-- [x] Commitar mudancas

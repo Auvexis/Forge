@@ -1,3 +1,0 @@
-- [x] Resetar cursor manual quando o trigger gerar uma nova timeline
-- [x] Manter o cursor vivo seguindo a execucao apos mover manualmente
-- [x] Validar e commitar

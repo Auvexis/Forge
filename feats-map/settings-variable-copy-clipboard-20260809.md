@@ -1,3 +1,0 @@
-- [x] Add clipboard fallback helper
-- [x] Use fallback in settings variables
-- [x] Validate and commit

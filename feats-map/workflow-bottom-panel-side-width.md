@@ -1,5 +1,0 @@
-- [x] Mapear largura lateral ativa
-- [x] Ajustar right do painel horizontal
-- [x] Sincronizar resize lateral
-- [x] Validar frontend
-- [x] Commitar mudancas

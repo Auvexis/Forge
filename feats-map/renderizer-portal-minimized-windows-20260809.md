@@ -1,3 +1,0 @@
-- [x] Corrigir RenderPortal com janelas minimizadas
-- [x] Atualizar Fabric para a correção
-- [x] Validar e commitar

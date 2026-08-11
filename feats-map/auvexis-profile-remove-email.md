@@ -1,4 +1,0 @@
-- [x] Remover email do perfil Auvexis
-- [x] Simplificar header com avatar
-- [x] Validar frontend
-- [x] Commitar mudancas

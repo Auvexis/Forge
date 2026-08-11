@@ -1,4 +1,0 @@
-- [x] Analisar dirty da viewport
-- [x] Remover viewport do dirty e undo
-- [x] Validar type-check
-- [x] Commitar ajuste

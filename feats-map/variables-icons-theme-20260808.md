@@ -1,5 +1,0 @@
-- [x] Ajustar UI de Variables no Global Settings
-- [x] Adicionar copiar token env.KEY
-- [x] Adicionar preferencia de variante de icone no tema JSON
-- [x] Ajustar Vector Store para icone legivel em temas claros/escuros
-- [x] Validar e commitar

@@ -1,3 +1,0 @@
-- [x] Corrigir erros reportados pelo Vite
-- [x] Auditar parenteses quebrados em Vue/CSS
-- [x] Rodar testes e type-check

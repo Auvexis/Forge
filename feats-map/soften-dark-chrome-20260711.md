@@ -1,3 +1,0 @@
-- [x] Suavizar chrome do dark
-- [x] Validar frontend
-- [x] Commitar mudanças

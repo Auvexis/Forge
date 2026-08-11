@@ -1,4 +1,0 @@
-- [x] Corrigir z-index dos rulers do BaseCanvas
-- [x] Propagar foco do canvas para a timeline
-- [x] Sincronizar entry point pelo node focado
-- [x] Validar e commitar

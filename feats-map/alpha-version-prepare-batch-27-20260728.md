@@ -1,5 +1,0 @@
-- [x] Criar script de prepare alpha
-- [x] Atualizar tokens de versao
-- [x] Documentar comando
-- [x] Rodar verificacoes
-- [x] Commitar batch

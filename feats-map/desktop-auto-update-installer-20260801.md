@@ -1,6 +1,0 @@
-- [x] Copiar favicon para assets desktop
-- [x] Corrigir icone da janela e tray
-- [x] Preparar fluxo seguro de update desktop
-- [x] Ajustar polish minimo de installer
-- [x] Atualizar batches 10 e 11
-- [x] Validar e commitar

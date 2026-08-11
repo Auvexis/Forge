@@ -1,8 +1,0 @@
-- [x] Add regression contracts.
-- [x] Prevent immediate duplicate global error notifications.
-- [x] Restore panel natural height and list overflow.
-- [x] Tighten notification detail layout.
-- [x] Restore dropdown actions visibility.
-- [x] Remove close button.
-- [x] Verify focused tests and type-check.
-- [x] Commit.

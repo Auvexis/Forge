@@ -1,5 +1,0 @@
-- [x] Switch guide shell to modal
-- [x] Remove header step counter
-- [x] Animate step content
-- [x] Update contracts
-- [x] Run checks

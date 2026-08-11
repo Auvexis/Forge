@@ -1,4 +1,0 @@
-- [x] Corrigir origem inicial da edge
-- [x] Usar altura real dos fields
-- [x] Validar type-check
-- [x] Commitar ajuste

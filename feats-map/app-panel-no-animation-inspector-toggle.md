@@ -1,5 +1,0 @@
-- [x] Mapear AppPanel e Inspector
-- [x] Remover animacao do AppPanel
-- [x] Adicionar toggle do Inspector
-- [x] Validar contratos
-- [x] Commitar mudancas

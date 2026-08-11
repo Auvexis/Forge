@@ -1,4 +1,0 @@
-- [x] Aplicar valores resolvidos no Design
-- [x] Aplicar valores resolvidos no Blueprint visual
-- [x] Validar build/typecheck
-- [x] Commitar alterações

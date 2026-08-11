@@ -1,5 +1,0 @@
-- [x] Revisar docs existentes
-- [x] Documentar Docker produção
-- [x] Documentar tags e URLs públicas
-- [x] Validar comandos e links
-- [x] Commitar batch 10

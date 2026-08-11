@@ -1,5 +1,0 @@
-- [x] Center initial page viewport
-- [x] Keep top offset stable
-- [x] Update contract
-- [x] Verify build
-- [x] Commit changes

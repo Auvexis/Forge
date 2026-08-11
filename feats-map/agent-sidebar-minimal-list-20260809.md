@@ -1,3 +1,0 @@
-- [x] Simplify agents sidebar
-- [x] Add hover new-chat action
-- [x] Validate and commit

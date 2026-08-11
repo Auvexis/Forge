@@ -1,3 +1,0 @@
-- [x] Criar template JSON com todos os tokens
-- [x] Validar paridade com tema atual
-- [x] Rodar testes focados

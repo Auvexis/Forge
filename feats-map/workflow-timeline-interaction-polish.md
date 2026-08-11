@@ -1,4 +1,0 @@
-- [x] Remover sliders da timeline
-- [x] Adicionar cursor por clique e setas
-- [x] Corrigir hover, tooltip e desfoco
-- [x] Validar e commitar

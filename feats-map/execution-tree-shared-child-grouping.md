@@ -1,3 +1,0 @@
-- [x] Agrupar nodes com multiplos pais no ancestral comum
-- [x] Ajustar teste da tree sem duplicar subarvore
-- [x] Validar e commitar

@@ -1,8 +1,0 @@
-- [x] Remover frame duplicado de componente
-- [x] Corrigir header width do grupo
-- [x] Ocultar selection box no drag do grupo
-- [x] Ocultar Group em grupo existente
-- [x] Ajustar toolbar hover
-- [x] Ajustar layout toolbox
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

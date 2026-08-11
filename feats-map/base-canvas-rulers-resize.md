@@ -1,4 +1,0 @@
-- [x] Mapear resize das rulers
-- [x] Redesenhar rulers no resize do container
-- [x] Validar contratos
-- [x] Commitar mudancas

@@ -1,6 +1,0 @@
-- [x] Mapear timeline atual
-- [ ] Adicionar depth columns
-- [ ] Adicionar branch lanes
-- [ ] Adicionar run trail
-- [ ] Melhorar badges de duracao
-- [ ] Validar e commitar

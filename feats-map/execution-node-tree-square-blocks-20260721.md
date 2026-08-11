@@ -1,3 +1,0 @@
-- [x] Square execution tree blocks
-- [x] Square inspector sections
-- [x] Validate and commit

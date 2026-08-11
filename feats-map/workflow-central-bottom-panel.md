@@ -1,6 +1,0 @@
-- [x] Mapear bottom panels atuais
-- [x] Ativar rulers no workflow canvas
-- [x] Criar bottom panel central
-- [x] Integrar status e rail
-- [x] Validar contratos
-- [x] Commitar mudancas

@@ -1,7 +1,0 @@
-- [x] Criar contrato JSON de components
-- [x] Criar componente a partir da seleção/root
-- [x] Adicionar aba Components na Toolbox
-- [x] Renderizar Page Component no canvas
-- [x] Inspector de Name, Props e Events
-- [x] Expor fields dos filhos no node do component
-- [x] Validar e commitar

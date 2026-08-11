@@ -1,5 +1,0 @@
-- [x] Modelar eventos e limpar blueprint residual
-- [x] Criar componentes base de eventos
-- [x] Integrar Advanced ao Pages
-- [x] Atualizar runtime publicado
-- [x] Validar build e testes

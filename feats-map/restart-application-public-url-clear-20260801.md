@@ -1,4 +1,0 @@
-- [x] Criar componente base de restart
-- [x] Reutilizar restart no Public URL
-- [x] Adicionar limpar Public URL
-- [x] Validar contratos e type-check

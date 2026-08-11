@@ -1,4 +1,0 @@
-- [x] Remover header e footer
-- [x] Corrigir altura
-- [x] Validar frontend
-- [x] Commitar mudanças

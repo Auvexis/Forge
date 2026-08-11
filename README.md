@@ -78,13 +78,13 @@ Open only the gateway URL in normal use.
 Requires Docker Desktop or Docker Engine.
 
 ```bash
-FABRIC_VERSION=0.1.0-alpha.10 docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.11 docker compose -f docker-compose.prod.yml up -d
 ```
 
 PowerShell:
 
 ```powershell
-$env:FABRIC_VERSION = "0.1.0-alpha.10"
+$env:FABRIC_VERSION = "0.1.0-alpha.11"
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -108,11 +108,15 @@ Desktop builds are published from GitHub releases during alpha.
 
 Expected release assets:
 
-- Windows: `.exe`
-- macOS: `.dmg`
-- Linux: `.AppImage` or `.deb`
+- Windows: `Fabric-<version>-win-x64.exe`
+- macOS: `Fabric-<version>-mac-x64.dmg`
+- macOS Apple Silicon: `Fabric-<version>-mac-arm64.dmg`
+- Linux AppImage: `Fabric-<version>-linux-x64.AppImage`
+- Linux deb: `Fabric-<version>-linux-amd64.deb`
 
-See [Desktop release docs](docs/release-desktop.md).
+> [!CAUTION]
+> Alpha desktop builds are unsigned alpha installers. Do not claim signed or
+> notarized binaries until code signing is configured for each platform.
 
 <img src="docs/assets/separator.png" alt="" />
 
@@ -141,7 +145,7 @@ npx @auvexis/fabric@alpha
 Docker:
 
 ```bash
-FABRIC_VERSION=0.1.0-alpha.10 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.11 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
 ```
 
 > [!WARNING]
@@ -196,17 +200,12 @@ npx @auvexis/fabric@alpha
 Docker images:
 
 ```text
-ghcr.io/auvexis/fabric-api:0.1.0-alpha.10
-ghcr.io/auvexis/fabric-client:0.1.0-alpha.10
-ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.10
+ghcr.io/auvexis/fabric-api:0.1.0-alpha.11
+ghcr.io/auvexis/fabric-client:0.1.0-alpha.11
+ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.11
 ```
 
-Release docs:
-
-- [npm release](docs/release-npm.md)
-- [Docker release](docs/release-docker.md)
-- [Desktop release](docs/release-desktop.md)
-- [Remote release validation](docs/remote-release-validation.md)
+Release assets are published from GitHub Actions when a release tag is created.
 
 <img src="docs/assets/separator.png" alt="" />
 

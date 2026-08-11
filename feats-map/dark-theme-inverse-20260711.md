@@ -1,3 +1,0 @@
-- [x] Inverter tokens do tema escuro
-- [x] Validar frontend
-- [x] Commitar mudanças

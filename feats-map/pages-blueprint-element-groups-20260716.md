@@ -1,7 +1,0 @@
-- [x] Analisar grupos antigos
-- [x] Carregar todos os elementos
-- [x] Criar preview e grupo base
-- [x] Renderizar grupos no canvas
-- [x] Adicionar drag pelo header
-- [x] Validar type-check
-- [x] Commitar ajuste

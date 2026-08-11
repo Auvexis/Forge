@@ -1,4 +1,0 @@
-- [x] Entender fluxo Vector Store no Add Node Panel
-- [x] Fazer Vector Store abrir selecao de provider
-- [x] Atualizar contratos
-- [x] Validar e commitar

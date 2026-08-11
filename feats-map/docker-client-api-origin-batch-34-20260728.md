@@ -1,4 +1,0 @@
-- [x] Remover API localhost do build Docker do client
-- [x] Ajustar testes de contrato
-- [x] Validar build/testes afetados
-- [x] Commitar e pushar

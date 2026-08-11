@@ -1,4 +1,0 @@
-- [x] Restore media slots
-- [x] Add sections parent padding
-- [x] Update contract
-- [x] Run checks

@@ -1,4 +1,0 @@
-- [x] Priorizar label resolvido do elemento
-- [x] Atualizar canvas e inspector
-- [x] Validar build/typecheck
-- [x] Commitar alterações

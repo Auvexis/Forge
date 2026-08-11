@@ -1,6 +1,0 @@
-- [x] Mapear canvas e engine
-- [x] Corrigir posicao do picker
-- [x] Testar branches paralelas
-- [x] Corrigir scheduler seguro
-- [x] Validar contratos
-- [x] Commitar mudancas

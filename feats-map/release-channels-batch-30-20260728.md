@@ -1,5 +1,0 @@
-- [x] Generalizar workflow manual
-- [x] Publicar npm por canal
-- [x] Atualizar docs
-- [x] Validar CI
-- [x] Commitar batch

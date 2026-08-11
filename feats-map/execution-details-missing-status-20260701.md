@@ -1,5 +1,0 @@
-- [x] Add regression for execution step without status
-- [x] Normalize missing execution statuses safely
-- [x] Review agent invalid JSON after tool result
-- [x] Verify focused tests and builds
-- [x] Commit fix

@@ -1,3 +1,0 @@
-- [x] Trocar lane para linha central
-- [x] Manter fechamento inferior
-- [x] Validar e commitar

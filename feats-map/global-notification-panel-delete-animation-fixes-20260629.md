@@ -1,5 +1,0 @@
-- [x] Add regression contracts.
-- [x] Delay notification deletion until the row exit animation finishes.
-- [x] Make notification detail render as a borderless panel tab.
-- [x] Verify focused tests and type-check.
-- [x] Commit.

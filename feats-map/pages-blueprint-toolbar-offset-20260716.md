@@ -1,3 +1,0 @@
-- [x] Ajustar offset da toolbar
-- [x] Validar diff
-- [x] Commitar ajuste

@@ -1,3 +1,0 @@
-- [x] Ajustar altura da lane
-- [x] Fechar borda inferior
-- [x] Validar e commitar

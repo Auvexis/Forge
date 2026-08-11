@@ -1,5 +1,0 @@
-- [x] Analisar toolbar e Toolbox
-- [x] Adicionar X no Toolbox
-- [x] Adicionar botao no rail Blueprint
-- [x] Validar type-check
-- [x] Commitar ajuste

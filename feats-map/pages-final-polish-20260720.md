@@ -1,5 +1,0 @@
-- [x] Adicionar New Project no Open Project
-- [x] Descer abas Design/Blueprint
-- [x] Corrigir tokens do NotificationTrigger
-- [x] Validar
-- [x] Commitar e push

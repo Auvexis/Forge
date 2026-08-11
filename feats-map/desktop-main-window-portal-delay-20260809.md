@@ -1,2 +1,0 @@
-- [x] Keep main renderer active for child window portals
-- [x] Validate desktop contracts

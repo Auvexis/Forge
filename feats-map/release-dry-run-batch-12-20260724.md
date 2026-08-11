@@ -1,6 +1,0 @@
-- [x] Revisar Git e Docker locais
-- [x] Criar tag local dry-run
-- [x] Buildar imagens Docker locais
-- [x] Rodar smoke test Docker local
-- [x] Validar compose de producao
-- [x] Commitar batch 12

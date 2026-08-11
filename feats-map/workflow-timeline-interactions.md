@@ -1,4 +1,0 @@
-- [x] Adicionar eventos da timeline
-- [x] Integrar selecao e foco no canvas
-- [x] Adicionar tooltip, trace, zoom e scrub
-- [x] Validar e commitar

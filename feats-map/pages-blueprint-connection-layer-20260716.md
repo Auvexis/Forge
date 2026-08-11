@@ -1,6 +1,0 @@
-- [x] Criar layer visual de connections
-- [x] Calcular ports dos fields
-- [x] Desenhar connection pendente
-- [x] Estilizar paths e estado ativo
-- [x] Validar type-check
-- [x] Commitar ajuste

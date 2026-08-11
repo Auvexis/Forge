@@ -1,5 +1,0 @@
-- [x] Adicionar remove connection no store
-- [x] Emitir double-click nas linhas
-- [x] Limpar expression do field alvo
-- [x] Validar type-check
-- [x] Commitar ajuste

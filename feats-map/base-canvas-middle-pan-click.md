@@ -1,4 +1,0 @@
-- [x] Mapear gesto de pan
-- [x] Corrigir supressao de click
-- [x] Validar contratos
-- [x] Commitar mudancas

@@ -74,10 +74,11 @@ describe('Page Actions architecture', () => {
     expect(css).toMatch(/\.web-page-data-actions__target-row/)
   })
 
-  it('documents the Page Actions boundary with an ADR', () => {
-    const adr = read('../../docs/adr/0001-page-actions-architecture.md')
+  it('keeps the Page Actions boundary encoded in source contracts', () => {
+    const gateway = read('src/features/web-pages/data-actions/gateways/workflowPageActionGateway.ts')
+    const store = read('src/features/web-pages/data-actions/stores/page-actions.store.ts')
 
-    expect(adr).toMatch(/Pages components must not call the workflow engine directly/)
-    expect(adr).toMatch(/MVP 1 Scope/)
+    expect(gateway).toMatch(/workflowsApi/)
+    expect(store).toMatch(/workflowPageActionGateway/)
   })
 })

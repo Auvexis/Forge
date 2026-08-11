@@ -1,4 +1,0 @@
-- [x] Criar overlay host por document
-- [x] Migrar overlays compartilhados
-- [x] Ajustar testes
-- [x] Validar e commitar

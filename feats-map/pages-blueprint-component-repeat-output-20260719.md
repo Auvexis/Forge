@@ -1,5 +1,0 @@
-- [x] Separar repeat input/output do componente
-- [x] Conectar component repeat ao grid repeat
-- [x] Remover self repeat antigo
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

@@ -1,6 +1,0 @@
-- [x] Mapear run explorer e store
-- [x] Corrigir status final da run ativa
-- [x] Ajustar tree e erro do log
-- [x] Colapsar input/output vazio
-- [x] Validar contratos
-- [x] Commitar mudancas

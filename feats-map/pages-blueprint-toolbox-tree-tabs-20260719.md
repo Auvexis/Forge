@@ -1,5 +1,0 @@
-- [x] Usar BaseSegmentedSelect no Toolbox
-- [x] Copiar estrutura web-page-tree em Components
-- [x] Remover tabs custom
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

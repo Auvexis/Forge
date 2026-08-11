@@ -1,5 +1,0 @@
-- [x] Criar servico desktop de releases
-- [x] Expor checagem de update ao frontend
-- [x] Criar dialog base de update
-- [x] Adicionar checagem manual e auto check
-- [x] Validar contratos e builds

@@ -1,5 +1,0 @@
-- [x] Mapear troca de projetos
-- [x] Criar dropdown de projetos
-- [x] Enviar projeto aberto ao centro da topbar
-- [x] Validar frontend
-- [x] Commitar mudanças

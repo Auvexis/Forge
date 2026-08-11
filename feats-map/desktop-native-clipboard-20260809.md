@@ -1,3 +1,0 @@
-- [x] Add desktop native clipboard IPC
-- [x] Use native clipboard from client helper
-- [x] Validate and commit

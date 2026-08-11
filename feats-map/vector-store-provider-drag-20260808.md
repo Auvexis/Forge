@@ -1,2 +1,0 @@
-- [x] Permitir drag dos providers
-- [x] Validar e commitar

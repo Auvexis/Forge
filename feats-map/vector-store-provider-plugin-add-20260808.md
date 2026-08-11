@@ -1,3 +1,0 @@
-- [x] Redirecionar provider para template
-- [x] Atualizar contratos
-- [x] Validar e commitar

@@ -1,7 +1,0 @@
-- [x] Remover fields padrao dos utility nodes
-- [x] Criar actions de fields dinamicos no store
-- [x] Criar controles base no Inspector
-- [x] Adicionar fields no Transform Data
-- [x] Adicionar Test Run JSON no Run Workflow
-- [x] Validar type-check
-- [x] Commitar ajuste

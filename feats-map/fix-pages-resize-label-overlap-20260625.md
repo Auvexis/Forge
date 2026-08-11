@@ -1,4 +1,0 @@
-- [x] Add resize label overlap contract
-- [x] Remove duplicate resize dimension label
-- [x] Move metric and locked labels down
-- [x] Verify and commit

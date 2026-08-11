@@ -1,3 +1,0 @@
-- [x] Normalizar lanes fracionadas
-- [x] Atualizar contrato
-- [x] Validar e commitar

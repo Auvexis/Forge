@@ -1,5 +1,0 @@
-- [x] Mapear inspector e tema dark
-- [x] Corrigir fechamento do inspector
-- [x] Neutralizar dark theme
-- [x] Validar frontend
-- [x] Commitar mudancas

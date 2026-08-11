@@ -1,6 +1,0 @@
-- [x] Passar blocks para Components Tree
-- [x] Montar filhos pela hierarquia da pagina
-- [x] Copiar row da Design Tree
-- [x] Remover estilos custom restantes
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

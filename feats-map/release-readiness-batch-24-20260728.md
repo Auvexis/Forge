@@ -1,7 +1,0 @@
-- [x] Ajustar default branch e Dependabot
-- [x] Validar Docker alpha 5
-- [x] Criar README principal
-- [x] Criar CHANGELOG
-- [x] Adicionar E2E basico
-- [x] Rodar verificacoes
-- [x] Commitar batches

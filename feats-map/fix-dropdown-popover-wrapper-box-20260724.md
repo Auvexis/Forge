@@ -1,3 +1,0 @@
-- [x] Remover caixa externa do dropdown
-- [x] Preservar AppPopover padrao
-- [x] Rodar contratos de tema

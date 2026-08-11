@@ -1,3 +1,0 @@
-- [x] Ajustar preset da janela Form Theme
-- [x] Corrigir layout e preview do Form Theme
-- [x] Validar e commitar

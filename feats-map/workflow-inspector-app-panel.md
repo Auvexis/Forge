@@ -1,5 +1,0 @@
-- [x] Migrar inspector para AppPanel
-- [x] Respeitar chrome e status bar
-- [x] Ajustar contrato e estilos
-- [x] Validar frontend
-- [x] Commitar mudancas

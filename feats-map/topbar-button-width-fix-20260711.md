@@ -1,3 +1,0 @@
-- [x] Corrigir larguras da topbar
-- [x] Validar frontend
-- [x] Commitar mudanças

@@ -1,6 +1,0 @@
-- [x] Auditar CSS e props com cores fora de Vue scoped styles
-- [x] Tokenizar command palette CSS
-- [x] Remover fallbacks literais do BaseCanvas
-- [x] Sincronizar temas JSON e fallback CSS
-- [x] Expandir contrato para CSS
-- [x] Rodar testes e type-check

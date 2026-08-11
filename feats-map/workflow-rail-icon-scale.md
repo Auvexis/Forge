@@ -1,4 +1,0 @@
-- [x] Ajustar tamanho dos botoes do rail
-- [x] Ajustar icones do rail
-- [x] Validar frontend
-- [x] Commitar mudancas

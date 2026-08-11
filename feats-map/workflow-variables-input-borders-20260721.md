@@ -1,3 +1,0 @@
-- [x] Add workflow variables field border theme tokens
-- [x] Apply persistent borders to variables panel base inputs
-- [x] Validate and commit

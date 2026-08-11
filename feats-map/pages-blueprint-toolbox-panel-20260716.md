@@ -1,5 +1,0 @@
-- [x] Analisar AppPanel e layout
-- [x] Criar Toolbox base da Blueprint
-- [x] Renderizar Toolbox no modo Blueprint
-- [x] Validar type-check
-- [x] Commitar ajuste

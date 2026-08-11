@@ -1,5 +1,0 @@
-- [x] Mapear componentes shared
-- [x] Expandir tokens JSON por componente
-- [x] Atualizar contrato de tema
-- [x] Validar frontend
-- [x] Commitar mudancas

@@ -1,5 +1,0 @@
-- [x] Mapear modal novo de agentes
-- [x] Conectar command palette
-- [x] Conectar status bar
-- [x] Validar contratos
-- [x] Commitar ajuste

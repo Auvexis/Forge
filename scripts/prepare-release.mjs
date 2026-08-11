@@ -95,6 +95,10 @@ function ensureTagDoesNotExist(version) {
 }
 
 function replaceAll(relativePath, replacements) {
+  const absolutePath = path.join(rootDir, relativePath);
+  if (!fs.existsSync(absolutePath)) {
+    return;
+  }
   let text = readText(relativePath);
   for (const [from, to] of replacements) {
     text = text.split(from).join(to);
@@ -132,8 +136,9 @@ const workspacePackagePaths = [
   "apps/api/package.json",
   "apps/client/package.json",
   "apps/gateway/package.json",
+  "apps/desktop/package.json",
 ];
-const workspaceLockPackagePaths = ["apps/api", "apps/client", "apps/gateway"];
+const workspaceLockPackagePaths = ["apps/api", "apps/client", "apps/gateway", "apps/desktop"];
 
 for (const workspacePackagePath of workspacePackagePaths) {
   const workspacePackageJson = readJson(workspacePackagePath);
@@ -159,8 +164,6 @@ const replacements = [
 ];
 
 replaceAll("docker-compose.prod.yml", replacements);
-replaceAll("docs/release-docker.md", replacements);
-replaceAll("docs/release-npm.md", replacements);
 replaceAll("README.md", replacements);
 replaceAll("CHANGELOG.md", replacements);
 replaceAll("apps/client/src/core/constants/app.ts", replacements);

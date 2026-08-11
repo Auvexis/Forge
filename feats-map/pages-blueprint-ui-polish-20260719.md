@@ -1,7 +1,0 @@
-- [x] Persistir nome e cor de grupos
-- [x] Adicionar ungroup
-- [x] Melhorar headers de grupos/componentes
-- [x] Reusar tabs/tree no Toolbox
-- [x] Adicionar keybinds Blueprint
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

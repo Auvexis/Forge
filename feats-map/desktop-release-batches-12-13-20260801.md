@@ -1,6 +1,0 @@
-- [x] Revisar batch 12
-- [x] Atualizar docs desktop
-- [x] Adicionar contrato de artefatos
-- [x] Atualizar checklist batch 13
-- [x] Validar desktop
-- [x] Commitar ajuste

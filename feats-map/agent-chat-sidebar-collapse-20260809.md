@@ -1,4 +1,0 @@
-- [x] Fix agent chat sidebar overflow
-- [x] Add BaseModal window title slot
-- [x] Add agent sidebar collapse toggle
-- [x] Verify and commit

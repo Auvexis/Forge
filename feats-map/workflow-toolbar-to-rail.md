@@ -1,5 +1,0 @@
-- [x] Mapear comandos da toolbar
-- [x] Migrar comandos para rail
-- [x] Remover toolbar horizontal
-- [x] Validar frontend
-- [x] Commitar mudancas

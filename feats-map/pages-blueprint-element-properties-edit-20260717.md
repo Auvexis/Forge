@@ -1,5 +1,0 @@
-- [x] Mostrar valores dinamicos no Inspector do elemento
-- [x] Editar propriedades HTML do elemento
-- [x] Editar ID e label de nodes
-- [x] Validar typecheck/build
-- [x] Commitar alterações

@@ -1,4 +1,0 @@
-- [x] Add trigger name canvas contract
-- [x] Render trigger name in canvas description
-- [x] Run focused frontend tests
-- [x] Commit changes

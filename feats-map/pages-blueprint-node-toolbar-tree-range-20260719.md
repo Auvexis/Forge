@@ -1,4 +1,0 @@
-- [x] Ajustar toolbar de element node
-- [x] Corrigir shift range na Tree
-- [x] Validar testes/build
-- [x] Commitar alteracoes

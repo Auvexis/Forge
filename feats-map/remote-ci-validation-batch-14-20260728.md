@@ -1,5 +1,0 @@
-- [x] Confirmar branch e remoto
-- [x] Enviar dev para origin
-- [x] Conferir workflow remoto
-- [x] Registrar resultado
-- [x] Commitar batch 14

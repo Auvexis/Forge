@@ -1,5 +1,0 @@
-- [x] Rodar audit completo e producao
-- [x] Aplicar fixes seguros
-- [x] Validar testes e build
-- [x] Documentar riscos restantes
-- [x] Commitar batch 13

@@ -1,5 +1,0 @@
-- [x] Generalizar prepare release
-- [x] Manter alias alpha
-- [x] Atualizar docs
-- [x] Rodar verificacoes
-- [x] Commitar batch

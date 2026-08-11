@@ -1,5 +1,0 @@
-- [x] Expandir tipos da conta
-- [x] Redesenhar perfil flat
-- [x] Adicionar hint de badges
-- [x] Validar frontend
-- [x] Commitar mudancas

@@ -1,3 +1,0 @@
-- [x] Expand HomeWelcome width
-- [x] Update contract
-- [x] Run checks

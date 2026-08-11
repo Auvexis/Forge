@@ -1,4 +1,0 @@
-- [x] Mapear painel Variables atual
-- [x] Criar editor inline de variaveis
-- [x] Polir layout no estilo workbench
-- [x] Validar frontend

@@ -1,5 +1,0 @@
-- [x] Mapear surfaces base
-- [x] Ajustar AppPanel
-- [x] Ajustar BaseModal e BaseMiniMenu
-- [x] Validar frontend
-- [x] Commitar mudancas

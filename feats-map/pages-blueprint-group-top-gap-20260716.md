@@ -1,4 +1,0 @@
-- [x] Analisar gap do grupo
-- [x] Ajustar offset superior
-- [x] Validar type-check
-- [x] Commitar ajuste

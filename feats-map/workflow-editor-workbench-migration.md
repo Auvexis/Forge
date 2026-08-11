@@ -1,6 +1,0 @@
-- [x] Mapear chrome e layout atual
-- [x] Criar bases de workbench
-- [x] Migrar Workflow Editor para workbench
-- [x] Ajustar estilo de producao
-- [x] Validar frontend
-- [x] Commitar mudancas

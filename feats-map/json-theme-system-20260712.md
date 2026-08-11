@@ -1,5 +1,0 @@
-- [x] Criar estrutura de temas JSON
-- [x] Separar loader/registry dos JSONs
-- [x] Aplicar tema como CSS vars
-- [x] Validar frontend
-- [x] Commitar mudanças

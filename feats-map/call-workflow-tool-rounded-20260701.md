@@ -1,4 +1,0 @@
-- [x] Add subnode rounding contract
-- [x] Implement automatic subnode rounding
-- [x] Run focused frontend tests
-- [x] Commit changes

@@ -1,6 +1,0 @@
-- [x] Trocar render function por template
-- [x] Remover scoped do CSS copiado
-- [x] Adicionar edição label/id
-- [x] Ligar renames no Blueprint
-- [x] Validar build/typecheck
-- [x] Commitar alteracoes

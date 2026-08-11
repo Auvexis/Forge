@@ -1,3 +1,0 @@
-- [x] Mover Electron runtime para renderizer.config
-- [x] Atualizar Renderizer no Fabric
-- [x] Validar e commitar

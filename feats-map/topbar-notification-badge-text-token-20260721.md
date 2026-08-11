@@ -1,3 +1,0 @@
-- [x] Add topbar notification badge text token
-- [x] Use token in AppTopbar badge
-- [x] Validate and commit

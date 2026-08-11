@@ -1,5 +1,0 @@
-- [x] Revisar tokens atuais
-- [x] Aplicar aliases semanticos no CSS
-- [x] Atualizar contrato
-- [x] Validar frontend
-- [x] Commitar mudancas

@@ -1,3 +1,0 @@
-- [x] Set utility Trigger default type
-- [x] Cover canvas default contract
-- [x] Validate and commit

@@ -1,5 +1,0 @@
-- [x] Corrigir fundo do Inspector Blueprint
-- [x] Reduzir altura vazia do Run Workflow
-- [x] Adicionar ghost no field mode
-- [x] Validar typecheck
-- [x] Commitar alterações

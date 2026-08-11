@@ -1,3 +1,0 @@
-- [x] Resetar cursor manual ao iniciar nova execucao
-- [x] Garantir que a timeline volte a seguir eventos da run
-- [x] Validar e commitar

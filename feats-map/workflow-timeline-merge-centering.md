@@ -1,4 +1,0 @@
-- [x] Mapear lanes da timeline
-- [x] Centralizar nodes convergentes
-- [x] Validar layout
-- [x] Commitar mudancas

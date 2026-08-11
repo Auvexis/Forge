@@ -1,5 +1,0 @@
-- [x] Revisar CI Docker atual
-- [x] Adicionar publicação GHCR
-- [x] Versionar tags por branch, tag e sha
-- [x] Validar workflow
-- [x] Commitar batch 8

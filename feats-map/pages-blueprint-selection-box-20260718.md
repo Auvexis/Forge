@@ -1,6 +1,0 @@
-- [x] Copiar padrão da selection box
-- [x] Adaptar para BaseCanvas do Blueprint
-- [x] Adicionar toolbar de seleção
-- [x] Expor ação Create Component
-- [x] Validar build/typecheck
-- [x] Commitar alterações

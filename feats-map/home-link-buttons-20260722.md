@@ -1,3 +1,0 @@
-- [x] Use link buttons
-- [x] Stack action groups
-- [x] Run checks

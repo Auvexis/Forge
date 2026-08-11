@@ -1,4 +1,0 @@
-- [x] Reproduzir callback exibindo JSON
-- [x] Retornar página de sucesso no callback
-- [x] Verificar testes
-- [x] Commitar ajuste

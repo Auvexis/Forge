@@ -1,3 +1,0 @@
-- [x] Replace native controls with base components
-- [x] Apply professional modal layout
-- [x] Validate and commit

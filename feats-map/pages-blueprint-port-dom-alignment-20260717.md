@@ -1,5 +1,0 @@
-- [x] Marcar ports no DOM
-- [x] Medir centros dos pick whips
-- [x] Adicionar bg ghost
-- [x] Validar type-check
-- [x] Commitar ajuste

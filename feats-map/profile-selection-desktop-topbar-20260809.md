@@ -1,3 +1,0 @@
-- [x] Add reusable desktop topbar
-- [x] Use it on profile selection
-- [x] Validate and commit

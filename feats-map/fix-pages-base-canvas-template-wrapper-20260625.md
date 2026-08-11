@@ -1,3 +1,0 @@
-- [x] Remove literal template wrapper.
-- [x] Verify build.
-- [ ] Commit.

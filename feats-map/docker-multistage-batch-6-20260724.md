@@ -1,5 +1,0 @@
-- [x] Revisar runtime das imagens
-- [x] Converter Dockerfiles para multi-stage
-- [x] Ajustar dependencias de runtime
-- [x] Validar builds
-- [x] Commitar batch 6

@@ -1,4 +1,0 @@
-- [x] Mapear dados do perfil Auvexis
-- [x] Aplicar layout em coluna com foto
-- [x] Validar frontend
-- [x] Commitar mudancas

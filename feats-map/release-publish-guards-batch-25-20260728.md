@@ -1,4 +1,0 @@
-- [x] Proteger docker publish por tag
-- [x] Remover tag Docker de branch
-- [x] Rodar verificacao do workflow
-- [x] Commitar batch

@@ -1,3 +1,0 @@
-- [x] Mapear ajuste que ficou bugado
-- [x] Restaurar spacing antigo das lanes
-- [x] Validar e commitar

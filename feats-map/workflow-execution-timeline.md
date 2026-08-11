@@ -1,6 +1,0 @@
-- [x] Mapear timeline e execucao
-- [x] Criar view Timeline no bottom panel
-- [x] Abrir Timeline por padrao
-- [x] Remover quick actions do Inspector
-- [x] Validar contratos
-- [x] Commitar mudancas

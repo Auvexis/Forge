@@ -1,5 +1,0 @@
-- [x] Identificar bloqueio de conexao
-- [x] Resolver target interno do componente
-- [x] Expor repeat source no componente
-- [x] Validar build/typecheck
-- [x] Commitar correcao
