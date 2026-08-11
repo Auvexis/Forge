@@ -1,9 +1,10 @@
 {
   "name": "@fabric/desktop",
-  "version": "0.1.0-alpha.13",
+  "version": "0.1.0-alpha.14",
   "description": "Fabric desktop shell.",
   "productName": "Fabric",
   "desktopName": "Fabric",
+  "homepage": "https://github.com/Auvexis/fabric#readme",
   "author": "Auvexis",
   "private": true,
   "type": "module",

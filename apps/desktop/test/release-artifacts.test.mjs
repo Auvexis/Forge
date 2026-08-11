@@ -21,6 +21,7 @@ test('desktop release artifact names are stable for landing page downloads', () 
   );
   assert.equal(desktopPackage.build.directories.output, 'release');
   assert.equal(desktopPackage.desktopName, 'Fabric');
+  assert.equal(desktopPackage.homepage, 'https://github.com/Auvexis/fabric#readme');
   assert.equal(desktopPackage.build.executableName, 'Fabric');
 
   assert.deepEqual(desktopPackage.build.win.target, [
