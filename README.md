@@ -1,9 +1,5 @@
 <img alt="Fabric banner" src="docs/assets/banner.png" />
 
-<p align="center">
-  <img alt="Fabric logo" src="docs/assets/logo.png" width="96" />
-</p>
-
 # Fabric
 
 Fabric is a local automation workspace for workflows, forms, webhooks, pages,
