@@ -20,6 +20,7 @@ test('desktop release artifact names are stable for landing page downloads', () 
     'Fabric-${version}-${os}-${arch}.${ext}',
   );
   assert.equal(desktopPackage.build.directories.output, 'release');
+  assert.equal(desktopPackage.desktopName, 'Fabric');
   assert.equal(desktopPackage.build.executableName, 'Fabric');
 
   assert.deepEqual(desktopPackage.build.win.target, [
@@ -30,7 +31,6 @@ test('desktop release artifact names are stable for landing page downloads', () 
   ]);
   assert.deepEqual(desktopPackage.build.linux.target, ['AppImage', 'deb']);
   assert.equal(desktopPackage.build.linux.executableName, 'Fabric');
-  assert.equal(desktopPackage.build.linux.desktopName, 'Fabric');
   assert.equal(desktopPackage.build.linux.syncDesktopName, true);
 });
 

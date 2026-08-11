@@ -1,6 +1,6 @@
 services:
   fabric-gateway:
-    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_GATEWAY_IMAGE:-fabric-gateway}:${FABRIC_VERSION:-0.1.0-alpha.12}
+    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_GATEWAY_IMAGE:-fabric-gateway}:${FABRIC_VERSION:-0.1.0-alpha.13}
     container_name: fabric-gateway
     ports:
       - "${FABRIC_GATEWAY_PORT:-23800}:23800"
@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   fabric-server:
-    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_API_IMAGE:-fabric-api}:${FABRIC_VERSION:-0.1.0-alpha.12}
+    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_API_IMAGE:-fabric-api}:${FABRIC_VERSION:-0.1.0-alpha.13}
     container_name: fabric-server
     environment:
       FABRIC_HOME: /app/.fabric
@@ -34,7 +34,7 @@ services:
     restart: unless-stopped
 
   fabric-client:
-    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_CLIENT_IMAGE:-fabric-client}:${FABRIC_VERSION:-0.1.0-alpha.12}
+    image: ${FABRIC_IMAGE_REGISTRY:-ghcr.io/auvexis}/${FABRIC_CLIENT_IMAGE:-fabric-client}:${FABRIC_VERSION:-0.1.0-alpha.13}
     container_name: fabric-client
     depends_on:
       fabric-server:
