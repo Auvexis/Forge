@@ -1,68 +1,61 @@
-<p align="center">
-  <img src="app-assets/LOGO_DARK.svg" alt="Fabric" width="190" />
-</p>
-
-<h1 align="center">Fabric</h1>
+<img alt="Fabric banner" src="docs/assets/banner.png" />
 
 <p align="center">
-  Local automation workspace for workflows, forms, webhooks, pages, plugins, and agent tools.
+  <img alt="Fabric logo" src="docs/assets/logo.png" width="96" />
 </p>
 
-<p align="center">
-  <strong>Desktop</strong> · <strong>npm</strong> · <strong>Docker</strong>
-</p>
+# Fabric
 
-<p align="center">
-  <a href="https://github.com/Auvexis/fabric/releases">Releases</a>
-  ·
-  <a href="docs/release-npm.md">npm</a>
-  ·
-  <a href="docs/release-docker.md">Docker</a>
-  ·
-  <a href="docs/release-desktop.md">Desktop</a>
-  ·
-  <a href="COMMERCIAL-LICENSE.md">License</a>
-</p>
+Fabric is a local automation workspace for workflows, forms, webhooks, pages,
+plugins and agent tools.
 
+Build visual workflows, publish public forms and webhooks, connect plugins, run
+agent chats, and keep the whole workspace local unless you choose to expose it
+through a Public URL.
+
+```bash
+npx @auvexis/fabric@alpha
+```
+
+> [!IMPORTANT]
 > Fabric is currently alpha software. Expect breaking changes while the project
 > evolves toward a stable public release.
 
-## What is Fabric?
+<img src="docs/assets/separator.png" alt="" />
 
-Fabric is a local-first automation app for building workflows visually and
-running them through forms, webhooks, schedules, chat agents, pages, and plugin
-integrations.
+## Why Fabric
 
-It is designed to feel like a professional creative tool: fast local editing,
-visual workflow composition, public URLs when you need external access, and a
-plugin SDK for extending what Fabric can do.
+Automation tools usually split local editing, public webhooks, forms, agents,
+plugin integrations, and deployment into separate products or cloud-first
+services.
+
+Fabric brings those pieces into one local-first workspace that can run from npm,
+Docker, or Desktop.
+
+> [!TIP]
+> Use Fabric locally by default, then set a Public URL when forms, webhooks,
+> OAuth callbacks, or another device need to reach your workspace.
+
+<img src="docs/assets/separator.png" alt="" />
 
 ## Highlights
 
-- Visual workflow editor with nodes, triggers, panels, timelines, and variables.
+- Visual workflow editor with nodes, triggers, variables, panels, and timeline.
 - Public forms and webhooks through a configurable Public URL.
 - Agent workflows with chat sessions and plugin-backed tools.
 - Pages and website editor foundation.
 - Plugin architecture powered by Fabric SDK manifests.
 - Desktop app with native windows, tray support, restart flows, and update checks.
-- Production Docker gateway that exposes one public entrypoint.
+- Production Docker gateway with a single exposed entrypoint.
 - npm runner for local use without cloning the repository.
 
-## Install
+<img src="docs/assets/separator.png" alt="" />
 
-Fabric alpha is available through npm, Docker, and desktop builds.
-
-Current alpha:
-
-```text
-0.1.0-alpha.10
-```
-
-### npm
+## Quick Start
 
 Requires Node.js 22 or newer.
 
-```sh
+```bash
 npx @auvexis/fabric@alpha
 ```
 
@@ -72,11 +65,23 @@ Open:
 http://localhost:23800
 ```
 
-### Docker
+Fabric starts these local services:
+
+| Service | URL |
+| --- | --- |
+| Gateway | `http://localhost:23800` |
+| API | `http://localhost:23801` |
+| Client | `http://localhost:23802` |
+
+Open only the gateway URL in normal use.
+
+<img src="docs/assets/separator.png" alt="" />
+
+## Docker
 
 Requires Docker Desktop or Docker Engine.
 
-```sh
+```bash
 FABRIC_VERSION=0.1.0-alpha.10 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -95,11 +100,13 @@ http://localhost:23800
 
 Stop:
 
-```sh
+```bash
 docker compose -f docker-compose.prod.yml down
 ```
 
-### Desktop
+<img src="docs/assets/separator.png" alt="" />
+
+## Desktop
 
 Desktop builds are published from GitHub releases during alpha.
 
@@ -111,6 +118,8 @@ Expected release assets:
 
 See [Desktop release docs](docs/release-desktop.md).
 
+<img src="docs/assets/separator.png" alt="" />
+
 ## Public URL
 
 Set `FABRIC_PUBLIC_URL` when using a tunnel, domain, reverse proxy, public
@@ -120,7 +129,7 @@ Use the gateway URL, not the API URL.
 
 Ngrok example:
 
-```sh
+```bash
 ngrok http 23800
 FABRIC_PUBLIC_URL=https://example.ngrok-free.app npx @auvexis/fabric@alpha
 ```
@@ -135,46 +144,44 @@ npx @auvexis/fabric@alpha
 
 Docker:
 
-```sh
+```bash
 FABRIC_VERSION=0.1.0-alpha.10 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
 ```
 
-Fabric starts these local services:
+> [!WARNING]
+> Treat Public URLs as internet-facing. Use HTTPS for public forms, webhooks and
+> OAuth callbacks, and keep secrets out of logs, issues and screenshots.
 
-| Service | URL |
-| --- | --- |
-| Gateway | `http://localhost:23800` |
-| API | `http://localhost:23801` |
-| Client | `http://localhost:23802` |
-
-Open only the gateway URL in normal use.
+<img src="docs/assets/separator.png" alt="" />
 
 ## Development
 
 Install dependencies:
 
-```sh
+```bash
 npm install
 ```
 
 Run the web app locally:
 
-```sh
+```bash
 npm run dev
 ```
 
 Run the desktop app locally:
 
-```sh
+```bash
 npm run dev:desktop
 ```
 
 Run checks:
 
-```sh
+```bash
 npm run type-check
 npm run test
 ```
+
+<img src="docs/assets/separator.png" alt="" />
 
 ## Release Channels
 
@@ -186,7 +193,7 @@ Fabric uses channel-based releases:
 
 npm:
 
-```sh
+```bash
 npx @auvexis/fabric@alpha
 ```
 
@@ -205,13 +212,7 @@ Release docs:
 - [Desktop release](docs/release-desktop.md)
 - [Remote release validation](docs/remote-release-validation.md)
 
-## Security Notes
-
-- Treat Public URLs as internet-facing.
-- Do not expose Fabric with secrets or private workflows on untrusted networks.
-- Use HTTPS for public forms, webhooks, and OAuth callbacks.
-- Keep API keys, OAuth credentials, and private URLs out of logs, issues, and
-  screenshots.
+<img src="docs/assets/separator.png" alt="" />
 
 ## License
 

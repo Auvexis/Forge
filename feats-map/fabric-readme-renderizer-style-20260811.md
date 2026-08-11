@@ -1,0 +1,4 @@
+- [x] Add README assets
+- [x] Rewrite README with Renderizer style
+- [x] Include assets in npm package
+- [x] Verify and commit

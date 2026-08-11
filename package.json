@@ -9,7 +9,9 @@
   "files": [
     "COMMERCIAL-LICENSE.md",
     "CONTRIBUTING.md",
-    "app-assets/LOGO_DARK.svg",
+    "docs/assets/banner.png",
+    "docs/assets/logo.png",
+    "docs/assets/separator.png",
     "bin/",
     "scripts/serve-client-dist.mjs",
     "apps/api/dist/",
