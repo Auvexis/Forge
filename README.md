@@ -78,13 +78,13 @@ Open only the gateway URL in normal use.
 Requires Docker Desktop or Docker Engine.
 
 ```bash
-FABRIC_VERSION=0.1.0-alpha.11 docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.12 docker compose -f docker-compose.prod.yml up -d
 ```
 
 PowerShell:
 
 ```powershell
-$env:FABRIC_VERSION = "0.1.0-alpha.11"
+$env:FABRIC_VERSION = "0.1.0-alpha.12"
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -145,7 +145,7 @@ npx @auvexis/fabric@alpha
 Docker:
 
 ```bash
-FABRIC_VERSION=0.1.0-alpha.11 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
+FABRIC_VERSION=0.1.0-alpha.12 FABRIC_PUBLIC_URL=https://example.ngrok-free.app docker compose -f docker-compose.prod.yml up -d
 ```
 
 > [!WARNING]
@@ -200,9 +200,9 @@ npx @auvexis/fabric@alpha
 Docker images:
 
 ```text
-ghcr.io/auvexis/fabric-api:0.1.0-alpha.11
-ghcr.io/auvexis/fabric-client:0.1.0-alpha.11
-ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.11
+ghcr.io/auvexis/fabric-api:0.1.0-alpha.12
+ghcr.io/auvexis/fabric-client:0.1.0-alpha.12
+ghcr.io/auvexis/fabric-gateway:0.1.0-alpha.12
 ```
 
 Release assets are published from GitHub Actions when a release tag is created.

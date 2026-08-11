@@ -1,6 +1,6 @@
 {
   "name": "@fabric/desktop",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "description": "Fabric desktop shell.",
   "productName": "Fabric",
   "author": "Auvexis",
@@ -20,6 +20,8 @@
   "build": {
     "appId": "com.auvexis.fabric",
     "productName": "Fabric",
+    "executableName": "Fabric",
+    "desktopName": "Fabric",
     "electronVersion": "43.3.0",
     "artifactName": "Fabric-${version}-${os}-${arch}.${ext}",
     "icon": "assets/icon",
@@ -70,6 +72,10 @@
     },
     "linux": {
       "icon": "assets/icon.png",
+      "synopsis": "Fabric automation workspace",
+      "executableName": "Fabric",
+      "desktopName": "Fabric",
+      "syncDesktopName": true,
       "target": [
         "AppImage",
         "deb"

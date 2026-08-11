@@ -1,6 +1,6 @@
 {
   "name": "@auvexis/fabric",
-  "version": "0.1.0-alpha.11",
+  "version": "0.1.0-alpha.12",
   "description": "Local automation workspace for workflows, forms, webhooks and agent tools.",
   "main": "index.js",
   "bin": {
