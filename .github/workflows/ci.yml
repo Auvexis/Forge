@@ -197,7 +197,7 @@ jobs:
 
       - name: Create release if missing
         run: |
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             exit 0
           fi
 
@@ -207,6 +207,7 @@ jobs:
           fi
 
           gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
             --title "$GITHUB_REF_NAME" \
             --notes "Fabric $GITHUB_REF_NAME" \
             $PRERELEASE_FLAG
@@ -214,7 +215,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload desktop release assets
-        run: gh release upload "$GITHUB_REF_NAME" desktop-release/* --clobber
+        run: gh release upload "$GITHUB_REF_NAME" desktop-release/* --repo "$GITHUB_REPOSITORY" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
