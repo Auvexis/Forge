@@ -198,19 +198,15 @@ jobs:
       - name: Create release if missing
         run: |
           if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --prerelease=false --latest
             exit 0
-          fi
-
-          PRERELEASE_FLAG=""
-          if [[ "$GITHUB_REF_NAME" == *"-alpha."* || "$GITHUB_REF_NAME" == *"-beta."* ]]; then
-            PRERELEASE_FLAG="--prerelease"
           fi
 
           gh release create "$GITHUB_REF_NAME" \
             --repo "$GITHUB_REPOSITORY" \
             --title "$GITHUB_REF_NAME" \
             --notes "Fabric $GITHUB_REF_NAME" \
-            $PRERELEASE_FLAG
+            --latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

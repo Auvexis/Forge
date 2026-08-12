@@ -45,6 +45,9 @@ test('desktop CI uploads every alpha installer format', () => {
   assert.match(ciWorkflow, /apps\/desktop\/release\/\*\.AppImage/);
   assert.match(ciWorkflow, /apps\/desktop\/release\/\*\.deb/);
   assert.match(ciWorkflow, /CSC_IDENTITY_AUTO_DISCOVERY:\s+"false"/);
+  assert.match(ciWorkflow, /gh release create[\s\S]*--latest/);
+  assert.match(ciWorkflow, /gh release edit[\s\S]*--prerelease=false[\s\S]*--latest/);
+  assert.doesNotMatch(ciWorkflow, /PRERELEASE_FLAG/);
 });
 
 test('README discloses unsigned alpha installers', () => {
